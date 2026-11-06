@@ -100,7 +100,8 @@ async function getEarlyAccessStatus(
 }
 
 /**
- * Redeem a tester code for a user
+ * Redeem a tester code for a user. A code that can't be used is an answer; a
+ * read or write the database refused throws, for the route to answer as a failure.
  */
 export async function redeemTesterCode(
   userId: string,
@@ -116,13 +117,7 @@ export async function redeemTesterCode(
     .eq("user_id", userId)
     .single();
 
-  if (accessError && !isNoRow(accessError)) {
-    console.error("[early-access] access read failed:", accessError.message);
-    return {
-      success: false,
-      error: "Failed to redeem code. Please try again.",
-    };
-  }
+  if (accessError && !isNoRow(accessError)) throw accessError;
 
   if (existingAccess) {
     return {
@@ -143,7 +138,8 @@ export async function redeemTesterCode(
     .eq("is_active", true)
     .single();
 
-  if (codeError || !testerCode) {
+  if (codeError && !isNoRow(codeError)) throw codeError;
+  if (!testerCode) {
     return {
       success: false,
       error: "Invalid code. Please check and try again.",
@@ -186,13 +182,7 @@ export async function redeemTesterCode(
     expires_at: testerCode.expires_at,
   });
 
-  if (insertError) {
-    console.error("[EarlyAccess] Error creating access:", insertError);
-    return {
-      success: false,
-      error: "Failed to redeem code. Please try again.",
-    };
-  }
+  if (insertError) throw insertError;
 
   // The code's use count is bumped by the definer trigger on
   // user_tester_access (increment_tester_code_usage). The update that stood

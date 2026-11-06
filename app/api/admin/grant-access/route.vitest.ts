@@ -36,7 +36,6 @@ const s = vi.hoisted(() => ({
   code: null as Record<string, unknown> | null,
   grantError: null as unknown,
   insertError: null as unknown,
-  consumeError: null as unknown,
 }));
 
 /** The service-role client: rows are found by the filters the route really sent. */
@@ -55,8 +54,6 @@ const service = fakeSupabase((q: FakeQuery): Answer => {
         : NO_ROW;
     case "admin_grant_early_access":
       return { data: "access-1", error: s.grantError };
-    case "consume_tester_code":
-      return { data: [], error: s.consumeError };
     default:
       return { data: null, error: null };
   }
@@ -81,7 +78,7 @@ const post = (body: unknown) =>
   );
 const check = (query = `?email=${encodeURIComponent(PERSON.email)}`) => GET(new Request(`${URL_BASE}${query}`));
 const writes = () => service.log.filter((q) => q.op !== "select");
-const grants = () => writes().filter((q) => q.table !== "consume_tester_code");
+const grants = writes;
 
 beforeEach(() => {
   s.signedIn = ADMIN;
@@ -91,7 +88,6 @@ beforeEach(() => {
   s.code = { ...CODE };
   s.grantError = null;
   s.insertError = null;
-  s.consumeError = null;
   service.log.length = 0;
   vi.stubEnv("ADMIN_EMAILS", ADMIN.email);
   for (const level of ["log", "warn", "error"] as const) vi.spyOn(console, level).mockImplementation(() => {});
@@ -174,13 +170,6 @@ describe("granting access", () => {
     const res = await post(GRANT);
     expect(res.status).toBe(500);
     expect((await res.json()).success).toBeUndefined();
-    expect(writes().map((q) => q.table)).not.toContain("consume_tester_code");
-  });
-
-  it("still answers success when only the use count couldn't be updated, and logs it", async () => {
-    s.consumeError = FAILED;
-    expect((await post(GRANT)).status).toBe(200);
-    expect(console.error).toHaveBeenCalledWith(expect.stringContaining("consume_tester_code"), FAILED.message);
   });
 });
 
@@ -221,29 +210,34 @@ describe("what it refuses", () => {
     expect(writes()).toEqual([]);
   });
 
-  it.skip("refuses a code past its expiry, granting nothing", async () => {
+  it("refuses a code past its expiry, granting nothing", async () => {
     s.code = { ...CODE, expires_at: "2020-01-01T00:00:00Z" };
     expect((await post(GRANT)).status).toBe(400);
     expect(writes()).toEqual([]);
   });
 
-  it.skip("refuses a code with no uses left, granting nothing", async () => {
+  it("refuses a code with no uses left, granting nothing", async () => {
     s.code = { ...CODE, max_uses: 3, current_uses: 3 };
     expect((await post(GRANT)).status).toBe(400);
     expect(writes()).toEqual([]);
   });
 
-  it.skip("leaves the count to the access row's trigger, so a grant is one use, not two", async () => {
-    await post(GRANT);
-    expect(writes().map((q) => q.table)).not.toContain("consume_tester_code");
+  it("takes a code with one use left", async () => {
+    s.code = { ...CODE, max_uses: 3, current_uses: 2 };
+    expect((await post(GRANT)).status).toBe(200);
   });
 
-  it.skip("answers 500, not 'invalid code', when the code read is refused", async () => {
+  it("leaves the count to the access row's trigger, so a grant is one use, not two", async () => {
+    await post(GRANT);
+    expect(writes().map((q) => q.table)).toEqual(["admin_grant_early_access"]);
+  });
+
+  it("answers 500, not 'invalid code', when the code read is refused", async () => {
     s.codeRead = REFUSED;
     expect((await post(GRANT)).status).toBe(500);
   });
 
-  it.skip("answers 400, not 500, to an email or code that isn't text, or a body of JSON null", async () => {
+  it("answers 400, not 500, to an email or code that isn't text, or a body of JSON null", async () => {
     expect((await post({ user_email: 42, code: CODE.code })).status).toBe(400);
     expect((await post({ user_email: PERSON.email, code: 42 })).status).toBe(400);
     expect((await post("null")).status).toBe(400);

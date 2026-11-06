@@ -14,6 +14,32 @@ function generateCode(length: number = 8): string {
   return code;
 }
 
+const EDITABLE_SETTINGS = new Set([
+  "display_name",
+  "ai_generations_limit",
+  "ai_regenerations_limit",
+  "ai_assistant_limit",
+  "max_uses",
+  "expires_at",
+  "notes",
+  "is_active",
+]);
+
+const isOptionalLimit = (value: unknown) =>
+  value === undefined || value === null || (Number.isSafeInteger(value) && (value as number) >= 0);
+const isOptionalDate = (value: unknown) =>
+  value === undefined || value === null || value === "" || (typeof value === "string" && !Number.isNaN(Date.parse(value)));
+const isOptionalText = (value: unknown) => value === undefined || value === null || typeof value === "string";
+
+/** What's wrong with a code's settings, for the answer; null when they can be stored. */
+function settingsProblem(settings: Record<string, unknown>): string | null {
+  const limits = [settings.ai_generations_limit, settings.ai_regenerations_limit, settings.ai_assistant_limit, settings.max_uses];
+  if (!limits.every(isOptionalLimit)) return "Limits must be whole numbers of 0 or more";
+  if (!isOptionalDate(settings.expires_at)) return "Expiry must be a date";
+  if (!isOptionalText(settings.display_name) || !isOptionalText(settings.notes)) return "Name and notes must be text";
+  return null;
+}
+
 // GET - List all access codes
 export async function GET() {
   try {
@@ -86,6 +112,12 @@ export async function POST(request: Request) {
       notes,
     } = body;
 
+    if (customCode !== undefined && customCode !== null && typeof customCode !== "string") {
+      return errors.badRequest("Code must be 4-20 alphanumeric characters");
+    }
+    const problem = settingsProblem(body);
+    if (problem) return errors.badRequest(problem);
+
     // Generate code if not provided
     const code = customCode?.trim().toUpperCase() || generateCode();
 
@@ -151,6 +183,13 @@ export async function PATCH(request: Request) {
     if (!id) {
       return errors.badRequest("Code ID required");
     }
+    const notEditable = Object.keys(updates).find((field) => !EDITABLE_SETTINGS.has(field));
+    if (notEditable) return errors.badRequest(`Can't change ${notEditable}`);
+    const problem = settingsProblem(updates);
+    if (problem) return errors.badRequest(problem);
+    if (updates.is_active !== undefined && typeof updates.is_active !== "boolean") {
+      return errors.badRequest("is_active must be true or false");
+    }
 
     // Update the code
     const { data: updatedCode, error } = await supabase
@@ -160,6 +199,7 @@ export async function PATCH(request: Request) {
       .select()
       .single();
 
+    if (isNoRow(error)) return errors.notFound("Code not found");
     if (error) {
       throw error;
     }

@@ -15,6 +15,8 @@ let trip: Record<string, unknown>;
 let preferences: unknown;
 let authError: Response | null;
 let allowed: boolean;
+let access: { allowed: boolean };
+const log = vi.fn();
 const check = vi.fn();
 const capture = vi.fn(async (_user: string, _event: string, _props: Record<string, unknown>) => {});
 
@@ -36,6 +38,11 @@ vi.mock("@/lib/api/auth", () => ({
 }));
 vi.mock("@/lib/api/rate-limit", () => ({ createRateLimiter: () => ({ check: async () => ({ allowed, remaining: 0 }) }) }));
 vi.mock("@/lib/places/check-kept-trip", () => ({ checkKeptTripPlacesToEat: (...args: unknown[]) => check(...args) }));
+vi.mock("@/lib/api-gateway", () => ({
+  checkApiAccess: async () => access,
+  blockedCall: async () => new Response(null, { status: 503 }),
+  logApiCall: (...args: unknown[]) => log(...args),
+}));
 vi.mock("@/lib/posthog/server", () => ({ captureServerEvent: (...args: [string, string, Record<string, unknown>]) => capture(...args) }));
 
 import { POST } from "./route";
@@ -50,6 +57,8 @@ beforeEach(() => {
   capture.mockClear();
   authError = null;
   allowed = true;
+  access = { allowed: true };
+  log.mockClear();
   preferences = {};
   trip = {
     id: "trip-1",
@@ -131,6 +140,30 @@ describe("places-to-eat on a kept trip's first open", () => {
 
     expect(await res.json()).toEqual({ status: "none" });
     expect(capture.mock.calls[0][2]).toMatchObject({ stored: false, unanswered: 3 });
+  });
+
+  it("waits with Gemini's kill switch or daily limit saying no, and stays due", async () => {
+    access = { allowed: false };
+    expect((await run()).status).toBe(503);
+    expect(check).not.toHaveBeenCalled();
+  });
+
+  it("logs what the model cost, for the spend alert", async () => {
+    await run();
+    expect(log).toHaveBeenCalledTimes(1);
+    expect(log.mock.calls[0][0]).toMatchObject({
+      apiName: "gemini",
+      endpoint: "/api/trips/[id]/places-to-eat",
+      costUsd: RESULT.costUsd,
+      exactCost: true,
+      userId: "owner-1",
+    });
+  });
+
+  it("logs no call when the check didn't need the model", async () => {
+    check.mockResolvedValue({ status: "checked", changes: [], fromVersion: 4, itineraryVersion: 4, result: { ...RESULT, costUsd: 0 } });
+    await run();
+    expect(log).not.toHaveBeenCalled();
   });
 
   it("turns away a caller past the limit, and one not signed in", async () => {

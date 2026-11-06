@@ -181,14 +181,14 @@ describe("creating a code", () => {
     expect(await res.json()).not.toHaveProperty("code");
   });
 
-  it.skip("refuses a negative limit or a malformed expiry, writing nothing", async () => {
+  it("refuses a negative limit or a malformed expiry, writing nothing", async () => {
     expect((await create({ code: "VALID1", max_uses: -1 })).status).toBe(400);
     expect((await create({ code: "VALID1", ai_generations_limit: "many" })).status).toBe(400);
     expect((await create({ code: "VALID1", expires_at: "soon" })).status).toBe(400);
     expect(writes()).toEqual([]);
   });
 
-  it.skip("answers 400, not 500, to a code that isn't text, or a body of JSON null", async () => {
+  it("answers 400, not 500, to a code that isn't text, or a body of JSON null", async () => {
     expect((await create({ code: 12345 })).status).toBe(400);
     expect((await create("null")).status).toBe(400);
   });
@@ -215,14 +215,23 @@ describe("changing a code", () => {
     expect((await res.json()).success).toBeUndefined();
   });
 
-  it.skip("refuses a change to anything but a code's editable settings", async () => {
+  it("refuses a change to anything but a code's editable settings", async () => {
     expect((await change({ id: "code-1", current_uses: 0 })).status).toBe(400);
     expect((await change({ id: "code-1", created_by: "someone-else" })).status).toBe(400);
     expect((await change({ id: "code-1", code: "not a valid code!" })).status).toBe(400);
+    expect((await change({ id: "code-1", max_uses: -1 })).status).toBe(400);
+    expect((await change({ id: "code-1", expires_at: "soon" })).status).toBe(400);
+    expect((await change({ id: "code-1", is_active: "yes" })).status).toBe(400);
     expect(writes()).toEqual([]);
   });
 
-  it.skip("answers 404, not 500, when the code doesn't exist", async () => {
+  it("takes the limits, expiry and notes the page can set", async () => {
+    const settings = { display_name: "Spring", ai_generations_limit: 5, ai_regenerations_limit: null, ai_assistant_limit: 0, max_uses: 10, expires_at: "2027-01-01T00:00:00Z", notes: "for the beta", is_active: true };
+    expect((await change({ id: "code-1", ...settings })).status).toBe(200);
+    expect(writes()[0].value).toEqual(settings);
+  });
+
+  it("answers 404, not 500, when the code doesn't exist", async () => {
     s.updated = NO_ROW;
     expect((await change({ id: "no-such-code", is_active: false })).status).toBe(404);
   });
@@ -255,11 +264,5 @@ describe("deleting a code", () => {
     const res = await remove("code-1");
     expect(res.status).toBe(500);
     expect((await res.json()).success).toBeUndefined();
-  });
-
-  it.skip("keeps redeemers' access when the code itself can't be deleted", async () => {
-    s.codeDeleteError = FAILED;
-    await remove("code-1");
-    expect(writes().filter((q) => q.table === "user_tester_access")).toEqual([]);
   });
 });

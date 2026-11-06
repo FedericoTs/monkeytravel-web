@@ -23,6 +23,8 @@ const s = vi.hoisted(() => ({
   asked: [] as string[],
   apiConfig: null as Record<string, unknown> | null,
   outcomes: [] as unknown[],
+  anonDayOpen: true,
+  ip: "",
 }));
 
 vi.mock("@/lib/ai/genai-compat", async (importOriginal) => ({
@@ -47,6 +49,7 @@ vi.mock("@upstash/redis", () => ({
     };
   },
 }));
+vi.mock("@/lib/ai/anon-daily-limit", () => ({ withinAnonDailyLimit: async () => s.anonDayOpen }));
 vi.mock("next/headers", () => ({
   cookies: async () => ({
     get: (name: string) => (s.cookies.has(name) ? { value: s.cookies.get(name) } : undefined),
@@ -90,7 +93,7 @@ const paste = (body: unknown) =>
   POST(
     new NextRequest("https://monkeytravel.app/api/ai/import-plan", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", "x-forwarded-for": s.ip },
       body: typeof body === "string" ? body : JSON.stringify(body),
     })
   );
@@ -101,7 +104,12 @@ const quotaUsed = () => {
 const useUpQuota = () => s.cookies.set(QUOTA_COOKIE, JSON.stringify({ used: 10, resetAt: Date.now() + 3_600_000 }));
 const logged = () => service.log.filter((q) => q.table === "api_request_logs").map((q) => q.value as Record<string, unknown>);
 
+let run = 0;
+
 beforeEach(() => {
+  run++;
+  s.ip = `10.0.2.${run}`;
+  s.anonDayOpen = true;
   s.user = null;
   s.sessionError = null;
   s.cookies.clear();
@@ -159,32 +167,51 @@ describe("the anonymous budget", () => {
     expect(quotaUsed()).toBe(10);
   });
 
-  it.skip("counts an anonymous import the model found nothing in, since that call was paid for", async () => {
+  it("counts an anonymous import the model found nothing in, since that call was paid for", async () => {
     s.reply = NOTHING_READ;
     await paste(PLAN);
     expect(quotaUsed()).toBe(1);
   });
 
-  it.skip("stops an anonymous caller who drops the cookie before every request", async () => {
+  it("stops a network at 40 imports a day, even with the cookie dropped before each", async () => {
     const answers = [];
-    for (let i = 0; i < 400; i++) {
+    for (let i = 0; i < 41; i++) {
       s.cookies.clear();
       answers.push((await paste(PLAN)).status);
     }
-    expect(answers).toContain(429);
-    expect(s.asked.length).toBeLessThan(400);
+    expect(answers.indexOf(429)).toBe(40);
+    expect(s.asked).toHaveLength(40);
+
+    s.ip = `10.1.2.${run}`;
+    expect((await paste(PLAN)).status).toBe(200);
+  });
+
+  it("refuses someone signed out past today's limit on free AI calls, without calling the model", async () => {
+    s.anonDayOpen = false;
+    expect((await paste(PLAN)).status).toBe(429);
+    expect(s.asked).toEqual([]);
+    expect(quotaUsed()).toBe(0);
+  });
+
+  it("doesn't hold an account to that limit", async () => {
+    s.anonDayOpen = false;
+    s.user = SIGNED_IN;
+    expect((await paste(PLAN)).status).toBe(200);
   });
 });
 
 describe("limits on anyone calling it", () => {
-  it.skip("makes no paid call while Gemini's kill switch is off", async () => {
+  it("makes no paid call while Gemini's kill switch is off, and logs the refusal at no cost", async () => {
     s.user = SIGNED_IN;
     s.apiConfig = { api_name: "gemini", display_name: "Gemini", enabled: false, block_mode: "block_calls", daily_limit: null };
     expect((await paste(PLAN)).status).toBe(503);
     expect(s.asked).toEqual([]);
+    expect(logged()).toHaveLength(1);
+    expect(logged()[0]).toMatchObject({ endpoint: "/api/ai/import-plan", response_status: 503, cost_usd: 0 });
+    expect(String(logged()[0].error_message)).toContain("BLOCKED");
   });
 
-  it.skip("makes no paid call past Gemini's daily limit", async () => {
+  it("makes no paid call past Gemini's daily limit", async () => {
     s.user = SIGNED_IN;
     s.apiConfig = { api_name: "gemini", display_name: "Gemini", enabled: true, block_mode: "none", daily_limit: 1 };
     await paste(PLAN);
@@ -192,12 +219,15 @@ describe("limits on anyone calling it", () => {
     expect(s.asked).toHaveLength(1);
   });
 
-  it.skip("stops a signed-in caller who keeps importing", async () => {
-    s.user = SIGNED_IN;
+  it("stops an account at 40 imports a day, wherever it calls from", async () => {
+    s.user = { ...SIGNED_IN, id: "keeps-importing" };
     const answers = [];
-    for (let i = 0; i < 400; i++) answers.push((await paste(PLAN)).status);
-    expect(answers).toContain(429);
-    expect(s.asked.length).toBeLessThan(400);
+    for (let i = 0; i < 41; i++) {
+      s.ip = `10.2.2.${i}`;
+      answers.push((await paste(PLAN)).status);
+    }
+    expect(answers.indexOf(429)).toBe(40);
+    expect(s.asked).toHaveLength(40);
   });
 });
 
@@ -238,7 +268,7 @@ describe("what it refuses before paying for a call", () => {
     expect(s.asked[0].match(/y{2,}/)?.[0].length).toBe(120);
   });
 
-  it.skip("answers 400, not 500, to a body of JSON null", async () => {
+  it("answers 400, not 500, to a body of JSON null", async () => {
     expect((await paste("null")).status).toBe(400);
   });
 });
