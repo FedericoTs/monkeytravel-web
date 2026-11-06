@@ -34,7 +34,7 @@
     "open": "Aperto",
     "source": "Aperto e chiuso vengono da Google Maps. Non trovato può voler dire solo che Google lo conosce con un altro nome, quindi controlla prima di toglierlo.",
     "fixTitle": "Sistemalo qui",
-    "fixBody": "Crea un piano con i posti che meritano, senza quelli chiusi e con un ritmo adatto alla giornata.",
+    "fixBody": "Crea un piano con i posti che meritano, senza quelli chiusi o che Maps non trova, e con un ritmo adatto alla giornata.",
     "fix": "Crea il piano sistemato",
     "toolTitle": "Controlla il tuo piano",
     "toolDescription": "Incolla un piano da ChatGPT o da un blog. Scopri cosa è chiuso e quali giornate sono troppo piene."
