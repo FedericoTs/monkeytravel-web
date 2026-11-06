@@ -1,4 +1,5 @@
 import { API_COSTS } from "@/lib/api-gateway/config";
+import { projectMonth, summarizeSpend } from "@/lib/ops/spend";
 import type { CostRows, LogRow } from "./rows";
 import type { EnhancedCostAnalytics } from "./types";
 
@@ -44,10 +45,11 @@ const hasLatency = (log: LogRow) => !!log.response_time_ms && log.response_time_
 const cents = (usd: number) => Math.round(usd * 100) / 100;
 const mills = (usd: number) => Math.round(usd * 1000) / 1000;
 
-function summaryOf({ logs, spend }: CostRows, now: Date): EnhancedCostAnalytics["summary"] {
+function summaryOf({ logs, spend, thisMonth, lastMonth, lastWeek }: CostRows, now: Date): EnhancedCostAnalytics["summary"] {
   const since = (from: Date) => logs.filter((log) => log.timestamp && new Date(log.timestamp).getTime() >= from.getTime());
   const todayLogs = since(new Date(now.getFullYear(), now.getMonth(), now.getDate()));
   const last7DaysCost = costOf(since(new Date(now.getTime() - 7 * DAY_MS)));
+  const daysLeft = (Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1) - now.getTime()) / DAY_MS;
 
   // All-time totals come from the sum in the database; the rest from the 30 days of calls.
   const totalCost = spend.reduce((sum, row) => sum + (Number(row.usd) || 0), 0);
@@ -60,8 +62,8 @@ function summaryOf({ logs, spend }: CostRows, now: Date): EnhancedCostAnalytics[
     totalRequests,
     todayRequests: todayLogs.length,
     avgCostPerRequest: Math.round((totalRequests > 0 ? totalCost / totalRequests : 0) * 10000) / 10000,
-    // Projected from the last 7 days.
-    projectedMonthlyCost: cents((last7DaysCost / 7) * 30),
+    projectedMonthlyCost: projectMonth(thisMonth, lastWeek, 7, daysLeft),
+    lastMonthCostUsd: summarizeSpend([], lastMonth).estimatedUsd,
   };
 }
 

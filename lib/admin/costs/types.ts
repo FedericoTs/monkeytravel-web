@@ -8,7 +8,9 @@ export interface EnhancedCostAnalytics {
     totalRequests: number;
     todayRequests: number;
     avgCostPerRequest: number;
+    /** This month's end, after Google's free allowances. The rest is at list price. */
     projectedMonthlyCost: number;
+    lastMonthCostUsd: number;
   };
 
   // Performance metrics
