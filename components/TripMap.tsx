@@ -20,6 +20,7 @@ import {
 } from "@/lib/map/geo";
 import { isRealPoint } from "@/lib/trip/placeholder-point";
 import { formatDuration } from "@/lib/datetime/duration";
+import { legsToLabel } from "@/lib/map/route-labels";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Env flag: gate the per-day polyline + walking-time labels.
@@ -172,6 +173,7 @@ function TripMapInner({
   const selectedDay = selectedDayInternal;
   const t = useTranslations("common.map");
   const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [zoom, setZoom] = useState<number | null>(null);
   const [selectedActivity, setSelectedActivity] = useState<MapActivity | null>(
     null
   );
@@ -320,6 +322,10 @@ function TripMapInner({
     setMap(null);
   }, []);
 
+  const onZoomChanged = useCallback(() => {
+    setZoom(map?.getZoom() ?? null);
+  }, [map]);
+
   const filteredActivities = selectedDay
     ? activities.filter((a) => a.dayNumber === selectedDay)
     : activities;
@@ -398,6 +404,11 @@ function TripMapInner({
 
     return result;
   }, [filteredActivities, showRoutes]);
+
+  const labelledLegs = useMemo(
+    () => legsToLabel(dayRoutes.flatMap((route) => route.segments), zoom),
+    [dayRoutes, zoom]
+  );
 
   /**
    * Whether there is at least one day with 2+ geocoded activities — i.e.
@@ -511,6 +522,7 @@ function TripMapInner({
         zoom={13}
         onLoad={onLoad}
         onUnmount={onUnmount}
+        onZoomChanged={onZoomChanged}
         options={mapOptions}
       >
         {/* Per-day route polylines + walking-time segment badges.
@@ -545,22 +557,17 @@ function TripMapInner({
 
         {showRoutes &&
           dayRoutes.flatMap((route) =>
-            route.segments.map((seg) => (
+            route.segments.filter((seg) => labelledLegs.has(seg.key)).map((seg) => (
               <OverlayView
                 key={`seg-${seg.key}`}
                 position={seg.mid}
                 mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
-                getPixelPositionOffset={(w, h) => ({
-                  x: -(w / 2),
-                  y: -(h / 2),
-                })}
               >
                 <div
-                  // `whitespace-nowrap`: OverlayView mounts the div with
-                  // shrink-to-fit width, so without it travel-time pills
-                  // wrap at every space ("1 / h / 14 / min" stacked).
+                  // OverlayView mounts this in a 0×0 box. `w-max` keeps the pill
+                  // as wide as its text, and the translate centres it on the leg.
                   // `leading-none` keeps the single-line pill compact.
-                  className="pointer-events-none select-none whitespace-nowrap leading-none rounded-full bg-white/95 backdrop-blur-sm px-2 py-1 text-[10px] font-semibold text-slate-700 shadow-sm border"
+                  className="pointer-events-none w-max -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap leading-none rounded-full bg-white/95 backdrop-blur-sm px-2 py-1 text-[10px] font-semibold text-slate-700 shadow-sm border"
                   style={{ borderColor: seg.color }}
                   title={t("segmentDuration", { duration: formatDuration(seg.minutes) })}
                 >
