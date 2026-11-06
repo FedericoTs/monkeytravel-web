@@ -119,7 +119,7 @@ describe("what it refuses", () => {
     expect(service.log).toEqual([]);
   });
 
-  it.skip("answers 400, not 500, to a body of JSON null", async () => {
+  it("answers 400, not 500, to a body of JSON null", async () => {
     expect((await subscribe("null")).status).toBe(400);
   });
 });

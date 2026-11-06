@@ -16,6 +16,11 @@ import { readJsonBody } from "@/lib/api/json-body";
 import { requireRow } from "@/lib/api/require-row";
 import { isModelOutOfCredit } from "@/lib/ai/model-outage";
 
+// The page sends these and the model reads them, so each has a limit. A real
+// itinerary is under 100,000 characters.
+const MAX_DESTINATION_CHARS = 200;
+const MAX_ITINERARY_CHARS = 500_000;
+
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
   // What the Gemini call cost, from its tokens (lib/ai/gemini-cost.ts).
@@ -34,22 +39,29 @@ export async function POST(request: NextRequest) {
       dayIndex,
       destination,
       itinerary,
-      preferences,
     } = body as {
       tripId: string;
       activityId: string;
       dayIndex: number;
       destination: string;
       itinerary: ItineraryDay[];
-      preferences?: {
-        category?: "attraction" | "restaurant" | "activity" | "transport";
-        similarTo?: boolean;
-      };
     };
 
     // Validate required fields
     if (!tripId || !activityId || dayIndex === undefined || !destination || !itinerary) {
       return errors.badRequest("Missing required fields");
+    }
+    if (typeof destination !== "string" || destination.length > MAX_DESTINATION_CHARS) {
+      return errors.badRequest("Invalid destination");
+    }
+    if (!Number.isInteger(dayIndex)) {
+      return errors.badRequest("Invalid day index");
+    }
+    if (!Array.isArray(itinerary) || !itinerary.every((day) => Array.isArray(day?.activities))) {
+      return errors.badRequest("Invalid itinerary");
+    }
+    if (JSON.stringify(itinerary).length > MAX_ITINERARY_CHARS) {
+      return errors.badRequest("Itinerary is too large");
     }
 
     // Verify trip ownership. Include trip_meta so we can read the
@@ -131,7 +143,6 @@ export async function POST(request: NextRequest) {
       dayContext,
       budgetTier: budgetTier as BudgetTier,
       existingActivityNames,
-      preferences,
       travelStyle,
       dietary: dietsFrom(tripMeta.dietary),
       language,
