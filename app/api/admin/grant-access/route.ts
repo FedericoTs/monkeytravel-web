@@ -24,11 +24,11 @@ export async function POST(request: Request) {
     if (invalidBody) return invalidBody;
     const { user_email, code } = body;
 
-    if (!user_email) {
+    if (!user_email || typeof user_email !== "string") {
       return errors.badRequest("User email is required");
     }
 
-    if (!code) {
+    if (!code || typeof code !== "string") {
       return errors.badRequest("Code is required");
     }
 
@@ -63,8 +63,15 @@ export async function POST(request: Request) {
       .eq("is_active", true)
       .single();
 
-    if (codeError || !testerCode) {
+    if (codeError && !isNoRow(codeError)) throw codeError;
+    if (!testerCode) {
       return errors.badRequest(`Invalid or inactive code: ${normalizedCode}`);
+    }
+    if (testerCode.expires_at && new Date(testerCode.expires_at) < new Date()) {
+      return errors.badRequest(`This code has expired: ${normalizedCode}`);
+    }
+    if (testerCode.max_uses !== null && testerCode.current_uses >= testerCode.max_uses) {
+      return errors.badRequest(`This code has no uses left: ${normalizedCode}`);
     }
 
     // Create user access record (admin-granted, bypasses RLS via service role in production)
@@ -111,22 +118,8 @@ export async function POST(request: Request) {
       }
     }
 
-    // Increment code usage atomically.
-    // A read-modify-write would let two concurrent redemptions both pass
-    // the "uses < max" check and exceed max_uses. The RPC puts the limit
-    // check in the UPDATE WHERE clause, so it is enforced atomically.
-    // Migration: 20260524_atomic_counters.sql.
-    const { error: consumeErr } = await supabase.rpc("consume_tester_code", {
-      code_id: testerCode.id,
-    });
-    if (consumeErr) {
-      console.error(
-        "[admin/grant-access] consume_tester_code RPC error:",
-        consumeErr.message
-      );
-      // The grant above already succeeded — this is just usage tracking.
-      // Log and continue; admin operator can manually adjust if needed.
-    }
+    // The code's use count is bumped by the definer trigger on user_tester_access
+    // (increment_tester_code_usage).
 
     return apiSuccess({
       success: true,

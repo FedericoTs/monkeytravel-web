@@ -41,10 +41,9 @@ describe("redeemTesterCode", () => {
   });
 
   it("redeems nothing when the account's access can't be read", async () => {
-    vi.spyOn(console, "error").mockImplementation(() => {});
     accessRead = { data: null, error: { code: "57014", message: "canceling statement due to statement timeout" } };
     const { redeemTesterCode } = await import("./index");
-    expect(await redeemTesterCode("user-1", "valid1")).toEqual({ success: false, error: "Failed to redeem code. Please try again." });
+    await expect(redeemTesterCode("user-1", "valid1")).rejects.toMatchObject({ code: "57014" });
     expect(inserts).toEqual([]);
   });
 });
