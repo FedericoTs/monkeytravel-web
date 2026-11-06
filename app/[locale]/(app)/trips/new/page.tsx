@@ -3,7 +3,7 @@ import { getDestinationBySlug } from "@/lib/destinations/data";
 import { createClientWithViewer } from "@/lib/supabase/server";
 import type { Locale } from "@/lib/destinations/types";
 import NewTripWizard, { type PrefilledDestination } from "./NewTripWizard";
-import { MAX_TRIP_DAYS } from "@/lib/trips/request-limits";
+import { MAX_TRIP_DAYS, MUST_DOS_MAX, MUST_DO_MAX_LENGTH } from "@/lib/trips/request-limits";
 
 /**
  * Server-component shell for the /trips/new wizard.
@@ -36,6 +36,7 @@ type SearchParams = {
   days?: string | string[];
   budget?: string | string[];
   vibes?: string | string[];
+  must?: string | string[];
 };
 
 /** First value of a possibly-repeated query param. */
@@ -56,6 +57,8 @@ export interface PrefilledTripShape {
   days: number | null;
   budget: BudgetTier | null;
   vibes: string[];
+  /** Places to keep, from Check my plan's "fix it". */
+  mustDos: string[];
 }
 
 /** The 6 vibes step 2 actually renders. Legacy vibe values are not accepted. */
@@ -88,7 +91,13 @@ function parseTripShape(sp: SearchParams): PrefilledTripShape {
     .filter((v) => PREFILLABLE_VIBES.has(v))
     .slice(0, 3);
 
-  return { days, budget, vibes };
+  const mustDos = [sp.must ?? []]
+    .flat()
+    .map((name) => name.trim().slice(0, MUST_DO_MAX_LENGTH))
+    .filter(Boolean)
+    .slice(0, MUST_DOS_MAX);
+
+  return { days, budget, vibes, mustDos };
 }
 
 /**

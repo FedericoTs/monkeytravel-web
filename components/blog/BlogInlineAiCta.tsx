@@ -6,6 +6,8 @@ interface BlogInlineAiCtaProps {
   description: string;
   ctaLabel: string;
   ctaHref?: string;
+  /** A quieter way in, for a reader who already has a plan. */
+  checkLabel?: string;
 }
 
 /**
@@ -21,6 +23,7 @@ export default function BlogInlineAiCta({
   description,
   ctaLabel,
   ctaHref = "/trips/new",
+  checkLabel,
 }: BlogInlineAiCtaProps) {
   return (
     <aside className="my-10 not-prose rounded-2xl bg-gradient-to-br from-[var(--primary)] via-[var(--primary)] to-[var(--primary-dark)] p-6 sm:p-8 text-white shadow-xl shadow-[var(--primary)]/10 relative overflow-hidden">
@@ -47,6 +50,11 @@ export default function BlogInlineAiCta({
           </svg>
         </Link>
       </div>
+      {checkLabel && (
+        <Link href="/tools/check-my-plan" className="relative mt-4 inline-block text-sm font-medium text-white underline underline-offset-2">
+          {checkLabel}
+        </Link>
+      )}
     </aside>
   );
 }
