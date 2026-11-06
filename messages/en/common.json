@@ -47,6 +47,34 @@
     "q7_maybe": "Maybe",
     "q7_no": "No, the site is fine"
   },
+  "didYouGo": {
+    "title": "Did you go?",
+    "yesTitle": "Glad you went",
+    "noTitle": "Thanks for telling us",
+    "noted": "We’ve noted your answer.",
+    "yesQuestion": "Was anything wrong with the plan?",
+    "noQuestion": "What got in the way?",
+    "reason_none": "No, it was good",
+    "reason_closed": "A place was closed",
+    "reason_packed": "Days were too full",
+    "reason_times": "Times or distances were off",
+    "reason_other": "Something else",
+    "reason_changed": "My plans changed",
+    "reason_elsewhere": "I went somewhere else",
+    "reason_later": "I’m still going, later",
+    "reason_plan": "The plan wasn’t right",
+    "noteLabel": "Anything to add? (optional)",
+    "send": "Send",
+    "sending": "Sending...",
+    "error": "We couldn’t save that. Please try again.",
+    "tryAgain": "Try again",
+    "thanksTitle": "Thank you",
+    "thanksBody": "This helps us make better plans.",
+    "nextTrip": "Plan your next trip",
+    "moreLink": "Have a minute more? Help shape MonkeyTravel",
+    "disclosure": "We use your answers to improve MonkeyTravel. See our",
+    "privacyPolicy": "Privacy Policy"
+  },
   "navigation": {
     "features": "Features",
     "howItWorks": "How It Works",
@@ -2626,9 +2654,10 @@
   },
   "tripFollowupEmail": {
     "followup_return_3d": {
-      "heading": "How was {destination}?",
-      "body": "Your trip ended on {endDate}. We’d love a minute of honest feedback: how you use MonkeyTravel, and anything that almost made you stop. It’s the fastest way we get better.",
-      "cta": "Share your feedback"
+      "heading": "Did you make it to {destination}?",
+      "body": "Your trip was planned to end on {endDate}. One tap tells us whether the plan got used, and that’s how we make it better.",
+      "cta": "Yes, I went",
+      "ctaNo": "No, I didn’t go"
     },
     "followup_next_21d": {
       "heading": "Thinking about the next one?",

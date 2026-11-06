@@ -59,6 +59,8 @@ export interface TripFollowupEmailProps {
   ctaLabel: string;
   /** Where the CTA goes — the saved trip, or the wizard. Cron decides. */
   ctaUrl: string;
+  /** The other answer beside the CTA, when the email asks a question. */
+  secondCta?: { label: string; url: string };
   /**
    * Pre-translated "this is the last email in this sequence" line. Only
    * supplied for terminal slots; omitted elsewhere.
@@ -85,6 +87,7 @@ export default function TripFollowupEmail({
   body,
   ctaLabel,
   ctaUrl,
+  secondCta,
   finalNote,
   unsubscribeUrl,
   locale = "en",
@@ -109,9 +112,21 @@ export default function TripFollowupEmail({
       <ContextBlocks blocks={contextBlocks} />
 
       <Section style={{ textAlign: "center", margin: "32px 0" }}>
-        <Button href={ctaUrl} style={button}>
-          {ctaLabel}
-        </Button>
+        {secondCta ? (
+          // Two answers to one question, so neither looks like the right one.
+          <>
+            <Button href={ctaUrl} style={answerButton}>
+              {ctaLabel}
+            </Button>
+            <Button href={secondCta.url} style={answerButton}>
+              {secondCta.label}
+            </Button>
+          </>
+        ) : (
+          <Button href={ctaUrl} style={button}>
+            {ctaLabel}
+          </Button>
+        )}
       </Section>
 
       {isTerminal && finalNote ? (
@@ -136,6 +151,7 @@ export function tripFollowupEmailText(props: TripFollowupEmailProps): string {
     ...contextBlocksText(props.contextBlocks),
     "",
     `${props.ctaLabel}: ${props.ctaUrl}`,
+    ...(props.secondCta ? [`${props.secondCta.label}: ${props.secondCta.url}`] : []),
   ];
 
   if (TERMINAL_FOLLOWUP_SLOTS.has(props.slot) && props.finalNote) {
@@ -174,6 +190,12 @@ export function tripFollowupSubject(props: {
 }
 
 // This email's own inline styles; the shared ones are in ./_styles.
+
+/** Side by side when they fit, stacked with a gap when they don't. */
+const answerButton: React.CSSProperties = {
+  ...button,
+  margin: "4px",
+};
 
 const finalNoteText: React.CSSProperties = {
   fontSize: "14px",
