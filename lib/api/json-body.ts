@@ -2,9 +2,9 @@ import type { NextResponse } from "next/server";
 import { errors } from "./response-wrapper";
 
 /**
- * The request's JSON body, or a 400 when the body isn't JSON. Awaiting
- * request.json() inside a route's catch-all answers a malformed body with a
- * 500, as if the server had failed.
+ * The request's JSON body, or a 400 when the body isn't JSON or is JSON null,
+ * whose first field read would throw. Awaiting request.json() inside a route's
+ * catch-all answers a malformed body with a 500, as if the server had failed.
  *
  *   const { body, invalidBody } = await readJsonBody<CreateBody>(request);
  *   if (invalidBody) return invalidBody;
@@ -17,8 +17,10 @@ export async function readJsonBody<T = any>(
   request: Request,
 ): Promise<{ body: T; invalidBody: null } | { body: null; invalidBody: NextResponse }> {
   try {
-    return { body: (await request.json()) as T, invalidBody: null };
+    const body = (await request.json()) as T | null;
+    if (body !== null) return { body, invalidBody: null };
   } catch {
-    return { body: null, invalidBody: errors.badRequest("Invalid JSON body") };
+    // Answered below, like a body of null.
   }
+  return { body: null, invalidBody: errors.badRequest("Invalid JSON body") };
 }

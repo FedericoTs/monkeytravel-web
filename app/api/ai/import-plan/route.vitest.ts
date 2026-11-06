@@ -238,7 +238,7 @@ describe("what it refuses before paying for a call", () => {
     expect(s.asked[0].match(/y{2,}/)?.[0].length).toBe(120);
   });
 
-  it.skip("answers 400, not 500, to a body of JSON null", async () => {
+  it("answers 400, not 500, to a body of JSON null", async () => {
     expect((await paste("null")).status).toBe(400);
   });
 });
