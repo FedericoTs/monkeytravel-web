@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState, type ComponentProps, type ComponentType } from "react";
+import { useCallback, useEffect, useState, type ComponentProps, type ComponentType } from "react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import type AnonymousShareButton from "@/components/trip/AnonymousShareButton";
 import type RegenerateButton from "@/components/trip/RegenerateButton";
+import { EmailPlanCard } from "@/components/wizard/EmailPlanCard";
 import { KeptLinkPill } from "@/components/wizard/KeptLinkPill";
 import WizardSaveButton from "@/components/wizard/WizardSaveButton";
 import type { AutoSaveStatus } from "@/hooks/useAutoSaveTrip";
@@ -52,6 +53,14 @@ function MoreIcon() {
   );
 }
 
+function MailIcon({ className }: { className: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+    </svg>
+  );
+}
+
 function CrewIcon() {
   return (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -78,6 +87,7 @@ export default function ResultActionBars({
   autoSaving,
   isUnsaved,
   keptPlan,
+  offerPlanEmail = false,
   saving,
   onSave,
   onStartOver,
@@ -103,6 +113,8 @@ export default function ResultActionBars({
   isUnsaved: boolean;
   /** A signed-out planner's kept plan: its link takes the not-saved pill's place. */
   keptPlan: KeptState | null;
+  /** The save box closed with no sign-in: the plan's link by email is offered, once. */
+  offerPlanEmail?: boolean;
   /** A save is under way (the manual one, or a shared plan's claim). */
   saving: boolean;
   onSave: () => void;
@@ -130,9 +142,17 @@ export default function ResultActionBars({
   // Unsaved-state pill (both save arms); a kept plan's link instead.
   const unsavedPill =
     isUnsaved && !autoSaving && (keptPlan ? <KeptLinkPill token={keptPlan.token} /> : <NotSavedPill />);
+  const canEmailPlan = Boolean(keptPlan) && isUnsaved && !savedTripId && !autoSaving;
+  const [planEmail, setPlanEmail] = useState<"asked" | "closed" | null>(null);
+  const showPlanEmail = canEmailPlan && (planEmail === "asked" || (offerPlanEmail && planEmail !== "closed"));
+  const closePlanEmail = useCallback(() => setPlanEmail("closed"), []);
 
   return (
     <>
+      {showPlanEmail && keptPlan && (
+        <EmailPlanCard key={keptPlan.token} token={keptPlan.token} offered={planEmail !== "asked"} onClose={closePlanEmail} />
+      )}
+
       {/* Enhanced Sticky Header - Desktop */}
       <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200 hidden sm:block">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -223,6 +243,16 @@ export default function ResultActionBars({
               </span>
             )}
             {unsavedPill}
+            {canEmailPlan && (
+              <button
+                type="button"
+                onClick={() => setPlanEmail("asked")}
+                className="hidden shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-slate-300 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] xl:inline-flex"
+              >
+                <MailIcon className="h-3.5 w-3.5" />
+                {t("wizard.kept.emailPill")}
+              </button>
+            )}
             <WizardSaveButton placement="header" autoSave={autoSave} onSave={onSave} saving={saving} />
 
             {/* Anonymous share: lets a signed-out planner send the trip
@@ -263,6 +293,19 @@ export default function ResultActionBars({
                   count: generatedItinerary.days.length,
                 })}
               </p>
+            )}
+            {canEmailPlan && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMoreOpen(false);
+                  setPlanEmail("asked");
+                }}
+                className="w-full min-h-[44px] flex items-center justify-center gap-2 rounded-xl border border-slate-300 font-medium text-slate-700 transition-colors hover:bg-slate-50"
+              >
+                <MailIcon className="h-4 w-4" />
+                {t("wizard.kept.emailAction")}
+              </button>
             )}
             {/* Ask your crew to vote, before saving (the peak share-intent
                 moment). A SIGNED-OUT planner gets the share button: the

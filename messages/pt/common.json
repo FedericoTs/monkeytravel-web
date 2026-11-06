@@ -2794,6 +2794,14 @@
     "footerReason": "Você está recebendo este email porque disse que vai nesta viagem e nos deu este endereço.",
     "footerLink": "Parar de receber emails desta viagem"
   },
+  "keptPlanEmail": {
+    "heading": "{destination}: seu plano",
+    "headingNoPlace": "Seu plano de viagem",
+    "intro": "Aqui está o link do plano que você criou. Ele abre em qualquer dispositivo e fica guardado por 30 dias depois da última vez que você abrir.",
+    "cta": "Abrir meu plano",
+    "footerReason": "Você pediu para enviarmos isto, e não vamos escrever de novo sobre este assunto.",
+    "footerLink": "Política de privacidade"
+  },
   "liveStats": {
     "title": "Ao vivo do planejador",
     "caption": "Números reais de sessões de planejamento, sem bots nem tráfego automatizado.",

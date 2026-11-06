@@ -166,6 +166,25 @@ export async function changeKeptPlan(
   }
 }
 
+export type PlanEmailOutcome = "sent" | "invalid" | "limited" | "failed";
+
+/** Asks for the plan's link by email. A plan that's gone reads as a failed send. */
+export async function emailKeptPlan(token: string, email: string, locale: string): Promise<PlanEmailOutcome> {
+  try {
+    const res = await fetch(`/api/plans/${token}/email`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, locale }),
+    });
+    if (res.ok) return "sent";
+    if (res.status === 400) return "invalid";
+    if (res.status === 429) return "limited";
+    return "failed";
+  } catch {
+    return "failed";
+  }
+}
+
 /** "gone" when no plan is kept under the token any more. */
 export async function openKeptPlan(token: string): Promise<{ plan: KeptPlan; expiresAt: string } | "gone" | null> {
   try {

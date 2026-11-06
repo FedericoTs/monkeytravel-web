@@ -55,12 +55,16 @@ function entry(token: string, destination: string, key?: string) {
 
 /** Serves the plan (EXPIRED is gone), and records what the page asked of /api/plans. */
 async function isolate(page: Page) {
-  const plans = { reads: [] as string[], writes: [] as string[] };
+  const plans = { reads: [] as string[], writes: [] as string[], emailed: [] as unknown[] };
   await page.route("**/*", (route) => {
     const req = route.request();
     const url = new URL(req.url());
     if (/(googletagmanager|google-analytics|posthog|buildhop)\.|^maps\.googleapis\.com$/.test(url.host)) {
       return route.abort();
+    }
+    if (url.pathname.endsWith("/email") && url.pathname.startsWith("/api/plans/")) {
+      plans.emailed.push({ token: url.pathname.split("/")[3], ...req.postDataJSON() });
+      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ sent: true }) });
     }
     if (url.pathname === "/api/plans" || url.pathname.startsWith("/api/plans/")) {
       if (req.method() !== "GET") {
@@ -181,6 +185,48 @@ test.describe("wizard: a kept plan", () => {
     await expectPlanShown(page);
     expect(new URL(page.url()).hash).toBe("");
     expect(plans.reads).toEqual([LINKED]);
+  });
+
+  test("closing the save box offers the plan's link by email, with no account", async ({ page }) => {
+    const plans = await isolate(page);
+    await page.goto(`/trips/new#plan=${LINKED}`);
+    await expectPlanShown(page);
+    await dismissConsent(page);
+    const card = page.getByRole("region", { name: /Not ready for an account/ });
+    await expect(card).toHaveCount(0);
+
+    await page.getByRole("button", { name: /Save Trip/ }).filter({ visible: true }).first().click();
+    const wall = page.getByRole("dialog").filter({ hasText: /continue with google/i });
+    await expect(wall).toBeVisible({ timeout: 5_000 });
+    await wall.getByRole("button", { name: "Close modal" }).click();
+    await expect(wall).toHaveCount(0);
+
+    await expect(card).toBeVisible();
+    await card.getByLabel("Your email").fill("ana@example.com");
+    await card.getByRole("button", { name: "Send" }).click();
+    await expect(card.getByRole("status")).toContainText("Sent to ana@example.com");
+    expect(plans.emailed).toEqual([{ token: LINKED, email: "ana@example.com", locale: "en" }]);
+    expect(plans.writes).toEqual([]);
+  });
+
+  test("the plan's link can be asked for by email without opening the save box", async ({ page }) => {
+    const plans = await isolate(page);
+    await page.goto(`/trips/new#plan=${LINKED}`);
+    await expectPlanShown(page);
+    await dismissConsent(page);
+
+    if (page.viewportSize()!.width < 640) {
+      await page.locator('button[aria-controls="result-more"]').click();
+      await page.getByRole("button", { name: "Email me this plan" }).click();
+    } else {
+      await page.getByRole("button", { name: "Email it" }).click();
+    }
+    const card = page.getByRole("region", { name: "Email me this plan" });
+    await expect(card.getByLabel("Your email")).toBeFocused();
+
+    await card.getByRole("button", { name: "Close modal" }).click();
+    await expect(card).toHaveCount(0);
+    expect(plans.emailed).toEqual([]);
   });
 
   test("step 1's list opens a plan this browser kept, which stays this browser's to change", async ({ page }) => {

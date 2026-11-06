@@ -765,6 +765,8 @@ export default function NewTripPage({
   // Save (default) or the anonymous free-generation cap: same sign-up, the
   // modal words it for why we're asking.
   const [authPromptReason, setAuthPromptReason] = useState<"save" | "generation_limit">("save");
+  // The save box closed with no sign-in: the result view offers the plan's link by email.
+  const [saveBoxClosed, setSaveBoxClosed] = useState(false);
   // After signing up at the cap, come back to the wizard with the destination
   // filled in (the ?destination= deep link). Save keeps the modal's default.
   const limitRedirectPath =
@@ -1434,7 +1436,10 @@ export default function NewTripPage({
             Save is a dead button. */}
         <AuthPromptModal
           isOpen={showAuthModal}
-          onClose={() => setShowAuthModal(false)}
+          onClose={() => {
+            setShowAuthModal(false);
+            if (authPromptReason === "save") setSaveBoxClosed(true);
+          }}
           destination={destination}
           location={authPromptLocation}
           reason={authPromptReason}
@@ -1498,6 +1503,7 @@ export default function NewTripPage({
           autoSaving={autoSaving}
           isUnsaved={isUnsaved}
           keptPlan={keptPlan}
+          offerPlanEmail={saveBoxClosed}
           saving={loading || claimingSharedPlan}
           onSave={handleSaveTrip}
           onStartOver={() => setShowStartOverModal(true)}
