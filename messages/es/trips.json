@@ -41,7 +41,8 @@
     "title": "Día {day}",
     "planned": "{time} de actividades",
     "ofBudget": "de ~{time}",
-    "overpacked": "Día cargado"
+    "overpacked": "Día cargado",
+    "lighten": "Aligerar este día"
   },
   "wizard": {
     "changeDates": {

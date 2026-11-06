@@ -41,7 +41,8 @@
     "title": "Giorno {day}",
     "planned": "{time} di attività",
     "ofBudget": "su ~{time}",
-    "overpacked": "Giornata piena"
+    "overpacked": "Giornata piena",
+    "lighten": "Alleggerisci questa giornata"
   },
   "wizard": {
     "changeDates": {
