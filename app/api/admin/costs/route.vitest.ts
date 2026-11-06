@@ -13,6 +13,9 @@ const s = vi.hoisted(() => ({
   admin: true,
   logs: [] as Array<Record<string, unknown>>,
   spend: [] as Array<Record<string, unknown>>,
+  thisMonth: [] as Array<Record<string, unknown>>,
+  lastMonth: [] as Array<Record<string, unknown>>,
+  lastWeek: [] as Array<Record<string, unknown>>,
   spendFails: false,
   placesCache: [] as Array<Record<string, unknown>>,
   users: [] as Array<Record<string, unknown>>,
@@ -25,6 +28,8 @@ vi.mock("@/lib/api/auth", () => ({
   }),
 }));
 vi.mock("@/lib/api-gateway", () => ({ circuitBreakerManager: { getAllStats: () => ({}) } }));
+
+const atMonthStart = (d: Date) => d.getTime() === Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1);
 
 const passes = (row: Record<string, unknown>, q: FakeQuery) =>
   q.filters.every(([op, column, value]) => {
@@ -51,7 +56,11 @@ vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => {
     const db = fakeSupabase((q) => {
       if (q.table === "api_spend_by_unit") {
-        return s.spendFails ? { data: null, error: { message: "spend failed" } } : { data: s.spend, error: null };
+        if (s.spendFails) return { data: null, error: { message: "spend failed" } };
+        const ask = q.value as { p_from: string; p_to: string };
+        const [from, to] = [new Date(ask.p_from), new Date(ask.p_to)];
+        if (from.getTime() === 0) return { data: s.spend, error: null };
+        return { data: atMonthStart(to) ? s.lastMonth : atMonthStart(from) ? s.thisMonth : s.lastWeek, error: null };
       }
       const rows =
         q.table === "api_request_logs"
@@ -98,6 +107,9 @@ beforeEach(() => {
   s.spendFails = false;
   s.logs = [];
   s.spend = [];
+  s.thisMonth = [];
+  s.lastMonth = [];
+  s.lastWeek = [];
   s.placesCache = [];
   s.users = [];
   s.log = [];
@@ -127,7 +139,6 @@ describe("the Costs tab's 30 days", () => {
   it("gives today and the last week from the same calls", async () => {
     const { body } = await costs();
     expect(body.summary.last7DaysCostUsd).toBe(27);
-    expect(body.summary.projectedMonthlyCost).toBeCloseTo((27 / 7) * 30, 1);
   });
 
   it("reads no further back than the month", async () => {
@@ -162,6 +173,38 @@ describe("the all-time total", () => {
     const ask = (s.log as FakeQuery[]).find((q) => q.table === "api_spend_by_unit")!.value as { p_from: string; p_to: string };
     expect(new Date(ask.p_from).getTime()).toBe(0);
     expect(new Date(ask.p_to).getTime()).toBeGreaterThan(NOW - 60_000);
+  });
+});
+
+describe("the month's estimate", () => {
+  it("asks for this month so far, the whole of last month and the last 7 days", async () => {
+    await costs();
+    const asks = (s.log as FakeQuery[])
+      .filter((q) => q.table === "api_spend_by_unit")
+      .map((q) => q.value as { p_from: string; p_to: string })
+      .map((ask) => [new Date(ask.p_from).getTime(), new Date(ask.p_to).getTime()]);
+    const today = new Date(NOW);
+    const thisMonth = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1);
+    const lastMonth = Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 1, 1);
+    const upToNow = ([, to]: number[]) => to > NOW - 60_000;
+
+    expect(asks.filter(([from]) => from === thisMonth).every(upToNow)).toBe(true);
+    expect(asks.filter(([from]) => from === thisMonth)).toHaveLength(1);
+    expect(asks).toContainEqual([lastMonth, thisMonth]);
+    const week = asks.filter(([from, to]) => to - from === 7 * 24 * 3_600_000 && upToNow([from, to]));
+    expect(week).toHaveLength(1);
+  });
+
+  it("is worked out from those three", async () => {
+    const gemini = (usd: number) => [{ api_name: "gemini", unit_usd: 0.01, calls: usd * 100, usd }];
+    s.thisMonth = gemini(3);
+    s.lastWeek = gemini(7);
+    s.lastMonth = gemini(40);
+    const { body } = await costs();
+    const today = new Date(NOW);
+    const daysLeft = (Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + 1, 1) - NOW) / (24 * 3_600_000);
+    expect(body.summary.lastMonthCostUsd).toBe(40);
+    expect(body.summary.projectedMonthlyCost).toBeCloseTo(3 + daysLeft, 1);
   });
 });
 

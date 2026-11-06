@@ -124,8 +124,9 @@ export default function CostCommandCenter() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         <p data-testid="costs-list-price-note" className="text-sm text-amber-700">
-          What our logs add up to at list price, before Google&apos;s free allowances. What you actually pay is in Google
-          Cloud, under Billing → Reports.
+          What our logs add up to at list price, before Google&apos;s free allowances, except this month&apos;s estimate,
+          which takes them off. Vercel and our own test runs aren&apos;t counted. What you actually pay is in Google Cloud,
+          under Billing → Reports.
         </p>
       </div>
 
@@ -196,9 +197,9 @@ export default function CostCommandCenter() {
           color="accent"
         />
         <MetricCard
-          label="Projected /mo"
+          label="This month, estimated"
           value={`$${data.summary.projectedMonthlyCost.toFixed(2)}`}
-          subtitle="list price, on the 7d avg"
+          subtitle={`after free calls · last month $${data.summary.lastMonthCostUsd.toFixed(2)}`}
           color="warning"
         />
         <MetricCard

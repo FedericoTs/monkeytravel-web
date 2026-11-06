@@ -73,7 +73,7 @@ function allowanceFor(apiName: string, unitUsd: number): Allowance | null {
  * calls, counting the month's calls before and through yesterday. Gemini and
  * anything unknown cost what was logged. Months are UTC; Google's are Pacific.
  */
-export function summarizeSpend(monthBefore: SpendGroup[], day: SpendGroup[], limitUsd: number): SpendSummary {
+export function summarizeSpend(monthBefore: SpendGroup[], day: SpendGroup[], limitUsd = Infinity): SpendSummary {
   const used = new Map<string, number>();
   for (const g of monthBefore) {
     const a = allowanceFor(g.api_name, g.unit_usd);
@@ -103,6 +103,16 @@ export function summarizeSpend(monthBefore: SpendGroup[], day: SpendGroup[], lim
   const listUsd = round(byApi.reduce((s, a) => s + a.listUsd, 0));
   const estimatedUsd = round(byApi.reduce((s, a) => s + a.estimatedUsd, 0));
   return { listUsd, estimatedUsd, byApi, over: estimatedUsd > limitUsd };
+}
+
+/**
+ * What a month comes to after Google's free allowances: its calls so far, then
+ * the days left at the pace of `recent`, the calls of the last `recentDays` days.
+ */
+export function projectMonth(soFar: SpendGroup[], recent: SpendGroup[], recentDays: number, daysLeft: number): number {
+  const pace = daysLeft / recentDays;
+  const rest = recent.map((g) => ({ ...g, calls: g.calls * pace, usd: g.usd * pace }));
+  return summarizeSpend([], [...soFar, ...rest]).estimatedUsd;
 }
 
 /** The UTC day before `now`, as [start, end) ISO strings and a YYYY-MM-DD label. */

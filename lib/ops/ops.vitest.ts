@@ -1,9 +1,37 @@
 import { describe, it, expect } from "vitest";
-import { summarizeSpend, previousUtcDay, monthToDateBefore } from "./spend";
+import { summarizeSpend, projectMonth, previousUtcDay, monthToDateBefore } from "./spend";
 import { recoveryLooksBroken } from "./auth-health";
 
 /** An api_spend_by_unit group: `calls` calls of `api` booked at `unit` each. */
 const group = (api_name: string, unit_usd: number, calls: number, usd = unit_usd * calls) => ({ api_name, unit_usd, calls, usd });
+
+describe("projectMonth", () => {
+  const photo = (calls: number) => group("google_places_photo", 0.007, calls);
+
+  it("pays for what goes past the free calls, counting the month so far and the days left", () => {
+    // 500 so far, then 70 a day for 10 days: 1,200, which is 200 past the 1,000 free.
+    expect(projectMonth([photo(500)], [photo(490)], 7, 10)).toBe(1.4);
+  });
+
+  it("pays nothing for a burst that stays inside the free calls", () => {
+    const search = (calls: number) => group("google_places_search", 0.032, calls);
+    expect(projectMonth([search(810)], [search(1118)], 7, 25)).toBe(0);
+  });
+
+  it("carries on what isn't free at its logged cost", () => {
+    expect(projectMonth([group("gemini", 0.5, 10)], [group("gemini", 0.5, 14)], 7, 10)).toBe(15);
+  });
+
+  it("is the month so far when no days are left", () => {
+    expect(projectMonth([photo(1500)], [photo(7000)], 7, 0)).toBe(3.5);
+  });
+
+  it("gives about what the first days of November point to", () => {
+    const soFar = [photo(1062), group("google_places_details", 0.017, 343), group("google_places_search", 0.032, 810), group("gemini", 1, 1, 6.24)];
+    const week = [photo(1647), group("google_places_details", 0.017, 457), group("google_places_search", 0.032, 1118), group("gemini", 1, 1, 8.32)];
+    expect(projectMonth(soFar, week, 7, 25)).toBe(77.56);
+  });
+});
 
 describe("summarizeSpend", () => {
   it("charges only the calls past the free allowance when the day crosses it", () => {

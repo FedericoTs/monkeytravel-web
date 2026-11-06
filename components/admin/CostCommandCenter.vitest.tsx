@@ -11,7 +11,8 @@ const analytics = {
     totalRequests: 90_264,
     todayRequests: 120,
     avgCostPerRequest: 0.0064,
-    projectedMonthlyCost: 274.41,
+    projectedMonthlyCost: 77.48,
+    lastMonthCostUsd: 128.16,
   },
   performance: { avgResponseTimeMs: 100, p50ResponseTimeMs: 90, p95ResponseTimeMs: 300, p99ResponseTimeMs: 900, errorRate: 1, totalErrors: 5, successRate: 99 },
   cache: {
@@ -54,5 +55,17 @@ describe("the Costs tab", () => {
     expect(screen.getByText("Total logged")).toBeTruthy();
     expect(screen.queryByText("Total Spent")).toBeNull();
     expect(screen.getByText("$580.75")).toBeTruthy();
+    expect(note).toContain("Vercel");
+  });
+
+  it("gives the month's estimate as after the free calls, next to last month's", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(analytics), { status: 200 })));
+    render(<CostCommandCenter />);
+    fireEvent.click(screen.getByRole("button", { name: /load/i }));
+
+    expect(await screen.findByText("This month, estimated")).toBeTruthy();
+    expect(screen.getByText("$77.48")).toBeTruthy();
+    expect(screen.getByText("after free calls · last month $128.16")).toBeTruthy();
+    expect(screen.queryByText("Projected /mo")).toBeNull();
   });
 });
