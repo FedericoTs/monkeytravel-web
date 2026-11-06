@@ -101,6 +101,8 @@ function bars(over: Partial<Props> = {}) {
   };
 }
 const crew = "wizard.result.shareForVotes";
+/** Opens what the phone bar keeps behind More. */
+const openMore = (bar: ReturnType<typeof bars>["bar"]) => fireEvent.click(bar.getByRole("button", { name: "more" }));
 
 beforeEach(() => {
   shared.length = 0;
@@ -114,13 +116,14 @@ describe("ResultActionBars", () => {
     expect(header.queryByRole("button", { name: crew })).toBeNull();
     expect(bar.queryByRole("button", { name: crew })).toBeNull();
     expect(header.getByRole("button", { name: "share" })).toBeTruthy();
-    expect(bar.getByRole("button", { name: "share" })).toBeTruthy();
-    // Both carry the page's share; the phone bar's keeps its margin.
-    expect(shared).toEqual([share, { ...share, className: "mb-2" }]);
     expect(header.getByText("wizard.result.notSavedPill")).toBeTruthy();
     expect(bar.getByText("wizard.result.notSavedPill")).toBeTruthy();
     expect(header.getByText("wizard.result.saveHeaderNudge")).toBeTruthy();
+    openMore(bar);
+    expect(bar.getByRole("button", { name: "share" })).toBeTruthy();
     expect(bar.getByText("wizard.result.mobileSaveNudge")).toBeTruthy();
+    // Both carry the page's share.
+    expect(shared.every((given) => JSON.stringify(given) === JSON.stringify(share))).toBe(true);
     expect(header.getByText("€900")).toBeTruthy();
 
     fireEvent.click(header.getByRole("button", { name: "wizard.result.saveTrip" }));
@@ -133,6 +136,7 @@ describe("ResultActionBars", () => {
     expect(bar.getByRole("button", { name: "wizard.kept.copyLink" })).toBeTruthy();
     expect(header.queryByText("wizard.result.notSavedPill")).toBeNull();
     expect(header.getByText("wizard.kept.headerNudge")).toBeTruthy();
+    openMore(bar);
     expect(bar.getByText("wizard.kept.mobileNudge")).toBeTruthy();
   });
 
@@ -140,6 +144,7 @@ describe("ResultActionBars", () => {
     let { header, bar } = bars({ isAuthenticated: true });
     expect(header.queryByRole("button", { name: "share" })).toBeNull();
     fireEvent.click(header.getByRole("button", { name: crew }));
+    openMore(bar);
     fireEvent.click(bar.getByRole("button", { name: crew }));
     expect(on.save).toHaveBeenCalledTimes(2);
     expect(push).not.toHaveBeenCalled();
@@ -148,6 +153,7 @@ describe("ResultActionBars", () => {
     ({ header, bar } = bars({ isAuthenticated: true, savedTripId: "t1", isUnsaved: false }));
     fireEvent.click(header.getByRole("button", { name: crew }));
     expect(push).toHaveBeenLastCalledWith("/trips/t1?share=invite");
+    openMore(bar);
     expect(bar.queryByRole("button", { name: crew })).toBeNull();
     expect(header.getByTestId("export-menu")).toBeTruthy();
     expect(header.queryByText("wizard.result.saveHeaderNudge")).toBeNull();
@@ -161,6 +167,7 @@ describe("ResultActionBars", () => {
     }));
     fireEvent.click(header.getByRole("button", { name: crew }));
     expect(push).toHaveBeenLastCalledWith("/trips/t2?share=invite");
+    openMore(bar);
     expect(bar.queryByRole("button", { name: crew })).toBeNull();
     expect(header.queryByTestId("export-menu")).toBeNull();
     expect(header.getByRole("link", { name: "result.savedViewTrip" }).getAttribute("href")).toBe("/trips/t2");
@@ -169,11 +176,73 @@ describe("ResultActionBars", () => {
   it("starts over and regenerates from both bars", () => {
     const { header, bar } = bars();
     fireEvent.click(header.getByRole("button", { name: "wizard.result.startOver" }));
+    openMore(bar);
     fireEvent.click(bar.getByRole("button", { name: "wizard.result.startOver" }));
     expect(on.startOver).toHaveBeenCalledTimes(2);
     fireEvent.click(header.getByRole("button", { name: "regenerate compact" }));
-    fireEvent.click(bar.getByRole("button", { name: "regenerate icon-only" }));
+    openMore(bar);
+    fireEvent.click(bar.getByRole("button", { name: "regenerate default" }));
     expect(on.regenerate).toHaveBeenCalledTimes(2);
+  });
+
+  describe("the phone bar", () => {
+    const buttonNames = (bar: ReturnType<typeof bars>["bar"]) => bar.getAllByRole("button").map((b) => b.textContent);
+
+    it("is one row: More, the plan's state and Save, with everything else behind More", () => {
+      const { bar } = bars();
+      expect(buttonNames(bar)).toEqual(["more", "wizard.result.saveTrip"]);
+      expect(bar.getByText("wizard.result.notSavedPill")).toBeTruthy();
+      expect(bar.queryByText("wizard.result.mobileSaveNudge")).toBeNull();
+    });
+
+    it("gives a kept plan's link the same place in that row", () => {
+      const { bar } = bars({ keptPlan: { token: "T".repeat(22), expiresAt: "2099-01-01T00:00:00.000Z" } });
+      expect(buttonNames(bar)).toEqual(["more", "wizard.kept.copyLink", "wizard.result.saveTrip"]);
+    });
+
+    it("says More is open, and keeps Save in reach while it is", () => {
+      const { bar } = bars();
+      const more = bar.getByRole("button", { name: "more" });
+      expect(more.getAttribute("aria-expanded")).toBe("false");
+      fireEvent.click(more);
+      expect(more.getAttribute("aria-expanded")).toBe("true");
+      expect(document.getElementById(more.getAttribute("aria-controls")!)).toBeTruthy();
+      expect(bar.getByRole("button", { name: "wizard.result.saveTrip" })).toBeTruthy();
+    });
+
+    it("closes on More again, on Escape, on a tap outside, and after choosing", () => {
+      const { bar } = bars();
+      const closed = () => bar.queryByRole("button", { name: "wizard.result.startOver" }) === null;
+      openMore(bar);
+      expect(closed()).toBe(false);
+      openMore(bar);
+      expect(closed()).toBe(true);
+
+      openMore(bar);
+      fireEvent.keyDown(window, { key: "Escape" });
+      expect(closed()).toBe(true);
+
+      openMore(bar);
+      fireEvent.click(document.querySelector<HTMLElement>("[data-more-backdrop]")!);
+      expect(closed()).toBe(true);
+
+      openMore(bar);
+      fireEvent.click(bar.getByRole("button", { name: "wizard.result.startOver" }));
+      expect(closed()).toBe(true);
+
+      openMore(bar);
+      fireEvent.click(bar.getByRole("button", { name: "regenerate default" }));
+      expect(closed()).toBe(true);
+    });
+
+    it("stops listening for Escape once closed", () => {
+      const removed = vi.spyOn(window, "removeEventListener");
+      const { bar } = bars();
+      openMore(bar);
+      openMore(bar);
+      expect(removed.mock.calls.some(([type]) => type === "keydown")).toBe(true);
+      removed.mockRestore();
+    });
   });
 
   it("shows a save under way on both Save buttons", () => {
