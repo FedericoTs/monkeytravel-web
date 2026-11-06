@@ -1,5 +1,5 @@
 import { createHash } from "crypto";
-import { NextRequest } from "next/server";
+import { after, type NextRequest } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
@@ -10,6 +10,7 @@ import { adminEmails } from "@/lib/admin";
 
 const limiter = createRateLimiter("contact", 5, 60 * 60 * 1000);
 const ALLOWED_TOPICS = new Set(["support", "partnership", "press", "feedback", "other"]);
+const MAX_LOCALE_CHARS = 8;
 
 // Domains we flag as VIP in the subject line so an inbox glance is enough
 // to spot a partner-quality lead. Add freely — false positives are harmless.
@@ -73,7 +74,10 @@ export async function POST(request: NextRequest) {
       request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       request.headers.get("x-real-ip") ||
       "";
-    const ipHash = ip ? createHash("sha256").update(ip).digest("hex").slice(0, 32) : null;
+    // Salted: an IPv4 address alone can be found again by hashing all of them.
+    const hashSalt = process.env.IP_HASH_SALT || process.env.SUPABASE_SERVICE_ROLE_KEY || "fallback-salt";
+    const ipHash = ip ? createHash("sha256").update(ip + hashSalt).digest("hex").slice(0, 32) : null;
+    const shortLocale = typeof locale === "string" ? locale.slice(0, MAX_LOCALE_CHARS) : null;
 
     // Insert with the service-role client: this route is the single validated
     // entry (rate limit + shape checks above). The anon-RLS WITH CHECK
@@ -97,7 +101,7 @@ export async function POST(request: NextRequest) {
         email: normalizeEmail(email),
         topic,
         message: message.trim().slice(0, 5000),
-        locale: typeof locale === "string" ? locale.slice(0, 8) : null,
+        locale: shortLocale,
         user_agent: request.headers.get("user-agent")?.slice(0, 500) ?? null,
         referer: request.headers.get("referer")?.slice(0, 500) ?? null,
         ip_hash: ipHash,
@@ -110,21 +114,24 @@ export async function POST(request: NextRequest) {
       return errors.internal("Failed to send message. Please try again.", "Contact");
     }
 
-    // Fire-and-forget admin notification. Never block the user response on
-    // the email — if Resend is down or RESEND_API_KEY is missing, the row
-    // is still safely persisted and visible via SQL. Worst case = silent
-    // skip + console log (handled inside sendEmail).
-    void notifyAdmins({
+    // After the response: never block the user on the email, and after() keeps
+    // the function alive until it's sent. If Resend is down or RESEND_API_KEY is
+    // missing, the row is still safely persisted and visible via SQL. Worst case
+    // = silent skip + console log (handled inside sendEmail).
+    const notification = {
       id: data.id,
       name: name.trim(),
       email: normalizeEmail(email),
       topic,
       message: message.trim(),
-      locale: typeof locale === "string" ? locale : null,
+      locale: shortLocale,
       referer: request.headers.get("referer") ?? null,
-    }).catch((err) => {
-      console.error("[Contact] Admin notify failed (non-fatal):", err);
-    });
+    };
+    after(() =>
+      notifyAdmins(notification).catch((err) => {
+        console.error("[Contact] Admin notify failed (non-fatal):", err);
+      }),
+    );
 
     return apiSuccess({ id: data.id }, { status: 201 });
   } catch (error) {
@@ -153,7 +160,7 @@ async function notifyAdmins(payload: {
   const isVip = VIP_DOMAINS.has(domain);
   const vipTag = isVip ? "[VIP] " : "";
 
-  const subject = `${vipTag}[${payload.topic}] ${payload.name} — monkeytravel contact`;
+  const subject = `${vipTag}[${payload.topic}] ${payload.name.replace(/\s+/g, " ")} — monkeytravel contact`;
 
   // Minimal escape — name/email/message are user-supplied + go into HTML.
   const esc = (s: string) =>

@@ -200,19 +200,19 @@ describe("what it refuses", () => {
     nothingHappened();
   });
 
-  it.skip("cuts an oversized locale in the admin email, as it does in the row", async () => {
+  it("cuts an oversized locale in the admin email, as it does in the row", async () => {
     await send({ ...MESSAGE, locale: "x".repeat(1_000_000) });
     await allSent();
     expect(s.sent[0].text.length).toBeLessThan(10_000);
   });
 
-  it.skip("takes line breaks out of a name before it goes in the subject", async () => {
+  it("takes line breaks out of a name before it goes in the subject", async () => {
     await send({ ...MESSAGE, name: "Pat\r\nBcc: someone@mail.example.com" });
     await allSent();
     expect(s.sent[0].subject).not.toMatch(/[\r\n]/);
   });
 
-  it.skip("stores a hash of the IP that hashing every address can't reverse", async () => {
+  it("stores a hash of the IP that hashing every address can't reverse", async () => {
     await send(MESSAGE, { "x-forwarded-for": "198.51.100.7" });
     await allSent();
     expect(row().ip_hash).not.toBe(createHash("sha256").update("198.51.100.7").digest("hex").slice(0, 32));
@@ -241,7 +241,7 @@ describe("when something fails", () => {
     expect(s.sent).toEqual([]);
   });
 
-  it.skip("hands the admin email to after(), so it outlives the response on a serverless function", async () => {
+  it("hands the admin email to after(), so it outlives the response on a serverless function", async () => {
     await send(MESSAGE);
     expect(s.handedToAfter).toBe(1);
   });
