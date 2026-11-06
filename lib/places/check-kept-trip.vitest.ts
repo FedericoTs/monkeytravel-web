@@ -9,9 +9,9 @@ import { placesToEatCheck } from "./places-to-eat";
 import { checkKeptTripPlacesToEat, type KeptTripForCheck } from "./check-kept-trip";
 
 /**
- * A kept diet trip's places to eat are looked up on its owner's first open.
- * What changed is stored with the check's stamp on top of the version read,
- * and an edit saved meanwhile stays.
+ * A kept trip's places to eat are looked up on its owner's first open. What
+ * changed is stored with the check's stamp on top of the version read, and an
+ * edit saved meanwhile stays.
  */
 
 const meal = (id: string, name: string) => ({ id, name, type: "restaurant" }) as Activity;
@@ -89,6 +89,7 @@ describe("checkKeptTripPlacesToEat", () => {
     expect(placesToEatCheck).toHaveBeenCalledWith({
       destination: "Lisbon, Portugal",
       dietary: ["vegan"],
+      withoutDiet: true,
       budgetTier: "budget",
       travelStyle: "backpacker",
       language: "it",
@@ -107,6 +108,27 @@ describe("checkKeptTripPlacesToEat", () => {
     const stored = current();
     expect((stored.itinerary as ItineraryDay[])[0].activities.map((a) => a.name)).toEqual(["Lunch at Ao 26", "Plant Base"]);
     expect(stored.trip_meta).toMatchObject({ packing_checked: ["passport"], places_to_eat_checked_at: expect.any(String) });
+  });
+
+  it("stores and answers what the trip page says of the check", async () => {
+    finish.mockResolvedValueOnce(result({ checked: 8, unanswered: 2, replaced: 2, dropped: 1 }));
+    const { db, current } = fakeDb(rowOf(trip));
+
+    const out = await checkKeptTripPlacesToEat(db, trip, []);
+
+    const stored = current().trip_meta as Record<string, unknown>;
+    expect(stored.places_to_eat_result).toEqual({ checked: 6, changed: 3 });
+    expect(out).toMatchObject({ status: "checked", note: { checkedAt: stored.places_to_eat_checked_at, checked: 6, changed: 3 } });
+  });
+
+  it("checks a trip with no diet, and writes no diet on it", async () => {
+    const { db, current } = fakeDb(rowOf(trip));
+
+    await checkKeptTripPlacesToEat(db, trip, []);
+
+    expect(placesToEatCheck).toHaveBeenCalledWith(expect.objectContaining({ dietary: [], withoutDiet: true }));
+    expect(current().trip_meta).not.toHaveProperty("dietary");
+    expect(current().trip_meta).toHaveProperty("places_to_eat_checked_at");
   });
 
   it("stamps a trip whose places are all open, without moving its version", async () => {

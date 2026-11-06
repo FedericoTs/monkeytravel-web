@@ -1,85 +1,128 @@
-/** @vitest-environment jsdom */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import type { ItineraryDay } from "@/types";
 import { useKeptTripPlacesToEat } from "./useKeptTripPlacesToEat";
 
 /**
- * A kept diet trip's places to eat are looked up on its owner's first open, as
- * one of the tab's server writes, and the page takes the changes the server
- * stored onto its own copy.
+ * The trip page's side of the check on a kept trip's places to eat: asked once
+ * per opened trip when due, the server's changes made on the page's copy, and
+ * what the page says of a check made just now.
  */
 
-const CHANGES = [{ day: 1, id: "a1", name: "Dinner at Arkhe", to: { id: "act_new", name: "Plant Base", type: "restaurant" } }];
-const plan = [{ day_number: 1, activities: [{ id: "a1", name: "Dinner at Arkhe", type: "restaurant" }] }] as unknown as ItineraryDay[];
+const NOTE = { checkedAt: "2026-11-06T18:00:00.000Z", checked: 8, changed: 1 };
+const CHANGES = [{ day: 1, name: "Arkhe", to: null }];
 
-let fetchMock: ReturnType<typeof vi.fn>;
-let runItineraryWrite: ReturnType<typeof vi.fn>;
-let adoptDayWrite: ReturnType<typeof vi.fn>;
+const fetchMock = vi.fn();
+const adoptDayWrite = vi.fn(async () => {});
+const runItineraryWrite = vi.fn(async (task: () => Promise<unknown>) => task());
+
 const answer = (body: unknown, ok = true) => fetchMock.mockResolvedValue({ ok, json: async () => body });
+const open = (due = true, tripId = "t1") =>
+  renderHook((props: { due: boolean; tripId: string }) => useKeptTripPlacesToEat({ ...props, runItineraryWrite: runItineraryWrite as never, adoptDayWrite }), {
+    initialProps: { due, tripId },
+  });
 
 beforeEach(() => {
-  fetchMock = vi.fn();
-  answer({ status: "checked", changes: CHANGES, fromVersion: 4, itineraryVersion: 5 });
   vi.stubGlobal("fetch", fetchMock);
-  runItineraryWrite = vi.fn(async (task: () => Promise<unknown>) => task());
-  adoptDayWrite = vi.fn(async () => {});
+  fetchMock.mockReset();
+  adoptDayWrite.mockClear();
+  runItineraryWrite.mockClear();
 });
 afterEach(() => vi.unstubAllGlobals());
 
-const open = (props: { due?: boolean; tripId?: string } = {}) =>
-  renderHook((p: { due: boolean; tripId: string }) => useKeptTripPlacesToEat({ ...p, runItineraryWrite, adoptDayWrite } as never), {
-    initialProps: { due: true, tripId: "trip-1", ...props },
-  });
-
 describe("useKeptTripPlacesToEat", () => {
-  it("asks for the check in the save queue, and makes the stored changes to the page's copy", async () => {
-    open();
-
-    await waitFor(() => expect(adoptDayWrite).toHaveBeenCalledTimes(1));
-    expect(fetchMock).toHaveBeenCalledWith("/api/trips/trip-1/places-to-eat", { method: "POST" });
-    expect(runItineraryWrite).toHaveBeenCalledWith(expect.any(Function), { keepsLocalEdits: true });
-    const [splice, from, to] = adoptDayWrite.mock.calls[0];
-    expect([from, to]).toEqual([4, 5]);
-    expect((splice as (it: ItineraryDay[]) => ItineraryDay[])(plan)[0].activities.map((a) => a.name)).toEqual(["Plant Base"]);
-  });
-
-  it("asks nothing when the check is not due", async () => {
-    open({ due: false });
-    await new Promise((r) => setTimeout(r, 0));
+  it("asks nothing when the check isn't due, and has nothing to say", () => {
+    const { result } = open(false);
     expect(fetchMock).not.toHaveBeenCalled();
+    expect(result.current).toBeNull();
   });
 
-  it("asks once per opened trip, however often the page renders", async () => {
-    const { rerender } = open();
-    rerender({ due: true, tripId: "trip-1" });
-    rerender({ due: false, tripId: "trip-1" });
-    rerender({ due: true, tripId: "trip-1" });
-    await waitFor(() => expect(adoptDayWrite).toHaveBeenCalledTimes(1));
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-
-    rerender({ due: true, tripId: "trip-2" });
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
-    expect(fetchMock).toHaveBeenLastCalledWith("/api/trips/trip-2/places-to-eat", { method: "POST" });
-  });
-
-  it("changes nothing when nothing was stored or nothing changed", async () => {
+  it("asks for this trip's check once, as one of the tab's server writes that keeps local edits", async () => {
     answer({ status: "none" });
-    open({ tripId: "trip-1" });
-    answer({ status: "checked", changes: [], fromVersion: 4, itineraryVersion: 4 });
-    open({ tripId: "trip-2" });
-    answer({ error: "boom" }, false);
-    open({ tripId: "trip-3" });
+    const { rerender } = open();
+    rerender({ due: true, tripId: "t1" });
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    expect(fetchMock).toHaveBeenCalledWith("/api/trips/t1/places-to-eat", { method: "POST" });
+    expect(runItineraryWrite).toHaveBeenCalledWith(expect.any(Function), { keepsLocalEdits: true });
+  });
 
-    await waitFor(() => expect(runItineraryWrite).toHaveBeenCalledTimes(3));
-    await new Promise((r) => setTimeout(r, 0));
+  it("doesn't ask again when the same trip goes off due and comes back", async () => {
+    answer({ status: "none" });
+    const { rerender } = open();
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    rerender({ due: false, tripId: "t1" });
+    rerender({ due: true, tripId: "t1" });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("asks again for another trip", async () => {
+    answer({ status: "none" });
+    const { rerender } = open();
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    rerender({ due: true, tripId: "t2" });
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(fetchMock).toHaveBeenLastCalledWith("/api/trips/t2/places-to-eat", { method: "POST" });
+  });
+
+  it("makes the server's changes on the page's copy, from the version the server wrote them on", async () => {
+    answer({ status: "checked", changes: CHANGES, fromVersion: 3, itineraryVersion: 4, note: NOTE });
+    const { result } = open();
+    await waitFor(() => expect(result.current).toEqual(NOTE));
+    await waitFor(() => expect(adoptDayWrite).toHaveBeenCalledTimes(1));
+    const [splice, from, to] = adoptDayWrite.mock.calls[0] as unknown as [(it: ItineraryDay[]) => ItineraryDay[], number, number];
+    expect([from, to]).toEqual([3, 4]);
+    const day = { day_number: 1, activities: [{ name: "Arkhe" }, { name: "Museum" }] } as unknown as ItineraryDay;
+    expect(splice([day])[0].activities.map((a) => a.name)).toEqual(["Museum"]);
+  });
+
+  it("says a check with nothing to change was made, and writes nothing", async () => {
+    answer({ status: "checked", changes: [], fromVersion: 3, itineraryVersion: 3, note: { ...NOTE, changed: 0 } });
+    const { result } = open();
+    await waitFor(() => expect(result.current).toEqual({ ...NOTE, changed: 0 }));
     expect(adoptDayWrite).not.toHaveBeenCalled();
   });
 
-  it("stays quiet when the write cannot run", async () => {
-    runItineraryWrite.mockRejectedValueOnce(new Error("blocked by a conflict"));
-    open();
-    await waitFor(() => expect(runItineraryWrite).toHaveBeenCalledTimes(1));
+  it("says nothing of a trip with no place to eat to look up", async () => {
+    answer({ status: "checked", changes: [], fromVersion: 3, itineraryVersion: 3, note: { ...NOTE, checked: 0, changed: 0 } });
+    const { result } = open();
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    await waitFor(() => expect(runItineraryWrite).toHaveBeenCalled());
+    expect(result.current).toBeNull();
+  });
+
+  it("reads nothing from a failed answer, whatever it holds", async () => {
+    answer({ status: "checked", changes: CHANGES, fromVersion: 3, itineraryVersion: 4, note: NOTE }, false);
+    const { result } = open();
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(result.current).toBeNull();
     expect(adoptDayWrite).not.toHaveBeenCalled();
+  });
+
+  it("a request that can't be made is handled, so it's nobody's error", () => {
+    const failed = Promise.reject(new TypeError("offline"));
+    const handled = vi.spyOn(failed, "catch");
+    runItineraryWrite.mockReturnValueOnce(failed);
+    open();
+    expect(handled).toHaveBeenCalledTimes(1);
+  });
+
+  it("says nothing when nothing was stored, or the request failed", async () => {
+    answer({ status: "none", changes: CHANGES, note: NOTE });
+    const none = open();
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    expect(none.result.current).toBeNull();
+    expect(adoptDayWrite).not.toHaveBeenCalled();
+
+    answer({}, false);
+    const failed = open(true, "t2");
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(failed.result.current).toBeNull();
+
+    fetchMock.mockRejectedValue(new TypeError("offline"));
+    const offline = open(true, "t3");
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(3));
+    expect(offline.result.current).toBeNull();
   });
 });
