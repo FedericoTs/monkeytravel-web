@@ -9,10 +9,10 @@ import { completeReferralIfEligible } from "@/lib/referral/completion";
  * lib/referral/completion.ts, so a fix lands in one place rather than in two
  * copies of the same logic.
  *
- * Callable when a referred user creates their first trip outside of the
- * standard /api/trips/duplicate and /api/templates/[id]/copy paths
- * (which call completeReferralIfEligible directly). Idempotent — safe
- * to retry.
+ * Called by the page after a referred user saves a trip outside of the
+ * /api/trips/duplicate and /api/templates/[id]/copy paths (which call
+ * completeReferralIfEligible directly). Pays nothing for an account with no
+ * trip. Idempotent — safe to retry.
  *
  * Response keys preserved for backward compatibility with any existing
  * client callers (lib/referral/client.ts maps these into its
@@ -29,10 +29,8 @@ export async function POST() {
       return errors.internal(result.error, "Referral Complete");
     }
 
-    // Preserve the legacy response shape — fields are documented in
-    // lib/referral/client.ts ReferralCompletionResponse. The shim flattens
-    // the structured ReferralCompletionResult so existing callers don't
-    // need a follow-up change.
+    // Nothing about the referrer's bananas or tier: this answer goes to the
+    // person they referred.
     return apiSuccess({
       success: result.success,
       referrer_rewarded: result.referrerRewarded,
@@ -44,12 +42,6 @@ export async function POST() {
           : !result.wasReferred
           ? "User was not referred"
           : undefined),
-      bananas: {
-        awarded: (result.bananasAwarded ?? 0) > 0,
-        tierUnlocked: result.tierUnlocked ?? false,
-        newTier: result.tierUnlocked ? result.newTier : undefined,
-        tierBonus: result.tierBonus ?? 0,
-      },
     });
   } catch (error) {
     console.error("[Referral Complete] Unexpected error:", error);
