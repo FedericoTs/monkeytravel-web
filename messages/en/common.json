@@ -47,6 +47,21 @@
     "q7_maybe": "Maybe",
     "q7_no": "No, the site is fine"
   },
+  "waitingRoom": {
+    "daysToGo": "{count, plural, one {day to go} other {days to go}}",
+    "dayOf": "Day {day} of {total}",
+    "whileYouWait": "While you wait",
+    "worthSorting": "Worth sorting now",
+    "beforeYouGo": "Before you go",
+    "datesLabel": "Dates to choose",
+    "datesNote": "These dates are a placeholder until you pick yours.",
+    "setDates": "Set your dates",
+    "dayOneStarts": "Day one starts with {place}.",
+    "lookThrough": "Look through your plan",
+    "packingList": "See your plan and packing list",
+    "openDayOne": "Open your plan",
+    "openToday": "Open today's plan"
+  },
   "didYouGo": {
     "title": "Did you go?",
     "yesTitle": "Glad you went",

@@ -8,6 +8,7 @@ import { getTranslations } from "next-intl/server";
 import { TRIP_CARD_COLUMNS } from "@/lib/trips/columns";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { isValidTimeZone, todayInTimeZone } from "@/lib/trip/live";
+import { homeTrip, inWaitingRoom, waitingRoomTrip } from "@/lib/trips/waiting-room";
 
 // Locale-aware <title>.
 export async function generateMetadata({
@@ -132,8 +133,25 @@ export default async function TripsPage({ params }: { params: Promise<{ locale: 
   const visitorZone = (await headers()).get("x-vercel-ip-timezone");
   const serverToday = todayInTimeZone(isValidTimeZone(visitorZone) ? visitorZone : "UTC");
 
+  // The home's trip, and only for it what the cards don't read. A failed read
+  // leaves the countdown without its details. The holdout pays for no read.
+  const nextTrip = process.env.WAITING_ROOM === "off" ? null : homeTrip(trips ?? [], serverToday);
+  const holdout = !inWaitingRoom(user.id);
+  const nextTripRead =
+    nextTrip && !holdout
+      ? logReadError(
+          "my trips: next trip",
+          await supabase
+            .from("trips")
+            .select("highlights:trip_meta->highlights, packing:trip_meta->packing_suggestions, pencilled:trip_meta->dates_pencilled, day1:itinerary->0")
+            .eq("id", nextTrip.id)
+            .maybeSingle(),
+        ).data
+      : null;
+
   return (
     <TripsPageClient
+      waitingRoom={nextTrip ? { trip: waitingRoomTrip(nextTrip, nextTripRead), holdout } : null}
       trips={trips || []}
       sharedTrips={sharedTrips}
       displayName={displayName}
