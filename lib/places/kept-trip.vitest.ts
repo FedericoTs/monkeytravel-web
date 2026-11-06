@@ -34,6 +34,12 @@ describe("placesToEatNote", () => {
     expect(placesToEatNote({ places_to_eat_checked_at: AT, places_to_eat_result: { checked: 8 } })).toEqual({ checkedAt: AT, checked: 8, changed: 0 });
   });
 
+  it("reads nothing from a count that isn't a real one", () => {
+    for (const checked of ["8", -1, 0, null]) {
+      expect(placesToEatNote({ places_to_eat_checked_at: AT, places_to_eat_result: { checked } })).toBeNull();
+    }
+  });
+
   it("says nothing before the check, of a check made before the record, or when nothing was looked up", () => {
     expect(placesToEatNote(undefined)).toBeNull();
     expect(placesToEatNote({})).toBeNull();

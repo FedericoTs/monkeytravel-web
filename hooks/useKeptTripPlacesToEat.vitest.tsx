@@ -46,6 +46,16 @@ describe("useKeptTripPlacesToEat", () => {
     expect(runItineraryWrite).toHaveBeenCalledWith(expect.any(Function), { keepsLocalEdits: true });
   });
 
+  it("doesn't ask again when the same trip goes off due and comes back", async () => {
+    answer({ status: "none" });
+    const { rerender } = open();
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    rerender({ due: false, tripId: "t1" });
+    rerender({ due: true, tripId: "t1" });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it("asks again for another trip", async () => {
     answer({ status: "none" });
     const { rerender } = open();
@@ -79,6 +89,23 @@ describe("useKeptTripPlacesToEat", () => {
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
     await waitFor(() => expect(runItineraryWrite).toHaveBeenCalled());
     expect(result.current).toBeNull();
+  });
+
+  it("reads nothing from a failed answer, whatever it holds", async () => {
+    answer({ status: "checked", changes: CHANGES, fromVersion: 3, itineraryVersion: 4, note: NOTE }, false);
+    const { result } = open();
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(result.current).toBeNull();
+    expect(adoptDayWrite).not.toHaveBeenCalled();
+  });
+
+  it("a request that can't be made is handled, so it's nobody's error", () => {
+    const failed = Promise.reject(new TypeError("offline"));
+    const handled = vi.spyOn(failed, "catch");
+    runItineraryWrite.mockReturnValueOnce(failed as never);
+    open();
+    expect(handled).toHaveBeenCalledTimes(1);
   });
 
   it("says nothing when nothing was stored, or the request failed", async () => {
