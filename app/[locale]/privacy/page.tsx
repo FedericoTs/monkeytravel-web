@@ -31,7 +31,7 @@ export default async function PrivacyPolicy({
 }) {
   const { locale } = await params;
   const t = await getTranslations('common');
-  const lastUpdated = 'January 25, 2026';
+  const lastUpdated = 'November 6, 2026';
   const contactEmail = 'privacy@monkeytravel.app';
 
   // The body is English-only until a reviewed legal translation exists,
@@ -100,6 +100,7 @@ export default async function PrivacyPolicy({
                 <li><strong>Travel Preferences:</strong> Your travel style preferences, budget preferences, and destination interests based on your swipe interactions</li>
                 <li><strong>Trip Data:</strong> Destinations, dates, itineraries, and trip plans you create</li>
                 <li><strong>Communication Data:</strong> Messages and feedback you send to us</li>
+                <li><strong>An Address You Give Us for a Plan:</strong> If you ask us to email you a plan&apos;s link, or give your address on a shared trip, we use it to send that email and keep a record of the send, without creating an account</li>
               </ul>
 
               <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">2.2 Automatically Collected Information</h3>

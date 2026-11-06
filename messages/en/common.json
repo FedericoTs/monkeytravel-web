@@ -2768,6 +2768,7 @@
     }
   },
   "tripDayDigestEmail": {
+    "mapsCta": "Open tomorrow's route in Google Maps",
     "heading": "Tomorrow: Day {day}",
     "intro": "Here's what tomorrow looks like.",
     "cta": "See tomorrow's plan",
@@ -2793,6 +2794,14 @@
     "cta": "Open the plan",
     "footerReason": "You're getting this because you said you're going on this trip and gave us this address.",
     "footerLink": "Stop emails about this trip"
+  },
+  "keptPlanEmail": {
+    "heading": "{destination}: your plan",
+    "headingNoPlace": "Your trip plan",
+    "intro": "Here's the link to the plan you made. It opens on any device and stays for 30 days after you last open it.",
+    "cta": "Open my plan",
+    "footerReason": "You asked us to send this, and we won't email you again about it.",
+    "footerLink": "Privacy policy"
   },
   "liveStats": {
     "title": "Live from the planner",

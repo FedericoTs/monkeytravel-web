@@ -114,6 +114,9 @@ describe("DestinationHero Wikimedia credits", () => {
     const link = getByText("Photo: Basile Morin · CC BY-SA 4.0").closest("a");
     expect(link?.getAttribute("href")).toBe("https://commons.wikimedia.org/wiki/File:Kyoto_street.jpg");
     expect(link?.getAttribute("rel")).toContain("noopener");
+    // The size of its words on a phone, whatever the page's rule for tap targets.
+    expect(link?.className).toContain("min-h-0!");
+    expect(link?.className).toContain("min-w-0!");
     const img = container.querySelector<HTMLImageElement>('img[alt="Kyoto"]')!;
     expect(img.getAttribute("srcset")).toBe(`${atStoredWidth(cover, 960)} 960w, ${cover} 1920w`);
   });

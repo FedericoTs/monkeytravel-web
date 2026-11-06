@@ -1,11 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import type { ComponentProps } from "react";
 import type { GeneratedItinerary } from "@/types";
 
 const push = vi.fn();
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
+  useLocale: () => "en",
 }));
 vi.mock("@/lib/i18n/routing", () => ({
   useRouter: () => ({ push }),
@@ -242,6 +243,60 @@ describe("ResultActionBars", () => {
       openMore(bar);
       expect(removed.mock.calls.some(([type]) => type === "keydown")).toBe(true);
       removed.mockRestore();
+    });
+  });
+
+  describe("a kept plan's link by email", () => {
+    const keptPlan = { token: "T".repeat(22), expiresAt: "2099-01-01T00:00:00.000Z" };
+    const card = () => screen.queryByRole("region");
+
+    it("can be asked for from More on a phone, which closes", () => {
+      const { bar } = bars({ keptPlan });
+      expect(card()).toBeNull();
+      openMore(bar);
+      fireEvent.click(bar.getByRole("button", { name: "wizard.kept.emailAction" }));
+      expect(screen.getByRole("heading", { name: "wizard.kept.emailAction" })).toBeTruthy();
+      expect(bar.queryByRole("button", { name: "wizard.result.startOver" })).toBeNull();
+    });
+
+    it("can be asked for beside Copy link on a wider screen", () => {
+      const { header } = bars({ keptPlan });
+      fireEvent.click(header.getByRole("button", { name: "wizard.kept.emailPill" }));
+      expect(screen.getByRole("heading", { name: "wizard.kept.emailAction" })).toBeTruthy();
+    });
+
+    it("is offered once the save box closed, in its own words", () => {
+      bars({ keptPlan, offerPlanEmail: true });
+      expect(screen.getByRole("heading", { name: "wizard.kept.emailOffer" })).toBeTruthy();
+    });
+
+    it("isn't offered again after being closed, and can still be asked for", () => {
+      const { header } = bars({ keptPlan, offerPlanEmail: true });
+      fireEvent.click(screen.getByRole("button", { name: "closeModal" }));
+      expect(card()).toBeNull();
+      fireEvent.click(header.getByRole("button", { name: "wizard.kept.emailPill" }));
+      expect(screen.getByRole("heading", { name: "wizard.kept.emailAction" })).toBeTruthy();
+    });
+
+    it("isn't there without a kept plan to link to", () => {
+      const { header, bar } = bars({ offerPlanEmail: true });
+      expect(card()).toBeNull();
+      expect(header.queryByRole("button", { name: "wizard.kept.emailPill" })).toBeNull();
+      openMore(bar);
+      expect(bar.queryByRole("button", { name: "wizard.kept.emailAction" })).toBeNull();
+    });
+
+    it("goes away once the trip is saved", () => {
+      const { header, bar } = bars({ keptPlan, offerPlanEmail: true, savedTripId: "t1", isUnsaved: false });
+      expect(card()).toBeNull();
+      expect(header.queryByRole("button", { name: "wizard.kept.emailPill" })).toBeNull();
+      openMore(bar);
+      expect(bar.queryByRole("button", { name: "wizard.kept.emailAction" })).toBeNull();
+    });
+
+    it("isn't there while the trip saves itself", () => {
+      bars({ keptPlan, offerPlanEmail: true, autoSaving: true });
+      expect(card()).toBeNull();
     });
   });
 

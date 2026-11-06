@@ -14,6 +14,7 @@ import { proxyImageUrl } from "@/lib/img/proxyUrl";
 import { wikimediaSheetSrc } from "@/lib/images/wikimedia-credit";
 import { PhotoCredit } from "./PhotoCredit";
 import { formatDuration } from "@/lib/datetime/duration";
+import { placeMapsUrl, placeSearchUrl } from "@/lib/trips/maps-links";
 
 interface ActivityDetailSheetProps {
   activity: Activity;
@@ -46,11 +47,8 @@ export default function ActivityDetailSheet({
   const priceOf = useActivityPrice();
 
   // Generate URLs
-  const mapSearchQuery = encodeURIComponent(
-    `${activity.name} ${activity.address || activity.location}`
-  );
-  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${mapSearchQuery}`;
-  const googleSearchUrl = `https://www.google.com/search?q=${mapSearchQuery}`;
+  const googleMapsUrl = placeMapsUrl(activity);
+  const googleSearchUrl = placeSearchUrl(activity);
 
   const kind = normalizeActivityType(activity.type, activity.name);
   const colors = getActivityTypeColors(kind);

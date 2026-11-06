@@ -45,6 +45,7 @@ import {
   captureMagicLinkRequestFailed,
   captureAuthMethodSwitched,
   captureAuthPromptDismissed,
+  type AuthPromptDismissedEvent,
   type AuthPromptLocation,
 } from "@/lib/posthog/events";
 import { Spinner } from "@/components/ui/Spinner";
@@ -155,11 +156,12 @@ export default function AuthPromptModal({
 
   // Fire auth_prompt_dismissed when the user closes WITHOUT having
   // either submitted the magic-link or navigated to a legacy path.
-  const handleDismiss = () => {
+  const handleDismiss = (how: AuthPromptDismissedEvent["how"]) => {
     if (!linkSent && !isNavigating) {
       captureAuthPromptDismissed({
         location,
         had_email_entered: emailRef.current.trim().length > 0,
+        how,
       });
     }
     onClose();
@@ -381,7 +383,7 @@ export default function AuthPromptModal({
   return (
     <BaseModal
       isOpen={isOpen}
-      onClose={handleDismiss}
+      onClose={() => handleDismiss("outside")}
       usePortal
       maxWidth="max-w-md"
       showCloseButton={false}
@@ -669,7 +671,7 @@ export default function AuthPromptModal({
 
       {/* Close button — sits over the gradient header */}
       <button
-        onClick={onClose}
+        onClick={() => handleDismiss("close_button")}
         aria-label={tButtons("closeModal")}
         className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors z-10"
       >

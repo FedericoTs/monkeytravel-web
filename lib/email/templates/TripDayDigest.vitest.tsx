@@ -101,6 +101,35 @@ describe("TripDayDigestEmail", () => {
     expect(text).toContain("+1 more");
   });
 
+  describe("the route in Google Maps", () => {
+    const maps = {
+      label: "Open the route in Google Maps",
+      url: "https://www.google.com/maps/dir/?api=1&origin=A&destination=B",
+    };
+
+    it("renders under the main button when given, and not otherwise", async () => {
+      const html = await render(TripDayDigestEmail({ ...base, maps }));
+      expect(html).toContain(maps.label);
+      expect(html).toContain("https://www.google.com/maps/dir/?api=1&amp;origin=A&amp;destination=B");
+      expect(html.indexOf(base.tripUrl)).toBeLessThan(html.indexOf(maps.label));
+      expect(await render(TripDayDigestEmail(base))).not.toContain("google.com/maps");
+    });
+
+    it("is in the plain text too", () => {
+      expect(tripDayDigestEmailText({ ...base, maps })).toContain(`${maps.label}: ${maps.url}`);
+      expect(tripDayDigestEmailText(base)).not.toContain("google.com/maps");
+    });
+
+    it("still passes the verify gate", async () => {
+      const html = await render(TripDayDigestEmail({ ...base, maps }));
+      const subject = tripDayDigestSubject({ heading: base.heading, destination: base.destination });
+      const defects = blockingDefects(
+        verifyRenderedEmail({ subject, html, destination: base.destination, ctaUrl: base.tripUrl, contextBlocks: base.blocks, ownStrings })
+      );
+      expect(summarizeDefects(defects)).toBe("");
+    });
+  });
+
   describe("the group box", () => {
     // No apostrophes: the HTML escapes them.
     const groupSend = {

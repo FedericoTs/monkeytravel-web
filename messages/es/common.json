@@ -2768,6 +2768,7 @@
     }
   },
   "tripDayDigestEmail": {
+    "mapsCta": "Abrir la ruta de mañana en Google Maps",
     "heading": "Mañana: Día {day}",
     "intro": "Esto es lo que te espera mañana.",
     "cta": "Ver el plan de mañana",
@@ -2793,6 +2794,14 @@
     "cta": "Abrir el plan",
     "footerReason": "Recibes este email porque dijiste que vas a este viaje y nos diste esta dirección.",
     "footerLink": "Dejar de recibir emails de este viaje"
+  },
+  "keptPlanEmail": {
+    "heading": "{destination}: tu plan",
+    "headingNoPlace": "Tu plan de viaje",
+    "intro": "Aquí tienes el enlace al plan que creaste. Se abre en cualquier dispositivo y se guarda durante 30 días desde la última vez que lo abras.",
+    "cta": "Abrir mi plan",
+    "footerReason": "Nos pediste que te lo enviáramos, y no volveremos a escribirte sobre esto.",
+    "footerLink": "Política de privacidad"
   },
   "liveStats": {
     "title": "En directo desde el planificador",

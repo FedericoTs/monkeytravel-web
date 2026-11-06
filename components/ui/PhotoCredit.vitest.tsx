@@ -28,6 +28,12 @@ describe("PhotoCredit", () => {
     expect(onCard).not.toHaveBeenCalled();
   });
 
+  it("stays the size of its words on a phone, whatever the page's rule for tap targets", () => {
+    const { getByRole } = render(<PhotoCredit src={photo} />);
+    expect(getByRole("link").className).toContain("min-h-0!");
+    expect(getByRole("link").className).toContain("min-w-0!");
+  });
+
   it("shows nothing for a Google or stock photo", () => {
     for (const src of ["/api/places/photo?name=places%2FX%2Fphotos%2FY&w=600&h=400", "https://images.pexels.com/photos/1/a.jpeg", undefined]) {
       expect(render(<PhotoCredit src={src} />).container.innerHTML).toBe("");
