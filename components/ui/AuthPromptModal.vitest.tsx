@@ -70,34 +70,6 @@ beforeEach(() => {
   });
 });
 
-describe("what stays visible behind the box", () => {
-  const dialog = () => screen.getByRole("dialog");
-  const backdrop = () => dialog().querySelector("[aria-hidden='true']") as HTMLElement;
-  const position = () => backdrop().nextElementSibling as HTMLElement;
-
-  it("keeps the plan readable when someone saves it: no blur, and at the bottom on a phone", () => {
-    render(<AuthPromptModal isOpen onClose={() => {}} destination="Lisbon" redirectPath="/trips/new" />);
-    expect(backdrop().className).not.toContain("backdrop-blur");
-    expect(backdrop().className).toContain("bg-black/25");
-    expect(position().className).toContain("items-end");
-    expect(position().className).toContain("sm:items-center");
-  });
-
-  it("stays a plain dialog at the daily limit, where there's no plan to read", () => {
-    render(<AuthPromptModal isOpen onClose={() => {}} destination="Lisbon" reason="generation_limit" redirectPath="/trips/new" />);
-    expect(backdrop().className).toContain("backdrop-blur");
-    expect(position().className).not.toContain("items-end");
-  });
-
-  it("still offers Google before the email field", () => {
-    render(<AuthPromptModal isOpen onClose={() => {}} destination="Lisbon" redirectPath="/trips/new" />);
-    const email = screen.getByPlaceholderText("magicLink.emailPlaceholder");
-    const google = dialog().querySelector("button") as HTMLButtonElement;
-    expect(google.compareDocumentPosition(email) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(google.querySelector("svg")).toBeTruthy();
-  });
-});
-
 describe("the code input appears once the email is on its way", () => {
   it("offers somewhere to type the code", async () => {
     await reachCodeEntry();

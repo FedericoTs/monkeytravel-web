@@ -386,14 +386,13 @@ export default function AuthPromptModal({
       maxWidth="max-w-md"
       showCloseButton={false}
       noPadding
-      seeThrough={!atLimit}
       animation="scale"
       ariaLabel={title}
       className="shadow-2xl"
     >
       {/* Gradient header, kept short so both sign-in paths sit above the fold on a phone */}
       <div className="bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/80 px-6 py-6 text-white text-center">
-        <div className={`w-12 h-12 mx-auto mb-3 rounded-full bg-white/20 backdrop-blur items-center justify-center ${linkSent || atLimit ? "flex" : "hidden sm:flex"}`}>
+        <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
