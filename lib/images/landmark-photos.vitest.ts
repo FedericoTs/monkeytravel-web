@@ -59,7 +59,7 @@ describe("landmarkPhotos", () => {
   });
 
   it("for a saved trip, looks up new places and keeps a photo for a year, none for two months", async () => {
-    build.mockImplementation(async (_db: unknown, q: { names: string[] }) => (q.names[0] === "pantheon|rome" ? url("b") : null));
+    build.mockImplementation(async (q: { names: string[] }) => (q.names[0] === "pantheon|rome" ? url("b") : null));
     const photos = await landmarkPhotos([lookup("pantheon|rome"), lookup("bar del fico|rome")], { waitMs: 5000, maxNew: 12 });
     expect(photos.get("pantheon|rome")).toBe(url("b"));
     expect(upserts.map((r) => [r.data, days(r)])).toEqual(
@@ -104,7 +104,7 @@ describe("landmarkPhotos", () => {
 
   it("waits only so long for a saved trip; a slower lookup finishes in the background", async () => {
     let finish!: (url: string) => void;
-    build.mockImplementation((_db: unknown, q: { names: string[] }) =>
+    build.mockImplementation((q: { names: string[] }) =>
       q.names[0] === "slow|rome" ? new Promise((resolve) => (finish = resolve)) : Promise.resolve(url("d")),
     );
     const photos = await landmarkPhotos([lookup("quick|rome"), lookup("slow|rome")], { waitMs: 50, maxNew: 12 });

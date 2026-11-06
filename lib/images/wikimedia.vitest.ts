@@ -1,6 +1,6 @@
 /** @vitest-environment node */
-import { describe, expect, it } from "vitest";
-import { isUsablePhoto, pickImages, plainArtist, searchQueries, thumbAt, travelSectionImages, type CommonsFile } from "./wikimedia";
+import { describe, expect, it, vi } from "vitest";
+import { isUsablePhoto, pickImages, plainArtist, searchQueries, travelSectionImages, type CommonsFile, commonsPhotoId, commonsPhotoUrl, servedPhotoUrls, destinationPhotoUrls } from "./wikimedia";
 
 /**
  * Which Commons photos may become a destination's cover or gallery: a free
@@ -10,7 +10,6 @@ import { isUsablePhoto, pickImages, plainArtist, searchQueries, thumbAt, travelS
 
 const file = (name: string, extra: Partial<CommonsFile> = {}): CommonsFile => ({
   name,
-  thumb: `https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/${name.replace(/ /g, "_")}/1280px-${name.replace(/ /g, "_")}`,
   width: 4000,
   height: 2600,
   mime: "image/jpeg",
@@ -166,11 +165,51 @@ describe("plainArtist", () => {
   });
 });
 
-describe("thumbAt", () => {
-  it("swaps the width of a Commons thumbnail URL", () => {
-    expect(thumbAt("https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/X.jpg/1280px-X.jpg", 330)).toBe(
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/X.jpg/330px-X.jpg",
-    );
+describe("a photo's served URLs", () => {
+  const photo = file("Valletta St Johns square Malta 2014 3.jpg", { artist: "Karelj", license: "Public domain " });
+
+  it("gives the same id as the copies already stored under it", () => {
+    expect(commonsPhotoId("Valletta St Johns square Malta 2014 3.jpg")).toBe("85c8569d1e1b3bdad48b");
+    expect(commonsPhotoId("Valletta_St_Johns_square_Malta_2014_3.jpg")).toBe("85c8569d1e1b3bdad48b");
+  });
+
+  it("gives one URL per width, with the credit attached", () => {
+    expect(servedPhotoUrls(photo, [500, 960])).toEqual([
+      "/api/images/wikimedia/85c8569d1e1b3bdad48b-500.jpg?a=Karelj&l=Public+domain&f=Valletta+St+Johns+square+Malta+2014+3.jpg",
+      "/api/images/wikimedia/85c8569d1e1b3bdad48b-960.jpg?a=Karelj&l=Public+domain&f=Valletta+St+Johns+square+Malta+2014+3.jpg",
+    ]);
+  });
+
+  it("keeps a large cover at 1920, a smaller one at 1280, and gives the gallery thumbnails", () => {
+    const large = file("Large.jpg", { width: 1920 });
+    const small = file("Small.jpg", { width: 1919 });
+    expect(destinationPhotoUrls(large, []).cover).toContain("-1920.jpg");
+    expect(destinationPhotoUrls(small, []).cover).toContain("-1280.jpg");
+    const { gallery } = destinationPhotoUrls(large, [small, photo]);
+    expect(gallery).toHaveLength(2);
+    expect(gallery[0]).toContain("-330.jpg");
+    expect(gallery[0]).toContain("f=Small.jpg");
+    expect(gallery[1]).toContain("-330.jpg");
+    expect(gallery[1]).toContain("f=Valletta");
+  });
+
+  it("asks Commons at the width wanted", () => {
+    expect(commonsPhotoUrl("X.jpg", 330)).toContain("?width=330");
+  });
+
+  it("needs nothing from the network", () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+    servedPhotoUrls(photo, [330]);
+    expect(fetchSpy).not.toHaveBeenCalled();
+    fetchSpy.mockRestore();
+  });
+
+  it.each([
+    ["Cour Napoléon at night - Louvre.jpg", "Cour_Napol%C3%A9on_at_night_-_Louvre.jpg"],
+    ["Natchez, MS, Convention Center IMG 6951.JPG", "Natchez%2C_MS%2C_Convention_Center_IMG_6951.JPG"],
+    ["Guadeloupe (9).JPG", "Guadeloupe_(9).JPG"],
+  ])("asks Commons for %s by its file link", (name, encoded) => {
+    expect(commonsPhotoUrl(name, 960)).toBe(`https://commons.wikimedia.org/wiki/Special:FilePath/${encoded}?width=960`);
   });
 });
 
