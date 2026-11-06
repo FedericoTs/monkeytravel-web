@@ -226,7 +226,7 @@ describe("what it refuses", () => {
     expect((await res.json()).error).not.toContain("Invalid code");
   });
 
-  it.skip("answers 400, not 500, to a body of JSON null", async () => {
+  it("answers 400, not 500, to a body of JSON null", async () => {
     expect((await redeem("null")).status).toBe(400);
   });
 });
