@@ -49,7 +49,7 @@
       },
       "offlineAccess": {
         "title": "Offline Access",
-        "description": "Download your generated itinerary to your device. Access your day-by-day plans even without an internet connection while traveling."
+        "description": "Save your trip and open it once, and it stays on your device. Your day-by-day plan works with no connection, for free."
       },
       "exportShare": {
         "title": "Export & Share",
@@ -70,7 +70,7 @@
       },
       "step3": {
         "title": "Customize & Export",
-        "description": "Fine-tune your itinerary, export it as PDF, share with friends, or download for offline access. Your perfect trip, ready to go."
+        "description": "Fine-tune your itinerary, export it as PDF or share it with friends. Save it and open it once, and it works offline too. Your perfect trip, ready to go."
       }
     }
   },
@@ -123,7 +123,7 @@
       },
       "exportFormats": {
         "question": "Can I export or share my itinerary?",
-        "answer": "Absolutely. You can export your generated itinerary as a PDF, share it via a unique link with travel companions, or sync it to your calendar. You can also download it for offline access while traveling."
+        "answer": "Absolutely. You can export your generated itinerary as a PDF, share it via a unique link with travel companions, or sync it to your calendar. A saved trip you've opened once also stays readable offline while you travel."
       },
       "isFree": {
         "question": "Is the AI itinerary generator free?",

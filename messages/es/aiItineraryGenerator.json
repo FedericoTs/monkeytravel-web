@@ -49,7 +49,7 @@
       },
       "offlineAccess": {
         "title": "Acceso Sin Conexión",
-        "description": "Descarga tu itinerario generado a tu dispositivo. Accede a tus planes día a día incluso sin conexión a internet mientras viajas."
+        "description": "Guarda tu viaje y ábrelo una vez, y se queda en tu dispositivo. Tu plan día a día funciona sin conexión, gratis."
       },
       "exportShare": {
         "title": "Exportar y Compartir",
@@ -70,7 +70,7 @@
       },
       "step3": {
         "title": "Personaliza y Exporta",
-        "description": "Ajusta tu itinerario, expórtalo como PDF, compártelo con amigos o descárgalo para acceso sin conexión. Tu viaje perfecto, listo para disfrutar."
+        "description": "Ajusta tu itinerario, expórtalo como PDF o compártelo con amigos. Guárdalo y ábrelo una vez, y también funciona sin conexión. Tu viaje perfecto, listo para disfrutar."
       }
     }
   },
@@ -123,7 +123,7 @@
       },
       "exportFormats": {
         "question": "¿Puedo exportar o compartir mi itinerario?",
-        "answer": "Por supuesto. Puedes exportar tu itinerario generado como PDF, compartirlo mediante un enlace único con compañeros de viaje o sincronizarlo con tu calendario. También puedes descargarlo para acceso sin conexión mientras viajas."
+        "answer": "Por supuesto. Puedes exportar tu itinerario generado como PDF, compartirlo mediante un enlace único con compañeros de viaje o sincronizarlo con tu calendario. Un viaje guardado que hayas abierto una vez también se puede leer sin conexión mientras viajas."
       },
       "isFree": {
         "question": "¿El generador de itinerarios con AI es gratis?",
