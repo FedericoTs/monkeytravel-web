@@ -24,7 +24,7 @@ confirmations** — the emails that must land.
 - `users.notification_settings.marketingNotifications` defaults to **true**
   at signup; only an explicit unsubscribe writes **false**, so a `false` is a reliable opt-out signal.
 - Eligible audiences: **all users EXCEPT** those with `marketingNotifications =
-  false` (real unsubscribes), plus `email_subscribers` (landing-page waitlist). The live `app/api/cron/sync-resend-audience` keeps the Resend audience in sync and is the source of truth.
+  false` (real unsubscribes), plus `email_subscribers` (landing-page waitlist). The live `app/api/cron/sync-resend-audience` keeps the Resend audience in sync and is the source of truth. It holds the most recently active people, up to a ceiling under the plan's contact limit, and removes everyone else from Resend (never from our own tables): opted-out people for good, the others until they next sign in. The manual scripts below can push past that ceiling; the next weekly run brings it back.
 - Honor unsubscribes: Resend Broadcasts inject a one-click unsubscribe via
   the `{{{RESEND_UNSUBSCRIBE_URL}}}` token (already used by our render
   helper) and maintain the broadcast suppression list automatically.

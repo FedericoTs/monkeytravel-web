@@ -6,22 +6,21 @@ import { refuseUnlessCron } from "@/lib/api/cron-auth";
 import { readWholeTable } from "@/lib/supabase/read-all-rows";
 
 /**
- * Weekly cron — incremental sync of new Supabase users into the Resend
- * audience so future broadcast campaigns reach the full user base.
+ * Weekly cron: keeps the Resend audience in step with who may be emailed, and
+ * the account under the contact limit of Resend's plan.
  *
- * Follow-up to task #323: a one-off bootstrap imported the existing contacts via
- * scripts/export-all-users-to-resend.mts. This cron keeps it in sync as
- * new users sign up — without it the audience drifts behind and
- * marketing sends miss anyone who joined since the bootstrap.
- *
- * Strategy: list existing audience contacts → diff against
- * users + email_subscribers → POST the missing ones (with the correct
- * `unsubscribed` flag derived from the user's marketing preference), then
- * reconcile any EXISTING contact that has since opted out in-app but is
- * still flagged subscribed in Resend. Reconciliation is one-directional —
- * only subscribed → unsubscribed, never the reverse — so a native Resend
- * one-click unsubscribe is never silently re-subscribed. We never delete
- * contacts.
+ * The audience is whoever was active most recently, from users +
+ * email_subscribers, up to AUDIENCE_CEILING, leaving out anyone opted out.
+ * In this order, so a run out of time still carries every opt-out:
+ *   1. Unsubscribes made in Resend (one-click / List-Unsubscribe) come back
+ *      into users.notification_settings. Removing a contact loses its flag, so
+ *      this goes before any removal.
+ *   2. Opt-outs made in the app go to Resend, so a contact whose removal then
+ *      fails can't stay subscribed.
+ *   3. Contacts outside the audience are removed from the account. Only from
+ *      Resend: our own tables keep the person and their preferences, and they
+ *      come back when they next sign in.
+ *   4. Missing contacts are added.
  *
  * Exclusions match scripts/export-all-users-to-resend.mts so the bootstrap
  * and the cron treat the same population identically:
@@ -35,18 +34,16 @@ import { readWholeTable } from "@/lib/supabase/read-all-rows";
  *
  * Schedule: weekly Monday 06:00 UTC (vercel.json). Cadence is slow
  * because we don't need to be incremental-down-to-the-minute, and
- * weekly keeps the Resend API call volume tiny (one list + N inserts).
+ * weekly keeps the Resend API call volume tiny.
  *
  * Auth: CRON_SECRET via Bearer header — same pattern as the other
  * cron routes (refresh-activity-index, scheduled-notifications,
  * recompute-editors-picks).
  *
- * Safety: never sends or modifies any email content. It reconciles opt-outs
- * in BOTH directions — app opt-outs → Resend (suppress), and Resend-native
- * unsubscribes → users.notification_settings (back-sync). Both directions
+ * Safety: never sends or modifies any email content. Both opt-out directions
  * only ever ADD an opt-out, never remove one, so an unsubscribe can never be
  * silently reversed. users.notification_settings stays the single source of
- * truth for who may be emailed; the reverse pass keeps it from drifting.
+ * truth for who may be emailed. Someone opted out is never added back.
  *
  * Manual trigger:
  *   curl -H "Authorization: Bearer $CRON_SECRET" /api/cron/sync-resend-audience
@@ -58,10 +55,29 @@ type AudienceUser = {
   display_name: string | null;
   preferred_language: string | null;
   notification_settings: Record<string, unknown> | null;
+  created_at: string | null;
 };
 
-// Contact creation stops after this; vercel.json gives the function 300 s.
-const CREATE_BUDGET_MS = 240_000;
+// Under the plan's contact limit, which counts the whole account, not just this audience.
+const AUDIENCE_CEILING = 950;
+
+// Removing and adding contacts stop after this; vercel.json gives the function 300 s.
+const WRITE_BUDGET_MS = 240_000;
+
+const timeOf = (at: string | null | undefined) => (at ? Date.parse(at) : 0);
+
+/** When each account last signed in. Only Supabase Auth keeps this. */
+async function lastSignIns(svc: ReturnType<typeof createAdminClient>) {
+  const signedIn = new Map<string, string>();
+  for (let page = 1; ; page++) {
+    const { data, error } = await svc.auth.admin.listUsers({ page, perPage: 1000 });
+    if (error) return { signedIn, error };
+    if (data.users.length === 0) return { signedIn, error: null };
+    for (const u of data.users) {
+      if (u.last_sign_in_at) signedIn.set(u.id, u.last_sign_in_at);
+    }
+  }
+}
 
 function isExcluded(email: string): boolean {
   const e = email.toLowerCase();
@@ -115,7 +131,7 @@ export async function GET(request: NextRequest) {
   const { data: users, error: usersErr } = await readWholeTable<AudienceUser>(
     svc,
     "users",
-    "id, email, display_name, preferred_language, notification_settings",
+    "id, email, display_name, preferred_language, notification_settings, created_at",
     (rows) => rows.not("email", "is", null)
   );
   if (usersErr) {
@@ -126,15 +142,25 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const { data: subs, error: subsErr } = await readWholeTable<{ id: string; email: string | null; unsubscribed_at: string | null }>(
-    svc,
-    "email_subscribers",
-    "id, email, unsubscribed_at"
-  );
+  const { data: subs, error: subsErr } = await readWholeTable<{
+    id: string;
+    email: string | null;
+    created_at: string | null;
+    unsubscribed_at: string | null;
+  }>(svc, "email_subscribers", "id, email, created_at, unsubscribed_at");
   if (subsErr) {
     console.error("[sync-resend-audience] subscribers query failed:", subsErr);
     return NextResponse.json(
       { error: "Subscribers query failed", detail: subsErr.message },
+      { status: 500 }
+    );
+  }
+
+  const { signedIn, error: signInsErr } = await lastSignIns(svc);
+  if (signInsErr) {
+    console.error("[sync-resend-audience] sign-ins query failed:", signInsErr);
+    return NextResponse.json(
+      { error: "Sign-ins query failed", detail: signInsErr.message },
       { status: 500 }
     );
   }
@@ -145,6 +171,7 @@ export async function GET(request: NextRequest) {
     firstName?: string;
     locale?: string;
     optedOut: boolean;
+    lastActiveAt: number;
   };
   const byEmail = new Map<string, Contact>();
 
@@ -153,7 +180,11 @@ export async function GET(request: NextRequest) {
     const email = String(s.email).trim().toLowerCase();
     if (!email || isExcluded(email)) continue;
     // A waitlist subscriber with unsubscribed_at set has opted out.
-    byEmail.set(email, { email, optedOut: Boolean(s.unsubscribed_at) });
+    byEmail.set(email, {
+      email,
+      optedOut: Boolean(s.unsubscribed_at),
+      lastActiveAt: timeOf(s.created_at),
+    });
   }
 
   for (const u of users ?? []) {
@@ -170,10 +201,9 @@ export async function GET(request: NextRequest) {
       firstName: firstName(u.display_name),
       locale: (u.preferred_language as string | undefined) || undefined,
       optedOut,
+      lastActiveAt: timeOf(signedIn.get(u.id) ?? u.created_at),
     });
   }
-
-  const desiredContacts = [...byEmail.values()];
 
   // Step 2: list existing audience contacts to diff.
   //
@@ -227,58 +257,39 @@ export async function GET(request: NextRequest) {
   }
   const existingEmails = new Set<string>(existingState.keys());
 
-  const toCreate = desiredContacts.filter((c) => !existingEmails.has(c.email));
-
-  // Step 3: insert the missing contacts. Sequential rather than
-  // Promise.all to stay under Resend's per-API-key rate limit
-  // (10 req/s default). A backlog can outlast one run, so creation stops at
-  // a deadline inside the function limit: the opt-out steps below still run,
-  // and the next run creates the rest.
-  let created = 0;
-  let failed = 0;
-  let deferred = 0;
-  const errors: Array<{ email: string; error: string }> = [];
-
-  for (const [i, c] of toCreate.entries()) {
-    if (Date.now() - startedAt > CREATE_BUDGET_MS) {
-      deferred = toCreate.length - i;
-      break;
-    }
-    try {
-      const res = await resend.contacts.create({
-        email: c.email,
-        firstName: c.firstName,
-        // Respect the user's marketing opt-out at creation time so we never
-        // import an already-opted-out user as a subscribed contact.
-        unsubscribed: c.optedOut,
-        audienceId,
-      });
-      if (res.error) {
-        failed++;
-        errors.push({ email: c.email, error: res.error.message });
-      } else {
-        created++;
-      }
-    } catch (err) {
-      failed++;
-      errors.push({
-        email: c.email,
-        error: err instanceof Error ? err.message : "create threw",
-      });
-    }
+  // Step 3: bring unsubscribes made in Resend (one-click / List-Unsubscribe,
+  // which land there, not in our DB) back into users.notification_settings.
+  // Idempotent + self-healing — needs no webhook and no Resend dashboard config,
+  // so it can't silently break the way an unsubscribed-event subscription can.
+  // A contact whose opt-out couldn't be written stays until a later run can:
+  // its flag in Resend is the only record of it.
+  let backSynced = 0;
+  const notRecorded = new Set<string>();
+  for (const u of users ?? []) {
+    const email = String(u.email ?? "").trim().toLowerCase();
+    if (existingState.get(email) !== true) continue;
+    const contact = byEmail.get(email);
+    if (contact) contact.optedOut = true;
+    const ns = (u.notification_settings ?? {}) as Record<string, unknown>;
+    if (ns.marketingNotifications === false) continue; // already opted out in DB
+    const { error: backErr } = await svc
+      .from("users")
+      .update({
+        notification_settings: { ...ns, marketingNotifications: false },
+      })
+      .eq("id", u.id);
+    if (backErr) notRecorded.add(email);
+    else backSynced++;
   }
 
-  // Step 3b: reconcile EXISTING contacts that have opted out in-app but are
-  // still flagged subscribed in Resend (e.g. they unsubscribed after the
-  // bootstrap import). One-directional ON PURPOSE — we only ever flip
-  // subscribed -> unsubscribed, never the reverse — so a native Resend
-  // one-click unsubscribe can never be silently re-subscribed by this cron.
-  // This + the create-time `unsubscribed: c.optedOut` above make app-side
-  // marketing opt-outs propagate to Resend on every run.
+  // Step 4: flag EXISTING contacts that opted out in the app but are still
+  // subscribed in Resend. One-directional ON PURPOSE — only ever subscribed ->
+  // unsubscribed — so a Resend unsubscribe can never be reversed by this cron.
+  const known = [...byEmail.values()];
   let reconciled = 0;
-  for (const c of desiredContacts) {
+  for (const c of known) {
     if (!c.optedOut) continue;
-    if (!existingEmails.has(c.email)) continue; // newly created ones were already set correctly
+    if (!existingEmails.has(c.email)) continue;
     if (existingState.get(c.email) === true) continue; // already unsubscribed in Resend
     try {
       const res = await resend.contacts.update({
@@ -292,30 +303,62 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Step 3c: REVERSE reconcile — pull Resend-native unsubscribes (one-click /
-  // List-Unsubscribe, which land in Resend, not our DB) back into
-  // users.notification_settings. Without this the DB source of truth drifts:
-  // Resend suppresses them, but a future audience rebuild (export script /
-  // re-import) or app-path send would re-contact them. Idempotent + self-
-  // healing — needs no webhook and no Resend dashboard config, so it can't
-  // silently break the way an unsubscribed-event subscription can. Reuses the
-  // already-fetched `existingState`, so it adds zero extra Resend API calls.
-  let backSynced = 0;
-  const unsubInResend = new Set(
-    [...existingState.entries()].filter(([, u]) => u === true).map(([e]) => e)
+  const wanted = known
+    .filter((c) => !c.optedOut)
+    .sort((a, b) => b.lastActiveAt - a.lastActiveAt)
+    .slice(0, AUDIENCE_CEILING);
+  const wantedEmails = new Set(wanted.map((c) => c.email));
+  const toRemove = [...existingEmails].filter(
+    (email) => !wantedEmails.has(email) && !notRecorded.has(email)
   );
-  for (const u of users ?? []) {
-    const email = String(u.email ?? "").trim().toLowerCase();
-    if (!unsubInResend.has(email)) continue;
-    const ns = (u.notification_settings ?? {}) as Record<string, unknown>;
-    if (ns.marketingNotifications === false) continue; // already opted out in DB
-    const { error: backErr } = await svc
-      .from("users")
-      .update({
-        notification_settings: { ...ns, marketingNotifications: false },
-      })
-      .eq("id", u.id);
-    if (!backErr) backSynced++;
+  const toCreate = wanted.filter((c) => !existingEmails.has(c.email));
+
+  let failed = 0;
+  const errors: Array<{ email: string; error: string }> = [];
+  const attempt = async (
+    email: string,
+    write: () => Promise<{ error: { message: string } | null }>
+  ) => {
+    try {
+      const { error } = await write();
+      if (!error) return true;
+      errors.push({ email, error: error.message });
+    } catch (err) {
+      errors.push({ email, error: err instanceof Error ? err.message : "call threw" });
+    }
+    failed++;
+    return false;
+  };
+
+  // Step 5: remove, making room before adding. Sequential rather than
+  // Promise.all to stay under Resend's per-API-key rate limit (10 req/s default).
+  // A backlog can outlast one run, so this and the next step stop at a deadline
+  // inside the function limit, and the next run does the rest.
+  //
+  // Without an audienceId: with one, Resend only takes the contact out of that
+  // audience, reports it deleted, and the contact still counts against the limit.
+  let removed = 0;
+  let removalsDeferred = 0;
+  for (const [i, email] of toRemove.entries()) {
+    if (Date.now() - startedAt > WRITE_BUDGET_MS) {
+      removalsDeferred = toRemove.length - i;
+      break;
+    }
+    if (await attempt(email, () => resend.contacts.remove({ email }))) removed++;
+  }
+
+  // Step 6: add whoever is missing.
+  let created = 0;
+  let deferred = 0;
+  for (const [i, c] of toCreate.entries()) {
+    if (Date.now() - startedAt > WRITE_BUDGET_MS) {
+      deferred = toCreate.length - i;
+      break;
+    }
+    const added = await attempt(c.email, () =>
+      resend.contacts.create({ email: c.email, firstName: c.firstName, audienceId })
+    );
+    if (added) created++;
   }
 
   // Trim error log so a runaway error case doesn't blow the response
@@ -325,8 +368,11 @@ export async function GET(request: NextRequest) {
   console.log("[sync-resend-audience]", {
     totalDbUsers: users?.length ?? 0,
     totalWaitlist: subs?.length ?? 0,
-    desired: desiredContacts.length,
+    desired: wanted.length,
     existing: existingEmails.size,
+    toRemove: toRemove.length,
+    removed,
+    removalsDeferred,
     toCreate: toCreate.length,
     created,
     failed,
@@ -341,8 +387,11 @@ export async function GET(request: NextRequest) {
     summary: {
       totalDbUsers: users?.length ?? 0,
       totalWaitlist: subs?.length ?? 0,
-      desired: desiredContacts.length,
+      desired: wanted.length,
       existing: existingEmails.size,
+      toRemove: toRemove.length,
+      removed,
+      removalsDeferred,
       toCreate: toCreate.length,
       created,
       failed,

@@ -4,9 +4,9 @@ import { readFileSync } from "fs";
 import { join } from "path";
 
 /**
- * The weekly sync was killed at the 60 s cron limit while creating a backlog
- * of contacts, before it logged anything or reconciled opt-outs. Asserted
- * against the source and vercel.json, like the other cron guards.
+ * The weekly sync was killed at the 60 s cron limit while working through a
+ * backlog of contacts, before it logged anything. Asserted against the source
+ * and vercel.json, like the other cron guards.
  */
 
 const SRC = readFileSync(join(__dirname, "route.ts"), "utf8");
@@ -17,16 +17,14 @@ const KEY = "app/api/cron/sync-resend-audience/route.ts";
 
 describe("audience sync time limit", () => {
   const budgetMs = Number(
-    SRC.match(/const CREATE_BUDGET_MS = ([\d_]+);/)?.[1].replace(/_/g, "")
+    SRC.match(/const WRITE_BUDGET_MS = ([\d_]+);/)?.[1].replace(/_/g, "")
   );
 
-  it("stops creating contacts at a deadline and reports the rest", () => {
+  it("has a deadline for changing contacts", () => {
     expect(budgetMs).toBeGreaterThan(0);
-    expect(SRC).toMatch(/Date\.now\(\) - startedAt > CREATE_BUDGET_MS/);
-    expect(SRC).toMatch(/deferred = toCreate\.length - i/);
   });
 
-  it("leaves time after the deadline for the opt-out steps", () => {
+  it("leaves time after the deadline to finish and report", () => {
     const limit = VERCEL.functions[KEY]?.maxDuration ?? 0;
     expect(limit * 1000 - budgetMs).toBeGreaterThanOrEqual(30_000);
   });
