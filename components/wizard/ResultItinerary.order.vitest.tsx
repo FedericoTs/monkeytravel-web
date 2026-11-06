@@ -105,6 +105,21 @@ describe("the plan on the result page", () => {
     });
   });
 
+  it("offers a day with at least two stops its route in Google Maps", () => {
+    const twoStops = {
+      ...itinerary,
+      days: [
+        { day_number: 1, activities: [{ id: "a1", name: "Market" }, { id: "a2", name: "Museum" }] },
+        { day_number: 2, activities: [{ id: "a3", name: "Park" }] },
+      ],
+    } as unknown as GeneratedItinerary;
+    show({ generatedItinerary: twoStops });
+    const links = screen.getAllByRole("link", { name: "day.route" });
+    expect(links).toHaveLength(1);
+    expect(links[0].getAttribute("href")).toContain("origin=Market");
+    expect(document.getElementById("day-1")!.contains(links[0])).toBe(true);
+  });
+
   it("starts with the days, ahead of the map, the numbers and the booking links", () => {
     show();
     const dayOne = screen.getAllByText("wizard.result.dayLabel")[0];

@@ -7,6 +7,7 @@ import { showsDayBudget } from "@/lib/trip/day-budget";
 import ActivityCard from "@/components/ActivityCard";
 import DaySlider from "@/components/ui/DaySlider";
 import DayHeader, { DayBudget } from "./DayHeader";
+import { DayRouteLink } from "./DayRouteLink";
 import TravelConnector from "./TravelConnector";
 import DaySummary from "./DaySummary";
 import { DayTimeline } from "./DayTimeline";
@@ -66,6 +67,7 @@ export default function ReadOnlyItinerary({
                 <DayHeader dayNumber={day.day_number} title={dayTitle(day)} theme={day.theme}>
                   {showsDayBudget(day) && <DayBudget label={budgetLabel} value={formatDayBudget(day)} />}
                 </DayHeader>
+                <DayRouteLink activities={day.activities} surface="shared" className="-mt-2 mb-2" />
 
                 {viewMode === "cards" ? (
                   <>

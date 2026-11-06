@@ -21,15 +21,19 @@ import { verifyDayLink } from "@/lib/trips/day-link";
 const dispatchEmail = vi.fn();
 vi.mock("@/lib/email/send", () => ({ dispatchEmail: (options: unknown) => dispatchEmail(options) }));
 
+const copy = vi.hoisted(() => ({ noRouteLabel: false }));
 vi.mock("next-intl/server", async () => {
   const { createTranslator } = await import("next-intl");
   const { readFileSync } = await import("fs");
   const { join } = await import("path");
-  const common = (locale: string) =>
-    JSON.parse(readFileSync(join(process.cwd(), "messages", locale, "common.json"), "utf8"));
+  const common = (locale: string) => {
+    const all = JSON.parse(readFileSync(join(process.cwd(), "messages", locale, "common.json"), "utf8"));
+    if (copy.noRouteLabel) delete all.tripDayDigestEmail.mapsCta;
+    return all;
+  };
   return {
     getTranslations: async ({ locale, namespace }: { locale: string; namespace: string }) =>
-      createTranslator({ locale, messages: { common: common(locale) }, namespace: namespace as never }),
+      createTranslator({ locale, messages: { common: common(locale) }, namespace: namespace as never, onError: () => {} }),
   };
 });
 
@@ -126,6 +130,68 @@ beforeEach(() => {
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.restoreAllMocks();
+});
+
+describe("tomorrow's route in Google Maps", () => {
+  const stops = (n: number) =>
+    Array.from({ length: n }, (_, i) => ({ name: `Stop ${i + 1}`, start_time: `1${i}:00`, address: `${i + 1} Rua Augusta` }));
+  const dayOf = (activities: unknown[]) => ({ itinerary: [{ day_number: 2, title: "Alfama", activities }] });
+
+  it("goes to the owner and the guests, through every stop of the day", async () => {
+    const calls = await runDigest({ ...dayOf(stops(7)), share_token: SHARE });
+    expect(calls.map((c) => c.recipientEmail)).toEqual(["owner@example.com", "ana@example.com"]);
+    for (const call of calls) {
+      const { maps, blocks } = call.template.props;
+      expect(maps?.label).toBe("Open tomorrow's route in Google Maps");
+      const url = new URL(maps!.url);
+      expect(url.origin + url.pathname).toBe("https://www.google.com/maps/dir/");
+      expect(url.searchParams.get("origin")).toBe("1 Rua Augusta");
+      expect(url.searchParams.get("destination")).toBe("7 Rua Augusta");
+      expect(url.searchParams.get("waypoints")?.split("|")).toHaveLength(5);
+      // The list in the email still stops where it did.
+      expect(blocks?.[0].items).toHaveLength(5);
+    }
+  });
+
+  it("is in the owner's language", async () => {
+    const [owner] = await runDigest(dayOf(stops(2)), "it");
+    expect(owner.template.props.maps?.label).toBe("Apri il percorso di domani in Google Maps");
+  });
+
+  it("isn't there for a day with fewer than two stops", async () => {
+    const [one] = await runDigest();
+    expect(one.template.props.maps).toBeUndefined();
+
+    dispatchEmail.mockClear();
+    const [none] = await runDigest(dayOf([]));
+    expect(none.template.props.maps).toBeUndefined();
+  });
+
+  it("ignores what can't be a stop", async () => {
+    const [owner] = await runDigest(dayOf([{ name: "Stop 1" }, null, "x", { name: "  " }, { start_time: "10:00" }, { name: "Stop 2" }]));
+    const url = new URL(owner.template.props.maps!.url);
+    expect(url.searchParams.get("origin")).toBe("Stop 1");
+    expect(url.searchParams.get("destination")).toBe("Stop 2");
+    expect(url.searchParams.get("waypoints")).toBeNull();
+  });
+
+  it("holds the email back when its label has no words", async () => {
+    copy.noRouteLabel = true;
+    const sent = await runDigest(dayOf(stops(2)));
+    copy.noRouteLabel = false;
+    expect(sent).toEqual([]);
+  });
+
+  it("still passes the check before sending", async () => {
+    const [owner] = await runDigest(dayOf(stops(2)));
+    const props = { ...owner.template.props, unsubscribeUrl: "https://monkeytravel.app/unsubscribe?token=t" };
+    const html = await render(TripDayDigestEmail(props));
+    const text = tripDayDigestEmailText(props);
+    const subject = tripDayDigestSubject(props);
+    expect(owner.verify({ html, text, subject })).toEqual({ ok: true });
+    expect(html).toContain("google.com/maps/dir/");
+    expect(text).toContain("google.com/maps/dir/");
+  });
 });
 
 describe("send tomorrow's plan to the group", () => {

@@ -84,7 +84,19 @@
       "linkHint": "Lo conservamos 30 días. El enlace abre este plan en cualquier dispositivo, y quien lo reciba también puede verlo.",
       "headerNudge": "{count, plural, one {# día} other {# días}} — lo conservamos 30 días",
       "mobileNudge": "{count, plural, one {# día} other {# días}} — lo conservamos 30 días en un enlace privado",
-      "gone": "El enlace de ese plan ha caducado. Los planes se conservan 30 días desde la última vez que se abrieron."
+      "gone": "El enlace de ese plan ha caducado. Los planes se conservan 30 días desde la última vez que se abrieron.",
+      "emailAction": "Envíame este plan por correo",
+      "emailPill": "Enviar por correo",
+      "emailOffer": "¿Aún no quieres crear una cuenta? Podemos enviarte por correo el enlace a este plan.",
+      "emailNote": "No necesitas cuenta. Solo te enviaremos este correo.",
+      "emailLabel": "Tu correo",
+      "emailPlaceholder": "tu@ejemplo.com",
+      "emailSend": "Enviar",
+      "emailSending": "Enviando…",
+      "emailSent": "Enviado a {email}. El enlace abre este plan en cualquier dispositivo.",
+      "emailInvalid": "Esa dirección no parece correcta. Revísala e inténtalo de nuevo.",
+      "emailLimited": "Demasiados correos por ahora. Inténtalo más tarde o copia el enlace.",
+      "emailFailed": "No se pudo enviar. Inténtalo de nuevo o copia el enlace."
     },
     "draftRecovery": {
       "title": "Viaje sin guardar encontrado",
@@ -485,6 +497,7 @@
     "planWithFriends": "Planear con amigos"
   },
   "day": {
+    "route": "Abrir este día en Google Maps",
     "label": "Día {number}",
     "todayBadge": "HOY",
     "morning": "Mañana",

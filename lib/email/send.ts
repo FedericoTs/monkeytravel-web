@@ -68,7 +68,8 @@ export type EmailTemplate =
   | { id: "trip_day_digest"; props: TripDayDigestEmailProps }
   | { id: "finish_trip"; props: FinishTripEmailProps }
   | { id: "feedback_outreach"; props: FeedbackOutreachEmailProps }
-  | { id: "participant_plan"; props: ParticipantPlanEmailProps };
+  | { id: "participant_plan"; props: ParticipantPlanEmailProps }
+  | { id: "kept_plan"; props: ParticipantPlanEmailProps };
 
 /** Stable outcome shape. */
 export interface SendOutcome {
@@ -205,6 +206,8 @@ export const NOTIFICATION_SETTING_KEY: Record<EmailTemplate["id"], string | null
   // Asked for: sent when someone gives their address on a share link, to
   // that address. Its footer link stops this trip's emails to it.
   participant_plan: null,
+  // Asked for: one email with a kept plan's link, to the address someone types.
+  kept_plan: null,
 };
 
 /**
@@ -223,6 +226,7 @@ const UNSUB_KEY: Record<EmailTemplate["id"], UnsubKey | null> = {
   finish_trip: "marketingNotifications",
   feedback_outreach: "marketingNotifications",
   participant_plan: null, // the sender passes the guest link
+  kept_plan: null, // one email, with nothing after it to stop
 };
 
 /**
@@ -771,7 +775,8 @@ async function renderTemplate(
       );
       return { html, text, subject };
     }
-    case "participant_plan": {
+    case "participant_plan":
+    case "kept_plan": {
       const html = await render(ParticipantPlanEmail(template.props));
       const text = participantPlanEmailText(template.props);
       const subject = participantPlanSubject(template.props);

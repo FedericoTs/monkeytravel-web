@@ -4,6 +4,7 @@ import { Fragment, type Dispatch, type SetStateAction } from "react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import DayHeader, { DayBudget } from "@/components/trip/DayHeader";
+import { DayRouteLink } from "@/components/trip/DayRouteLink";
 import { DayTimeline } from "@/components/trip/DayTimeline";
 import { PackedDayNote } from "@/components/trip/PackedDayNote";
 import { MapToggle, ViewModeToggle } from "@/components/trip/ViewControls";
@@ -133,6 +134,7 @@ export default function ResultItinerary({
                   />
                 )}
               </DayHeader>
+              <DayRouteLink activities={day.activities} surface="result" className="-mt-2 mb-2" />
               <PackedDayNote
                 activities={day.activities}
                 pace={pace}

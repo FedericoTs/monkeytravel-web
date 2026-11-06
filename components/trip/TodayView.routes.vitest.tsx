@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
 import TodayView from "./TodayView";
 import type { TripDayState } from "@/lib/trip/live";
 
@@ -53,10 +53,10 @@ const dayState: TripDayState = {
   timeZoneSource: "stored",
 };
 
-function renderToday(apiBase?: string) {
+function renderToday(apiBase?: string, activities: unknown[] = []) {
   render(
     <TodayView
-      itinerary={[{ day_number: 1, date: "2026-10-01", theme: "", activities: [] } as never]}
+      itinerary={[{ day_number: 1, date: "2026-10-01", theme: "", activities } as never]}
       dayState={dayState}
       onViewFullItinerary={vi.fn()}
       tripId="trip-1"
@@ -69,6 +69,25 @@ beforeEach(() => {
   calls.actions.length = 0;
   calls.expenses.length = 0;
   calls.feed.length = 0;
+});
+
+afterEach(cleanup);
+
+describe("today in Google Maps", () => {
+  it("offers today's stops as a route", () => {
+    renderToday(undefined, [
+      { id: "a", name: "Market", start_time: "09:00" },
+      { id: "b", name: "Museum", start_time: "11:00" },
+    ]);
+    const link = screen.getByRole("link", { name: "day.route" });
+    expect(link.getAttribute("href")).toContain("origin=Market");
+    expect(link.getAttribute("href")).toContain("destination=Museum");
+  });
+
+  it("offers nothing for a day with no route to follow", () => {
+    renderToday(undefined, [{ id: "a", name: "Market", start_time: "09:00" }]);
+    expect(screen.queryByRole("link", { name: "day.route" })).toBeNull();
+  });
 });
 
 describe("Today's routes", () => {
