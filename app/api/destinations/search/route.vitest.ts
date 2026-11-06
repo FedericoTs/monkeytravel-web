@@ -80,6 +80,11 @@ describe("a misspelled destination", () => {
     expect((await search("Pariss")).found).toEqual(["Paris, France", "Kyparissia, Greece"]);
   });
 
+  it("lists a place once when the city table finds it too", async () => {
+    s.geo = [{ id: 6, name: "Bangkok", country_code: "TH", latitude: 13.7, longitude: 100.5 }, GEO_TAILANDIA];
+    expect((await search("Bankok")).found).toEqual(["Bangkok, Thailand", "Tailândia, Brazil"]);
+  });
+
   it("reads a misspelled country as its curated places, ahead of a small town that starts the same", async () => {
     s.geo = [GEO_TAILANDIA];
     expect((await search("Tailand")).found).toEqual(["Bangkok, Thailand", "Phuket, Thailand", "Tailândia, Brazil"]);
