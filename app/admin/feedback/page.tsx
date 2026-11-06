@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
 import { logReadError } from "@/lib/supabase/log-read-error";
+import { latestWentAnswers } from "@/lib/feedback/went";
 
 export const metadata = {
   // Root layout appends " | MonkeyTravel" — don't double it.
@@ -22,6 +23,7 @@ interface FeedbackRow {
   would_book_through_us: string | null;
   open_to_chat: boolean;
   contact_email: string | null;
+  extra: Record<string, unknown> | null;
   created_at: string;
 }
 
@@ -50,7 +52,7 @@ export default async function AdminFeedbackPage() {
   const { data, error } = await admin
     .from("user_feedback")
     .select(
-      "id, user_id, source, uses_for, almost_stopped, last_booked_where, would_book_through_us, open_to_chat, contact_email, created_at"
+      "id, user_id, source, uses_for, almost_stopped, last_booked_where, would_book_through_us, open_to_chat, contact_email, extra, created_at"
     )
     .order("created_at", { ascending: false })
     .limit(500);
@@ -68,6 +70,8 @@ export default async function AdminFeedbackPage() {
 
   const leads = rows.filter((r) => r.open_to_chat && r.contact_email);
   const countBook = (v: string) => rows.filter((r) => r.would_book_through_us === v).length;
+  const wentAnswers = [...latestWentAnswers(rows).values()];
+  const countWent = (v: string) => wentAnswers.filter((answer) => answer === v).length;
   const fmtDate = (s: string) => new Date(s).toISOString().slice(0, 10);
 
   return (
@@ -91,12 +95,14 @@ export default async function AdminFeedbackPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
           <Stat label="Responses" value={total} />
           <Stat label="Open to chat" value={leads.length} highlight />
           <Stat label="Would book: yes" value={countBook("yes")} />
           <Stat label="Would book: maybe" value={countBook("maybe")} />
           <Stat label="Would book: no" value={countBook("no")} />
+          <Stat label="Trips: went" value={countWent("yes")} />
+          <Stat label="Trips: didn't go" value={countWent("no")} />
         </div>
 
         {leads.length > 0 && (
@@ -136,6 +142,7 @@ export default async function AdminFeedbackPage() {
                 <thead className="bg-slate-50 text-left text-xs uppercase text-slate-500">
                   <tr>
                     <th className="px-3 py-2 font-medium">Date</th>
+                    <th className="px-3 py-2 font-medium">Went?</th>
                     <th className="px-3 py-2 font-medium">Uses it for</th>
                     <th className="px-3 py-2 font-medium">Almost stopped</th>
                     <th className="px-3 py-2 font-medium">Booked at</th>
@@ -147,6 +154,9 @@ export default async function AdminFeedbackPage() {
                   {rows.map((r) => (
                     <tr key={r.id} className="align-top">
                       <td className="px-3 py-2 whitespace-nowrap text-slate-500">{fmtDate(r.created_at)}</td>
+                      <td className="px-3 py-2 text-slate-800 max-w-xs">
+                        {[r.extra?.went, r.extra?.went_reason, r.extra?.went_note].filter(Boolean).join(" · ") || "—"}
+                      </td>
                       <td className="px-3 py-2 text-slate-800 max-w-xs">{r.uses_for || "—"}</td>
                       <td className="px-3 py-2 text-slate-800 max-w-xs">{r.almost_stopped || "—"}</td>
                       <td className="px-3 py-2 text-slate-800">{r.last_booked_where || "—"}</td>
