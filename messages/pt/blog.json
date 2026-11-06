@@ -49,7 +49,8 @@
     "inlineAiCta": {
       "title": "Pule o planejamento, comece a viagem",
       "description": "Escolha um destino e receba um roteiro dia a dia em 30 segundos. Grátis, sem cartão de crédito.",
-      "button": "Planejar minha viagem"
+      "button": "Planejar minha viagem",
+      "check": "Já tem um plano? Confira de graça"
     },
     "planThisCta": {
       "title": "Pronto para planejar sua viagem a {city}?",

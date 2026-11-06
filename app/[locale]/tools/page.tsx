@@ -78,9 +78,17 @@ export default async function ToolsLandingPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("tools.landing");
+  const tCheckPlan = await getTranslations("tools.checkPlan");
   const tPassport = await getTranslations("passport");
 
   const tools = [
+    {
+      slug: "check-my-plan",
+      icon: "✅",
+      title: tCheckPlan("toolTitle"),
+      description: tCheckPlan("toolDescription"),
+      live: true,
+    },
     {
       slug: "packing-list",
       icon: "🧳",

@@ -5,7 +5,7 @@ vi.mock("@/lib/ai/regenerate-activity", () => ({ replacementOptions: vi.fn() }))
 vi.mock("@/lib/api-gateway", () => ({ logApiCall: vi.fn(async () => undefined) }));
 
 import { replacementOptions } from "@/lib/ai/regenerate-activity";
-import { isPlaceToEat, nameAgreement, placeStatus, placesToEatCheck, type FoundPlace } from "./places-to-eat";
+import { isPlaceToEat, lookUpPlaceToEat, nameAgreement, placeStatus, placesToEatCheck, type FoundPlace } from "./places-to-eat";
 
 /** A diet plan's places to eat, against what Google's Text Search answered for them (Lisbon and Rome, real answers). */
 
@@ -305,8 +305,113 @@ describe("placesToEatCheck", () => {
     expect(placesToEatCheck({ destination: "Lisbon", dietary: [], budgetTier: "balanced" })).toBeNull();
     vi.stubEnv("PLACES_TO_EAT_CHECK", "false");
     expect(placesToEatCheck({ destination: "Lisbon", dietary: ["vegan"], budgetTier: "balanced" })).toBeNull();
+    expect(placesToEatCheck({ destination: "Lisbon", dietary: [], withoutDiet: true, budgetTier: "balanced" })).toBeNull();
     vi.stubEnv("PLACES_TO_EAT_CHECK", "");
     vi.stubEnv("GOOGLE_PLACES_API_KEY", "");
     expect(placesToEatCheck({ destination: "Lisbon", dietary: ["vegan"], budgetTier: "balanced" })).toBeNull();
+    expect(placesToEatCheck({ destination: "Lisbon", dietary: [], withoutDiet: true, budgetTier: "balanced" })).toBeNull();
+  });
+
+  describe("on a kept trip with no diet", () => {
+    const noDiet = () => placesToEatCheck({ destination: "Lisbon, Portugal", dietary: [], withoutDiet: true, budgetTier: "balanced", language: "en" })!;
+
+    it("puts an open place in place of a closed one, asking for no diet", async () => {
+      answers({ Arkhe: [place("arkhe", "CLOSED_PERMANENTLY")], "Plant Base": [place("Plant Base")] });
+      options.mockResolvedValueOnce([activity("Plant Base")]);
+      const plan = [day(activity("Dinner at Arkhe", { id: "act_arkhe" }))];
+
+      const result = await noDiet().finish(plan);
+
+      expect(plan[0].activities.map((a) => a.name)).toEqual(["Plant Base"]);
+      expect(result).toMatchObject({ checked: 1, closed: 1, missing: 0, replaced: 1 });
+      expect(options.mock.calls[0][0]).toMatchObject({ dietary: [] });
+    });
+
+    it("leaves out a closed place when no open one is found", async () => {
+      answers({ Arkhe: [place("arkhe", "CLOSED_PERMANENTLY")] });
+      options.mockResolvedValue([]);
+      const plan = [day(activity("Dinner at Arkhe"), activity("Torre de Belém", { type: "landmark" }))];
+
+      const result = await noDiet().finish(plan);
+
+      expect(plan[0].activities.map((a) => a.name)).toEqual(["Torre de Belém"]);
+      expect(result).toMatchObject({ closed: 1, dropped: 1 });
+    });
+
+    it("leaves a place Maps doesn't have as it is, unmarked, with no question to the model", async () => {
+      answers({ "Antica Focacceria San Francesco": [place("Ancient Saint Francis Focaccia Shop")] });
+      const plan = [day(activity("Antica Focacceria San Francesco"))];
+      const before = structuredClone(plan);
+
+      const result = await noDiet().finish(plan);
+
+      expect(plan).toEqual(before);
+      expect(plan[0].activities[0].unverified).toBeUndefined();
+      expect(result).toMatchObject({ checked: 1, closed: 0, missing: 1, replaced: 0, dropped: 0, kept: 0, changes: [] });
+      expect(options).not.toHaveBeenCalled();
+    });
+
+    it("looks up places to eat only, not sights", async () => {
+      answers({ "Ao 26": [place("Ao 26")] });
+      await noDiet().finish([day(activity("Ao 26"), activity("Torre de Belém", { type: "landmark" }))]);
+      expect(searchedFor()).toEqual(["Ao 26, Lisbon, Portugal"]);
+    });
+
+    it("still treats a trip that has a diet as one", async () => {
+      answers({ "Vegana Burgers": [place("Plant Base")] });
+      options.mockResolvedValue([]);
+      const plan = [day(activity("Vegana Burgers"))];
+
+      const result = await placesToEatCheck({ destination: "Lisbon, Portugal", dietary: ["vegan"], withoutDiet: true, budgetTier: "balanced" })!.finish(plan);
+
+      expect(options).toHaveBeenCalled();
+      expect(plan[0].activities[0].unverified).toBe(true);
+      expect(result).toMatchObject({ missing: 1, kept: 1 });
+    });
+  });
+});
+
+describe("lookUpPlaceToEat", () => {
+  let fetchMock: ReturnType<typeof vi.fn>;
+  let found: FoundPlace[] | null;
+  const asked = () => JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string) as Record<string, unknown>;
+
+  beforeEach(() => {
+    vi.stubEnv("GOOGLE_PLACES_API_KEY", "test-key");
+    found = [];
+    fetchMock = vi.fn(async () => (found ? new Response(JSON.stringify({ places: found }), { status: 200 }) : new Response("{}", { status: 500 })));
+    vi.stubGlobal("fetch", fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  it("searches for the place and where it is, with no point to bias by", async () => {
+    found = [place("Da Enzo al 29")];
+    await lookUpPlaceToEat("Lunch at Da Enzo al 29", "Trastevere");
+    expect(asked().textQuery).toBe("Da Enzo al 29, Trastevere");
+    expect(asked().locationBias).toBeUndefined();
+  });
+
+  it("does without a place when the plan gives none", async () => {
+    found = [place("Da Enzo al 29")];
+    await lookUpPlaceToEat("Da Enzo al 29", "");
+    expect(asked().textQuery).toBe("Da Enzo al 29");
+  });
+
+  it("says what Maps says of it", async () => {
+    found = [place("Da Enzo al 29")];
+    expect(await lookUpPlaceToEat("Da Enzo al 29", "Rome")).toBe("open");
+    found = [place("Da Enzo al 29", "CLOSED_PERMANENTLY")];
+    expect(await lookUpPlaceToEat("Da Enzo al 29", "Rome")).toBe("closed");
+    found = [place("Another Place Entirely")];
+    expect(await lookUpPlaceToEat("Da Enzo al 29", "Rome")).toBe("missing");
+  });
+
+  it("knows nothing when the search fails", async () => {
+    found = null;
+    expect(await lookUpPlaceToEat("Da Enzo al 29", "Rome")).toBeNull();
   });
 });

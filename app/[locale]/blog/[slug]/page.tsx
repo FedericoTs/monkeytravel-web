@@ -437,6 +437,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
                       description={t("detail.inlineAiCta.description")}
                       ctaLabel={t("detail.inlineAiCta.button")}
                       ctaHref={tripsNewHref}
+                      checkLabel={t("detail.inlineAiCta.check")}
                     />
                   }
                 />
