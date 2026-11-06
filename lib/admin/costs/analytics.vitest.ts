@@ -28,11 +28,20 @@ const analytics = (rows: Partial<CostRows>, breakers = {}) =>
       recentLogs: [],
       caches: { geocode: [], distance: [], places: [], activities: [] },
       users: [],
+      credit: null,
       ...rows,
     },
     breakers,
     NOW
   );
+
+describe("the Gemini credit", () => {
+  it("is passed on as read", () => {
+    const credit = { reading: { usd: 50, at: hoursAgo(2) }, spentUsd: 1, usd: 49, perDayUsd: 1, lasts: "about 49 days", low: false };
+    expect(analytics({ credit }).credit).toBe(credit);
+    expect(analytics({}).credit).toBeNull();
+  });
+});
 
 describe("the summary", () => {
   it("adds up the all-time sums, the month, the week and today", () => {

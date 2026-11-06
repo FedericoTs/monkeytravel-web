@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { PAGE_ROWS, readAllRows, readWholeTable } from "@/lib/supabase/read-all-rows";
+import { readCreditEstimate, type CreditEstimate } from "@/lib/ops/gemini-credit";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const LOG_COLUMNS =
@@ -30,6 +31,7 @@ export interface CostRows {
   recentLogs: LogRow[];
   caches: { geocode: CacheRow[]; distance: CacheRow[]; places: CacheRow[]; activities: CacheRow[] };
   users: Array<{ id: string; email: string | null }>;
+  credit: CreditEstimate | null;
 }
 
 /**
@@ -42,7 +44,7 @@ export async function readCostRows(now: Date): Promise<CostRows> {
   const day30Ago = new Date(now.getTime() - 30 * DAY_MS).toISOString();
   const cache = (table: string) => readWholeTable<CacheRow>(db, table, "id, hit_count");
 
-  const [logs, spend, recentLogs, geocode, distance, places, activities, users] = await Promise.all([
+  const [logs, spend, recentLogs, geocode, distance, places, activities, users, credit] = await Promise.all([
     // Newest first by timestamp, which is indexed; a batch of logs can share one.
     readAllRows<LogRow>((last) => {
       const rows = db.from("api_request_logs").select(LOG_COLUMNS).gte("timestamp", day30Ago).is("request_params->>probe", null);
@@ -60,6 +62,7 @@ export async function readCostRows(now: Date): Promise<CostRows> {
     cache("destination_activity_cache"),
     // For naming who spent what.
     readWholeTable<{ id: string; email: string | null }>(db, "users", "id, email"),
+    readCreditEstimate(now),
   ]);
 
   return {
@@ -73,5 +76,6 @@ export async function readCostRows(now: Date): Promise<CostRows> {
       activities: logReadError("admin costs: activities cache", activities).data || [],
     },
     users: logReadError("admin costs: users", users).data || [],
+    credit,
   };
 }

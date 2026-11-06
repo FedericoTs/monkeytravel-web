@@ -33,6 +33,7 @@ const analytics = {
   hourlyTrend: [],
   topEndpoints: [],
   recentActivity: [],
+  credit: null,
   generatedAt: "2026-11-05T12:00:00.000Z",
 };
 
@@ -54,5 +55,6 @@ describe("the Costs tab", () => {
     expect(screen.getByText("Total logged")).toBeTruthy();
     expect(screen.queryByText("Total Spent")).toBeNull();
     expect(screen.getByText("$580.75")).toBeTruthy();
+    expect(screen.getByText("Gemini credit")).toBeTruthy();
   });
 });

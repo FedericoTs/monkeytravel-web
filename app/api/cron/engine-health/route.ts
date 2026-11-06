@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic";
 const alertThrottle = createRateLimiter("engine-alert", 1, 6 * 60 * 60_000);
 
 const OUT_OF_CREDIT =
-  "Google is refusing AI calls because the prepaid credits are used up. Nothing AI works until they're topped up: https://aistudio.google.com/billing (with the account that administers billing).";
+  "Google is refusing AI calls because the prepaid credits are used up. Nothing AI works until they're topped up: https://aistudio.google.com/billing (with the account that administers billing). Then type the new balance on the Costs tab of /admin.";
 
 /** Whether Google refused a call for lack of credit in the last hour. */
 async function refusedForCredit(admin: ReturnType<typeof createAdminClient>): Promise<boolean> {
