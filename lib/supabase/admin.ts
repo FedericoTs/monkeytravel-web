@@ -1,5 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
+import { timeoutFetch } from "@/lib/supabase/timeout-fetch";
+
 /**
  * Create a Supabase admin client with service role key
  * This client bypasses RLS and can perform admin operations like creating users
@@ -19,5 +21,6 @@ export function createAdminClient() {
       autoRefreshToken: false,
       persistSession: false,
     },
+    global: { fetch: timeoutFetch },
   });
 }
