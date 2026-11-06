@@ -3,6 +3,8 @@
  *
  * Provides centralized control over external API access.
  * Admins can enable/disable APIs, block calls, or put them in maintenance mode.
+ * An API with a daily_limit also stops for the rest of the UTC day once it's
+ * used up, so a runaway can't spend without end before anyone reads the alert.
  *
  * Usage:
  * ```typescript
@@ -30,6 +32,7 @@
 import { errors } from "@/lib/api/response-wrapper";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createRateLimiter } from "@/lib/api/rate-limit";
 
 /**
  * Service-role client for api_request_logs.
@@ -45,6 +48,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
  * telemetry row is warn-level, exactly as the surrounding code already treats
  * a failed insert.
  */
+const DAY_MS = 24 * 60 * 60 * 1000;
+
 let logDb: ReturnType<typeof createAdminClient> | null | undefined;
 function apiLogDb() {
   if (logDb !== undefined) return logDb;
@@ -72,6 +77,7 @@ export interface ApiConfigEntry {
   blockMode: "none" | "block_calls" | "block_keys" | "maintenance";
   category: string;
   costPerRequest: number;
+  dailyLimit?: number | null;
 }
 
 export interface ApiAccessResult {
@@ -100,16 +106,29 @@ export interface LogApiCallParams {
   metadata?: Record<string, unknown>;
 }
 
+const configReads = new Map<string, Promise<ApiConfigEntry | null>>();
+
 /**
  * Fetch API configuration for a specific API from database
- * Always fetches fresh data for reliable access control
+ * Always fetches fresh data for reliable access control. Only calls made while
+ * a read is running share it: a trip's lookups start together.
  */
-async function fetchApiConfig(apiName: string): Promise<ApiConfigEntry | null> {
+function fetchApiConfig(apiName: string): Promise<ApiConfigEntry | null> {
+  const running = configReads.get(apiName);
+  if (running) return running;
+  const read = readApiConfig(apiName).finally(() => configReads.delete(apiName));
+  configReads.set(apiName, read);
+  return read;
+}
+
+async function readApiConfig(apiName: string): Promise<ApiConfigEntry | null> {
   try {
-    const supabase = await createClient();
+    // The service role: this also runs after a response, with no cookies to read.
+    const supabase = apiLogDb();
+    if (!supabase) return null;
     const { data, error } = await supabase
       .from("api_config")
-      .select("api_name, display_name, enabled, block_mode, category, cost_per_request")
+      .select("api_name, display_name, enabled, block_mode, category, cost_per_request, daily_limit")
       .eq("api_name", apiName)
       .single();
 
@@ -125,6 +144,7 @@ async function fetchApiConfig(apiName: string): Promise<ApiConfigEntry | null> {
       blockMode: data.block_mode,
       category: data.category,
       costPerRequest: Number(data.cost_per_request) || 0,
+      dailyLimit: data.daily_limit,
     };
   } catch (err) {
     console.error("[ApiControl] Error fetching config for", apiName, ":", err);
@@ -195,6 +215,22 @@ export async function checkApiAccess(apiName: string): Promise<ApiAccessResult> 
       message,
       shouldPassKey: false,
     };
+  }
+
+  // Past today's limit
+  if (config.dailyLimit !== null && config.dailyLimit !== undefined) {
+    const today = new Date().toISOString().slice(0, 10);
+    const { allowed } = await createRateLimiter(`daily-${apiName}`, config.dailyLimit, DAY_MS).checkKey(today);
+    if (!allowed) {
+      console.error(`[ApiControl] ${apiName} is past its daily limit of ${config.dailyLimit}`);
+      return {
+        allowed: false,
+        apiName,
+        blockMode: "daily_limit",
+        message: `${config.displayName} has reached today's limit. Please try again tomorrow.`,
+        shouldPassKey: false,
+      };
+    }
   }
 
   // API is enabled but in block_keys mode (for testing)

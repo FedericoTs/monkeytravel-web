@@ -4,6 +4,7 @@ import { errors } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { checkApiAccess, type ApiAccessResult } from "@/lib/api-gateway";
 import { checkAnonymousRateLimit } from "@/lib/anonymous/rate-limit";
+import { withinAnonDailyLimit } from "@/lib/ai/anon-daily-limit";
 import { createClient } from "@/lib/supabase/server";
 import { loadUserContext } from "@/lib/ai/user-context";
 import { requestLocale, type SupportedLanguage } from "@/lib/ai/language";
@@ -53,7 +54,7 @@ export async function readGenerationCaller(
   // The reads are independent, so they run in parallel; their results are
   // checked below in priority order: anon cookie limit → per-IP limit → body.
   // A rejection from request.json resolves to null and becomes a 400.
-  const [anonLimit, body, userContext, access, anonIpLimit] = await Promise.all([
+  const [anonLimit, body, userContext, access, anonIpLimit, anonDaily] = await Promise.all([
     isAnonymous ? checkAnonymousRateLimit(generationId ?? undefined) : Promise.resolve(null),
     request.json().catch(() => null as Record<string, unknown> | null),
     loadUserContext(supabase, user?.id ?? null),
@@ -63,6 +64,7 @@ export async function readGenerationCaller(
     isAnonymous
       ? anonGenIpLimiter.check(request).catch(() => ({ allowed: true, remaining: 0 }))
       : Promise.resolve(null),
+    isAnonymous ? withinAnonDailyLimit(request) : Promise.resolve(true),
   ]);
 
   if (isAnonymous && anonLimit && !anonLimit.allowed) {
@@ -82,6 +84,14 @@ export async function readGenerationCaller(
         "You've reached today's free-trip limit for your network. Sign up to keep generating — it's free.",
         { signupUrl: "/auth/signup" }
       ),
+    };
+  }
+
+  if (!anonDaily) {
+    return {
+      refused: errors.rateLimit("We've reached today's limit for free plans. Sign up to keep going — it's free.", {
+        signupUrl: "/auth/signup",
+      }),
     };
   }
 

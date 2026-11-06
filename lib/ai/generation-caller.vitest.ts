@@ -12,6 +12,8 @@ const s = vi.hoisted(() => ({
   user: null as { id: string; email: string } | null,
   anon: { allowed: true } as Record<string, unknown>,
   ip: "allow" as "allow" | "deny" | "throw",
+  anonToday: true,
+  anonTodayAsked: 0,
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -26,6 +28,12 @@ vi.mock("@/lib/api/rate-limit", () => ({
     },
   }),
 }));
+vi.mock("@/lib/ai/anon-daily-limit", () => ({
+  withinAnonDailyLimit: async () => {
+    s.anonTodayAsked++;
+    return s.anonToday;
+  },
+}));
 vi.mock("@/lib/ai/user-context", () => ({
   loadUserContext: async () => ({ profilePreferences: { travelStyles: ["adventure"] }, userLanguage: "it" }),
 }));
@@ -38,7 +46,7 @@ const request = (body: string) =>
 const TRIP = { destination: "Gori, Georgia", startDate: "2026-11-01", endDate: "2026-11-03" };
 
 async function read(body: string, state: Partial<typeof s> = {}) {
-  Object.assign(s, { user: null, anon: { allowed: true }, ip: "allow" }, state);
+  Object.assign(s, { user: null, anon: { allowed: true }, ip: "allow", anonToday: true, anonTodayAsked: 0 }, state);
   const caller = await readGenerationCaller(request(body));
   if ("refused" in caller) return { status: caller.refused.status, body: await caller.refused.json() };
   return caller;
@@ -62,6 +70,19 @@ describe("readGenerationCaller", () => {
       body: { error: expect.stringContaining("free-trip limit for your network"), signupUrl: "/auth/signup" },
     });
     expect(await read(JSON.stringify(TRIP), { ip: "throw" })).toMatchObject({ isAnonymous: true });
+  });
+
+  it("refuses an anonymous visitor past today's limit for everyone, pointing to signing up", async () => {
+    expect(await read(JSON.stringify(TRIP), { anonToday: false })).toMatchObject({
+      status: 429,
+      body: { error: expect.stringContaining("today's limit"), signupUrl: "/auth/signup" },
+    });
+  });
+
+  it("doesn't count a signed-in planner against the anonymous limit", async () => {
+    const caller = await read(JSON.stringify(TRIP), { user: { id: "u-1", email: "p@example.com" }, anonToday: false });
+    expect(caller).toMatchObject({ isAnonymous: false });
+    expect(s.anonTodayAsked).toBe(0);
   });
 
   it("does not cap a signed-in planner", async () => {

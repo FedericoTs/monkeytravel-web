@@ -24,6 +24,9 @@ const logged: Array<Record<string, unknown>> = [];
 vi.mock("@/lib/api-gateway", () => ({ logApiCall: async (row: Record<string, unknown>) => void logged.push(row) }));
 vi.mock("@vercel/functions", () => ({ waitUntil: (p: Promise<unknown>) => p }));
 
+let allowed = true;
+vi.mock("@/lib/api-gateway/api-control", () => ({ checkApiAccess: async () => ({ allowed }) }));
+
 const google = vi.fn(async () =>
   Response.json({ status: "OK", results: [{ place_id: "ChIJx", name: "Time Out Market", types: ["food"], photos: [{ photo_reference: "r".repeat(40) }] }] }),
 );
@@ -37,9 +40,19 @@ beforeEach(() => {
   localRows = [];
   logged.length = 0;
   google.mockClear();
+  allowed = true;
 });
 
 describe("POST /api/activities/search", () => {
+  it("doesn't ask Google past the daily limit, and still answers from the trips we know", async () => {
+    allowed = false;
+    localRows = [];
+    const res = await search("time out market");
+    expect(res.status).toBe(200);
+    expect(google).not.toHaveBeenCalled();
+    expect(logged).toEqual([]);
+  });
+
   it("logs the paid Google search it falls back to", async () => {
     const res = await search("time out market");
     expect((await res.json()).source).toBe("hybrid");

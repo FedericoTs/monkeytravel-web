@@ -65,6 +65,20 @@ export function createRateLimiter(
   }
   const store = stores.get(namespace)!;
 
+  const checkKey = async (bucketKey: string): Promise<{ allowed: boolean; remaining: number }> => {
+    if (redis) {
+      try {
+        return await checkRedis(redis, namespace, bucketKey, limit, windowMs);
+      } catch (err) {
+        // Network/KV error — degrade to in-memory rather than failing open
+        // or open-503ing the consumer. The fallback at least limits within
+        // this function instance for the duration of the outage.
+        console.warn(`[rate-limit] KV check failed for ns=${namespace}, falling back to in-memory`, err);
+      }
+    }
+    return checkMemory(store, bucketKey, limit, windowMs);
+  };
+
   return {
     /**
      * Check whether the current request is within the rate limit.
@@ -79,34 +93,9 @@ export function createRateLimiter(
      *                    omit this argument keep their original IP-keyed
      *                    behavior unchanged.
      */
-    async check(
-      request: NextRequest,
-      customKey?: string
-    ): Promise<{ allowed: boolean; remaining: number }> {
-      const bucketKey = customKey ?? getClientIP(request);
-
-      if (redis) {
-        try {
-          return await checkRedis(
-            redis,
-            namespace,
-            bucketKey,
-            limit,
-            windowMs
-          );
-        } catch (err) {
-          // Network/KV error — degrade to in-memory rather than failing open
-          // or open-503ing the consumer. The fallback at least limits within
-          // this function instance for the duration of the outage.
-          console.warn(
-            `[rate-limit] KV check failed for ns=${namespace}, falling back to in-memory`,
-            err
-          );
-        }
-      }
-
-      return checkMemory(store, bucketKey, limit, windowMs);
-    },
+    check: (request: NextRequest, customKey?: string) => checkKey(customKey ?? getClientIP(request)),
+    /** The same count, for code with no request at hand. */
+    checkKey,
   };
 }
 

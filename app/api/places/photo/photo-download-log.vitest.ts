@@ -42,6 +42,9 @@ vi.mock("@/lib/places/google-places", () => ({
     first && { photo_resource_name: first.name, photo_url: `/api/places/photo?name=${encodeURIComponent(first.name)}&w=600&h=400` },
 }));
 
+const access = vi.fn(async (_api: string) => ({ allowed: true }));
+vi.mock("@/lib/api-gateway/api-control", () => ({ checkApiAccess: (api: string) => access(api) }));
+
 import { GET } from "./route";
 
 const NAME = "places/ChIJplace123/photos/AbCdEf";
@@ -58,9 +61,37 @@ beforeEach(() => {
   logged.length = 0;
   upstream.mockReset();
   fetchPlacePhotos.mockReset();
+  access.mockReset();
+  access.mockResolvedValue({ allowed: true });
   vi.stubGlobal("fetch", upstream);
 });
 afterEach(() => vi.unstubAllGlobals());
+
+describe("the daily limit on photo downloads", () => {
+  it("sends a curated photo past the limit, without paying Google or keeping it in the CDN", async () => {
+    access.mockResolvedValue({ allowed: false });
+    const res = await GET(photoRequest(`name=${encodeURIComponent(NAME)}&w=600&h=400`));
+    expect(access).toHaveBeenCalledWith("google_places_photo");
+    expect(res.status).toBe(307);
+    expect(res.headers.get("location")).toBe("https://images.pexels.com/fallback.jpg");
+    expect(res.headers.get("cache-control")).toBe("no-store");
+    expect(upstream).not.toHaveBeenCalled();
+    expect(logged).toEqual([]);
+  });
+
+  it("downloads within the limit", async () => {
+    upstream.mockResolvedValueOnce(jpeg());
+    const res = await GET(photoRequest(`name=${encodeURIComponent(NAME)}&w=600&h=400`));
+    expect(res.status).toBe(200);
+    expect(upstream).toHaveBeenCalledTimes(1);
+  });
+
+  it("doesn't count a bot, which never costs a download", async () => {
+    const res = await GET(photoRequest(`name=${encodeURIComponent(NAME)}&w=600&h=400`, "Googlebot/2.1"));
+    expect(res.status).toBe(307);
+    expect(access).not.toHaveBeenCalled();
+  });
+});
 
 describe("photo downloads are logged and priced", () => {
   it("a download logs one row at Google's per-photo price, with the place and size", async () => {

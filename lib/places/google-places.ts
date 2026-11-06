@@ -7,6 +7,7 @@
  */
 import { placesCostForCall } from "@/lib/api-gateway/places-sku";
 import { logApiCall } from "@/lib/api-gateway";
+import { checkApiAccess } from "@/lib/api-gateway/api-control";
 
 // The field masks drive Google's SKU (lib/api-gateway/places-sku.ts): asking
 // for the place_id alone, and for photos alone, keeps both calls in the free
@@ -51,6 +52,7 @@ export async function textSearch<Place>(
 ): Promise<Place[] | null> {
   const key = process.env.GOOGLE_PLACES_API_KEY || "";
   if (!key) return null;
+  if (!(await checkApiAccess("google_places_search")).allowed) return null;
   const startedAt = Date.now();
   let httpStatus = 0;
   try {
@@ -191,6 +193,7 @@ async function placeDetails(
   if (!GOOGLE_PLACES_API_KEY) {
     return null;
   }
+  if (!(await checkApiAccess("google_places_details")).allowed) return null;
   const startedAt = Date.now();
   let httpStatus = 0;
 
