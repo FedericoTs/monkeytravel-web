@@ -22,6 +22,7 @@
   "/[locale]/templates",
   "/[locale]/terms",
   "/[locale]/tools",
+  "/[locale]/tools/check-my-plan",
   "/[locale]/tools/packing-list",
   "/[locale]/weekend-trip-planner",
   "/[locale]/welcome"

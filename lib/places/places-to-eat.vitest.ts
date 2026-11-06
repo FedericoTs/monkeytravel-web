@@ -5,7 +5,7 @@ vi.mock("@/lib/ai/regenerate-activity", () => ({ replacementOptions: vi.fn() }))
 vi.mock("@/lib/api-gateway", () => ({ logApiCall: vi.fn(async () => undefined) }));
 
 import { replacementOptions } from "@/lib/ai/regenerate-activity";
-import { isPlaceToEat, nameAgreement, placeStatus, placesToEatCheck, type FoundPlace } from "./places-to-eat";
+import { isPlaceToEat, lookUpPlaceToEat, nameAgreement, placeStatus, placesToEatCheck, type FoundPlace } from "./places-to-eat";
 
 /** A diet plan's places to eat, against what Google's Text Search answered for them (Lisbon and Rome, real answers). */
 
@@ -368,5 +368,50 @@ describe("placesToEatCheck", () => {
       expect(plan[0].activities[0].unverified).toBe(true);
       expect(result).toMatchObject({ missing: 1, kept: 1 });
     });
+  });
+});
+
+describe("lookUpPlaceToEat", () => {
+  let fetchMock: ReturnType<typeof vi.fn>;
+  let found: FoundPlace[] | null;
+  const asked = () => JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string) as Record<string, unknown>;
+
+  beforeEach(() => {
+    vi.stubEnv("GOOGLE_PLACES_API_KEY", "test-key");
+    found = [];
+    fetchMock = vi.fn(async () => (found ? new Response(JSON.stringify({ places: found }), { status: 200 }) : new Response("{}", { status: 500 })));
+    vi.stubGlobal("fetch", fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  it("searches for the place and where it is, with no point to bias by", async () => {
+    found = [place("Da Enzo al 29")];
+    await lookUpPlaceToEat("Lunch at Da Enzo al 29", "Trastevere");
+    expect(asked().textQuery).toBe("Da Enzo al 29, Trastevere");
+    expect(asked().locationBias).toBeUndefined();
+  });
+
+  it("does without a place when the plan gives none", async () => {
+    found = [place("Da Enzo al 29")];
+    await lookUpPlaceToEat("Da Enzo al 29", "");
+    expect(asked().textQuery).toBe("Da Enzo al 29");
+  });
+
+  it("says what Maps says of it", async () => {
+    found = [place("Da Enzo al 29")];
+    expect(await lookUpPlaceToEat("Da Enzo al 29", "Rome")).toBe("open");
+    found = [place("Da Enzo al 29", "CLOSED_PERMANENTLY")];
+    expect(await lookUpPlaceToEat("Da Enzo al 29", "Rome")).toBe("closed");
+    found = [place("Another Place Entirely")];
+    expect(await lookUpPlaceToEat("Da Enzo al 29", "Rome")).toBe("missing");
+  });
+
+  it("knows nothing when the search fails", async () => {
+    found = null;
+    expect(await lookUpPlaceToEat("Da Enzo al 29", "Rome")).toBeNull();
   });
 });

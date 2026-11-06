@@ -147,13 +147,15 @@ export function nameAgreement(activity: Named, google: string): 0 | 1 | 2 {
 /** Whether two of the plan's names are one place: "Ao 26 - Vegan Food Project" and "Vegan lunch at Ao 26". */
 const samePlace = (a: string, b: string) => nameAgreement({ name: a }, b) === 2 || nameAgreement({ name: b }, a) === 2;
 
+export type PlaceStatus = "open" | "closed" | "missing";
+
 /**
  * What Maps says of an activity's place, from what a search for it found:
  * open, closed, or missing (no place to eat by that name near it). Of a
  * chain's branches, only one near the activity's point counts: another open
  * across town doesn't open the one the plan sends the traveller to.
  */
-export function placeStatus(activity: Named, places: FoundPlace[]): "open" | "closed" | "missing" {
+export function placeStatus(activity: Named, places: FoundPlace[]): PlaceStatus {
   const point = pointOf(activity);
   /** Metres from the activity's point; null when either has none. */
   const metres = (p: FoundPlace) =>
@@ -189,6 +191,12 @@ async function searchPlaces(textQuery: string, near: Point | null): Promise<Foun
     // Google now and then answers a place it knows with nothing: asked again, it finds it.
     if (!places || places.length > 0 || attempt > 0) return places;
   }
+}
+
+/** What Maps says of a named place to eat with no point to go by; null when the search failed. */
+export async function lookUpPlaceToEat(name: string, where: string): Promise<PlaceStatus | null> {
+  const places = await searchPlaces([searchName(name), where].filter(Boolean).join(", "), null);
+  return places ? placeStatus({ name, location: where }, places) : null;
 }
 
 export interface PlacesToEatOptions {

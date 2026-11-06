@@ -126,7 +126,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // they have similar discovery characteristics and lifetime cadence. Only
   // the nav + footer + home section link to /tools/*, which makes them
   // discoverable to humans; this makes them discoverable to Googlebot too.
-  const toolPaths = ['/tools', '/tools/packing-list', '/tools/visa-checker'];
+  const toolPaths = ['/tools', '/tools/check-my-plan', '/tools/packing-list', '/tools/visa-checker'];
 
   // /explore is the freshest-content page on the site (community UGC
   // feed), so it is listed. PRIORITY_INDEX + daily changefreq signals high
