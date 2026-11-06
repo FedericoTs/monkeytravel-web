@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 
 import { SUPABASE_AUTH_COOKIE_OPTIONS } from "@/lib/supabase/cookie-options";
 import { subjectFromAccessToken } from "@/lib/supabase/middleware";
+import { timeoutFetch } from "@/lib/supabase/timeout-fetch";
 
 export async function createClient() {
   const cookieStore = await cookies();
@@ -15,6 +16,7 @@ export async function createClient() {
       // Adds `Secure` to the auth cookie. @supabase/ssr's defaults omit it
       // entirely — see lib/supabase/cookie-options.ts.
       cookieOptions: SUPABASE_AUTH_COOKIE_OPTIONS,
+      global: { fetch: timeoutFetch },
       cookies: {
         getAll() {
           return cookieStore.getAll();
