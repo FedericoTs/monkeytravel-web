@@ -37,6 +37,10 @@
     "keepPlanPrompt": "This plan lives only in this browser.",
     "keepPlanButton": "Keep this trip, free"
   },
+  "placesChecked": {
+    "checked": "{count, plural, one {# place to eat} other {# places to eat}} checked on Google Maps, {date}.",
+    "changed": "{count, plural, one {We changed # that wasn't open.} other {We changed # that weren't open.}}"
+  },
   "daySummary": {
     "title": "Day {day}",
     "planned": "{time} planned",

@@ -14,6 +14,8 @@ import { withFoundPhotos } from "@/lib/trips/keep-place-photos";
 import { useItineraryCopies } from "@/hooks/useItineraryCopies";
 import { useKeptTripPhotos } from "@/hooks/useKeptTripPhotos";
 import { useKeptTripPlacesToEat } from "@/hooks/useKeptTripPlacesToEat";
+import { PlacesCheckedNote } from "@/components/trip/PlacesCheckedNote";
+import { placesToEatNote } from "@/lib/places/kept-trip";
 import { useEditShortcuts } from "@/hooks/useEditShortcuts";
 import { useDayFocus } from "@/hooks/useDayFocus";
 import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
@@ -184,7 +186,7 @@ interface TripDetailClientProps {
      * sync below).
      */
     itineraryVersion?: number | null;
-    /** The owner's first open of a kept diet trip: its places to eat are due a check (lib/places/kept-trip.ts). */
+    /** The owner's first open of a kept trip: its places to eat are due a check (lib/places/kept-trip.ts). */
     placesToEatDue?: boolean;
   };
   dateRange: string;
@@ -428,9 +430,9 @@ export default function TripDetailClient({
     },
   });
 
-  // A kept diet trip's places to eat, looked up on its owner's first open:
-  // the server stores what changed and this copy takes the same changes.
-  useKeptTripPlacesToEat({
+  // A kept trip's places to eat, looked up on its owner's first open: the
+  // server stores what changed and this copy takes the same changes.
+  const placesJustChecked = useKeptTripPlacesToEat({
     due: !!trip.placesToEatDue,
     tripId: trip.id,
     runItineraryWrite,
@@ -1209,6 +1211,8 @@ export default function TripDetailClient({
           onSelectDay={setSelectedDay}
           className="mb-6"
         />
+
+        <PlacesCheckedNote note={placesJustChecked ?? placesToEatNote(trip.meta)} className="mb-4" />
 
         <TripDayList
           days={displayItinerary}

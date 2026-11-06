@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Activity, ItineraryDay } from "@/types";
-import { applyPlaceChanges, placesToEatCheckDue, type PlaceChange } from "./kept-trip";
+import { applyPlaceChanges, placesToEatCheckDue, placesToEatNote, type PlaceChange } from "./kept-trip";
 
 /**
  * A kept trip's places to eat are looked up once, on its owner's first open,
@@ -10,16 +10,36 @@ import { applyPlaceChanges, placesToEatCheckDue, type PlaceChange } from "./kept
 const TODAY = "2026-11-04";
 
 describe("placesToEatCheckDue", () => {
-  it("is due for a diet trip not checked and not over", () => {
-    expect(placesToEatCheckDue({ endDate: "2026-11-20", meta: {} }, ["vegan"], TODAY)).toBe(true);
-    expect(placesToEatCheckDue({ endDate: TODAY, meta: undefined }, ["vegan"], TODAY)).toBe(true);
-    expect(placesToEatCheckDue({ endDate: null, meta: {} }, ["halal"], TODAY)).toBe(true);
+  it("is due for a trip not checked and not over", () => {
+    expect(placesToEatCheckDue({ endDate: "2026-11-20", meta: {} }, TODAY)).toBe(true);
+    expect(placesToEatCheckDue({ endDate: TODAY, meta: undefined }, TODAY)).toBe(true);
+    expect(placesToEatCheckDue({ endDate: null, meta: {} }, TODAY)).toBe(true);
   });
 
-  it("is not due without a diet, once checked, or for a trip that is over", () => {
-    expect(placesToEatCheckDue({ endDate: "2026-11-20", meta: {} }, [], TODAY)).toBe(false);
-    expect(placesToEatCheckDue({ endDate: "2026-11-20", meta: { places_to_eat_checked_at: "2026-11-04T10:00:00.000Z" } }, ["vegan"], TODAY)).toBe(false);
-    expect(placesToEatCheckDue({ endDate: "2026-11-03", meta: {} }, ["vegan"], TODAY)).toBe(false);
+  it("is not due once checked, or for a trip that is over", () => {
+    expect(placesToEatCheckDue({ endDate: "2026-11-20", meta: { places_to_eat_checked_at: "2026-11-04T10:00:00.000Z" } }, TODAY)).toBe(false);
+    expect(placesToEatCheckDue({ endDate: "2026-11-03", meta: {} }, TODAY)).toBe(false);
+  });
+});
+
+describe("placesToEatNote", () => {
+  const AT = "2026-11-04T10:00:00.000Z";
+
+  it("reads when the check was made and what it found", () => {
+    const meta = { places_to_eat_checked_at: AT, places_to_eat_result: { checked: 8, changed: 1 } };
+    expect(placesToEatNote(meta)).toEqual({ checkedAt: AT, checked: 8, changed: 1 });
+  });
+
+  it("takes nothing changed when the record doesn't say", () => {
+    expect(placesToEatNote({ places_to_eat_checked_at: AT, places_to_eat_result: { checked: 8 } })).toEqual({ checkedAt: AT, checked: 8, changed: 0 });
+  });
+
+  it("says nothing before the check, of a check made before the record, or when nothing was looked up", () => {
+    expect(placesToEatNote(undefined)).toBeNull();
+    expect(placesToEatNote({})).toBeNull();
+    expect(placesToEatNote({ places_to_eat_checked_at: AT })).toBeNull();
+    expect(placesToEatNote({ places_to_eat_checked_at: AT, places_to_eat_result: { checked: 0, changed: 0 } })).toBeNull();
+    expect(placesToEatNote({ places_to_eat_result: { checked: 8, changed: 0 } })).toBeNull();
   });
 });
 

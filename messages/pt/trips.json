@@ -37,6 +37,10 @@
     "keepPlanPrompt": "Este plano existe apenas neste navegador.",
     "keepPlanButton": "Salve esta viagem, grátis"
   },
+  "placesChecked": {
+    "checked": "{count, plural, one {# lugar para comer verificado} other {# lugares para comer verificados}} no Google Maps, {date}.",
+    "changed": "{count, plural, one {Trocamos # que não estava aberto.} other {Trocamos # que não estavam abertos.}}"
+  },
   "daySummary": {
     "title": "Dia {day}",
     "planned": "{time} de atividades",
