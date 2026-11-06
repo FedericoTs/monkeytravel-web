@@ -82,7 +82,6 @@ export {
   logApiCall,
   logApiCalls,
   getAllApiConfigs,
-  invalidateConfigCache,
   getApiCostFromConfig,
 } from "./api-control";
 

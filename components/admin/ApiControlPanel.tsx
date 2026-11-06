@@ -130,13 +130,14 @@ export default function ApiControlPanel() {
     });
   };
 
-  const bulkAction = async (action: "enable_all" | "disable_all") => {
+  const disableAll = async () => {
+    if (!window.confirm("Turn off every external API? Plans, photos and lookups stop for everyone until you turn each one back on.")) return;
     setUpdating("bulk");
     try {
       const res = await fetch("/api/admin/api-config", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({ action: "disable_all" }),
       });
 
       const data = await res.json();
@@ -210,14 +211,7 @@ export default function ApiControlPanel() {
         </div>
         <div className="flex gap-2">
           <button
-            onClick={() => bulkAction("enable_all")}
-            disabled={updating === "bulk"}
-            className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-          >
-            Enable All
-          </button>
-          <button
-            onClick={() => bulkAction("disable_all")}
+            onClick={disableAll}
             disabled={updating === "bulk"}
             className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
           >
