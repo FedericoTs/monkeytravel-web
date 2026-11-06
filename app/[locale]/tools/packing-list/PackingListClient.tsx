@@ -156,7 +156,7 @@ export default function PackingListClient({ locale }: Props) {
       if (!res.ok) {
         if (res.status === 429) {
           setError(t("rateLimitMessage"));
-        } else if (isModelOutageResponse(json)) {
+        } else if (res.status === 503 || isModelOutageResponse(json)) {
           setError(t("errorModelOutage"));
         } else {
           setError(json?.error || t("errorTitle"));

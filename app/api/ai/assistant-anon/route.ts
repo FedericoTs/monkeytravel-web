@@ -174,7 +174,7 @@ export async function POST(request: NextRequest) {
       limited("burst");
       return errors.rateLimit("Too many messages in a minute.", { reason: "burst" });
     }
-    if (!(await withinAnonDailyLimit(request))) {
+    if (!(await withinAnonDailyLimit())) {
       limited("daily limit (everyone)");
       return errors.rateLimit("Daily assistant limit reached (everyone).", { reason: "daily_anon" });
     }
