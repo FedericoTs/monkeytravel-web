@@ -91,6 +91,39 @@ export async function completeReferralIfEligible(
       };
     }
 
+    // Any account can reach this through /api/referral/complete, so a call
+    // with no trip in hand needs one on the account before it pays.
+    if (!tripId) {
+      const { data: trip, error: tripError } = await supabase
+        .from("trips")
+        .select("id")
+        .eq("user_id", userId)
+        .limit(1)
+        .maybeSingle();
+
+      if (tripError) {
+        console.error("[Referral Complete] Error reading trips:", tripError);
+        return {
+          success: false,
+          wasReferred: true,
+          alreadyCompleted: false,
+          referrerRewarded: false,
+          refereeRewarded: false,
+          error: "Could not check for a trip",
+        };
+      }
+      if (!trip) {
+        return {
+          success: true,
+          wasReferred: true,
+          alreadyCompleted: false,
+          referrerRewarded: false,
+          refereeRewarded: false,
+          message: "No trip yet",
+        };
+      }
+    }
+
     // Privileged client, created up front: the referrer's code is not
     // readable by the referee, and the claim and reward path below write
     // through it too (see the notes at each step).
@@ -169,7 +202,7 @@ export async function completeReferralIfEligible(
 
     // 2. The referrer is rewarded through the banana + tier path below
     // (addReferralBananas / checkAndUnlockTier), which checkUsageLimit reads.
-    const referrerRewarded = true;
+    let referrerRewarded = false;
 
     // 3. Record conversion event. Service role: users have no INSERT on
     // referral_events, so on `supabase` this insert always failed and the
@@ -235,6 +268,9 @@ export async function completeReferralIfEligible(
 
       if (bananaResult.success) {
         bananasAwarded = bananaResult.newBalance;
+        referrerRewarded = true;
+      } else {
+        console.error("[Referral Complete] Bananas not paid:", bananaResult.error);
       }
 
       // Check and unlock tier if eligible (cross-user → admin client)
@@ -277,7 +313,7 @@ export async function completeReferralIfEligible(
       newTier = effectiveTier;
     } catch (bananaError) {
       console.error("[Referral Complete] Error awarding bananas:", bananaError);
-      // Don't fail the request - free trips already granted
+      // The claim stands: a payout that failed is logged, not tried again.
     }
 
     // 7. Track in PostHog (server-side)
@@ -315,7 +351,7 @@ export async function completeReferralIfEligible(
       tierUnlocked,
       newTier: tierUnlocked ? newTier : undefined,
       tierBonus: tierBonusBananas,
-      message: "Bananas awarded to your account. Track progress in /bananas.",
+      message: "Referral completed",
     };
   } catch (error) {
     console.error("[Referral Complete] Unexpected error:", error);

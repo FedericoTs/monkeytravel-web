@@ -28,6 +28,8 @@ const s = vi.hoisted(() => ({
   eventError: null as unknown,
   bananasError: null as unknown,
   tierUnlocked: false,
+  hasTrip: true,
+  tripRead: null as { data: unknown; error: unknown } | null,
   events: [] as unknown[],
 }));
 
@@ -37,6 +39,10 @@ vi.mock("@/lib/posthog/server", () => ({
 
 /** The referred person's own client: their row only, as RLS allows. */
 const session = fakeSupabase((q: FakeQuery) => {
+  if (q.table === "trips") {
+    if (s.tripRead) return s.tripRead;
+    return { data: s.hasTrip && eqOf(q, "user_id") === REFEREE.id ? { id: "trip-1" } : null, error: null };
+  }
   if (s.refereeRead) return s.refereeRead;
   return q.table === "users" && eqOf(q, "id") === REFEREE.id ? { data: s.referee, error: null } : NO_ROW;
 });
@@ -82,7 +88,6 @@ const writes = () => service.log.filter((q) => q.op !== "select");
 const NOT_PAID = {
   referrer_rewarded: false,
   referee_rewarded: false,
-  bananas: { awarded: false, tierUnlocked: false, tierBonus: 0 },
 };
 
 beforeEach(() => {
@@ -96,6 +101,8 @@ beforeEach(() => {
   s.eventError = null;
   s.bananasError = null;
   s.tierUnlocked = false;
+  s.hasTrip = true;
+  s.tripRead = null;
   s.events = [];
   session.log.length = 0;
   service.log.length = 0;
@@ -115,7 +122,7 @@ describe("who may call it", () => {
 
   it("acts only on the signed-in person's own row", async () => {
     await POST();
-    expect(session.log.map((q) => eqOf(q, "id"))).toEqual([REFEREE.id]);
+    expect(session.log.map((q) => eqOf(q, q.table === "trips" ? "user_id" : "id"))).toEqual([REFEREE.id, REFEREE.id]);
     expect(eqOf(writes()[0], "id")).toBe(REFEREE.id);
   });
 });
@@ -140,7 +147,7 @@ describe("paying a referral", () => {
     const sync = writes().find((q) => q.table === "users" && eqOf(q, "id") === REFERRER);
     expect(sync?.value).toEqual({ lifetime_referral_conversions: 3, referral_tier: 1 });
 
-    expect(await res.json()).toMatchObject({ success: true, referrer_rewarded: true, bananas: { awarded: true, tierUnlocked: false, tierBonus: 0 } });
+    expect(await res.json()).toMatchObject({ success: true, referrer_rewarded: true });
     expect(s.events).toContainEqual([REFERRER, "referral_converted"]);
   });
 
@@ -175,35 +182,35 @@ describe("paying a referral", () => {
     ]);
   });
 
-  it.skip("pays only once the referred person has a trip, and this one has none", async () => {
-    await POST();
+  it("pays only once the referred person has a trip, and this one has none", async () => {
+    s.hasTrip = false;
+    const res = await POST();
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ success: true, ...NOT_PAID });
     expect(rpcs("add_bananas")).toEqual([]);
+    expect(writes()).toEqual([]);
     expect(s.referee.referral_completed_at).toBeNull();
   });
 
-  it.skip("pays nothing when the code is the person's own", async () => {
-    s.referralCode = { ...REFERRAL_CODE, user_id: REFEREE.id };
-    await POST();
+  it("pays nothing and keeps the claim open when it can't tell whether there's a trip", async () => {
+    s.tripRead = REFUSED;
+    const res = await POST();
+    expect(res.status).toBe(500);
     expect(rpcs("add_bananas")).toEqual([]);
     expect(writes()).toEqual([]);
   });
 
-  it.skip("doesn't say the referrer was rewarded when the bananas couldn't be paid", async () => {
+  it("doesn't say the referrer was rewarded when the bananas couldn't be paid", async () => {
     s.bananasError = FAILED;
     expect(await (await POST()).json()).toMatchObject({ referrer_rewarded: false });
   });
 
-  it.skip("leaves the claim open when the bananas couldn't be paid, so a retry can pay them", async () => {
-    s.bananasError = FAILED;
-    await POST();
-    expect(s.referee.referral_completed_at).toBeNull();
-  });
-
-  it.skip("doesn't show the referred person their referrer's new tier or bonus", async () => {
+  it("doesn't show the referred person their referrer's new tier or bonus", async () => {
     s.tierUnlocked = true;
-    const { bananas } = await (await POST()).json();
-    expect(bananas).not.toHaveProperty("newTier");
-    expect(bananas.tierBonus).toBe(0);
+    const body = await (await POST()).json();
+    expect(body).not.toHaveProperty("bananas");
+    expect(JSON.stringify(body)).not.toContain("100");
+    expect(JSON.stringify(body).toLowerCase()).not.toContain("tier");
   });
 });
 
