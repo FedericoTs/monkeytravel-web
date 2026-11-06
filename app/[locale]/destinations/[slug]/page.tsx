@@ -165,10 +165,8 @@ export default async function DestinationDetailPage({ params }: PageProps) {
   const relatedBlogSlugs = getBlogPostsForDestination(slug, 3);
   const { prev: prevDest, next: nextDest } = getPrevNextDestinations(slug, loc);
 
-  // Live community trips for this destination. Server-side fetch with the default 60s revalidate
-  // — page is statically generated per locale so this hits the cached
-  // response for ~all production traffic. Falls back to nothing when
-  // the explore flag is off OR there are no matching trips.
+  // Live community trips for this destination, from the CDN's copy of the feed.
+  // Falls back to nothing when the explore flag is off OR there are no matching trips.
   // NB: filter uses the canonical English city name (destination.name.en)
   // because trip titles + trip_meta->>destination in the DB are English-only.
   // Using the localized `cityName` here (e.g. "Parigi" on /it) matches zero

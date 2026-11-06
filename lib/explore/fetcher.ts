@@ -9,10 +9,9 @@ import type { ExploreFeedResponse, ExploreFilters } from "./types";
  * statically renderable / ISR-able (no headers() read). Tradeoff: preview
  * deploys fetch PRODUCTION's public explore feed instead of their own host.
  *
- * Caching: none unless the caller passes `revalidate`. A prerendered page
- * (destinations) fetches once at build time and ships that snapshot; the
- * per-request explore page passes a short revalidate so a burst of visits
- * doesn't fan out to the API route.
+ * Caching: the CDN keeps the route's answer. A caller can also pass `revalidate`:
+ * the per-request explore page does, so a burst of visits doesn't fan out to the
+ * API route.
  */
 export async function fetchExploreFeed(
   filters: ExploreFilters = {},

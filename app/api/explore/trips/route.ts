@@ -16,6 +16,15 @@ import { logReadError } from "@/lib/supabase/log-read-error";
 const FEED_WINDOW = 400;
 
 /**
+ * How long the CDN keeps a feed. It's the same for everyone, and pages read it on
+ * every visit and crawl. A destination's feed changes rarely; on the main feed a
+ * newly shared trip should show up soon.
+ */
+const FEED_CDN_SECONDS = 300;
+const DESTINATION_FEED_CDN_SECONDS = 3600;
+const FEED_STALE_SECONDS = 86400;
+
+/**
  * GET /api/explore/trips
  * Returns trending public trips with optional filters.
  *
@@ -109,8 +118,7 @@ export async function GET(request: NextRequest) {
         // or payment handles).
         ugcOn
           ? "id, parent_trip_id, title, description, start_date, end_date, tags, cover_image_url, shared_at, public_slug, user_id, trending_score, view_count, template_copy_count, trip_meta, like_count, save_count, fork_count, author_display_name, author_note, is_editors_pick, travel_style"
-          : "id, parent_trip_id, title, description, start_date, end_date, tags, cover_image_url, shared_at, public_slug, user_id, trending_score, view_count, template_copy_count, trip_meta",
-        { count: "exact" }
+          : "id, parent_trip_id, title, description, start_date, end_date, tags, cover_image_url, shared_at, public_slug, user_id, trending_score, view_count, template_copy_count, trip_meta"
       )
       .eq("visibility", "public")
       // Cards link to the public page by slug. The share token opens the trip's
@@ -268,13 +276,17 @@ export async function GET(request: NextRequest) {
 
     // Cut the page from the deduped, filtered, ranked list.
     const total = filteredTrips.length;
-    return apiSuccess({
-      trips: filteredTrips.slice(start, start + perPage),
-      total,
-      page,
-      perPage,
-      totalPages: Math.ceil(total / perPage),
-    });
+    const cdnSeconds = destination ? DESTINATION_FEED_CDN_SECONDS : FEED_CDN_SECONDS;
+    return apiSuccess(
+      {
+        trips: filteredTrips.slice(start, start + perPage),
+        total,
+        page,
+        perPage,
+        totalPages: Math.ceil(total / perPage),
+      },
+      { headers: { "Cache-Control": `public, s-maxage=${cdnSeconds}, stale-while-revalidate=${FEED_STALE_SECONDS}` } }
+    );
   } catch (error) {
     console.error("[Explore] Unexpected error:", error);
     return errors.internal("Internal server error", "Explore");
