@@ -46,16 +46,6 @@ export const TIER_THRESHOLDS: Record<ReferralTierLevel, number> = {
   3: 10,
 };
 
-/**
- * One-time bonus bananas awarded when unlocking a tier
- */
-export const TIER_UNLOCK_BONUSES: Record<ReferralTierLevel, number> = {
-  0: 0,
-  1: 100,
-  2: 200,
-  3: 500,
-};
-
 // =============================================================================
 // TIER BENEFITS
 // =============================================================================
@@ -125,13 +115,6 @@ export const TIER_EMOJIS: Record<ReferralTierLevel, string> = {
   3: '👑',
 };
 
-export const TIER_COLORS: Record<ReferralTierLevel, string> = {
-  0: 'slate',
-  1: 'amber',
-  2: 'orange',
-  3: 'purple',
-};
-
 /**
  * Badge image paths for each tier
  * Tier 0 has no badge image
@@ -147,40 +130,7 @@ export const TIER_BADGE_IMAGES: Record<ReferralTierLevel, string | null> = {
 // EXPIRATION
 // =============================================================================
 
-export const BANANA_EXPIRATION_MONTHS = 12;
 export const EXPIRATION_WARNING_DAYS = 30;
-
-// =============================================================================
-// SPENDING
-// =============================================================================
-
-/**
- * Feature codes that can be unlocked with banana redemptions
- */
-export const REDEEMABLE_FEATURES = {
-  EXTRA_AI_GENERATION: 'extra_ai_generation',
-  PRIORITY_AI_QUEUE: 'priority_ai_queue',
-  PREMIUM_TEMPLATES: 'premium_templates',
-  PREMIUM_TRIAL: 'premium_trial',
-} as const;
-
-// =============================================================================
-// FRAUD PREVENTION
-// =============================================================================
-
-export const FRAUD_THRESHOLDS = {
-  sameIpScore: 30,
-  similarEmailScore: 20,
-  newAccountScore: 15,
-  noEngagementScore: 25,
-  vpnScore: 10,
-  blockThreshold: 50,
-  reviewThreshold: 30,
-};
-
-export const MAX_REFERRALS_PER_DAY = 5;
-export const MIN_ACCOUNT_AGE_HOURS = 24;
-export const CLAWBACK_WINDOW_DAYS = 7;
 
 // =============================================================================
 // HELPER FUNCTIONS
@@ -214,13 +164,6 @@ export function getNextTierThreshold(currentConversions: number): number {
   const currentTier = getTierForConversions(currentConversions);
   if (currentTier === 3) return TIER_THRESHOLDS[3];
   return TIER_THRESHOLDS[(currentTier + 1) as ReferralTierLevel];
-}
-
-/**
- * Calculate bananas earned for a referral based on tier
- */
-export function getBananasForReferral(tier: ReferralTierLevel): number {
-  return TIER_BENEFITS[tier].bananasPerReferral;
 }
 
 /**

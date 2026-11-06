@@ -511,44 +511,6 @@ export function determineTimeSlot(time: string): "morning" | "afternoon" | "even
 }
 
 /**
- * Reorder activities within a day by moving an item from oldIndex to newIndex
- * This is used for drag-and-drop reordering
- */
-export function reorderActivities(
-  itinerary: ItineraryDay[],
-  dayIndex: number,
-  oldIndex: number,
-  newIndex: number
-): ItineraryDay[] {
-  if (dayIndex < 0 || dayIndex >= itinerary.length) {
-    return itinerary;
-  }
-
-  const day = itinerary[dayIndex];
-  const activities = [...day.activities];
-
-  // Validate indices
-  if (
-    oldIndex < 0 ||
-    oldIndex >= activities.length ||
-    newIndex < 0 ||
-    newIndex >= activities.length ||
-    oldIndex === newIndex
-  ) {
-    return itinerary;
-  }
-
-  // Remove item from old position and insert at new position
-  const [movedActivity] = activities.splice(oldIndex, 1);
-  activities.splice(newIndex, 0, movedActivity);
-
-  // Return new itinerary with reordered activities
-  return itinerary.map((d, i) =>
-    i === dayIndex ? { ...d, activities } : d
-  );
-}
-
-/**
  * Recalculate activity times for a day with smart scheduling
  *
  * Features:
