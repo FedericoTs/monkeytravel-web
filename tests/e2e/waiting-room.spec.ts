@@ -69,7 +69,10 @@ test.describe("the Waiting Room", () => {
       await homeWith(45, 48);
 
       // One account in ten sees nothing, as a holdout, and keeps its usual page.
-      if (!inWaitingRoom(original!.user_id as string)) {
+      // The fixture account's id is random, so the run says which it walked.
+      const shown = inWaitingRoom(original!.user_id as string);
+      console.log(`Waiting Room arm: ${shown ? "shown" : "holdout"}`);
+      if (!shown) {
         await expect(page.getByText("E2E Fixture Trip").first()).toBeVisible();
         await expect(room).toHaveCount(0);
         return;
