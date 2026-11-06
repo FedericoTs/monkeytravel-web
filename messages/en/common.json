@@ -2768,6 +2768,7 @@
     }
   },
   "tripDayDigestEmail": {
+    "mapsCta": "Open tomorrow's route in Google Maps",
     "heading": "Tomorrow: Day {day}",
     "intro": "Here's what tomorrow looks like.",
     "cta": "See tomorrow's plan",

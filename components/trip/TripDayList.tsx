@@ -18,6 +18,7 @@ import ActivityRow from "@/components/trip/ActivityRow";
 import AddActivityButton from "@/components/trip/AddActivityButton";
 import DayActions from "@/components/trip/DayActions";
 import DayHeader from "@/components/trip/DayHeader";
+import { DayRouteLink } from "@/components/trip/DayRouteLink";
 import DaySummary from "@/components/trip/DaySummary";
 import { DayTimeline } from "@/components/trip/DayTimeline";
 import EditableActivityCard, { type EditableActivityCardProps } from "@/components/trip/EditableActivityCard";
@@ -277,6 +278,7 @@ function TripDay({
           />
         </DayHeader>
       </DayDropHeader>
+      {!isEditMode && <DayRouteLink activities={day.activities} surface="trip" className="-mt-2 mb-2" />}
 
       {/* Activities */}
       {viewMode === "cards" ? (

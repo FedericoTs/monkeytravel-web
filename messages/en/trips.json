@@ -484,6 +484,7 @@
     "planWithFriends": "Plan with friends"
   },
   "day": {
+    "route": "Open this day in Google Maps",
     "label": "Day {number}",
     "todayBadge": "TODAY",
     "morning": "Morning",

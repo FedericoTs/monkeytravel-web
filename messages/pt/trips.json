@@ -484,6 +484,7 @@
     "planWithFriends": "Planejar com amigos"
   },
   "day": {
+    "route": "Abrir este dia no Google Maps",
     "label": "Dia {number}",
     "todayBadge": "HOJE",
     "morning": "Manhã",

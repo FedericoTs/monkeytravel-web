@@ -2768,6 +2768,7 @@
     }
   },
   "tripDayDigestEmail": {
+    "mapsCta": "Abrir la ruta de mañana en Google Maps",
     "heading": "Mañana: Día {day}",
     "intro": "Esto es lo que te espera mañana.",
     "cta": "Ver el plan de mañana",

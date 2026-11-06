@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getFormatter, getTranslations, setRequestLocale } from "next-intl/server";
 import ActivityCard from "@/components/ActivityCard";
+import { DayRouteLink } from "@/components/trip/DayRouteLink";
 import SendDayToGroup from "@/components/trip/SendDayToGroup";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -158,6 +159,7 @@ export default async function TripDayPage({ params, searchParams }: PageProps) {
           {t("heading", { day: day.dayNumber })}
         </h1>
         <p className="mt-1 text-[var(--foreground-muted)]">{day.title ? `${when} · ${day.title}` : when}</p>
+        <DayRouteLink activities={day.activities} surface="day" className="mt-1" />
 
         {canSend && sendKey ? (
           <SendDayToGroup
