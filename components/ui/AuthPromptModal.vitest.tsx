@@ -45,7 +45,7 @@ vi.mock("@/lib/posthog/events", () => ({
 }));
 
 import AuthPromptModal from "./AuthPromptModal";
-import { captureAuthMethodSwitched, captureMagicLinkRequestFailed } from "@/lib/posthog/events";
+import { captureAuthMethodSwitched, captureAuthPromptDismissed, captureMagicLinkRequestFailed } from "@/lib/posthog/events";
 
 /** Get to the state where the code input exists: request the link first. */
 async function reachCodeEntry() {
@@ -471,5 +471,67 @@ describe("a new code", () => {
     expect(signInWithOtp).toHaveBeenCalledTimes(2);
     answer({ error: null });
     await waitFor(() => expect(screen.getByRole("status")).toBeTruthy());
+  });
+});
+
+/** Someone who leaves the box without signing in, and which way they left. */
+describe("closing the box", () => {
+  const openBox = () => {
+    const onClose = vi.fn();
+    render(<AuthPromptModal isOpen onClose={onClose} destination="" redirectPath="/trips/new" />);
+    return onClose;
+  };
+  const clickOutside = () => fireEvent.click(document.querySelector('[role="dialog"] > [aria-hidden="true"]')!);
+
+  it("with its X closes it and counts as closing it", () => {
+    const onClose = openBox();
+    fireEvent.click(screen.getByRole("button", { name: "closeModal" }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(captureAuthPromptDismissed).toHaveBeenCalledTimes(1);
+    expect(captureAuthPromptDismissed).toHaveBeenCalledWith({
+      location: "wizard_save",
+      had_email_entered: false,
+      how: "close_button",
+    });
+  });
+
+  it("by clicking outside closes it and says so", () => {
+    const onClose = openBox();
+    clickOutside();
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(captureAuthPromptDismissed).toHaveBeenCalledWith({
+      location: "wizard_save",
+      had_email_entered: false,
+      how: "outside",
+    });
+  });
+
+  it("with Escape counts the same as outside", () => {
+    const onClose = openBox();
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(captureAuthPromptDismissed).toHaveBeenCalledWith(expect.objectContaining({ how: "outside" }));
+  });
+
+  it("says whether an address had been typed", () => {
+    openBox();
+    fireEvent.change(screen.getByPlaceholderText("magicLink.emailPlaceholder"), { target: { value: "planner@example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "closeModal" }));
+    expect(captureAuthPromptDismissed).toHaveBeenCalledWith(expect.objectContaining({ had_email_entered: true }));
+  });
+
+  it("isn't giving up once the email has gone out", async () => {
+    await reachCodeEntry();
+    fireEvent.click(screen.getByRole("button", { name: "closeModal" }));
+    expect(captureAuthPromptDismissed).not.toHaveBeenCalled();
+  });
+
+  it("isn't giving up on the way to the password page", async () => {
+    const onClose = openBox();
+    fireEvent.click(screen.getByRole("button", { name: "preferPassword" }));
+    await waitFor(() => expect(push).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole("button", { name: "closeModal" }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(captureAuthPromptDismissed).not.toHaveBeenCalled();
   });
 });
