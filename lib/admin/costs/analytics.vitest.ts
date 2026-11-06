@@ -99,6 +99,7 @@ describe("the summary", () => {
         recentLogs: [],
         caches: { geocode: [], distance: [], places: [], activities: [] },
         users: [],
+        credit: null,
       },
       {},
       new Date("2026-12-31T00:00:00.000Z")
