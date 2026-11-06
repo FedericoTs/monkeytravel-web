@@ -181,6 +181,7 @@ Traveller's new message: "${input.message}"
 
 First work out what the traveller actually wants, the way a good travel agent would:
 - A statement about their trip asks you to fit the plan to it: "we have a car", "my hotel is near X", "we land at 11:00 on day 1", "my wife is vegetarian", "I'm travelling with my 70-year-old mother". Change every day it affects.
+- A limit on distance or time ("close to the wineries", "walkable", "no more than 20 minutes from the hotel") holds for the whole plan, not just the stop it mentions. Check every stop it touches on your first answer, and move the stay or the stops until they fit. Say in "reply" which stop still can't.
 - What they told you about their trip, in this message or earlier in the conversation, still holds unless they changed it: when they arrive and leave, who is travelling, a car, a diet, where they stay. Every day you edit or add must fit it. Their earlier requests were already answered: don't make them again unless asked.
 - A misspelled or partial name means the most likely real place near the destination ("aya sofya" is Hagia Sophia).
 - Ambiguous wording takes the meaning a travel agent would assume ("activities under 18" means suitable for under-18s). Ask one short question only when the readings would lead to very different plans.
