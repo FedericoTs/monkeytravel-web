@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { dangerouslyDeleteByTag } from "@vercel/functions";
 import { getAuthenticatedAdmin } from "@/lib/api/auth";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { readJsonBody } from "@/lib/api/json-body";
 
@@ -29,7 +30,7 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from("site_config")
-      .select("*")
+      .select("maintenance_mode, maintenance_message, maintenance_title, maintenance_started_at")
       .eq("id", 1)
       .single();
 
@@ -43,7 +44,7 @@ export async function GET() {
       });
     }
 
-    // Public response: only expose maintenance info, never allowed_emails.
+    // Public response: only maintenance info. The Access tab reads the rest from ./access.
     // Cache at the edge: maintenance toggles are rare, and PATCH drops the kept
     // copy. Without this header every visitor's first request re-queries Supabase.
     return apiSuccess(
@@ -72,7 +73,7 @@ export async function GET() {
  */
 export async function PATCH(request: NextRequest) {
   try {
-    const { user, supabase, errorResponse } = await getAuthenticatedAdmin();
+    const { user, errorResponse } = await getAuthenticatedAdmin();
     if (errorResponse) return errorResponse;
 
     const { body, invalidBody } = await readJsonBody(request);
@@ -112,8 +113,8 @@ export async function PATCH(request: NextRequest) {
       updates.allowed_emails = validEmails;
     }
 
-    // Update the config
-    const { data, error } = await supabase
+    // The service role, now that this is an admin: a session can't read the whole row back.
+    const { data, error } = await createAdminClient()
       .from("site_config")
       .update(updates)
       .eq("id", 1)

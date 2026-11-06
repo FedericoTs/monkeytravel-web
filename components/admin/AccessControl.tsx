@@ -19,7 +19,7 @@ export default function AccessControl() {
   const fetchConfig = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/admin/config");
+      const response = await fetch("/api/admin/config/access");
       if (!response.ok) throw new Error("Failed to fetch config");
       const data = await response.json();
       setConfig(data);
@@ -278,7 +278,7 @@ export default function AccessControl() {
             </button>
             <button
               onClick={handleSave}
-              disabled={saving}
+              disabled={saving || !config}
               className="flex items-center gap-2 px-6 py-2.5 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 transition disabled:opacity-50"
             >
               {saving ? (

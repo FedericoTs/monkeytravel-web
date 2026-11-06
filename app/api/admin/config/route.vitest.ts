@@ -15,6 +15,7 @@ const s = vi.hoisted(() => ({
   writeError: null as { message: string } | null,
   refused: false,
   log: [] as unknown[],
+  serviceLog: [] as unknown[],
   purged: [] as string[],
   purgeFails: false,
 }));
@@ -26,14 +27,15 @@ vi.mock("@vercel/functions", () => ({
   },
 }));
 
-const db = () =>
+const db = (log: "log" | "serviceLog" = "log") =>
   fakeSupabase((q: FakeQuery) => {
-    s.log.push(q);
+    s[log].push(q);
     if (q.op === "update") return { data: s.writeError ? null : s.row, error: s.writeError };
     return { data: s.readError ? null : s.row, error: s.readError };
   }).client;
 
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => db() }));
+vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => db("serviceLog") }));
 vi.mock("@/lib/api/auth", () => ({
   getAuthenticatedAdmin: async () =>
     s.refused
@@ -51,7 +53,7 @@ const patch = (body: unknown) =>
       body: JSON.stringify(body),
     })
   );
-const updates = () => (s.log as FakeQuery[]).filter((q) => q.op === "update");
+const updates = () => (s.serviceLog as FakeQuery[]).filter((q) => q.op === "update");
 
 beforeEach(() => {
   s.row = {
@@ -68,6 +70,7 @@ beforeEach(() => {
   s.writeError = null;
   s.refused = false;
   s.log = [];
+  s.serviceLog = [];
   s.purged = [];
   s.purgeFails = false;
   vi.spyOn(console, "error").mockImplementation(() => {});
@@ -83,6 +86,11 @@ describe("reading the config", () => {
       maintenance_title: "Down",
       maintenance_started_at: null,
     });
+  });
+
+  it("asks the database for those fields alone: visitors can't read the rest", async () => {
+    await GET();
+    expect((s.log as FakeQuery[])[0].columns).toBe("maintenance_mode, maintenance_message, maintenance_title, maintenance_started_at");
   });
 
   it("lets the CDN keep it for 10 minutes, under a tag that can drop it", async () => {
@@ -104,6 +112,7 @@ describe("changing the config", () => {
     const res = await patch({ maintenance_mode: true });
     expect(res.status).toBe(200);
     expect(updates()).toHaveLength(1);
+    expect(s.log).toEqual([]);
     expect(s.purged).toEqual(["site-config"]);
   });
 
