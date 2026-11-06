@@ -151,7 +151,7 @@ describe("a message", () => {
   });
 
   it("marks a partner's domain as VIP, and only that", async () => {
-    await send({ ...MESSAGE, email: "fictional-person@booking.com" });
+    await send({ ...MESSAGE, email: "test-partner@booking.com" });
     await allSent();
     expect(s.sent[0].subject.startsWith("[VIP] ")).toBe(true);
     expect(s.sent[0].tags).toContainEqual({ name: "vip", value: "booking.com" });

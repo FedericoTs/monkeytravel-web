@@ -9,3 +9,5 @@ marinoenrico3@gmail.com
 # Placeholders in old migration comments and docs.
 foo@gmail.com
 user@gmail.com
+# Made up: the contact form treats this partner domain specially, and its tests need one.
+test-partner@booking.com
