@@ -34,7 +34,7 @@
     "open": "Aberto",
     "source": "Aberto e fechado vêm do Google Maps. Não encontrado pode significar só que o Google o conhece por outro nome, então olhe antes de descartar.",
     "fixTitle": "Conserte aqui",
-    "fixBody": "Crie um plano com os lugares que valem a pena, sem os fechados e num ritmo que caiba no dia.",
+    "fixBody": "Crie um plano com os lugares que valem a pena, sem os fechados nem os que o Maps não encontra, e num ritmo que caiba no dia.",
     "fix": "Criar o plano consertado",
     "toolTitle": "Confira seu plano",
     "toolDescription": "Cole um plano do ChatGPT ou de um blog. Veja o que está fechado e quais dias estão cheios demais."

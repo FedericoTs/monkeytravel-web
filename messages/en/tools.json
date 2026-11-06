@@ -34,7 +34,7 @@
     "open": "Open",
     "source": "Open and closed come from Google Maps. Not found can just mean Google knows it by another name, so look before you cross it off.",
     "fixTitle": "Fix it here",
-    "fixBody": "Build a plan with the places worth keeping, leaving out the closed ones, at a pace that fits the day.",
+    "fixBody": "Build a plan with the places worth keeping, leaving out the closed ones and those Maps can't find, at a pace that fits the day.",
     "fix": "Build the fixed plan",
     "toolTitle": "Check My Plan",
     "toolDescription": "Paste a plan from ChatGPT or a blog. See what's closed and which days are too full."

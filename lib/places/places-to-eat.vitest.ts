@@ -410,6 +410,26 @@ describe("lookUpPlaceToEat", () => {
     expect(await lookUpPlaceToEat("Da Enzo al 29", "Rome")).toBe("missing");
   });
 
+  it.each([
+    ["Google's name is one word of the plan's", "Trattoria Da Enzo al 29", "Trattoria Da Enzo"],
+    ["the plan's is one word of Google's", "Lokál", "Lokál Dlouhááá"],
+  ])("doesn't say either way when %s", async (_case, ours, google) => {
+    found = [place("Another Place Entirely"), place(google)];
+    expect(await lookUpPlaceToEat(ours, "Rome")).toBeNull();
+  });
+
+  it("says what Maps says of the place it found by the name, whatever else shares a word", async () => {
+    found = [place("Trattoria Da Enzo"), place("Da Enzo al 29")];
+    expect(await lookUpPlaceToEat("Da Enzo al 29", "Rome")).toBe("open");
+    found = [place("Trattoria Da Enzo"), place("Da Enzo al 29", "CLOSED_PERMANENTLY")];
+    expect(await lookUpPlaceToEat("Da Enzo al 29", "Rome")).toBe("closed");
+  });
+
+  it("is missing when the place sharing the word isn't a place to eat", async () => {
+    found = [place("Trattoria Da Enzo", "OPERATIONAL", ROME, ["plaza", "tourist_attraction"])];
+    expect(await lookUpPlaceToEat("Da Enzo al 29", "Rome")).toBe("missing");
+  });
+
   it("knows nothing when the search fails", async () => {
     found = null;
     expect(await lookUpPlaceToEat("Da Enzo al 29", "Rome")).toBeNull();
