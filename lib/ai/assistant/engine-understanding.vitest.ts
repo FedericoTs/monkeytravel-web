@@ -395,6 +395,11 @@ describe("buildPrompt", () => {
     expect(prompt).toContain("make it instead of asking for permission");
   });
 
+  it("holds a limit on distance across the whole plan, on the first answer", () => {
+    expect(prompt).toContain("holds for the whole plan, not just the stop it mentions");
+    expect(prompt).toContain("Check every stop it touches on your first answer");
+  });
+
   it("moves what a change leaves without room instead of dropping it", () => {
     expect(prompt).toContain("move that activity to another day with room rather than dropping it, and say where it went");
   });
