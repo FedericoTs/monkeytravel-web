@@ -21,15 +21,19 @@ import { verifyDayLink } from "@/lib/trips/day-link";
 const dispatchEmail = vi.fn();
 vi.mock("@/lib/email/send", () => ({ dispatchEmail: (options: unknown) => dispatchEmail(options) }));
 
+const copy = vi.hoisted(() => ({ noRouteLabel: false }));
 vi.mock("next-intl/server", async () => {
   const { createTranslator } = await import("next-intl");
   const { readFileSync } = await import("fs");
   const { join } = await import("path");
-  const common = (locale: string) =>
-    JSON.parse(readFileSync(join(process.cwd(), "messages", locale, "common.json"), "utf8"));
+  const common = (locale: string) => {
+    const all = JSON.parse(readFileSync(join(process.cwd(), "messages", locale, "common.json"), "utf8"));
+    if (copy.noRouteLabel) delete all.tripDayDigestEmail.mapsCta;
+    return all;
+  };
   return {
     getTranslations: async ({ locale, namespace }: { locale: string; namespace: string }) =>
-      createTranslator({ locale, messages: { common: common(locale) }, namespace: namespace as never }),
+      createTranslator({ locale, messages: { common: common(locale) }, namespace: namespace as never, onError: () => {} }),
   };
 });
 
@@ -169,6 +173,13 @@ describe("tomorrow's route in Google Maps", () => {
     expect(url.searchParams.get("origin")).toBe("Stop 1");
     expect(url.searchParams.get("destination")).toBe("Stop 2");
     expect(url.searchParams.get("waypoints")).toBeNull();
+  });
+
+  it("holds the email back when its label has no words", async () => {
+    copy.noRouteLabel = true;
+    const sent = await runDigest(dayOf(stops(2)));
+    copy.noRouteLabel = false;
+    expect(sent).toEqual([]);
   });
 
   it("still passes the check before sending", async () => {
