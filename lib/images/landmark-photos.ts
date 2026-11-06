@@ -57,7 +57,7 @@ async function buildOne(lookup: LandmarkLookup & LandmarkQuery): Promise<string 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), BUILD_TIMEOUT_MS);
   try {
-    const url = await buildLandmarkPhoto(db, lookup, controller.signal);
+    const url = await buildLandmarkPhoto(lookup, controller.signal);
     const now = Date.now();
     const hash = cacheKey(lookup.key);
     logWriteError("landmark-photos: cache", await db.from("google_places_cache").upsert(

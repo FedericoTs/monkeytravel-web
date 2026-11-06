@@ -1,20 +1,21 @@
 import { createHash } from "crypto";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { WIKIMEDIA_IMAGE_PATH, withCredit } from "@/lib/images/wikimedia-credit";
 
 /**
- * Destination photos from Wikimedia Commons, whose free licences allow keeping
- * a credited copy (Google's terms forbid storing Places photos). The cover is
+ * Destination photos from Wikimedia Commons, under free licences. The cover is
  * the place's Wikidata image, else its Wikipedia lead image; the gallery comes
- * from the See, Do and Understand sections of its Wikivoyage article.
+ * from the See, Do and Understand sections of its Wikivoyage article. Nothing is
+ * stored: a photo's URL names the Commons file, and the CDN keeps what
+ * app/api/images/wikimedia/[file]/route.ts fetches from there.
  */
 
-const UA = "MonkeyTravel/1.0 (https://monkeytravel.app; support@monkeytravel.app)";
+export const COMMONS_USER_AGENT = "MonkeyTravel/1.0 (https://monkeytravel.app; support@monkeytravel.app)";
 const WIKIPEDIA_API = "https://en.wikipedia.org/w/api.php";
 export const WIKIDATA_API = "https://www.wikidata.org/w/api.php";
 const WIKIVOYAGE_API = "https://en.wikivoyage.org/w/api.php";
 const COMMONS_API = "https://commons.wikimedia.org/w/api.php";
 
+/** Copies of older photos, for when Commons can't serve one. Nothing new goes here. */
 export const DESTINATION_IMAGES_BUCKET = "destination-images";
 const GALLERY_SIZE = 4;
 const MAX_CANDIDATES = 30;
@@ -33,8 +34,6 @@ const DISTRICT_MAP = /\bmaps?\b/i;
 export interface CommonsFile {
   /** Commons file name, without "File:". */
   name: string;
-  /** Thumbnail URL at a standard Commons width (1280px unless asked). */
-  thumb: string;
   width: number;
   height: number;
   mime: string;
@@ -184,11 +183,6 @@ export function plainArtist(html: string): string {
   return named ? named[1] : "";
 }
 
-/** The Commons thumbnail URL at another standard width. */
-export function thumbAt(thumb: string, width: number): string {
-  return thumb.replace(/\/\d+px-([^/]+)$/, `/${width}px-$1`);
-}
-
 /** What to search for: the whole destination, then its first place ("Tokyo, Kyoto & Hiroshima"). */
 export function searchQueries(destination: string): string[] {
   const whole = destination.replace(/\s+/g, " ").trim();
@@ -210,7 +204,7 @@ export function pickImages(
 export async function wiki(base: string, params: Record<string, string | number>, signal: AbortSignal): Promise<unknown> {
   const query = new URLSearchParams({ format: "json", formatversion: "2" });
   for (const [k, v] of Object.entries(params)) query.set(k, String(v));
-  const res = await fetch(`${base}?${query.toString()}`, { headers: { "User-Agent": UA }, signal });
+  const res = await fetch(`${base}?${query.toString()}`, { headers: { "User-Agent": COMMONS_USER_AGENT }, signal });
   if (!res.ok) throw new Error(`${new URL(base).hostname} answered ${res.status}`);
   return res.json();
 }
@@ -245,14 +239,14 @@ interface Entity {
 
 interface ImagePage {
   title: string;
-  imageinfo?: { thumburl?: string; width?: number; height?: number; mime?: string; extmetadata?: Record<string, { value?: string }> }[];
+  imageinfo?: { width?: number; height?: number; mime?: string; extmetadata?: Record<string, { value?: string }> }[];
 }
 
 /**
  * Commons details of the named files, in the order given; missing files are
- * left out. `thumb` is at `width`, which must not exceed the stored widths.
+ * left out.
  */
-export async function commonsFiles(names: string[], signal: AbortSignal, width = 1280): Promise<CommonsFile[]> {
+export async function commonsFiles(names: string[], signal: AbortSignal): Promise<CommonsFile[]> {
   if (names.length === 0) return [];
   const d = (await wiki(
     COMMONS_API,
@@ -260,8 +254,7 @@ export async function commonsFiles(names: string[], signal: AbortSignal, width =
       action: "query",
       titles: names.map((n) => `File:${n}`).join("|"),
       prop: "imageinfo",
-      iiprop: "url|size|mime|extmetadata",
-      iiurlwidth: width,
+      iiprop: "size|mime|extmetadata",
       iiextmetadatafilter: "LicenseShortName|Artist|Restrictions",
     },
     signal,
@@ -270,12 +263,11 @@ export async function commonsFiles(names: string[], signal: AbortSignal, width =
   return names.flatMap((n) => {
     const page = pages.find((p) => sameName(p.title, `File:${n}`));
     const info = page?.imageinfo?.[0];
-    if (!page || !info?.thumburl) return [];
+    if (!page || !info) return [];
     const meta = info.extmetadata ?? {};
     return [
       {
         name: page.title.replace(/^File:/, ""),
-        thumb: info.thumburl,
         width: info.width ?? 0,
         height: info.height || 1,
         mime: info.mime ?? "",
@@ -311,30 +303,31 @@ export async function findDestinationPhotos(destination: string, signal: AbortSi
   return pickImages(files, (f) => coverNames.some((c) => sameName(c, f.name)));
 }
 
-/** Stores the photo at the given widths, once per Commons file; returns each served URL. */
-export async function storePhoto(db: SupabaseClient, f: CommonsFile, widths: number[], signal: AbortSignal): Promise<string[]> {
-  const id = createHash("sha1").update(f.name.replace(/ /g, "_")).digest("hex").slice(0, 20);
-  const credit = { author: f.artist, license: f.license.trim(), file: f.name };
-  return Promise.all(
-    widths.map(async (w) => {
-      const res = await fetch(thumbAt(f.thumb, w), { headers: { "User-Agent": UA }, signal });
-      if (!res.ok) throw new Error(`Commons thumbnail answered ${res.status}`);
-      const file = `${id}-${w}.jpg`;
-      const { error } = await db.storage
-        .from(DESTINATION_IMAGES_BUCKET)
-        .upload(`wikimedia/${file}`, await res.arrayBuffer(), { contentType: "image/jpeg", cacheControl: "31536000", upsert: true });
-      if (error) throw new Error(`storage: ${error.message}`);
-      return withCredit(`${WIKIMEDIA_IMAGE_PATH}${file}`, credit);
-    }),
-  );
+/** The id of a Commons file in a served photo's path. */
+export function commonsPhotoId(name: string): string {
+  return createHash("sha1").update(name.replace(/ /g, "_")).digest("hex").slice(0, 20);
 }
 
-/** Finds and stores the destination's photos; null when Commons has no usable one. */
-export async function buildDestinationPhotos(db: SupabaseClient, destination: string, signal: AbortSignal): Promise<DestinationPhotos | null> {
+/** Where Commons serves the file at a width, one of its standard thumbnail widths. */
+export function commonsPhotoUrl(name: string, width: number): string {
+  return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(name.replace(/ /g, "_"))}?width=${width}`;
+}
+
+/** The photo's served URL at each width, credit attached. */
+export function servedPhotoUrls(f: CommonsFile, widths: number[]): string[] {
+  const id = commonsPhotoId(f.name);
+  const credit = { author: f.artist, license: f.license.trim(), file: f.name };
+  return widths.map((w) => withCredit(`${WIKIMEDIA_IMAGE_PATH}${id}-${w}.jpg`, credit));
+}
+
+/** The cover at its largest width, with a smaller copy for cards, and the gallery's thumbnails. */
+export function destinationPhotoUrls(cover: CommonsFile, gallery: CommonsFile[]): DestinationPhotos {
+  const coverUrls = servedPhotoUrls(cover, cover.width >= 1920 ? [960, 1920] : [960, 1280]);
+  return { cover: coverUrls[coverUrls.length - 1], gallery: gallery.map((g) => servedPhotoUrls(g, [330])[0]) };
+}
+
+/** Finds the destination's photos; null when Commons has no usable one. */
+export async function buildDestinationPhotos(destination: string, signal: AbortSignal): Promise<DestinationPhotos | null> {
   const picked = await findDestinationPhotos(destination, signal);
-  if (!picked) return null;
-  const coverUrls = await storePhoto(db, picked.cover, picked.cover.width >= 1920 ? [960, 1920] : [960, 1280], signal);
-  // A gallery photo that fails to store is left out; the cover is what matters.
-  const gallery = await Promise.all(picked.gallery.map((g) => storePhoto(db, g, [330], signal).catch(() => null)));
-  return { cover: coverUrls[coverUrls.length - 1], gallery: gallery.flatMap((urls) => (urls ? [urls[0]] : [])) };
+  return picked && destinationPhotoUrls(picked.cover, picked.gallery);
 }

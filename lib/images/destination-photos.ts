@@ -67,7 +67,7 @@ export async function destinationPhotos(destination: string, request: NextReques
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), BUILD_TIMEOUT_MS);
   try {
-    const photos = await buildDestinationPhotos(db, destination, controller.signal);
+    const photos = await buildDestinationPhotos(destination, controller.signal);
     const now = Date.now();
     logWriteError("destination-photos: cache", await db.from("google_places_cache").upsert(
       {

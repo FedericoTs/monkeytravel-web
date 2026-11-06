@@ -1,5 +1,5 @@
 /**
- * Wikimedia Commons photos we store for destinations (lib/images/wikimedia.ts)
+ * Wikimedia Commons photos we serve for destinations (lib/images/wikimedia.ts)
  * carry their credit in the URL: author, licence and Commons file name. Every
  * place that shows the photo (hero, trip card, share page) can then credit it
  * without a lookup, as the free licences require. Client-safe.

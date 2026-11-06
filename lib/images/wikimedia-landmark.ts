@@ -1,5 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { commonsFiles, isUsablePhoto, storePhoto, wiki, WIKIDATA_API, type CommonsFile } from "@/lib/images/wikimedia";
+import { commonsFiles, isUsablePhoto, servedPhotoUrls, wiki, WIKIDATA_API, type CommonsFile } from "@/lib/images/wikimedia";
 
 /**
  * An activity's photo from Wikimedia Commons, when Wikidata knows the place: an
@@ -278,16 +277,14 @@ export async function findLandmarkPhoto(q: LandmarkQuery, signal: AbortSignal): 
     const names = IMAGE_PROPERTIES.flatMap((p) => (claims[p] ?? []).map((c) => c.mainsnak?.datavalue?.value)).filter(
       (n): n is string => typeof n === "string",
     );
-    const files = await commonsFiles([...new Set(names)].slice(0, 8), signal, LANDMARK_WIDTHS[1]);
+    const files = await commonsFiles([...new Set(names)].slice(0, 8), signal);
     return files.find((f) => isUsablePhoto(f, MIN_WIDTH)) ?? null;
   }
   return null;
 }
 
-/** Finds and stores the activity's photo; the served URL (card width, credit attached), or null. */
-export async function buildLandmarkPhoto(db: SupabaseClient, q: LandmarkQuery, signal: AbortSignal): Promise<string | null> {
+/** Finds the activity's photo; the served URL (card width, credit attached), or null. */
+export async function buildLandmarkPhoto(q: LandmarkQuery, signal: AbortSignal): Promise<string | null> {
   const photo = await findLandmarkPhoto(q, signal);
-  if (!photo) return null;
-  const [card] = await storePhoto(db, photo, LANDMARK_WIDTHS, signal);
-  return card;
+  return photo ? servedPhotoUrls(photo, LANDMARK_WIDTHS)[0] : null;
 }

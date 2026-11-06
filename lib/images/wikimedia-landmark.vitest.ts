@@ -44,20 +44,19 @@ const wiki = vi.fn(async (_base: string, params: Record<string, string | number>
   return { entities };
 });
 const commonsFiles = vi.fn(async (names: string[]) => names.flatMap((n) => files.filter((f) => f.name === n)));
-const storePhoto = vi.fn(async (_db: unknown, f: CommonsFile, widths: number[]) => widths.map((w) => `/api/images/wikimedia/aaaaaaaaaaaaaaaaaaaa-${w}.jpg?f=${f.name}`));
+const servedPhotoUrls = vi.fn((f: CommonsFile, widths: number[]) => widths.map((w) => `/api/images/wikimedia/aaaaaaaaaaaaaaaaaaaa-${w}.jpg?f=${f.name}`));
 
 vi.mock("@/lib/images/wikimedia", async (importOriginal) => ({
   ...(await importOriginal<typeof import("./wikimedia")>()),
   wiki: (...a: Parameters<typeof wiki>) => wiki(...a),
   commonsFiles: (...a: Parameters<typeof commonsFiles>) => commonsFiles(...a),
-  storePhoto: (...a: Parameters<typeof storePhoto>) => storePhoto(...a),
+  servedPhotoUrls: (...a: Parameters<typeof servedPhotoUrls>) => servedPhotoUrls(...a),
 }));
 
 const { buildLandmarkPhoto, findLandmarkPhoto, itemMatch, nameMatch, namesAgree, nameTokens, nameVariants, placeName } = await import("./wikimedia-landmark");
 
 const photo = (name: string, extra: Partial<CommonsFile> = {}): CommonsFile => ({
   name,
-  thumb: `https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/${name}/960px-${name}`,
   width: 3000,
   height: 2000,
   mime: "image/jpeg",
@@ -240,12 +239,12 @@ describe("findLandmarkPhoto", () => {
 });
 
 describe("buildLandmarkPhoto", () => {
-  it("stores the photo at card and sheet widths and serves the card one", async () => {
+  it("gives the photo at card and sheet widths and serves the card one", async () => {
     found["Belém Tower"] = ["Q7"];
     items.Q7 = { labels: ["Belém Tower"], at: [38.6916, -9.216], images: { P18: ["Belem.jpg"] } };
     files = [photo("Belem.jpg")];
-    const url = await buildLandmarkPhoto({} as never, { names: ["Belém Tower"], lat: 38.6916, lng: -9.216 }, signal);
-    expect(storePhoto).toHaveBeenCalledWith({}, files[0], [500, 960], signal);
+    const url = await buildLandmarkPhoto({ names: ["Belém Tower"], lat: 38.6916, lng: -9.216 }, signal);
+    expect(servedPhotoUrls).toHaveBeenCalledWith(files[0], [500, 960]);
     expect(url).toBe("/api/images/wikimedia/aaaaaaaaaaaaaaaaaaaa-500.jpg?f=Belem.jpg");
   });
 });
