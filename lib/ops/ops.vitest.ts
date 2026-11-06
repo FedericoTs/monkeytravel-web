@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { summarizeSpend, projectMonth, previousUtcDay, monthToDateBefore } from "./spend";
+import { summarizeSpend, projectMonth } from "./spend";
 import { recoveryLooksBroken } from "./auth-health";
 
 /** An api_spend_by_unit group: `calls` calls of `api` booked at `unit` each. */
@@ -93,32 +93,6 @@ describe("summarizeSpend", () => {
     expect(s).toMatchObject({ listUsd: 23.4, estimatedUsd: 1, over: false });
     expect(summarizeSpend([], [group("gemini", 0.5, 41)], 20)).toMatchObject({ estimatedUsd: 20.5, over: true });
     expect(summarizeSpend([], [group("gemini", 0.5, 40)], 20)).toMatchObject({ estimatedUsd: 20, over: false });
-  });
-});
-
-describe("previousUtcDay", () => {
-  it("is the whole UTC day before, whatever the time now", () => {
-    const d = previousUtcDay(new Date("2026-09-28T00:20:00Z"));
-    expect(d).toEqual({ start: "2026-09-27T00:00:00.000Z", end: "2026-09-28T00:00:00.000Z", label: "2026-09-27" });
-  });
-});
-
-describe("monthToDateBefore", () => {
-  it("runs from the 1st of the month to yesterday when yesterday is the month's last day", () => {
-    const day = previousUtcDay(new Date("2026-11-01T06:20:00Z"));
-    expect(day.label).toBe("2026-10-31");
-    expect(monthToDateBefore(day)).toEqual({ start: "2026-10-01T00:00:00.000Z", end: "2026-10-31T00:00:00.000Z" });
-  });
-
-  it("is empty when yesterday is the 1st, so the month starts with its whole allowance", () => {
-    const day = previousUtcDay(new Date("2026-11-02T06:20:00Z"));
-    expect(day.label).toBe("2026-11-01");
-    expect(monthToDateBefore(day)).toEqual({ start: "2026-11-01T00:00:00.000Z", end: "2026-11-01T00:00:00.000Z" });
-  });
-
-  it("stays in yesterday's year on New Year's Day", () => {
-    const day = previousUtcDay(new Date("2027-01-01T06:20:00Z"));
-    expect(monthToDateBefore(day)).toEqual({ start: "2026-12-01T00:00:00.000Z", end: "2026-12-31T00:00:00.000Z" });
   });
 });
 

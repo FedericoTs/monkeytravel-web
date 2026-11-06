@@ -68,10 +68,10 @@ function allowanceFor(apiName: string, unitUsd: number): Allowance | null {
 }
 
 /**
- * Yesterday's spend after Google's free monthly allowances. A SKU's free calls
- * go first, so yesterday pays for max(0, after - free) - max(0, before - free)
- * calls, counting the month's calls before and through yesterday. Gemini and
- * anything unknown cost what was logged. Months are UTC; Google's are Pacific.
+ * A window's spend after Google's free monthly allowances. A SKU's free calls go
+ * first, so the window pays for max(0, after - free) - max(0, before - free)
+ * calls, counting the month's calls before and through it. Gemini and anything
+ * unknown cost what was logged. Months are UTC; Google's are Pacific.
  */
 export function summarizeSpend(monthBefore: SpendGroup[], day: SpendGroup[], limitUsd = Infinity): SpendSummary {
   const used = new Map<string, number>();
@@ -113,19 +113,6 @@ export function projectMonth(soFar: SpendGroup[], recent: SpendGroup[], recentDa
   const pace = daysLeft / recentDays;
   const rest = recent.map((g) => ({ ...g, calls: g.calls * pace, usd: g.usd * pace }));
   return summarizeSpend([], [...soFar, ...rest]).estimatedUsd;
-}
-
-/** The UTC day before `now`, as [start, end) ISO strings and a YYYY-MM-DD label. */
-export function previousUtcDay(now = new Date()): { start: string; end: string; label: string } {
-  const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-  const start = new Date(end.getTime() - 24 * 60 * 60 * 1000);
-  return { start: start.toISOString(), end: end.toISOString(), label: start.toISOString().slice(0, 10) };
-}
-
-/** From the 1st of `day`'s UTC month to the start of `day`, as [start, end): empty when `day` is the 1st. */
-export function monthToDateBefore(day: { start: string }): { start: string; end: string } {
-  const d = new Date(day.start);
-  return { start: new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1)).toISOString(), end: day.start };
 }
 
 const round = (n: number) => Math.round(n * 100) / 100;
