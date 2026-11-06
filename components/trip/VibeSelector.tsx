@@ -219,21 +219,9 @@ function VibeCard({
       <div className="flex items-center gap-2 mb-2">
         <span className="text-2xl">{vibe.emoji}</span>
         <div>
-          <div
-            className={`font-semibold text-sm ${
-              isSelected ? "" : "text-slate-900"
-            }`}
-            style={isSelected ? { color: vibe.color } : undefined}
-          >
-            {vibe.label}
-          </div>
+          <div className="font-semibold text-sm text-slate-900">{vibe.label}</div>
           {selectionOrder && (
-            <div
-              className="text-[10px] font-medium"
-              style={{ color: vibe.color }}
-            >
-              {getPriorityLabel(selectionOrder)}
-            </div>
+            <div className="text-[10px] font-medium text-slate-600">{getPriorityLabel(selectionOrder)}</div>
           )}
         </div>
       </div>
@@ -266,7 +254,7 @@ function VibeCard({
           style={{ backgroundColor: vibe.color }}
         >
           <svg
-            className="w-3 h-3 text-white"
+            className="w-3 h-3 text-slate-900"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
