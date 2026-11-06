@@ -27,8 +27,6 @@ const NO_ROW = { data: null, error: { code: "PGRST116", message: "no rows" } };
 const REFUSED = { data: null, error: { code: "57014", message: "canceling statement due to statement timeout" } };
 
 const s = vi.hoisted(() => ({
-  /** Who each request is, in order, when requests need to be different people. */
-  people: [] as Array<{ id: string; email: string }>,
   signedIn: null as { id: string; email: string } | null,
   ip: "",
   codes: [] as Array<Record<string, unknown>>,
@@ -70,7 +68,7 @@ const service = fakeSupabase((q: FakeQuery) => {
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({
     ...session.client,
-    auth: { getUser: async () => ({ data: { user: s.people.shift() ?? s.signedIn }, error: null }) },
+    auth: { getUser: async () => ({ data: { user: s.signedIn }, error: null }) },
   }),
 }));
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => service.client }));
@@ -90,7 +88,6 @@ const touched = () => [...session.log, ...service.log];
 
 let requests = 0;
 beforeEach(() => {
-  s.people = [];
   s.signedIn = PERSON;
   // The limiter counts per address, so each test comes from its own.
   s.ip = `203.0.113.${++requests}`;
