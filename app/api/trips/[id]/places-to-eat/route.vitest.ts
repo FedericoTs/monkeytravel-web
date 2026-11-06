@@ -3,13 +3,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
 /**
- * The owner's first open of a kept diet trip looks its places to eat up, once:
- * the trip's diet, else the owner's profile's, and only while the check is due.
- * The page gets the changes stored, to make on its own copy.
+ * The owner's first open of a kept trip looks its places to eat up, once: for
+ * the trip's diet, else the owner's profile's, else none, and only while the
+ * check is due. The page gets the changes stored, to make on its own copy, and
+ * what to say of them.
  */
 
 const CHANGES = [{ day: 1, id: "a1", name: "Dinner at Arkhe", to: { id: "act_new", name: "Plant Base", type: "restaurant" } }];
 const RESULT = { checked: 3, closed: 1, missing: 0, replaced: 1, dropped: 0, kept: 0, unanswered: 0, costUsd: 0.0004, changes: CHANGES };
+const NOTE = { checkedAt: "2026-11-06T18:00:00.000Z", checked: 3, changed: 1 };
 
 let trip: Record<string, unknown>;
 let preferences: unknown;
@@ -53,7 +55,7 @@ const run = () =>
   });
 
 beforeEach(() => {
-  check.mockReset().mockResolvedValue({ status: "checked", changes: CHANGES, fromVersion: 4, itineraryVersion: 5, result: RESULT });
+  check.mockReset().mockResolvedValue({ status: "checked", changes: CHANGES, fromVersion: 4, itineraryVersion: 5, result: RESULT, note: NOTE });
   capture.mockClear();
   authError = null;
   allowed = true;
@@ -76,7 +78,7 @@ describe("places-to-eat on a kept trip's first open", () => {
   it("looks a due trip's places up for its diet, and answers the changes stored", async () => {
     const res = await run();
 
-    expect(await res.json()).toEqual({ status: "checked", changes: CHANGES, fromVersion: 4, itineraryVersion: 5 });
+    expect(await res.json()).toEqual({ status: "checked", changes: CHANGES, fromVersion: 4, itineraryVersion: 5, note: NOTE });
     expect(check).toHaveBeenCalledWith(
       db,
       {
@@ -101,9 +103,17 @@ describe("places-to-eat on a kept trip's first open", () => {
     expect(check.mock.calls[0][2]).toEqual(["halal"]);
   });
 
-  it("looks nothing up for a trip without a diet, already checked, or over", async () => {
+  it("looks a trip with no diet up too", async () => {
+    trip.trip_meta = { destination: "Lisbon, Portugal" };
+
+    await run();
+
+    expect(check.mock.calls[0][2]).toEqual([]);
+    expect(capture.mock.calls[0][2]).toMatchObject({ has_diet: false });
+  });
+
+  it("looks nothing up for a trip already checked, or over", async () => {
     for (const change of [
-      () => (trip.trip_meta = { destination: "Lisbon, Portugal" }),
       () => (trip.trip_meta = { dietary: ["vegan"], places_to_eat_checked_at: "2026-11-04T10:00:00.000Z" }),
       () => (trip.end_date = "2020-01-10"),
     ]) {
@@ -122,6 +132,7 @@ describe("places-to-eat on a kept trip's first open", () => {
     expect(capture).toHaveBeenCalledWith("owner-1", "places_to_eat_checked", {
       trip_id: "trip-1",
       stored: true,
+      has_diet: true,
       checked: 3,
       closed: 1,
       missing: 0,

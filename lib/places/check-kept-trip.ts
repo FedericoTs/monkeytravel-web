@@ -4,7 +4,13 @@ import { tripLocale } from "@/lib/ai/language";
 import { dietsFrom } from "@/lib/trips/diet";
 import { getTripDestination } from "@/lib/trips/destination";
 import { casUpdateItinerary } from "@/lib/trips/itinerary-cas";
-import { applyPlaceChanges, PLACES_TO_EAT_CHECKED_AT, type PlaceChange } from "./kept-trip";
+import {
+  applyPlaceChanges,
+  PLACES_TO_EAT_CHECKED_AT,
+  PLACES_TO_EAT_RESULT,
+  type PlaceChange,
+  type PlacesToEatNote,
+} from "./kept-trip";
 import { placesToEatCheck, type PlacesToEatResult } from "./places-to-eat";
 
 /** The trip as the check reads it. */
@@ -21,9 +27,17 @@ export interface KeptTripForCheck {
 export type KeptTripCheck =
   /**
    * Stored, with the check's stamp: the changes, made on top of version
-   * `fromVersion` as `itineraryVersion` (the same version when there are none).
+   * `fromVersion` as `itineraryVersion` (the same version when there are none),
+   * and what the trip page says of them.
    */
-  | { status: "checked"; changes: PlaceChange[]; fromVersion: number; itineraryVersion: number; result: PlacesToEatResult }
+  | {
+      status: "checked";
+      changes: PlaceChange[];
+      fromVersion: number;
+      itineraryVersion: number;
+      result: PlacesToEatResult;
+      note: PlacesToEatNote;
+    }
   /**
    * Nothing stored: the check is off, Google answered none of its searches, or
    * the trip changed too often meanwhile. Due again on the next open.
@@ -31,23 +45,27 @@ export type KeptTripCheck =
   | { status: "none"; result?: PlacesToEatResult };
 
 /**
- * The row's trip_meta with the check's stamp. A trip whose plan took the
- * owner's profile diet (the planner was asked for none) keeps the diets it was
- * checked for: its later AI edits (a day or an activity made again, the
- * assistant's new day) read the trip's own diet, and a trip mate who asks for
- * one cannot read the owner's profile.
+ * The row's trip_meta with the check's stamp and what it found. A trip whose plan
+ * took the owner's profile diet (the planner was asked for none) keeps the diets
+ * it was checked for: its later AI edits (a day or an activity made again, the
+ * assistant's new day) read the trip's own diet, and a trip mate who asks for one
+ * cannot read the owner's profile.
  */
-function checkedMeta(meta: unknown, stamp: string, diets: string[]): Record<string, unknown> {
+function checkedMeta(meta: unknown, note: PlacesToEatNote, diets: string[]): Record<string, unknown> {
   const m = (meta ?? {}) as Record<string, unknown>;
-  return { ...m, [PLACES_TO_EAT_CHECKED_AT]: stamp, ...(dietsFrom(m.dietary).length === 0 ? { dietary: diets } : {}) };
+  return {
+    ...m,
+    [PLACES_TO_EAT_CHECKED_AT]: note.checkedAt,
+    [PLACES_TO_EAT_RESULT]: { checked: note.checked, changed: note.changed },
+    ...(diets.length > 0 && dietsFrom(m.dietary).length === 0 ? { dietary: diets } : {}),
+  };
 }
 
 /**
- * Looks up a kept trip's places to eat for its diets (keptTripDiets) and
- * stores what changed, with those diets on a trip that had none of its own.
- * The write is a compare-and-set on the itinerary's version, and each change
- * lands only where its place still is as it was, so an edit made meanwhile
- * stays.
+ * Looks up a kept trip's places to eat, for its diets (keptTripDiets) if it has
+ * any, and stores what changed, with those diets on a trip that had none of its
+ * own. The write is a compare-and-set on the itinerary's version, and each change
+ * lands only where its place still is as it was, so an edit made meanwhile stays.
  */
 export async function checkKeptTripPlacesToEat(
   db: SupabaseClient,
@@ -59,6 +77,7 @@ export async function checkKeptTripPlacesToEat(
   const check = placesToEatCheck({
     destination: getTripDestination(trip),
     dietary: diets,
+    withoutDiet: true,
     budgetTier: isBudgetTier(tier) ? tier : "balanced",
     travelStyle: meta.travel_style === "backpacker" ? "backpacker" : "classic",
     language: tripLocale(meta) ?? undefined,
@@ -70,7 +89,11 @@ export async function checkKeptTripPlacesToEat(
   // Google down or the key refused: looked up on the next open, not never.
   if (result.checked > 0 && result.unanswered === result.checked) return { status: "none", result };
 
-  const stamp = new Date().toISOString();
+  const note: PlacesToEatNote = {
+    checkedAt: new Date().toISOString(),
+    checked: result.checked - result.unanswered,
+    changed: result.replaced + result.dropped,
+  };
   const outcome = await casUpdateItinerary(db, {
     tripId: trip.id,
     ownerId: trip.user_id,
@@ -79,7 +102,7 @@ export async function checkKeptTripPlacesToEat(
       Array.isArray(row.itinerary)
         ? {
             itinerary: applyPlaceChanges(row.itinerary as ItineraryDay[], result.changes),
-            extra: { trip_meta: checkedMeta(row.trip_meta, stamp, diets) },
+            extra: { trip_meta: checkedMeta(row.trip_meta, note, diets) },
           }
         : null,
   });
@@ -90,5 +113,6 @@ export async function checkKeptTripPlacesToEat(
     fromVersion: outcome.fromVersion,
     itineraryVersion: outcome.itineraryVersion,
     result,
+    note,
   };
 }
