@@ -1,8 +1,11 @@
 import "server-only";
-import { after, type NextResponse } from "next/server";
+import { after } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { errors } from "@/lib/api/response-wrapper";
 import { captureServerEvent } from "@/lib/posthog/server";
+import { blockedCall, checkApiAccess, logApiCall } from "@/lib/api-gateway";
+import { withinAnonDailyLimit } from "@/lib/ai/anon-daily-limit";
+import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import { suggestNearbyAlternative } from "@/lib/ai/nearby-alternative";
 import { parseTodayActionType, RUNNING_LATE_STEP_MINUTES, TODAY_CHANGED_EVENT, TODAY_CHANNEL_OPTIONS, todayChannel } from "./actions";
 import { isTodayActor, resolveTodayPerson, storedCookie } from "./actor";
@@ -42,13 +45,55 @@ export function announceTodayChange(admin: SupabaseClient, tripId: string): void
   );
 }
 
+const SWAP_ENDPOINT = "/api/today-action/swap";
+
+/**
+ * One suggestion from the model in place of the activity, with what it cost in
+ * the usage log; null when it has none.
+ */
+async function meteredAlternative(
+  trip: { id: string; trip_meta?: unknown },
+  body: TodayActionBody,
+  userId: string | null,
+) {
+  const meta = (trip.trip_meta ?? {}) as { destination?: string; locale?: string };
+  const destination = (typeof body.destination === "string" && body.destination) || meta.destination || "the area";
+  const a = body.activity ?? {};
+  const startTime = Date.now();
+  const geminiCost = new GeminiCostMeter();
+  const suggestion = await geminiCost.run(() =>
+    suggestNearbyAlternative(
+      {
+        name: typeof a.name === "string" ? a.name : "this activity",
+        type: typeof a.type === "string" ? a.type : "",
+        location: typeof a.location === "string" ? a.location : "",
+        address: typeof a.address === "string" ? a.address : "",
+      },
+      destination,
+      meta.locale || "en",
+    ),
+  );
+  await logApiCall({
+    apiName: "gemini",
+    endpoint: SWAP_ENDPOINT,
+    status: suggestion ? 200 : 503,
+    responseTimeMs: Date.now() - startTime,
+    cacheHit: false,
+    costUsd: geminiCost.usd,
+    exactCost: true,
+    userId: userId ?? undefined,
+    metadata: { trip_id: trip.id },
+  });
+  return suggestion;
+}
+
 /** Applies or undoes a chip. Returns the error to answer with, or null once the change is written. */
 export async function writeTodayAction(
   admin: SupabaseClient,
   trip: { id: string; user_id: string | null; trip_meta?: unknown },
   requester: TodayRequester,
   body: TodayActionBody,
-): Promise<NextResponse | null> {
+): Promise<Response | null> {
   const { user, cookieId } = requester;
   const userId = user?.id ?? null;
   const isOwner = !!userId && userId === trip.user_id;
@@ -100,19 +145,20 @@ export async function writeTodayAction(
   const payload: Record<string, unknown> = {};
   if (actionType === "running_late") payload.minutes = RUNNING_LATE_STEP_MINUTES;
   if (actionType === "swap") {
-    const meta = (trip.trip_meta ?? {}) as { destination?: string; locale?: string };
-    const destination = (typeof body.destination === "string" && body.destination) || meta.destination || "the area";
-    const a = body.activity ?? {};
-    const suggestion = await suggestNearbyAlternative(
-      {
-        name: typeof a.name === "string" ? a.name : "this activity",
-        type: typeof a.type === "string" ? a.type : "",
-        location: typeof a.location === "string" ? a.location : "",
-        address: typeof a.address === "string" ? a.address : "",
-      },
-      destination,
-      meta.locale || "en",
-    );
+    const access = await checkApiAccess("gemini");
+    if (!access.allowed) {
+      return blockedCall(access, {
+        apiName: "gemini",
+        endpoint: SWAP_ENDPOINT,
+        startTime: Date.now(),
+        metadata: { trip_id: trip.id },
+        disabled: "Could not find an alternative right now",
+      });
+    }
+    if (!user && !(await withinAnonDailyLimit())) {
+      return errors.rateLimit("We've reached today's limit for free suggestions. Please try again tomorrow.");
+    }
+    const suggestion = await meteredAlternative(trip, body, userId);
     if (!suggestion) return errors.internal("Could not find an alternative right now", "TodayAction");
     payload.swap_to = suggestion;
   }

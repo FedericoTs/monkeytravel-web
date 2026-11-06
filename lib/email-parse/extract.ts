@@ -22,6 +22,7 @@
  */
 
 import { GoogleGenerativeAI, SchemaType, type ResponseSchema } from "@/lib/ai/genai-compat";
+import { recordGeminiUsage } from "@/lib/ai/gemini-cost";
 import { getModelForPurpose } from "@/lib/ai/model-router";
 import { isModelOutOfCredit } from "@/lib/ai/model-outage";
 
@@ -252,6 +253,7 @@ export async function extractBooking(emailBody: string): Promise<ParseResult> {
         },
       ],
     });
+    recordGeminiUsage(getModelForPurpose("email-parser"), result.response.usageMetadata);
     text = result.response.text();
   } catch (err) {
     console.error("[email-parse/extract] Gemini call failed:", err);

@@ -24,6 +24,7 @@
  *   404 trip not found
  *   413 payload too large (>50 KB body — sanity check before strip)
  *   429 rate-limited
+ *   503 Gemini's kill switch or daily limit said no
  *
  * The user-facing 'error' codes intentionally come back as 200 so the
  * UI doesn't have to translate them from HTTP status — the modal renders
@@ -35,6 +36,8 @@ import { NextRequest } from "next/server";
 import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
+import { blockedCall, checkApiAccess, logApiCall } from "@/lib/api-gateway";
+import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { extractBooking, isParseError } from "@/lib/email-parse/extract";
 import type { TripRouteContext } from "@/lib/api/route-context";
@@ -52,7 +55,10 @@ const limiter = createRateLimiter("email-parse", 20, 60_000);
 // preprocessing.
 const MAX_REQUEST_BYTES = 50_000;
 
+const ENDPOINT = "/api/trips/[id]/parse-confirmation";
+
 export async function POST(request: NextRequest, context: TripRouteContext) {
+  const startTime = Date.now();
   try {
     // Rate limit FIRST — before any DB hit. The limiter is cheap and
     // its job is to protect downstream cost (Gemini + Supabase).
@@ -109,8 +115,37 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
       );
     }
 
+    const access = await checkApiAccess("gemini");
+    if (!access.allowed) {
+      return blockedCall(access, {
+        apiName: "gemini",
+        endpoint: ENDPOINT,
+        startTime,
+        metadata: { user_id: user.id, trip_id: tripId },
+        disabled: "Reading booking emails is currently disabled",
+      });
+    }
+
     // Call Gemini via the extractor.
-    const result = await extractBooking(emailBody);
+    const geminiCost = new GeminiCostMeter();
+    const result = await geminiCost.run(() => extractBooking(emailBody));
+    const parseError = isParseError(result) ? result.error : null;
+
+    // 'too_short' never reached the model, so there is no call to log.
+    if (parseError !== "too_short") {
+      await logApiCall({
+        apiName: "gemini",
+        endpoint: ENDPOINT,
+        status: parseError === "parse_failed" || parseError === "model_outage" ? 503 : 200,
+        responseTimeMs: Date.now() - startTime,
+        cacheHit: false,
+        costUsd: geminiCost.usd,
+        exactCost: true,
+        error: parseError,
+        userId: user.id,
+        metadata: { trip_id: tripId },
+      });
+    }
 
     if (isParseError(result)) {
       // Return as 200 with an error tag (see file header) — UI keys on

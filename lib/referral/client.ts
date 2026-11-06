@@ -15,16 +15,9 @@ import { safeGet } from "@/lib/safe-storage";
 
 export interface ReferralCompletionResponse {
   success: boolean;
-  wasReferred?: boolean;
   referrer_rewarded?: boolean;
   referee_rewarded?: boolean;
   message?: string;
-  bananas?: {
-    awarded: boolean;
-    tierUnlocked: boolean;
-    newTier?: number;
-    tierBonus: number;
-  };
   error?: string;
 }
 
@@ -83,12 +76,10 @@ export async function handleTripCreatedWithReferral(
 ): Promise<{
   tripTracked: boolean;
   referralCompleted: boolean;
-  bananasAwarded: boolean;
 }> {
   const result = {
     tripTracked: false,
     referralCompleted: false,
-    bananasAwarded: false,
   };
 
   // 1. Track trip creation in PostHog
@@ -109,21 +100,11 @@ export async function handleTripCreatedWithReferral(
   try {
     const referralResult = await completeReferral();
 
-    if (referralResult.success) {
-      result.referralCompleted = true;
-
-      // Track additional events if referral was processed.
-      // first_trip_saved is fired from the trip-save success handlers in
-      // NewTripWizard, so organic (non-referred) users get the event too.
-      // Referral-specific telemetry lives in lib/referral/completion.ts
-      // (referral_converted, server-side).
-      if (referralResult.wasReferred && referralResult.referee_rewarded) {
-        // Track bananas if awarded
-        if (referralResult.bananas?.awarded) {
-          result.bananasAwarded = true;
-        }
-      }
-    }
+    // first_trip_saved is fired from the trip-save success handlers in
+    // NewTripWizard, so organic (non-referred) users get the event too.
+    // Referral-specific telemetry lives in lib/referral/completion.ts
+    // (referral_converted, server-side).
+    result.referralCompleted = referralResult.success;
   } catch (error) {
     console.error("[Referral] Error completing referral:", error);
   }

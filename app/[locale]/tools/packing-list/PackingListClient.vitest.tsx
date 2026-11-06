@@ -47,6 +47,13 @@ afterEach(() => {
 });
 
 describe("a packing list that can't be made", () => {
+  it("says the tool is down, in its own words, when the server's refusal isn't for this page", async () => {
+    answers(503, { error: "Gemini has been disabled by the administrator" });
+    await ask();
+    expect(await screen.findByText(words.errorModelOutage)).toBeTruthy();
+    expect(screen.queryByText("Gemini has been disabled by the administrator")).toBeNull();
+  });
+
   it("says so when the model is out of service", async () => {
     answers(503, { error: "The trip planner is temporarily unavailable", code: "MODEL_OUTAGE" });
     await ask();
