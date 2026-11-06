@@ -1,6 +1,6 @@
 "use client";
 
-import type { Dispatch, SetStateAction } from "react";
+import { Fragment, type Dispatch, type SetStateAction } from "react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import DayHeader, { DayBudget } from "@/components/trip/DayHeader";
@@ -44,6 +44,8 @@ function MapLoadingFallback() {
   );
 }
 
+const MAP_SECTION_ID = "trip-overview";
+
 // Dynamic import for TripMap to avoid SSR issues
 const TripMap = dynamic(() => import("@/components/TripMap"), {
   ssr: false,
@@ -51,10 +53,10 @@ const TripMap = dynamic(() => import("@/components/TripMap"), {
 });
 
 /**
- * The plan on the result view: the map with the view controls, the trip's
- * numbers and booking links, the save banner, every day as cards or a
- * timeline, and the packing list. The view mode and the map's visibility
- * belong to the page, so a regenerate keeps them.
+ * The plan on the result view: every day as cards or a timeline first, since
+ * that's what was asked for, with the save banner after the first; then the map,
+ * the trip's numbers and booking links, and the packing list. The view mode and
+ * the map's visibility belong to the page, so a regenerate keeps them.
  */
 export default function ResultItinerary({
   generatedItinerary,
@@ -88,37 +90,92 @@ export default function ResultItinerary({
   const { convert: convertCurrency, format: formatCurrency } = useCurrency();
   return (
     <>
-      {/* Interactive Map + View Controls */}
-      <div className="mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-          <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-semibold text-slate-900">{t("wizard.result.tripOverview")}</h2>
-            {/*
-              No subtitle: destination.weather_note is unsourced model prose
-              that contradicts itself across trips, and this slot reads as a
-              fact about the trip. There is no real forecast to show either —
-              the trip is not saved yet and is usually months out, beyond any
-              forecast horizon — so it states nothing rather than stating
-              something invented.
-            */}
-          </div>
+      {/* Day by Day with ActivityCards */}
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <h2 className="hidden sm:block text-lg font-semibold text-slate-900">{t("wizard.result.dayByDay")}</h2>
+        <div className="flex items-center gap-2 shrink-0">
+          <ViewModeToggle
+            value={resultViewMode}
+            onChange={setResultViewMode}
+            labels={{ cards: t("wizard.result.viewCards"), timeline: t("wizard.result.viewTimeline") }}
+          />
+          {/* The map is after the days now, so this takes you to it. */}
+          <MapToggle
+            labelled
+            shown={false}
+            onToggle={() => {
+              setShowMap(true);
+              document.getElementById(MAP_SECTION_ID)?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+            labels={{ show: t("wizard.result.showMap"), hide: t("wizard.result.hideMap") }}
+          />
+        </div>
+      </div>
+      <div className="space-y-8">
+        {generatedItinerary.days.map((day, dayIndex) => (
+          <Fragment key={day.day_number}>
+            <div id={`day-${day.day_number}`} className="scroll-mt-24">
+              <DayHeader dayNumber={day.day_number} title={t("wizard.result.dayLabel", { n: day.day_number })} theme={day.theme}>
+                {showsDayBudget(day) && (
+                  <DayBudget
+                    label={t("wizard.result.dailyBudget")}
+                    value={dayBudgetLabel(
+                      day,
+                      { convert: convertCurrency, format: formatCurrency },
+                      t("activity.free"),
+                      generatedItinerary.trip_summary.currency
+                    )}
+                  />
+                )}
+              </DayHeader>
 
-          {/* View-mode + map toggles, for parity with
-              /trips/template/[id]. Cards is the dense rich view; Timeline
-              is a vertical-rail compact view for skim-reading. */}
-          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-            <ViewModeToggle
-              value={resultViewMode}
-              onChange={setResultViewMode}
-              labels={{ cards: t("wizard.result.viewCards"), timeline: t("wizard.result.viewTimeline") }}
-            />
+              {/* Activities — Cards or Timeline view */}
+              {resultViewMode === "cards" ? (
+                <div className="grid gap-4">
+                  {day.activities.map((activity, idx) => (
+                    // disableAutoFetch: auto-fetch pays a Text Search Pro call per
+                    // expanded card. Photos load on tap here, as on the detail and
+                    // shared views.
+                    <ActivityCard
+                      key={idx}
+                      activity={activity}
+                      index={idx}
+                      currency={generatedItinerary.trip_summary.currency}
+                      showGallery={true}
+                      disableAutoFetch={true}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <DayTimeline
+                  day={day}
+                  travel={travelData.get(day.day_number)}
+                  travelLoading={travelLoading}
+                  pace={pace}
+                  currency={generatedItinerary.trip_summary.currency}
+                />
+              )}
+            </div>
+            {/* Asks once there's a day to want to keep. */}
+            {dayIndex === 0 && (
+              <div className="hidden sm:block">
+                <ValuePropositionBanner onSave={handleSaveTrip} isSaving={loading} variant="inline" />
+              </div>
+            )}
+          </Fragment>
+        ))}
+      </div>
 
-            <MapToggle
-              shown={showMap}
-              onToggle={() => setShowMap((v) => !v)}
-              labels={{ show: t("wizard.result.showMap"), hide: t("wizard.result.hideMap") }}
-            />
-          </div>
+
+      {/* The map and the trip's numbers, after the days */}
+      <div id={MAP_SECTION_ID} className="mt-10 mb-8 scroll-mt-24">
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <h2 className="text-lg font-semibold text-slate-900">{t("wizard.result.tripOverview")}</h2>
+          <MapToggle
+            shown={showMap}
+            onToggle={() => setShowMap((v) => !v)}
+            labels={{ show: t("wizard.result.showMap"), hide: t("wizard.result.hideMap") }}
+          />
         </div>
 
         {showMap && (
@@ -146,63 +203,6 @@ export default function ResultItinerary({
       <ResultStats itinerary={generatedItinerary} pace={pace} />
 
       {generatedItinerary.booking_links && <ResultBookingLinks links={generatedItinerary.booking_links} />}
-
-      {/* Value Proposition Banner - Positioned before schedule to encourage save */}
-      <div className="mb-8 hidden sm:block">
-        <ValuePropositionBanner
-          onSave={handleSaveTrip}
-          isSaving={loading}
-          variant="inline"
-        />
-      </div>
-
-      {/* Day by Day with ActivityCards */}
-      <div className="space-y-8">
-        {generatedItinerary.days.map((day) => (
-          <div key={day.day_number} id={`day-${day.day_number}`} className="scroll-mt-24">
-            <DayHeader dayNumber={day.day_number} title={t("wizard.result.dayLabel", { n: day.day_number })} theme={day.theme}>
-              {showsDayBudget(day) && (
-                <DayBudget
-                  label={t("wizard.result.dailyBudget")}
-                  value={dayBudgetLabel(
-                    day,
-                    { convert: convertCurrency, format: formatCurrency },
-                    t("activity.free"),
-                    generatedItinerary.trip_summary.currency
-                  )}
-                />
-              )}
-            </DayHeader>
-
-            {/* Activities — Cards or Timeline view */}
-            {resultViewMode === "cards" ? (
-              <div className="grid gap-4">
-                {day.activities.map((activity, idx) => (
-                  // disableAutoFetch: auto-fetch pays a Text Search Pro call per
-                  // expanded card. Photos load on tap here, as on the detail and
-                  // shared views.
-                  <ActivityCard
-                    key={idx}
-                    activity={activity}
-                    index={idx}
-                    currency={generatedItinerary.trip_summary.currency}
-                    showGallery={true}
-                    disableAutoFetch={true}
-                  />
-                ))}
-              </div>
-            ) : (
-              <DayTimeline
-                day={day}
-                travel={travelData.get(day.day_number)}
-                travelLoading={travelLoading}
-                pace={pace}
-                currency={generatedItinerary.trip_summary.currency}
-              />
-            )}
-          </div>
-        ))}
-      </div>
 
       {generatedItinerary.trip_summary.packing_suggestions.length > 0 && (
         <ResultPacking items={generatedItinerary.trip_summary.packing_suggestions} />

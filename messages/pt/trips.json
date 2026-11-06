@@ -232,6 +232,7 @@
     },
     "result": {
       "tripOverview": "Resumo da Viagem",
+      "dayByDay": "Dia a dia",
       "bookYourTravel": "Reserve sua viagem",
       "flights": "Voos",
       "hotels": "Hotéis",

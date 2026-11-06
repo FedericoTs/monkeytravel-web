@@ -44,24 +44,26 @@ export function ViewModeToggle({
   );
 }
 
-/** Shows or hides the trip's map; only its icon on phones. */
+/** Shows or hides the trip's map; only its icon on phones, unless `labelled`. */
 export function MapToggle({
   shown,
   onToggle,
   labels,
   icon,
+  labelled = false,
 }: {
   shown: boolean;
   onToggle: () => void;
   labels: { show: string; hide: string };
   icon?: ReactNode;
+  labelled?: boolean;
 }) {
   const label = shown ? labels.hide : labels.show;
   return (
     <button
       type="button"
       onClick={onToggle}
-      className={`flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-lg text-sm font-medium transition-colors ${
+      className={`flex items-center gap-2 ${labelled ? "min-h-[44px] px-3" : "p-2 sm:px-3 sm:py-2"} rounded-lg text-sm font-medium transition-colors ${
         shown ? "bg-[var(--primary)] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
       }`}
       title={label}
@@ -76,7 +78,7 @@ export function MapToggle({
           />
         </svg>
       )}
-      <span className="hidden sm:inline">{label}</span>
+      <span className={labelled ? undefined : "hidden sm:inline"}>{label}</span>
     </button>
   );
 }
