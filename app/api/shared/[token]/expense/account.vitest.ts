@@ -190,11 +190,11 @@ describe("POST /api/shared/[token]/expense", () => {
     expect(ops("trip_expenses", "insert")).toEqual([]);
   });
 
-  it("leaves someone else's expense alone", async () => {
+  it("refuses someone else's expense, and leaves it alone", async () => {
     signedIn = { id: "mate-1" };
     existingExpense = { created_by: "other-1", created_by_cookie_id: null };
     const res = await send({ undo: true, expense_id: "33333333-4444-4555-8666-777777777777" });
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(403);
     expect(ops("trip_expenses", "delete")).toEqual([]);
   });
 });

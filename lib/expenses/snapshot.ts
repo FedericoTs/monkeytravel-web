@@ -64,7 +64,8 @@ export async function readExpenseLedger(
 /**
  * The live-trip expense ledger for one trip, shaped for the client, with the
  * viewer's paid/owed/net summary. Service-role read behind the route's access
- * check. Live Trip Phase 3.4.
+ * check. Live Trip Phase 3.4. A read that fails throws, since an empty ledger
+ * would wipe what the page shows.
  */
 export async function expensesSnapshot(
   admin: SupabaseClient,
@@ -75,7 +76,10 @@ export async function expensesSnapshot(
 ): Promise<ExpensesSnapshot> {
   const ownerKey = ownerUserId ? actorKey(ownerUserId, null) : null;
   const { rows, ledger, error } = await readExpenseLedger(admin, tripId);
-  if (error) console.error("[expenses] snapshot read failed:", error);
+  if (error) {
+    console.error("[expenses] snapshot read failed:", error);
+    throw new Error("Could not read the expenses");
+  }
 
   const viewerKey = actorKey(viewerUserId, viewerCookieId ?? null);
   const expenses: ExpensePublic[] = rows.map((r, i) => {
