@@ -159,7 +159,7 @@ import {
   type GenerationReport,
 } from "@/lib/wizard/generation-reports";
 import { applyAnswers, applySessionTrip, type DraftTargets } from "@/lib/wizard/apply-draft";
-import { FRESH_ANSWERS, keptPlanOf, sessionTripOf, withUndatedItems, type WizardAnswers } from "@/lib/wizard/answers";
+import { FRESH_ANSWERS, keptPlanOf, sessionTripOf, withNote, withUndatedItems, type WizardAnswers } from "@/lib/wizard/answers";
 import { generationRequest, routeLegs } from "@/lib/wizard/generation-request";
 import {
   classifyGenerationFailure,
@@ -1847,6 +1847,10 @@ export default function NewTripPage({
               popularPicks={popularPicks}
               inSeasonMonth={inSeasonMonth}
               handleOneTapStart={handleOneTapStart}
+              onKeepAsNote={() => {
+                setRequirements((prev) => withNote(prev, destination));
+                setDestination("");
+              }}
             />
 
             {/* Multi-city toggle — gated by NEXT_PUBLIC_MULTI_CITY_ENABLED.

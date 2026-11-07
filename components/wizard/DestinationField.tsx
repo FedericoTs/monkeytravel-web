@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { Link } from "@/lib/i18n/routing";
 import DestinationAutocomplete, { type PlacePrediction } from "@/components/ui/DestinationAutocomplete";
 import OneTapStarts, { type OneTapPlace } from "@/components/wizard/OneTapStarts";
 import type { TripWizardFieldInteractedEvent } from "@/lib/posthog/events";
@@ -30,6 +32,7 @@ export default function DestinationField({
   popularPicks,
   inSeasonMonth,
   handleOneTapStart,
+  onKeepAsNote,
 }: {
   multiCityMode: boolean;
   destination: string;
@@ -42,8 +45,11 @@ export default function DestinationField({
   popularPicks: OneTapPlace[];
   inSeasonMonth: number | null;
   handleOneTapStart: (place: OneTapPlace, index: number) => void;
+  /** Moves a request typed here to the next step's notes and empties the field. */
+  onKeepAsNote: () => void;
 }) {
   const t = useTranslations("trips");
+  const [movedNote, setMovedNote] = useState(false);
   return (
     <div className={multiCityMode ? "hidden" : undefined}>
       <div
@@ -56,6 +62,7 @@ export default function DestinationField({
         value={destination}
         onChange={(v) => {
           trackFieldInteraction("destination_autocomplete");
+          if (v) setMovedNote(false);
           setDestination(v);
         }}
         onSelect={(p) => {
@@ -91,8 +98,31 @@ export default function DestinationField({
           confident itinerary for whatever the first 100 characters
           happened to spell. */}
       {!expressTrip && destination.length > DESTINATION_MAX_LENGTH && (
-        <p role="alert" className="mt-2 text-xs font-medium text-red-600">
-          {t("wizard.step1.destinationTooLong")}
+        <div className="mt-2">
+          <p role="alert" className="text-xs font-medium text-red-600">
+            {t("wizard.step1.destinationTooLong")}
+          </p>
+          {/* The words aren't lost, and someone with no place in mind has the match. */}
+          <div className="mt-1 flex flex-wrap gap-x-5">
+            <button
+              type="button"
+              onClick={() => {
+                onKeepAsNote();
+                setMovedNote(true);
+              }}
+              className="inline-flex min-h-[44px] items-center text-sm font-semibold text-[var(--foreground)] underline underline-offset-4"
+            >
+              {t("wizard.step1.keepAsNote")}
+            </button>
+            <Link href="/where-should-i-go" className="inline-flex min-h-[44px] items-center text-sm font-semibold text-[var(--foreground)] underline underline-offset-4">
+              {t("wizard.step1.findMatch")}
+            </Link>
+          </div>
+        </div>
+      )}
+      {movedNote && !destination && (
+        <p className="mt-2 text-sm text-[var(--foreground)]" aria-live="polite">
+          {t("wizard.step1.movedToNotes")}
         </p>
       )}
 

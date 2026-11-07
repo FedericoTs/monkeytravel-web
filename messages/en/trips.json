@@ -205,7 +205,10 @@
       "useFlexibleDates": "Use flexible dates",
       "hintFlexibleDefault": "No dates yet? We'll pencil in {days} days about three weeks out — you can change them anytime.",
       "freeReassuranceSignedIn": "Free — your full day-by-day trip, ready to save in one tap",
-      "destinationTooLong": "That looks like a request rather than a place. Put the destination here (max 100 characters) and add the details on the next step."
+      "destinationTooLong": "That looks like a request rather than a place. Put the destination here (max 100 characters) and add the details on the next step.",
+      "keepAsNote": "Move it to the next step",
+      "findMatch": "Not sure where to go? Find my place",
+      "movedToNotes": "Saved for the next step. Now, where are you going?"
     },
     "express": {
       "title": "Your trip, as we read it",

@@ -27,6 +27,7 @@ import { useState, useEffect, useRef, useCallback, useId, KeyboardEvent } from "
 import { useTranslations, useLocale } from "next-intl";
 import { sentryException } from "@/lib/observability/sentry";
 import { useDebounce } from "@/hooks/useDebounce";
+import { DESTINATION_MAX_LENGTH } from "@/lib/trips/request-limits";
 import type { PlacePrediction } from "@/types";
 
 // Create a manual prediction for destinations not in our database
@@ -253,7 +254,8 @@ export default function DestinationAutocomplete({
   // cleanup aborts the in-flight fetch and flips a cancelled flag that
   // covers the gap between response arrival and abort being observable.
   useEffect(() => {
-    if (debouncedValue.length < 3) return;
+    // Text too long to be a place (a request) isn't searched.
+    if (debouncedValue.length < 3 || debouncedValue.length > DESTINATION_MAX_LENGTH) return;
     const controller = new AbortController();
     let cancelled = false;
 
@@ -370,8 +372,11 @@ export default function DestinationAutocomplete({
     [onChange, onSelect]
   );
 
+  // A request typed here is too long to be a place: the list stays closed,
+  // leaving the room under the field to what can be done with it.
+  const open = isOpen && value.length <= DESTINATION_MAX_LENGTH;
   // The listbox is on screen (the no-results panel is not a listbox).
-  const listShown = isOpen && predictions.length > 0;
+  const listShown = open && predictions.length > 0;
   // The results answer what is typed right now: no pending debounce, no
   // search in flight. Only then may Enter pick a row nobody highlighted, or
   // an old "Lis" row could land for "Lisbon".
@@ -386,7 +391,7 @@ export default function DestinationAutocomplete({
         dismissedRef.current = false;
         setIsOpen(true);
         setHighlightedIndex(0);
-      } else if (e.key === "Enter" && isOpen && resultsAreCurrent && predictions.length === 0) {
+      } else if (e.key === "Enter" && open && resultsAreCurrent && predictions.length === 0) {
         // No match in our list: Enter does what the panel's button does.
         e.preventDefault();
         handleSelect(createManualPrediction(value));
@@ -572,7 +577,7 @@ export default function DestinationAutocomplete({
       </div>
 
       {/* Dropdown */}
-      {isOpen && predictions.length > 0 && (
+      {open && predictions.length > 0 && (
         <div
           ref={dropdownRef}
           className="absolute z-50 w-full mt-2 bg-white rounded-xl border border-slate-200
@@ -662,7 +667,7 @@ export default function DestinationAutocomplete({
       )}
 
       {/* No Results State — encouraging CTA to continue with typed destination */}
-      {isOpen && !isLoading && predictions.length === 0 && debouncedValue.length >= 3 && (
+      {open && !isLoading && predictions.length === 0 && debouncedValue.length >= 3 && (
         <div
           ref={dropdownRef}
           className="absolute z-50 w-full mt-2 bg-white rounded-xl border border-slate-200
