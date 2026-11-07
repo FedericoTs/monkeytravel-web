@@ -44,6 +44,7 @@ import {
   gaConsentModeFromEnv,
   gaConsentParamsFor,
 } from "@/lib/analytics/ga-consent";
+import { scrubUrl } from "@/lib/analytics/scrub-url";
 import { PROBE_SESSION_PREFIX } from "@/lib/analytics/telemetry-env";
 import { SITE_URL } from "@/lib/seo/canonical";
 import { safeGet, safeRemove, safeSet } from "@/lib/safe-storage";
@@ -151,7 +152,15 @@ function GaTag({ gaId }: { gaId: string }) {
   useEffect(() => {
     const gtag = gtagOn(window as GtagWindow);
     gtag("js", new Date());
-    if (isTeamDevice()) gtag("config", gaId, { traffic_type: "internal" });
+    // A shared-trip or invite link opened from outside lands here with its
+    // key in the address; GA4 gets the address with the key replaced.
+    const href = window.location.href;
+    const scrubbed = scrubUrl(href);
+    const params = {
+      ...(isTeamDevice() ? { traffic_type: "internal" } : {}),
+      ...(scrubbed !== href ? { page_location: scrubbed } : {}),
+    };
+    if (Object.keys(params).length > 0) gtag("config", gaId, params);
     else gtag("config", gaId);
   }, [gaId]);
   return <Script src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} strategy="lazyOnload" />;

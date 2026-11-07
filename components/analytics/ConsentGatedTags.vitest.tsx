@@ -166,3 +166,23 @@ describe("a browser that refuses", () => {
     }
   });
 });
+
+describe("an address that works as a key", () => {
+  it("reaches GA4 with the key replaced", () => {
+    expect(loadsGa(open("https://monkeytravel.app/es/shared/a1B2c3D4e5?ref=wa"))).toBe(true);
+    expect(configs()).toEqual([["config", "G-TEST", { page_location: "https://monkeytravel.app/es/shared/:token?ref=wa" }]]);
+  });
+
+  it("keeps the team's tag next to it", () => {
+    localStorage.setItem("mt_team", "1");
+    open("https://monkeytravel.app/es/day/7f3c/2027-03-25?k=SIGNED&s=SEND");
+    expect(configs()).toEqual([
+      ["config", "G-TEST", { traffic_type: "internal", page_location: "https://monkeytravel.app/es/day/7f3c/2027-03-25" }],
+    ]);
+  });
+
+  it("leaves an ordinary address to GA4 itself", () => {
+    open("https://monkeytravel.app/trips/new?destination=Rome");
+    expect(configs()).toEqual(VISITOR);
+  });
+});
