@@ -76,6 +76,19 @@ const settle = () => act(() => new Promise((r) => setTimeout(r, 0)));
 const searchResults = () => screen.findByRole("option", { name: /^Lisbon\s*Portugal$/ });
 
 describe("destination field (WAI-ARIA combobox)", () => {
+  it("a request too long to be a place isn't searched, and the list closes, leaving the room under the field", async () => {
+    const { input } = renderField();
+    await type(input, "Lis");
+    await searchResults();
+    const searches = () => vi.mocked(fetch).mock.calls.filter(([url]) => !String(url).includes("/popular")).length;
+    const before = searches();
+    const request = "We are a family of four looking for a relaxing holiday with beaches, good food and some culture, not too expensive";
+    fireEvent.change(input, { target: { value: request } });
+    await settle();
+    expect(screen.queryByRole("listbox")).toBeNull();
+    expect(searches()).toBe(before);
+  });
+
   it("the suggestions are a listbox of options the input points at, and not Tab stops", async () => {
     const { input } = renderField();
     await type(input, "Lisba");

@@ -19,6 +19,11 @@ export function withUndatedItems(requirements: string, items: string[]): string 
   return merged.slice(0, REQUIREMENTS_MAX);
 }
 
+/** The requirements with a trip described in the destination field kept as a sentence of them. */
+export function withNote(requirements: string, note: string): string {
+  return withUndatedItems(requirements, [note.trim()]);
+}
+
 /**
  * The wizard's answers that travel with a plan. A draft, the saved trip and
  * the session tray keep them all, and a kept plan all but the anchors, each
