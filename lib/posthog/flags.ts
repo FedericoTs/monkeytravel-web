@@ -38,7 +38,7 @@ export const FLAG_ENHANCED_BOOKING = "enhanced-booking-panel";
  * password option side-by-side performs better at post-result trip save.
  *
  * Variants:
- *  - magic-link-primary: email field + "Email me the link"
+ *  - magic-link-primary: email field + "Email me a code"
  *  - dual-prominent:     two equal-weight buttons
  *  - magic-link-only:    no password escape hatches at all
  *

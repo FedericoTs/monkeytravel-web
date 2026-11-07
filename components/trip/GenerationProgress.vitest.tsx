@@ -28,6 +28,17 @@ describe("GenerationProgress", () => {
     expect(Number(percent()!.replace("%", ""))).toBeGreaterThan(20);
   });
 
+  it("stops promising under 30 seconds once 30 seconds have passed", () => {
+    render(progress(true));
+    const promise = screen.getByText(common.generation.estimatedTime);
+    expect(promise.getAttribute("aria-hidden")).toBeNull();
+    act(() => vi.advanceTimersByTime(29_000));
+    expect(promise.getAttribute("aria-hidden")).toBeNull();
+    act(() => vi.advanceTimersByTime(2_000));
+    expect(promise.getAttribute("aria-hidden")).toBe("true");
+    expect(screen.getByText(common.generation.takingLonger).getAttribute("aria-hidden")).toBeNull();
+  });
+
   it("starts the next generation from zero", () => {
     const { rerender } = render(progress(true));
     act(() => vi.advanceTimersByTime(10_000));

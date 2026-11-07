@@ -935,13 +935,13 @@
     "liveNote": "Photos, the map and saving come when every day is ready.",
     "dayLabel": "Day {n}",
     "planningDay": "Planning day {n}…",
-    "estimatedTime": "Building your personalized itinerary — this usually takes a minute or two",
+    "estimatedTime": "Building your itinerary. This usually takes under 30 seconds.",
     "takingLonger": "Almost there — a rich, personalized itinerary is worth the extra few seconds. Hang tight!",
     "funFacts": {
-      "analyzing": "AI is analyzing thousands of reviews and ratings",
-      "hiddenGems": "Finding hidden gems that locals love",
+      "analyzing": "Reading your answers and picking places that fit",
+      "hiddenGems": "Looking beyond the most obvious places",
       "optimizingRoutes": "Optimizing routes to save you time",
-      "checkingHours": "Checking opening hours and seasonal availability",
+      "checkingHours": "Keeping the season and the time of day in mind",
       "balancing": "Balancing activities with rest time",
       "matching": "Matching experiences to your travel style"
     }
@@ -2262,16 +2262,16 @@
     "magicLink": {
       "emailLabel": "Your email",
       "emailPlaceholder": "you@example.com",
-      "send": "Email me the link",
+      "send": "Email me a code",
       "sending": "Sending...",
-      "failed": "Couldn't send the link — please try again",
+      "failed": "Couldn't send the email — please try again",
       "emailInvalid": "That email address doesn't look right. Check it and try again.",
       "sentTitle": "Check your inbox",
-      "sentSubtitle": "We sent a one-tap link to {email}",
-      "checkInbox": "Click the link in the email to save your trip. No password needed.",
+      "sentSubtitle": "We sent a 6-digit code to {email}",
+      "checkInbox": "Type it here to keep your plan. It can take a minute to arrive.",
       "useDifferent": "Use a different email",
-      "noEmailHint": "Can’t find the email? Check spam or promotions, or continue with Google.",
-      "codePrompt": "Or enter the 6-digit code from the email",
+      "noEmailHint": "You can also tap the link in the same email. Can’t find it? Check spam or promotions, or continue with Google.",
+      "codePrompt": "Your 6-digit code",
       "codeSubmit": "Verify",
       "codeVerifying": "Checking…",
       "codeResend": "Send a new code",
@@ -2291,7 +2291,7 @@
     "generationLimit": {
       "title": "You've used today's free trips",
       "subtitle": "Create a free account to keep planning. It takes a moment, and your trips are saved to it.",
-      "checkInbox": "Click the link in the email to keep planning. No password needed."
+      "checkInbox": "Type it here to keep planning. It can take a minute to arrive."
     }
   },
   "saveTrip": {

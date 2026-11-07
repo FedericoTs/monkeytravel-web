@@ -94,7 +94,7 @@ const FUN_FACT_KEYS = [
 // estimate to an honest "taking a little longer" message. Real generations run
 // ~60-130s, so the old static "20-40 seconds" copy was a lie that made the
 // (capped-at-95%) bar feel broken. This acknowledges the wait instead.
-const ESCALATION_THRESHOLD_MS = 45000;
+const ESCALATION_THRESHOLD_MS = 30000;
 
 // Animated icons for each phase
 function PhaseIcon({ phase, isActive }: { phase: string; isActive: boolean }) {
