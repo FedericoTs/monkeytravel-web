@@ -38,6 +38,10 @@ describe("who's coming", () => {
     expect(buildUserPrompt(trip({ tripIntent: "group" }))).toContain("- Travellers: friends travelling together.");
   });
 
+  it.each(["solo", "group"] as const)("asks for %s to show in the choices rather than in every tip", (tripIntent) => {
+    expect(buildUserPrompt(trip({ tripIntent }))).toContain("Show this in what you choose, and mention it only where it helps.");
+  });
+
   it("says nothing about travellers when nobody answered", () => {
     expect(buildUserPrompt(trip())).not.toContain("Travellers:");
   });
