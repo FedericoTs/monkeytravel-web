@@ -31,7 +31,7 @@ export default async function PrivacyPolicy({
 }) {
   const { locale } = await params;
   const t = await getTranslations('common');
-  const lastUpdated = 'November 6, 2026';
+  const lastUpdated = 'November 7, 2026';
   const contactEmail = 'privacy@monkeytravel.app';
 
   // The body is English-only until a reviewed legal translation exists,
@@ -171,7 +171,7 @@ export default async function PrivacyPolicy({
               <ul className="list-disc pl-6 text-[var(--foreground-muted)] space-y-2 mb-4">
                 <li><strong>PostHog:</strong> Analytics, feature flags, and A/B testing. May include session replay if you consent. PostHog may use AI providers, including Google, to review recordings for us and to answer questions about analytics data. <a href="https://posthog.com/privacy" className="text-[var(--primary-ink)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
                 <li><strong>Google Analytics 4:</strong> Website analytics and user behavior tracking. <a href="https://policies.google.com/privacy" className="text-[var(--primary-ink)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
-                <li><strong>Sentry:</strong> Error tracking and performance monitoring. May include session replay if you consent. <a href="https://sentry.io/privacy/" className="text-[var(--primary-ink)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+                <li><strong>Sentry:</strong> Error tracking and performance monitoring. <a href="https://sentry.io/privacy/" className="text-[var(--primary-ink)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
               </ul>
 
               <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">6.3 Affiliate Partners</h3>

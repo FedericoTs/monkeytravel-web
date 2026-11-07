@@ -72,8 +72,6 @@ const SCRIPT_HOSTS = [
   "https://*.google-analytics.com",
   "https://*.googletagmanager.com",
   "https://*.sentry.io",
-  // Session replay, loaded on demand after consent (instrumentation-client.ts).
-  "https://browser.sentry-cdn.com",
   "https://*.vercel-scripts.com",
   "https://*.vercel-insights.com",
   "https://www.googleadservices.com",
@@ -195,7 +193,7 @@ export function buildCspHeader(pathname: string, scripts: ScriptPolicy): string 
       // renders, the click registers, and the panel opens blank.
       "https://buildhop.io",
     ],
-    // Session replay (PostHog, Sentry) compresses in a worker built from a
+    // Session replay (PostHog) compresses in a worker built from a
     // blob: URL. Without this the worker falls back to script-src, which has
     // no blob:, and the browser refuses it.
     "worker-src": ["'self'", "blob:"],

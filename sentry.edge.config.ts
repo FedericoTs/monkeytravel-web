@@ -10,8 +10,8 @@ import { SENTRY_DATA_COLLECTION } from "@/lib/observability/sentry-data-collecti
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
-  // Environment identification
-  environment: process.env.NODE_ENV,
+  // No environment: on Vercel the SDK uses the deployment's own name
+  // (production, preview), where NODE_ENV says "production" on every one.
 
   // Only report from real deployments.
   //

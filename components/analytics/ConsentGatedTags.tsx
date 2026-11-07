@@ -26,10 +26,8 @@
  * dispatches, which makes it react the moment someone presses Accept All.
  *
  * NOT GATED, DELIBERATELY: Sentry. instrumentation-client.ts documents error
- * tracking as essential functionality, and already gates the two parts that
- * are not: performance sampling on analytics consent, session replay on
- * explicit sessionRecording consent. That is a defensible split, so it is left
- * exactly as it is.
+ * tracking as essential functionality, and the browser SDK does nothing that
+ * is not: it samples no performance and records no sessions.
  */
 
 import { useEffect, useState } from "react";
