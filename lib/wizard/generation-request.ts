@@ -9,7 +9,7 @@ export function routeLegs(rows: RouteStop[]): RouteStop[] {
 }
 
 export interface GenerationRequest {
-  body: TripCreationParams & { locale: string; dietary?: Diet[]; fresh?: true };
+  body: TripCreationParams & { locale: string; dietary?: Diet[]; fresh?: true; destinationCoords?: { latitude: number; longitude: number } };
   /** Multi-city and anchored trips come back as one merged JSON body, not a stream. */
   stream: boolean;
   /** More than one leg: /api/ai/generate fans the trip out per city. */
@@ -34,6 +34,8 @@ export function generationRequest(
     requirements: string;
     locale: string;
     fresh?: boolean;
+    /** Where the destination is, when it was picked from a list; the server works out its sunrise and sunset. */
+    coordinates?: { latitude: number; longitude: number } | null;
   }
 ): GenerationRequest {
   const { destination, startDate, endDate, budgetTier, pace, vibes, mustDos, travelStyle, tripIntent, anchors, dietary } = answers;
@@ -56,7 +58,15 @@ export function generationRequest(
     ...(isAnchored ? { anchors } : {}),
   };
   return {
-    body: { ...params, locale: extra.locale, ...(dietary.length > 0 ? { dietary } : {}), ...(extra.fresh ? { fresh: true as const } : {}) },
+    body: {
+      ...params,
+      locale: extra.locale,
+      ...(dietary.length > 0 ? { dietary } : {}),
+      ...(extra.fresh ? { fresh: true as const } : {}),
+      ...(!isMultiCity && extra.coordinates
+        ? { destinationCoords: { latitude: extra.coordinates.latitude, longitude: extra.coordinates.longitude } }
+        : {}),
+    },
     stream: !isMultiCity && !isAnchored,
     isMultiCity,
     isAnchored,

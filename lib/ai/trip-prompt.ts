@@ -287,6 +287,15 @@ function travellersLine({ tripIntent }: Pick<TripCreationParams, "tripIntent">):
   return tripIntent ? `Travellers: ${TRAVELLERS[tripIntent]}` : "";
 }
 
+function daylightLine({ daylight }: Pick<TripCreationParams, "daylight">): string {
+  if (!daylight) return "";
+  const { first, last } = daylight;
+  if (first.polar === "day") return "Daylight: the sun doesn't set on these dates.";
+  if (first.polar === "night") return "Daylight: the sun doesn't rise on these dates.";
+  const span = (a: string | null, b: string | null) => (b && b !== a ? `${a} to ${b}` : a);
+  return `Daylight (local time): sunrise about ${span(first.sunrise, last.sunrise)}, sunset about ${span(first.sunset, last.sunset)}. A stop named for the sunrise or the sunset must be under way at that time; otherwise don't name it after one.`;
+}
+
 function buildUserPrompt(params: TripCreationParams, options?: BuildPromptOptions): string {
   const totalDuration = tripSpanDays(params.startDate, params.endDate);
 
@@ -395,6 +404,7 @@ ${knownPlaces.map((p) => `- ${p.name} (${p.type})`).join("\n")}
     : "";
 
   const travellers = travellersLine(params);
+  const daylight = daylightLine(params);
 
   // Language header intentionally at the END (see tail of this template):
   // it is the most cache-hostile token span (varies per locale), and the
@@ -406,7 +416,7 @@ ${knownPlaces.map((p) => `- ${p.name} (${p.type})`).join("\n")}
 - Duration: ${duration} days
 - Budget Tier: ${params.budgetTier}
 - Travel Pace: ${params.pace} — ${paceBudgetPromptClause(params.pace)}
-${travellers ? `- ${travellers}\n` : ""}
+${travellers ? `- ${travellers}\n` : ""}${daylight ? `- ${daylight}\n` : ""}
 ${travelStyleSection}${vibeSection}${seasonalSection}## Traveler Preferences
 - Interests: ${params.interests.length > 0 ? params.interests.join(", ") : "general sightseeing"}
 ${params.requirements ? `- Special Requirements: ${params.requirements}` : ""}
@@ -424,5 +434,5 @@ ${params.mustDos.map((m) => `- ${m}`).join("\n")}
 ${anchorSection}${partSection}Generate the itinerary now, following the system rules and the Required Output schema exactly.${languageSection}`;
 }
 
-export { buildProfilePreferencesSection, buildSchedulingPreferencesSection, buildUserPrompt, travellersLine };
+export { buildProfilePreferencesSection, buildSchedulingPreferencesSection, buildUserPrompt, daylightLine, travellersLine };
 export type { BuildPromptOptions };

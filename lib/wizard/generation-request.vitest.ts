@@ -84,6 +84,21 @@ describe("generationRequest", () => {
     expect([stream, isMultiCity, isAnchored]).toEqual([false, true, false]);
   });
 
+  it("sends where the place is, for its sunrise and sunset, on a one-city trip only", () => {
+    const coordinates = { latitude: 38.7223, longitude: -9.1393 };
+    expect(generationRequest(answers, { ...extra, coordinates }).body.destinationCoords).toEqual(coordinates);
+    expect(generationRequest(answers, extra).body).not.toHaveProperty("destinationCoords");
+    const route = generationRequest(answers, {
+      ...extra,
+      coordinates,
+      legs: [
+        { city: "Rome", nights: 3 },
+        { city: "Venice", nights: 2 },
+      ],
+    });
+    expect(route.body).not.toHaveProperty("destinationCoords");
+  });
+
   it("plans a route with one filled leg as a one-city trip", () => {
     const { body, isMultiCity } = generationRequest(answers, { ...extra, legs: [{ city: "Rome", nights: 3 }] });
     expect(body).not.toHaveProperty("destinations");

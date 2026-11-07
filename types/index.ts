@@ -455,6 +455,19 @@ export interface TripAnchor {
 }
 
 // Trip creation params
+/** The sun on one day, local "HH:MM"; null on a day it doesn't rise or set. */
+export interface SunClock {
+  sunrise: string | null;
+  sunset: string | null;
+  polar?: "day" | "night";
+}
+
+/** The sun on a trip's first and last day. */
+export interface TripDaylight {
+  first: SunClock;
+  last: SunClock;
+}
+
 export interface TripCreationParams {
   destination: string;
   startDate: string;
@@ -492,6 +505,8 @@ export interface TripCreationParams {
    * so a plan with it neither comes from the shared cache nor goes into it.
    */
   tripIntent?: "solo" | "group";
+  /** Sunrise and sunset at the destination, worked out by the server (lib/ai/daylight.ts). */
+  daylight?: TripDaylight;
   /**
    * Multi-city wedge (§3.1). When present with >1 leg, /api/ai/generate routes
    * to the per-city parallel generator (lib/ai/multi-city) and merges the

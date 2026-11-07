@@ -468,6 +468,9 @@ export default function NewTripPage({
   const [destinationCoords, setDestinationCoords] = useState<{ latitude: number; longitude: number } | null>(
     () => (prefilledDestination ? { latitude: prefilledDestination.latitude, longitude: prefilledDestination.longitude } : null),
   );
+  // The place name the coordinates belong to. A name typed after a pick keeps
+  // the old coordinates in state, so the plan only gets them while it matches.
+  const coordsPlaceRef = useRef<string | null>(prefilledDestination?.name ?? null);
   // Anchored trips: fixed commitments (flights, weddings, booked nights) the
   // generated plan must build around. Collapsed AnchorEditor on step 1; sent
   // to /api/ai/generate, and carried into trip_meta.anchors at save via
@@ -1114,6 +1117,7 @@ export default function NewTripPage({
     trackFieldInteraction("destination_pill");
     setDestination(place.name);
     setDestinationCoords(place.coords);
+    coordsPlaceRef.current = place.name;
     trackDestinationSelected({ destination: place.name, source: "popular" });
     let datesAutofilled = false;
     if (!startDate && !endDate && !(MULTI_CITY_ENABLED && multiCityMode)) {
@@ -1158,10 +1162,12 @@ export default function NewTripPage({
     const chosen = startDate && endDate && !flexibleDates;
     const dates = chosen ? { start: startDate, end: endDate } : pencilledDates(trip, localTodayISO());
     // The same text a picked suggestion puts in the field.
-    setDestination(
-      place ? (place.fullText.length <= DESTINATION_MAX_LENGTH ? place.fullText : place.mainText) : trip.destination
-    );
-    if (place?.coordinates) setDestinationCoords(place.coordinates);
+    const placeName = place ? (place.fullText.length <= DESTINATION_MAX_LENGTH ? place.fullText : place.mainText) : trip.destination;
+    setDestination(placeName);
+    if (place?.coordinates) {
+      setDestinationCoords(place.coordinates);
+      coordsPlaceRef.current = placeName;
+    }
     setStartDate(dates.start);
     setEndDate(dates.end);
     setFlexibleDates(!chosen);
@@ -1207,6 +1213,8 @@ export default function NewTripPage({
   const handleDestinationSelect = (prediction: PlacePrediction) => {
     if (prediction.coordinates) {
       setDestinationCoords(prediction.coordinates);
+      // The text a picked suggestion puts in the field (DestinationAutocomplete).
+      coordsPlaceRef.current = prediction.fullText;
     }
     // Track destination selection
     trackDestinationSelected({
@@ -1325,6 +1333,7 @@ export default function NewTripPage({
         requirements,
         locale,
         fresh: opts.fresh,
+        coordinates: destinationCoords && coordsPlaceRef.current === destination ? destinationCoords : null,
       });
       reportGenerationAsks({ anchored: request.isAnchored, anchors, mustDos, startDate, endDate });
       // Each try streams its days into GenerationProgress as they arrive.
