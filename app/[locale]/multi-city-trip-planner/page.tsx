@@ -26,32 +26,7 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
-// NOTE: titles deliberately omit "| MonkeyTravel" — the root layout's
-// title template ("%s | MonkeyTravel") appends the brand suffix.
-const META: Record<string, { title: string; description: string }> = {
-  pt: {
-    title: 'Planejador de Viagens Multidestino — Roteiros com AI',
-    description:
-      'Planeje Tóquio→Kyoto→Osaka em um único roteiro. Adicione paradas e noites — a AI divide os dias por cidade automaticamente. Grátis, até 5 cidades e 21 dias.',
-  },
-  en: {
-    title: 'Multi-City Trip Planner — AI Itineraries for 2+ Cities',
-    description:
-      'Plan Tokyo→Kyoto→Osaka in one itinerary. Add stops and nights — AI splits your days per city automatically. Free, up to 5 cities and 21 days.',
-  },
-  es: {
-    title: 'Planificador de Viajes Multidestino — Itinerarios con AI',
-    description:
-      'Planifica Tokio→Kioto→Osaka en un solo itinerario. Añade etapas y noches — la AI reparte los días por ciudad automáticamente. Gratis, hasta 5 ciudades y 21 días.',
-  },
-  it: {
-    title: 'Pianificatore di Viaggi Multi-Città — Itinerari con AI',
-    description:
-      'Pianifica Tokyo→Kyoto→Osaka in un solo itinerario. Aggiungi tappe e notti — l\'AI divide i giorni per città in automatico. Gratis, fino a 5 città e 21 giorni.',
-  },
-};
-
-export const generateMetadata = landingMetadata(META, PAGE_PATH, 'MonkeyTravel — Multi-City Trip Planner');
+export const generateMetadata = landingMetadata('multiCityTripPlanner', PAGE_PATH, 'MonkeyTravel — Multi-City Trip Planner');
 
 const FEATURES: LandingFeature[] = [
   {
