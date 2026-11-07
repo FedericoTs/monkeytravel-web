@@ -1,0 +1,71 @@
+/* The plan as a sky: the rail of a day, its stops, and the stars once it's dark. */
+
+.line {
+  position: relative;
+  margin: 2rem 0 0;
+  padding: 0 0 0 1.875rem;
+  list-style: none;
+}
+
+.line::before {
+  content: "";
+  position: absolute;
+  left: 0.4375rem;
+  top: 0.625rem;
+  bottom: 1.5rem;
+  width: 1.5px;
+  background: rgba(128, 140, 160, 0.42);
+}
+
+.stop {
+  position: relative;
+  padding-bottom: 0.75rem;
+}
+
+/* The stop's dot on the rail, in the colour of the time beside it. */
+.time::before {
+  content: "";
+  position: absolute;
+  left: -1.75rem;
+  top: 0.45rem;
+  width: 0.6875rem;
+  height: 0.6875rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.sun {
+  margin-left: -1.9375rem;
+}
+
+.pill {
+  background: rgba(255, 255, 255, 0.42);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  backdrop-filter: blur(16px) saturate(1.5);
+}
+
+.stars {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(1.2px 1.2px at 22px 34px, #fff, transparent), radial-gradient(1px 1px at 96px 88px, rgba(255, 255, 255, 0.85), transparent),
+    radial-gradient(1.5px 1.5px at 160px 22px, #fff, transparent), radial-gradient(1px 1px at 214px 130px, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(1.2px 1.2px at 58px 168px, rgba(255, 255, 255, 0.8), transparent), radial-gradient(1px 1px at 280px 62px, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(1.4px 1.4px at 332px 172px, #fff, transparent);
+  background-size: 360px 200px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
+}
+
+.photo {
+  box-shadow: 0 14px 34px -14px rgba(10, 18, 40, 0.45);
+}
