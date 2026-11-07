@@ -245,7 +245,7 @@ Some passport-destination combinations are effectively blocked. Holders of certa
 
 Visa costs add up fast. A traveler visiting 10 countries might spend $0 in visa fees with a Singaporean passport and $500-$1,000 with a lower-ranked one. Processing times also force longer planning horizons, making last-minute travel deals inaccessible.
 
-**This is where a planning tool earns its keep.** [MonkeyTravel's free AI trip planner](/trips/new) doesn't file visa applications for you — nothing does — but once you know which destinations your passport opens, it turns the one you pick into a day-by-day itinerary with real venues and budgets. The paperwork is your job; the planning doesn't have to be.
+**This is where a planning tool earns its keep.** [MonkeyTravel's free AI trip planner](/) doesn't file visa applications for you — nothing does — but once you know which destinations your passport opens, it turns the one you pick into a day-by-day itinerary with real venues and budgets. The paperwork is your job; the planning doesn't have to be.
 
 ---
 
@@ -311,7 +311,7 @@ Programs like Global Entry (U.S.), NEXUS (U.S.-Canada), and the UK's Registered 
 
 With a lower-ranked passport, spontaneous travel is harder. Give yourself 2-3 months for visa processing and always have your documentation ready: bank statements, employment letters, hotel bookings, and travel insurance.
 
-**Regardless of your passport's ranking, MonkeyTravel's AI trip planner can help you build detailed itineraries tailored to your destinations.** It handles the logistics — optimal routing, local recommendations, budget planning — so you can focus on the experience. Try the [free AI trip planner](/trips/new) to build your next visa-free itinerary.
+**Regardless of your passport's ranking, MonkeyTravel's AI trip planner can help you build detailed itineraries tailored to your destinations.** It handles the logistics — optimal routing, local recommendations, budget planning — so you can focus on the experience. Try the [free AI trip planner](/) to build your next visa-free itinerary.
 
 ---
 

@@ -89,7 +89,7 @@ Invece di passare 15 ore a cercare quartieri, ristoranti e logistica giorno per 
 
 Quell'itinerario non è il tuo piano definitivo. È il tuo punto di partenza — quella cosa che richiedeva 15 ore di giocoleria tra schede e ora ne richiede uno. Da lì personalizzi: sostituisci il ristorante di paella con quello consigliato dal collega, togli il tour di Gaudì perché ci sei già stato, aggiungi una mattinata extra in spiaggia.
 
-Il [pianificatore AI di MonkeyTravel](/trips/new) è costruito esattamente attorno a questo flusso di lavoro. Ottieni un itinerario strutturato e personalizzato con locali reali e tre fasce di budget — poi lo modifichi finché non ti convince. Per i viaggiatori solitari, questo elimina completamente il problema della pagina bianca.
+Il [pianificatore AI di MonkeyTravel](/) è costruito esattamente attorno a questo flusso di lavoro. Ottieni un itinerario strutturato e personalizzato con locali reali e tre fasce di budget — poi lo modifichi finché non ti convince. Per i viaggiatori solitari, questo elimina completamente il problema della pagina bianca.
 
 ### Ottimizza per una persona (non due o quattro)
 
@@ -181,7 +181,7 @@ Questi valgono sia che tu stia usando l'AI o meno — ma gli strumenti AI posson
 
 ## La tua checklist per il viaggio in solitaria
 
-Usa questa come framework pre-viaggio. Un [pianificatore AI](/trips/new) gestisce i punti 1-5 in circa un minuto. Il resto tocca a te.
+Usa questa come framework pre-viaggio. Un [pianificatore AI](/) gestisce i punti 1-5 in circa un minuto. Il resto tocca a te.
 
 **Fase di pianificazione (assistita dall'AI):**
 - [ ] Scegli la destinazione in base al tuo budget, interessi e livello di comfort
@@ -239,7 +239,7 @@ Inizia con un pianificatore AI per generare un itinerario base — questo elimin
 
 ### Qual è il miglior pianificatore AI per viaggiatori solitari?
 
-Cerca un pianificatore che ti permetta di specificare "viaggiatore solitario" come stile di viaggio e che adatti le raccomandazioni di conseguenza — ristorazione adatta ai solitari, quartieri sicuri, attività adatte a una persona. [MonkeyTravel](/trips/new) genera itinerari con locali verificati su Google, tre fasce di budget e routing geografico ottimizzato per camminare, cosa che conta ancora di più quando non hai qualcuno con cui dividere il costo del taxi. Evita i chatbot generici che non hanno dati specifici sui viaggi.
+Cerca un pianificatore che ti permetta di specificare "viaggiatore solitario" come stile di viaggio e che adatti le raccomandazioni di conseguenza — ristorazione adatta ai solitari, quartieri sicuri, attività adatte a una persona. [MonkeyTravel](/) genera itinerari con locali verificati su Google, tre fasce di budget e routing geografico ottimizzato per camminare, cosa che conta ancora di più quando non hai qualcuno con cui dividere il costo del taxi. Evita i chatbot generici che non hanno dati specifici sui viaggi.
 
 ### Come faccio a conoscere persone viaggiando da solo?
 

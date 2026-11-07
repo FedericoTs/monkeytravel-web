@@ -58,7 +58,7 @@ They also can't create structured, bookable itineraries. You get a paragraph of 
 
 ### 2. Dedicated AI Trip Planners (MonkeyTravel, Wonderplan, Layla, TripPlanner AI)
 
-**What they do differently:** These tools are built specifically for travel. They connect to Google Places, review databases, and real pricing data. When they recommend a restaurant, it exists, it's open, and the rating is real. [MonkeyTravel's free AI trip planner](/trips/new) is one example — it generates structured itineraries with verified venues, three budget tiers, and smart geographic routing.
+**What they do differently:** These tools are built specifically for travel. They connect to Google Places, review databases, and real pricing data. When they recommend a restaurant, it exists, it's open, and the rating is real. [MonkeyTravel's free AI trip planner](/) is one example — it generates structured itineraries with verified venues, three budget tiers, and smart geographic routing.
 
 **What they're good at:** Generating complete, structured itineraries — with specific venues, time slots, budget estimates, and geographic routing that minimizes backtracking. The best ones let you customize the result, not just accept or reject it.
 
@@ -152,7 +152,7 @@ Not entirely. AI handles most of the standard, repeatable work faster and cheape
 
 ### What's the best free AI trip planner?
 
-Look for tools that use real venue data (not just text generation), provide specific times and prices, and allow customization after generation. [MonkeyTravel's free AI trip planner](/trips/new) uses Google-verified venues and offers three budget tiers. Avoid tools that only generate text descriptions without structured, day-by-day itineraries.
+Look for tools that use real venue data (not just text generation), provide specific times and prices, and allow customization after generation. [MonkeyTravel's free AI trip planner](/) uses Google-verified venues and offers three budget tiers. Avoid tools that only generate text descriptions without structured, day-by-day itineraries.
 
 ### Can AI plan a group trip?
 

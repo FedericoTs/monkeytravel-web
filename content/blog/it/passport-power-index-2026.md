@@ -202,7 +202,7 @@ Alcune combinazioni passaporto-destinazione sono effettivamente bloccate. I tito
 
 I costi dei visti si accumulano rapidamente. Un viaggiatore che visita 10 paesi potrebbe spendere $0 in tasse per visti con un passaporto di Singapore e $500-$1.000 con uno di ranking inferiore. I tempi di elaborazione forzano anche orizzonti di pianificazione piu lunghi, rendendo inaccessibili le offerte di viaggio last minute.
 
-**E qui che uno strumento di pianificazione si guadagna il suo posto.** Il [pianificatore di viaggio AI gratuito di MonkeyTravel](/trips/new) non presenta domande di visto al posto tuo — niente lo fa — ma una volta che sai quali destinazioni ti apre il passaporto, trasforma quella che scegli in un itinerario giorno per giorno con posti e budget reali. La burocrazia resta a te; la pianificazione no.
+**E qui che uno strumento di pianificazione si guadagna il suo posto.** Il [pianificatore di viaggio AI gratuito di MonkeyTravel](/) non presenta domande di visto al posto tuo — niente lo fa — ma una volta che sai quali destinazioni ti apre il passaporto, trasforma quella che scegli in un itinerario giorno per giorno con posti e budget reali. La burocrazia resta a te; la pianificazione no.
 
 ---
 

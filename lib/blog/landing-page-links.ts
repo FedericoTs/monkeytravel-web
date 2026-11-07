@@ -47,6 +47,8 @@ export interface LandingPageLink {
  * irrelevant link on unrelated posts, which is the exact failure being fixed
  * here. That page needs content, not a link rule.
  */
+const HOME = "/";
+
 const CONCEPT_TO_LANDING: Record<string, LandingPageLink> = {
   "group-travel": { path: "/group-trip-planner", labelKey: "groupTripPlanner" },
   "budget-travel": { path: "/budget-trip-planner", labelKey: "budgetTripPlanner" },
@@ -58,7 +60,7 @@ const CONCEPT_TO_LANDING: Record<string, LandingPageLink> = {
   "travel-documents": { path: "/tools/visa-checker", labelKey: "visaChecker" },
   "travel-checklist": { path: "/tools/packing-list", labelKey: "packingList" },
   "itinerary": { path: "/ai-itinerary-generator", labelKey: "aiItineraryGenerator" },
-  "ai-trip-planner": { path: "/free-ai-trip-planner", labelKey: "freeTripPlanner" },
+  "ai-trip-planner": { path: HOME, labelKey: "freeTripPlanner" },
 };
 
 /**
@@ -68,11 +70,14 @@ const CONCEPT_TO_LANDING: Record<string, LandingPageLink> = {
  * removing the CTA from most posts would trade a real conversion surface for a
  * marginal SEO gain. They are ranked LAST instead, so the specific page always
  * takes the primary slot when one applies.
+ *
+ * The planner link goes to the home page because that's the page Google shows
+ * for planner searches, so that's where these links do the most.
  */
-const GENERIC = new Set(["/ai-itinerary-generator", "/free-ai-trip-planner"]);
+const GENERIC = new Set(["/ai-itinerary-generator", HOME]);
 
 const FALLBACK: LandingPageLink = {
-  path: "/free-ai-trip-planner",
+  path: HOME,
   labelKey: "freeTripPlanner",
 };
 

@@ -87,7 +87,7 @@ Se i prezzi live di Layla non sono la tua priorità — e per la maggior parte d
 
 ### 1. MonkeyTravel — l'alternativa gratuita, senza paywall
 
-Dove Layla blocca il giorno per giorno, [MonkeyTravel](/trips/new) ti dà tutto gratis — nomi di locali reali, prezzi stimati, tre livelli di budget davvero diversi e percorsi giornalieri intelligenti — senza creare un account. Puoi passare dalla destinazione a un piano condivisibile in circa 30 secondi.
+Dove Layla blocca il giorno per giorno, [MonkeyTravel](/) ti dà tutto gratis — nomi di locali reali, prezzi stimati, tre livelli di budget davvero diversi e percorsi giornalieri intelligenti — senza creare un account. Puoi passare dalla destinazione a un piano condivisibile in circa 30 secondi.
 
 Una cosa che Layla non fa affatto: MonkeyTravel ha un sistema integrato di **votazione di gruppo** per quando i tuoi compagni di viaggio non riescono a mettersi d'accordo su cosa fare. Pianifica anche in **inglese, spagnolo, italiano e portoghese**; il supporto linguistico di Layla non è chiaro (la scheda sull'App Store indica l'inglese, il sito dichiara 16 lingue), quindi verifica prima di contarci. Se pianifichi con gli amici, non c'è paragone.
 
@@ -105,7 +105,7 @@ Wonderplan è gratuito e orientato al budget, con una pulita esportazione in PDF
 
 Il premium di Layla vale la pena se: viaggi più volte all'anno, sei flessibile sulle date e vuoi prezzi live e avvisi sui cali integrati nel tuo pianificatore. Per quel tipo di viaggiatore, i 49 $/anno si recuperano facilmente in risparmi.
 
-Per tutti gli altri — chiunque voglia soprattutto un itinerario giorno per giorno completo e condivisibile, pianifichi in gruppo o pianifichi in una lingua diversa dall'inglese — un'alternativa gratuita come [MonkeyTravel](/trips/new) ti porta al risultato senza il paywall né il balletto della disdetta prima della fine della prova.
+Per tutti gli altri — chiunque voglia soprattutto un itinerario giorno per giorno completo e condivisibile, pianifichi in gruppo o pianifichi in una lingua diversa dall'inglese — un'alternativa gratuita come [MonkeyTravel](/) ti porta al risultato senza il paywall né il balletto della disdetta prima della fine della prova.
 
 **Vuoi l'itinerario completo gratis, subito?** [Pianifica il tuo viaggio con MonkeyTravel](/trips/new) — nessuna registrazione, nessuna carta, nessun paywall sul giorno per giorno.
 
@@ -121,7 +121,7 @@ Il piano premium costa circa 49 $/anno sul sito di Layla (49,99 $/anno o 9,99 $/
 
 ### Qual è la migliore alternativa gratuita a Layla?
 
-Per un itinerario completo giorno per giorno senza paywall, [MonkeyTravel](/trips/new) è l'alternativa gratuita più vicina — e aggiunge la votazione di gruppo, e pianifica in spagnolo, italiano e portoghese (il supporto linguistico di Layla non è chiaro: la scheda sull'App Store indica l'inglese, il sito dichiara 16 lingue). Mindtrip è la migliore opzione gratuita se vuoi anche la prenotazione integrata nell'app.
+Per un itinerario completo giorno per giorno senza paywall, [MonkeyTravel](/) è l'alternativa gratuita più vicina — e aggiunge la votazione di gruppo, e pianifica in spagnolo, italiano e portoghese (il supporto linguistico di Layla non è chiaro: la scheda sull'App Store indica l'inglese, il sito dichiara 16 lingue). Mindtrip è la migliore opzione gratuita se vuoi anche la prenotazione integrata nell'app.
 
 ### È meglio Layla o Mindtrip?
 

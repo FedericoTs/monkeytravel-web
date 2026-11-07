@@ -329,7 +329,7 @@ Coolcation specifically means **15-25°C summer temperatures in destinations tha
 
 Picking the destination is decision one. The harder part — neighborhoods, day-by-day routing, restaurants that aren't tourist traps, realistic costs — is what actually makes or breaks the trip.
 
-[MonkeyTravel's free AI trip planner](/trips/new) builds that itinerary in under a minute. Drop in any destination from this guide, your dates, and your budget. You'll get accommodations, activities, restaurant recommendations, and a daily cost estimate matched to where you're staying. No spreadsheets, no 47 browser tabs.
+[MonkeyTravel's free AI trip planner](/) builds that itinerary in under a minute. Drop in any destination from this guide, your dates, and your budget. You'll get accommodations, activities, restaurant recommendations, and a daily cost estimate matched to where you're staying. No spreadsheets, no 47 browser tabs.
 
 [Plan my spring or summer trip — free](/trips/new)
 

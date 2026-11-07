@@ -136,7 +136,7 @@ Flip the calendar: it's mid-winter in New Zealand, and Queenstown is the Souther
 
 ## Plan Your August Trip in 30 Seconds
 
-Pick one of the twelve above, and [MonkeyTravel's free AI trip planner](/trips/new) will build a day-by-day itinerary for it — real places, opening hours, budgets — in about half a minute. No signup needed to try it.
+Pick one of the twelve above, and [MonkeyTravel's free AI trip planner](/) will build a day-by-day itinerary for it — real places, opening hours, budgets — in about half a minute. No signup needed to try it.
 
 *Only have a weekend? The same method works at short range — [plan a weekend getaway in 15 minutes](/blog/plan-weekend-getaway-with-ai).*
 

@@ -233,7 +233,7 @@ La mayoría de tours de un día (14-28 €) cubren las provincias de My Tho o Be
 
 ## Planifica tu Viaje a Vietnam sin la Hoja de Cálculo
 
-Una ruta de Hanói al Mekong tiene muchas piezas móviles: plazos del visado, ventanas de reserva de cruceros, combinaciones de vuelos internos y saber qué crucero de Ha Long vale el dinero. Nuestro [planificador de viajes AI gratuito](/trips/new) construye el itinerario completo según tus fechas y presupuesto — con opciones reales, precios reales y rutas que tienen sentido. Si te centras en controlar los gastos, el [planificador de presupuesto](/budget-trip-planner) te muestra qué es posible en cada franja de precio.
+Una ruta de Hanói al Mekong tiene muchas piezas móviles: plazos del visado, ventanas de reserva de cruceros, combinaciones de vuelos internos y saber qué crucero de Ha Long vale el dinero. Nuestro [planificador de viajes AI gratuito](/) construye el itinerario completo según tus fechas y presupuesto — con opciones reales, precios reales y rutas que tienen sentido. Si te centras en controlar los gastos, el [planificador de presupuesto](/budget-trip-planner) te muestra qué es posible en cada franja de precio.
 
 Dile que quieres 10 días en Vietnam. Obtén un plan en menos de un minuto.
 

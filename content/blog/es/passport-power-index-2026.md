@@ -202,7 +202,7 @@ Algunas combinaciones pasaporte-destino están efectivamente bloqueadas. Los tit
 
 Los costos de visa se acumulan rápidamente. Un viajero que visita 10 países podría gastar $0 en tarifas de visa con un pasaporte de Singapur y $500-$1.000 con uno de menor ranking. Los tiempos de procesamiento también fuerzan horizontes de planificación más largos, haciendo inaccesibles las ofertas de viaje de último minuto.
 
-**Aquí es donde una herramienta de planificación se gana su lugar.** El [planificador de viajes con AI gratuito de MonkeyTravel](/trips/new) no tramita visas por ti — nada lo hace —, pero una vez que sabes qué destinos te abre tu pasaporte, convierte el que elijas en un itinerario día a día con lugares y presupuestos reales. El papeleo es cosa tuya; la planificación no tiene por qué serlo.
+**Aquí es donde una herramienta de planificación se gana su lugar.** El [planificador de viajes con AI gratuito de MonkeyTravel](/) no tramita visas por ti — nada lo hace —, pero una vez que sabes qué destinos te abre tu pasaporte, convierte el que elijas en un itinerario día a día con lugares y presupuestos reales. El papeleo es cosa tuya; la planificación no tiene por qué serlo.
 
 ---
 

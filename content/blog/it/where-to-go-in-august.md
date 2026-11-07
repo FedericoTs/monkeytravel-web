@@ -136,7 +136,7 @@ Gira il calendario: in Nuova Zelanda è pieno inverno e Queenstown, la capitale 
 
 ## Pianifica il tuo viaggio di agosto in 30 secondi
 
-Scegli una delle dodici mete qui sopra e il [planner di viaggio AI gratuito di MonkeyTravel](/trips/new) ti costruisce un itinerario giorno per giorno — posti reali, orari di apertura, budget — in circa mezzo minuto. Per provarlo non serve registrarsi.
+Scegli una delle dodici mete qui sopra e il [planner di viaggio AI gratuito di MonkeyTravel](/) ti costruisce un itinerario giorno per giorno — posti reali, orari di apertura, budget — in circa mezzo minuto. Per provarlo non serve registrarsi.
 
 *Hai solo un weekend? Lo stesso metodo funziona — [pianifica una fuga di due giorni in 15 minuti](/blog/plan-weekend-getaway-with-ai).*
 
