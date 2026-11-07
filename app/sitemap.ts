@@ -6,6 +6,7 @@ import { getAllAuthors } from "@/lib/blog/authors";
 import { competitorSlugs } from "@/lib/comparison/competitors";
 import { allPassportSlugs } from "@/lib/visa/passport-pages";
 import { SITE_URL } from "@/lib/seo/canonical";
+import { PLANNER_PAGES } from "@/lib/seo/planner-pages";
 
 const locales = ["en", "es", "it", "pt"] as const;
 const defaultLocale = "en";
@@ -120,7 +121,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // SEO landing pages (× 3 locales)
   const landingPages: MetadataRoute.Sitemap = [];
-  const seoLandingPaths = ['/free-ai-trip-planner', '/group-trip-planner', '/weekend-trip-planner', '/ai-itinerary-generator', '/family-trip-planner', '/budget-trip-planner', '/solo-trip-planner', '/backpacker', '/multi-city-trip-planner'];
+  const seoLandingPaths = PLANNER_PAGES.map(({ path }) => path);
 
   // Free tools (× 3 locales). Listed alongside SEO landing pages since
   // they have similar discovery characteristics and lifetime cadence. Only

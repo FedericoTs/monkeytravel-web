@@ -4,6 +4,7 @@ import { getTranslations, getLocale } from 'next-intl/server';
 import { CookieSettingsButton } from '@/components/consent';
 import { destinations } from '@/lib/destinations/data';
 import { getAllFrontmatter } from '@/lib/blog/api';
+import { PLANNER_PAGES } from '@/lib/seo/planner-pages';
 import type { Locale } from '@/lib/destinations/types';
 
 // No LinkedIn link: linkedin.com/company/monkeytravel is another company's page.
@@ -36,7 +37,6 @@ export default async function Footer() {
       { label: t('checkPlan'), href: '/tools/check-my-plan' },
       { label: t('features'), href: '/#features' },
       { label: t('howItWorks'), href: '/#how-it-works' },
-      { label: t('joinWaitlist'), href: '/#hero' },
     ],
     support: [
       // No FAQ page exists yet, so FAQ points to /contact, where people can
@@ -190,7 +190,20 @@ export default async function Footer() {
         </div>
 
         {/* Featured Destinations + Latest Articles — sitewide internal links for SEO */}
-        <div className="mt-16 pt-12 border-t border-white/10 grid md:grid-cols-2 gap-12">
+        <div className="mt-16 pt-12 border-t border-white/10 grid md:grid-cols-2 lg:grid-cols-3 gap-12">
+          <div>
+            <h3 className="font-semibold mb-5 text-white/90">{t('planners.title')}</h3>
+            <ul className="space-y-3">
+              {PLANNER_PAGES.map(({ path, label }) => (
+                <li key={path}>
+                  <Link href={path} className="text-white/65 hover:text-[var(--accent)] transition-colors text-sm">
+                    {t(`planners.${label}`)}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
           <div>
             <h3 className="font-semibold mb-5 text-white/90">{t('popularDestinations')}</h3>
             <ul className="grid grid-cols-2 gap-x-4 gap-y-3">
