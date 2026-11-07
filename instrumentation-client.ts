@@ -28,7 +28,11 @@ import { posthogActionFor, POSTHOG_COOKIELESS_MODE } from "@/lib/analytics/posth
 import { CONSENT_CHANGE_EVENT } from "@/lib/consent/types";
 import { configureSentry, sentry } from "@/lib/observability/sentry";
 import { SENTRY_DATA_COLLECTION } from "@/lib/observability/sentry-data-collection";
+import { survivePageTranslators } from "@/lib/platform/survive-page-translators";
 import { POSTHOG_READY_EVENT } from "@/lib/posthog/client";
+
+// Before React starts, so that a page the browser translates never loses it.
+if (typeof window !== "undefined") survivePageTranslators();
 
 // Helper to check consent from localStorage (runs before React)
 function getStoredConsent(): { analytics: boolean; sessionRecording: boolean } | null {
@@ -123,19 +127,6 @@ function initSentry(Sentry: typeof import("@sentry/nextjs"), hasSessionRecording
       // Common user-initiated cancellations
       "AbortError",
       "The user aborted a request",
-      // React + browser-translator (Google Translate, Safari Reader, etc.)
-      // mutate the DOM out from under React's reconciler. We can't fix
-      // this in source — translators run after React commits. These are
-      // benign noise from real users browsing with translation enabled.
-      // See: https://github.com/facebook/react/issues/11538
-      "Failed to execute 'removeChild' on 'Node'",
-      "Failed to execute 'insertBefore' on 'Node'",
-      "The node to be removed is not a child of this node",
-      // Same family on WebKit/Safari (NotFoundError DOM exception):
-      // Safari throws this when the DOM tree it's traversing has been
-      // mutated by an extension or by the back/forward cache.
-      "The object can not be found here",
-      "NotFoundError: The object can not be found here",
       // Vercel Speed Insights / Web Vitals beacon is blocked by privacy
       // browsers (DuckDuckGo, Brave) and raises an "invalid origin" from
       // its own internal beacon code. Not actionable — the beacon being
