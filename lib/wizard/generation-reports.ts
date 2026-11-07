@@ -25,6 +25,8 @@ export interface GenerationReport {
   locale: string;
   /** When the request went out (Date.now()); the timings run from here. */
   startedAt: number;
+  /** The result screen this session's draw gave it, when it counts in the sky test. */
+  resultVariant?: "sky" | "classic";
 }
 
 // A day: elapsed times past it are clocks gone wrong, not generations.
@@ -85,7 +87,12 @@ export function reportGenerationAsks(g: {
 export function reportGenerated(g: GenerationReport, hasItinerary: boolean, now = Date.now()): void {
   if (hasItinerary) {
     const rowDays = funnelDays(g.startDate, g.endDate);
-    void trackWizardEvent("result", { ...funnelTraits(g), locale: g.locale, duration_days: rowDays });
+    void trackWizardEvent("result", {
+      ...funnelTraits(g),
+      locale: g.locale,
+      duration_days: rowDays,
+      ...(g.resultVariant ? { result_variant: g.resultVariant } : {}),
+    });
     void trackWizardEvent("first_value", { destination: g.destination, duration_days: rowDays, locale: g.locale });
   }
   const elapsed = now - g.startedAt;

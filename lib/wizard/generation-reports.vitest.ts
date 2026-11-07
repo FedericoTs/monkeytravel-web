@@ -101,6 +101,13 @@ describe("reportGenerated", () => {
     });
   });
 
+  it("puts the sky test's arm on the result row, and only there", () => {
+    reportGenerated({ ...report, resultVariant: "sky" }, true, 1_012_345);
+    const [result, firstValue] = rows();
+    expect(result).toMatchObject({ step: "result", result_variant: "sky" });
+    expect(firstValue).not.toHaveProperty("result_variant");
+  });
+
   it("leaves the funnel's rows out when there is no itinerary to show", () => {
     reportGenerated(report, false, 1_012_345);
     expect(rows()).toEqual([]);
