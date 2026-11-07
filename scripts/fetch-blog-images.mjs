@@ -34,6 +34,8 @@ const BLOG_QUERIES = {
   // 2027 planning pillars
   "2027-travel-calendar": "hand placing pins on world map travel planning",
   "best-places-to-travel-2027": "total solar eclipse sky",
+  "solar-eclipse-2027": "total solar eclipse corona Valencia",
+  "camino-de-santiago-2027": "Camino de Santiago waymark scallop shell",
   // Standalone August month page
   "where-to-go-in-august": "Dolomites alpine lake mountains summer",
   // Multi-city content

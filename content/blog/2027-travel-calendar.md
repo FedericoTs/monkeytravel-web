@@ -4,7 +4,7 @@ slug: "2027-travel-calendar"
 description: "Where to go in every month of 2027, with the dates that shape the year: the total solar eclipse on 2 August, Santiago's Holy Year, the Women's World Cup in Brazil, the Rugby and Cricket World Cups, and the 2027 long weekends in the UK, US, Spain, Italy and Brazil."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-10-26"
+updatedAt: "2026-11-06"
 category: "Seasonal Travel"
 tags: ["seasonal", "monthly travel guide", "trip planning"]
 image: "/images/blog/2027-travel-calendar.jpg"
@@ -46,15 +46,15 @@ Each of these was checked at its source; Lunar New Year, Carnival and Oktoberfes
 
 ### The total solar eclipse, Monday 2 August
 
-The Moon's shadow crosses the Strait of Gibraltar in mid-morning and runs along North Africa to the Red Sea. EclipseWise, Fred Espenak's eclipse catalogue, lists the path of totality over Morocco, Spain, Algeria, Libya, Egypt, Saudi Arabia, Yemen and Somalia, and NASA's path table also puts the central line over Tunisia. On that line totality lasts 4 min 48 s to 4 min 54 s where it passes the Strait (at about 35.7°N, between 08:46 and 08:48 UT), 5 min 42 s in central Tunisia, 6 min 10 s in Libya and 6 min 23 s in Upper Egypt, where the line passes just north of Luxor. Greatest eclipse is at 10:06 UT, in Egypt.
+The Moon's shadow crosses the Strait of Gibraltar in mid-morning and runs along North Africa to the Red Sea. EclipseWise, Fred Espenak's eclipse catalogue, lists the path of totality over Morocco, Spain, Algeria, Libya, Egypt, Saudi Arabia, Yemen and Somalia, and NASA's path table also puts the central line over Tunisia. On that line totality lasts 4 min 48 s to 4 min 54 s where it passes the Strait (at about 35.7°N, between 08:46 and 08:48 UT), 5 min 42 s in central Tunisia, 6 min 10 s in Libya and 6 min 23 s in Upper Egypt, where the line passes just north of Luxor. Greatest eclipse is at 10:06 UT, in Egypt. Our [eclipse guide](/blog/solar-eclipse-2027) has times, weather and what to book for each place, and which places just miss it.
 
-In Spain, the National Geographic Institute (IGN) puts Ceuta, Melilla, almost all of Cádiz province, part of Málaga's and the southern edges of Granada and Almería inside the band, at about 10:45–10:50 Spanish time. Ceuta gets 4 min 48 s and Melilla 4 min 34 s; Cádiz city has 2 min 54 s and Málaga 1 min 48 s.
+In Spain, the National Geographic Institute (IGN) puts Ceuta, Melilla, almost all of Cádiz province, part of Málaga's and the southern edges of Granada and Almería inside the band, at about 10:45–10:53 Spanish time. Ceuta gets 4 min 48 s and Melilla 4 min 34 s; Cádiz city has 2 min 54 s and Málaga 1 min 48 s.
 
 Use solar viewers that meet ISO 12312-2 for the partial phases. NASA says the naked eye is safe only during totality, and warns never to look through a camera, binoculars or a telescope while wearing eclipse glasses. Expect peak-holiday demand for beds and midsummer heat (Egypt's afternoons run well above 40°C, or 104°F), and check your government's travel advice before considering Libya or Yemen.
 
 ### Santiago de Compostela's Holy Year, all of 2027
 
-Santiago holds a Holy Year whenever 25 July, the feast of St James, falls on a Sunday, as it does in 2027. The last one was 2021–22 and the next is 2032. The archdiocese presented the jubilee motto on 24 September 2026. No official date for opening the Holy Door had been published when we checked; the archdiocese said only that the liturgical jubilee hymn would premiere in December, possibly at the Holy Door's opening. Book Camino and city beds early, above all around Sunday 25 July.
+Santiago holds a Holy Year whenever 25 July, the feast of St James, falls on a Sunday, as it does in 2027. The last one was 2021–22 and the next is 2032. The archdiocese presented the jubilee motto on 24 September 2026. The Holy Door opens on 31 December 2026, according to Santiago's tourist office, at 17:00 on the cathedral's calendar or around noon according to its dean, so check the hour nearer the time. Our [Camino guide for 2027](/blog/camino-de-santiago-2027) has routes, rules and crowds month by month. Book Camino and city beds early, above all around Sunday 25 July.
 
 ### FIFA Women's World Cup, 24 June to 25 July, Brazil
 
@@ -263,7 +263,7 @@ Southern Europe is at its hottest and priciest and much of Asia is under the mon
 
 The year's biggest date is Monday 2 August; the rest of the month rewards places that are dry, cool or celebrating.
 
-**Cádiz province and the Strait.** Spain's IGN puts almost all of Cádiz province, Ceuta and Melilla inside the band of totality at about 10:45–10:50 Spanish time: Ceuta gets 4 min 48 s, Cádiz city 2 min 54 s.
+**Cádiz province and the Strait.** Spain's IGN puts almost all of Cádiz province, Ceuta and Melilla inside the band of totality at about 10:45–10:53 Spanish time: Ceuta gets 4 min 48 s, Cádiz city 2 min 54 s.
 **The trade-off:** beds go early in peak holiday season, and it pays to move towards the centre line: Málaga sees only 1 min 48 s.
 
 **Edinburgh.** The Fringe runs 6–30 August in its 80th anniversary year, in 15–19°C (59–66°F) weather, with long evenings early in the month.
@@ -508,7 +508,7 @@ Western Easter Sunday is 28 March, so Holy Week runs 21–27 March and Good Frid
 
 ### Where can I see the total solar eclipse on 2 August 2027?
 
-In Spain, from Ceuta, Melilla, almost all of Cádiz province and parts of Málaga, Granada and Almería, at about 10:45–10:50 local time. The path continues over northern Morocco, Algeria, Tunisia, Libya and Egypt to Saudi Arabia, Yemen and Somalia, and totality is longest in Upper Egypt: about 6 minutes 23 seconds on the central line near Luxor.
+In Spain, from Ceuta, Melilla, almost all of Cádiz province and parts of Málaga, Granada and Almería, at about 10:45–10:53 local time. The path continues over northern Morocco, Algeria, Tunisia, Libya and Egypt to Saudi Arabia, Yemen and Somalia, and totality is longest in Upper Egypt: about 6 minutes 23 seconds on the central line near Luxor.
 
 ### What are the best long weekends in 2027?
 
@@ -516,7 +516,7 @@ Spain's 4–12 December (nine days off for three days of leave), the UK's 25 Dec
 
 ### When is the Santiago de Compostela Holy Year?
 
-All of 2027, because 25 July, the feast of St James, falls on a Sunday. The Holy Door's opening had no official date on 5 October 2026, and the next Holy Year is 2032.
+All of 2027, because 25 July, the feast of St James, falls on a Sunday. The Holy Door opens on 31 December 2026 and closes on 31 December 2027, and the next Holy Year is 2032.
 
 ### What is the cheapest month to travel in 2027?
 
@@ -531,6 +531,9 @@ For Northern Hemisphere city breaks, January after Epiphany, when holiday prices
 - [Xunta de Galicia: The Compostela Holy Year](https://www.caminodesantiago.gal/en/discover/origins-and-evolution/the-compostela-holy-year)
 - [Santiago Turismo: When is Holy Year?](https://www.santiagoturismo.com/historia/cando-e-ano-santo)
 - [Catedral de Santiago: Motto of the 2027 Holy Year](https://catedraldesantiago.es/al-ver-la-estrella-se-llenaron-de-inmensa-alegria-sera-el-lema-para-el-ano-santo-compostelano-2027/)
+- [Santiago Turismo: Holy Year 2027](https://www.santiagoturismo.com/compostela2027)
+- [Catedral de Santiago: Liturgical calendar](https://catedraldesantiago.es/liturgia/)
+- [El Correo Gallego: Holy Year presentation, 24 September 2026](https://www.elcorreogallego.es/santiago/2026/09/24/santiago-prepara-ano-santo-xacobeo-2027-134639233.html)
 - [Archdiocese of Santiago: Una estrella para nuestro tiempo](https://delegacionclero.archicompostela.es/una-estrella-para-nuestro-tiempo-el-arzobispo-situa-la-alegria-de-caminar-con-esperanza-en-el-centro-del-ano-santo-compostelano-2027-bajo-el-lema-al-ver-la-estrella-se-llenaron-de-inmensa-a/)
 - [FIFA: Brazil 2027 dates confirmed](https://inside.fifa.com/media-releases/fifa-womens-world-cup-brazil-2027-dates-confirmed)
 - [FIFA: Brazil 2027 match schedule unveiled](https://inside.fifa.com/organisation/media-releases/womens-world-cup-2027-brazil-maracana-match-schedule-unveiled)

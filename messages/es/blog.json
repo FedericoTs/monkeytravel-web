@@ -585,6 +585,14 @@
     "2027-travel-calendar": {
       "title": "Calendario de viajes 2027: dónde ir cada mes y puentes",
       "description": "Dónde viajar cada mes de 2027 y las fechas clave: el eclipse del 2 de agosto, el Año Santo Compostelano, tres Mundiales y los puentes del año."
+    },
+    "solar-eclipse-2027": {
+      "title": "Eclipse solar 2027: dónde verlo y qué reservar",
+      "description": "Eclipse del 2 de agosto de 2027: quién ve la totalidad y quién no. Horas, altura del Sol, tiempo, alojamiento, ferris: Cádiz, Málaga, Ceuta, Tánger, Luxor."
+    },
+    "camino-de-santiago-2027": {
+      "title": "Camino de Santiago 2027: rutas y afluencia en el Año Santo",
+      "description": "Camino de Santiago 2027: fechas de la Puerta Santa, cifras oficiales de peregrinos por mes, rutas por días, normas de la Compostela, qué reservar y planes."
     }
   }
 }
