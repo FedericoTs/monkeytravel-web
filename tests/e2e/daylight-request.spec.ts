@@ -10,8 +10,10 @@ import { isolate } from "./wizard-draft";
  */
 
 async function generate(page: Page) {
-  await page.getByRole("button", { name: /^Continue/ }).click();
-  await page.getByRole("heading", { name: "Set your travel style" }).waitFor();
+  // The footer's own button: a typed place with no match shows a "Continue with …" button too, which picks
+  // the place and stays on step 1.
+  await page.getByTestId("wizard-continue").click();
+  await page.getByRole("heading", { name: "Set your travel style" }).waitFor({ timeout: 15_000 });
   const foodie = page.getByText("Foodie Journey", { exact: true }).filter({ visible: true }).first();
   const generateButton = page.getByRole("button", { name: "Generate Itinerary" });
   await expect(async () => {
