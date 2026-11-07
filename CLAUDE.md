@@ -219,6 +219,10 @@ Coral primary buttons are a known, accepted AA exception; see DESIGN.md before
 - AI output follows the user's language through the language instruction in
   `lib/gemini.ts`; cached AI content is stored per language.
 - After adding strings, open the page in `/es`, `/it` and `/pt` as well as English.
+- Visitors also read us through their browser's translator, which swaps text nodes for
+  `<font>`. `lib/platform/survive-page-translators.ts` keeps the page up, but text React
+  changes in place stays in the old words. Where the words change with a step or a mode,
+  put a `key` on the element (see `components/wizard/WizardFooter.tsx`).
 
 ## SEO and server rendering (MANDATORY)
 

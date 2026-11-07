@@ -81,6 +81,7 @@ export default function WizardFooter({
           : t("wizard.step1.freeReassurance")}
       </p>
     )}
+    {/* A key on each button, so a browser translating the page labels the new one instead of keeping the old words. */}
     <div className="flex items-center justify-between">
     {step > 1 ? (
       <button
@@ -100,6 +101,7 @@ export default function WizardFooter({
       expressTrip ? (
         // A one-sentence trip: plan it as read, skipping the vibes step.
         <button
+          key="express"
           type="button"
           onClick={() => void handleExpressPlan()}
           disabled={expressBusy}
@@ -113,6 +115,7 @@ export default function WizardFooter({
         // same coral, an ENABLED button — one tap pencils in the
         // flexible default and the slot re-renders as Continue.
         <button
+          key="flexible"
           type="button"
           onClick={() => {
             handleFlexibleDates();
@@ -124,6 +127,7 @@ export default function WizardFooter({
         </button>
       ) : (
       <button
+        key="continue"
         data-testid="wizard-continue"
         onClick={handleContinue}
         disabled={!canProceed()}
@@ -134,6 +138,7 @@ export default function WizardFooter({
       )
     ) : (
       <button
+        key="generate"
         onClick={() => void handleGenerate()}
         disabled={!canProceed()}
         className="bg-[var(--accent)] text-slate-900 px-8 py-3.5 sm:py-3 rounded-xl font-medium hover:bg-[var(--accent)]/90 active:bg-[var(--accent)]/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 min-h-[48px] sm:min-h-0"

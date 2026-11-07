@@ -39,7 +39,8 @@ export default function WizardHeader({
             />
           ))}
         </div>
-        <div className="text-sm text-slate-500">
+        {/* Keyed by step: a browser translating the page would keep the old number otherwise. */}
+        <div key={step} className="text-sm text-slate-500">
           {step}/{totalSteps}
         </div>
       </div>
