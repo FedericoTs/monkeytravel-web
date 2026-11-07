@@ -9,7 +9,6 @@ import { fakeSupabase, type FakeQuery } from "@/tests/fake-supabase";
  */
 
 const analytics = vi.hoisted(() => ({
-  trackSessionStart: vi.fn(),
   trackUserReturn: vi.fn(),
   setUserId: vi.fn(),
   setUserPropertiesEnhanced: vi.fn(),
@@ -107,11 +106,12 @@ describe("SessionTracker", () => {
   it.each(["users", "trips", "user_tester_access"])("sends no properties when the %s read is refused", async (table) => {
     const logged = vi.spyOn(console, "error").mockImplementation(() => {});
     refusing = table;
+    localStorage.setItem("mt_last_visit", String(Date.now() - 2 * 24 * 60 * 60 * 1000));
     render(<SessionTracker />);
     await vi.waitFor(() => expect(logged).toHaveBeenCalledWith("[SessionTracker] read failed:", "timeout"));
     expect(posthog.identifyUser).not.toHaveBeenCalled();
     expect(analytics.setUserPropertiesEnhanced).not.toHaveBeenCalled();
-    expect(analytics.trackSessionStart).not.toHaveBeenCalled();
+    expect(analytics.trackUserReturn).not.toHaveBeenCalled();
     logged.mockRestore();
   });
 });
