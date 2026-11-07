@@ -1,151 +1,229 @@
-# Analytics — sources of truth, and how to read a traffic alarm
+# Analytics: which source answers which question
 
-**Date:** 2026-09-05 · **Status:** binding for every traffic number quoted in a plan, a PR, a dashboard or a conversation. Phase 0.5 of `LIVE_TRIP_MASTER_PLAN.md`.
+Binding for every number about visitors, sessions, sign-ups or saves quoted in a plan, a pull request, a dashboard or a conversation. Each tool below sees a different slice of the same visits, and the slices move independently. Read this before quoting a number or reacting to one.
 
-This exists because of one week in which three different instruments told three different stories about the same traffic, and the loudest one was wrong. Read it before interpreting any change in visitors, sessions or page views.
+## The sources
 
----
-
-## 1. The instruments, and what each one is for
-
-| Instrument | What it measures | Use it for | Never use it for |
+| Source | What it sees | Use it for | Never use it for |
 |---|---|---|---|
-| **`page_views_human`** (view) → `page_view_rollup` → the admin RPCs | Every request the middleware saw, minus self-declared crawlers (`is_bot`), minus sessions labelled as automation (`page_view_session_labels`) | **Traffic. Visitors. Engagement. The only source for "how many people".** | — |
-| `page_views` (raw table) | Everything, including crawlers and automation | The denominator of the automation-share guardrail; forensics on a specific session | Any headline number. It is inflated by ~10–40% depending on the day |
-| `page_view_session_labels` | One row per (session, day) judged automation, with the reason | Explaining *why* a day looks odd; auditing the labelling rules | — |
-| `session_engagement` | Sessions that fired the 4-second engagement beacon (since 2026-09-02) | The "is this a person" signal behind the labelling rules; engaged-session counts | Anything before 2026-09-02 |
-| `trip_views` | One row per (trip, session, UTC day) open, from 2026-09-05 | **The North Star (TODT).** Whether a trip is opened while it happens by its own people (owner, collaborator, or a participant via `participant_id`); opens by anyone else are reported beside it | Volume — it counts opens of trips, not visits to the site |
-| `trip_participants` | One row per (trip, participant cookie) "I'm going" tap, from 2026-09-05; `left_at` set on *Not going* or owner removal | **Recipient → participant rate, participants per shared trip** (Phase 2) — `get_live_trip_participant_metrics()` | Volume; anything read with the anon key (RLS on, no policies: service role only) |
-| `wizard_step_events` | Wizard funnel steps per session | Activation: step-1 → step-2 → result → saved | — |
-| **Google Search Console** (`scripts/gsc-daily.mts`) | Clicks and impressions from Google search, on Google's own pipeline | **The independent check.** If organic clicks are flat, real search traffic did not move, whatever anything else says | Non-search traffic; anything more recent than 2 days ago (it lags) |
-| **GA4** | Sessions from visitors who **accepted cookies**, processed by Google | Behaviour of consented users; anything that needs GA4's own reports | **Traffic volume, ever.** See §2 |
-| `get_live_trip_baseline()` / `scripts/baseline-snapshot.mts` | All of the above, in one reproducible block over the last N full UTC days, or a past window with `--to=YYYY-MM-DD` | The plan's baseline and the weekly ritual | Hand-edited numbers |
+| `page_views_human` → `page_view_rollup` → the admin RPCs | Every page view on production, minus self-declared crawlers, prefetches and sessions labelled as automation | How many people came, from where, to which pages | — |
+| Our event tables (`wizard_step_events_human`, `funnel_events`, `consent_events`, `session_engagement`, `trip_views`, `trip_participants`) and the records themselves (`users`, `trips`, `kept_plans`) | What visitors did, written by our own code whatever they answered on the cookie banner | Funnel and activation counts, saves, the share loop, the consent rate | — |
+| Search Console | Clicks and impressions from Google search, on Google's own pipeline | The tie-breaker for search traffic | Other channels; the last two days |
+| GA4 | Visitors who accepted analytics cookies | Rates, paths, landing pages and content inside that sample | Totals, ever |
+| PostHog | Browser events from visitors who answered the banner (see *PostHog*), plus events sent from our server | Funnels, retention, paths and recordings inside that sample | Totals, ever |
+| Vercel Web Analytics | Page views and five funnel milestones, without cookies or consent | Milestone counts and the ratios between them | Traffic: our automation labels don't apply to it |
+| Sentry | Errors from browsers and servers, and a sample of server requests | What broke, where, and how slow the server is | Usage |
 
-Two rules follow from the table:
+Three rules follow:
 
-1. **A traffic number that did not come from `page_views_human` (or the rollup and RPCs built on it) is not a traffic number.** It is a lead to investigate.
-2. **GSC is the tie-breaker.** It shares no code, no cookie and no pipeline with anything we run.
+1. A traffic number that didn't come from `page_views_human`, or from the rollup and RPCs built on it, is a lead to check, not a traffic number.
+2. Search Console is the tie-breaker. It shares no code, cookie or pipeline with anything we run.
+3. GA4 and PostHog are samples. Their size moves whenever the cookie banner changes (its design, wording or placement) and with the mix of languages and devices. Read rates and paths from them, never totals.
 
----
+## Comparing tools
 
-## 2. Why GA4 cannot measure our traffic
+- Each tool ends its day at a different midnight: our tables and PostHog in UTC, GA4 in the property's time zone (Europe/Rome), Search Console in Pacific time. Compare tools over the same whole week, never day by day.
+- GA4 and Search Console are still processing their last two days. Leave those out.
+- Expect the levels to differ, and compare how each one moves. The consent rate for the same period (`get_consent_funnel(from, to)`) says how big the GA4 and PostHog samples are.
 
-GA4 runs in Google Consent Mode v2 *advanced* since 2026-09-16 (`components/analytics/ConsentGatedTags.tsx`, `lib/analytics/ga-consent.ts`): gtag.js loads with every storage type denied and sends cookieless pings until the visitor accepts, so Google can *model* the non-consented majority in its own reports; `NEXT_PUBLIC_GA_CONSENT_MODE=gated` restores the 2026-09-02 behaviour of not mounting GA4 at all before acceptance. Modelled numbers are Google's estimate, never ours. Most visitors never accept, so GA4 sees a **minority sample** whose size depends on the consent rate that day, the locale mix and the device mix. Its absolute numbers are small and its day-to-day swings are dominated by who happened to click "Accept".
+## Page views: `page_views_human` and the rollup
 
-On top of that, GA4's standard reports had a **platform-wide processing bug from 2026-09-01** that showed sharply reduced or zero traffic while collection continued (acknowledged by Google; Realtime kept working). So on the one day it mattered, GA4 was both structurally partial and actually broken.
+**Recording.** The middleware writes a `page_views` row for each browser navigation (a GET with `sec-fetch-dest: document`, see `lib/analytics/page-view-classifier.ts`), on production only. In-app navigations are recorded by `components/analytics/PageViewBeacon.tsx` through `/api/page-view`. A prefetch never counts. The session is the `mt_session_id` cookie. Every response carries `x-mt-pv: counted | counted;dry | skip:<why>`, so a deployment can be checked with curl.
 
-GA4 is fine for what it is: the behaviour of consented users inside Google's tooling. It is not, and by construction cannot be, the count of people who came. `docs/GA4_SETUP_GUIDE.md` covers its configuration; nothing in it changes this.
+**The human view.** `page_views_human` is `page_views` without the rows marked `is_bot` (self-declared crawlers, `lib/analytics/bot-detection.ts`), the rows marked `is_prefetch` (see *Things that mislead*), and the session-days labelled as automation in `page_view_session_labels`.
 
----
+**When numbers land.** Two nightly jobs cover the last three UTC days: `label_automation_sessions()` at 02:20 UTC, then `refresh_page_view_rollup()` at 02:40 UTC. Yesterday is complete after 02:40 UTC. Older days keep the figures they were built with, so a change to the labelling rules shows as a step in the daily series. Windows on either side of a step aren't comparable.
 
-## 3. The worked example: 1–2 September 2026
+**The rollup.** `page_view_rollup` holds one row per UTC day and `dimension`:
 
-**What GA4 said:** total users fell from 486 on Sept 1 to 75 on Sept 2, **−84.57%**, "almost certainly a widespread GA4 data processing issue rather than an actual loss of traffic".
+- `total`: human views, and `unique_visitors`, which counts distinct sessions that day, not people.
+- `all`: every view, crawlers and automation included.
+- `country`, `city`, `path`, `section` and `referrer`.
+- `entry_channel`: see *Where visitors come from*.
 
-That conclusion was right; its reasoning was not usable, because GA4 explaining a GA4 drop is not evidence. Two instruments that share nothing with GA4 settled it:
+The admin dashboard reads it through the `get_page_views_*` RPCs, `get_engagement_metrics` and `get_acquisition_breakdown` (`app/api/admin/stats/route.ts`, `lib/admin/stats/`).
 
-**Search Console** (organic clicks, Google's pipeline): Sept 1 = **187**, against a 28-day median of **188**. Flat to within one click. Real search traffic did not move.
+**Access.** Only the service role can read `page_views` and `page_views_human`. User agents are stored once, in `user_agents`; read them through `page_views_with_ua`. How long rows are kept is under *Retention*.
 
-**First-party `page_views`**, before labelling: Sept 1 was not a normal day — it was **inflated**. 20,600 raw views against a ~9,000 baseline, and the excess traced to one place: Cittadella, Italy, **612 sessions, one Chrome user-agent, 6,865 views, ~62 sessions per hour for seven hours, 0.0% engaged**. A scheduler, not people. Sept 2 (9,204 raw) was inside the previous week's normal range.
+## Automation labels
 
-So "−84.57%" compared a bot-inflated day to a normal one, in an instrument that was also broken. The corrected week, from the rollup after labelling (Phase 0.2):
+`label_automation_sessions()` writes one row per session and day it judges automation, with a `reason`. A session that several rules match gets the reason of the first in this list. The order changes only the recorded reason, never whether the session leaves the human view. The thresholds are in the function.
 
-| Day | raw `all` | human `total` | **human visitors** | labelled | reason |
-|---|---|---|---|---|---|
-| Aug 29 | 8,771 | 6,503 | 1,380 | 0 | — |
-| Aug 30 | 10,294 | 8,336 | 1,423 | 0 | — |
-| Aug 31 | 10,177 | 7,976 | 1,252 | 0 | — |
-| **Sep 1** | **20,600** | 10,003 | **1,456** | **6,759** (605 sessions) | `legacy_sweep` |
-| Sep 2 | 9,204 | 6,209 | 1,182 | 1,003 (12) | `heavy_unengaged` |
-| Sep 3 | 8,122 | 5,915 | 1,119 | 264 (3) | `heavy_unengaged` |
-| Sep 4 | 8,917 | 7,062 | 1,266 | 0 | — |
-
-Human visitors Sept 1 → Sept 2: **1,456 → 1,182, −19%**, inside the week's own range of 1,119–1,456. Nothing happened. (Sept 1's human *views* still sit ~25% above their neighbours: the rule for days before engagement data exists is deliberately strict and catches only the single-user-agent sweep. That residue is documented, not hidden.)
-
-One more thing the raw data revealed: the sweep came from **Cittadella**, and so did an earlier `MonkeyTravelAudit/1.0` run. Cittadella is the founder's own town. The "best day in the site's history" was most likely our own QA tooling. It is labelled either way: automation is automation.
-
----
-
-## 4. How to read the next alarm — in this order
-
-1. **Search Console first.** `npx tsx scripts/gsc-daily.mts`. If organic clicks are flat, real search traffic did not move. Stop treating it as a traffic loss.
-2. **Human view by day.** `select day, views, unique_visitors from page_view_rollup where dimension = 'total' order by day desc limit 14`. Compare the alarming day to the *previous week's range*, not to the day before it.
-3. **Was the reference day inflated?** `select reason, count(*), sum(views) from page_view_session_labels where day = '<day>' group by 1`. A big `legacy_sweep` or `ua_city_sweep` on the day *before* the drop means the drop is the sweep ending.
-4. **Raw vs human on that day.** `page_view_rollup` dimension `all` vs `total`. A gap far above the usual 10–25% is automation, labelled or not yet labelled.
-5. **Device and country split** of the suspicious sessions. Real consumer traffic on a travel site is mobile-heavy and spread across plausible markets; desktop-skewed, single-city, zero-engagement traffic is a script.
-6. **Only then GA4**, and only for consented-user behaviour. Never to size the change.
-7. **Do not change tracking, tags or middleware in response to a number** until steps 1–5 are done. And **never block traffic** (standing rule): label it.
-
----
-
-## 5. Things that will mislead you, and have
-
-- **`is_bot` only knows self-declared crawlers**, on purpose (`lib/analytics/bot-detection.ts` explains why). A script presenting Chrome is invisible to it. The label table is the second layer; its rules are in migration `20260905090000`.
-- **"≥ N views in a day = bot" is a wrong rule.** Engagement *rises* with view count (0.4% of 1–2-view sessions fire the beacon; 33.9% of 50+). The heaviest sessions are disproportionately real, engaged people. The automation tell is the *group* (one city × one user-agent × many sessions × no engagement), not the individual session.
-- **Rotating user-agents and patient headless browsers beat the first-pass rules.** A Singapore fleet (14,002 "human" views in the fortnight to 2026-09-13, 14.7 views per session against 4.8 for the US) rotated its Chrome major per session, so no exact-UA group ever reached 15 sessions, and it stayed on pages long enough to fire the engagement beacon. Migration `20260913110000` adds `ua_family_sweep` (the sweep on a version-stripped UA), `family_conversionless` (a 15+ session day×city×UA-family group with no signed-in member and no `wizard_step_events` from anyone that day: every member is labelled) and `stale_chrome` (Chrome major < 120; zero signed-in sessions in 1,513 session-days). Those last two are the only rules that label an engaged session. `ua_city_sweep` did fire once the fleets started: check `reason` before reading a country.
-- **A fleet that runs JavaScript fires wizard events.** On 2026-09-17, 371 of the 457 sessions that reached step 1 were the Singapore fleet; the clean number was 86. Read the funnel from `wizard_step_events_human` (the table minus labelled session-days, same mechanism as `page_views_human`), never from the raw table: `get_ux10x_rates`, `vw_ux10x_daily_baseline` and `scripts/flag-review.mts` do since 2026-09-18. Two functions read the raw table: `label_automation_sessions`, because it needs the events before the labels exist, and `compute_wizard_planning_stats` (the hourly figure behind `get_wizard_planning_stats`), which repeats the view's label test so it can bound the labels to its 30-day window; `lib/analytics/stats-cache.vitest.ts` keeps the two equal.
-- **A crawler that runs our JavaScript looks like a planner who left at step 1.** Since at least 2026-09-01 a client opens `/trips/new` (any locale) with no referrer, one view per session, from cloud locations (Beijing, Singapore, Hong Kong, Santa Clara, a no-city US pool) on rotating user-agents, on 2026-09-30 every ~30 minutes. It renders the wizard far enough to log `step_1_destination_dates` and leaves before the first 10-second heartbeat. Every older rule exempts a session with wizard rows, so it sat in `wizard_step_events_human` as "left at step 1". `wizard_landing_fleet` (migration `20261001120000`, priority 12) labels such a session (one anonymous, no-referrer view of `/trips/new`, wizard rows that never pass step 1, no consent or funnel row, no other day in the window) when 3+ of them from the same place that day left before the heartbeat without firing the engagement beacon; that pool's engaged members go with it. Replayed over the 14 days to 2026-10-01 it adds 41 labels (Beijing and Singapore on Sep 18, Sep 30 and Oct 1, a 15-session burst from Austin on Sep 28), overlaps the already-labelled fleets of Sep 17 and Sep 25, and no other place qualifies. A session whose page view was never written (before #291 on 2026-10-01) cannot be judged and stays in, so step-1 counts before that date still carry part of it.
-- **`session_engagement` starts 2026-09-02.** "Never engaged" means nothing before that date.
-- **Local dev records no `page_views`** (and therefore sets no `mt_session_id` cookie). Verify tracking behaviour with production data or the probes, never with the local pane.
-- **React StrictMode double-fires mount beacons in dev.** Two POSTs 72 ms apart are not a bug; the database dedupes.
-- **PostgREST RPCs time out at 8 seconds.** A query that runs in a direct session proves nothing about a script. `page_views` heap is scattered (a 315k-row backfill), so window scans must go through `idx_page_views_human_cover` (index-only) or they cost ~4 s each.
-- **`trip_views` counts opens of a trip, per visitor, per day** — the same person opening `/trip/x` and then `/shared/x` on the same day is one row. That is the intended meaning of "open".
-- **The consent rate itself is measured in `consent_events`** (banner `shown` / `minimized` / `accept_all` / `essential_only` / `settings_saved`, with the banner variant and the page; `get_consent_funnel(from, to)` returns acceptance per variant). Before 2026-09-16 only signed-in users' choices were stored (`users.cookie_consent`), so the anonymous acceptance rate was unknowable. PostHog runs `cookieless_mode: 'on_reject'` since the same date: "Essential Only" visitors are counted cookielessly (nothing stored on the device, daily-rotating server-side hash) once the project setting "Cookieless server hash mode" is on; before any choice PostHog captures nothing.
-- **Consent means GA4 and PostHog are both partial.** PostHog's signup tracking, for example, once captured 2.7% of signups for an unrelated reason; the point is the same — read activation from the database (`/admin`'s DB panel), not from a consent-gated tool.
-- **Every `page_views` row before 2026-09-17 over-counts multi-page sessions about 3x.** Next 16 prefetches every visible link, and the guard meant to skip prefetches checked `next-router-prefetch`, a header Next's own middleware adapter deletes (with `rsc` and the rest of the Flight headers) before middleware runs, so it never fired: each hover or viewport prefetch became a "view" (`/blog → /` 90 ms apart, all nav-menu targets; 4,377 of 5,359 consecutive same-session views on 2026-09-16 were under 500 ms apart). Sessions were inflated as well: prefetches fired in parallel with the first document response, before the `mt_session_id` cookie landed, so each was minted its own session id. Such phantom sessions (every row with an internal referrer, at most 8 rows, all within 3 seconds, never signed in) were 251 of 981 human sessions on 2026-09-15 and 296 of 1,014 on 2026-09-16, so sessions and visitors before 2026-09-17 17:10 UTC run about 35% high against the days after; per-session engagement is the only series untouched. Since then the middleware counts browser navigations only (`sec-fetch-dest: document`, the one signal Next does not strip: `lib/analytics/page-view-classifier.ts`) and `components/analytics/PageViewBeacon.tsx` records in-app navigations through `/api/page-view`, which a prefetch can never trigger. Every response carries `x-mt-pv: counted | counted;dry | skip:<why>` so a preview deployment can be probed with curl.
-- **A fleet that rotates its user-agent string never trips a per-string rule.** On 2026-09-21 the "Google-referred sessions" series read 287–367/day against 120–195 the weeks before, and was reported as growth. It was a Singapore pool on Chrome/130–135 (21 strings, no city on the geo lookup, referrer exactly `https://www.google.com/`, one view per session, none signed in), 5/day on Sep 15 → 160–300/day, plus the #149 classifier change on Sep 17. Every earlier rule keys on one exact string or one (city, UA) group, so a pool that spreads 21 strings never reaches a threshold. The `nocity_lagging_fleet` label (since 2026-09-21) marks the session itself: no city, Chrome major 15+ behind the day's newest, exactly one view, never signed in, on a day when 30+ such sessions came from its country. Session-level on purpose: the same no-city bucket holds a heavier lagging pool the older rules already catch, and a group average would sweep real multi-view visitors in with it. Replayed over Aug 19–Sep 21 it labels 1,328 sessions (667 already labelled by older rules) and leaves Google landings flat at 153–245/day. Before reading any "traffic from Google" number, split it by `page_view_session_labels.reason`.
-- **The history before the fix is corrected in place, not deleted.** `page_views.is_prefetch` marks the rows the bug wrote (a row that follows another row of the same session within 500 ms, before 2026-09-17 17:10 UTC; set by `flag_prefetch_rows()`), and `page_views_human` excludes them, so views per session before and after the fix read the same (2.35 against 7.47 raw on 2026-09-16). Phantom sessions are labelled `phantom_prefetch` in `page_view_session_labels`, so sessions and visitors are comparable too. One row per burst survives and which one is arbitrary, so path-level numbers before the fix stay approximate. A `document_burst` label (10+ rows in one 30-second window, rows after the fix only) covers the fleet that fetches every link on a landing page as full page loads; before the fix that shape was what prefetch looked like, which is why the rule is fenced to post-fix rows. The correction only reaches prefetches within 500 ms of the page view. A link prefetched later, as it scrolled into view, still reads as a visit before 2026-09-17. So any "went on to X" read across that date must use an event X fires itself, not a page view of X: recipient → wizard by page view read 26.8% for 2026-08-08 → 09-05, where the wizard's own `step_1_destination_dates` gives 4.5% (`get_live_trip_baseline` uses the event since 2026-10-01).
-
----
-
-## 6. Where the pieces live
-
-| | |
+| `reason` | What it catches |
 |---|---|
-| Human view + labels + nightly job | `supabase/migrations/20260905090000_page_views_automation_labels.sql`; pg_cron `label-automation-sessions` 02:20 UTC, `refresh-page-view-rollup` 02:40 |
-| Covering index for window reads | `supabase/migrations/20260905160000_page_views_covering_index.sql` |
-| UA-level bot detection | `lib/analytics/bot-detection.ts` |
-| Page-view tracking + session cookie | `lib/supabase/middleware.ts` (`trackPageView`, `mt_session_id`), `middleware.ts` (public-only branch) |
-| Engagement beacon | `app/api/page-engaged/route.ts` → `session_engagement` |
+| `phantom_prefetch` | A session made only of link prefetches whose page landed in another session |
+| `document_burst` | Full page loads in a burst no person produces, from a session that never signed in |
+| `heavy_unengaged` | A very heavy session that never signed in and never fired the engagement beacon |
+| `ua_city_sweep` | Many sessions in a day from one city with one exact user-agent string, almost none engaged |
+| `ua_family_sweep` | The same with the browser version taken out of the user agent, for pools that rotate versions |
+| `family_conversionless` | A large group from one city and one browser family, with many views per session, where nobody signed in or used the planner. Its engaged members go too |
+| `ua_lagging_fleet` | One exact user-agent string across many sessions in a day, nobody signed in, and either several Chrome versions behind the day's newest, about one view per session, or spread over many countries |
+| `nocity_lagging_fleet` | One-view, never-signed-in sessions with no city on the geo lookup and an outdated Chrome, when many come from one country that day |
+| `stale_chrome` | A Chrome version far behind current releases that never signed in, engaged or not |
+| `legacy_sweep` | One city and one user agent with many multi-page sessions, on days before engagement data existed |
+| `cookieless_internal_entry` | A session whose only row is one anonymous view with our own site as the referrer, and no sign that it ran our JavaScript (no engagement, consent, wizard or funnel row). Protected `/trips` and sign-in paths, and sessions seen on another day, are exempt |
+| `entry_burst_fleet` | Many one-view, no-referrer, never-signed-in sessions opened in one short window, nearly all on different paths: a sitemap crawl |
+| `wizard_landing_fleet` | One anonymous, no-referrer view of `/trips/new` whose wizard rows never pass step 1, gone before the first heartbeat without engaging, when several come from one place that day. Engaged members of that group go too |
+
+`phantom_prefetch` covers only rows from before the prefetch fix, and `legacy_sweep` only days before engagement data. Their cutoffs are `v_fix` and `v_engaged_from` in the function, so neither fires on new days. `document_burst` covers only rows after the fix.
+
+Labelling never blocks. `page_views` keeps every row until its retention ends; only the human view and what is built on it change. Never block or rate-limit traffic because of a number: label it.
+
+## Where visitors come from
+
+GA4's channel report is the channel mix of people who accept cookies. Ours is `page_view_rollup` with `dimension = 'entry_channel'`, built from each session's first human view:
+
+- `key_1` is the channel, from `acquisition_channel(referrer)`: `direct`, `internal`, `dev`, `ai_assistant`, `google`, `bing`, `other_search`, `social` or `other`.
+- `key_2` is the section the session entered: `landing`, `trips`, `blog`, `destinations`, `shared trip` or `other`.
+- `views` counts the sessions that entered there (the one dimension where it counts sessions), and `unique_visitors` those that reached `/trips/new` in the same session. A session that spans midnight counts on the day it started.
+
+Read it with `get_acquisition_breakdown(p_days)` for the mix and `get_acquisition_trend(p_days)` for movement. Two things to know:
+
+- `internal` is a gap in measurement, not a channel: the session's first recorded view already came from our own site, so its real entry was missed. The admin panel shows it as "Continuation (unattributed)" rather than folding it into Direct.
+- `ai_assistant` is tested before `google` and `bing`, because Gemini and Copilot referrers carry those hosts.
+
+## Our other records
+
+- **The planner funnel.** Read `wizard_step_events_human`: `wizard_step_events` minus the labelled session-days, because a fleet that runs our JavaScript fires wizard events too. `get_ux10x_rates` and `vw_ux10x_daily_baseline` read it. Two functions read the raw table on purpose: `label_automation_sessions()`, which needs the events before any label exists, and `compute_wizard_planning_stats()`, which repeats the label test within its own window (`lib/analytics/stats-cache.vitest.ts` keeps the two in step).
+- **Engagement.** `session_engagement` holds the sessions that kept a page in view for a few seconds (`components/analytics/EngagementBeacon.tsx` → `/api/page-engaged`). It is the "is this a person" signal behind several labels.
+- **Trip opens.** `trip_views` has one row per trip, session and UTC day (`app/api/trips/[id]/view/route.ts`, `lib/analytics/trip-view.ts`). It feeds the North Star: whether a trip is opened during the trip by its own people (owner, collaborator or participant). Opens by anyone else are reported beside it.
+- **Participants.** `trip_participants` has one row per trip and participant cookie that tapped "I'm going"; `left_at` is set on "Not going" or when the owner removes them. Read it with `get_live_trip_participant_metrics()`, as the service role.
+- **Shared-link visits.** `funnel_events.share_link_visited` is a page load, by someone other than the owner, of a trip that has an owner (`lib/analytics/share-visit-classifier.ts`). PostHog's `crew_link_visited` follows the same verdict. `metadata.crew_ask` is true when the link asked the group to vote (`?vote=1`).
+- **Consent.** `consent_events` records the banner being shown and minimised and each decision (`accept_all`, `essential_only`, `settings_saved`), with the banner variant, the page and where the decision was taken (`origin`: the banner card, the minimised bar or the settings window). `get_consent_funnel(from, to)` and `get_consent_funnel_by_origin(from, to)` return the rates.
+- **Baseline.** `get_live_trip_baseline()` and `scripts/baseline-snapshot.mts` give all of the above in one reproducible block over the last N full UTC days, or for a past window with `--to=YYYY-MM-DD`.
+- **Suppressed visa reminders.** A `scheduled_notifications` row with `skipped_reason` `domestic_trip:<country>` is a visa reminder that wasn't sent because the trip is in the traveller's own country (`lib/notifications/domestic-trip.ts`).
+
+## Retention
+
+`purge_old_analytics_rows()` runs every night (pg_cron `purge-old-analytics-rows`):
+
+- `page_views`: human rows 90 days, the rows the human view leaves out 7 days. `page_view_rollup` keeps the daily totals.
+- `wizard_step_events`: 90 days, and the planner's step-1 heartbeats 14 days.
+- `page_view_session_labels`: at least 14 days, and up to 90 while that session's wizard events or trip opens from the same day remain, so the human funnel stays clean for as long as it can be read.
+- `consent_events`: banner impressions 30 days, decisions 13 months. Acceptance rates can be read for the last month only.
+
+A question about a longer window needs the rollup, or a snapshot saved at the time.
+
+## Reading a traffic alarm, in this order
+
+1. **Search Console first:** `npx tsx scripts/gsc-daily.mts`. If organic clicks are flat, search traffic didn't move.
+2. **Human views by day:** `select day, views, unique_visitors from page_view_rollup where dimension = 'total' order by day desc limit 14`. Compare the day with the previous week's range, not with the day before.
+3. **Was the reference day inflated?** `select reason, count(*), sum(views) from page_view_session_labels where day = '<day>' group by 1`. A large sweep on the day before a drop means the drop is the sweep ending.
+4. **Raw against human on that day:** the rollup's `all` against `total`. A gap much wider than on the days around it is automation, labelled or not yet.
+5. **Device and country split** of the suspicious sessions. Real visitors spread across devices and plausible markets; a desktop-heavy, single-city group that never engages is a script.
+6. **Only then GA4 or PostHog**, for how consented visitors behaved, never to size the change.
+7. **Don't change tracking, tags or middleware** because of a number until steps 1 to 5 are done. Never block traffic: label it.
+
+## Things that mislead
+
+- **`is_bot` knows only self-declared crawlers**, on purpose (`lib/analytics/bot-detection.ts` says why). A script that presents as Chrome passes it; the labels are the second layer.
+- **A heavy session isn't a bot by itself.** The heaviest sessions are often engaged people. Automation shows as a group: one place, one browser, many sessions, no engagement.
+- **Pools that rotate their user-agent string never trip a per-string rule.** The family and no-city rules exist for them. Before reading traffic from Google or from one country, split it by `page_view_session_labels.reason`.
+- **A fleet that runs our JavaScript fires wizard events.** Read the funnel from `wizard_step_events_human`, never from the raw table.
+- **Engagement data has a start.** "Never engaged" means nothing for days before the first `session_engagement` row.
+- **Local development and preview deployments record no page views** (`x-mt-pv: counted;dry`). Check tracking on production, with a probe.
+- **A probe on production writes real rows** under an `e2eprobe-` session until they're deleted. Some reads skip that prefix; `page_views_human` doesn't.
+- **React StrictMode fires mount beacons twice in development.** The database dedupes them.
+- **Calls through the API run under a statement time limit**, so a query that finishes in the SQL editor can time out from a script. Read the rollup, or a short recent window of `page_views_human`.
+- **A trip open is one per visitor, trip and UTC day:** opening `/trip/x` and then `/shared/x` the same day is one `trip_views` row.
+- **Consent makes GA4 and PostHog partial.** Read activation from our database (`/admin`), not from a consent-gated tool.
+- **Rows from before the prefetch fix over-count.** Each link prefetch used to be recorded as a view, and prefetches that raced the session cookie became sessions of their own. Those rows are marked `is_prefetch` and those sessions labelled `phantom_prefetch`, so the human view leaves both out. But one row per burst survives, and a link prefetched later, as it scrolled into view, still reads as a visit. Path-level numbers from before the fix stay approximate; for "went on to X" across it, use an event X fires itself, not a page view of X.
+
+## Search Console
+
+Clicks and impressions from Google search, on Google's own pipeline. `npx tsx scripts/gsc-daily.mts` prints the daily series; set `DAYS` for another window. It needs the Search Console service-account key (see the script). Its days end at midnight Pacific time, and its last two days are incomplete. It covers Google search only.
+
+## GA4
+
+GA4 loads only on `monkeytravel.app`, in Google's Consent Mode "advanced": before a choice, and after "Essential only", the tag sends cookieless pings and stores nothing. Google turns such pings into modelled visitors only for properties with enough consented traffic to qualify for its behavioural modelling, and this one doesn't. So GA4 reports the visitors who accepted analytics cookies. The events it receives, its setup and how to read it are in `docs/GA4_SETUP_GUIDE.md`.
+
+## PostHog
+
+**Who it sees.** The SDK loads for everyone at idle (`instrumentation-client.ts`) but captures nothing until the visitor answers the cookie banner.
+
+- **Accept:** normal capture, with a cookie.
+- **Essential only:** cookieless capture: no cookie or storage, an id PostHog computes on its servers and changes daily, and `$cookieless_mode` on every event (`lib/analytics/posthog-consent.ts`). PostHog keeps these events only when the project setting "Cookieless server hash mode" (Project settings → Web analytics) is on. Until it is, they are dropped on arrival, and PostHog's browser events come only from visitors who accepted.
+- **No answer:** nothing is captured.
+
+Session recordings run only with both analytics and session-recording consent.
+
+**Events from our server.** Events sent through `captureServerEvent` (`lib/posthog/server.ts`) don't depend on the banner: the share loop (`crew_link_created`, `crew_link_visited`, `participant_joined`, `crew_vote_cast`), copying and publishing trips, AI generations (`$ai_generation`) and a few more. Their id is the account id, a functional browser cookie, a per-visit id, or a shared placeholder such as `anonymous` when there is nobody to name; `crew_link_visited` says which in `visitor_scope`. Don't count unique people across those kinds of id.
+
+**Identity.** Only identified people get a person profile (`person_profiles: "identified_only"`). With analytics consent, the code identifies a person at sign-up, at sign-in and on signed-in page loads, with profile properties that include the account's email and name. At sign-up and sign-in it also links the browser's anonymous id to the account, so the path before signing up joins the person (`lib/posthog/identify.ts`). A visitor on "Essential only" is never tied to an account. After the sign-out reset ships, a browser with no session that PostHog still knows as a signed-in person starts again as a new anonymous visitor.
+
+**Link keys.** `before_send` replaces the key in every address on an event, on the person properties it sets and in a recording's page-change entries (`lib/analytics/scrub-url.ts`). Paths become `/shared/:token`, `/invite/:token`, `/feedback/:token` and `/join/:code`, and the `token`, `code`, `token_hash`, `k` and `s` query parameters go, as does a fragment that carries parameters.
+
+**Hosts.** PostHog loads wherever its key is set, a development server or a preview deployment included. The project's internal and test users filter should leave those hosts out and be on by default. Events sent from our server carry no `$host`, so the filter should exclude the other hosts rather than require the production one.
+
+**The growth dashboard.** PostHog → Dashboards → "Growth: activation, return, share loop". Every insight filters out internal and test users.
+
+- **Activation:** step 1 of the planner, then a plan, then a saved trip, within 7 days, by device type.
+- **New visitor's save path:** a plan, then asked to sign in to save, then signed up, then saved, within 7 days.
+- **Return:** of the people who signed up each week, the share who viewed a page in each following week.
+- **Share loop:** each week's share links created, link visits, people joining a trip, votes cast, and plan links copied without an account.
+- **Sky test:** a plan, then a saved trip, split by `result_variant` (`sky` or `classic`). A readout aid; the official readout is `wizard_step_events.result_variant` in our database.
+
+To read it:
+
+- Activation, the save path, return and the sky test use browser events, so they show the consented sample. Read the conversion between steps, not how many entered.
+- A visitor on "Essential only" gets a new id every day, so views that span days follow only visitors who accepted. Return also needs a signed-in person.
+- The share-loop lines are server events and don't depend on the banner, except "plan links copied", a browser event. Compare the server lines with each other, such as visits per link created, not with the browser line.
+- Volumes are small. Compare weeks, and look at the counts under a rate before trusting it.
+
+## Vercel Web Analytics
+
+`<Analytics />` runs on Vercel deployments (`app/[locale]/layout.tsx`). It needs no cookies and no consent, so it also counts the visitors GA4 and PostHog miss. Besides page views, `trackMilestone` in `lib/analytics.ts` sends five funnel milestones, each with at most two properties (the plan's limit):
+
+| Event | Properties |
+|---|---|
+| `itinerary_generated` | `days` |
+| `plan_kept` | `days` |
+| `sign_up` | `method` |
+| `trip_created` | `from` (`template` for a ready-made trip, otherwise `planner`), `days` |
+| `share` | `method` |
+
+Use it for milestone counts and the ratios between them. Its page views don't pass through our automation labels, so traffic still comes from the rollup. A milestone fires in the browser, which a fleet running JavaScript can reach too: when one jumps, check it against our own tables.
+
+## Sentry
+
+**Browser.** Errors only. The SDK isn't in any page's bundle: two window hooks catch errors from the start, and the SDK is fetched on the first error, or at idle for a visitor who agreed to session recording (`lib/observability/sentry.ts`). The browser sends no traces. Session replay records only with session-recording consent. `ignoreErrors` and `denyUrls` in `instrumentation-client.ts` drop noise from extensions, dropped connections and translation proxies. React error boundaries report through `lib/observability/report-boundary-error.ts`, with the raw stack, Next's error digest and the route.
+
+**Server and edge.** Errors, and tracing on a sample of requests (the rate is in `sentry.server.config.ts` and `sentry.edge.config.ts`), sent as one transaction per request (`traceLifecycle: "static"`).
+
+**Handled failures.** A failure the code handles itself throws nothing, so Sentry's hooks never see it. Two paths report it through `lib/observability/server-failure.ts`:
+
+- `apiError` (`lib/api/response-wrapper.ts`) with a 5xx status other than 503, as an error. A 503 is a service switched off, or a model outage the AI code reports itself.
+- `logWriteError` (`lib/supabase/log-write-error.ts`) on the server, for a refused database write the code carries on from, as a warning. Browser pages that call it only log.
+
+Each kind (its fingerprint) is sent at most once a minute per server instance, after the response. So an issue's event count tells you in how many minutes it happened, per instance, not how many requests failed. For counts, read the function logs.
+
+**Tracing stays in the server build.** `next.config.ts` must not set `bundleSizeOptimizations.excludeTracing`. `withSentryConfig` turns it into a build-time flag that also applies to the server and edge bundles, which removes tracing there, and then no spans are sent at all. `lib/observability/sentry-trace-lifecycle.vitest.ts` fails if it comes back. The browser needs no such flag: it never traces.
+
+**Source maps.** The build uploads them when `SENTRY_AUTH_TOKEN` is set (`next.config.ts`). A failed upload logs a warning and the build carries on, and that build's stacks stay minified.
+
+**Releases and environments.** The release is the commit (`NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA`). The environment comes from `NODE_ENV`, so every deployed build, preview or production, reports `production`. Local development reports nothing unless `SENTRY_ENABLE_DEV=1` (server) or `NEXT_PUBLIC_SENTRY_ENABLE_DEV=1` (browser) is set.
+
+**What it collects.** `lib/observability/sentry-data-collection.ts` lists what Sentry may send besides the error, in every runtime.
+
+**Alerts.** A notification rule for high-priority issues, and an uptime monitor on `/api/health`, which checks the database too. There is no alert on error volume, and the scheduled jobs have no Sentry monitors, so a job that stops running raises nothing.
+
+## Where the pieces live
+
+| What | Where |
+|---|---|
+| What counts as a page view | `lib/analytics/page-view-classifier.ts`; recorded by `lib/supabase/middleware.ts` (`trackPageView`, the `mt_session_id` cookie) and `components/analytics/PageViewBeacon.tsx` → `/api/page-view` |
+| Crawler detection | `lib/analytics/bot-detection.ts` |
+| Labels and the human view | `label_automation_sessions()`, `page_views_human`, `page_view_session_labels`; pg_cron `label-automation-sessions` |
+| Rollup | `refresh_page_view_rollup()`; pg_cron `refresh-page-view-rollup` |
+| Retention | `purge_old_analytics_rows()`; pg_cron `purge-old-analytics-rows` |
+| Engagement beacon | `components/analytics/EngagementBeacon.tsx` → `/api/page-engaged` → `session_engagement` |
 | Trip opens | `app/api/trips/[id]/view/route.ts`, `lib/analytics/trip-view.ts` |
-| Baseline | `supabase/migrations/20260905160200_live_trip_baseline_retention_window.sql` (current body), `scripts/baseline-snapshot.mts` |
-| Independent check | `scripts/gsc-daily.mts` |
-| Label integrity probe | `scripts/automation-labels-probe.mts` |
-| Admin dashboard reads | `app/api/admin/stats/route.ts` → `get_page_views_*` (rollup), `get_engagement_metrics`, `get_acquisition_breakdown` (sessions, 28 d) |
-| GA4 configuration | `docs/GA4_SETUP_GUIDE.md` |
-
-## entry_burst_fleet label — since 2026-09-24 (the sixth definition change)
-
-A burst sitemap crawler: one page view per session, no referrer, never signed in, desktop Chrome 5+ majors behind the day's newest, spread over 21-27 exact user-agent strings so no single string reaches ua_lagging_fleet's 100-session bar. On 2026-09-23 it arrived in four bursts on a ~3-hour cadence and was about 1,136 of that day's sessions. The rule labels such sessions when 60+ open inside one 15-minute window on 95%+ distinct paths. The path test is the separator: every crawl bucket on 23 Sep was 99-100% distinct paths; the only other 60+ bucket (18 Sep 18:30) was 74% distinct and led by /trips/new — real people, left alone. Rehearsed and applied over 17-23 Sep: it fires only on 23 Sep.
-
-Sixth change to the definition of a human session since 27 August (fc2b4b6, 3ac47c4, #149, #168, #173, this). It moves only 23 Sep.
-
-## cookieless_internal_entry label — since 2026-09-23 (the fifth definition change)
-
-A session-day whose ONLY row is a single anonymous page view with a monkeytravel.app referrer, that never left a `session_engagement`, `consent_events`, `wizard_step_events` or `funnel_events` row, is labelled `cookieless_internal_entry` (priority 10, last) and leaves `page_views_human`. These are one-shot requests that arrive with no cookie and a same-origin Referer for a page the client never fetched: on 2026-09-20, 1 of 168 had another session view the referring page with the same user-agent in the preceding 30 minutes, against 145 of 161 genuine internal navigations. They are not cookie-blocked people — those still run our JavaScript and write engagement and consent rows.
-
-**The 18 September step is ours, not growth.** `phantom_prefetch` already covered this shape and is fenced to rows before the #149 prefetch fix (2026-09-17 17:10:36 UTC): 216 / 624 / 299 / 575 sessions labelled on 14-17 Sep, then 0. So roughly 150 sessions/day re-entered the human series on 18 Sep because a rule expired. This label restores the pre-18-Sep definition; any read of 18-22 Sep made before 2026-09-23 overstated sessions by 19-31%.
-
-Guards: protected `/trips*` and `/auth/login|signup` paths are exempt, because until #172 (2026-09-22) a middleware redirect dropped the Set-Cookie there and those orphans must stay visible rather than be labelled away; a session seen on an earlier day in the window is exempt. The rule does not fire on a day with fewer than 30 candidates.
-
-This is the fifth change to the definition of a human session since 27 August (fc2b4b6, 3ac47c4, #149, #168, this). Windows either side of any of them are not comparable. Read movement from the daily series.
-
-## acquisition: entry channel per session — since 2026-09-22
-
-GA4 stopped being a usable acquisition view on 2026-09-01, when c17abc3 made the tags obey the cookie banner. In the seven days to 2026-09-22, of 4,636 banner impressions 141 accepted (3.0%), 85 chose essential only (1.8%) and 3,215 (69%) minimised without deciding — so GA4 sees about three visitors in a hundred and its channel chart shows a collapse that did not happen. First-party human sessions were flat across the same period (600–850/day) and Google-referred sessions rose to 241–245/day on 20–21 September.
-
-The replacement is `page_view_rollup.dimension = 'entry_channel'`, written nightly by `refresh_page_view_rollup` from the FIRST view of each session: `key_1` = channel (`acquisition_channel(referrer)`), `key_2` = entry section, `views` = sessions that entered there (the one dimension in that table where the column counts sessions), `unique_visitors` = those that reached `/trips/new` in the same session. Read it with `get_acquisition_breakdown(p_days)` for composition and `get_acquisition_trend(p_days)` for movement.
-
-Three things to know before quoting it:
-
-- **`internal` is a measurement gap, not a channel.** 21–23% of entry sessions carry a monkeytravel referrer on their first RECORDED view, meaning the real entry was missed. It is shown as "Continuation (unattributed)" rather than folded into Direct, which it would inflate by about a fifth. Worth chasing: the likely causes are the session cookie being reissued mid-visit and the first view of a session not reaching `trackPageView`.
-- **Do not compare two windows.** The definition of a human session changed four times between 27 Aug and 21 Sep 2026 (fc2b4b6, 3ac47c4, #149, #168), and `page_views_human` is recomputed with today's rules whenever the rollup is rebuilt. A first draft of this RPC returned a previous-window delta and claimed Google entry sessions were up 1,162%; they are not, and the RPC no longer offers the number. Read movement from the daily series, where a definition change appears as a visible step.
-- **`ai_assistant` is tested before `google`/`bing`** in `acquisition_channel`, because Gemini and Copilot referrals carry those hosts. It was 0.2–0.4% of sessions at launch but reached the wizard at 48.5%, against Google's 38.8% and Direct's 12.8% — the highest-intent channel on the site, and one GA4 could not have shown at a 3% consent rate.
-
-## share_link_visited (funnel_events) — corrected 2026-09-18
-
-Before 2026-09-18 the row was written on every server render of `/shared/[token]` that passed the crawler user-agent test: React Server Components fetches (a router refresh renders the page again), the owner opening their own link, and fleets crawling the ownerless demo trips all counted. The 30-day read that day found 1,494 rows of which about 65 were recipients. From 2026-09-18 a row means a document navigation by someone other than the owner to a trip that has an owner (`lib/analytics/share-visit-classifier.ts`); the PostHog `crew_link_visited` twin follows the same verdict. Rows before that date need the same exclusions applied in SQL: owner sessions, trips without an owner, trips no longer present in `trips`. Rows also carry `metadata.crew_ask` (true when the link had `?vote=1`, the crew ask) so recipients per shared trip can be read per framing; rows before then have no metadata.
-
-## scheduled_notifications.skipped_reason = domestic_trip:<CC> — since 2026-09-19
-
-The `visa_check_7d` slot is suppressed at dispatch when the trip is inside the traveller's own country: every readable activity address in the itinerary resolves to the country on the traveller's most recent page view (`lib/notifications/domestic-trip.ts`, fail-open). The reason carries the country. Count these to see how many visa reminders were redundant; before 2026-09-19 they were sent.
+| Shared-link visits | `lib/analytics/share-visit-classifier.ts`, `lib/analytics/funnel-events.ts` |
+| Baseline | `get_live_trip_baseline()`, `scripts/baseline-snapshot.mts` |
+| Label check | `scripts/automation-labels-probe.mts` |
+| Admin dashboard | `app/api/admin/stats/route.ts`, `lib/admin/stats/` |
+| Search Console | `scripts/gsc-daily.mts` |
+| GA4 | `docs/GA4_SETUP_GUIDE.md` |
+| PostHog | `instrumentation-client.ts`, `lib/posthog/`, `lib/analytics/posthog-consent.ts`, `lib/analytics/scrub-url.ts` |
+| Vercel Web Analytics | `lib/analytics.ts` (`trackMilestone`), `app/[locale]/layout.tsx` |
+| Sentry | `instrumentation-client.ts`, `instrumentation.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`, `lib/observability/`, `next.config.ts` |

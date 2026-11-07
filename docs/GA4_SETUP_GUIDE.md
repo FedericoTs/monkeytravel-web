@@ -1,563 +1,139 @@
-# Google Analytics 4 Setup Guide for Growth
-## Finding Your "Aha Moment" with Sean Ellis Methodology
+# GA4: setup and how to read it
 
----
+GA4 here is a sample: the visitors who accepted analytics cookies. Use it for rates, paths, landing pages and content inside that sample, never for totals. How many people came, signed up or saved a trip comes from our own tables: see `docs/ANALYTICS_SOURCES_OF_TRUTH.md`.
 
-## Implementation Status (Updated Dec 2024)
+## How the tag loads
 
-### Code Implementation: ✅ COMPLETE
+- **Production only.** `components/analytics/ConsentGatedTags.tsx` loads the tag only when the page's host is `monkeytravel.app`. A development server, a preview deployment or a translation proxy serves the same pages under another host and never loads it. `www` redirects to the bare domain before any page renders.
+- **The measurement id** comes from `NEXT_PUBLIC_GA_MEASUREMENT_ID`, set in the deployment's environment, not in the repo.
+- **After the page.** gtag.js is fetched once the page has finished loading, so it never slows the page down; its commands queue until then. GA4's setup check may say the tag isn't placed correctly. That's expected.
+- **Consent Mode v2, "advanced"** (`lib/analytics/ga-consent.ts`). The root layout (`app/[locale]/layout.tsx`) puts a default of every storage type denied in `<head>`, before the tag. Accepting analytics grants `analytics_storage`; accepting marketing grants `ad_storage`, `ad_user_data` and `ad_personalization`. Before a choice, and after "Essential only", the tag sends cookieless pings: no cookie, no client id, nothing stored. Withdrawing consent deletes the `_ga`, `_gid` and `_gcl` cookies set while it was granted. `ads_data_redaction` is on.
+- **The alternative.** `NEXT_PUBLIC_GA_CONSENT_MODE=gated` mounts the tag only after a visitor accepts, with no code change.
 
-All analytics events are now wired up in the codebase. Here's what's tracking:
+## Who GA4 sees
 
-| Event | Status | Location |
-|-------|--------|----------|
-| `itinerary_generated` | ✅ Wired | `app/trips/new/page.tsx` |
-| `trip_created` | ✅ Wired | `app/trips/new/page.tsx` |
-| `destination_selected` | ✅ Wired | `app/trips/new/page.tsx` |
-| `activity_completed` | ✅ Wired | `components/trip/OngoingTripView.tsx` |
-| `early_access_redeemed` | ✅ Wired | `components/beta/BetaCodeInput.tsx` |
-| `beta_code_attempt` | ✅ Wired | `components/beta/BetaCodeInput.tsx` |
-| `session_start` | ✅ Wired | `components/analytics/SessionTracker.tsx` |
-| `user_return` | ✅ Wired | `components/analytics/SessionTracker.tsx` |
-| `trip_viewed` | ✅ Wired | `app/trips/[id]/TripDetailClient.tsx` |
-| `share_modal_opened` | ✅ Wired | `components/trip/ShareModal.tsx` |
-| `trip_shared` | ✅ Wired | `components/trip/ShareModal.tsx` |
-| `referral_link_clicked` | ✅ Wired | `components/trip/ShareModal.tsx` |
-| `limit_reached` | ✅ Wired | `app/trips/new/page.tsx` |
-| `upgrade_prompt_shown` | ✅ Wired | `app/trips/new/page.tsx` |
+Google uses cookieless pings to model the visitors who declined only in properties with enough consented traffic to qualify for its behavioural modelling. This property doesn't qualify, so its reports hold the visitors who accepted analytics cookies, minus the team's browsers once the Internal Traffic filter is active.
 
-### GA4 Admin Setup: 🔧 YOU MUST DO THIS
+How many visitors accept moves with the banner's design, wording and placement, and with the mix of languages and devices. So:
 
-Follow the guide below to configure GA4 custom dimensions, audiences, and explorations.
-Without this setup, the events above will fire but won't be segmentable for aha moment analysis.
+- Read rates inside GA4, such as sign-ups per plan or the share of landing-page sessions that reach a plan. Never read totals.
+- Don't compare GA4 numbers across a change to the banner.
+- GA4's channel, country and device mixes are the mix of people who accept. For everyone, read the rollup's `entry_channel` and `country` rows.
+- To size the sample for a week, divide GA4's organic Google sessions by Search Console's clicks for the same week, or read the acceptance rate with `get_consent_funnel(from, to)`.
 
-**Time required**: ~1-2 hours
+## What the code sends
 
----
+Every event goes through `trackEvent` in `lib/analytics.ts`. GA4's own `page_view`, `session_start`, `first_visit` and `user_engagement` come from the tag; the code sends no versions of its own. Page views on in-app navigation come from Enhanced measurement (see *Setup*).
 
-## What is the "Aha Moment"?
+Every event the code sends also carries two parameters:
 
-The "aha moment" is when a user first experiences the core value of your product. It's the action that, once completed, dramatically increases the likelihood of retention.
+- `locale`: the page's `<html lang>`, so `en`, `es`, `it` or `pt`, or the target language when the browser's translator has translated the page.
+- `signed_in`: whether the page has seen a signed-in account yet. It turns true at sign-in, or when `SessionTracker` confirms the session at idle after a page loads, and stays true until the next full page load. An event sent before that carries `false` even for a signed-in person: a trip page's `trip_viewed` on a fresh load, or the `sign_up` and `login` of an email account.
 
-**Famous Examples**:
-- **Facebook**: Add 7 friends in 10 days
-- **Dropbox**: Upload first file
-- **Slack**: Send 2,000 messages as a team
-- **Twitter**: Follow 30 people
-- **Airbnb**: Complete first booking
+**Key events:** `sign_up`, `trip_created` and `plan_kept`.
 
-**For MonkeyTravel**, potential aha moments to test:
-- Generate first AI itinerary
-- View complete itinerary (scroll to bottom)
-- Check off first activity
-- Share trip with someone
-- Return to view trip within 3 days
+### Planner, accounts and sharing
 
----
+| Event | Sent when | Parameters |
+|---|---|---|
+| `destination_selected` | A destination is picked in the planner | `destination`, `selection_source` (`autocomplete` or `popular`) |
+| `itinerary_generated` | The planner shows a finished plan | `destination`, `duration_days`, `budget_tier`, `generation_time_ms` |
+| `plan_kept` | A plan is kept by its link, without an account | `duration_days` |
+| `sign_up` | An account is created | `method` (`email` or `google`) |
+| `login` | Someone signs in | `method` |
+| `trip_created` | A trip is saved: from the planner, from a ready-made trip, or as a copy of a shared trip | `trip_id`, `destination`, `duration_days`, `budget_tier`, `is_from_template` |
+| `share` | A trip is shared: a link created or copied, sent to WhatsApp, X or email, or shared as a picture | `content_type` (`trip`), `item_id` (the trip id), `method` (`link`, `social`, `email` or `image`) |
+| `referral_link_clicked` | Sent with `share` when the share link is copied, despite its name before anyone clicks it | `referral_code` (the trip id), `share_medium` (`copy`) |
+| `share_modal_opened` | The share window opens | `trip_id`, `trip_destination` (the trip's title) |
+| `share_prompt_shown` | The prompt to invite people appears after a save | `trip_id`, `trip_destination`, `trip_days`, `location` (`post_save`) |
+| `share_prompt_action` | Someone answers that prompt | `trip_id`, `action` (`invite` or `skip`), `location` |
+| `share_link_clicked` | A shared trip page opens, for anyone, the owner included | `trip_id`, `referrer` (`direct` when there is none) |
 
-## Step 1: GA4 Property Configuration
+### Trips, content and returns
 
-### 1.1 Access GA4 Admin
+| Event | Sent when | Parameters |
+|---|---|---|
+| `trip_viewed` | A signed-in owner or collaborator opens a trip page | `trip_id`, `is_own_trip` (always `true`, collaborators included), `trip_status`, `days_since_creation` (despite its name, the days between today and the trip's start date, in either direction), `activities_count` |
+| `activity_completed` | An activity is ticked off during a trip | `trip_id`, `activity_id`, `day_number` |
+| `activity_regenerated` | An activity is swapped for a new suggestion | `trip_id`, `activity_type` |
+| `ai_assistant_used` | A message is sent to the trip assistant | `trip_id`, `message_length` |
+| `view_item` | A ready-made trip opens | `content_type` (`template`), `item_id`, `item_name` |
+| `template_copied` | A ready-made trip is saved | `template_id`, `template_name`, `destination` |
+| `content_viewed` | A blog or destination page opens | `content_type` (`blog_post`, `blog_index`, `destination` or `destination_index`), `content_id`, `content_group` (`blog` or `destinations`), and the page's details: `category`, `reading_time` and `author` for a post; `continent`, `country` and `budget_level` for a destination; `total_posts` or `total_destinations` for an index |
+| `content_interaction` | On the blog: a filter, a change of page, each quarter of a post read | `action` (`filter`, `paginate` or `read_milestone`), `content_group`, and `filter_type` with `filter_value`, `page` with `total_pages`, or `content_id` with `percentage` |
+| `user_return` | A signed-in person comes back after more than 30 minutes with no page of the site in view | `days_since_last_visit`, `return_bucket` (`same_day`, `d1`, `d2_7`, `d8_30` or `d30_plus`) |
 
-1. Go to [analytics.google.com](https://analytics.google.com)
-2. Select your MonkeyTravel property
-3. Click **Admin** (gear icon, bottom left)
+### Onboarding and the beta code
 
-### 1.2 Enable Enhanced Measurement
+These come from the onboarding screens, which open after a password sign-in with no page to return to, and only for an account that finished the old welcome step but not onboarding; and from the beta-code box on the profile page.
 
-1. Admin > Data Streams > Select your web stream
-2. Enable **Enhanced measurement**:
-   - ✅ Page views
-   - ✅ Scrolls
-   - ✅ Outbound clicks
-   - ✅ Site search
-   - ✅ Video engagement
-   - ✅ File downloads
+| Event | Parameters |
+|---|---|
+| `onboarding_step_viewed` | `step_number`, `step_name` |
+| `onboarding_step_completed` | `step_number`, `step_name`, `selections_count`, `selections` |
+| `onboarding_completed` | `total_steps`, `was_skipped`, `travel_styles_count`, `dietary_count`, `accessibility_count` |
+| `onboarding_skipped` | `skipped_at_step` |
+| `beta_code_attempt` | `code_entered`, `success`, `error_reason` |
+| `early_access_redeemed` | `code_id` |
 
-### 1.3 Extend Data Retention
+### User properties
 
-1. Admin > Data Settings > Data Retention
-2. Change from "2 months" to **"14 months"**
-3. Toggle ON "Reset user data on new activity"
+`components/analytics/SessionTracker.tsx` sets these on each signed-in page load, once the account's reads succeed:
 
-> **Why**: Default 2-month retention is useless for cohort analysis. You need 14 months to see seasonal patterns and long-term retention.
+| Property | Value |
+|---|---|
+| `user_stage` | `new` (no trips), `activated` (one), `engaged` (two to four) or `power_user` (five or more) |
+| `trips_count` | Trips the account owns |
+| `account_age_days` | Days since the account was created |
+| `subscription_tier` | The account's tier, `free` when unset |
+| `onboarding_completed` | Whether onboarding was finished |
+| `has_beta_access` | Whether the account has beta access |
 
-### 1.4 Enable Google Signals
+The account id is also set, at sign-up, at sign-in and on signed-in page loads, as a user property named `user_id`. GA4 reserves that name, and its User-ID features read the tag's own `user_id` field, which the code doesn't set. So GA4 doesn't join one person's devices.
 
-1. Admin > Data Settings > Data Collection
-2. Enable **Google signals data collection**
-3. Accept the policy
+### Content group
 
-> **Why**: Enables cross-device tracking and demographic data.
+On blog and destination pages, `components/analytics/ContentTracker.tsx` calls `gtag("set", { content_group })` (`blog` or `destinations`), so the page's hits carry it. It is a `set`, not a second `config`: a second config would set the tag up again without the team's `traffic_type`, and could send a page view of its own.
 
----
+### Link keys
 
-## Step 2: Custom Dimensions Setup
+Some addresses work as keys: whoever has one can open what it points to. They are `/shared/<token>`, `/invite/<token>`, `/feedback/<token>` and `/join/<code>`, and the query parameters `token`, `code`, `token_hash`, `k` and `s`. When a page opens at such an address, the tag's config gets a `page_location` with the key replaced (`/shared/:token`, `/join/:code`) and those parameters removed, along with any fragment that carries parameters (`lib/analytics/scrub-url.ts`). GA4's query-parameter redaction, set up below, removes the same parameters from every hit.
 
-Custom dimensions let you slice data by your specific business attributes.
-
-### 2.1 Create User-Scoped Dimensions
-
-Go to: Admin > Custom definitions > Create custom dimension
-
-| Name | Scope | Event Parameter | Description |
-|------|-------|-----------------|-------------|
-| User Stage | User | `user_stage` | new/activated/engaged/power_user |
-| Subscription Tier | User | `subscription_tier` | free/premium/enterprise |
-| Has Beta Access | User | `has_beta_access` | true/false |
-| Onboarding Status | User | `onboarding_completed` | true/false |
-| Referral Source | User | `referral_source` | organic/referral/paid |
-| Days Since Signup | User | `days_since_signup` | Number |
-| Total Trips | User | `trips_count` | Number |
-
-### 2.2 Create Event-Scoped Dimensions
-
-| Name | Scope | Event Parameter | Description |
-|------|-------|-----------------|-------------|
-| Trip ID | Event | `trip_id` | For trip-level analysis |
-| Destination | Event | `destination` | Popular destinations |
-| Budget Tier | Event | `budget_tier` | budget/balanced/premium |
-| Share Medium | Event | `share_medium` | copy/whatsapp/twitter/email |
-| Return Bucket | Event | `return_bucket` | same_day/d1/d2_7/d8_30/d30_plus |
-| Limit Type | Event | `limit_type` | generation/regeneration/assistant |
-| Onboarding Step | Event | `step_name` | For funnel analysis |
-
-### 2.3 Create Custom Metrics
-
-Go to: Admin > Custom definitions > Custom metrics
-
-| Name | Scope | Event Parameter | Unit |
-|------|-------|-----------------|------|
-| XP Earned | Event | `xp_earned` | Standard |
-| Generation Time | Event | `generation_time_ms` | Milliseconds |
-| Activities Count | Event | `activities_count` | Standard |
-| Days Since Creation | Event | `days_since_creation` | Standard |
-
----
-
-## Step 3: Key Events (Conversions) Setup
-
-Mark these events as "Key Events" (formerly Conversions):
-
-Go to: Admin > Events > Mark as key event
-
-| Event Name | Why It Matters |
-|------------|----------------|
-| `sign_up` | Acquisition conversion |
-| `trip_created` | Activation - core action |
-| `itinerary_generated` | Aha moment candidate |
-| `activity_completed` | Engagement signal |
-| `share` | Viral coefficient |
-| `referral_conversion` | Growth loop completion |
-| `upgrade_prompt_clicked` | Revenue intent |
-
----
-
-## Step 4: Audiences for Aha Moment Discovery
-
-Audiences let you compare behavior between retained vs churned users.
-
-### 4.1 Create Retained Users Audience
-
-Go to: Admin > Audiences > New audience > Create custom audience
-
-**Audience: "Retained Users (D7+)"**
-```
-Include users when:
-  - session_start (event)
-  - AND days_since_signup > 7 (user property)
-  - AND session_number >= 3 (in the last 30 days)
-```
-
-**Settings**:
-- Membership duration: 30 days
-- Trigger event: None needed
-
-### 4.2 Create Churned Users Audience
-
-**Audience: "Churned Users"**
-```
-Include users when:
-  - sign_up (event occurred more than 7 days ago)
-  - AND session_start (NOT in the last 7 days)
-```
-
-### 4.3 Create Aha Moment Test Audiences
-
-Create multiple audiences to test which action correlates with retention:
-
-**Audience A: "Generated Itinerary in First Session"**
-```
-Include users when:
-  - itinerary_generated (event)
-  - AND session_number = 1
-```
-
-**Audience B: "Completed Activity in First Week"**
-```
-Include users when:
-  - activity_completed (event)
-  - Within first 7 days of first_visit
-```
-
-**Audience C: "Shared Trip in First Week"**
-```
-Include users when:
-  - share (event)
-  - Within first 7 days of first_visit
-```
-
-**Audience D: "Viewed Trip 3+ Times"**
-```
-Include users when:
-  - trip_viewed (event count >= 3)
-  - Within first 14 days of first_visit
-```
-
----
-
-## Step 5: Build Exploration Reports
-
-Explorations are where you discover your aha moment through data analysis.
-
-### 5.1 Funnel Exploration: Activation Funnel
-
-Go to: Explore > Create new exploration > Funnel exploration
-
-**Steps**:
-1. `sign_up` - User registered
-2. `onboarding_completed` - Completed preferences
-3. `trip_created` OR `itinerary_generated` - Created first trip
-4. `trip_viewed` (session_number > 1) - Returned to view trip
-5. `activity_completed` - Engaged with trip
-
-**Breakdown by**: `referral_source`, `onboarding_completed`
-
-**What to look for**:
-- Where is the biggest drop-off?
-- Do referred users convert better?
-- Do onboarding completers activate more?
-
-### 5.2 Cohort Exploration: Retention by Action
-
-Go to: Explore > Create new exploration > Cohort exploration
-
-**Configuration**:
-- Cohort inclusion: `sign_up`
-- Return criteria: `session_start`
-- Cohort granularity: Weekly
-- Values: Active users (%)
-
-**Then create comparison cohorts**:
-
-| Cohort Name | Inclusion Criteria |
-|-------------|-------------------|
-| All Users | `sign_up` |
-| Generated Itinerary | `sign_up` AND `itinerary_generated` in same week |
-| Completed Activity | `sign_up` AND `activity_completed` in first week |
-| Shared Trip | `sign_up` AND `share` in first week |
-
-**What to look for**:
-The cohort with significantly higher Week 2, Week 4, Week 8 retention is your aha moment.
-
-### 5.3 Free-Form Exploration: Action Correlation
-
-**Comparing Retained vs Churned User Behaviors**
-
-**Tab Setup**:
-- Technique: Free-form
-- Rows: Event name
-- Values: Event count, Total users
-- Segments: "Retained Users (D7+)" vs "Churned Users"
-
-**Analysis**:
-Look for events that retained users do significantly more than churned users.
-
-Example findings:
-| Event | Retained Users | Churned Users | Lift |
-|-------|---------------|---------------|------|
-| `activity_completed` | 78% | 12% | **6.5x** |
-| `trip_viewed` (2+) | 89% | 23% | **3.9x** |
-| `share` | 34% | 3% | **11.3x** |
-
-The highest "lift" events are aha moment candidates.
-
----
-
-## Step 6: Build Key Dashboards
-
-### 6.1 North Star Metric Dashboard
-
-Create a Looker Studio dashboard (or GA4 custom report) with:
-
-**Primary Metric**: Weekly Active Trip Planners
-```
-Users who triggered trip_viewed OR activity_completed in the last 7 days
-```
-
-**Supporting Metrics**:
-1. New signups this week
-2. Activation rate (trip_created / sign_up)
-3. D7 retention rate
-4. Viral coefficient (referral_conversion / active_users)
-
-### 6.2 AARRR Funnel Dashboard
-
-| Stage | Metric | How to Calculate |
-|-------|--------|------------------|
-| Acquisition | Signups | `sign_up` event count |
-| Activation | Itineraries Generated | `itinerary_generated` / `sign_up` |
-| Retention | D7 Return Rate | Users with `session_start` on day 7+ / total users |
-| Referral | Shares per User | `share` / active users |
-| Revenue | Upgrade Intent | `upgrade_prompt_clicked` / limit_reached |
-
----
-
-## Step 7: Finding Your Aha Moment (The Process)
-
-### 7.1 Hypothesis Generation
-
-Based on MonkeyTravel's value proposition, hypothesize:
-
-| Hypothesis | Aha Moment Candidate | Why |
-|------------|---------------------|-----|
-| H1 | Generate first itinerary | User sees AI value |
-| H2 | View complete itinerary | User sees full trip plan |
-| H3 | Check off first activity | User engages with planning |
-| H4 | Share trip with friend | Social commitment |
-| H5 | Return within 3 days | Trip is on their mind |
-| H6 | Add custom activity | User personalizes |
-
-### 7.2 Data Collection (2-4 weeks)
-
-Implement all tracking from the Analytics Gap Analysis, then wait for sufficient data:
-- Minimum 500 signups for statistical significance
-- At least 2 weeks for D7 retention data
-- 4 weeks for D30 retention data
-
-### 7.3 Correlation Analysis
-
-For each hypothesis, calculate:
-
-```
-Retention Lift = (Retention of users who did action) / (Retention of users who didn't)
-```
-
-**Example Analysis**:
-
-| Action | Did Action | Didn't Do | D7 Retention (Did) | D7 Retention (Didn't) | Lift |
-|--------|-----------|-----------|-------------------|----------------------|------|
-| Generated itinerary | 400 | 100 | 45% | 8% | **5.6x** |
-| Completed activity | 200 | 300 | 62% | 18% | **3.4x** |
-| Shared trip | 80 | 420 | 71% | 22% | **3.2x** |
-| Returned in 3 days | 180 | 320 | 68% | 12% | **5.7x** |
-
-### 7.4 Validate Causation
-
-High correlation doesn't mean causation. Validate by:
-
-1. **Time sequence**: Did the action happen BEFORE retention, or because of it?
-2. **A/B test**: Force 50% of users to the action, measure retention difference
-3. **Qualitative**: Survey retained users - what made them stay?
-
-### 7.5 Define Your Aha Moment
-
-Based on data, your aha moment might be:
-
-> **"Users who generate an AI itinerary AND return within 3 days have 5x higher D30 retention"**
-
-This becomes your North Star for activation optimization.
-
----
-
-## Step 8: Optimize Towards Aha Moment
-
-Once identified, optimize the path to aha moment:
-
-### 8.1 Reduce Time to Aha
-
-Current flow:
-```
-Landing → Signup → Welcome → Onboarding (4 steps) → Create Trip → Generate
-         ↓         ↓          ↓ (many drop here)    ↓
-       [3 min]   [1 min]      [5 min]              [2 min] = 11 minutes
-```
-
-Optimized flow:
-```
-Landing → Signup → Quick Onboarding (2 steps) → Generate → Personalize later
-         ↓         ↓                            ↓
-       [3 min]   [2 min]                       [2 min] = 7 minutes (-36%)
-```
-
-### 8.2 Guide Users to Aha
-
-Add nudges and prompts:
-
-1. **Welcome email** (Day 0): "Create your first trip in 2 minutes"
-2. **In-app prompt** (if no trip after 10 min): "Ready to plan? Let's go!"
-3. **Push notification** (Day 1 if no trip): "Your dream trip is waiting"
-4. **Return prompt** (Day 2-3): "Your [Destination] trip misses you"
-
-### 8.3 Track Aha Moment Explicitly
-
-Add a new event when user completes the aha moment:
-
-```typescript
-export function trackAhaMomentReached(params: {
-  userId: string;
-  trigger: 'itinerary_generated' | 'activity_completed' | 'trip_returned';
-  timeToAhaMinutes: number;
-  sessionNumber: number;
-}): void {
-  trackEvent("aha_moment_reached", {
-    user_id: params.userId,
-    trigger: params.trigger,
-    time_to_aha_minutes: params.timeToAhaMinutes,
-    session_number: params.sessionNumber,
-  });
-}
-```
-
----
-
-## Step 9: GA4 Implementation Checklist
-
-### Pre-Launch Checklist
-
-- [ ] GA4 property created and connected
-- [ ] Data retention set to 14 months
-- [ ] Google Signals enabled
-- [ ] Enhanced measurement enabled
-- [ ] All custom dimensions created (14 total)
-- [ ] All custom metrics created (4 total)
-- [ ] Key events marked (7 events)
-- [ ] Test/comparison audiences created (6+ audiences)
-
-### Event Implementation Checklist
-
-**Phase 1 - Core Events** (Week 1):
-- [ ] `sign_up` with method ✅ (already working)
-- [ ] `login` with method ✅ (already working)
-- [ ] `onboarding_completed` ✅ (already working)
-- [ ] `trip_created` ✅ (already working)
-- [ ] Wire `itinerary_generated` (currently dead)
-- [ ] Wire `activity_completed` (currently dead)
-- [ ] Wire `early_access_redeemed` (currently dead)
-
-**Phase 2 - Retention Events** (Week 2):
-- [ ] `session_start` with user context
-- [ ] `user_return` with days since last visit
-- [ ] `trip_viewed` with engagement data
-
-**Phase 3 - Funnel Events** (Week 3):
-- [ ] `referral_code_generated`
-- [ ] `referral_link_clicked`
-- [ ] `referral_signup`
-- [ ] `referral_conversion`
-- [ ] `share_modal_opened`
-
-**Phase 4 - Revenue Events** (Week 4):
-- [ ] `upgrade_prompt_shown`
-- [ ] `upgrade_prompt_action`
-- [ ] `limit_reached`
-- [ ] `free_trip_used`
-
-### Exploration Reports Checklist
-
-- [ ] Activation funnel exploration
-- [ ] Weekly cohort retention exploration
-- [ ] Retained vs churned comparison
-- [ ] Aha moment correlation analysis
-- [ ] AARRR dashboard in Looker Studio
-
----
-
-## Step 10: Ongoing Growth Operations
-
-### Weekly Growth Review (30 min)
-
-Every Monday, review:
-
-1. **Acquisition**: How many signups? What sources?
-2. **Activation**: What % reached aha moment?
-3. **Retention**: D7 retention this cohort vs last?
-4. **Referral**: Shares per user trending?
-5. **Revenue**: Upgrade intent signals?
-
-### Monthly Deep Dive (2 hours)
-
-1. Re-run cohort analysis with new data
-2. Check if aha moment hypothesis still holds
-3. Identify new friction points in funnel
-4. Plan next month's experiments
-
-### Quarterly Aha Moment Review
-
-1. Has the aha moment changed?
-2. Are we getting users there faster?
-3. What's the next aha moment after the first?
-
----
-
-## Quick Start: Do This Today
-
-### In GA4 Admin (20 minutes):
-
-1. Set data retention to 14 months
-2. Enable Google Signals
-3. Create these 5 custom dimensions:
-   - `user_stage` (User scope)
-   - `trips_count` (User scope)
-   - `destination` (Event scope)
-   - `return_bucket` (Event scope)
-   - `onboarding_completed` (User scope)
-
-4. Mark these events as Key Events:
-   - `sign_up`
-   - `trip_created`
-   - `share`
-
-### In Code (1 hour):
-
-1. Wire `trackItineraryGenerated` in `/api/ai/generate/route.ts`
-2. Wire `trackActivityCompleted` in `EditableActivityCard.tsx`
-3. Add `trackTripViewed` in `TripDetailClient.tsx`
-
-### In GA4 Explore (30 minutes):
-
-1. Create "Activation Funnel" exploration
-2. Create weekly cohort retention report
-3. Note your baseline metrics
-
----
-
-## Summary: The Growth Analytics Formula
-
-```
-DISCOVER → DEFINE → DRIVE → MEASURE → ITERATE
-
-1. DISCOVER: Which actions correlate with retention?
-   → Build cohort explorations, compare retained vs churned
-
-2. DEFINE: What is your aha moment?
-   → "Users who [ACTION] within [TIMEFRAME] retain X% better"
-
-3. DRIVE: Optimize path to aha moment
-   → Reduce friction, add nudges, improve UX
-
-4. MEASURE: Track aha moment rate
-   → % of new users reaching aha in first week
-
-5. ITERATE: Continuously refine
-   → Test new aha moment hypotheses quarterly
-```
-
----
-
-## Resources
-
-- [GA4 Documentation](https://developers.google.com/analytics/devguides/collection/ga4)
-- [Sean Ellis - Hacking Growth](https://www.amazon.com/Hacking-Growth-Fastest-Growing-Companies-Breakout/dp/045149721X)
-- [Amplitude's Guide to Finding Your Aha Moment](https://amplitude.com/blog/finding-your-aha-moment)
-- [Reforge - Retention Fundamentals](https://www.reforge.com/blog/retention-engagement-growth-silent-killer)
+## Setup
+
+In GA4 Admin:
+
+1. **Key events** (Data display → Key events): `sign_up`, `trip_created` and `plan_kept`. GA4's template key events (`close_convert_lead`, `qualify_lead`, `purchase`) are events this site never sends: leave them unmarked.
+2. **Custom definitions** (Data display → Custom definitions):
+   - Event-scoped dimensions: `locale`, `signed_in`, `destination`, `budget_tier`, `selection_source`, `action`, `is_from_template`, `trip_status`.
+   - Custom metrics: `duration_days` (standard) and `generation_time_ms` (milliseconds).
+   - User-scoped dimension: `user_stage`.
+
+   GA4 already has `content_group`, `content_type` and `method`. Leave ids (`trip_id`, `item_id`, `activity_id`, `template_id`) unregistered: questions about one trip belong in the database. A definition fills only from the day it is created.
+3. **Internal traffic.** Open `https://monkeytravel.app/?mt_team=1` once in each browser the team uses. The mark lives in that browser's local storage, and its hits then carry `traffic_type: internal`; `?mt_team=0` removes it. A private window or another browser isn't marked. Probes on production are marked too: they set their own `e2eprobe-` session cookie, which the page can read. Then turn the filter on: Data collection and modification → Data filters → Internal Traffic → Active. A filter applies from the moment it is active, not to past data.
+4. **Data retention** (Data collection and modification → Data retention): event data 14 months. Retention limits explorations; standard reports keep their totals.
+5. **Unwanted referrals** (Data streams → the web stream → Configure tag settings → List unwanted referrals): `accounts.google.com`. Signing in with Google sends the visitor there and back; without this rule GA4 records the return as a referral and credits the sign-up to it rather than to where the visitor came from.
+6. **Redact data** (Data streams → the web stream → Redact data → Query parameters): `token`, `code`, `token_hash`, `k`, `s`.
+7. **Enhanced measurement** (Data streams → the web stream): keep Page views on, with "Page changes based on browser history events". The code sends no page view of its own on in-app navigation.
+
+To check the tag, use a browser that isn't marked as the team's: once the filter is active, a marked browser's hits are dropped.
+
+## Reading GA4
+
+- **Rates, not totals.** See *Who GA4 sees*.
+- **Two days late.** GA4 is still processing its last day or two: their events keep arriving and many of their sessions show as Unassigned. Leave them out.
+- **Day boundaries.** GA4's days end at midnight in the property's time zone, Europe/Rome. Search Console's end at midnight Pacific time, and our tables' and PostHog's at midnight UTC. Compare tools over the same whole week, never day by day.
+- **`signed_in` is late on a fresh page.** Split by it only events sent well after a page loads, such as `user_return` or a share; see *What the code sends*.
+- **Not its own evidence.** When GA4 shows a drop, check Search Console and the rollup first (*Reading a traffic alarm* in `docs/ANALYTICS_SOURCES_OF_TRUTH.md`).
+- **Small numbers.** Compare weeks, and look at the counts behind a rate before trusting it.
+
+## Where it lives
+
+| File | What it does |
+|---|---|
+| `components/analytics/ConsentGatedTags.tsx` | Loads the tag on the production host, applies the visitor's consent, marks team browsers, and gives the config a `page_location` without link keys |
+| `lib/analytics/ga-consent.ts` | The consent default and how the banner's choices map onto it |
+| `lib/analytics/scrub-url.ts` | Which addresses are keys, and how they are replaced |
+| `lib/analytics.ts` | Every event and user property, the content group, and the Vercel Web Analytics milestones |
+| `components/analytics/SessionTracker.tsx` | User properties and `user_return` |
+| `components/analytics/ContentTracker.tsx` | `content_group` and `content_viewed` |
