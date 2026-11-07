@@ -18,7 +18,8 @@ const action = "inline-flex min-h-[44px] items-center font-semibold underline de
 /**
  * One stop on the day's line: its time, name and photo, two lines about it, and
  * how long, how much and whether to book. A tap opens the tips and the ways to
- * look it up. `minutes` places it in the sky.
+ * look it up. `minutes` places it in the sky, and `until` the words under its
+ * photo, so the light changes behind the photo as the stop goes on.
  */
 export default function SkyStop({ activity, currency, minutes, until }: { activity: Activity; currency: string; minutes: number; until: number }) {
   const t = useTranslations("common");
@@ -49,10 +50,10 @@ export default function SkyStop({ activity, currency, minutes, until }: { activi
             // eslint-disable-next-line @next/next/no-img-element -- remote photos through our proxy, as in ActivityCard
             <img src={photo} alt="" loading="lazy" className={`${styles.photo} mb-3 block aspect-[16/10] w-full rounded-[20px] bg-white/20 object-cover`} />
           )}
-          <span data-ink className={`block text-[1.0625rem] leading-[1.45] ${open ? "" : styles.clamp}`}>
+          <span data-t={until} data-ink className={`block text-[1.0625rem] leading-[1.45] ${open ? "" : styles.clamp}`}>
             {activity.description}
           </span>
-          <span data-ink className="mt-1.5 block text-base opacity-90">
+          <span data-ink className="mt-1.5 block text-base">
             {meta.join(", ")}
           </span>
         </button>
@@ -89,8 +90,6 @@ export default function SkyStop({ activity, currency, minutes, until }: { activi
           </div>
         </div>
       )}
-      {/* Where this stop ends, so the sky behind it is the light it really has. */}
-      <span aria-hidden="true" data-t={until} className="block h-0" />
     </li>
   );
 }

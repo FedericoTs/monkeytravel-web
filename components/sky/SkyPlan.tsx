@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { DayRouteLink } from "@/components/trip/DayRouteLink";
 import { PackedDayNote } from "@/components/trip/PackedDayNote";
 import { useCurrency } from "@/lib/locale";
-import { skyGradient, timeAtY } from "@/lib/sky/layout";
+import { colorAtY, skyGradient } from "@/lib/sky/layout";
 import { inkFor, skyAt, skyStops, toCss, type Rgb } from "@/lib/sky/sky";
 import { sunTimes, type SunTimes } from "@/lib/sky/sun";
 import { dayBudgetLabel, showsDayBudget } from "@/lib/trip/day-budget";
@@ -19,7 +19,7 @@ const DAY = 1440;
 /** The light of an ordinary spring day, for a plan that doesn't say where or when; its times aren't shown. */
 const ORDINARY: SunTimes = { sunrise: 390, sunset: 1170, polar: null };
 /** The page under the sky, which the last night fades into. */
-const PAGE = "rgb(248 250 252)";
+const PAGE: Rgb = [248, 250, 252];
 
 const toMinutes = (clock: string | undefined): number | null => {
   const m = /^(\d{1,2}):(\d{2})/.exec(clock ?? "");
@@ -98,6 +98,7 @@ export default function SkyPlan({
       },
     [skies]
   );
+  const turns = useMemo(() => skies.flatMap((day, index) => day.stops.map(([minutes]) => index * DAY + minutes)), [skies]);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const [sky, setSky] = useState<{ background: string; nights: Array<{ top: number; height: number }> }>(() => ({
@@ -110,22 +111,24 @@ export default function SkyPlan({
     if (!root) return;
     let frame = 0;
     const draw = () => {
-      const height = root.scrollHeight;
       const top = root.getBoundingClientRect().top;
       const anchors = [...root.querySelectorAll<HTMLElement>("[data-t]")].map((node) => ({
         y: node.getBoundingClientRect().top - top,
         t: Number(node.dataset.t),
-        node,
       }));
       if (!anchors.length) return;
-      const { background, nights, points } = skyGradient(anchors, height, colorAt, PAGE);
-
-      // Each block's words in whichever colour reads on the sky right behind them, top to bottom.
-      for (const node of root.querySelectorAll<HTMLElement>("[data-ink]")) {
+      const inked = [...root.querySelectorAll<HTMLElement>("[data-ink]")];
+      const words = inked.map((node) => {
         const box = node.getBoundingClientRect();
-        const samples = [box.top + 4, (box.top + box.bottom) / 2, box.bottom - 4].map((y) => colorAt(timeAtY(points, y - top)));
-        node.style.color = toCss(inkFor(samples));
-      }
+        return { top: box.top - top, bottom: box.bottom - top };
+      });
+      const { background, stops, nights } = skyGradient({ anchors, words, height: root.scrollHeight, colorAt, turns, page: PAGE });
+
+      // Each block's words in whichever colour reads on the sky drawn behind them.
+      inked.forEach((node, i) => {
+        const { top: from, bottom: to } = words[i];
+        node.style.color = toCss(inkFor([from, (from + to) / 2, to].map((y) => colorAtY(stops, y))));
+      });
 
       setSky({ background, nights });
     };
@@ -140,7 +143,7 @@ export default function SkyPlan({
       observer.disconnect();
       cancelAnimationFrame(frame);
     };
-  }, [colorAt]);
+  }, [colorAt, turns]);
 
   const weekday = new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
   const distance = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
@@ -197,7 +200,7 @@ export default function SkyPlan({
           const date = /^\d{4}-\d{2}-\d{2}$/.test(day.date ?? "") ? weekday.format(new Date(`${day.date}T12:00:00Z`)) : null;
           return (
             <Fragment key={day.day_number}>
-              {index > 0 && <div aria-hidden="true" data-t={base + 30} className="h-36" />}
+              {index > 0 && <div aria-hidden="true" className="h-48" />}
               <section id={`day-${day.day_number}`} className="scroll-mt-24 pt-12">
                 <div data-t={base + daySky.first - 25} data-ink>
                   <p className="text-base font-semibold">{t("wizard.result.dayLabel", { n: day.day_number })}</p>
@@ -243,7 +246,7 @@ export default function SkyPlan({
                           </li>
                         )}
                         {km !== null && km >= 0.05 && (
-                          <li data-t={base + (Math.min(start + activity.duration_minutes, nextStart) + nextStart) / 2} data-ink className="mb-8 mt-3 text-[0.97rem] opacity-80">
+                          <li data-t={base + (Math.min(start + activity.duration_minutes, nextStart) + nextStart) / 2} data-ink className="mb-8 mt-3 text-[0.97rem]">
                             {t("wizard.result.sky.toNext", { distance: km < 1 ? `${Math.round(km * 10) * 100} m` : `${distance.format(km)} km` })}
                           </li>
                         )}
@@ -288,8 +291,8 @@ function DayStrip({ daySky, day }: { daySky: DaySky; day: ItineraryDay }) {
           <span key={i} className="absolute top-1 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-white shadow-[0_0_0_1.5px_rgba(15,34,48,0.7)]" style={{ left: at(start) }} />
         );
       })}
-      <span className="absolute left-0 top-5 text-sm tabular-nums opacity-80">{clockOf(from + 20)}</span>
-      <span className="absolute right-0 top-5 text-sm tabular-nums opacity-80">{clockOf(to - 20)}</span>
+      <span className="absolute left-0 top-5 text-sm tabular-nums">{clockOf(from + 20)}</span>
+      <span className="absolute right-0 top-5 text-sm tabular-nums">{clockOf(to - 20)}</span>
     </div>
   );
 }
