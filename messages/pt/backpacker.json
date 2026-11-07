@@ -38,7 +38,7 @@
   },
   "features": {
     "title": "Feito para como o mochileiro viaja de verdade",
-    "subtitle": "A maioria dos planejadores de viagem com AI cai no padrão de roteiros turísticos de categoria intermediária. Ative o Modo Mochileiro e cada linha do roteiro se reorganiza em torno do seu perfil — hospedagem, atividades, comida, transporte, vida social.",
+    "subtitle": "A maioria dos planejadores de viagem com AI cai no padrão de roteiros turísticos de categoria intermediária. No Modo Mochileiro cada linha do roteiro muda para combinar com você — hospedagem, atividades, comida, transporte, vida social.",
     "items": {
       "hostels": {
         "title": "Hostels antes de hotéis",
@@ -70,8 +70,8 @@
     "title": "Como funciona",
     "steps": {
       "toggle": {
-        "title": "Ative o modo 🎒 Mochileiro",
-        "body": "Passo 1 do assistente. Ative o modo, escolha um destino, escolha as datas. É só isso."
+        "title": "Abra o assistente por aqui",
+        "body": "Todos os botões desta página o abrem com o modo 🎒 Mochileiro ativado. Escolha um destino e as datas. É só isso."
       },
       "generate": {
         "title": "Gere em 30 segundos",
@@ -137,7 +137,7 @@
       },
       "neighbourhoods": {
         "question": "Ele vai sugerir hostels em bons bairros?",
-        "answer": "Sim. A AI sabe quais bairros concentram hostels e são mais mochileiros em cada grande destino — Bairro Alto em Lisboa, El Born em Barcelona, Khao San em Bangkok, Friedrichshain em Berlim, e por aí vai. Ela também considera segurança, acesso ao transporte público e proximidade de pontos sociais como pub crawls e mercados noturnos."
+        "answer": "Sim. A AI sabe quais bairros concentram hostels e são mais mochileiros em cada grande destino — Bairro Alto em Lisboa, El Born em Barcelona, Khao San em Bangkok, Friedrichshain em Berlim, e por aí vai. Ela também considera o transporte público e pontos sociais como pub crawls e mercados noturnos. Leia avaliações recentes antes de reservar."
       },
       "multiCity": {
         "question": "Posso fazer uma rota por várias cidades / por terra?",
@@ -151,7 +151,7 @@
   },
   "finalCta": {
     "title": "Sua próxima viagem mochileira está a 30 segundos de distância.",
-    "subtitle": "Escolha um destino. Ative o modo Mochileiro. Gere. A gente cuida dos hostels e das conexões de FlixBus.",
+    "subtitle": "Escolha um destino e as datas, e gere. A gente sugere os hostels e as conexões de ônibus.",
     "button": "Planejar minha viagem mochileira"
   }
 }

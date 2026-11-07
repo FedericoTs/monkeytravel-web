@@ -279,7 +279,7 @@ export default async function BackpackerLandingPage({
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Link
-                href="/trips/new"
+                href="/trips/new?style=backpacker"
                 className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-emerald-500 text-white font-bold rounded-xl hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/30"
               >
                 <span aria-hidden>🎒</span>
@@ -426,7 +426,7 @@ export default async function BackpackerLandingPage({
               {ROUTES.map((r) => (
                 <Link
                   key={r.key}
-                  href="/trips/new"
+                  href={`/trips/new?destination=${r.name}&style=backpacker`}
                   className="group p-5 rounded-2xl border border-slate-200 hover:border-emerald-500 hover:shadow-md bg-white transition-all"
                 >
                   <div className="flex items-start justify-between mb-2">
@@ -523,7 +523,7 @@ export default async function BackpackerLandingPage({
                   {t("finalCta.subtitle")}
                 </p>
                 <Link
-                  href="/trips/new"
+                  href="/trips/new?style=backpacker"
                   className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-emerald-700 font-bold rounded-xl hover:bg-emerald-50 transition-all shadow-lg"
                 >
                   <span aria-hidden>🎒</span>

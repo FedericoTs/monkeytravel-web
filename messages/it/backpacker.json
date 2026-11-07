@@ -38,7 +38,7 @@
   },
   "features": {
     "title": "Costruito per come viaggia davvero chi parte con lo zaino",
-    "subtitle": "Quasi tutte le AI generano per default viaggi turistici di fascia media. Attivi la Modalità Zaino in Spalla e ogni dettaglio dell'itinerario cambia: alloggio, attività, cibo, trasporti e vita sociale.",
+    "subtitle": "Quasi tutte le AI generano per default viaggi turistici di fascia media. Con la Modalità Zaino in Spalla ogni dettaglio dell'itinerario cambia: alloggio, attività, cibo, trasporti e vita sociale.",
     "items": {
       "hostels": {
         "title": "Ostelli al posto degli hotel",
@@ -70,8 +70,8 @@
     "title": "Come funziona",
     "steps": {
       "toggle": {
-        "title": "Attiva la modalità 🎒 Zaino in Spalla",
-        "body": "Step 1 del wizard. Attivi la modalità, scegli destinazione e date. Tutto qui."
+        "title": "Apri il wizard da qui",
+        "body": "Ogni pulsante di questa pagina lo apre con la modalità 🎒 Zaino in Spalla attiva. Scegli destinazione e date. Tutto qui."
       },
       "generate": {
         "title": "Genera in 30 secondi",
@@ -137,7 +137,7 @@
       },
       "neighbourhoods": {
         "question": "Mi consiglierà ostelli in quartieri buoni?",
-        "answer": "Sì. L'AI sa quali quartieri sono pieni di ostelli e più frequentati dai backpacker in ogni grande destinazione: Bairro Alto a Lisbona, El Born a Barcellona, Khao San a Bangkok, Friedrichshain a Berlino, e così via. Tiene anche conto della sicurezza, dell'accesso ai mezzi pubblici e della vicinanza a luoghi sociali come pub crawl e mercati notturni."
+        "answer": "Sì. L'AI sa quali quartieri sono pieni di ostelli e più frequentati dai backpacker in ogni grande destinazione: Bairro Alto a Lisbona, El Born a Barcellona, Khao San a Bangkok, Friedrichshain a Berlino, e così via. Tiene anche conto dei mezzi pubblici e dei luoghi sociali come pub crawl e mercati notturni. Leggi le recensioni recenti prima di prenotare."
       },
       "multiCity": {
         "question": "Posso fare un itinerario multi-città / via terra?",
@@ -151,7 +151,7 @@
   },
   "finalCta": {
     "title": "Il tuo prossimo viaggio zaino in spalla è a 30 secondi.",
-    "subtitle": "Scegli una destinazione. Attiva la modalità Zaino in Spalla. Genera. Agli ostelli e ai collegamenti FlixBus pensiamo noi.",
+    "subtitle": "Scegli destinazione e date, e genera. Ti suggeriamo noi gli ostelli e i collegamenti in autobus.",
     "button": "Pianifica il mio viaggio zaino in spalla"
   }
 }
