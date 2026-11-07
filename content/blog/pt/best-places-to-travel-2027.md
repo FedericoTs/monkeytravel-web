@@ -4,7 +4,7 @@ slug: "best-places-to-travel-2027"
 description: "Quinze lugares onde o próprio 2027 é o motivo para ir: o eclipse solar total de 2 de agosto sobre Luxor e o Estreito de Gibraltar, três Copas do Mundo, um Ano Santo Compostelano, duas Capitais Europeias da Cultura, os 200 anos da morte de Beethoven e a volta do Altar de Pérgamo."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-10-05"
+updatedAt: "2026-11-06"
 category: "Seasonal Travel"
 tags: ["melhores destinos", "planejamento de viagem", "sazonal"]
 image: "/images/blog/best-places-to-travel-2027.jpg"
@@ -49,7 +49,7 @@ O nível de orçamento é a nossa leitura relativa dos custos no local durante c
 
 ## Um céu para ver uma vez na vida: o eclipse de 2 de agosto
 
-Na segunda-feira, 2 de agosto de 2027, a sombra da Lua cruza o Estreito de Gibraltar no meio da manhã e chega ao Nilo cerca de uma hora e quinze minutos depois. A [tabela da trajetória da NASA](https://eclipse.gsfc.nasa.gov/SEpath/SEpath2001/SE2027Aug02Tpath.html) situa o máximo do eclipse às 10:06:37,7 UT, no deserto a leste de Luxor, com 6 min 22,6 s de totalidade numa faixa de 257,7 km de largura; a maior duração em qualquer ponto é de 6 min 23,2 s. Leia as dicas de proteção dos olhos antes de fazer as malas.
+Na segunda-feira, 2 de agosto de 2027, a sombra da Lua cruza o Estreito de Gibraltar no meio da manhã e chega ao Nilo cerca de uma hora e quinze minutos depois. A [tabela da trajetória da NASA](https://eclipse.gsfc.nasa.gov/SEpath/SEpath2001/SE2027Aug02Tpath.html) situa o máximo do eclipse às 10:06:37,7 UT, no deserto a leste de Luxor, com 6 min 22,6 s de totalidade numa faixa de 257,7 km de largura; a maior duração em qualquer ponto é de 6 min 23,2 s. Leia as dicas de proteção dos olhos antes de fazer as malas. Nosso [guia do eclipse](/blog/solar-eclipse-2027) traz horários, clima e o que reservar em cada lugar, e quais lugares ficam por pouco de fora.
 
 ## 1. Luxor e o Alto Egito — a totalidade mais longa
 
@@ -143,9 +143,9 @@ Na segunda-feira, 2 de agosto de 2027, a sombra da Lua cruza o Estreito de Gibra
 
 ## 8. Santiago de Compostela e o Caminho — um Ano Santo
 
-**Por que 2027:** há Ano Santo sempre que o 25 de julho, dia de São Tiago, cai num domingo; o [site oficial do Caminho](https://www.caminodesantiago.gal/en/discover/origins-and-evolution/the-compostela-holy-year), do governo da Galícia, aponta 2027 como o próximo, depois de 2010 e 2021–22. A Porta Santa da catedral, nos fundos do edifício, na Praza da Quintana, deve abrir em 31 de dezembro de 2026 e ficar aberta até 31 de dezembro de 2027, segundo o site de agenda [Planomato](https://planomato.com/es/santiago-de-compostela/p/apertura-puerta-santa-santiago-2026); as páginas oficiais que lemos ainda não informavam a data. A catedral anunciou o lema: "Al ver la estrella, se llenaron de inmensa alegría" ([Catedral de Santiago](https://catedraldesantiago.es/al-ver-la-estrella-se-llenaron-de-inmensa-alegria-sera-el-lema-para-el-ano-santo-compostelano-2027/)).
+**Por que 2027:** há Ano Santo sempre que o 25 de julho, dia de São Tiago, cai num domingo; o [site oficial do Caminho](https://www.caminodesantiago.gal/en/discover/origins-and-evolution/the-compostela-holy-year), do governo da Galícia, aponta 2027 como o próximo, depois de 2010 e 2021–22. A Porta Santa da catedral, nos fundos do edifício, na Praza da Quintana, abre em 31 de dezembro de 2026 e fica aberta até 31 de dezembro de 2027, segundo o [escritório de turismo de Santiago](https://www.santiagoturismo.com/compostela2027). O horário não está definido: 17:00 no [calendário da catedral](https://catedraldesantiago.es/liturgia/), por volta do meio-dia segundo o deão (segundo o [El Correo Gallego](https://www.elcorreogallego.es/santiago/2026/09/24/santiago-prepara-ano-santo-xacobeo-2027-134639233.html)). A catedral anunciou o lema: "Al ver la estrella, se llenaron de inmensa alegría" ([Catedral de Santiago](https://catedraldesantiago.es/al-ver-la-estrella-se-llenaron-de-inmensa-alegria-sera-el-lema-para-el-ano-santo-compostelano-2027/)).
 
-**Quando ir:** o domingo, 25 de julho, é o ponto alto. Maio–junho e setembro–outubro oferecem o Ano Santo com mais espaço na trilha.
+**Quando ir:** o domingo, 25 de julho, é o ponto alto. Maio, junho e setembro já têm quase tanta gente quanto julho e agosto, pelos [números do Escritório do Peregrino](https://oficinadelperegrino.com/estadisticas-nueva/). Para ter espaço na trilha, vá entre novembro e o início de março. Nosso [guia do Caminho para 2027](/blog/camino-de-santiago-2027) traz rotas, regras e movimento mês a mês.
 
 **O que reservar:** a Compostela exige pelo menos 100 quilômetros contínuos a pé ou a cavalo, ou 200 de bicicleta, por uma rota reconhecida, com a credencial do peregrino carimbada pelo caminho (no início e no fim de cada etapa, se você fizer só os últimos 100 km em trechos) ([Oficina del Peregrino](https://oficinadelperegrino.com/en/pilgrimage/the-compostela/)). Reserve camas para as últimas etapas e para a própria Santiago assim que tiver as datas.
 
@@ -257,7 +257,7 @@ Escolha uma data desta lista, acrescente a cidade e o que você curte, e [monte 
 
 ### Qual é o melhor lugar para ver o eclipse solar total de 2027?
 
-Para a totalidade mais longa, o Alto Egito: as tabelas da NASA dão cerca de 6 min 23 s perto de Luxor, onde a chuva média de agosto é de 0,07 mm. Para a viagem mais fácil a partir da Europa, o Estreito de Gibraltar: o IGN da Espanha dá a Ceuta 4 min 48 s e a Cádiz 2 min 54 s, e a linha central passa cerca de 10 km ao sul de Tânger. O Egito ganha em duração; a Espanha, em acesso.
+Para a totalidade mais longa, o Alto Egito: as tabelas da NASA dão cerca de 6 min 23 s na linha central perto de Luxor e 6 min 20 s na cidade, onde a chuva média de agosto é de 0,07 mm. Para a viagem mais fácil a partir da Europa, o Estreito de Gibraltar: o IGN da Espanha dá a Ceuta 4 min 48 s e a Cádiz 2 min 54 s, e a linha central passa cerca de 10 km ao sul de Tânger. O Egito ganha em duração; a Espanha, em acesso.
 
 ### Que horas é o eclipse de 2027 na Espanha?
 
@@ -269,7 +269,7 @@ O sorteio da Copa do Mundo de Críquete fecha às 23:59 SAST de 21 de novembro d
 
 ### Quando começa e termina o Ano Santo de Santiago em 2027?
 
-A Porta Santa deve abrir em 31 de dezembro de 2026 e fechar em 31 de dezembro de 2027, segundo sites de agenda; as páginas oficiais que lemos ainda não informavam a data. É Ano Santo porque o 25 de julho de 2027, dia de São Tiago, cai num domingo.
+A Porta Santa abre em 31 de dezembro de 2026 e fecha em 31 de dezembro de 2027, segundo o escritório de turismo de Santiago. O horário de abertura não está definido: 17:00 no calendário da catedral, por volta do meio-dia segundo o deão. É Ano Santo porque o 25 de julho de 2027, dia de São Tiago, cai num domingo.
 
 ### Quais cidades são Capitais Europeias da Cultura em 2027?
 
@@ -305,7 +305,10 @@ O Pergamonmuseum de Berlim reabre a ala norte e a seção central, com o Altar d
 - [Rugby World Cup: como comprar ingressos para a RWC 2027](https://www.rugbyworldcup.com/2027/en/news/1046885/purchasing-tickets-for-mens-rugby-world-cup-2027-visa-sale)
 - [ICC: tabela da Copa do Mundo de Críquete 2027 e abertura do sorteio](https://www.icc-cricket.com/media-releases/icc-men-s-cricket-world-cup-2027-schedule-revealed-and-ballot-system-opens)
 - [Xunta de Galicia: o Ano Santo Compostelano](https://www.caminodesantiago.gal/en/discover/origins-and-evolution/the-compostela-holy-year)
-- [Planomato: abertura da Porta Santa, Santiago](https://planomato.com/es/santiago-de-compostela/p/apertura-puerta-santa-santiago-2026)
+- [Santiago Turismo: Ano Santo 2027](https://www.santiagoturismo.com/compostela2027)
+- [Catedral de Santiago: calendário litúrgico](https://catedraldesantiago.es/liturgia/)
+- [El Correo Gallego: apresentação do Ano Santo, 24 de setembro de 2026](https://www.elcorreogallego.es/santiago/2026/09/24/santiago-prepara-ano-santo-xacobeo-2027-134639233.html)
+- [Escritório do Peregrino: estatísticas](https://oficinadelperegrino.com/estadisticas-nueva/)
 - [Catedral de Santiago: o lema do Ano Santo 2027](https://catedraldesantiago.es/al-ver-la-estrella-se-llenaron-de-inmensa-alegria-sera-el-lema-para-el-ano-santo-compostelano-2027/)
 - [Oficina del Peregrino: a Compostela](https://oficinadelperegrino.com/en/pilgrimage/the-compostela/)
 - [Liepāja 2027: fim de semana de abertura](https://liepaja2027.lv/en/events/liepaja-2027-opening-weekend/)

@@ -4,7 +4,7 @@ slug: "2027-travel-calendar"
 description: "Onde viajar em cada mês de 2027, com as datas que marcam o ano: o eclipse solar total de 2 de agosto, o Ano Santo de Santiago de Compostela, a Copa do Mundo Feminina no Brasil, as Copas do Mundo de rúgbi e de críquete e os feriados prolongados de 2027 no Reino Unido, nos Estados Unidos, na Espanha, na Itália e no Brasil."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-10-26"
+updatedAt: "2026-11-06"
 category: "Seasonal Travel"
 tags: ["sazonal", "guia mensal de viagens", "planejamento de viagem"]
 image: "/images/blog/2027-travel-calendar.jpg"
@@ -46,15 +46,15 @@ Cada uma foi conferida na fonte; o Ano-Novo Chinês, o Carnaval e a Oktoberfest 
 
 ### O eclipse solar total, segunda-feira, 2 de agosto
 
-A sombra da Lua cruza o Estreito de Gibraltar no meio da manhã e segue pelo norte da África até o Mar Vermelho. O EclipseWise, catálogo de eclipses de Fred Espenak, coloca a faixa de totalidade sobre Marrocos, Espanha, Argélia, Líbia, Egito, Arábia Saudita, Iêmen e Somália, e a tabela de trajetória da NASA também põe a linha central sobre a Tunísia. Nessa linha, a totalidade dura de 4 min 48 s a 4 min 54 s onde ela passa pelo Estreito (a cerca de 35,7° N, entre 08:46 e 08:48 UT), 5 min 42 s no centro da Tunísia, 6 min 10 s na Líbia e 6 min 23 s no Alto Egito, onde a linha passa logo ao norte de Luxor. O máximo do eclipse é às 10:06 UT, no Egito.
+A sombra da Lua cruza o Estreito de Gibraltar no meio da manhã e segue pelo norte da África até o Mar Vermelho. O EclipseWise, catálogo de eclipses de Fred Espenak, coloca a faixa de totalidade sobre Marrocos, Espanha, Argélia, Líbia, Egito, Arábia Saudita, Iêmen e Somália, e a tabela de trajetória da NASA também põe a linha central sobre a Tunísia. Nessa linha, a totalidade dura de 4 min 48 s a 4 min 54 s onde ela passa pelo Estreito (a cerca de 35,7° N, entre 08:46 e 08:48 UT), 5 min 42 s no centro da Tunísia, 6 min 10 s na Líbia e 6 min 23 s no Alto Egito, onde a linha passa logo ao norte de Luxor. O máximo do eclipse é às 10:06 UT, no Egito. Nosso [guia do eclipse](/blog/solar-eclipse-2027) traz horários, clima e o que reservar em cada lugar, e quais lugares ficam por pouco de fora.
 
-Na Espanha, o Instituto Geográfico Nacional (IGN) coloca dentro da faixa Ceuta, Melilla, quase toda a província de Cádiz, parte da de Málaga e as bordas sul de Granada e Almería, por volta das 10h45–10h50, horário da Espanha. Ceuta tem 4 min 48 s e Melilla, 4 min 34 s; a cidade de Cádiz tem 2 min 54 s e Málaga, 1 min 48 s.
+Na Espanha, o Instituto Geográfico Nacional (IGN) coloca dentro da faixa Ceuta, Melilla, quase toda a província de Cádiz, parte da de Málaga e as bordas sul de Granada e Almería, por volta das 10h45–10h53, horário da Espanha. Ceuta tem 4 min 48 s e Melilla, 4 min 34 s; a cidade de Cádiz tem 2 min 54 s e Málaga, 1 min 48 s.
 
 Use visores solares que atendam à norma ISO 12312-2 nas fases parciais. A NASA diz que olhar a olho nu só é seguro durante a totalidade e alerta para nunca olhar por uma câmera, um binóculo ou um telescópio usando óculos de eclipse. Conte com procura de alta temporada por hospedagem e com calor de pleno verão (as tardes no Egito passam bem dos 40 °C), e consulte as recomendações de viagem do seu governo antes de considerar a Líbia ou o Iêmen.
 
 ### O Ano Santo de Santiago de Compostela, 2027 inteiro
 
-Santiago tem Ano Santo sempre que o 25 de julho, dia de São Tiago, cai num domingo, como acontece em 2027. O último foi em 2021–22 e o próximo será em 2032. A arquidiocese apresentou o lema do jubileu em 24 de setembro de 2026. Quando conferimos, nenhuma data oficial para a abertura da Porta Santa tinha sido publicada; a arquidiocese disse apenas que o hino litúrgico do jubileu estrearia em dezembro, possivelmente na abertura da Porta Santa. Reserve cedo a hospedagem no Caminho e na cidade, sobretudo em torno do domingo, 25 de julho.
+Santiago tem Ano Santo sempre que o 25 de julho, dia de São Tiago, cai num domingo, como acontece em 2027. O último foi em 2021–22 e o próximo será em 2032. A arquidiocese apresentou o lema do jubileu em 24 de setembro de 2026. A Porta Santa abre em 31 de dezembro de 2026, segundo o escritório de turismo de Santiago, às 17:00 no calendário da catedral ou por volta do meio-dia segundo o deão, então confira o horário mais perto da data. Nosso [guia do Caminho para 2027](/blog/camino-de-santiago-2027) traz rotas, regras e movimento mês a mês. Reserve cedo a hospedagem no Caminho e na cidade, sobretudo em torno do domingo, 25 de julho.
 
 ### Copa do Mundo Feminina da FIFA, de 24 de junho a 25 de julho, Brasil
 
@@ -263,7 +263,7 @@ O sul da Europa está no período mais quente e mais caro, e boa parte da Ásia 
 
 A maior data do ano é a segunda-feira, 2 de agosto; o resto do mês favorece lugares secos, frescos ou em festa.
 
-**A província de Cádiz e o Estreito.** O IGN espanhol coloca quase toda a província de Cádiz, Ceuta e Melilla dentro da faixa de totalidade por volta das 10h45–10h50, horário da Espanha: Ceuta tem 4 min 48 s, e a cidade de Cádiz, 2 min 54 s.
+**A província de Cádiz e o Estreito.** O IGN espanhol coloca quase toda a província de Cádiz, Ceuta e Melilla dentro da faixa de totalidade por volta das 10h45–10h53, horário da Espanha: Ceuta tem 4 min 48 s, e a cidade de Cádiz, 2 min 54 s.
 **A contrapartida:** a hospedagem acaba cedo em plena alta temporada de férias, e vale a pena chegar mais perto da linha central: Málaga tem só 1 min 48 s.
 
 **Edimburgo.** O Fringe vai de 6 a 30 de agosto no ano do seu 80º aniversário, com 15–19 °C e fins de tarde longos no começo do mês.
@@ -508,7 +508,7 @@ O Domingo de Páscoa ocidental é em 28 de março, então a Semana Santa vai de 
 
 ### Onde ver o eclipse solar total de 2 de agosto de 2027?
 
-Na Espanha, em Ceuta, Melilla, quase toda a província de Cádiz e partes de Málaga, Granada e Almería, por volta das 10h45–10h50, horário local. A faixa segue pelo norte de Marrocos, Argélia, Tunísia, Líbia e Egito até a Arábia Saudita, o Iêmen e a Somália, e a totalidade é mais longa no Alto Egito: cerca de 6 minutos e 23 segundos na linha central, perto de Luxor.
+Na Espanha, em Ceuta, Melilla, quase toda a província de Cádiz e partes de Málaga, Granada e Almería, por volta das 10h45–10h53, horário local. A faixa segue pelo norte de Marrocos, Argélia, Tunísia, Líbia e Egito até a Arábia Saudita, o Iêmen e a Somália, e a totalidade é mais longa no Alto Egito: cerca de 6 minutos e 23 segundos na linha central, perto de Luxor.
 
 ### Quais são os melhores feriados prolongados de 2027?
 
@@ -516,7 +516,7 @@ De 4 a 12 de dezembro na Espanha (nove dias de folga com três de férias), de 2
 
 ### Quando é o Ano Santo de Santiago de Compostela?
 
-O ano de 2027 inteiro, porque o 25 de julho, dia de São Tiago, cai num domingo. A abertura da Porta Santa não tinha data oficial em 5 de outubro de 2026, e o próximo Ano Santo será em 2032.
+O ano de 2027 inteiro, porque o 25 de julho, dia de São Tiago, cai num domingo. A Porta Santa abre em 31 de dezembro de 2026 e fecha em 31 de dezembro de 2027, e o próximo Ano Santo será em 2032.
 
 ### Qual é o mês mais barato para viajar em 2027?
 
@@ -531,6 +531,9 @@ Para viagens curtas a cidades do Hemisfério Norte, janeiro depois do Dia de Rei
 - [Xunta de Galicia: o Ano Santo Compostelano](https://www.caminodesantiago.gal/en/discover/origins-and-evolution/the-compostela-holy-year)
 - [Santiago Turismo: quando é Ano Santo?](https://www.santiagoturismo.com/historia/cando-e-ano-santo)
 - [Catedral de Santiago: lema do Ano Santo 2027](https://catedraldesantiago.es/al-ver-la-estrella-se-llenaron-de-inmensa-alegria-sera-el-lema-para-el-ano-santo-compostelano-2027/)
+- [Santiago Turismo: Ano Santo 2027](https://www.santiagoturismo.com/compostela2027)
+- [Catedral de Santiago: calendário litúrgico](https://catedraldesantiago.es/liturgia/)
+- [El Correo Gallego: apresentação do Ano Santo, 24 de setembro de 2026](https://www.elcorreogallego.es/santiago/2026/09/24/santiago-prepara-ano-santo-xacobeo-2027-134639233.html)
 - [Arquidiocese de Santiago: Una estrella para nuestro tiempo](https://delegacionclero.archicompostela.es/una-estrella-para-nuestro-tiempo-el-arzobispo-situa-la-alegria-de-caminar-con-esperanza-en-el-centro-del-ano-santo-compostelano-2027-bajo-el-lema-al-ver-la-estrella-se-llenaron-de-inmensa-a/)
 - [FIFA: datas de Brasil 2027 confirmadas](https://inside.fifa.com/media-releases/fifa-womens-world-cup-brazil-2027-dates-confirmed)
 - [FIFA: tabela de jogos de Brasil 2027 divulgada](https://inside.fifa.com/organisation/media-releases/womens-world-cup-2027-brazil-maracana-match-schedule-unveiled)

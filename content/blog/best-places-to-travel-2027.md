@@ -4,7 +4,7 @@ slug: "best-places-to-travel-2027"
 description: "Fifteen places where 2027 itself is the reason to go: the 2 August total eclipse over Luxor and the Strait of Gibraltar, three World Cups, a Compostela Holy Year, two Capitals of Culture, Beethoven's 200th and the Pergamon Altar's return."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-10-05"
+updatedAt: "2026-11-06"
 category: "Seasonal Travel"
 tags: ["best destinations", "trip planning", "seasonal"]
 image: "/images/blog/best-places-to-travel-2027.jpg"
@@ -49,7 +49,7 @@ Budget level is our relative read of on-the-ground costs during each event, not 
 
 ## Once-in-a-lifetime sky: the 2 August eclipse
 
-On Monday 2 August 2027 the Moon's shadow crosses the Strait of Gibraltar in mid-morning and reaches the Nile about an hour and a quarter later. [NASA's path table](https://eclipse.gsfc.nasa.gov/SEpath/SEpath2001/SE2027Aug02Tpath.html) puts greatest eclipse at 10:06:37.7 UT in the desert east of Luxor, with 6 min 22.6 s of totality in a path 257.7 km wide; the longest duration anywhere is 6 min 23.2 s. Read the eye-safety tips before you pack.
+On Monday 2 August 2027 the Moon's shadow crosses the Strait of Gibraltar in mid-morning and reaches the Nile about an hour and a quarter later. [NASA's path table](https://eclipse.gsfc.nasa.gov/SEpath/SEpath2001/SE2027Aug02Tpath.html) puts greatest eclipse at 10:06:37.7 UT in the desert east of Luxor, with 6 min 22.6 s of totality in a path 257.7 km wide; the longest duration anywhere is 6 min 23.2 s. Read the eye-safety tips before you pack. Our [eclipse guide](/blog/solar-eclipse-2027) has times, weather and what to book for each place, and which places just miss it.
 
 ## 1. Luxor and Upper Egypt — the longest totality
 
@@ -143,9 +143,9 @@ On Monday 2 August 2027 the Moon's shadow crosses the Strait of Gibraltar in mid
 
 ## 8. Santiago de Compostela and the Camino — a Holy Year
 
-**Why 2027:** a Holy Year is celebrated whenever 25 July, the feast of St James, falls on a Sunday; Galicia's [official Camino site](https://www.caminodesantiago.gal/en/discover/origins-and-evolution/the-compostela-holy-year) names 2027 as the next, after 2010 and 2021–22. The cathedral's Holy Door, at the back of the building on Praza da Quintana, is due to open on 31 December 2026 and stay open until 31 December 2027, according to the listings site [Planomato](https://planomato.com/es/santiago-de-compostela/p/apertura-puerta-santa-santiago-2026); the official pages we read did not yet give the date. The cathedral has announced the motto, "Al ver la estrella, se llenaron de inmensa alegría" ([Catedral de Santiago](https://catedraldesantiago.es/al-ver-la-estrella-se-llenaron-de-inmensa-alegria-sera-el-lema-para-el-ano-santo-compostelano-2027/)).
+**Why 2027:** a Holy Year is celebrated whenever 25 July, the feast of St James, falls on a Sunday; Galicia's [official Camino site](https://www.caminodesantiago.gal/en/discover/origins-and-evolution/the-compostela-holy-year) names 2027 as the next, after 2010 and 2021–22. The cathedral's Holy Door, at the back of the building on Praza da Quintana, opens on 31 December 2026 and stays open until 31 December 2027, according to [Santiago's tourist office](https://www.santiagoturismo.com/compostela2027). The hour isn't settled: 17:00 on the [cathedral's calendar](https://catedraldesantiago.es/liturgia/), around noon according to its dean (reported by [El Correo Gallego](https://www.elcorreogallego.es/santiago/2026/09/24/santiago-prepara-ano-santo-xacobeo-2027-134639233.html)). The cathedral has announced the motto, "Al ver la estrella, se llenaron de inmensa alegría" ([Catedral de Santiago](https://catedraldesantiago.es/al-ver-la-estrella-se-llenaron-de-inmensa-alegria-sera-el-lema-para-el-ano-santo-compostelano-2027/)).
 
-**When to go:** Sunday 25 July is the high point. May–June and September–October give you the Holy Year with more room on the trail.
+**When to go:** Sunday 25 July is the high point. May, June and September are now about as busy as July and August, on the [Pilgrim's Office's own numbers](https://oficinadelperegrino.com/estadisticas-nueva/). For room on the trail, go between November and early March. Our [Camino guide for 2027](/blog/camino-de-santiago-2027) has routes, rules and crowds month by month.
 
 **What to book:** the Compostela certificate needs at least 100 continuous kilometres on foot or horseback, or 200 by bike, on a recognised route, with a pilgrim credential stamped along the way (at the start and end of each stage if you walk only the last 100 km in sections) ([Pilgrim's Office](https://oficinadelperegrino.com/en/pilgrimage/the-compostela/)). Book beds for the last stages and for Santiago itself as soon as your dates are set.
 
@@ -257,7 +257,7 @@ Pick a date from this list, add the city and what you enjoy, and [build a day-by
 
 ### What is the best place to see the 2027 solar eclipse?
 
-For the longest totality, Upper Egypt: NASA's tables give about 6 min 23 s near Luxor, where August rainfall averages 0.07 mm. For the easiest trip from Europe, the Strait of Gibraltar: Spain's IGN gives Ceuta 4 min 48 s and Cádiz 2 min 54 s, and the centre line passes about 10 km south of Tangier. Egypt wins on duration, Spain on access.
+For the longest totality, Upper Egypt: NASA's tables give about 6 min 23 s on the centre line near Luxor and 6 min 20 s in the city, where August rainfall averages 0.07 mm. For the easiest trip from Europe, the Strait of Gibraltar: Spain's IGN gives Ceuta 4 min 48 s and Cádiz 2 min 54 s, and the centre line passes about 10 km south of Tangier. Egypt wins on duration, Spain on access.
 
 ### What time is the 2027 eclipse in Spain?
 
@@ -269,7 +269,7 @@ The Cricket World Cup ballot closes at 23:59 SAST on 21 November 2026, and the R
 
 ### When does the 2027 Holy Year in Santiago start and end?
 
-The Holy Door is due to open on 31 December 2026 and close on 31 December 2027, according to listings; the official pages we read did not yet give the date. It is a Holy Year because 25 July 2027, the feast of St James, falls on a Sunday.
+The Holy Door opens on 31 December 2026 and closes on 31 December 2027, according to Santiago's tourist office. The opening hour isn't settled: 17:00 on the cathedral's calendar, around noon according to its dean. It is a Holy Year because 25 July 2027, the feast of St James, falls on a Sunday.
 
 ### Which cities are European Capitals of Culture in 2027?
 
@@ -305,7 +305,10 @@ Berlin's Pergamonmuseum reopens its north wing and central section, Pergamon Alt
 - [Rugby World Cup: Purchasing tickets for RWC 2027](https://www.rugbyworldcup.com/2027/en/news/1046885/purchasing-tickets-for-mens-rugby-world-cup-2027-visa-sale)
 - [ICC: Cricket World Cup 2027 schedule revealed and ballot opens](https://www.icc-cricket.com/media-releases/icc-men-s-cricket-world-cup-2027-schedule-revealed-and-ballot-system-opens)
 - [Xunta de Galicia: The Compostela Holy Year](https://www.caminodesantiago.gal/en/discover/origins-and-evolution/the-compostela-holy-year)
-- [Planomato: Opening of the Holy Door, Santiago](https://planomato.com/es/santiago-de-compostela/p/apertura-puerta-santa-santiago-2026)
+- [Santiago Turismo: Holy Year 2027](https://www.santiagoturismo.com/compostela2027)
+- [Catedral de Santiago: Liturgical calendar](https://catedraldesantiago.es/liturgia/)
+- [El Correo Gallego: Holy Year presentation, 24 September 2026](https://www.elcorreogallego.es/santiago/2026/09/24/santiago-prepara-ano-santo-xacobeo-2027-134639233.html)
+- [Pilgrim's Office: Statistics dashboard](https://oficinadelperegrino.com/estadisticas-nueva/)
 - [Catedral de Santiago: Holy Year 2027 motto](https://catedraldesantiago.es/al-ver-la-estrella-se-llenaron-de-inmensa-alegria-sera-el-lema-para-el-ano-santo-compostelano-2027/)
 - [Pilgrim's Office: The Compostela](https://oficinadelperegrino.com/en/pilgrimage/the-compostela/)
 - [Liepāja 2027: Opening Weekend](https://liepaja2027.lv/en/events/liepaja-2027-opening-weekend/)
