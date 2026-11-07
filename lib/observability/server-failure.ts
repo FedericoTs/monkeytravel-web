@@ -1,12 +1,13 @@
-import { after } from "next/server";
+import { waitUntil } from "@vercel/functions";
 
 /**
  * Reports a server failure the code handled itself (a 5xx response, a refused
  * write), which the SDK's own error hooks never see because nothing throws.
  *
- * Inside a request it runs after the response is sent. Each kind is sent at
- * most once a minute per instance, so an outage shows up as an issue without
- * spending the event quota on every failed request. It never throws.
+ * The report goes out alongside the response, and waitUntil keeps the function
+ * alive until it is sent. Each kind is sent at most once a minute per
+ * instance, so an outage shows up as an issue without spending the event
+ * quota on every failed request. It never throws.
  */
 
 export type FailureLevel = "error" | "warning";
@@ -41,7 +42,7 @@ export function reportServerFailure(
     try {
       const Sentry = await loadSdk();
       Sentry.captureMessage(message, { level, fingerprint });
-      // The request's own flush has already run by the time this does.
+      // The request's own flush may already have run by the time this does.
       await Sentry.flush(2000);
     } catch {
       // Reporting never breaks the request.
@@ -49,9 +50,9 @@ export function reportServerFailure(
   };
 
   try {
-    after(send);
+    // Outside Vercel (a script, a test) nothing needs keeping alive.
+    waitUntil(send());
   } catch {
-    // Outside a request (a script, a test) there is nothing to wait for.
-    void send();
+    // Reporting never breaks the request.
   }
 }
