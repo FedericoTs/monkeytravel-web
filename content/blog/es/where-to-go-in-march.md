@@ -60,7 +60,7 @@ El [Holi cae el 22 de marzo de 2027](https://www.drikpanchang.com/hindu-festival
 
 ## 3. Andalucía — Semana Santa
 
-La Semana Santa va del 21 al 27 de marzo en 2027, y la de Sevilla es uno de los grandes espectáculos de Europa: procesiones nocturnas, hermandades llevando los pasos por calles llenas, la ciudad despierta hasta el amanecer. Málaga, Córdoba y Granada tienen cada una su versión.
+La Semana Santa va del 21 al 27 de marzo en 2027, y la de Sevilla es uno de los grandes espectáculos de Europa: procesiones nocturnas, hermandades llevando los pasos por calles llenas, la ciudad despierta hasta el amanecer. Málaga, Córdoba y Granada tienen cada una su versión. Nuestra [guía de Semana Santa 2027](/blog/where-to-go-at-easter) compara Sevilla, Málaga y Granada, con los puentes de cada país.
 
 **Coste real:** $75–120/día en semanas normales de marzo; la Semana Santa se dispara muy por encima con mínimos de estancia en Sevilla.
 **La contrapartida:** o es el motivo del viaje o es un problema que evitar: no hay término medio. Durante la Semana Santa el centro de Sevilla es intransitable en horario de procesión y las habitaciones vuelan con muchos meses de antelación. Las tres primeras semanas de marzo dan la misma ciudad, templada y de verdad tranquila.

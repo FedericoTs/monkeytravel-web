@@ -66,7 +66,7 @@ Vinte e quatro seleções disputam 52 jogos em Adelaide, Brisbane, Melbourne, Ne
 
 ### Copa do Mundo Masculina de Críquete da ICC, de 2 de outubro a 21 de novembro, sul da África
 
-Catorze seleções disputam 57 jogos em 12 sedes na África do Sul, no Zimbábue (incluindo Victoria Falls) e na Namíbia (Windhoek). O torneio abre em 2 de outubro com uma Super Series de três seleções na Namíbia; a fase de grupos começa na Cidade do Cabo em 7 de outubro, com Austrália contra Índia, e a final é em Joanesburgo, em 21 de novembro. O sorteio de ingressos da ICC fica aberto até as 23h59 (horário da África do Sul) de 21 de novembro de 2026, com preços de cerca de US$ 9,50–30 (8,50–27 €).
+Catorze seleções disputam 57 jogos em 12 sedes na África do Sul, no Zimbábue (incluindo Victoria Falls) e na Namíbia (Windhoek). O torneio abre em 2 de outubro com uma Super Series de três seleções na Namíbia; a fase de grupos começa na Cidade do Cabo em 7 de outubro, com Austrália contra Índia, e a final é em Joanesburgo, em 21 de novembro. O sorteio de ingressos da ICC fica aberto até as 23h59 (horário da África do Sul) de 21 de novembro de 2026, com preços de cerca de US$ 9,50–30 (8,50–27 €). Nosso [guia da Copa do Mundo de Críquete 2027](/blog/cricket-world-cup-2027) traz os jogos da Índia, os vistos, os voos e dois roteiros de exemplo.
 
 ### Capitais Europeias da Cultura: Liepāja e Évora
 
@@ -142,7 +142,7 @@ O Ano-Novo Lunar (sábado, 6 de fevereiro) e a terça-feira de Carnaval (dia 9) 
 
 ## Março de 2027 — Cerejeiras em flor, Holi e uma Páscoa cedo
 
-O Domingo de Páscoa cai em 28 de março, então a Semana Santa e o Holi dividem a última semana, e as três primeiras são de média temporada tranquila.
+O Domingo de Páscoa cai em 28 de março, então a Semana Santa e o Holi dividem a última semana, e as três primeiras são de média temporada tranquila. Nosso [guia da Páscoa 2027](/blog/where-to-go-at-easter) traz 16 destinos para viver as procissões da Semana Santa ou fugir delas.
 
 **Japão.** Pelas normais de 1991–2020 da Agência Meteorológica do Japão, as cerejeiras de Tóquio atingem a floração plena em 31 de março e as de Kyoto em 4 de abril, e a GREEN×EXPO de Yokohama abre em 19 de março com cerca de 600 cerejeiras.
 **A contrapartida:** a semana da floração está entre as mais caras do Japão, e um fevereiro quente pode adiantar as datas em uma semana.
@@ -441,7 +441,7 @@ O BOE publicou a lista oficial de 2027 da Espanha em 13 de outubro de 2026. Oito
 
 Seis comunidades transferem a Asunción do domingo, 15, para a segunda-feira, 16 de agosto; a Extremadura a troca pela segunda-feira, 11 de outubro; e a Catalunha e a Comunidade Valenciana celebram o Lunes de Pascua no lugar do Jueves Santo. Cada comunidade acrescenta ainda seus próprios feriados, como o 23 de abril em Aragão e em Castela e Leão ou o 11 de setembro na Catalunha.
 
-**Melhores emendas:** dezembro é o melhor do ano. Um dia de férias (terça-feira, 7) rende cinco dias de folga, de 4 a 8 de dezembro, e três (7, 9 e 10 de dezembro) rendem nove, de 4 a 12 de dezembro. A Semana Santa rende cinco dias, de 25 a 29 de março, nas Baleares, em Navarra, no País Basco e em La Rioja, que mantêm o Jueves Santo e o Lunes de Pascua. A sexta-feira, 19 de março, e a segunda-feira, 16 de agosto, rendem feriadões de três dias onde são feriado. Emendar a segunda-feira, 11 de outubro, faz um feriadão de quatro dias (na Extremadura ela já é feriado), e Todos los Santos rende um de três.
+**Melhores emendas:** dezembro é o melhor no país inteiro. Um dia de férias (terça-feira, 7) rende cinco dias de folga, de 4 a 8 de dezembro, e três (7, 9 e 10 de dezembro) rendem nove, de 4 a 12 de dezembro. Na Galícia, em Madri, em Múrcia e em Navarra, três dias de férias (de 22 a 24 de março) emendam San José (sexta-feira, 19 de março) com a Semana Santa e rendem dez dias de folga, de 19 a 28 de março, ou onze em Navarra, até o dia 29; a Comunidade Valenciana precisa de quatro (de 22 a 25 de março) para os mesmos onze. A Semana Santa rende cinco dias, de 25 a 29 de março, nas Baleares, em Navarra, no País Basco e em La Rioja, que mantêm o Jueves Santo e o Lunes de Pascua. A sexta-feira, 19 de março, e a segunda-feira, 16 de agosto, rendem feriadões de três dias onde são feriado. Emendar a segunda-feira, 11 de outubro, faz um feriadão de quatro dias (na Extremadura ela já é feriado), e Todos los Santos rende um de três.
 
 ### Itália
 
@@ -504,7 +504,7 @@ O eclipse solar total de 2 de agosto; o Ano Santo de Santiago de Compostela, com
 
 ### Quando é a Páscoa de 2027?
 
-O Domingo de Páscoa ocidental é em 28 de março, então a Semana Santa vai de 21 a 27 de março e a Sexta-Feira Santa, 26 de março, é feriado no Reino Unido, na Espanha e no Brasil. A Páscoa ortodoxa é em 2 de maio, o que coloca a Semana Santa grega de 26 de abril a 1º de maio.
+O Domingo de Páscoa ocidental é em 28 de março, então a Semana Santa vai de 21 a 27 de março e a Sexta-Feira Santa, 26 de março, é feriado no Reino Unido, na Espanha e em Portugal, e está na lista federal de 2026 do Brasil (a de 2027 ainda não saiu). A Páscoa ortodoxa é em 2 de maio, o que coloca a Semana Santa grega de 26 de abril a 1º de maio.
 
 ### Onde ver o eclipse solar total de 2 de agosto de 2027?
 
@@ -512,7 +512,7 @@ Na Espanha, em Ceuta, Melilla, quase toda a província de Cádiz e partes de Má
 
 ### Quais são os melhores feriados prolongados de 2027?
 
-De 4 a 12 de dezembro na Espanha (nove dias de folga com três de férias), de 25 de dezembro a 3 de janeiro no Reino Unido (dez dias com três) e a Páscoa na Inglaterra, no País de Gales e na Irlanda do Norte (dez dias com quatro). O feriado de São Francisco na Itália cai na segunda-feira, 4 de outubro, o Brasil tem três feriados numa terça-feira que pedem emenda na segunda, e nos EUA o Dia dos Veteranos e o Dia de Ação de Graças caem numa quinta-feira.
+De 4 a 12 de dezembro na Espanha (nove dias de folga com três de férias), de 19 a 28 de março na Galícia, em Madri, em Múrcia e em Navarra (dez dias com três), de 25 de dezembro a 3 de janeiro no Reino Unido (dez dias com três) e a Páscoa na Inglaterra, no País de Gales e na Irlanda do Norte (dez dias com quatro). O feriado de São Francisco na Itália cai na segunda-feira, 4 de outubro, o Brasil tem três feriados numa terça-feira que pedem emenda na segunda, e nos EUA o Dia dos Veteranos e o Dia de Ação de Graças caem numa quinta-feira.
 
 ### Quando é o Ano Santo de Santiago de Compostela?
 

@@ -129,7 +129,7 @@ El lunes 2 de agosto de 2027, la sombra de la Luna cruza el estrecho de Gibralta
 
 **Por qué 2027:** la [Copa Mundial de Críquet masculina de la ICC](https://www.icc-cricket.com/media-releases/icc-men-s-cricket-world-cup-2027-schedule-revealed-and-ballot-system-opens) se disputa del 2 de octubre al 21 de noviembre de 2027: 14 selecciones, 57 partidos, 12 sedes. Sudáfrica tiene ocho (Johannesburgo, Tshwane, Ciudad del Cabo, Durban, Gqeberha, Bloemfontein, Paarl y KuGompo City), Zimbabue tres (Harare, Bulawayo y Victoria Falls) y Namibia una (Windhoek). Australia se enfrenta a India en Ciudad del Cabo el 7 de octubre, India se mide con Pakistán en Johannesburgo el 10 de octubre, las semifinales son en Ciudad del Cabo (17 de noviembre) y en Centurion, en Tshwane (18 de noviembre), y Johannesburgo acoge la final el 21 de noviembre.
 
-**Qué reservar:** apúntate al sorteo antes de que cierre, a las 23:59 SAST del 21 de noviembre de 2026, en tickets.cricketworldcup.com. La inscripción es gratuita, con una solicitud por persona y partido, y los precios van de unos 9,50 US$ a 30 US$ (unos 8,50–27 €) según el partido.
+**Qué reservar:** apúntate al sorteo antes de que cierre, a las 23:59 SAST del 21 de noviembre de 2026, en tickets.cricketworldcup.com. La inscripción es gratuita, con una solicitud por persona y partido, y los precios van de unos 9,50 US$ a 30 US$ (unos 8,50–27 €) según el partido. Nuestra [guía del Mundial de críquet 2027](/blog/cricket-world-cup-2027) explica el sorteo, los partidos de India, los visados y dos viajes de ejemplo.
 
 **Cuándo ir:** octubre y noviembre son primavera; en Ciudad del Cabo la máxima media de noviembre es de 23,7 °C ([NOAA NCEI](https://www.ncei.noaa.gov/products/wmo-climate-normals)).
 

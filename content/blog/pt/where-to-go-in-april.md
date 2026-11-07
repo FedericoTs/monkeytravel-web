@@ -85,7 +85,7 @@ A tulipa foi otomana muito antes de ser holandesa, e todo mês de abril Istambul
 
 ## 7. Marrakech e o Atlas — Depois do Ramadã, antes do calor
 
-Abril é o último mês confortável em [Marrakech](/destinations/marrakech) antes da fornalha: tardes por volta de 25 °C e noites frescas nos terraços. Em 2027 ele também fica livre do Ramadã, que termina no início de março — [o Eid al-Fitr está previsto para 9 de março](https://www.officeholidays.com/countries/morocco/2027) —, então restaurantes e souks funcionam no horário normal o mês todo. O Alto Atlas está no auge do verde: neve ainda no Toubkal e flores silvestres no Vale do Ourika e em volta de Imlil, a 60–90 minutos da cidade. Mais ao sul, o Saara em Merzouga está quente, não castigador.
+Abril é o último mês confortável em [Marrakech](/destinations/marrakech) antes da fornalha: tardes por volta de 25 °C e noites frescas nos terraços. Em 2027 ele também fica livre do Ramadã, que termina no início de março — [o Eid al-Fitr está previsto para 9 ou 10 de março](https://www.officeholidays.com/countries/morocco/2027) —, então restaurantes e souks funcionam no horário normal o mês todo. O Alto Atlas está no auge do verde: neve ainda no Toubkal e flores silvestres no Vale do Ourika e em volta de Imlil, a 60–90 minutos da cidade. Mais ao sul, o Saara em Merzouga está quente, não castigador.
 
 **Custos reais:** $50–90/dia; um riad com pátio continua sendo a hospedagem clássica de faixa intermediária.
 **A contrapartida:** abril é procurado, e as férias de primavera europeias lotam os melhores riads, então reserve cedo. No fim de abril um *chergui* quente pode levar a cidade acima de 30 °C por dias, e as noites na montanha ainda são frias.

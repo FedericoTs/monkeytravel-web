@@ -129,7 +129,7 @@ On Monday 2 August 2027 the Moon's shadow crosses the Strait of Gibraltar in mid
 
 **Why 2027:** the [ICC Men's Cricket World Cup](https://www.icc-cricket.com/media-releases/icc-men-s-cricket-world-cup-2027-schedule-revealed-and-ballot-system-opens) runs from 2 October to 21 November 2027: 14 teams, 57 matches, 12 venues. South Africa has eight (Johannesburg, Tshwane, Cape Town, Durban, Gqeberha, Bloemfontein, Paarl and KuGompo City), Zimbabwe three (Harare, Bulawayo and Victoria Falls) and Namibia one (Windhoek). Australia play India in Cape Town on 7 October, India meet Pakistan in Johannesburg on 10 October, the semi-finals are in Cape Town (17 November) and Centurion, in Tshwane (18 November), and Johannesburg stages the final on 21 November.
 
-**What to book:** enter the ballot before it closes at 23:59 SAST on 21 November 2026, at tickets.cricketworldcup.com. Registration is free, with one entry per person per match, and prices run from about US$9.50 to US$30 (about €8.50–27) depending on the match.
+**What to book:** enter the ballot before it closes at 23:59 SAST on 21 November 2026, at tickets.cricketworldcup.com. Registration is free, with one entry per person per match, and prices run from about US$9.50 to US$30 (about €8.50–27) depending on the match. Our [Cricket World Cup 2027 guide](/blog/cricket-world-cup-2027) covers the ballot, India's fixtures, visas and two sample trips.
 
 **When to go:** October and November are spring; Cape Town's November average high is 23.7°C (75°F) ([NOAA NCEI](https://www.ncei.noaa.gov/products/wmo-climate-normals)).
 

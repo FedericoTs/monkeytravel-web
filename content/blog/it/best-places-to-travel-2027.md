@@ -129,7 +129,7 @@ Il 2027 porta tre Mondiali, i Giochi panamericani e un Tour de France che parte 
 
 **Perché il 2027:** la [Coppa del Mondo di cricket maschile ICC](https://www.icc-cricket.com/media-releases/icc-men-s-cricket-world-cup-2027-schedule-revealed-and-ballot-system-opens) si gioca dal 2 ottobre al 21 novembre 2027: 14 squadre, 57 partite, 12 sedi. Il Sudafrica ne ha otto (Johannesburg, Tshwane, Città del Capo, Durban, Gqeberha, Bloemfontein, Paarl e KuGompo City), lo Zimbabwe tre (Harare, Bulawayo e Victoria Falls) e la Namibia una (Windhoek). Australia-India si gioca a Città del Capo il 7 ottobre, India-Pakistan a Johannesburg il 10 ottobre, le semifinali sono a Città del Capo (17 novembre) e a Centurion, a Tshwane (18 novembre), e Johannesburg ospita la finale il 21 novembre.
 
-**Cosa prenotare:** partecipa al sorteggio prima che chiuda, alle 23:59 SAST del 21 novembre 2026, su tickets.cricketworldcup.com. L'iscrizione è gratuita, con una richiesta a persona per partita, e i prezzi vanno da circa 9,50 US$ a 30 US$ (circa 8,50–27 €) a seconda della partita.
+**Cosa prenotare:** partecipa al sorteggio prima che chiuda, alle 23:59 SAST del 21 novembre 2026, su tickets.cricketworldcup.com. L'iscrizione è gratuita, con una richiesta a persona per partita, e i prezzi vanno da circa 9,50 US$ a 30 US$ (circa 8,50–27 €) a seconda della partita. La nostra [guida ai Mondiali di cricket 2027](/blog/cricket-world-cup-2027) spiega il sorteggio, le partite dell'India, i visti e due viaggi di esempio.
 
 **Quando andare:** ottobre e novembre sono primavera; a Città del Capo la massima media di novembre è di 23,7 °C ([NOAA NCEI](https://www.ncei.noaa.gov/products/wmo-climate-normals)).
 

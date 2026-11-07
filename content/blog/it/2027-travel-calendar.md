@@ -66,7 +66,7 @@ Ventiquattro nazionali giocano 52 partite ad Adelaide, Brisbane, Melbourne, Newc
 
 ### Coppa del Mondo maschile di cricket ICC, dal 2 ottobre al 21 novembre, Africa australe
 
-Quattordici nazionali giocano 57 partite in 12 sedi tra Sudafrica, Zimbabwe (Cascate Vittoria comprese) e Namibia (Windhoek). Il torneo si apre il 2 ottobre con una Super Series a tre squadre in Namibia; la fase a gironi comincia a Città del Capo il 7 ottobre con Australia-India, e la finale è a Johannesburg il 21 novembre. Il sorteggio dei biglietti dell'ICC resta aperto fino alle 23:59 ora sudafricana del 21 novembre 2026, con prezzi indicati tra circa US$ 9,50 e 30 (8,50–27 €).
+Quattordici nazionali giocano 57 partite in 12 sedi tra Sudafrica, Zimbabwe (Cascate Vittoria comprese) e Namibia (Windhoek). Il torneo si apre il 2 ottobre con una Super Series a tre squadre in Namibia; la fase a gironi comincia a Città del Capo il 7 ottobre con Australia-India, e la finale è a Johannesburg il 21 novembre. Il sorteggio dei biglietti dell'ICC resta aperto fino alle 23:59 ora sudafricana del 21 novembre 2026, con prezzi indicati tra circa US$ 9,50 e 30 (8,50–27 €). La nostra [guida ai Mondiali di cricket 2027](/blog/cricket-world-cup-2027) ha le partite dell'India, i visti, i voli e due viaggi di esempio.
 
 ### Capitali europee della cultura: Liepāja ed Évora
 
@@ -142,7 +142,7 @@ Il Capodanno lunare (sabato 6 febbraio) e il martedì grasso (il 9) cadono nella
 
 ## Marzo 2027 — Fioriture, Holi e una Pasqua bassa
 
-La domenica di Pasqua è il 28 marzo, quindi Settimana Santa e Holi cadono nell'ultima settimana, e le prime tre sono una tranquilla media stagione.
+La domenica di Pasqua è il 28 marzo, quindi Settimana Santa e Holi cadono nell'ultima settimana, e le prime tre sono una tranquilla media stagione. La nostra [guida a Pasqua 2027](/blog/where-to-go-at-easter) propone 16 mete, per seguire le processioni della Settimana Santa o per evitarle.
 
 **Giappone.** Secondo le medie 1991–2020 dell'Agenzia meteorologica giapponese, i ciliegi di Tokyo sono in piena fioritura il 31 marzo e quelli di Kyoto il 4 aprile, e GREEN×EXPO, a Yokohama, apre il 19 marzo con circa 600 ciliegi.
 **Il compromesso:** la settimana della fioritura è tra le più care in Giappone, e un febbraio mite può anticipare le date di una settimana.
@@ -441,7 +441,7 @@ Il BOE ha pubblicato il calendario ufficiale spagnolo del 2027 il 13 ottobre 202
 
 Sei comunità autonome spostano l'Asunción da domenica 15 a lunedì 16 agosto, l'Estremadura la sostituisce con lunedì 11 ottobre, e Catalogna e Comunità Valenciana festeggiano il Lunes de Pascua al posto del Jueves Santo. Ogni comunità aggiunge anche giorni propri, come il 23 aprile in Aragona e in Castiglia e León o l'11 settembre in Catalogna.
 
-**I ponti migliori:** dicembre è il migliore dell'anno. Un giorno di ferie (martedì 7) dà cinque giorni liberi, dal 4 all'8 dicembre, e tre (7, 9 e 10 dicembre) ne danno nove, dal 4 al 12 dicembre. Pasqua dura cinque giorni, dal 25 al 29 marzo, alle Baleari, in Navarra, nei Paesi Baschi e a La Rioja, che mantengono sia il Jueves Santo sia il Lunes de Pascua. Venerdì 19 marzo e lunedì 16 agosto regalano weekend di tre giorni dove sono festivi. Facendo il ponte lunedì 11 ottobre si ottiene un weekend di quattro giorni (in Estremadura è già festivo), e Ognissanti ne regala uno di tre.
+**I ponti migliori:** dicembre è il migliore a livello nazionale. Un giorno di ferie (martedì 7) dà cinque giorni liberi, dal 4 all'8 dicembre, e tre (7, 9 e 10 dicembre) ne danno nove, dal 4 al 12 dicembre. In Galizia, a Madrid, a Murcia e in Navarra, tre giorni di ferie (dal 22 al 24 marzo) uniscono San José (venerdì 19 marzo) a Pasqua e danno dieci giorni liberi, dal 19 al 28 marzo, o undici in Navarra, fino al 29; nella Comunità Valenciana ne servono quattro (dal 22 al 25 marzo) per gli stessi undici. Pasqua dura cinque giorni, dal 25 al 29 marzo, alle Baleari, in Navarra, nei Paesi Baschi e a La Rioja, che mantengono sia il Jueves Santo sia il Lunes de Pascua. Venerdì 19 marzo e lunedì 16 agosto regalano weekend di tre giorni dove sono festivi. Facendo il ponte lunedì 11 ottobre si ottiene un weekend di quattro giorni (in Estremadura è già festivo), e Ognissanti ne regala uno di tre.
 
 ### Italia
 
@@ -504,7 +504,7 @@ L'eclissi totale di Sole del 2 agosto; l'Anno Santo di Santiago de Compostela, c
 
 ### Quando è Pasqua nel 2027?
 
-La domenica di Pasqua occidentale è il 28 marzo, quindi la Settimana Santa va dal 21 al 27 marzo e il Venerdì Santo, 26 marzo, è festivo nel Regno Unito, in Spagna e in Brasile. La Pasqua ortodossa è il 2 maggio, e la Settimana Santa greca cade quindi dal 26 aprile al 1° maggio.
+La domenica di Pasqua occidentale è il 28 marzo, quindi la Settimana Santa va dal 21 al 27 marzo e il Venerdì Santo, 26 marzo, è festivo nel Regno Unito, in Spagna e in Portogallo, e compare nel calendario federale brasiliano del 2026 (quello del 2027 non è ancora uscito). La Pasqua ortodossa è il 2 maggio, e la Settimana Santa greca cade quindi dal 26 aprile al 1° maggio.
 
 ### Dove si vede l'eclissi totale di Sole del 2 agosto 2027?
 
@@ -512,7 +512,7 @@ In Spagna, da Ceuta, Melilla, quasi tutta la provincia di Cadice e parte delle p
 
 ### Quali sono i ponti migliori del 2027?
 
-In Spagna il ponte dal 4 al 12 dicembre (nove giorni liberi con tre di ferie), nel Regno Unito dal 25 dicembre al 3 gennaio (dieci giorni con tre di ferie) e la Pasqua in Inghilterra, Galles e Irlanda del Nord (dieci giorni con quattro). In Italia la festa di San Francesco cade lunedì 4 ottobre, il Brasile ha tre festività di martedì che invitano a fare il ponte il lunedì, e negli Stati Uniti Veterans Day e Thanksgiving cadono entrambi di giovedì.
+In Spagna il ponte dal 4 al 12 dicembre (nove giorni liberi con tre di ferie) e quello dal 19 al 28 marzo in Galizia, Madrid, Murcia e Navarra (dieci giorni con tre), nel Regno Unito dal 25 dicembre al 3 gennaio (dieci giorni con tre di ferie) e la Pasqua in Inghilterra, Galles e Irlanda del Nord (dieci giorni con quattro). In Italia la festa di San Francesco cade lunedì 4 ottobre, il Brasile ha tre festività di martedì che invitano a fare il ponte il lunedì, e negli Stati Uniti Veterans Day e Thanksgiving cadono entrambi di giovedì.
 
 ### Quando è l'Anno Santo di Santiago de Compostela?
 
