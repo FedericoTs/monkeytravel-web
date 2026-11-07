@@ -277,6 +277,16 @@ export function buildStaticChatHistory(systemPrompt: string) {
   ];
 }
 
+/** Who's coming, from step 1. Only ever these fixed words, never the request's text. */
+const TRAVELLERS = {
+  solo: "one person travelling alone. Favour places that suit one: counter seats and casual spots over long set menus, group walking tours, lively central areas in the evening. Never assume a partner or a group.",
+  group: "friends travelling together. Favour places that suit a group: tables for several, shared dishes, activities that are fun together. Say when a group should book ahead.",
+};
+
+function travellersLine({ tripIntent }: Pick<TripCreationParams, "tripIntent">): string {
+  return tripIntent ? `Travellers: ${TRAVELLERS[tripIntent]}` : "";
+}
+
 function buildUserPrompt(params: TripCreationParams, options?: BuildPromptOptions): string {
   const totalDuration = tripSpanDays(params.startDate, params.endDate);
 
@@ -384,6 +394,8 @@ ${knownPlaces.map((p) => `- ${p.name} (${p.type})`).join("\n")}
 `
     : "";
 
+  const travellers = travellersLine(params);
+
   // Language header intentionally at the END (see tail of this template):
   // it is the most cache-hostile token span (varies per locale), and the
   // shared-prefix cache only covers the identical head of the request.
@@ -394,7 +406,7 @@ ${knownPlaces.map((p) => `- ${p.name} (${p.type})`).join("\n")}
 - Duration: ${duration} days
 - Budget Tier: ${params.budgetTier}
 - Travel Pace: ${params.pace} — ${paceBudgetPromptClause(params.pace)}
-
+${travellers ? `- ${travellers}\n` : ""}
 ${travelStyleSection}${vibeSection}${seasonalSection}## Traveler Preferences
 - Interests: ${params.interests.length > 0 ? params.interests.join(", ") : "general sightseeing"}
 ${params.requirements ? `- Special Requirements: ${params.requirements}` : ""}
@@ -412,5 +424,5 @@ ${params.mustDos.map((m) => `- ${m}`).join("\n")}
 ${anchorSection}${partSection}Generate the itinerary now, following the system rules and the Required Output schema exactly.${languageSection}`;
 }
 
-export { buildProfilePreferencesSection, buildSchedulingPreferencesSection, buildUserPrompt };
+export { buildProfilePreferencesSection, buildSchedulingPreferencesSection, buildUserPrompt, travellersLine };
 export type { BuildPromptOptions };

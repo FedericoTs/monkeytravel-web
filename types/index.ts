@@ -488,6 +488,11 @@ export interface TripCreationParams {
    */
   travelStyle?: "classic" | "backpacker";
   /**
+   * The answer to "Who's coming?". It shapes the plan (lib/ai/trip-prompt.ts),
+   * so a plan with it neither comes from the shared cache nor goes into it.
+   */
+  tripIntent?: "solo" | "group";
+  /**
    * Multi-city wedge (§3.1). When present with >1 leg, /api/ai/generate routes
    * to the per-city parallel generator (lib/ai/multi-city) and merges the
    * cities into one itinerary. Absent ⇒ existing single-`destination` path
