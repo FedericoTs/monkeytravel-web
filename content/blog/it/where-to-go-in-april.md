@@ -84,7 +84,7 @@ Il tulipano è stato ottomano molto prima che olandese, e ogni aprile Istanbul n
 
 ## 7. Marrakech e l'Atlante — Dopo il Ramadan, prima del caldo
 
-Aprile è l'ultimo mese comodo a [Marrakech](/destinations/marrakech) prima della fornace: pomeriggi intorno ai 25 °C, sere fresche sulle terrazze. Nel 2027 è anche libero dal Ramadan, che finisce a inizio marzo — [l'Eid al-Fitr è previsto il 9 marzo](https://www.officeholidays.com/countries/morocco/2027) — quindi ristoranti e souk mantengono gli orari normali per tutto il mese. L'Alto Atlante è al suo massimo di verde: neve ancora sul Toubkal, fiori selvatici nella valle dell'Ourika e attorno a Imlil, a 60–90 minuti dalla città. Più a sud, il Sahara a Merzouga è caldo ma non punitivo.
+Aprile è l'ultimo mese comodo a [Marrakech](/destinations/marrakech) prima della fornace: pomeriggi intorno ai 25 °C, sere fresche sulle terrazze. Nel 2027 è anche libero dal Ramadan, che finisce a inizio marzo — [l'Eid al-Fitr è previsto il 9 o il 10 marzo](https://www.officeholidays.com/countries/morocco/2027) — quindi ristoranti e souk mantengono gli orari normali per tutto il mese. L'Alto Atlante è al suo massimo di verde: neve ancora sul Toubkal, fiori selvatici nella valle dell'Ourika e attorno a Imlil, a 60–90 minuti dalla città. Più a sud, il Sahara a Merzouga è caldo ma non punitivo.
 
 **Costi reali:** $50–90 al giorno; un riad con cortile resta l'alloggio classico di fascia media.
 **Il compromesso:** aprile è richiesto, e le vacanze di primavera europee riempiono i riad migliori: prenota presto. A fine aprile un *chergui* rovente può spingere la città oltre i 30 °C per giorni, e le notti in montagna sono ancora fredde.

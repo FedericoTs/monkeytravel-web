@@ -129,7 +129,7 @@ Na segunda-feira, 2 de agosto de 2027, a sombra da Lua cruza o Estreito de Gibra
 
 **Por que 2027:** a [Copa do Mundo de Críquete masculina da ICC](https://www.icc-cricket.com/media-releases/icc-men-s-cricket-world-cup-2027-schedule-revealed-and-ballot-system-opens) vai de 2 de outubro a 21 de novembro de 2027: 14 seleções, 57 jogos, 12 sedes. A África do Sul tem oito (Joanesburgo, Tshwane, Cidade do Cabo, Durban, Gqeberha, Bloemfontein, Paarl e KuGompo City), o Zimbábue três (Harare, Bulawayo e Victoria Falls) e a Namíbia uma (Windhoek). Austrália e Índia se enfrentam na Cidade do Cabo em 7 de outubro, Índia e Paquistão em Joanesburgo em 10 de outubro, as semifinais são na Cidade do Cabo (17 de novembro) e em Centurion, em Tshwane (18 de novembro), e Joanesburgo recebe a final em 21 de novembro.
 
-**O que reservar:** inscreva-se no sorteio antes que ele feche, às 23:59 SAST de 21 de novembro de 2026, em tickets.cricketworldcup.com. A inscrição é gratuita, com uma inscrição por pessoa por jogo, e os preços vão de cerca de US$ 9,50 a US$ 30 (cerca de 8,50–27 €), conforme o jogo.
+**O que reservar:** inscreva-se no sorteio antes que ele feche, às 23:59 SAST de 21 de novembro de 2026, em tickets.cricketworldcup.com. A inscrição é gratuita, com uma inscrição por pessoa por jogo, e os preços vão de cerca de US$ 9,50 a US$ 30 (cerca de 8,50–27 €), conforme o jogo. Nosso [guia da Copa do Mundo de Críquete 2027](/blog/cricket-world-cup-2027) explica o sorteio, os jogos da Índia, os vistos e dois roteiros de exemplo.
 
 **Quando ir:** outubro e novembro são primavera; na Cidade do Cabo, a máxima média de novembro é de 23,7 °C ([NOAA NCEI](https://www.ncei.noaa.gov/products/wmo-climate-normals)).
 

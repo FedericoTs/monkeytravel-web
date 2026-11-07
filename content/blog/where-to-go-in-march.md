@@ -60,7 +60,7 @@ The blossom is why March is Japan's most contested month. Tokyo and Kyoto typica
 
 ## 3. Andalusia — Semana Santa
 
-Holy Week runs 21–27 March in 2027, and Seville's Semana Santa is one of Europe's great spectacles: nightly processions, brotherhoods carrying *pasos* through packed streets, the city awake until dawn. Málaga, Córdoba and Granada each run their own version.
+Holy Week runs 21–27 March in 2027, and Seville's Semana Santa is one of Europe's great spectacles: nightly processions, brotherhoods carrying *pasos* through packed streets, the city awake until dawn. Málaga, Córdoba and Granada each run their own version. Our [Easter 2027 guide](/blog/where-to-go-at-easter) compares Seville, Málaga and Granada, with the long weekends by country.
 
 **Cost reality:** $75–120/day in normal March weeks; Holy Week itself runs far above that with minimum-stay requirements in Seville.
 **The trade-off:** this is either the reason you came or a problem to avoid — there is no middle. During Holy Week the centre of Seville is impassable at procession times and rooms book many months out. The first three weeks of March give you the same city, mild and genuinely quiet.
