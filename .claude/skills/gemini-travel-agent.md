@@ -16,13 +16,7 @@ This skill provides prompts, configurations, and patterns for integrating Gemini
 
 ## Model Selection
 
-| Model | Code | Best For | Cost |
-|-------|------|----------|------|
-| Gemini 2.5 Flash | `gemini-2.5-flash` | MVP (price/performance) | ~$0.003/trip |
-| Gemini 2.5 Pro | `gemini-2.5-pro` | Complex reasoning | ~$0.05/trip |
-| Gemini 3 Pro | `gemini-3-pro-preview` | Best quality | ~$0.10/trip |
-
-**Recommendation**: Start with `gemini-2.5-flash` for MVP, upgrade to 3 Pro for premium tier.
+Models are chosen by purpose in `lib/ai/model-router.ts`, one line per use. Change them there and name a model nowhere else. Every route that reaches Gemini asks the switch first (`lib/ai/every-route-asks-gemini.vitest.ts`). The code below shows patterns, and its model names date quickly.
 
 ---
 

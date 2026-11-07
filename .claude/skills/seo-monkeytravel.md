@@ -6,7 +6,7 @@ description: |
   (2) Writing new SEO blog posts with proper frontmatter, structure, and translations,
   (3) Auditing existing blog content for SEO gaps,
   (4) Planning content calendars around trending travel queries,
-  (5) Creating or updating blog posts across all 3 locales (EN/ES/IT).
+  (5) Creating or updating blog posts across all 4 locales (EN/ES/IT/PT).
 ---
 
 # SEO Blog Engine — MonkeyTravel
@@ -244,7 +244,7 @@ Every blog post must follow this structure:
 
 ## 4. Translation Requirements
 
-Every blog post ships in all 3 locales simultaneously.
+Every blog post ships in all 4 locales simultaneously. Every statistic needs a source you've opened: see *Content sourcing* in `CLAUDE.md`.
 
 ### File Creation Checklist
 
@@ -253,9 +253,9 @@ For a new post with slug `my-new-post`:
 1. **`content/blog/my-new-post.md`** — English (full article)
 2. **`content/blog/es/my-new-post.md`** — Spanish (full article, culturally adapted)
 3. **`content/blog/it/my-new-post.md`** — Italian (full article, culturally adapted)
-4. **`messages/en/blog.json`** — Add `posts.my-new-post.title` and `posts.my-new-post.description`
-5. **`messages/es/blog.json`** — Add translated title and description
-6. **`messages/it/blog.json`** — Add translated title and description
+4. **`content/blog/pt/my-new-post.md`** — Portuguese (full article, culturally adapted)
+5. **`messages/en/blog.json`** — Add `posts.my-new-post.title` and `posts.my-new-post.description`
+6. **`messages/{es,it,pt}/blog.json`** — Add translated title and description
 7. **`public/images/blog/*.jpg`** — Hero image (shared across locales)
 
 ### Translation JSON Structure

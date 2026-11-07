@@ -17,6 +17,21 @@ users save it, edit it with the assistant, share it and plan it with friends.
   asked (`ignoreCommand` in vercel.json): push it to a branch named `preview/…`,
   or put `[preview]` in a commit message. CI builds every pull request anyway.
 
+## What matters here
+
+Making a plan no longer sets anyone apart, and many people who get one leave. So a
+change is worth making when it helps someone trust the plan, use it on the day, in
+their language, with the people they travel with, and with no surprise charges.
+Features people never reach aren't the goal.
+
+- **Real frustration goes first.** If real sessions or logs show someone stuck today,
+  that comes before new work.
+- **Judge by what people do.** Read the numbers before and after a change. Volumes are
+  low, so say when a number is thin.
+- **Don't touch the path from a finished plan to a saved trip for taste.** A restyle
+  there needs a before-and-after read and a way back, because a small change can stop
+  saves altogether.
+
 ## Commands
 
 ```bash
@@ -29,8 +44,10 @@ npm run test:e2e             # Playwright, tests/e2e/
 npm run test:e2e:prod        # the @prod subset against https://monkeytravel.app
 ```
 
-CI (`.github/workflows/ci.yml`) runs `typecheck`, `lint -- --quiet` and `test` on every
-pull request and every push to `master`. Run the same three before you push.
+CI (`.github/workflows/`) runs on every pull request: `typecheck`, lint with a warning
+ceiling, the unit suite, a production build, the public browser tests, the signed-in
+browser tests on a local database, and the guards for secrets, personal data, tenants
+and storage. See *Before you push*.
 
 ## How to change this codebase (MANDATORY)
 
@@ -51,10 +68,12 @@ make each following session slower and riskier. Every change follows these rules
 6. **The repo is public.** Never put a real person's name, email address or data in
    code, tests, fixtures, comments or docs. Use made-up names and `example.com`.
 7. **Every user-facing string exists in all four locales** (see *Internationalization*).
-8. **Verify in the running app, not only in tests.** Drive the real flow in a browser
-   on the dev server, and on production after the deploy, including one non-English
-   locale. Test with throwaway accounts, never a real user's.
+8. **Verify in the real thing, not only in tests,** including one non-English locale.
+   See *Checking it for real*.
 9. **Merge only when the user explicitly says so.**
+10. **Write the failing test first, then try to break the code.** Change the new code on
+    purpose, one way at a time, and check a test catches each change. A test that can't
+    fail proves nothing.
 
 ## Module owners
 
@@ -68,6 +87,12 @@ Add to these; do not start a parallel version.
 | Trip-page assistant | `app/api/ai/assistant/route.ts`, `hooks/useTripAssistant.ts` |
 | Trip concierge | `app/api/ai/concierge/route.ts`; what it reads `lib/ai/concierge-trip.ts`, its answer `lib/ai/concierge-answer.ts`, its proposals `lib/ai/concierge-proposal.ts` |
 | Shared assistant rules (honest replies, day targeting) | `lib/ai/assistant/` |
+| Checking a pasted plan | `lib/plans/`, `app/api/tools/check-plan/` |
+| A place to eat on Google Maps | `lib/places/places-to-eat.ts`; on a saved trip `lib/places/kept-trip.ts`, `check-kept-trip.ts` |
+| Links into Google Maps | `lib/trips/maps-links.ts` |
+| Travel times on the map | `lib/map/route-labels.ts` |
+| The signed-in home's next trip | `lib/trips/waiting-room.ts`, `components/trips/WaitingRoom.tsx` |
+| Answers to emails, signed links | `lib/feedback/` |
 | Saving a trip | `lib/trips/persistTrip.ts`; the wizard's Save button and reports `hooks/useWizardSave.ts`, auto-save `hooks/useAutoSaveTrip.ts`, gated by `lib/trips/autoSaveGate.ts` |
 | Concurrent itinerary writes | client queue `lib/trips/itinerary-sync.ts`, server compare-and-set `lib/trips/itinerary-cas.ts` |
 | Changing trip dates | `lib/trips/change-dates.ts` |
@@ -89,12 +114,82 @@ Add to these; do not start a parallel version.
 
 - Unit tests sit next to the code as `*.vitest.ts(x)` (Vitest, jsdom). The main
   `tsconfig.json` excludes them; `tsconfig.test.json` type-checks them.
-- Playwright specs live in `tests/e2e/`. `npm run e2e:fixtures` and `npm run e2e:login`
-  work against the **production** database: remove whatever you create.
+- Playwright specs live in `tests/e2e/`. Signed-in specs run in CI on a local database.
+  `npm run e2e:fixtures` and `npm run e2e:login` use whichever database `.env.local`
+  names, which can be production: don't sign in with test accounts there.
 - Every button, link and form field needs a name a screen reader can say;
   `app/control-names.vitest.ts` fails the build otherwise.
-- CI fails on ESLint **errors**. Style rules and React Compiler advice are warnings
-  (`eslint.config.mjs`); fix those in code you are already changing, not in bulk.
+- CI fails on ESLint errors and on more warnings than the ceiling in `ci.yml`. New files
+  add none. Style rules and React Compiler advice are warnings (`eslint.config.mjs`); fix
+  those in code you are already changing, not in bulk.
+
+## Before you push
+
+The unit suite catches none of these. Each has failed CI or production at least once.
+
+1. **Run the checks in this order and stop at the first failure:** your broken-on-purpose
+   checks, `npm run typecheck`, `npx vitest run`, lint, `node scripts/check-personal-data.mjs`.
+   Vitest doesn't type-check, and a pipe hides a failing step.
+2. **Commit before the suite when you touch a public page.** `app/sitemap-lastmod.vitest.ts`
+   dates pages from git, so uncommitted edits pass locally and fail in CI. Move the page's
+   `LASTMOD_*` in `app/sitemap.ts` in the same commit.
+3. **A new prerendered page goes in `lib/security/static-routes.json`.** The check after the
+   build (`scripts/check-static-routes.mjs`) fails otherwise, and only CI runs a build.
+4. **A new browser spec goes in a workflow's list** (`e2e-public.yml`, `e2e-signed-in.yml`).
+   Those are fixed lists, so a spec left off never runs and nothing says so.
+   `app/e2e-specs-accounted.vitest.ts` fails on one, and the run's count should go up.
+5. **Generate fake secrets at run time** (`randomBytes`, `crypto.randomUUID()`). Secret
+   scanning reads every commit in a pull request, including ones you've since fixed.
+6. **`errors.internal` takes a string literal** (`app/error-texts.vitest.ts`).
+7. **A helper that takes a table name as a string slips past guards that scan
+   `.from("x")`.** When you add one, teach the guards about it.
+8. **Run one heavy job at a time.** Two full suites, or a dev server beside a suite, make
+   slow tests hit their time limit and look like real failures.
+9. **Never skip hooks, `git add -A`, or `git stash` in a worktree.** On conflicts, merge
+   `origin/master`; don't rebase and force-push. Never write a placeholder command: it runs.
+
+## Checking it for real
+
+Tests pass on plenty that's wrong: a link the other site can't read, a card under a bar, a
+famous restaurant reported as not found. So after the deploy, not before it:
+
+- **Wait until the deploy is ready** (`scripts/verify-deploy.sh`). Before that you test the
+  old code, and a bad request can write junk to the database.
+- **Read the result, don't just count passes.** A green script says only what it was
+  written to check. Look at the screenshot, and read the answer as a visitor would.
+- **Open every new link in the real target,** such as Google Maps.
+- **Say what's proven and what isn't.** What needs an account can't be tried on production:
+  it goes in the signed-in suite, and the first real events are the rest of the proof.
+- **A test with two paths prints which one it took,** so a pass isn't mistaken for the
+  full walk.
+
+On production, tag the browser with a cookie `mt_session_id=e2eprobe-...`, stub every write
+that isn't under test, and delete the rows by that session afterwards. Never open a real
+person's emailed link: it would answer for them.
+
+What a local preview or a unit test can't show:
+
+- The live theme needs `HERO_DOODLE_ENABLED=true` in `.env.local`.
+- On a touch screen, `app/globals.css` sets a 44 px minimum outside any layer, which beats
+  Tailwind's utilities. Use `min-h-0!`, and check with `isMobile` and `hasTouch`.
+- `html` is 15 px on small screens, so `w-8` is 30 px there. Measure before quoting a size.
+- `isAnalyticsBot` drops a headless browser's clicks, so set a normal `userAgent`.
+- A dev server with production keys writes to production. Placeholder
+  `NEXT_PUBLIC_SUPABASE_*` values in a worktree are the safe way to look at a page.
+
+## Production is shared, and small
+
+- **No whole-table reads in a loop, and no `t::text like` scans across tables.** One query
+  that returns little, or small pages with a pause that stop when a read slows down.
+  Work a list out once and save it. Stay away from 02:15 to 03:45 UTC, when nightly jobs run.
+- **PostgREST returns at most 1,000 rows and doesn't say so,** even with `.limit(100000)`.
+  Use `lib/supabase/read-all-rows.ts`.
+- **Anything that spends gets a cap before it ships,** and a read of real usage after. A
+  check that makes a few extra calls per visit adds up.
+- **A logged cost at list price isn't the bill.** Take off the free allowances before
+  quoting a number.
+- **Every merge to `master` rebuilds production,** so don't merge just to keep busy.
+- **Ask the owner first** for migrations, deleting user data, force-pushes and repo settings.
 
 ## Design
 
