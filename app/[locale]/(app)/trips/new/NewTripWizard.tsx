@@ -191,7 +191,9 @@ import { shouldAutoSave } from "@/lib/trips/autoSaveGate";
 import { useSameTripCheck } from "@/hooks/useSameTripCheck";
 import SameTripPrompt from "@/components/wizard/SameTripPrompt";
 import ResultActionBars from "@/components/wizard/ResultActionBars";
-import ResultItinerary from "@/components/wizard/ResultItinerary";
+import ResultItinerary, { MAP_SECTION_ID, ResultOverview } from "@/components/wizard/ResultItinerary";
+import SkyPlan from "@/components/sky/SkyPlan";
+import { readsSky } from "@/lib/experiments/result-sky";
 import PreferencesStep from "@/components/wizard/PreferencesStep";
 import WizardFooter from "@/components/wizard/WizardFooter";
 import DestinationField from "@/components/wizard/DestinationField";
@@ -334,6 +336,17 @@ export default function NewTripPage({
 }: NewTripWizardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  // The plan as a sky, only when a link asks for it (see lib/experiments/result-sky).
+  const [skyResult] = useState(() => {
+    if (typeof window === "undefined") return false;
+    let store: Storage | null = null;
+    try {
+      store = window.localStorage;
+    } catch {
+      store = null;
+    }
+    return readsSky(searchParams?.get("result_variant"), store);
+  });
   // Snapshot ?auth_event on the FIRST render. AuthEventTracker strips it with
   // history.replaceState as soon as auth resolves, and useSearchParams follows
   // — so a live read a few hundred milliseconds later sees nothing and a
@@ -1378,6 +1391,22 @@ export default function NewTripPage({
 
     // Calculate total activities for modal
     const totalActivities = generatedItinerary.days.reduce((acc, day) => acc + day.activities.length, 0);
+    // The sky draws one place's days; a trip across cities keeps the classic plan.
+    const sky = skyResult && mcStops.length <= 1;
+    const askAssistant = (message: string) => {
+      void captureRefineSuggestionClicked({ source: "packedDay", derived: true });
+      setAssistantAsked((last) => ({ id: (last?.id ?? 0) + 1, message }));
+    };
+    const tripsTray = sessionTrayVisible && (
+      <SessionTripsTray trips={sessionTrips} currentId={sessionTripCurrentId} onRestore={handleSessionTrayRestore} />
+    );
+    // Save/generation error, shown here as well as in the form view: without
+    // it an authed Save failure on the result looks like a dead button.
+    const errorAlert = error && (
+      <div role="alert" className="mb-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+        {error}
+      </div>
+    );
 
     // The no-account share the header bar, the phone bar and the assistant offer.
     const anonShare = {
@@ -1463,6 +1492,7 @@ export default function NewTripPage({
         />
 
         {/* Hero with Cover Image */}
+        {!sky && (
         <DestinationHero
           destination={fullDestination}
           title={fullDestination}
@@ -1479,6 +1509,7 @@ export default function NewTripPage({
           showBackButton={false}
           freePhotosOnly
         />
+        )}
 
         {/* This place and these dates are already saved: replace or keep both. */}
         {awaitingTwinChoice && sameTrip.twin && <SameTripPrompt twin={sameTrip.twin} onChoose={chooseTwin} />}
@@ -1530,30 +1561,40 @@ export default function NewTripPage({
           RegenerateButton={RegenerateButtonView}
         />
 
+        {sky && (
+          <>
+            {(tripsTray || errorAlert) && (
+              <div className="max-w-6xl mx-auto px-4 pt-6">
+                {tripsTray}
+                {errorAlert}
+              </div>
+            )}
+            <SkyPlan
+              itinerary={generatedItinerary}
+              dateRange={formatDateRange(startDate, endDate, locale)}
+              totalCost={
+                convertCurrency(generatedItinerary.trip_summary.total_estimated_cost, generatedItinerary.trip_summary.currency).formatted
+              }
+              onEditDates={planningExtraDays ? undefined : () => setShowChangeDates(true)}
+              editDatesLabel={t("wizard.changeDates.button")}
+              pace={pace}
+              onAskAssistant={askAssistant}
+              onShowMap={() => {
+                setShowMap(true);
+                requestAnimationFrame(() => document.getElementById(MAP_SECTION_ID)?.scrollIntoView({ behavior: "smooth", block: "start" }));
+              }}
+            />
+          </>
+        )}
+
         <main className="max-w-6xl mx-auto px-4 py-8">
           {/* Session trips tray. Sits at the top of the scrollable result
               content (directly under the sticky header) so it never disturbs
               the hero or sticky layers. Visibility gated on
               sessionTrayVisible: ≥2 stacked trips, current trip unsaved,
               auto-save arm not active. */}
-          {sessionTrayVisible && (
-            <SessionTripsTray
-              trips={sessionTrips}
-              currentId={sessionTripCurrentId}
-              onRestore={handleSessionTrayRestore}
-            />
-          )}
-          {/* Save/generation error, shown here as well as in the form view:
-              without it an authed Save failure on the result looks like a
-              dead button. */}
-          {error && (
-            <div
-              role="alert"
-              className="mb-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
-            >
-              {error}
-            </div>
-          )}
+          {!sky && tripsTray}
+          {!sky && errorAlert}
           {/* AI assistant — Q&A + day-scoped edits at peak intent. */}
           <div className="mb-8">
             <AssistantPanelView
@@ -1592,23 +1633,30 @@ export default function NewTripPage({
             />
           </div>
 
-          <ResultItinerary
-            generatedItinerary={generatedItinerary}
-            fullDestination={fullDestination}
-            pace={pace}
-            resultViewMode={resultViewMode}
-            setResultViewMode={setResultViewMode}
-            showMap={showMap}
-            setShowMap={setShowMap}
-            travelData={travelData}
-            travelLoading={travelLoading}
-            handleSaveTrip={handleSaveTrip}
-            loading={loading}
-            onAskAssistant={(message) => {
-              void captureRefineSuggestionClicked({ source: "packedDay", derived: true });
-              setAssistantAsked((last) => ({ id: (last?.id ?? 0) + 1, message }));
-            }}
-          />
+          {sky ? (
+            <ResultOverview
+              generatedItinerary={generatedItinerary}
+              fullDestination={fullDestination}
+              pace={pace}
+              showMap={showMap}
+              setShowMap={setShowMap}
+            />
+          ) : (
+            <ResultItinerary
+              generatedItinerary={generatedItinerary}
+              fullDestination={fullDestination}
+              pace={pace}
+              resultViewMode={resultViewMode}
+              setResultViewMode={setResultViewMode}
+              showMap={showMap}
+              setShowMap={setShowMap}
+              travelData={travelData}
+              travelLoading={travelLoading}
+              handleSaveTrip={handleSaveTrip}
+              loading={loading}
+              onAskAssistant={askAssistant}
+            />
+          )}
 
           <AiDisclaimer title={t("wizard.result.aiVerifiedTitle")} className="mt-10">
             {t("wizard.result.aiVerifiedBody")}

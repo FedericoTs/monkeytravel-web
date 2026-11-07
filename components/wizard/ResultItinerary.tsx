@@ -47,7 +47,7 @@ function MapLoadingFallback() {
   );
 }
 
-const MAP_SECTION_ID = "trip-overview";
+export const MAP_SECTION_ID = "trip-overview";
 
 // Dynamic import for TripMap to avoid SSR issues
 const TripMap = dynamic(() => import("@/components/TripMap"), {
@@ -179,7 +179,34 @@ export default function ResultItinerary({
         ))}
       </div>
 
+      <ResultOverview
+        generatedItinerary={generatedItinerary}
+        fullDestination={fullDestination}
+        pace={pace}
+        showMap={showMap}
+        setShowMap={setShowMap}
+      />
+    </>
+  );
+}
 
+/** The map, then the trip's numbers, booking links and packing list: what comes after the days. */
+export function ResultOverview({
+  generatedItinerary,
+  fullDestination,
+  pace,
+  showMap,
+  setShowMap,
+}: {
+  generatedItinerary: GeneratedItinerary;
+  fullDestination: string;
+  pace: string;
+  showMap: boolean;
+  setShowMap: Dispatch<SetStateAction<boolean>>;
+}) {
+  const t = useTranslations("trips");
+  return (
+    <>
       {/* The map and the trip's numbers, after the days */}
       <div id={MAP_SECTION_ID} className="mt-10 mb-8 scroll-mt-24">
         <div className="flex items-center justify-between gap-3 mb-4">
