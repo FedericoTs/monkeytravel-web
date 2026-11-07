@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Pianificatore di Viaggi in Solitaria con AI",
-    "description": "Piani di viaggio in solitaria con AI con consigli di sicurezza, ristoranti solo-friendly e punti sociali. Itinerario personalizzato in 30 secondi. Senza registrazione."
+    "description": "Piani di viaggio in solitaria con AI, con posti dove mangiare adatti a chi viaggia da solo e zone vivaci. Itinerario personalizzato in 30 secondi. Senza registrazione."
   },
   "breadcrumbs": {
     "home": "Home",
@@ -41,11 +41,11 @@
       },
       "socialSpots": {
         "title": "Punti Sociali e di Incontro",
-        "description": "Scopri ostelli con aree comuni, tour di gruppo, pub crawl e caffè coworking — perfetti per incontrare altri viaggiatori quando desideri compagnia."
+        "description": "Scegli \"Solo io\" e il piano privilegia tour a piedi di gruppo e zone vivaci la sera. Chiedi all'assistente ostelli con aree comuni, pub crawl o caffè coworking."
       },
       "soloFriendly": {
         "title": "Ristoranti Solo-Friendly",
-        "description": "Basta con l'imbarazzo del \"tavolo per uno\". Raccomandiamo ristoranti con posti al bancone, tavoli condivisi e un'atmosfera accogliente per chi mangia da solo."
+        "description": "Basta con l'imbarazzo del \"tavolo per uno\". Scegli \"Solo io\" e il piano preferisce posti al bancone e locali informali ai lunghi menu fissi."
       },
       "localExperiences": {
         "title": "Esperienze Locali Oltre le Trappole per Turisti",
@@ -53,7 +53,7 @@
       },
       "soloBudget": {
         "title": "Budget Ottimizzato per Uno",
-        "description": "Senza dividere le spese, i conti sono diversi. Ricevi costi stimati su tre livelli di budget: Economico, Bilanciato e Premium."
+        "description": "Senza dividere le spese, i conti sono diversi. Ricevi costi stimati su tre livelli di budget: Economico, Equilibrato e Premium."
       }
     }
   },
@@ -62,7 +62,7 @@
     "steps": {
       "step1": {
         "title": "Parlaci di Te",
-        "description": "Inserisci la tua destinazione, date di viaggio, budget e stile di viaggio in solitaria — che tu sia un esploratore introverso o una farfalla sociale."
+        "description": "Inserisci la tua destinazione, le date di viaggio e il budget, scegli \"Solo io\" e gli stili che fanno per te, che tu sia un esploratore introverso o una farfalla sociale."
       },
       "step2": {
         "title": "L'AI Crea la Tua Avventura Solo",
@@ -96,7 +96,7 @@
       },
       "soloVenues": {
         "label": "Locali solo-friendly",
-        "monkey": "Ristoranti per mangiare da soli e ostelli sociali selezionati",
+        "monkey": "Posti dove mangiare e cose da fare scelti per uno",
         "other": "Devi ricercare ogni locale individualmente"
       },
       "currentData": {
@@ -115,11 +115,11 @@
       },
       "soloFriendly": {
         "question": "Cosa rende un itinerario \"solo-friendly\"?",
-        "answer": "I nostri itinerari per solitari danno priorità a orari flessibili (nessun programma di gruppo rigido), ristoranti con posti al bancone o tavoli condivisi, ostelli sociali e punti di incontro, quartieri percorribili a piedi e attività godibili da soli — come tour gastronomici, musei e mercati locali."
+        "answer": "Scegli \"Solo io\" e il piano preferisce posti al bancone e locali informali ai lunghi menu fissi, tour a piedi di gruppo e zone centrali vivaci la sera, con orari che puoi cambiare quando vuoi."
       },
       "meetPeople": {
         "question": "Posso incontrare altri viaggiatori con MonkeyTravel?",
-        "answer": "Sì! La nostra AI include punti sociali come aree comuni degli ostelli, tour di gruppo, pub crawl e caffè coworking nel tuo itinerario. Sono luoghi naturali per incontrare altri viaggiatori senza la pressione di eventi organizzati."
+        "answer": "Può aiutare. Scegli \"Solo io\" e il piano privilegia tour a piedi di gruppo e zone vivaci. Puoi anche chiedere all'assistente pub crawl, ostelli con aree comuni o caffè coworking."
       },
       "isFree": {
         "question": "MonkeyTravel è davvero gratuito per i viaggiatori solitari?",
@@ -131,13 +131,13 @@
       },
       "budgetSolo": {
         "question": "Come funziona il budget per i viaggiatori solitari?",
-        "answer": "MonkeyTravel stima i costi su tre livelli: Economico, Bilanciato e Premium. I costi sono mostrati per tappa e per giorno, non divisi tra un gruppo, quindi verifica come si applicano a te."
+        "answer": "MonkeyTravel stima i costi su tre livelli: Economico, Equilibrato e Premium. I costi sono mostrati per tappa e per giorno, non divisi tra un gruppo, quindi verifica come si applicano a te."
       }
     }
   },
   "cta": {
     "title": "Pronto per la Tua Avventura in Solitaria?",
-    "subtitle": "Unisciti a migliaia di viaggiatori indipendenti che pianificano meglio con AI. Il tuo prossimo viaggio in solitaria inizia qui — gratis per sempre.",
+    "subtitle": "Pianifica meglio con AI. Il tuo prossimo viaggio in solitaria inizia qui — gratis per sempre.",
     "button": "Pianifica il Mio Viaggio Solo — Gratis"
   }
 }

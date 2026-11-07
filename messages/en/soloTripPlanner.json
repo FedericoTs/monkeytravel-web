@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "Solo Trip Planner — Safe Routes, Smart Itineraries",
-    "description": "AI-powered solo travel plans with safety tips, solo-friendly restaurants, and social spots. Personalized day-by-day itinerary in 30 seconds. No signup needed."
+    "title": "Solo Trip Planner — Smart Itineraries for One",
+    "description": "AI-powered solo travel plans with solo-friendly places to eat and lively areas. Personalized day-by-day itinerary in 30 seconds. No signup needed."
   },
   "breadcrumbs": {
     "home": "Home",
@@ -41,11 +41,11 @@
       },
       "socialSpots": {
         "title": "Social Spots & Meeting Points",
-        "description": "Discover hostels with social areas, group tours, pub crawls, and coworking cafes — perfect for meeting fellow travelers when you want company."
+        "description": "Choose \"Just me\" and the plan leans towards group walking tours and lively areas in the evening. Ask the assistant for hostels with common rooms, pub crawls or coworking cafes."
       },
       "soloFriendly": {
         "title": "Solo-Friendly Restaurants",
-        "description": "No more awkward \"table for one.\" We recommend restaurants with bar seating, communal tables, and solo-diner-friendly vibes."
+        "description": "No more awkward \"table for one.\" Choose \"Just me\" and the plan favours counter seats and casual spots over long set menus."
       },
       "localExperiences": {
         "title": "Local Experiences Beyond Tourist Traps",
@@ -62,7 +62,7 @@
     "steps": {
       "step1": {
         "title": "Tell Us About You",
-        "description": "Enter your destination, travel dates, budget, and solo travel style — whether you're an introvert explorer or a social butterfly."
+        "description": "Enter your destination, travel dates and budget, choose \"Just me\", and pick the vibes that suit you, whether you're an introvert explorer or a social butterfly."
       },
       "step2": {
         "title": "AI Crafts Your Solo Adventure",
@@ -96,7 +96,7 @@
       },
       "soloVenues": {
         "label": "Solo-friendly venues",
-        "monkey": "Curated solo-diner restaurants & social hostels",
+        "monkey": "Places to eat and things to do picked for one",
         "other": "You research every venue individually"
       },
       "currentData": {
@@ -115,11 +115,11 @@
       },
       "soloFriendly": {
         "question": "What makes an itinerary \"solo-friendly\"?",
-        "answer": "Our solo itineraries prioritize flexible timing (no strict group schedules), restaurants with bar seating or communal tables, social hostels and meetup spots, walkable neighborhoods, and activities that are enjoyable alone — like food tours, museums, and local markets."
+        "answer": "Choose \"Just me\" and the plan favours counter seats and casual spots over long set menus, group walking tours, and lively central areas in the evening, with timing you can change whenever you like."
       },
       "meetPeople": {
         "question": "Can I meet other travelers with MonkeyTravel?",
-        "answer": "Yes! Our AI includes social spots like hostel common areas, group tours, pub crawls, and coworking cafes in your itinerary. These are natural places to meet fellow travelers without the pressure of organized events."
+        "answer": "It can help. Choose \"Just me\" and the plan leans towards group walking tours and lively areas. You can also ask the assistant for pub crawls, hostels with common rooms or coworking cafes."
       },
       "isFree": {
         "question": "Is MonkeyTravel really free for solo travelers?",
@@ -137,7 +137,7 @@
   },
   "cta": {
     "title": "Ready for Your Solo Adventure?",
-    "subtitle": "Join thousands of independent travelers who plan smarter with AI. Your next solo trip starts here — free forever.",
+    "subtitle": "Plan smarter with AI. Your next solo trip starts here — free forever.",
     "button": "Plan My Solo Trip — Free"
   }
 }

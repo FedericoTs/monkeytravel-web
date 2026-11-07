@@ -66,7 +66,7 @@
       },
       "step2": {
         "title": "Receba Seu Roteiro com AI",
-        "description": "Nossa AI gera um roteiro completo dia a dia em menos de 60 segundos. Três níveis de orçamento para você comparar opções."
+        "description": "Nossa AI gera um roteiro completo dia a dia em menos de 60 segundos, no nível de orçamento que você escolheu."
       },
       "step3": {
         "title": "Personalize e Vá",
@@ -100,8 +100,8 @@
         "chatgpt": "Copiar e colar no chat do grupo"
       },
       "updates": {
-        "label": "Atualizações em tempo real",
-        "monkey": "Preços e disponibilidade verificados",
+        "label": "Lugares conferidos",
+        "monkey": "Lugares para comer conferidos no Google Maps ao salvar",
         "chatgpt": "Os dados de treinamento podem estar desatualizados"
       }
     }
@@ -127,11 +127,11 @@
       },
       "groupTrips": {
         "question": "Posso planejar uma viagem em grupo com o MonkeyTravel?",
-        "answer": "Com certeza. O MonkeyTravel inclui ferramentas de colaboração: convide amigos por link, vote nas atividades propostas e chegue a um consenso em grupo. É o único planejador de viagens com AI grátis com decisão em grupo integrada."
+        "answer": "Com certeza. O MonkeyTravel inclui ferramentas de colaboração: convide amigos por link, vote nas atividades propostas e chegue a um consenso em grupo."
       },
       "destinations": {
         "question": "Quais destinos o MonkeyTravel oferece?",
-        "answer": "O MonkeyTravel pode gerar roteiros para praticamente qualquer cidade do mundo. Temos dados enriquecidos para mais de 20 destinos populares, incluindo Paris, Tóquio, Roma, Barcelona e Nova York, e adicionamos novos com frequência."
+        "answer": "O MonkeyTravel pode gerar roteiros para praticamente qualquer cidade do mundo, de Paris e Tóquio a Roma, Barcelona e Nova York."
       }
     }
   },

@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "AI Itinerary Generator — Smart Day-by-Day Travel Plans",
-    "description": "Generate complete travel itineraries with AI in 30 seconds. Day-by-day plans with real venues, current prices, and smart time blocks. Free, no signup required."
+    "description": "Generate complete travel itineraries with AI in 30 seconds. Day-by-day plans with real places, cost estimates, and smart time blocks. Free, no signup required."
   },
   "breadcrumbs": {
     "home": "Home",
@@ -33,7 +33,7 @@
     "items": {
       "smartItineraries": {
         "title": "Smart AI Itineraries",
-        "description": "Advanced algorithms analyze thousands of data points to create perfectly structured day-by-day plans with morning, afternoon, and evening time blocks."
+        "description": "Each day is laid out in morning, afternoon and evening blocks, with places close together and time to get between them."
       },
       "realTimeData": {
         "title": "Real Venue Data",
@@ -96,7 +96,7 @@
       },
       "budgetOptions": {
         "label": "Budget tiers",
-        "monkey": "3 complete itineraries: Budget, Balanced, Premium",
+        "monkey": "Budget, Balanced or Premium: you choose the level",
         "chatgpt": "One generic suggestion with no price data"
       },
       "exportOptions": {

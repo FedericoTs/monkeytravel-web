@@ -1,22 +1,22 @@
 {
   "meta": {
     "title": "Weekend Trip Planner — AI-Powered 2-3 Day Getaways",
-    "description": "Plan the perfect weekend getaway in 15 minutes with AI. Get personalized 2-3 day itineraries with local gems, real prices, and smart scheduling. 100% free."
+    "description": "Plan the perfect weekend getaway with AI in seconds. Get personalized 2-3 day itineraries with local gems, cost estimates, and smart scheduling. 100% free."
   },
   "breadcrumbs": {
     "home": "Home",
     "weekendTripPlanner": "Weekend Trip Planner"
   },
   "hero": {
-    "badge": "Plan a Weekend Trip in 15 Minutes",
+    "badge": "Plan a Weekend Trip in Seconds",
     "title": "Your Perfect Weekend Getaway, Planned by AI",
-    "subtitle": "Pick a destination and get a complete 2-3 day itinerary in minutes. Local hidden gems, budget-friendly picks, and weather-smart scheduling — all free.",
+    "subtitle": "Pick a destination and get a complete 2-3 day itinerary in about 30 seconds. Local hidden gems, budget-friendly picks, and scheduling for the season — all free.",
     "cta": "Plan My Weekend Trip",
     "secondaryCta": "See How It Works",
     "trustSignals": {
       "free": "Free forever",
       "noCard": "No credit card",
-      "instant": "Ready in 15 min"
+      "instant": "Ready in 30 seconds"
     }
   },
   "whatIs": {
@@ -32,8 +32,8 @@
     "subtitle": "Stop wasting your precious weekend planning. Let AI handle the logistics so you can focus on the fun.",
     "items": {
       "quickPlanning": {
-        "title": "15-Minute Planning",
-        "description": "From idea to complete itinerary in 15 minutes. Perfect for spontaneous weekend plans when you don't have time to research for hours."
+        "title": "30-Second Planning",
+        "description": "From idea to complete itinerary in about 30 seconds. Perfect for spontaneous weekend plans when you don't have time to research for hours."
       },
       "shortTrips": {
         "title": "Optimized for 2-3 Days",
@@ -48,8 +48,8 @@
         "description": "Weekend trips don't have to break the bank. Get three budget tiers — from backpacker to boutique — so you spend exactly what you want."
       },
       "weatherSmart": {
-        "title": "Weather-Smart Scheduling",
-        "description": "Outdoor activities on sunny days, museums when it rains. Our AI considers weather patterns so your weekend isn't ruined by bad timing."
+        "title": "Planned for the Season",
+        "description": "The plan knows the season's usual weather and crowds. It can't read the forecast, so check it before you go and swap anything outdoors if rain is coming."
       },
       "lastMinute": {
         "title": "Last-Minute Ready",
@@ -81,7 +81,7 @@
     "items": {
       "planningTime": {
         "label": "Planning time",
-        "monkey": "15 minutes, complete itinerary",
+        "monkey": "30 seconds, complete itinerary",
         "chatgpt": "Hours across multiple tabs and apps"
       },
       "localKnowledge": {
@@ -111,11 +111,11 @@
     "items": {
       "howQuick": {
         "question": "How quickly can I plan a weekend trip?",
-        "answer": "You can have a complete weekend itinerary in about 15 minutes. Just enter your destination, dates, and budget — our AI handles the rest. Perfect for those spontaneous Friday afternoon decisions."
+        "answer": "You can have a complete weekend itinerary in about 30 seconds. Just enter your destination, dates, and budget — our AI handles the rest. Perfect for those spontaneous Friday afternoon decisions."
       },
       "nearbyTrips": {
         "question": "Can MonkeyTravel suggest nearby weekend destinations?",
-        "answer": "Yes! MonkeyTravel supports over 180 destinations worldwide. Whether you want a quick road trip to a nearby city or a short flight getaway, you'll get a fully planned weekend experience."
+        "answer": "Not yet: you pick the place. Enter any city, whether it's a quick road trip or a short flight away, and you'll get a fully planned weekend."
       },
       "tripLength": {
         "question": "Does it only work for 2-day weekends?",
@@ -137,7 +137,7 @@
   },
   "cta": {
     "title": "Your Next Weekend Adventure Starts Here",
-    "subtitle": "Stop scrolling, start exploring. Plan your perfect weekend getaway in minutes — free forever.",
+    "subtitle": "Stop scrolling, start exploring. Plan your perfect weekend getaway in seconds — free forever.",
     "button": "Plan My Weekend Trip"
   }
 }

@@ -1,22 +1,22 @@
 {
   "meta": {
     "title": "Planejador de Fim de Semana — Escapadas de 2-3 Dias com AI",
-    "description": "Planeje a escapada de fim de semana perfeita em 15 minutos com AI. Roteiros de 2-3 dias com joias locais, preços reais e horários inteligentes. 100% grátis."
+    "description": "Planeje a escapada de fim de semana perfeita com AI em segundos. Roteiros de 2-3 dias com joias locais, custos estimados e horários inteligentes. 100% grátis."
   },
   "breadcrumbs": {
     "home": "Início",
     "weekendTripPlanner": "Planejador de Fim de Semana"
   },
   "hero": {
-    "badge": "Planeje uma Viagem de Fim de Semana em 15 Minutos",
+    "badge": "Planeje uma Viagem de Fim de Semana em Segundos",
     "title": "Sua Escapada de Fim de Semana Perfeita, Planejada por AI",
-    "subtitle": "Escolha um destino e receba um roteiro completo de 2-3 dias em minutos. Joias locais escondidas, opções econômicas e organização inteligente conforme o clima — tudo grátis.",
+    "subtitle": "Escolha um destino e receba um roteiro completo de 2-3 dias em cerca de 30 segundos. Joias locais escondidas, opções econômicas e organização conforme a estação — tudo de graça.",
     "cta": "Planejar Minha Viagem de Fim de Semana",
     "secondaryCta": "Veja Como Funciona",
     "trustSignals": {
       "free": "Grátis para sempre",
       "noCard": "Sem cartão de crédito",
-      "instant": "Pronto em 15 min"
+      "instant": "Pronto em 30 segundos"
     }
   },
   "whatIs": {
@@ -32,8 +32,8 @@
     "subtitle": "Pare de desperdiçar seu precioso fim de semana planejando. Deixe a AI cuidar da logística para você focar na diversão.",
     "items": {
       "quickPlanning": {
-        "title": "Planejamento em 15 Minutos",
-        "description": "Da ideia ao roteiro completo em 15 minutos. Perfeito para planos espontâneos de fim de semana quando você não tem horas para pesquisar."
+        "title": "Planejamento em 30 Segundos",
+        "description": "Da ideia ao roteiro completo em cerca de 30 segundos. Perfeito para planos espontâneos de fim de semana quando você não tem horas para pesquisar."
       },
       "shortTrips": {
         "title": "Otimizado para 2-3 Dias",
@@ -48,8 +48,8 @@
         "description": "Viagens de fim de semana não precisam pesar no bolso. Receba três níveis de orçamento — do mochileiro ao boutique — para gastar exatamente o que você quiser."
       },
       "weatherSmart": {
-        "title": "Organização Inteligente Conforme o Clima",
-        "description": "Atividades ao ar livre em dias de sol, museus quando chove. Nossa AI leva em conta a previsão do tempo para que seu fim de semana não seja estragado por mau tempo."
+        "title": "Pensado Para a Estação",
+        "description": "O plano conhece o clima e o movimento típicos da estação. Ele não lê a previsão do tempo, então confira antes de sair e troque o que for ao ar livre se vier chuva."
       },
       "lastMinute": {
         "title": "Pronto de Última Hora",
@@ -81,7 +81,7 @@
     "items": {
       "planningTime": {
         "label": "Tempo de planejamento",
-        "monkey": "15 minutos, roteiro completo",
+        "monkey": "30 segundos, roteiro completo",
         "chatgpt": "Horas entre várias abas e aplicativos"
       },
       "localKnowledge": {
@@ -111,11 +111,11 @@
     "items": {
       "howQuick": {
         "question": "Em quanto tempo consigo planejar uma viagem de fim de semana?",
-        "answer": "Você pode ter um roteiro completo de fim de semana em cerca de 15 minutos. Basta informar seu destino, suas datas e seu orçamento — nossa AI cuida do resto. Perfeito para aquelas decisões espontâneas de sexta-feira à tarde."
+        "answer": "Você pode ter um roteiro completo de fim de semana em cerca de 30 segundos. Basta informar seu destino, suas datas e seu orçamento — nossa AI cuida do resto. Perfeito para aquelas decisões espontâneas de sexta à tarde."
       },
       "nearbyTrips": {
         "question": "O MonkeyTravel pode sugerir destinos próximos para o fim de semana?",
-        "answer": "Sim! O MonkeyTravel oferece mais de 180 destinos pelo mundo. Seja uma viagem rápida de carro até uma cidade vizinha ou uma escapada de voo curto, você terá uma experiência de fim de semana totalmente planejada."
+        "answer": "Ainda não: o lugar você escolhe. Informe qualquer cidade, seja uma viagem rápida de carro ou um voo curto, e você terá um fim de semana totalmente planejado."
       },
       "tripLength": {
         "question": "Funciona só para fins de semana de 2 dias?",
@@ -137,7 +137,7 @@
   },
   "cta": {
     "title": "Sua Próxima Aventura de Fim de Semana Começa Aqui",
-    "subtitle": "Pare de rolar a tela, comece a explorar. Planeje sua escapada de fim de semana perfeita em minutos — grátis para sempre.",
+    "subtitle": "Pare de rolar a tela, comece a explorar. Planeje sua escapada de fim de semana perfeita em segundos — grátis para sempre.",
     "button": "Planejar Minha Viagem de Fim de Semana"
   }
 }

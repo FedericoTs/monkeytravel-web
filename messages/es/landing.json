@@ -109,7 +109,7 @@
       "collaborate": {
         "title": "Hecho para Grupos",
         "description": "Todos votan. Todos pueden editar. Se acabó el \"yo me encargo de todo\".",
-        "badge": "Único"
+        "badge": "Gratis"
       },
       "realData": {
         "title": "Lugares Comprobados",
@@ -193,7 +193,7 @@
         "description": "Funciona en tu navegador. Celular, tablet, computadora — solo abre y planifica."
       },
       "hallucinations": {
-        "title": "Sin Lugares Falsos",
+        "title": "Sin Restaurantes Cerrados",
         "description": "Guarda un viaje y sus sitios para comer se comprueban en Google Maps. Los que hayan cerrado se cambian."
       },
       "soloOnly": {

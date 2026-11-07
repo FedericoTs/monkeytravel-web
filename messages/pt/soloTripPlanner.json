@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "Planejador de Viagem Solo — Rotas Seguras",
-    "description": "Planos de viagem solo com AI: dicas de segurança, restaurantes ideais para quem viaja sozinho e pontos de encontro. Roteiro personalizado em 30 segundos. Sem cadastro."
+    "title": "Planejador de Viagem Solo com AI",
+    "description": "Planos de viagem solo com AI, com lugares para comer ideais para quem viaja sozinho e áreas animadas. Roteiro personalizado em 30 segundos. Sem cadastro."
   },
   "breadcrumbs": {
     "home": "Início",
@@ -41,11 +41,11 @@
       },
       "socialSpots": {
         "title": "Pontos Sociais e Locais de Encontro",
-        "description": "Descubra hostels com áreas sociais, passeios em grupo, pub crawls e cafés de coworking — perfeitos para conhecer outros viajantes quando quiser companhia."
+        "description": "Escolha \"Só eu\" e o plano prioriza passeios a pé em grupo e áreas animadas à noite. Peça ao assistente hostels com áreas comuns, pub crawls ou cafés de coworking."
       },
       "soloFriendly": {
         "title": "Restaurantes Ideais para Quem Viaja Sozinho",
-        "description": "Chega de \"mesa para um\" sem graça. Recomendamos restaurantes com lugares no balcão, mesas comunitárias e clima acolhedor para quem janta sozinho."
+        "description": "Chega de \"mesa para um\" sem graça. Escolha \"Só eu\" e o plano prefere lugares no balcão e ambientes informais a longos menus fechados."
       },
       "localExperiences": {
         "title": "Experiências Locais Longe das Armadilhas para Turistas",
@@ -62,7 +62,7 @@
     "steps": {
       "step1": {
         "title": "Conte para a Gente Sobre Você",
-        "description": "Informe seu destino, datas da viagem, orçamento e estilo de viagem solo — seja você um explorador introvertido ou uma pessoa supersociável."
+        "description": "Informe seu destino, as datas da viagem e o orçamento, escolha \"Só eu\" e os estilos que combinam com você, seja um explorador introvertido ou uma pessoa supersociável."
       },
       "step2": {
         "title": "A AI Cria Sua Aventura Solo",
@@ -96,7 +96,7 @@
       },
       "soloVenues": {
         "label": "Lugares ideais para viajar sozinho",
-        "monkey": "Restaurantes para jantar sozinho e hostels sociais selecionados",
+        "monkey": "Lugares para comer e programas pensados para uma pessoa",
         "other": "Você pesquisa cada lugar individualmente"
       },
       "currentData": {
@@ -115,11 +115,11 @@
       },
       "soloFriendly": {
         "question": "O que torna um roteiro \"ideal para quem viaja sozinho\"?",
-        "answer": "Nossos roteiros solo priorizam horários flexíveis (sem programações rígidas de grupo), restaurantes com lugares no balcão ou mesas comunitárias, hostels sociais e pontos de encontro, bairros que dá para explorar a pé e atividades gostosas de fazer sozinho — como tours gastronômicos, museus e mercados locais."
+        "answer": "Escolha \"Só eu\" e o plano prefere lugares no balcão e ambientes informais a longos menus fechados, passeios a pé em grupo e áreas centrais animadas à noite, com horários que você muda quando quiser."
       },
       "meetPeople": {
         "question": "Dá para conhecer outros viajantes com o MonkeyTravel?",
-        "answer": "Sim! Nossa AI inclui pontos sociais como áreas comuns de hostels, passeios em grupo, pub crawls e cafés de coworking no seu roteiro. São lugares naturais para conhecer outros viajantes sem a pressão de eventos organizados."
+        "answer": "Pode ajudar. Escolha \"Só eu\" e o plano prioriza passeios a pé em grupo e áreas animadas. Você também pode pedir ao assistente pub crawls, hostels com áreas comuns ou cafés de coworking."
       },
       "isFree": {
         "question": "O MonkeyTravel é realmente grátis para viajantes solo?",
@@ -137,7 +137,7 @@
   },
   "cta": {
     "title": "Pronto para Sua Aventura Solo?",
-    "subtitle": "Junte-se a milhares de viajantes independentes que planejam de forma mais inteligente com AI. Sua próxima viagem solo começa aqui — grátis para sempre.",
+    "subtitle": "Planeje de forma mais inteligente com AI. Sua próxima viagem solo começa aqui — grátis para sempre.",
     "button": "Planejar Minha Viagem Solo — Grátis"
   }
 }

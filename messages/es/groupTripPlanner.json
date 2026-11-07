@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Planificador AI para Viajes en Grupo — Vota y Decide",
-    "description": "El único planificador AI para grupos. Genera itinerarios, invita amigos, vota actividades y decide en grupo — todo en un lugar. Gratis."
+    "description": "Un planificador AI hecho para grupos. Genera itinerarios, invita amigos, vota actividades y decide en grupo — todo en un lugar. Gratis."
   },
   "breadcrumbs": {
     "home": "Inicio",
@@ -10,7 +10,7 @@
   "hero": {
     "badge": "Diseñado para Grupos — Gratis para Todos",
     "title": "El Planificador de Viajes en Grupo con AI Que Deja a Todos Contentos",
-    "subtitle": "Deja de ahogarte en chats de grupo. MonkeyTravel genera itinerarios con AI, permite que todos voten las actividades y construye consenso automáticamente. Planifica tu viaje en grupo en minutos, no en semanas.",
+    "subtitle": "Deja de ahogarte en chats de grupo. MonkeyTravel genera itinerarios con AI, permite que todos voten las actividades y muestra en qué punto está el grupo. Planifica tu viaje en grupo en minutos, no en semanas.",
     "cta": "Crea un Viaje en Grupo — Gratis",
     "secondaryCta": "Descubre Cómo Funciona la Votación",
     "trustSignals": {
@@ -29,7 +29,7 @@
   },
   "problem": {
     "title": "Los Viajes en Grupo No Deberían Ser Tan Difíciles",
-    "subtitle": "El viaje en grupo promedio tarda 53 días en planificarse usando 28 sitios web. ¿Te suena?",
+    "subtitle": "Planificar un viaje en grupo puede llevar semanas y decenas de pestañas. ¿Te suena?",
     "items": {
       "chaos": {
         "title": "Caos en el Chat de Grupo",
@@ -51,7 +51,7 @@
     "items": {
       "aiItineraries": {
         "title": "Itinerarios con AI para Grupos",
-        "description": "Nuestra AI genera itinerarios que tienen en cuenta las preferencias de todos — no solo las del organizador. Tres niveles de presupuesto para que grupos con diferentes bolsillos encuentren un punto medio."
+        "description": "Elige \"Con amigos\" y la AI planifica para un grupo: mesas para varios, platos para compartir, planes divertidos juntos. Luego todos votan y proponen cambios, así el plan también es suyo."
       },
       "voting": {
         "title": "Vota las Actividades",
@@ -135,7 +135,7 @@
       },
       "differentBudgets": {
         "question": "¿Qué pasa si los miembros del grupo tienen presupuestos diferentes?",
-        "answer": "MonkeyTravel genera tres niveles de presupuesto (Económico, Equilibrado, Premium) para cada itinerario. El grupo puede votar qué nivel funciona mejor o mezclar actividades de diferentes niveles."
+        "answer": "Eliges un nivel para cada plan: Económico, Equilibrado o Premium. Si los presupuestos son distintos, empieza por el más bajo. A partir de ahí, todos pueden votar actividades y proponer cambios."
       },
       "isFree": {
         "question": "¿La función de planificación en grupo es gratuita?",
@@ -143,7 +143,7 @@
       },
       "splitCosts": {
         "question": "¿MonkeyTravel puede ayudar a dividir gastos?",
-        "answer": "MonkeyTravel muestra los costes estimados por persona para cada actividad y el viaje completo. Para dividir gastos detallados durante el viaje, recomendamos combinar MonkeyTravel con Splitwise o Tricount."
+        "answer": "Sí. En un viaje guardado, toca \"¿Quién pagó?\" en una actividad o añade un gasto, y Liquidar te muestra quién le debe a quién. Los planes también muestran un coste estimado por actividad y del viaje completo."
       }
     }
   },

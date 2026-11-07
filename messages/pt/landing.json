@@ -109,7 +109,7 @@
       "collaborate": {
         "title": "Feito para Grupos",
         "description": "Todo mundo vota. Todo mundo pode editar. Chega de bancar o mártir do \"eu planejo tudo\".",
-        "badge": "Exclusivo"
+        "badge": "Grátis"
       },
       "realData": {
         "title": "Lugares Conferidos",
@@ -193,7 +193,7 @@
         "description": "Funciona no seu navegador. Celular, tablet, notebook — é só abrir e planejar."
       },
       "hallucinations": {
-        "title": "Sem Lugares Falsos",
+        "title": "Sem Restaurantes Fechados",
         "description": "Salve uma viagem e os lugares para comer são conferidos no Google Maps. Os que fecharam são trocados."
       },
       "soloOnly": {

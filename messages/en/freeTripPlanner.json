@@ -66,7 +66,7 @@
       },
       "step2": {
         "title": "Get Your AI Itinerary",
-        "description": "Our AI generates a complete day-by-day itinerary in under 60 seconds. Three budget tiers so you can compare options."
+        "description": "Our AI generates a complete day-by-day itinerary in under 60 seconds, at the budget level you chose."
       },
       "step3": {
         "title": "Customize & Go",
@@ -100,8 +100,8 @@
         "chatgpt": "Copy-paste into group chat"
       },
       "updates": {
-        "label": "Live updates",
-        "monkey": "Prices and availability checked",
+        "label": "Checking places",
+        "monkey": "Places to eat checked on Google Maps when you save",
         "chatgpt": "Training data may be outdated"
       }
     }
@@ -127,11 +127,11 @@
       },
       "groupTrips": {
         "question": "Can I plan a group trip with MonkeyTravel?",
-        "answer": "Absolutely. MonkeyTravel includes collaboration tools: invite friends via link, vote on proposed activities, and reach consensus as a group. It's the only free AI trip planner with built-in group decision-making."
+        "answer": "Absolutely. MonkeyTravel includes collaboration tools: invite friends via link, vote on proposed activities, and reach consensus as a group."
       },
       "destinations": {
         "question": "What destinations does MonkeyTravel support?",
-        "answer": "MonkeyTravel can generate itineraries for virtually any city worldwide. We have enriched data for 20+ popular destinations including Paris, Tokyo, Rome, Barcelona, and New York, with more being added regularly."
+        "answer": "MonkeyTravel can generate itineraries for virtually any city worldwide, from Paris and Tokyo to Rome, Barcelona and New York."
       }
     }
   },

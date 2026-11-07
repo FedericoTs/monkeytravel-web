@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Planificador de Viajes Económicos — Viaja Más, Gasta Menos",
-    "description": "Planifica viajes asequibles con AI. Obtén itinerarios personalizados con precios reales en 3 niveles de presupuesto. Encuentra vuelos baratos, alojamientos económicos y actividades gratis. Herramienta 100% gratuita."
+    "description": "Planifica viajes asequibles con AI. Obtén itinerarios personalizados con costes estimados en 3 niveles de presupuesto, actividades gratis incluidas. Herramienta 100% gratuita."
   },
   "breadcrumbs": {
     "home": "Inicio",
@@ -32,11 +32,11 @@
     "subtitle": "Cada itinerario incluye costes estimados, para que tengas una buena idea de cuánto gastarás antes de salir.",
     "items": {
       "priceComparison": {
-        "title": "Comparación de Precios Lado a Lado",
+        "title": "Elige el Nivel Que Te Encaje",
         "description": "Planifica en cualquiera de los 3 niveles de presupuesto — Económico, Equilibrado o Premium — con un coste estimado por día, para elegir el que te convenga."
       },
       "budgetTiers": {
-        "title": "3 Niveles de Presupuesto Por Viaje",
+        "title": "3 Niveles de Presupuesto",
         "description": "Mira cómo es cada nivel en cualquier destino, desde comida callejera y visitas gratis hasta alta cocina y tours privados."
       },
       "costBreakdown": {
@@ -44,8 +44,8 @@
         "description": "Cada actividad y cada comida muestra un coste estimado, con un total del viaje antes de reservar nada."
       },
       "cheapFlights": {
-        "title": "Consejos de Vuelos Económicos",
-        "description": "La AI sugiere las mejores épocas para volar y aeropuertos económicos. Ahorra cientos siendo flexible con tus fechas de viaje."
+        "title": "Pregunta Por los Vuelos",
+        "description": "Los vuelos no están en los costes del plan. Pregunta al asistente cuándo es más barato volar y qué aeropuertos probar, y luego comprueba tú las tarifas."
       },
       "affordableStays": {
         "title": "Alojamientos Económicos",
@@ -53,7 +53,7 @@
       },
       "freeActivities": {
         "title": "Actividades Gratis y Joyas Ocultas",
-        "description": "Cada itinerario Económico incluye tours a pie gratuitos, parques, miradores y experiencias locales que no cuestan nada pero son inolvidables."
+        "description": "Los planes Económicos se apoyan en tours a pie gratuitos, parques, miradores y experiencias locales que no cuestan nada pero son inolvidables."
       }
     }
   },
@@ -62,25 +62,25 @@
     "steps": {
       "step1": {
         "title": "Establece Tu Presupuesto",
-        "description": "Dinos tu destino, fechas de viaje y presupuesto diario. ¿No estás seguro? Te mostramos qué es posible en cada nivel de precio."
+        "description": "Dinos tu destino y fechas de viaje, y elige un nivel de presupuesto. ¿No estás seguro? Prueba uno: al cambiarlo, el plan se rehace."
       },
       "step2": {
-        "title": "La AI Encuentra las Mejores Ofertas",
+        "title": "La AI Planifica Dentro de Tu Presupuesto",
         "description": "Nuestra AI crea un itinerario completo para tu nivel de presupuesto, con lugares reales y un coste estimado para cada uno."
       },
       "step3": {
         "title": "Viaja Gastando Menos",
-        "description": "Sal de viaje con un plan completamente costeado. Sabe exactamente cuánto gastarás cada día — y guarda más dinero para recuerdos."
+        "description": "Sal de viaje con un plan con costes. Ve más o menos cuánto gastarás cada día, y guarda más dinero para recuerdos."
       }
     }
   },
   "comparison": {
     "title": "MonkeyTravel vs. Blogs de Viajes Económicos",
-    "subtitle": "Los blogs dan consejos. MonkeyTravel te da un itinerario completo con precios.",
+    "subtitle": "Los blogs dan consejos. MonkeyTravel te da un itinerario completo con costes estimados.",
     "otherHeader": "Blogs de Viajes Económicos + Hojas de Cálculo",
     "items": {
       "pricing": {
-        "label": "Precios reales",
+        "label": "Coste por parada",
         "monkey": "Costes estimados de comida y actividades",
         "other": "Estimaciones vagas como \"presupuesta unos $50/día\""
       },
@@ -91,7 +91,7 @@
       },
       "tiers": {
         "label": "Niveles de presupuesto",
-        "monkey": "3 niveles con comparación de costes diarios",
+        "monkey": "3 niveles, con un coste estimado por día",
         "other": "Normalmente solo una sugerencia \"económica\""
       },
       "upToDate": {
