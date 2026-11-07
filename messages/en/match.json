@@ -177,5 +177,12 @@
     "breadcrumb": "Where should I go?",
     "toolTitle": "Where Should I Go?",
     "toolDescription": "Six quick taps give you the place that fits you, and a link to send a friend."
+  },
+  "invite": {
+    "title": "Not sure where to go yet?",
+    "body": "Answer six quick questions and get the place that fits you, then plan it in one tap.",
+    "hubTitle": "Can't pick one?",
+    "hubBody": "Answer six quick questions and we'll tell you which of these places fits you.",
+    "cta": "Find my place"
   }
 }

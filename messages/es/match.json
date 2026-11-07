@@ -177,5 +177,12 @@
     "breadcrumb": "¿A dónde viajar?",
     "toolTitle": "¿A dónde viajar?",
     "toolDescription": "Seis toques rápidos te dan el lugar que encaja contigo y un enlace para enviar a un amigo."
+  },
+  "invite": {
+    "title": "¿Aún no sabes a dónde ir?",
+    "body": "Responde seis preguntas rápidas y descubre el lugar que encaja contigo. Luego planifícalo con un toque.",
+    "hubTitle": "¿No sabes cuál elegir?",
+    "hubBody": "Responde seis preguntas rápidas y te diremos cuál de estos lugares encaja contigo.",
+    "cta": "Encontrar mi lugar"
   }
 }

@@ -31,7 +31,7 @@ const LASTMOD_HOMEPAGE = "2026-11-07";
 const LASTMOD_LANDING = "2026-11-07";
 const LASTMOD_TOOLS = "2026-11-07";
 const LASTMOD_EXPLORE = "2026-10-28";
-const LASTMOD_DESTINATIONS = "2026-10-03";
+const LASTMOD_DESTINATIONS = "2026-11-07";
 const LASTMOD_LEGAL = "2026-11-06";
 
 // The pt content only exists from LASTMOD_PT_CONTENT on. pt pages must NEVER

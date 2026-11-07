@@ -32,7 +32,7 @@ export const PLACE_PHOTOS: Readonly<Record<string, PlacePhoto>> = {
   benidorm: { id: 34975828, by: "ronyescobarhn" },
   "hong-kong": { id: 17922844, by: "Chris" },
   taipei: { id: 1717931, by: "Timo Volz" },
-  lima: { id: 28278503, by: "Henry VL" },
+  lima: { id: 39406160, by: "Leandra FF" },
   nairobi: { id: 33650703, by: "Alex Ning" },
   budapest: { id: 16356279, by: "Incze Sándor Zoltán" },
   bordeaux: { id: 13642040, by: "Ertabbt" },

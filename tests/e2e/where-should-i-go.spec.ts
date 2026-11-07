@@ -150,6 +150,30 @@ test.describe("on a phone, before any cookie choice", () => {
   });
 });
 
+test.describe("the ways in", () => {
+  test.beforeEach(async ({ page }) => {
+    await isolate(page);
+  });
+
+  test("an article for people choosing where to go offers it, and a guide to one city doesn't", async ({ page }) => {
+    await page.goto("/blog/where-to-go-in-january");
+    const invite = page.getByRole("link", { name: /^Not sure where to go yet\?/ });
+    await expect(invite).toBeVisible();
+    await invite.click();
+    await expect(page).toHaveURL(/\/where-should-i-go$/);
+
+    await page.goto("/blog/bangkok-5-day-itinerary");
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(page.getByRole("link", { name: /^Not sure where to go yet\?/ })).toHaveCount(0);
+  });
+
+  test("the destinations page offers it, in the page's language", async ({ page }) => {
+    await page.goto("/it/destinations");
+    await page.getByRole("link", { name: /^Non sai quale scegliere\?/ }).click();
+    await expect(page).toHaveURL(/\/it\/where-should-i-go$/);
+  });
+});
+
 test.describe("the card", () => {
   test("a result is a picture small enough for a link preview, in each size", async ({ request }) => {
     const link = await request.get("/api/og/match?c=100122x&locale=en");

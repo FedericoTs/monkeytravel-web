@@ -177,5 +177,12 @@
     "breadcrumb": "Dove andare?",
     "toolTitle": "Dove andare?",
     "toolDescription": "Sei tocchi veloci ti danno il posto giusto per te e un link da mandare a un amico."
+  },
+  "invite": {
+    "title": "Non sai ancora dove andare?",
+    "body": "Rispondi a sei domande veloci e scopri il posto giusto per te. Poi pianificalo con un tocco.",
+    "hubTitle": "Non sai quale scegliere?",
+    "hubBody": "Rispondi a sei domande veloci e ti diremo quale di questi posti fa per te.",
+    "cta": "Trova il mio posto"
   }
 }

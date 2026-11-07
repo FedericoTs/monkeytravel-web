@@ -36,7 +36,7 @@ function rememberOwn(code: string): void {
   }
 }
 
-const buttonBase = "inline-flex min-h-[56px] w-full items-center justify-center gap-2 rounded-2xl px-6 text-center text-lg font-semibold transition-transform active:scale-[0.98]";
+const buttonBase = "inline-flex min-h-[56px]! w-full items-center justify-center gap-2 rounded-2xl px-6 text-center text-lg font-semibold transition-transform active:scale-[0.98]";
 const primary = `${buttonBase} bg-[var(--secondary-ink)] text-white`;
 const secondary = `${buttonBase} bg-[var(--foreground)]/[0.06] text-[var(--foreground)]`;
 

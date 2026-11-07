@@ -110,7 +110,7 @@ export default function MatchQuiz({ copy, home, companions }: { copy: QuizCopy; 
           <button
             type="button"
             onClick={start}
-            className="mt-6 inline-flex min-h-[56px] w-full items-center justify-center rounded-2xl bg-white px-8 text-lg font-semibold text-[#14181a] transition-transform active:scale-[0.98] sm:w-auto"
+            className="mt-6 inline-flex min-h-[56px]! w-full items-center justify-center rounded-2xl bg-white px-8 text-lg font-semibold text-[#14181a] transition-transform active:scale-[0.98] sm:w-auto"
           >
             {copy.cta}
           </button>
@@ -172,7 +172,7 @@ export default function MatchQuiz({ copy, home, companions }: { copy: QuizCopy; 
                   type="button"
                   onClick={() => choose(option)}
                   aria-pressed={answers[step] === option}
-                  className={`min-h-[56px] w-full rounded-2xl px-5 py-3 text-left text-lg font-semibold leading-snug text-white ${styles.glass} ${picked === option ? styles.glassPicked : ""}`}
+                  className={`min-h-[56px]! w-full rounded-2xl px-5 py-3 text-left text-lg font-semibold leading-snug text-white ${styles.glass} ${picked === option ? styles.glassPicked : ""}`}
                 >
                   {label}
                 </button>
