@@ -29,6 +29,16 @@ beforeEach(() => {
 });
 
 describe("readGenerationPreflight", () => {
+  it.each<[string, Partial<TripCreationParams>]>([
+    ["who's coming", { tripIntent: "solo" }],
+    ["must-dos", { mustDos: ["Belem Tower"] }],
+    ["a diet", { profilePreferences: { dietaryPreferences: ["vegan"] } }],
+  ])("leaves the shared plans alone for a plan shaped by %s", async (_, shaped) => {
+    const { cached: read } = await readGenerationPreflight(null, { ...params, ...shaped }, "en", 3);
+    expect(getCachedItinerary).not.toHaveBeenCalled();
+    expect(read).toBeNull();
+  });
+
   it("reads a signed-in planner's monthly generations", async () => {
     const { usage } = await readGenerationPreflight(planner, params, "en", 3);
     expect(checkUsageLimit).toHaveBeenCalledWith("u1", "aiGenerations", "planner@example.com");
