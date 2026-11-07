@@ -150,7 +150,7 @@ export default async function PrivacyPolicy({
               <ul className="list-disc pl-6 text-[var(--foreground-muted)] space-y-2 mb-4">
                 <li><strong>Essential Cookies:</strong> Required for the Service to function (authentication, session management). These cannot be disabled.</li>
                 <li><strong>Analytics Cookies:</strong> Help us understand how visitors use our Service. Requires your consent.</li>
-                <li><strong>Session Recording:</strong> Records your browsing sessions to help us improve the user experience. Requires your explicit consent.</li>
+                <li><strong>Session Recording:</strong> Records your browsing sessions to help us improve the user experience. AI tools may review recordings to help us find problems on the site. Requires your explicit consent.</li>
                 <li><strong>Marketing Cookies:</strong> Used for affiliate tracking and measuring marketing effectiveness. Requires your consent.</li>
               </ul>
             </section>
@@ -169,7 +169,7 @@ export default async function PrivacyPolicy({
               <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">6.2 Analytics and Error Tracking</h3>
               <p className="text-[var(--foreground-muted)] mb-2">These services require your consent (except essential error tracking):</p>
               <ul className="list-disc pl-6 text-[var(--foreground-muted)] space-y-2 mb-4">
-                <li><strong>PostHog:</strong> Analytics, feature flags, and A/B testing. May include session replay if you consent. <a href="https://posthog.com/privacy" className="text-[var(--primary-ink)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+                <li><strong>PostHog:</strong> Analytics, feature flags, and A/B testing. May include session replay if you consent. PostHog may use AI providers, including Google, to review recordings for us and to answer questions about analytics data. <a href="https://posthog.com/privacy" className="text-[var(--primary-ink)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
                 <li><strong>Google Analytics 4:</strong> Website analytics and user behavior tracking. <a href="https://policies.google.com/privacy" className="text-[var(--primary-ink)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
                 <li><strong>Sentry:</strong> Error tracking and performance monitoring. May include session replay if you consent. <a href="https://sentry.io/privacy/" className="text-[var(--primary-ink)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
               </ul>
