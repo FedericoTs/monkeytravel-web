@@ -24,6 +24,8 @@ const captureServerEvent = vi.fn<(...args: unknown[]) => Promise<void>>(async ()
 vi.mock("@/lib/posthog/server", () => ({ captureServerEvent: (...a: unknown[]) => captureServerEvent(...a) }));
 const enrichTripByIdAdmin = vi.fn<(...args: unknown[]) => Promise<null>>(async () => null);
 vi.mock("@/lib/images/enrichTrip", () => ({ enrichTripByIdAdmin: (...a: unknown[]) => enrichTripByIdAdmin(...a) }));
+const reportServerFailure = vi.fn();
+vi.mock("@/lib/observability/server-failure", () => ({ reportServerFailure: (...a: unknown[]) => reportServerFailure(...a) }));
 const afterTasks: Array<() => Promise<unknown>> = [];
 vi.mock("next/server", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/server")>()),
@@ -163,7 +165,9 @@ describe("POST /api/day/[tripId]/[date]/share", () => {
 
   it("fails cleanly when the link can't be read or written", async () => {
     ensureShareToken.mockRejectedValueOnce(new Error("boom"));
+    reportServerFailure.mockClear();
     expect((await post(sendKey())).status).toBe(500);
     expect(afterTasks).toHaveLength(0);
+    expect(reportServerFailure).toHaveBeenCalledOnce();
   });
 });
