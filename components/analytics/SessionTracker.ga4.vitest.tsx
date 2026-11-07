@@ -9,7 +9,7 @@ import { fakeSupabase, type FakeQuery } from "@/tests/fake-supabase";
  */
 
 const visitor = vi.hoisted(() => ({ signedIn: true }));
-const posthog = vi.hoisted(() => ({ identifyUser: vi.fn() }));
+const posthog = vi.hoisted(() => ({ identifyUser: vi.fn(), forgetSignedOutPerson: vi.fn() }));
 
 vi.mock("@vercel/analytics", () => ({ track: vi.fn() }));
 vi.mock("@/lib/posthog", () => posthog);
