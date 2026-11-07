@@ -29,7 +29,7 @@ const defaultLocale = "en";
 // content moves.
 const LASTMOD_HOMEPAGE = "2026-11-07";
 const LASTMOD_LANDING = "2026-11-07";
-const LASTMOD_TOOLS = "2026-11-06";
+const LASTMOD_TOOLS = "2026-11-07";
 const LASTMOD_EXPLORE = "2026-10-28";
 const LASTMOD_DESTINATIONS = "2026-10-03";
 const LASTMOD_LEGAL = "2026-11-06";
@@ -127,7 +127,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // they have similar discovery characteristics and lifetime cadence. Only
   // the nav + footer + home section link to /tools/*, which makes them
   // discoverable to humans; this makes them discoverable to Googlebot too.
-  const toolPaths = ['/tools', '/tools/check-my-plan', '/tools/packing-list', '/tools/visa-checker'];
+  const toolPaths = ['/tools', '/tools/check-my-plan', '/tools/packing-list', '/tools/visa-checker', '/where-should-i-go'];
 
   // /explore is the freshest-content page on the site (community UGC
   // feed), so it is listed. PRIORITY_INDEX + daily changefreq signals high

@@ -35,7 +35,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
   }
 
   // Load all translation namespaces
-  const [common, auth, trips, landing, profile, bananas, consent, destinations, blog, freeTripPlanner, groupTripPlanner, aiItineraryGenerator, weekendTripPlanner, familyTripPlanner, budgetTripPlanner, soloTripPlanner, contact, tools, backpacker, multiCityTripPlanner, passport] = await Promise.all([
+  const [common, auth, trips, landing, profile, bananas, consent, destinations, blog, freeTripPlanner, groupTripPlanner, aiItineraryGenerator, weekendTripPlanner, familyTripPlanner, budgetTripPlanner, soloTripPlanner, contact, tools, backpacker, multiCityTripPlanner, passport, match] = await Promise.all([
     import(`./messages/${locale}/common.json`),
     import(`./messages/${locale}/auth.json`),
     import(`./messages/${locale}/trips.json`),
@@ -57,6 +57,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
     import(`./messages/${locale}/backpacker.json`),
     import(`./messages/${locale}/multiCityTripPlanner.json`),
     import(`./messages/${locale}/passport.json`),
+    import(`./messages/${locale}/match.json`),
   ]);
 
   return {
@@ -83,6 +84,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
       backpacker: backpacker.default,
       multiCityTripPlanner: multiCityTripPlanner.default,
       passport: passport.default,
+      match: match.default,
     },
   };
 });

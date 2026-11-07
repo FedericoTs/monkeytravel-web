@@ -56,7 +56,7 @@ const COVERAGE: Record<string, string[]> = {
     "messages/en/multiCityTripPlanner.json",
     "messages/en/aiItineraryGenerator.json",
   ],
-  LASTMOD_TOOLS: ["app/[locale]/tools"],
+  LASTMOD_TOOLS: ["app/[locale]/tools", "app/[locale]/where-should-i-go", "messages/en/match.json"],
   LASTMOD_EXPLORE: ["app/[locale]/(app)/explore"],
   LASTMOD_DESTINATIONS: [
     "lib/destinations/data.ts",

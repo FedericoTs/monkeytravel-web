@@ -1,0 +1,181 @@
+{
+  "meta": {
+    "title": "Where Should I Travel? Find Your Place in 30 Seconds",
+    "description": "Six quick taps give you the place that fits you, your travel type and a plan in one tap. Free, no sign-up. Then send it to a friend and see where you'd go together."
+  },
+  "start": {
+    "title": "Where should you go next?",
+    "subtitle": "Six taps. One place that fits you.",
+    "cta": "Find my place",
+    "note": "Free. No sign-up. About 30 seconds.",
+    "withFriend": "A friend already found theirs. Find yours, and see where you'd go together."
+  },
+  "quiz": {
+    "progress": "Question {n} of {total}",
+    "back": "Back",
+    "matching": "Finding your place"
+  },
+  "q": {
+    "morning": {
+      "title": "It's your first morning there. What are you doing?",
+      "options": {
+        "sea": "Swimming before breakfast",
+        "streets": "Getting lost in old streets",
+        "food": "Eating something I can't pronounce",
+        "trail": "Already on a trail"
+      }
+    },
+    "evening": {
+      "title": "And that evening?",
+      "options": {
+        "dinner": "A long dinner and a good bottle",
+        "dance": "Dancing until it gets light",
+        "rooftop": "A rooftop over a city lit up",
+        "early": "Early night, early start"
+      }
+    },
+    "when": {
+      "title": "When are you going?",
+      "options": {
+        "spring": "March to May",
+        "summer": "June to August",
+        "autumn": "September to November",
+        "winter": "December to February",
+        "open": "Not sure yet"
+      }
+    },
+    "budget": {
+      "title": "What's the budget like?",
+      "options": {
+        "tight": "Tight: I'd rather stay longer",
+        "comfortable": "Comfortable",
+        "treat": "I'm treating myself"
+      }
+    },
+    "who": {
+      "title": "Who's coming?",
+      "options": {
+        "solo": "Just me",
+        "couple": "The two of us",
+        "friends": "Friends",
+        "family": "Family with kids"
+      }
+    },
+    "far": {
+      "title": "How far will you go?",
+      "options": {
+        "near": "Not far: a short flight",
+        "far": "Far: the long flight is part of it",
+        "anywhere": "Anywhere"
+      }
+    }
+  },
+  "types": {
+    "slowRomantic": {
+      "name": "The Slow Romantic",
+      "line": "You travel for long dinners and the light at seven in the evening."
+    },
+    "oldSoul": {
+      "name": "The Old Soul",
+      "line": "You'd take a quiet cloister over a queue for anything."
+    },
+    "tableHunter": {
+      "name": "The Table Hunter",
+      "line": "You plan the day around the next meal, and you're right to."
+    },
+    "nightOwl": {
+      "name": "The Night Owl",
+      "line": "A city gets interesting when you should be asleep."
+    },
+    "saltSeeker": {
+      "name": "The Salt Seeker",
+      "line": "Water, warm air and no alarm. That's all you need."
+    },
+    "trailChaser": {
+      "name": "The Trail Chaser",
+      "line": "If there's a path going up, your shoes are already on."
+    },
+    "neonWanderer": {
+      "name": "The Neon Wanderer",
+      "line": "You like your cities tall, bright and open late."
+    },
+    "wildCard": {
+      "name": "The Wild Card",
+      "line": "Up a mountain at dawn, on a dance floor by midnight."
+    }
+  },
+  "why": {
+    "morning": {
+      "sea": "Water before breakfast",
+      "streets": "Old streets to get lost in",
+      "food": "Food worth the trip",
+      "trail": "Adventure close by"
+    },
+    "evening": {
+      "dinner": "Long dinners",
+      "dance": "Nights that go late",
+      "rooftop": "A city lit up at night",
+      "early": "Worth an early start"
+    },
+    "when": {
+      "spring": "At its best from March to May",
+      "summer": "At its best from June to August",
+      "autumn": "At its best from September to November",
+      "winter": "At its best from December to February"
+    },
+    "budget": {
+      "tight": "Easy on the budget",
+      "comfortable": "Fits a comfortable budget",
+      "treat": "Worth treating yourself"
+    },
+    "far": {
+      "near": "Closer to home",
+      "far": "Far enough to feel it"
+    }
+  },
+  "result": {
+    "percent": "{percent}% match",
+    "together": "Together",
+    "plan": "Plan {place} in 30 seconds",
+    "planTogether": "Plan {place} together",
+    "planPlain": "Plan {place}",
+    "share": "Share my result",
+    "shareTogether": "Share with the group",
+    "shareHint": "Send it to a friend and see where you'd go together.",
+    "friendHeadline": "This is a friend's place. What's yours?",
+    "friendTogether": "This is where they'd go together. Want in?",
+    "findMine": "Find my place",
+    "whatsapp": "WhatsApp",
+    "copy": "Copy link",
+    "copied": "Link copied",
+    "saveImage": "Save the image",
+    "runnersUp": "Close behind",
+    "bestIn": "Best in",
+    "cost": "Cost",
+    "costLevels": {
+      "low": "Easy on the wallet",
+      "mid": "Mid-range",
+      "high": "A treat"
+    },
+    "whoIsIn": "Who's in",
+    "person": "Person {n}",
+    "startOver": "Start again",
+    "about": "A fun starting point: it scores {count} places on your answers. It doesn't check flights or prices.",
+    "photo": "Photo by {name} on Pexels",
+    "shareText": "My travel type is {type} and my place is {place} ({percent}% match). What's yours?",
+    "shareTextTogether": "We matched on {place} ({percent}% for {count} of us). Want in?",
+    "cardInvite": "What's yours?",
+    "cardTogether": "Our place",
+    "cardPeople": "{count} of us"
+  },
+  "page": {
+    "howTitle": "How it works",
+    "how1": "Answer six quick questions about how you like to travel.",
+    "how2": "We score {count} places on your answers, including the season, your budget and how far you'll go.",
+    "how3": "Plan your place in one tap, or send it to a friend and see where you'd go together.",
+    "placesTitle": "The places it can pick",
+    "breadcrumb": "Where should I go?",
+    "toolTitle": "Where Should I Go?",
+    "toolDescription": "Six quick taps give you the place that fits you, and a link to send a friend."
+  }
+}

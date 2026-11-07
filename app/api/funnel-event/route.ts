@@ -20,10 +20,12 @@ import { writesTelemetry } from "@/lib/analytics/telemetry-env";
 import { readJsonBody } from "@/lib/api/json-body";
 
 // Which "plan your own" button on a trip page was pressed, so each can be read.
-const PLAN_OWN_SURFACES = ["shared_footer", "public_footer", "public_top", "after_vote", "page_footer", "bottom_bar"] as const;
+const PLAN_OWN_SURFACES = ["shared_footer", "public_footer", "public_top", "after_vote", "page_footer", "bottom_bar", "match"] as const;
+
+const MATCH_SHARE_METHODS = ["native_image", "native_link", "whatsapp", "copy", "download"] as const;
 
 // Only the client-fired events are accepted here; server events never POST.
-const BodySchema = z.discriminatedUnion("event_type", [
+const BodySchema = z.union([
   z.object({
     event_type: z.literal("plan_own_clicked"),
     trip_id: z.string().uuid().optional(),
@@ -37,7 +39,24 @@ const BodySchema = z.discriminatedUnion("event_type", [
     format: z.enum(["story", "square"]),
     method: z.enum(["native_share", "download"]),
   }),
+  // A "Where should I go?" result, which belongs to no trip.
+  z.object({
+    event_type: z.literal("trip_card_shared"),
+    kind: z.literal("match"),
+    method: z.enum(MATCH_SHARE_METHODS),
+  }),
 ]);
+
+function metadataOf(body: z.infer<typeof BodySchema>) {
+  if (body.event_type === "plan_own_clicked") {
+    return {
+      destination: body.destination ?? null,
+      referral_code: body.referral_code ?? null,
+      ...(body.surface ? { surface: body.surface } : {}),
+    };
+  }
+  return "kind" in body ? { kind: body.kind, method: body.method } : { format: body.format, method: body.method };
+}
 
 // Composite IP + session limiter, same shape as /api/wizard-event: the IP
 // bucket catches cookie-rotation abuse, the session bucket catches a stuck
@@ -89,17 +108,10 @@ export async function POST(request: NextRequest) {
 
   const { error } = await supabase.from("funnel_events").insert({
     event_type: body.event_type,
-    trip_id: body.trip_id ?? null,
+    trip_id: "trip_id" in body ? (body.trip_id ?? null) : null,
     session_id: rawSession ?? null,
     user_id: userId,
-    metadata:
-      body.event_type === "plan_own_clicked"
-        ? {
-            destination: body.destination ?? null,
-            referral_code: body.referral_code ?? null,
-            ...(body.surface ? { surface: body.surface } : {}),
-          }
-        : { format: body.format, method: body.method },
+    metadata: metadataOf(body),
   });
 
   if (error) {

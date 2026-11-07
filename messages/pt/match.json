@@ -1,0 +1,181 @@
+{
+  "meta": {
+    "title": "Para onde viajar? Encontre o seu lugar em 30 segundos",
+    "description": "Seis toques rápidos e você tem o lugar que combina com você, seu tipo de viajante e um plano com um toque. Grátis, sem cadastro. Depois envie para um amigo e descubra para onde iriam juntos."
+  },
+  "start": {
+    "title": "Para onde você deveria ir?",
+    "subtitle": "Seis toques. Um lugar que combina com você.",
+    "cta": "Encontrar meu lugar",
+    "note": "Grátis. Sem cadastro. Cerca de 30 segundos.",
+    "withFriend": "Alguém já encontrou o seu. Encontre o seu e descubra para onde iriam juntos."
+  },
+  "quiz": {
+    "progress": "Pergunta {n} de {total}",
+    "back": "Voltar",
+    "matching": "Procurando seu lugar"
+  },
+  "q": {
+    "morning": {
+      "title": "É sua primeira manhã lá. O que você está fazendo?",
+      "options": {
+        "sea": "Nadando antes do café da manhã",
+        "streets": "Me perdendo em ruas antigas",
+        "food": "Comendo algo que não sei pronunciar",
+        "trail": "Já em uma trilha"
+      }
+    },
+    "evening": {
+      "title": "E naquela noite?",
+      "options": {
+        "dinner": "Um jantar longo e uma boa garrafa",
+        "dance": "Dançando até amanhecer",
+        "rooftop": "Um terraço sobre a cidade iluminada",
+        "early": "Cama cedo, acordar cedo"
+      }
+    },
+    "when": {
+      "title": "Quando você vai?",
+      "options": {
+        "spring": "De março a maio",
+        "summer": "De junho a agosto",
+        "autumn": "De setembro a novembro",
+        "winter": "De dezembro a fevereiro",
+        "open": "Ainda não sei"
+      }
+    },
+    "budget": {
+      "title": "Como está o orçamento?",
+      "options": {
+        "tight": "Apertado: prefiro ficar mais tempo",
+        "comfortable": "Confortável",
+        "treat": "Vou me dar um agrado"
+      }
+    },
+    "who": {
+      "title": "Quem vai?",
+      "options": {
+        "solo": "Só eu",
+        "couple": "Nós dois",
+        "friends": "Amigos",
+        "family": "Família com crianças"
+      }
+    },
+    "far": {
+      "title": "Até onde você iria?",
+      "options": {
+        "near": "Não muito longe: um voo curto",
+        "far": "Longe: o voo longo faz parte",
+        "anywhere": "Qualquer lugar"
+      }
+    }
+  },
+  "types": {
+    "slowRomantic": {
+      "name": "Romance sem pressa",
+      "line": "Você viaja pelos jantares longos e pela luz das sete da noite."
+    },
+    "oldSoul": {
+      "name": "Alma antiga",
+      "line": "Você prefere um claustro tranquilo a qualquer fila."
+    },
+    "tableHunter": {
+      "name": "Bom garfo",
+      "line": "Você organiza o dia em torno da próxima refeição, e faz muito bem."
+    },
+    "nightOwl": {
+      "name": "Alma da noite",
+      "line": "Uma cidade fica interessante quando você deveria estar dormindo."
+    },
+    "saltSeeker": {
+      "name": "Alma de mar",
+      "line": "Água, ar morno e nenhum despertador. Você não precisa de mais nada."
+    },
+    "trailChaser": {
+      "name": "Espírito de trilha",
+      "line": "Se tem um caminho que sobe, você já está de bota."
+    },
+    "neonWanderer": {
+      "name": "Luzes de neon",
+      "line": "Você gosta de cidades altas, brilhantes e abertas até tarde."
+    },
+    "wildCard": {
+      "name": "Curinga",
+      "line": "Na montanha ao amanhecer, na pista de dança à meia-noite."
+    }
+  },
+  "why": {
+    "morning": {
+      "sea": "Água antes do café da manhã",
+      "streets": "Ruas antigas para se perder",
+      "food": "Comida que vale a viagem",
+      "trail": "Aventura bem perto"
+    },
+    "evening": {
+      "dinner": "Jantares longos",
+      "dance": "Noites que acabam tarde",
+      "rooftop": "Uma cidade iluminada à noite",
+      "early": "Vale acordar cedo"
+    },
+    "when": {
+      "spring": "No seu melhor de março a maio",
+      "summer": "No seu melhor de junho a agosto",
+      "autumn": "No seu melhor de setembro a novembro",
+      "winter": "No seu melhor de dezembro a fevereiro"
+    },
+    "budget": {
+      "tight": "Leve para o bolso",
+      "comfortable": "Cabe em um orçamento confortável",
+      "treat": "Vale o agrado"
+    },
+    "far": {
+      "near": "Mais perto de casa",
+      "far": "Longe o bastante para sentir"
+    }
+  },
+  "result": {
+    "percent": "{percent}% de afinidade",
+    "together": "Juntos",
+    "plan": "Planeje {place} em 30 segundos",
+    "planTogether": "Planejem {place} juntos",
+    "planPlain": "Planeje {place}",
+    "share": "Compartilhar meu resultado",
+    "shareTogether": "Compartilhar com o grupo",
+    "shareHint": "Envie para um amigo e descubra para onde iriam juntos.",
+    "friendHeadline": "Este é o lugar de alguém. Qual é o seu?",
+    "friendTogether": "É para cá que iriam juntos. Quer entrar?",
+    "findMine": "Encontrar meu lugar",
+    "whatsapp": "WhatsApp",
+    "copy": "Copiar link",
+    "copied": "Link copiado",
+    "saveImage": "Salvar a imagem",
+    "runnersUp": "Logo atrás",
+    "bestIn": "Melhor em",
+    "cost": "Custo",
+    "costLevels": {
+      "low": "Leve para o bolso",
+      "mid": "Preço médio",
+      "high": "Um agrado"
+    },
+    "whoIsIn": "Quem está dentro",
+    "person": "Pessoa {n}",
+    "startOver": "Começar de novo",
+    "about": "Um ponto de partida divertido: pontua {count} lugares com base nas suas respostas. Não verifica voos nem preços.",
+    "photo": "Foto de {name} no Pexels",
+    "shareText": "Meu tipo de viajante é {type} e meu lugar é {place} ({percent}% de afinidade). Qual é o seu?",
+    "shareTextTogether": "Combinamos em {place} ({percent}% para {count} de nós). Quer entrar?",
+    "cardInvite": "Qual é o seu?",
+    "cardTogether": "Nosso lugar",
+    "cardPeople": "{count} pessoas"
+  },
+  "page": {
+    "howTitle": "Como funciona",
+    "how1": "Responda seis perguntas rápidas sobre como você gosta de viajar.",
+    "how2": "Pontuamos {count} lugares com base nas suas respostas, incluindo a estação, seu orçamento e até onde você iria.",
+    "how3": "Planeje seu lugar com um toque, ou envie para um amigo e descubra para onde iriam juntos.",
+    "placesTitle": "Os lugares que ele pode escolher",
+    "breadcrumb": "Para onde viajar?",
+    "toolTitle": "Para onde viajar?",
+    "toolDescription": "Seis toques rápidos mostram o lugar que combina com você e um link para enviar a um amigo."
+  }
+}
