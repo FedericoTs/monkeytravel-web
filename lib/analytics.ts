@@ -38,6 +38,15 @@ function isAnalyticsAvailable(): boolean {
   return typeof window !== "undefined" && typeof window.gtag === "function";
 }
 
+// Set with the signed-in person's id (setUserId) for the rest of the page.
+let signedIn = false;
+
+/** The page's language and whether someone is signed in, on every GA4 event. */
+function eventContext(): Record<string, unknown> {
+  const locale = typeof document === "undefined" ? "" : document.documentElement.lang;
+  return locale ? { locale, signed_in: signedIn } : { signed_in: signedIn };
+}
+
 /**
  * Generic event tracking function
  */
@@ -47,7 +56,7 @@ export function trackEvent(
 ): void {
   // Track in Google Analytics
   if (isAnalyticsAvailable()) {
-    window.gtag!("event", eventName, params);
+    window.gtag!("event", eventName, { ...eventContext(), ...params });
   }
 
   // Also a breadcrumb for Sentry, kept until the SDK is fetched for an error.
@@ -438,6 +447,7 @@ export function trackPageView(params: {
  * Call this after successful login
  */
 export function setUserId(userId: string): void {
+  signedIn = true;
   // Set in GA4
   if (isAnalyticsAvailable()) {
     window.gtag!("set", "user_properties", {
