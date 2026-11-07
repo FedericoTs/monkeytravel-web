@@ -24,6 +24,7 @@
  * @see https://posthog.com/docs/libraries/next-js
  */
 
+import { reportPageTranslation } from "@/lib/analytics/page-translated";
 import { posthogActionFor, POSTHOG_COOKIELESS_MODE } from "@/lib/analytics/posthog-consent";
 import { CONSENT_CHANGE_EVENT } from "@/lib/consent/types";
 import { configureSentry, sentry } from "@/lib/observability/sentry";
@@ -32,7 +33,10 @@ import { survivePageTranslators } from "@/lib/platform/survive-page-translators"
 import { POSTHOG_READY_EVENT } from "@/lib/posthog/client";
 
 // Before React starts, so that a page the browser translates never loses it.
-if (typeof window !== "undefined") survivePageTranslators();
+if (typeof window !== "undefined") {
+  survivePageTranslators();
+  reportPageTranslation();
+}
 
 // Helper to check consent from localStorage (runs before React)
 function getStoredConsent(): { analytics: boolean; sessionRecording: boolean } | null {
