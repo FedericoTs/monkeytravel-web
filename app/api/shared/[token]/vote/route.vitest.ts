@@ -7,7 +7,8 @@ import { eqOf, fakeSupabase, type FakeQuery } from "@/tests/fake-supabase";
  * Signed out, a vote is this browser's, as before. Signed in, it is the
  * account's on any browser: the browser's guest votes are linked first, a
  * revote updates the account's row, and a cookie that already keys another
- * account's vote (a shared device) is not reused.
+ * account's vote (a shared device) is not reused. A cast is counted in PostHog
+ * under trip_id, the key every other trip event uses.
  */
 
 const TOKEN = "11111111-2222-4333-8444-555555555555";
@@ -26,7 +27,8 @@ vi.mock("next/headers", () => ({
 vi.mock("nanoid", () => ({ nanoid: () => "fresh-browser-id-0001" }));
 vi.mock("@/lib/api/rate-limit", () => ({ createRateLimiter: () => ({ check: async () => ({ allowed: true }) }) }));
 vi.mock("@/lib/analytics/funnel-events", () => ({ logFunnelEventServer: async () => undefined }));
-vi.mock("@/lib/posthog/server", () => ({ captureServerEvent: async () => undefined }));
+const captureServerEvent = vi.fn<(...args: unknown[]) => Promise<void>>(async () => {});
+vi.mock("@/lib/posthog/server", () => ({ captureServerEvent: (...a: unknown[]) => captureServerEvent(...a) }));
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({ auth: { getUser: async () => ({ data: { user: signedIn } }) } }),
 }));
@@ -63,6 +65,7 @@ beforeEach(() => {
   accountVote = null;
   cookieVote = null;
   tally = [];
+  captureServerEvent.mockClear();
 });
 
 describe("POST /api/shared/[token]/vote", () => {
@@ -73,6 +76,15 @@ describe("POST /api/shared/[token]/vote", () => {
     expect(upsert.value).toMatchObject({ voter_cookie_id: "browser-cookie-1", vote_type: "up" });
     expect(upsert.value).not.toHaveProperty("user_id");
     expect(log.filter((q) => q.op === "rpc")).toEqual([]);
+  });
+
+  it("counts the cast in PostHog under the trip's id", async () => {
+    await vote({ vote_type: "up" });
+    expect(captureServerEvent).toHaveBeenCalledExactlyOnceWith("browser-cookie-1", "crew_vote_cast", {
+      trip_id: "trip-1",
+      activityId: "act-1",
+      voteType: "up",
+    });
   });
 
   it("signed in, links this browser's guest votes, then adds the account's vote", async () => {
