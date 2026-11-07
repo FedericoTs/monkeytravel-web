@@ -175,6 +175,7 @@ import { captureTripWizardStepCompleted } from "@/lib/posthog/events";
 import type { TripIntent } from "@/lib/posthog/events";
 import { capture } from "@/lib/posthog/events";
 import { usePostHog } from "@/lib/posthog";
+import { onPostHogReady } from "@/lib/posthog/client";
 import { trackWizardEvent } from "@/components/wizard/wizardEvents";
 import { useWizardSave } from "@/hooks/useWizardSave";
 import { useClaimedTrip } from "@/hooks/useClaimedTrip";
@@ -193,7 +194,7 @@ import SameTripPrompt from "@/components/wizard/SameTripPrompt";
 import ResultActionBars from "@/components/wizard/ResultActionBars";
 import ResultItinerary, { MAP_SECTION_ID, ResultOverview } from "@/components/wizard/ResultItinerary";
 import SkyPlan from "@/components/sky/SkyPlan";
-import { readsSky } from "@/lib/experiments/result-sky";
+import { assignSky, type SkyAssignment } from "@/lib/experiments/result-sky";
 import PreferencesStep from "@/components/wizard/PreferencesStep";
 import WizardFooter from "@/components/wizard/WizardFooter";
 import DestinationField from "@/components/wizard/DestinationField";
@@ -336,17 +337,26 @@ export default function NewTripPage({
 }: NewTripWizardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  // The plan as a sky, only when a link asks for it (see lib/experiments/result-sky).
-  const [skyResult] = useState(() => {
-    if (typeof window === "undefined") return false;
+  // Which result screen this browser sees: the sky or the classic one (lib/experiments/result-sky).
+  const [skyTest] = useState<SkyAssignment>(() => {
+    if (typeof window === "undefined") return { arm: "classic", counted: false };
     let store: Storage | null = null;
     try {
       store = window.localStorage;
     } catch {
       store = null;
     }
-    return readsSky(searchParams?.get("result_variant"), store);
+    return assignSky({
+      asked: searchParams?.get("result_variant"),
+      store,
+      now: Date.now(),
+      random: Math.random,
+      pin: process.env.NEXT_PUBLIC_RESULT_SKY,
+    });
   });
+  useEffect(() => {
+    if (skyTest.counted) onPostHogReady((posthog) => posthog.register({ result_variant: skyTest.arm }));
+  }, [skyTest]);
   // Snapshot ?auth_event on the FIRST render. AuthEventTracker strips it with
   // history.replaceState as soon as auth resolves, and useSearchParams follows
   // — so a live read a few hundred milliseconds later sees nothing and a
@@ -1291,6 +1301,8 @@ export default function NewTripPage({
       travelStyle,
       locale,
       startedAt: Date.now(),
+      // A trip across cities always gets the classic screen, so it isn't in the test.
+      resultVariant: skyTest.counted && !(MULTI_CITY_ENABLED && multiCityMode) ? skyTest.arm : undefined,
     };
     captureTripWizardStepCompleted({
       step_number: 2,
@@ -1392,7 +1404,7 @@ export default function NewTripPage({
     // Calculate total activities for modal
     const totalActivities = generatedItinerary.days.reduce((acc, day) => acc + day.activities.length, 0);
     // The sky draws one place's days; a trip across cities keeps the classic plan.
-    const sky = skyResult && mcStops.length <= 1;
+    const sky = skyTest.arm === "sky" && mcStops.length <= 1;
     const askAssistant = (message: string) => {
       void captureRefineSuggestionClicked({ source: "packedDay", derived: true });
       setAssistantAsked((last) => ({ id: (last?.id ?? 0) + 1, message }));

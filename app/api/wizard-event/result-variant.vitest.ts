@@ -3,9 +3,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
 /**
- * Pages cached while the result-screen test ran still send their arm
- * (`result_variant`). The event lands, and the arm is not stored: the column
- * keeps the test's sessions only.
+ * The sky test's arm (`result_variant`) is kept on `result` rows. Pages cached
+ * from the retired crew-first test still send its arms: the event lands, and
+ * the arm is not kept.
  */
 
 const inserted: Array<Record<string, unknown>> = [];
@@ -30,7 +30,7 @@ const post = (body: unknown) =>
     new NextRequest("https://monkeytravel.app/api/wizard-event", {
       method: "POST",
       body: JSON.stringify(body),
-      headers: { "content-type": "application/json", cookie: "mt_session_id=e2eprobe-crew-first" },
+      headers: { "content-type": "application/json", cookie: "mt_session_id=e2eprobe-sky-test" },
     })
   );
 
@@ -38,13 +38,31 @@ beforeEach(() => {
   inserted.length = 0;
 });
 
-describe("result_variant from a cached page", () => {
-  it("is accepted and not stored", async () => {
+describe("result_variant", () => {
+  it("keeps the sky test's arm on a result row", async () => {
+    for (const result_variant of ["sky", "classic"]) {
+      inserted.length = 0;
+      expect((await post({ step: "result", result_variant })).status).toBe(204);
+      expect(inserted[0]).toMatchObject({ step: "result", session_id: "e2eprobe-sky-test", result_variant });
+    }
+  });
+
+  it("isn't kept on any other step", async () => {
+    expect((await post({ step: "saved", result_variant: "sky" })).status).toBe(204);
+    expect(inserted[0]?.result_variant).toBeNull();
+  });
+
+  it("from a cached page of the retired test, or anything else, lands without its arm", async () => {
     for (const result_variant of ["crew_first", "control", "treatment"]) {
       inserted.length = 0;
       expect((await post({ step: "result", group_size: "group", result_variant })).status).toBe(204);
-      expect(inserted[0]).toMatchObject({ step: "result", session_id: "e2eprobe-crew-first" });
-      expect(inserted[0]).not.toHaveProperty("result_variant");
+      expect(inserted[0]).toMatchObject({ step: "result", session_id: "e2eprobe-sky-test" });
+      expect(inserted[0]?.result_variant).toBeNull();
     }
+  });
+
+  it("is simply absent when not sent", async () => {
+    expect((await post({ step: "result" })).status).toBe(204);
+    expect(inserted[0]?.result_variant).toBeNull();
   });
 });

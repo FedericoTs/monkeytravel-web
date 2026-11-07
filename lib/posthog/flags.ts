@@ -195,4 +195,8 @@ export const FLAG_DEFAULTS: Record<string, boolean | string> = {
  * week past a date here, so a flag cannot sit at 90/10 with nobody watching.
  * Remove the entry when the flag is ramped to 100% or reverted.
  */
-export const FLAG_REVIEW_DATES: Record<string, string> = {};
+export const FLAG_REVIEW_DATES: Record<string, string> = {
+  // First-party, not a PostHog flag: lib/experiments/result-sky.ts. Two weeks
+  // from its start rather than one: a result screen needs that many plans.
+  "result-sky": "2026-11-28",
+};

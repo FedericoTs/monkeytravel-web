@@ -73,6 +73,14 @@ const BodySchema = z.object({
   // document's referrer (host and path) and the URL's utm_source.
   referrer: z.string().trim().max(256).optional(),
   utm_source: z.string().trim().max(64).optional(),
+  // The sky test's arm, kept on `result` rows only. Pages cached from the
+  // retired crew-first test may still send its arms: accepted, not kept.
+  result_variant: z
+    .string()
+    .trim()
+    .max(32)
+    .optional()
+    .transform((value) => (value === "sky" || value === "classic" ? value : undefined)),
 });
 
 // Day-4 bug fix (P2.5): composite IP + session rate limit.
@@ -209,6 +217,7 @@ export async function POST(request: NextRequest) {
     failure_code: body.failure_code ?? null,
     failure_detail: body.failure_detail || null,
     step1_variant: body.step1_variant ?? null,
+    result_variant: body.step === "result" ? (body.result_variant ?? null) : null,
     referrer: body.referrer || null,
     utm_source: body.utm_source || null,
     // Only when sent: rows from other steps never name the column.

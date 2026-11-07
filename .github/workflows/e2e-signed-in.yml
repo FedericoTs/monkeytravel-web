@@ -35,6 +35,8 @@ jobs:
       NEXT_PUBLIC_MAP_ROUTES_ENABLED: "true"
       NEXT_PUBLIC_MULTI_CITY_ENABLED: "true"
       NEXT_PUBLIC_TRIP_NOTIFICATIONS_ENABLED: "true"
+      # No random result screen in tests: a test that wants the sky asks for it with a link.
+      NEXT_PUBLIC_RESULT_SKY: "off"
     steps:
       - uses: actions/checkout@v7
       - name: Supabase CLI
