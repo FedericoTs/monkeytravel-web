@@ -109,9 +109,9 @@ const cookiesAfter = (await ctx.cookies()).filter((c) => /^_ga|^_gid|^_gcl/.test
 console.log("  GA cookies present  :", cookiesAfter.map((c) => c.name).join(", ") || "none");
 
 // Sentry is exempt BY DESIGN: instrumentation-client.ts documents error
-// tracking as essential functionality, and already gates performance sampling
-// on analytics consent and session replay on explicit sessionRecording
-// consent. Flagging it here would train the reader to ignore this output.
+// tracking as essential functionality, and the browser SDK samples no
+// performance and records no sessions. Flagging it here would train the
+// reader to ignore this output.
 const EXEMPT = new Set(["Sentry"]);
 
 console.log("\n=== VERDICT ===");

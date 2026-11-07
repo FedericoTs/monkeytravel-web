@@ -8,15 +8,14 @@
  *
  * PERFORMANCE: the Sentry SDK is not part of any page's bundle. Two window
  * hooks catch errors from the very start, and the SDK chunk is fetched and
- * initialised only on the first error, or at idle for visitors who agreed
- * to session recording (lib/observability/sentry.ts). PostHog is dynamically
- * imported after initial paint via requestIdleCallback.
+ * initialised only on the first error (lib/observability/sentry.ts). PostHog
+ * is dynamically imported after initial paint via requestIdleCallback.
  *
  * GDPR Compliance: PostHog captures nothing until the banner is answered;
  * "Essential Only" switches it to cookieless mode (no cookie, no storage, a
  * daily-rotating hash computed on PostHog's servers), "Accept" to normal mode.
- * Sentry error tracking is essential for site functionality.
- * Session replay requires explicit sessionRecording consent.
+ * Sentry error tracking is essential for site functionality, and records no
+ * sessions. PostHog's session replay requires explicit sessionRecording consent.
  *
  * Runs automatically in the browser context (Next.js 15.3+).
  *
@@ -28,7 +27,7 @@ import { reportPageTranslation } from "@/lib/analytics/page-translated";
 import { posthogActionFor, POSTHOG_COOKIELESS_MODE } from "@/lib/analytics/posthog-consent";
 import { scrubCapture } from "@/lib/analytics/scrub-url";
 import { CONSENT_CHANGE_EVENT } from "@/lib/consent/types";
-import { configureSentry, sentry } from "@/lib/observability/sentry";
+import { configureSentry } from "@/lib/observability/sentry";
 import { SENTRY_DATA_COLLECTION } from "@/lib/observability/sentry-data-collection";
 import { survivePageTranslators } from "@/lib/platform/survive-page-translators";
 import { POSTHOG_READY_EVENT } from "@/lib/posthog/client";
@@ -84,22 +83,23 @@ function applyPosthogConsent(ph: PosthogConsentSurface, consent: StoredConsent) 
 /**
  * Sentry Initialization: runs once the SDK chunk has been fetched.
  *
- * Error tracking is considered essential functionality. Session replay is
- * ONLY enabled with explicit consent, and its recorder is then fetched from
- * Sentry's CDN, so nobody else downloads it. No client-side tracing: it
+ * Error tracking is considered essential functionality. No session replay:
+ * PostHog records the sessions visitors agree to. No client-side tracing: it
  * was sampled at zero without analytics consent, which almost nobody gives.
- * Resolves once the recorder, if any, is in place.
  */
-function initSentry(Sentry: typeof import("@sentry/nextjs"), hasSessionRecordingConsent: boolean) {
+function initSentry(Sentry: typeof import("@sentry/nextjs")) {
   Sentry.init({
     dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
-    // Environment identification
-    environment: process.env.NODE_ENV,
+    // The Vercel deployment's own name (production, preview): NODE_ENV is
+    // "production" on every Vercel build. Never unset, which the SDK would
+    // report as production too.
+    environment: process.env.NEXT_PUBLIC_VERCEL_ENV || process.env.NODE_ENV,
 
-    // Session Replay - ONLY with explicit sessionRecording consent (GDPR)
-    replaysSessionSampleRate: hasSessionRecordingConsent ? 0.1 : 0,
-    replaysOnErrorSampleRate: hasSessionRecordingConsent ? 1.0 : 0,
+    // Messages are captured in a callback once the SDK chunk has loaded, so a
+    // stack attached to them names no caller, and Sentry would title such an
+    // issue by its top frame, a minified name, instead of by the message.
+    attachStacktrace: false,
 
     // Enable debug mode in development
     debug: process.env.NODE_ENV === "development",
@@ -212,13 +212,6 @@ function initSentry(Sentry: typeof import("@sentry/nextjs"), hasSessionRecording
       return breadcrumb;
     },
   });
-
-  if (!hasSessionRecordingConsent) return;
-  return Sentry.lazyLoadIntegration("replayIntegration")
-    .then((replay) => Sentry.addIntegration(replay({ maskAllText: false, blockAllMedia: false })))
-    .catch(() => {
-      /* the recorder could not be fetched; errors are still reported */
-    });
 }
 
 /**
@@ -226,14 +219,9 @@ function initSentry(Sentry: typeof import("@sentry/nextjs"), hasSessionRecording
  * Called via requestIdleCallback to avoid blocking initial paint.
  */
 function initMonitoring() {
-  // Get consent state (read once, shared by both init paths)
+  // Get consent state (read once, for PostHog's init below)
   const initialConsent = getStoredConsent();
   const hasSessionRecordingConsent = initialConsent?.sessionRecording ?? false;
-
-  // Recording a session needs the SDK now, not on the first error.
-  if (hasSessionRecordingConsent) {
-    sentry().catch(() => {});
-  }
 
   /**
    * PostHog Initialization (cookieless_mode 'on_reject')
@@ -318,7 +306,7 @@ function initMonitoring() {
 const sentryEnabled =
   process.env.NODE_ENV === "production" || process.env.NEXT_PUBLIC_SENTRY_ENABLE_DEV === "1";
 if (typeof window !== "undefined" && sentryEnabled && process.env.NEXT_PUBLIC_SENTRY_DSN) {
-  configureSentry((Sentry) => initSentry(Sentry, getStoredConsent()?.sessionRecording ?? false));
+  configureSentry(initSentry);
 }
 
 // Schedule initialization after initial paint

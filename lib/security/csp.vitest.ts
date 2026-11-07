@@ -285,6 +285,13 @@ describe("CSP lets session replay start its worker", () => {
   });
 });
 
+describe("CSP script-src lists no host the app no longer loads from", () => {
+  it("leaves out Sentry's CDN: the SDK ships in the app's own chunks and fetches nothing from it", () => {
+    const src = directive("script-src", "/blog", buildCspHeader("/blog", { hashes: [] }));
+    expect(allows(src, "https://browser.sentry-cdn.com/11.11.0/replay.min.js")).toBe(false);
+  });
+});
+
 describe("CSP connect-src allows the Supabase project the app is built against", () => {
   afterEach(() => vi.unstubAllEnvs());
 

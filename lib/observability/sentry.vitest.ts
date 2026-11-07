@@ -84,14 +84,6 @@ describe("sentry()", () => {
     sentryBreadcrumb({ category: "analytics", message: "later" });
     expect(addBreadcrumb).toHaveBeenLastCalledWith({ category: "analytics", message: "later" });
   });
-
-  it("sentryReady waits for what init started, such as fetching the replay recorder", async () => {
-    const { configureSentry, sentryReady } = await import("./sentry");
-    let finished = false;
-    configureSentry(() => flush().then(() => void (finished = true)));
-    await sentryReady();
-    expect(finished).toBe(true);
-  });
 });
 
 describe("sentryException", () => {

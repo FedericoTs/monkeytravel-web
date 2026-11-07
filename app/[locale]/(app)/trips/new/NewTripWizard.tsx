@@ -169,7 +169,6 @@ import {
 // Session generation counter + per-session trip stack.
 import { useSessionTripStack } from "@/hooks/useSessionTripStack";
 import { useCurrency } from "@/lib/locale";
-import WizardReplay from "@/components/trip/WizardReplay";
 import { trackDestinationSelected } from "@/lib/analytics";
 import { captureTripWizardStepCompleted } from "@/lib/posthog/events";
 import type { TripIntent } from "@/lib/posthog/events";
@@ -1745,7 +1744,6 @@ export default function NewTripPage({
   // Wizard form
   return (
     <div className="min-h-screen bg-[var(--background)]">
-      <WizardReplay />
       {/* Auth Prompt Modal - for gradual engagement */}
       <AuthPromptModal
         isOpen={showAuthModal}
