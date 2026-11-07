@@ -36,8 +36,8 @@
         "description": "Algoritmi avanzati analizzano migliaia di dati per creare piani giorno per giorno perfettamente strutturati con blocchi mattina, pomeriggio e sera."
       },
       "realTimeData": {
-        "title": "Dati dei Luoghi in Tempo Reale",
-        "description": "Ogni ristorante, attrazione e hotel è verificato con valutazioni, prezzi e orari di apertura attuali. Nessuna raccomandazione obsoleta o fittizia."
+        "title": "Dati Reali dei Luoghi",
+        "description": "Valutazioni, prezzi e foto di Google a portata di tocco per ogni tappa. Salva un viaggio e controlliamo i posti dove mangiare, e cambiamo quelli che hanno chiuso."
       },
       "customizable": {
         "title": "Piani Completamente Personalizzabili",
@@ -115,7 +115,7 @@
       },
       "howAccurate": {
         "question": "Quanto sono precisi gli itinerari generati?",
-        "answer": "MonkeyTravel utilizza dati dei luoghi in tempo reale, incluse valutazioni, prezzi e orari di apertura da fonti affidabili. A differenza dei chatbot generici di AI che possono allucinare o suggerire luoghi chiusi, i nostri itinerari fanno riferimento a luoghi reali e verificati. Consigliamo di confermare i dettagli in prossimità della data del viaggio."
+        "answer": "Il piano è scritto dall'AI, e per ogni tappa hai valutazioni, prezzi e foto di Google a portata di tocco. Quando salvi un viaggio, controlliamo su Google Maps i posti dove mangiare e cambiamo quelli che hanno chiuso. Consigliamo di confermare i dettagli, orari compresi, in prossimità della data del viaggio."
       },
       "multiCity": {
         "question": "Può generare itinerari multi-città?",
