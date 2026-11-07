@@ -91,7 +91,7 @@ Em vez de gastar 15 horas pesquisando bairros, restaurantes e logística dia a d
 
 Esse roteiro não é o seu plano final. É o seu ponto de partida — aquilo que levava 15 horas de malabarismo com abas e agora leva um minuto. A partir daí, você personaliza: troca o lugar da paella pelo que seu colega de trabalho recomendou, tira o tour do Gaudí porque você já foi, acrescenta uma manhã extra na praia.
 
-O [planejador de viagens com AI da MonkeyTravel](/trips/new) foi construído exatamente em torno desse fluxo de trabalho. Você recebe um roteiro estruturado e personalizado, com locais reais e três faixas de orçamento — e então ajusta até ele ficar do seu jeito. Para viajantes solo, isso elimina por completo o problema da folha em branco.
+O [planejador de viagens com AI da MonkeyTravel](/) foi construído exatamente em torno desse fluxo de trabalho. Você recebe um roteiro estruturado e personalizado, com locais reais e três faixas de orçamento — e então ajusta até ele ficar do seu jeito. Para viajantes solo, isso elimina por completo o problema da folha em branco.
 
 ### Ela otimiza para uma pessoa (não duas ou quatro)
 
@@ -183,7 +183,7 @@ Estas valem quer você use AI ou não — mas as ferramentas de AI podem ajudar 
 
 ## Sua Lista de Verificação para a Viagem Solo
 
-Use isto como a sua estrutura pré-viagem. Um [planejador de viagens com AI](/trips/new) cuida dos itens de 1 a 5 em cerca de um minuto. O resto é com você.
+Use isto como a sua estrutura pré-viagem. Um [planejador de viagens com AI](/) cuida dos itens de 1 a 5 em cerca de um minuto. O resto é com você.
 
 **Fase de Planejamento (com apoio de AI):**
 - [ ] Escolha o destino com base no seu orçamento, interesses e nível de conforto
@@ -241,7 +241,7 @@ Comece com um planejador de viagens com AI para gerar um roteiro base — isso e
 
 ### Qual é o melhor planejador de viagens com AI para viajantes solo?
 
-Procure um planejador que permita especificar "viajante solo" como estilo de viagem e que ajuste as recomendações de acordo — opções de comer fora amigáveis para quem está sozinho, bairros seguros e atividades adequadas para uma pessoa. A [MonkeyTravel](/trips/new) gera roteiros com locais verificados pelo Google, três faixas de orçamento e roteamento geográfico otimizado para caminhada, o que importa mais quando você não tem ninguém para rachar o custo do táxi. Evite chatbots genéricos que não têm dados específicos de viagem.
+Procure um planejador que permita especificar "viajante solo" como estilo de viagem e que ajuste as recomendações de acordo — opções de comer fora amigáveis para quem está sozinho, bairros seguros e atividades adequadas para uma pessoa. A [MonkeyTravel](/) gera roteiros com locais verificados pelo Google, três faixas de orçamento e roteamento geográfico otimizado para caminhada, o que importa mais quando você não tem ninguém para rachar o custo do táxi. Evite chatbots genéricos que não têm dados específicos de viagem.
 
 ### Como conheço pessoas viajando sozinho?
 

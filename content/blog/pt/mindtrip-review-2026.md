@@ -86,7 +86,7 @@ Esse é um ponto forte de verdade. Enquanto a linha entre grátis e pago da Layl
 
 ### 1. MonkeyTravel — para grupos e viajantes multilíngues
 
-O [MonkeyTravel](/trips/new) empata com o Mindtrip naquilo que a maioria das pessoas realmente quer — um roteiro dia a dia completo e grátis, com nomes reais de locais e níveis de orçamento — e acrescenta a única coisa que o Mindtrip não tem: um jeito de o grupo *decidir*.
+O [MonkeyTravel](/) empata com o Mindtrip naquilo que a maioria das pessoas realmente quer — um roteiro dia a dia completo e grátis, com nomes reais de locais e níveis de orçamento — e acrescenta a única coisa que o Mindtrip não tem: um jeito de o grupo *decidir*.
 
 - **Quatro idiomas.** Planeje em inglês, espanhol, italiano ou português. O Mindtrip também cobre esses (o app dele lista oito idiomas), então aqui é empate, não vantagem.
 - **Votação em grupo.** Quando seus companheiros de viagem não chegam a um acordo, todo mundo vota nas opções e o plano se resolve sozinho. O Mindtrip deixa você coeditar; o MonkeyTravel deixa você *decidir*. Veja como funciona no nosso guia de [planejador de viagens em grupo](/group-trip-planner).
@@ -107,7 +107,7 @@ Grátis, com foco em orçamento e exportação em PDF. É mais modelo pronto do 
 
 Use o Mindtrip se você quer pesquisa e reserva sob o mesmo teto, com os melhores dados da categoria. É uma excelente escolha para viajantes nos EUA que preferem não fazer malabarismo com quatro abas.
 
-Escolha uma alternativa como o [MonkeyTravel](/trips/new) se você está coordenando um grupo que precisa votar em vez de coeditar, ou se você só quer um roteiro completo sem criar conta.
+Escolha uma alternativa como o [MonkeyTravel](/) se você está coordenando um grupo que precisa votar em vez de coeditar, ou se você só quer um roteiro completo sem criar conta.
 
 **Quer testar a alternativa multilíngue e ideal para grupos?** [Planeje sua viagem com o MonkeyTravel](/trips/new) — grátis, sem cadastro, em quatro idiomas.
 
@@ -123,7 +123,7 @@ Sim. O Mindtrip não tem nível premium nem bloqueia recursos essenciais de plan
 
 ### Qual é a melhor alternativa ao Mindtrip?
 
-Para viagens em grupo e planejar sem cadastro, o [MonkeyTravel](/trips/new) é a alternativa grátis mais forte — ele soma votação em grupo e funciona sem conta (planeja em inglês, espanhol, italiano e português, como o Mindtrip também faz). Para preços ao vivo de voos e hotéis, a Layla. Para um plano econômico rápido, o Wonderplan.
+Para viagens em grupo e planejar sem cadastro, o [MonkeyTravel](/) é a alternativa grátis mais forte — ele soma votação em grupo e funciona sem conta (planeja em inglês, espanhol, italiano e português, como o Mindtrip também faz). Para preços ao vivo de voos e hotéis, a Layla. Para um plano econômico rápido, o Wonderplan.
 
 ### Mindtrip ou Layla: qual é melhor?
 

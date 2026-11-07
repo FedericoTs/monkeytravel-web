@@ -43,7 +43,7 @@ Veja o que aconteceu.
 
 **A viagem:** 7 dias em Portugal — Lisboa, Sintra e Porto. Dois viajantes, orçamento intermediário, interessados em gastronomia, cultura e experiências locais. Datas da viagem: outubro de 2026.
 
-**A AI:** Um [planejador de viagens com AI](/trips/new) dedicado (como o MonkeyTravel) que gera roteiros personalizados com base em preferências, orçamento e dados reais sobre os estabelecimentos. Transparência: o MonkeyTravel é o nosso próprio produto.
+**A AI:** Um [planejador de viagens com AI](/) dedicado (como o MonkeyTravel) que gera roteiros personalizados com base em preferências, orçamento e dados reais sobre os estabelecimentos. Transparência: o MonkeyTravel é o nosso próprio produto.
 
 **O agente:** Um consultor de viagens independente com boas avaliações (não uma agência de descontos, não um concierge de luxo — um profissional padrão que cobra uma taxa de planejamento de $150).
 

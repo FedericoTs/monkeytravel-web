@@ -157,7 +157,7 @@ Se stai leggendo questo articolo alle 23 con troppe schede aperte, ecco cosa ti 
 
 **Inizia con una frase.** Dove vuoi andare, per quanto tempo e cosa ti importa di più? "Barcellona, 5 giorni, buon cibo e architettura" è sufficiente. Non ti serve di più per iniziare.
 
-**Lascia che l'AI generi la prima bozza.** Non perché l'AI sia perfetta — non lo è — ma perché avere un piano completo su cui reagire è infinitamente meno stressante che costruirne uno da zero. Il [pianificatore gratuito di MonkeyTravel](/trips/new) ti darà un itinerario giorno per giorno con locali reali e stime di budget in circa 60 secondi. Usalo, o usa un altro strumento. Il punto è saltare la spirale di ricerca da 10 ore.
+**Lascia che l'AI generi la prima bozza.** Non perché l'AI sia perfetta — non lo è — ma perché avere un piano completo su cui reagire è infinitamente meno stressante che costruirne uno da zero. Il [pianificatore gratuito di MonkeyTravel](/) ti darà un itinerario giorno per giorno con locali reali e stime di budget in circa 60 secondi. Usalo, o usa un altro strumento. Il punto è saltare la spirale di ricerca da 10 ore.
 
 **Modifica, non costruire.** Guarda il piano generato dall'AI. Cancella ciò che non ti entusiasma. Tieni ciò che ti piace. Aggiungi quel ristorante che ti ha consigliato un amico. Fatto. Ora hai un framework solido per il viaggio e hai speso 20 minuti, non 20 ore.
 

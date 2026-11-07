@@ -134,7 +134,7 @@ Se setembro tem um festival à altura do agosto de Edimburgo, é este: a Oktober
 
 ## Planeje a sua viagem de setembro em 30 segundos
 
-Escolha um dos doze destinos acima e o [planejador de viagens com AI gratuito da MonkeyTravel](/trips/new) constrói para você um itinerário dia a dia — lugares reais, horários de abertura, orçamentos — em cerca de meio minuto. Não é preciso cadastro para experimentar. Quando estiver pronto, [planeje a sua viagem de setembro](/trips/new) ou comece pelo nosso [planejador de viagens com AI gratuito](/trips/new) e deixe que ele sugira as datas que fogem das multidões.
+Escolha um dos doze destinos acima e o [planejador de viagens com AI gratuito da MonkeyTravel](/) constrói para você um itinerário dia a dia — lugares reais, horários de abertura, orçamentos — em cerca de meio minuto. Não é preciso cadastro para experimentar. Quando estiver pronto, [planeje a sua viagem de setembro](/trips/new) ou comece pelo nosso [planejador de viagens com AI gratuito](/) e deixe que ele sugira as datas que fogem das multidões.
 
 *Setembro é o momento ideal para as Cíclades — nosso [roteiro pelas ilhas gregas](/blog/greek-island-hopping-itinerary) organiza Atenas, Santorini e Mykonos sem os erros clássicos.*
 

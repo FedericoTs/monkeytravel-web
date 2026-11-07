@@ -152,7 +152,7 @@ If you're reading this article at 11 PM with too many tabs open, here's what we'
 
 **Start with one sentence.** Where do you want to go, for how long, and what matters most to you? "Barcelona, 5 days, good food and architecture" is enough. You don't need more than that to start.
 
-**Let AI generate the first draft.** Not because AI is perfect — it's not — but because having a complete plan to react to is infinitely less stressful than building one from scratch. [MonkeyTravel's free trip planner](/trips/new) will give you a day-by-day itinerary with real venues and budget estimates in about 60 seconds. Use it, or use another tool. The point is to skip the 10-hour research spiral.
+**Let AI generate the first draft.** Not because AI is perfect — it's not — but because having a complete plan to react to is infinitely less stressful than building one from scratch. [MonkeyTravel's free trip planner](/) will give you a day-by-day itinerary with real venues and budget estimates in about 60 seconds. Use it, or use another tool. The point is to skip the 10-hour research spiral.
 
 **Edit, don't build.** Look at the AI-generated plan. Cross out what doesn't excite you. Keep what does. Add the one restaurant your friend told you about. Done. You now have a solid trip framework and you spent 20 minutes, not 20 hours.
 

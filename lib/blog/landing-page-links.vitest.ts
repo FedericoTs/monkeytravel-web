@@ -1,6 +1,6 @@
 /** @vitest-environment node */
 import { describe, it, expect } from "vitest";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   landingPagesForPost,
@@ -119,6 +119,45 @@ describe("distribution is no longer degenerate", () => {
       const paths = landingPagesForPost(slug, 3).map((l) => l.path);
       expect(new Set(paths).size, slug).toBe(paths.length);
     }
+  });
+});
+
+describe("links that name the product", () => {
+  it("go to the home page, the page Google shows for planner searches", () => {
+    const paths = SLUGS.flatMap((slug) => landingPagesForPost(slug, 3).map((lp) => lp.path));
+    expect(paths).toContain("/");
+    expect(paths).not.toContain("/free-ai-trip-planner");
+    expect(CONCEPT_TO_LANDING["ai-trip-planner"].path).toBe("/");
+  });
+
+  it("come after a specific page, not before", () => {
+    expect(landingPagesForPost("group-trip-itinerary-template", 3).at(-1)?.path).not.toBe("/group-trip-planner");
+    expect(GENERIC.has("/")).toBe(true);
+  });
+
+  // The planner itself is noindex, so a link saying "AI trip planner" that goes there tells Google nothing.
+  const NAMES: Record<string, RegExp> = {
+    en: /\b(trip|travel|itinerary) (planner|generator|maker)\b|^monkeytravel('s)?$/i,
+    es: /\bplanificador\b|\bplanner\b|\bgenerador\b|^monkeytravel$/i,
+    it: /\bpianificatore\b|\bplanner\b|\bgeneratore\b|^monkeytravel$/i,
+    pt: /\bplanejador\b|\bplanificador\b|\bplanner\b|\bgerador\b|^monkeytravel$/i,
+  };
+
+  it.each(LOCALES)("in the %s articles, go home rather than to the planner", (locale) => {
+    const folder = join(process.cwd(), "content", "blog", locale === "en" ? "" : locale);
+    const wrong = readdirSync(folder)
+      .filter((name) => name.endsWith(".md"))
+      .flatMap((name) =>
+        [...readFileSync(join(folder, name), "utf8").matchAll(/\[([^\]]{2,90})\]\(\/trips\/new\)/g)]
+          .filter((m) => NAMES[locale].test(m[1]))
+          .map((m) => `${name}: ${m[1]}`),
+      );
+    expect(wrong).toEqual([]);
+  });
+
+  it("leaves the actions on the planner", () => {
+    const text = readFileSync(join(process.cwd(), "content", "blog", "3-day-paris-itinerary.md"), "utf8");
+    expect(text).toContain("](/trips/new");
   });
 });
 

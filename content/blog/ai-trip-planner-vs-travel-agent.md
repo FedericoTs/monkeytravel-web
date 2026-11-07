@@ -42,7 +42,7 @@ Here's what happened.
 
 **The trip:** 7 days in Portugal — Lisbon, Sintra, and Porto. Two travelers, mid-range budget, interested in food, culture, and local experiences. Travel dates: October 2026.
 
-**The AI:** A dedicated [AI trip planner](/trips/new) (like MonkeyTravel) that generates personalized itineraries based on preferences, budget, and real venue data. Disclosure: MonkeyTravel is our own product.
+**The AI:** A dedicated [AI trip planner](/) (like MonkeyTravel) that generates personalized itineraries based on preferences, budget, and real venue data. Disclosure: MonkeyTravel is our own product.
 
 **The agent:** A well-reviewed independent travel advisor (not a discount agency, not a luxury concierge — a standard professional who charges a $150 planning fee).
 

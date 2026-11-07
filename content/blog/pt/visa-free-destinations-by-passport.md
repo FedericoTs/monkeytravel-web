@@ -221,7 +221,7 @@ Quando a entrada sem visto não estiver disponível, verifique se o destino ofer
 
 ### 8. Monte roteiros flexíveis
 
-Use ferramentas como o [planejador de viagens com AI](/trips/new) da MonkeyTravel para montar roteiros que podem ser ajustados de acordo com os requisitos de visto. A AI considera os documentos de viagem e os requisitos de entrada como parte do seu planejamento, facilitando a troca entre destinos caso surjam problemas de visto.
+Use ferramentas como o [planejador de viagens com AI](/) da MonkeyTravel para montar roteiros que podem ser ajustados de acordo com os requisitos de visto. A AI considera os documentos de viagem e os requisitos de entrada como parte do seu planejamento, facilitando a troca entre destinos caso surjam problemas de visto.
 
 *Vai para a Europa? [O ETIAS foi adiado para 2027](/blog/etias-europe-travel-authorization-2026) e vai custar 20 EUR, não os 7 EUR ainda repetidos por aí.*
 

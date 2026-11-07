@@ -343,6 +343,7 @@ Add to each locale's `messages/{locale}/blog.json` inside the `"posts"` object:
 Every post should link to:
 - 1-2 related posts (uses the related posts component automatically)
 - The MonkeyTravel homepage CTA (end of article)
+- Words that name the product ("free AI trip planner", "MonkeyTravel") link to `/`, the page Google shows for planner searches. Words that are an action ("plan my trip") link to `/trips/new`, which is noindex. `lib/blog/landing-page-links.vitest.ts` enforces it.
 - Relevant destination pages (`/destinations/{slug}`) when mentioning cities we cover
 
 ---

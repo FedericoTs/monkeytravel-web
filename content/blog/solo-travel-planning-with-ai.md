@@ -89,7 +89,7 @@ Instead of spending 15 hours researching neighborhoods, restaurants, and day-by-
 
 That itinerary isn't your final plan. It's your starting point — the thing that took 15 hours of tab-juggling and now takes one minute. You customize from there: swap out the paella place for the one your coworker recommended, drop the Gaudi tour because you've been before, add an extra morning at the beach.
 
-[MonkeyTravel's AI trip planner](/trips/new) is built around exactly this workflow. You get a structured, personalized itinerary with real venues and three budget tiers — then you tweak it until it feels right. For solo travelers, this eliminates the blank-page problem entirely.
+[MonkeyTravel's AI trip planner](/) is built around exactly this workflow. You get a structured, personalized itinerary with real venues and three budget tiers — then you tweak it until it feels right. For solo travelers, this eliminates the blank-page problem entirely.
 
 ### It optimizes for one person (not two or four)
 
@@ -181,7 +181,7 @@ These apply whether you're using AI or not — but AI tools can help with many o
 
 ## Your Solo Trip Checklist
 
-Use this as your pre-trip framework. An [AI trip planner](/trips/new) handles items 1-5 in about a minute. The rest is on you.
+Use this as your pre-trip framework. An [AI trip planner](/) handles items 1-5 in about a minute. The rest is on you.
 
 **Planning Phase (AI-assisted):**
 - [ ] Choose destination based on your budget, interests, and comfort level
@@ -239,7 +239,7 @@ Start with an AI trip planner to generate a base itinerary — this eliminates t
 
 ### What's the best AI trip planner for solo travelers?
 
-Look for a planner that lets you specify "solo traveler" as a travel style and adjusts recommendations accordingly — solo-friendly dining, safe neighborhoods, activities suited for one person. [MonkeyTravel](/trips/new) generates itineraries with Google-verified venues, three budget tiers, and geographic routing optimized for walking, which matters more when you don't have someone to split taxi costs with. Avoid generic chatbots that don't have travel-specific data.
+Look for a planner that lets you specify "solo traveler" as a travel style and adjusts recommendations accordingly — solo-friendly dining, safe neighborhoods, activities suited for one person. [MonkeyTravel](/) generates itineraries with Google-verified venues, three budget tiers, and geographic routing optimized for walking, which matters more when you don't have someone to split taxi costs with. Avoid generic chatbots that don't have travel-specific data.
 
 ### How do I meet people while traveling alone?
 

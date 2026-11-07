@@ -243,7 +243,7 @@ Algumas combinações de passaporte e destino estão, na prática, bloqueadas. T
 
 Os custos de visto somam rápido. Um viajante que visita 10 países pode gastar US$ 0 em taxas de visto com um passaporte de Singapura e US$ 500-US$ 1.000 com um passaporte de ranking mais baixo. Os prazos de processamento também forçam horizontes de planejamento mais longos, deixando inacessíveis as ofertas de viagem de última hora.
 
-**É aqui que uma ferramenta de planejamento mostra seu valor.** O [planejador de viagens com AI gratuito da MonkeyTravel](/trips/new) não cuida do visto por você — nada cuida —, mas, uma vez que você sabe quais destinos o seu passaporte abre, ele transforma o escolhido em um roteiro dia a dia com lugares e orçamentos reais. A papelada é com você; o planejamento não precisa ser.
+**É aqui que uma ferramenta de planejamento mostra seu valor.** O [planejador de viagens com AI gratuito da MonkeyTravel](/) não cuida do visto por você — nada cuida —, mas, uma vez que você sabe quais destinos o seu passaporte abre, ele transforma o escolhido em um roteiro dia a dia com lugares e orçamentos reais. A papelada é com você; o planejamento não precisa ser.
 
 ---
 
@@ -309,7 +309,7 @@ Programas como o Global Entry (EUA), o NEXUS (EUA-Canadá) e o Registered Travel
 
 Com um passaporte de ranking mais baixo, viajar de forma espontânea é mais difícil. Dê a si mesmo 2-3 meses para o processamento dos vistos e tenha sempre a sua documentação pronta: extratos bancários, cartas do empregador, reservas de hotel e seguro de viagem.
 
-**Independentemente da posição do seu passaporte, o planejador de viagens com AI da MonkeyTravel pode ajudar você a montar roteiros detalhados sob medida para os seus destinos.** Ele cuida da logística — melhor roteirização, recomendações locais, planejamento de orçamento — para que você possa focar na experiência. Experimente o [planejador de viagens com AI grátis](/trips/new) para montar o seu próximo roteiro sem visto.
+**Independentemente da posição do seu passaporte, o planejador de viagens com AI da MonkeyTravel pode ajudar você a montar roteiros detalhados sob medida para os seus destinos.** Ele cuida da logística — melhor roteirização, recomendações locais, planejamento de orçamento — para que você possa focar na experiência. Experimente o [planejador de viagens com AI grátis](/) para montar o seu próximo roteiro sem visto.
 
 ---
 
