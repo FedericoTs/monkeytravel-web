@@ -21,32 +21,7 @@ import { landingMetadata } from '@/lib/seo/landing-metadata';
 const CONTENT_UPDATED = '2026-08-21';
 const PAGE_PATH = '/group-trip-planner';
 
-const META: Record<string, { title: string; description: string }> = {
-  pt: {
-    title: 'Planejador de Viagens em Grupo com AI — Vote e Decida',
-    description:
-      'O único planejador de viagens com AI feito para grupos. Gere roteiros, convide amigos, votem nas atividades e decidam juntos — tudo em um só lugar. Grátis.',
-  },
-  en: {
-    title: 'AI Group Trip Planner — Plan Together, Vote, Decide',
-    description:
-      'The only AI trip planner built for groups. Generate itineraries, invite friends, vote on activities, and reach consensus — all in one place. Free.',
-  },
-  es: {
-    title:
-      'Planificador AI para Viajes en Grupo — Vota y Decide',
-    description:
-      'El único planificador AI para grupos. Genera itinerarios, invita amigos, vota actividades y decide en grupo — todo en un lugar. Gratis.',
-  },
-  it: {
-    title:
-      'Pianificatore AI per Viaggi di Gruppo — Vota e Decidi',
-    description:
-      'L\'unico pianificatore AI per gruppi. Genera itinerari, invita amici, vota le attività e decidi insieme — tutto in un posto. Gratuito.',
-  },
-};
-
-export const generateMetadata = landingMetadata(META, PAGE_PATH, 'MonkeyTravel — AI Group Trip Planner');
+export const generateMetadata = landingMetadata('groupTripPlanner', PAGE_PATH, 'MonkeyTravel — AI Group Trip Planner');
 
 const PROBLEM_CONFIGS = [
   {

@@ -22,32 +22,7 @@ import { landingMetadata } from '@/lib/seo/landing-metadata';
 const CONTENT_UPDATED = '2026-11-02';
 const PAGE_PATH = '/family-trip-planner';
 
-const META: Record<string, { title: string; description: string }> = {
-  pt: {
-    title: 'Planejador de Viagens em Família com AI',
-    description:
-      'Planeje as férias em família perfeitas com AI. Roteiros para crianças com atividades por idade, restaurantes para famílias e horários equilibrados. 100% grátis.',
-  },
-  en: {
-    title: 'Family Trip Planner — AI-Powered Itineraries for All Ages',
-    description:
-      'Plan the perfect family vacation with AI. Get kid-friendly itineraries with age-appropriate activities, family restaurants, and balanced schedules. 100% free.',
-  },
-  es: {
-    title:
-      'Planificador de Viajes Familiares con AI',
-    description:
-      'Planifica las vacaciones familiares perfectas con AI. Obtén itinerarios aptos para niños con actividades por edad, restaurantes familiares y horarios equilibrados. 100% gratis.',
-  },
-  it: {
-    title:
-      'Pianificatore di Viaggi per Famiglie con AI',
-    description:
-      'Pianifica la vacanza in famiglia perfetta con AI. Ottieni itinerari adatti ai bambini con attività per età, ristoranti per famiglie e orari equilibrati. 100% gratis.',
-  },
-};
-
-export const generateMetadata = landingMetadata(META, PAGE_PATH, 'MonkeyTravel — Family Trip Planner');
+export const generateMetadata = landingMetadata('familyTripPlanner', PAGE_PATH, 'MonkeyTravel — Family Trip Planner');
 
 const FEATURES: LandingFeature[] = [
   {

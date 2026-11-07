@@ -22,32 +22,7 @@ import { landingMetadata } from '@/lib/seo/landing-metadata';
 const CONTENT_UPDATED = '2026-11-02';
 const PAGE_PATH = '/weekend-trip-planner';
 
-const META: Record<string, { title: string; description: string }> = {
-  pt: {
-    title: 'Planejador de Fim de Semana — Escapadas de 2-3 Dias com AI',
-    description:
-      'Planeje a escapada de fim de semana perfeita em 15 minutos com AI. Roteiros de 2-3 dias com joias locais, preços reais e horários inteligentes. 100% grátis.',
-  },
-  en: {
-    title: 'Weekend Trip Planner — AI-Powered 2-3 Day Getaways',
-    description:
-      'Plan the perfect weekend getaway in 15 minutes with AI. Get personalized 2-3 day itineraries with local gems, real prices, and smart scheduling. 100% free.',
-  },
-  es: {
-    title:
-      'Planificador de Escapadas de Fin de Semana',
-    description:
-      'Planifica la escapada de fin de semana perfecta en 15 minutos con AI. Itinerarios personalizados de 2-3 dias con joyas locales, precios reales y horarios inteligentes. 100% gratis.',
-  },
-  it: {
-    title:
-      'Pianificatore di Weekend — Fughe di 2-3 Giorni con AI',
-    description:
-      'Pianifica la fuga del weekend perfetta in 15 minuti con AI. Itinerari personalizzati di 2-3 giorni con gemme locali, prezzi reali e programmazione intelligente. 100% gratis.',
-  },
-};
-
-export const generateMetadata = landingMetadata(META, PAGE_PATH, 'MonkeyTravel — Weekend Trip Planner');
+export const generateMetadata = landingMetadata('weekendTripPlanner', PAGE_PATH, 'MonkeyTravel — Weekend Trip Planner');
 
 const FEATURES: LandingFeature[] = [
   {
