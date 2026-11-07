@@ -161,9 +161,6 @@ export function trackTripCreated(params: {
     budget_tier: params.budgetTier,
     is_from_template: params.isFromTemplate ?? false,
     ...(params.isFromChatgpt ? { is_from_chatgpt: true } : {}),
-    // GA4 ecommerce-style tracking
-    currency: "USD",
-    value: params.budgetTier === "premium" ? 100 : params.budgetTier === "balanced" ? 50 : 25,
   });
   trackMilestone("trip_created", {
     from: params.isFromChatgpt ? "chatgpt" : params.isFromTemplate ? "template" : "planner",
@@ -462,18 +459,12 @@ export function setUserId(userId: string): void {
 // ============================================================================
 
 /**
- * Track user returning to the app
- * Call on app load after checking last visit
+ * A signed-in person back after more than 30 minutes away;
+ * components/analytics/SessionTracker.tsx decides when.
  */
-export function trackUserReturn(params: {
-  daysSinceLastVisit: number;
-  totalSessions: number;
-  returnSource?: "direct" | "notification" | "email" | "share";
-}): void {
+export function trackUserReturn(params: { daysSinceLastVisit: number }): void {
   trackEvent("user_return", {
     days_since_last_visit: params.daysSinceLastVisit,
-    total_sessions: params.totalSessions,
-    return_source: params.returnSource || "direct",
     // Bucket for easier analysis
     return_bucket:
       params.daysSinceLastVisit === 0
@@ -504,33 +495,6 @@ export function trackTripViewed(params: {
     trip_status: params.tripStatus,
     days_since_creation: params.daysSinceCreation,
     activities_count: params.activitiesCount,
-  });
-}
-
-/**
- * Track session start with context
- */
-export function trackSessionStart(params: {
-  userId?: string;
-  isNewUser: boolean;
-  hasActiveTrip: boolean;
-  tripsCount: number;
-  daysSinceSignup: number;
-}): void {
-  trackEvent("session_start", {
-    is_new_user: params.isNewUser,
-    has_active_trip: params.hasActiveTrip,
-    trips_count: params.tripsCount,
-    days_since_signup: params.daysSinceSignup,
-    // Lifecycle stage
-    user_stage:
-      params.tripsCount === 0
-        ? "new"
-        : params.tripsCount === 1
-          ? "activated"
-          : params.tripsCount < 5
-            ? "engaged"
-            : "power_user",
   });
 }
 
@@ -639,7 +603,6 @@ export function setUserPropertiesEnhanced(properties: {
   accountAgeDays?: number;
   onboardingCompleted?: boolean;
   hasBetaAccess?: boolean;
-  referralSource?: "organic" | "referral" | "paid";
   userStage?: "new" | "activated" | "engaged" | "power_user";
 }): void {
   if (isAnalyticsAvailable()) {
@@ -649,7 +612,6 @@ export function setUserPropertiesEnhanced(properties: {
       account_age_days: properties.accountAgeDays,
       onboarding_completed: properties.onboardingCompleted,
       has_beta_access: properties.hasBetaAccess,
-      referral_source: properties.referralSource,
       user_stage: properties.userStage,
     });
   }

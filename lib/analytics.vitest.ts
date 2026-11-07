@@ -3,7 +3,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const track = vi.fn();
 vi.mock("@vercel/analytics", () => ({ track: (...args: unknown[]) => track(...args) }));
 
-import { trackItineraryGenerated, trackPlanKept, trackSignup, trackTripCreated, trackTripShared } from "./analytics";
+import {
+  trackItineraryGenerated,
+  trackPlanKept,
+  trackSignup,
+  trackTripCreated,
+  trackTripShared,
+  trackUserReturn,
+} from "./analytics";
 
 const TRIP = { tripId: "trip-1", destination: "Lisbon", duration: 4, budgetTier: "balanced" } as const;
 
@@ -53,5 +60,36 @@ describe("funnel milestones reach GA4 and Vercel Web Analytics", () => {
     window.gtag = undefined;
     trackSignup("email");
     expect(track).toHaveBeenCalledWith("sign_up", { method: "email" });
+  });
+});
+
+describe("what GA4 is told", () => {
+  const gtag = vi.fn();
+
+  beforeEach(() => {
+    gtag.mockClear();
+    window.gtag = gtag;
+  });
+
+  it("is what a saved trip is, with no money: nobody pays for a trip", () => {
+    trackTripCreated({ ...TRIP, budgetTier: "premium" });
+    expect(gtag).toHaveBeenCalledWith("event", "trip_created", {
+      trip_id: "trip-1",
+      destination: "Lisbon",
+      duration_days: 4,
+      budget_tier: "premium",
+      is_from_template: false,
+    });
+  });
+
+  it.each([
+    [0, "same_day"],
+    [1, "d1"],
+    [3, "d2_7"],
+    [30, "d8_30"],
+    [31, "d30_plus"],
+  ])("is how long a returning person was away (%i days), with no made-up source", (days, bucket) => {
+    trackUserReturn({ daysSinceLastVisit: days });
+    expect(gtag).toHaveBeenCalledWith("event", "user_return", { days_since_last_visit: days, return_bucket: bucket });
   });
 });
