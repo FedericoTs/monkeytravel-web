@@ -75,12 +75,30 @@ describe("what GA4 is told", () => {
   it("is what a saved trip is, with no money: nobody pays for a trip", () => {
     trackTripCreated({ ...TRIP, budgetTier: "premium" });
     expect(gtag).toHaveBeenCalledWith("event", "trip_created", {
+      signed_in: false,
       trip_id: "trip-1",
       destination: "Lisbon",
       duration_days: 4,
       budget_tier: "premium",
       is_from_template: false,
     });
+  });
+
+  it("carries the page's language and whether someone is signed in, on every event", async () => {
+    vi.resetModules();
+    const fresh = await import("./analytics");
+    document.documentElement.lang = "es";
+    try {
+      fresh.trackPlanKept({ days: 4 });
+      fresh.setUserId("user-1");
+      fresh.trackSignup("google");
+      expect(gtag.mock.calls.filter(([command]) => command === "event").map(([, name, params]) => [name, params])).toEqual([
+        ["plan_kept", { locale: "es", signed_in: false, duration_days: 4 }],
+        ["sign_up", { locale: "es", signed_in: true, method: "google" }],
+      ]);
+    } finally {
+      document.documentElement.lang = "";
+    }
   });
 
   it.each([
@@ -91,7 +109,7 @@ describe("what GA4 is told", () => {
     [31, "d30_plus"],
   ])("is how long a returning person was away (%i days), with no made-up source", (days, bucket) => {
     trackUserReturn({ daysSinceLastVisit: days });
-    expect(gtag).toHaveBeenCalledWith("event", "user_return", { days_since_last_visit: days, return_bucket: bucket });
+    expect(gtag).toHaveBeenCalledWith("event", "user_return", { signed_in: false, days_since_last_visit: days, return_bucket: bucket });
   });
 
   it("is a page's content group as a setting, not a second setup of the tag", () => {

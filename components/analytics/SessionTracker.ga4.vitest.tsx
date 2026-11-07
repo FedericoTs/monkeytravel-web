@@ -107,13 +107,13 @@ describe("user_return", () => {
   it("is a signed-in person back after more than 30 minutes away", async () => {
     lastSeen(31 * MINUTE);
     await open();
-    expect(sent("user_return")).toEqual([{ days_since_last_visit: 0, return_bucket: "same_day" }]);
+    expect(sent("user_return")).toEqual([{ signed_in: true, days_since_last_visit: 0, return_bucket: "same_day" }]);
   });
 
   it("counts the time away in whole days", async () => {
     lastSeen(3 * DAY + 20 * 60 * MINUTE);
     await open();
-    expect(sent("user_return")).toEqual([{ days_since_last_visit: 3, return_bucket: "d2_7" }]);
+    expect(sent("user_return")).toEqual([{ signed_in: true, days_since_last_visit: 3, return_bucket: "d2_7" }]);
   });
 
   it("is not a page opened 30 minutes or less after the last one", async () => {
@@ -147,7 +147,7 @@ describe("user_return", () => {
     show("hidden");
     await wait(45 * MINUTE);
     show("visible");
-    expect(sent("user_return")).toEqual([{ days_since_last_visit: 0, return_bucket: "same_day" }]);
+    expect(sent("user_return")).toEqual([{ signed_in: true, days_since_last_visit: 0, return_bucket: "same_day" }]);
   });
 
   it("is not coming back to it within 30 minutes", async () => {
