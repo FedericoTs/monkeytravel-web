@@ -5,7 +5,7 @@
  *
  * A full account-and-password signup at the moment someone wants to save is
  * where signed-out planners are lost, so the wall asks for an email only:
- *   1. Single email field + "Email me the link" — Supabase signInWithOtp.
+ *   1. Single email field + "Email me a code" — Supabase signInWithOtp.
  *      Returning users get logged in; new users get an account auto-created
  *      on magic-link click. Either way the trip draft is restored via
  *      `pendingTripGeneration` + the existing useItineraryDraft helper.

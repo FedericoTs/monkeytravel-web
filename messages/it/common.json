@@ -935,13 +935,13 @@
     "liveNote": "Foto, mappa e salvataggio arrivano quando tutti i giorni sono pronti.",
     "dayLabel": "Giorno {n}",
     "planningDay": "Sto pianificando il giorno {n}…",
-    "estimatedTime": "Sto creando il tuo itinerario personalizzato: di solito ci vuole un minuto o due",
+    "estimatedTime": "Sto creando il tuo itinerario. Di solito ci vogliono meno di 30 secondi.",
     "takingLonger": "Ci siamo quasi: un itinerario ricco e personalizzato vale qualche secondo in più. Un attimo!",
     "funFacts": {
-      "analyzing": "L'AI sta analizzando migliaia di recensioni e valutazioni",
-      "hiddenGems": "Trovando gemme nascoste amate dai locali",
+      "analyzing": "Leggendo le tue risposte e scegliendo i posti adatti",
+      "hiddenGems": "Cercando oltre i posti più ovvi",
       "optimizingRoutes": "Ottimizzando i percorsi per farti risparmiare tempo",
-      "checkingHours": "Verificando orari di apertura e disponibilità stagionale",
+      "checkingHours": "Tenendo conto della stagione e dell'ora del giorno",
       "balancing": "Bilanciando attività con tempo di riposo",
       "matching": "Abbinando esperienze al tuo stile di viaggio"
     }
@@ -2262,16 +2262,16 @@
     "magicLink": {
       "emailLabel": "La tua email",
       "emailPlaceholder": "tu@esempio.com",
-      "send": "Inviami il link",
+      "send": "Inviami un codice",
       "sending": "Invio in corso...",
-      "failed": "Non siamo riusciti a inviare il link — riprova",
+      "failed": "Non siamo riusciti a inviare l'email — riprova",
       "emailInvalid": "Questo indirizzo email non sembra corretto. Controllalo e riprova.",
       "sentTitle": "Controlla la tua casella",
-      "sentSubtitle": "Abbiamo inviato un link a {email}",
-      "checkInbox": "Clicca il link nell'email per salvare il viaggio. Nessuna password necessaria.",
+      "sentSubtitle": "Abbiamo inviato un codice di 6 cifre a {email}",
+      "checkInbox": "Scrivilo qui per tenere il tuo piano. Può metterci un minuto ad arrivare.",
       "useDifferent": "Usa un'altra email",
-      "noEmailHint": "Non trovi l’email? Controlla lo spam o le promozioni, oppure continua con Google.",
-      "codePrompt": "Oppure inserisci il codice a 6 cifre dell'email",
+      "noEmailHint": "Puoi anche toccare il link nella stessa email. Non la trovi? Controlla lo spam o le promozioni, oppure continua con Google.",
+      "codePrompt": "Il tuo codice di 6 cifre",
       "codeSubmit": "Verifica",
       "codeVerifying": "Controllo…",
       "codeResend": "Invia un nuovo codice",
@@ -2291,7 +2291,7 @@
     "generationLimit": {
       "title": "Hai usato i viaggi gratuiti di oggi",
       "subtitle": "Crea un account gratuito per continuare a pianificare. Ci vuole un attimo e i tuoi viaggi restano salvati.",
-      "checkInbox": "Clicca il link nell'email per continuare a pianificare. Nessuna password."
+      "checkInbox": "Scrivilo qui per continuare a pianificare. Può metterci un minuto ad arrivare."
     }
   },
   "saveTrip": {
