@@ -29,6 +29,10 @@ Sentry.init({
   // Capture 10% of transactions in production
   tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
 
+  // One transaction per request rather than streamed spans (the SDK default
+  // since v11): the tracing views and the sampling above are set up for it.
+  traceLifecycle: "static",
+
   // Enable debug mode in development
   debug: false,
 
