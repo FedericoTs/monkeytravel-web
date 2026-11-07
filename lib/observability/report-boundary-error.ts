@@ -1,4 +1,5 @@
 import { sentry } from "@/lib/observability/sentry";
+import { onPostHogReady } from "@/lib/posthog/client";
 
 /**
  * Report an error caught by a React error boundary, with enough context that
@@ -82,6 +83,16 @@ export function reportBoundaryError(
   // raw stack even if Sentry parses no frames.
   const rawStack = resolveRawStack(error);
   const pathname = typeof window !== "undefined" ? window.location.pathname : null;
+
+  // Counted apart from Sentry, whose ignore list can hide an error a visitor did see.
+  onPostHogReady((posthog) =>
+    posthog.capture("error_boundary_shown", {
+      error_type: errorType,
+      error_name: error.name,
+      // No addresses: they can carry share tokens.
+      error_message: String(error.message).replace(/https?:\/\/\S+/g, "<url>").slice(0, 160),
+    })
+  );
 
   return sentry()
     .then((Sentry) => {

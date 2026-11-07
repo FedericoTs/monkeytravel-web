@@ -18,7 +18,14 @@ vi.mock("@/lib/observability/sentry", () => ({
     }),
 }));
 
+const posthogCapture = vi.fn();
+
+vi.mock("@/lib/posthog/client", () => ({
+  onPostHogReady: (fn: (posthog: unknown) => void) => fn({ capture: posthogCapture }),
+}));
+
 beforeEach(() => {
+  posthogCapture.mockClear();
   captureException.mockClear();
   setTag.mockClear();
   setContext.mockClear();
@@ -36,6 +43,29 @@ const ctx = () =>
   >;
 
 describe("reportBoundaryError", () => {
+  it("counts the screen in analytics too, which Sentry's ignore list can't hide", async () => {
+    const err = new TypeError("Failed to execute removeChild");
+    await report(err, "locale-root-error");
+
+    expect(posthogCapture).toHaveBeenCalledWith("error_boundary_shown", {
+      error_type: "locale-root-error",
+      error_name: "TypeError",
+      error_message: "Failed to execute removeChild",
+    });
+  });
+
+  it("leaves addresses out of what it counts, since they can carry share tokens", async () => {
+    await report(new Error("Failed to load https://monkeytravel.app/shared/abc123?x=1 and http://a.b/c"));
+
+    expect(posthogCapture.mock.calls[0][1].error_message).toBe("Failed to load <url> and <url>");
+  });
+
+  it("keeps what it counts short", async () => {
+    await report(new Error("x".repeat(500)));
+
+    expect(posthogCapture.mock.calls[0][1].error_message).toHaveLength(160);
+  });
+
   it("keeps the raw stack string, which is what survives a failed frame parse", async () => {
     const err = new Error("Cannot access 'q' before initialization");
     err.stack = "ReferenceError: Cannot access 'q'\n    at chunk.js:1:133736";
