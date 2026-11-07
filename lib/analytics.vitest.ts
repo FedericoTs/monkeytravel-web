@@ -4,6 +4,7 @@ const track = vi.fn();
 vi.mock("@vercel/analytics", () => ({ track: (...args: unknown[]) => track(...args) }));
 
 import {
+  setContentGroup,
   trackItineraryGenerated,
   trackPlanKept,
   trackSignup,
@@ -91,5 +92,12 @@ describe("what GA4 is told", () => {
   ])("is how long a returning person was away (%i days), with no made-up source", (days, bucket) => {
     trackUserReturn({ daysSinceLastVisit: days });
     expect(gtag).toHaveBeenCalledWith("event", "user_return", { days_since_last_visit: days, return_bucket: bucket });
+  });
+
+  it("is a page's content group as a setting, not a second setup of the tag", () => {
+    // A second config call would set the tag up again without the team's traffic_type.
+    setContentGroup("blog");
+    expect(gtag).toHaveBeenCalledOnce();
+    expect(gtag).toHaveBeenCalledWith("set", { content_group: "blog" });
   });
 });

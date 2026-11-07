@@ -23,11 +23,10 @@ import { sentry, sentryBreadcrumb, sentryUser } from "@/lib/observability/sentry
 // Type definitions for gtag
 declare global {
   interface Window {
-    gtag?: (
-      command: "config" | "event" | "set",
-      targetId: string,
-      params?: Record<string, unknown>
-    ) => void;
+    gtag?: {
+      (command: "config" | "event" | "set", targetId: string, params?: Record<string, unknown>): void;
+      (command: "set", params: Record<string, unknown>): void;
+    };
     dataLayer?: unknown[];
   }
 }
@@ -108,13 +107,13 @@ export function trackContentInteraction(params: {
 }
 
 /**
- * Set the GA4 content group dimension for the current pageview.
+ * Set the GA4 content group for the page's hits. A `set`, not a `config`:
+ * a second config would set the tag up again, without the team's
+ * traffic_type (components/analytics/ConsentGatedTags.tsx).
  */
 export function setContentGroup(group: string): void {
   if (isAnalyticsAvailable()) {
-    window.gtag!("config", process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "", {
-      content_group: group,
-    });
+    window.gtag!("set", { content_group: group });
   }
 }
 
