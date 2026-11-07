@@ -22,8 +22,6 @@ This skill integrates with other MonkeyTravel skills:
 | Skill | When to Call | Purpose |
 |-------|--------------|---------|
 | `gemini-travel-agent` | Activity generation, trip planning | AI model selection, prompt engineering |
-| `frontend-design` | UI components, styling | Design system, animations, components |
-| `amadeus-integration` | Flight/hotel bookings | Travel API integration |
 
 ### Calling Other Skills
 
@@ -34,16 +32,7 @@ This skill integrates with other MonkeyTravel skills:
 // - Prompt sanitization
 // - Rate limiting patterns
 
-// When building UI components, use frontend-design patterns
-// Reference: .claude/skills/frontend-design.md
-// - Color system (--primary, --accent)
-// - Component library (Button, Card, Badge)
-// - Animation utilities
-
-// When integrating bookings, use amadeus-integration patterns
-// Reference: .claude/skills/amadeus-integration.md
-// - API authentication
-// - Error handling
+// When building UI components, read DESIGN.md first
 // - Caching strategies
 ```
 
@@ -53,7 +42,7 @@ This skill integrates with other MonkeyTravel skills:
 
 ### 1. Model Tiering System
 
-**Use the cheapest model that can handle the task:**
+**Use the cheapest model that can handle the task.** Models are chosen by purpose in `lib/ai/model-router.ts`: change them there, never in a route. The names below show the idea and date quickly.
 
 ```typescript
 // Task classification for cost optimization
@@ -864,8 +853,7 @@ npm install framer-motion canvas-confetti
 ### Related Skills
 
 - **gemini-travel-agent.md** - AI model selection, prompt engineering
-- **frontend-design.md** - Design system, components, animations
-- **amadeus-integration.md** - Travel API patterns
+- **DESIGN.md** - Colours, type, touch targets
 
 ---
 
