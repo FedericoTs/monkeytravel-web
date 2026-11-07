@@ -368,12 +368,12 @@ const sentryConfig: SentryBuildOptions = {
   // Upload source maps for better error stack traces
   widenClientFileUpload: true,
 
-  // The browser SDK ships only what runs for everyone: no tracing, and no
-  // replay code (fetched on demand when session recording was agreed to;
-  // see instrumentation-client.ts).
+  // The browser SDK ships no replay code (fetched on demand when session
+  // recording was agreed to; see instrumentation-client.ts). Tracing stays:
+  // excludeTracing would also strip it from the server and edge bundles, and
+  // the browser never samples (instrumentation-client.ts sets no rate).
   bundleSizeOptimizations: {
     excludeDebugStatements: true,
-    excludeTracing: true,
     excludeReplayShadowDom: true,
     excludeReplayIframe: true,
     excludeReplayWorker: true,
