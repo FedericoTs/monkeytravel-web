@@ -5,7 +5,7 @@
     "titleHighlight": "Day-by-Day in 30 Seconds",
     "subtitleStart": "Drop a destination and get a",
     "subtitleHighlight": "personalized day-by-day itinerary",
-    "subtitleEnd": "with real places, opening hours and budgets — no account, no card.",
+    "subtitleEnd": "with real places, times and budgets — no account, no card.",
     "cta": "Plan My Trip — Free",
     "signIn": "Sign In",
     "inputPlaceholder": "Where do you want to go?",
@@ -113,7 +113,7 @@
       },
       "realData": {
         "title": "Verified Places",
-        "description": "Real Google ratings, real photos, real hours. No hallucinated restaurants that closed in 2019."
+        "description": "Real Google ratings and photos a tap away. Save a trip and we check its places to eat on Google Maps, and change any that have closed."
       }
     }
   },

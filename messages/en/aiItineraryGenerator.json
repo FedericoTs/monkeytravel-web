@@ -36,8 +36,8 @@
         "description": "Advanced algorithms analyze thousands of data points to create perfectly structured day-by-day plans with morning, afternoon, and evening time blocks."
       },
       "realTimeData": {
-        "title": "Real-Time Venue Data",
-        "description": "Every restaurant, attraction, and hotel is verified with current ratings, prices, and opening hours. No outdated or fictional recommendations."
+        "title": "Real Venue Data",
+        "description": "Google ratings, prices and photos are a tap away on any stop. Save a trip and we check its places to eat, and change any that have closed."
       },
       "customizable": {
         "title": "Fully Customizable Plans",
@@ -115,7 +115,7 @@
       },
       "howAccurate": {
         "question": "How accurate are the generated itineraries?",
-        "answer": "MonkeyTravel uses real-time venue data including current ratings, prices, and opening hours from trusted sources. Unlike generic AI chatbots that may hallucinate or suggest closed venues, our itineraries reference actual, verified places. We recommend confirming details close to your travel date."
+        "answer": "The plan is written by AI, and any stop shows Google ratings, prices and photos a tap away. Once you save a trip, we check its places to eat on Google Maps and change any that have closed. We recommend confirming details, including opening hours, close to your travel date."
       },
       "multiCity": {
         "question": "Can it generate multi-city itineraries?",

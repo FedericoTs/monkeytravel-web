@@ -119,7 +119,7 @@
       },
       "howAccurate": {
         "question": "Quão precisos são os roteiros gerados por AI?",
-        "answer": "O MonkeyTravel usa dados reais de lugares, incluindo avaliações atuais, preços e horários de funcionamento. Diferente dos chatbots de AI genéricos, nossos roteiros indicam lugares reais que você pode visitar e reservar. Recomendamos conferir os detalhes perto da data da sua viagem."
+        "answer": "O plano é escrito pela AI, e cada parada mostra avaliações, preços e fotos do Google a um toque. Quando você salva uma viagem, verificamos os lugares para comer no Google Maps e trocamos os que fecharam. Recomendamos conferir os detalhes, incluindo os horários, perto da data da sua viagem."
       },
       "languages": {
         "question": "Quais idiomas o MonkeyTravel oferece?",
