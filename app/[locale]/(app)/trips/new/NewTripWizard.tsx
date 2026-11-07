@@ -194,7 +194,7 @@ import SameTripPrompt from "@/components/wizard/SameTripPrompt";
 import ResultActionBars from "@/components/wizard/ResultActionBars";
 import ResultItinerary, { MAP_SECTION_ID, ResultOverview } from "@/components/wizard/ResultItinerary";
 import SkyPlan from "@/components/sky/SkyPlan";
-import { assignSky, type SkyAssignment } from "@/lib/experiments/result-sky";
+import { assignSky, syncSkyArm, type SkyAssignment } from "@/lib/experiments/result-sky";
 import PreferencesStep from "@/components/wizard/PreferencesStep";
 import WizardFooter from "@/components/wizard/WizardFooter";
 import DestinationField from "@/components/wizard/DestinationField";
@@ -355,7 +355,7 @@ export default function NewTripPage({
     });
   });
   useEffect(() => {
-    if (skyTest.counted) onPostHogReady((posthog) => posthog.register({ result_variant: skyTest.arm }));
+    onPostHogReady((posthog) => syncSkyArm(posthog, skyTest));
   }, [skyTest]);
   // Snapshot ?auth_event on the FIRST render. AuthEventTracker strips it with
   // history.replaceState as soon as auth resolves, and useSearchParams follows
