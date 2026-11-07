@@ -186,7 +186,7 @@ export default async function BudgetTripPlannerPage({
           locale={locale}
         />
 
-        <LandingFinalCta namespace="budgetTripPlanner" subscribeSource="budget-trip-planner-cta" />
+        <LandingFinalCta namespace="budgetTripPlanner" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 text-center">
           <LastUpdated date={CONTENT_UPDATED} />
         </div>

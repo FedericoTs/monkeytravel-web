@@ -1729,8 +1729,7 @@ nav[data-monkey-nav].monkey-nav-scrolled {
 
    The failure that IS reachable is the mirror image: drawing ink on a dark
    ground, where the new edge reads as no edge at all, or overwriting a white
-   hairline on a dark panel with a near-black one (that is the EmailSubscribe
-   regression, in border form). Every rule below rejects three things for that
+   hairline on a dark panel with a near-black one. Every rule below rejects three things for that
    reason — an element carrying white content (own class or descendant), an
    element carrying a white border token, and an element carrying
    backdrop-blur, which in this codebase is exclusively the chip-floating-on-

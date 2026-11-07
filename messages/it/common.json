@@ -350,18 +350,6 @@
       "errorId": "ID errore: {digest}"
     }
   },
-  "emailSubscribe": {
-    "placeholder": "La tua email",
-    "joining": "Iscrizione...",
-    "youreIn": "Sei Dentro!",
-    "getEarlyAccess": "Accesso Anticipato",
-    "joinWaitlist": "Iscriviti alla Lista",
-    "subscribe": "Iscriviti",
-    "joined": "Iscritto!",
-    "successMessage": "Sei nella lista! Ti avviseremo al lancio.",
-    "errorMessage": "Qualcosa è andato storto. Riprova.",
-    "invalidEmail": "Inserisci un indirizzo email valido"
-  },
   "aiAssistant": {
     "title": "Assistente di Viaggio",
     "howCanIHelp": "Come posso aiutarti?",

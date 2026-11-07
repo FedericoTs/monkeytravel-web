@@ -1,6 +1,5 @@
 import Navbar from '@/components/Navbar';
 import PhoneMockup from '@/components/PhoneMockup';
-import EmailSubscribe from '@/components/EmailSubscribe';
 import Footer from '@/components/Footer';
 import CuratedEscapes from '@/components/templates/CuratedEscapes';
 import { Link } from '@/lib/i18n/routing';
@@ -1089,13 +1088,6 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   </Link>
                 </div>
 
-                {/* Newsletter signup (secondary) */}
-                <div className="pt-8 border-t border-white/10 max-w-md mx-auto">
-                  <p className="text-sm text-white/55 mb-4">
-                    {t('cta.mobileNotify')}
-                  </p>
-                  <EmailSubscribe variant="dark" source="cta" />
-                </div>
               </div>
             </div>
           </div>

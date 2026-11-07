@@ -196,7 +196,7 @@ export default async function WeekendTripPlannerPage({
           locale={locale}
         />
 
-        <LandingFinalCta namespace="weekendTripPlanner" subscribeSource="weekend-trip-planner-cta" />
+        <LandingFinalCta namespace="weekendTripPlanner" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 text-center">
           <LastUpdated date={CONTENT_UPDATED} />
         </div>

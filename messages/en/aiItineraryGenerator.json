@@ -134,7 +134,6 @@
   "cta": {
     "title": "Ready to Generate Your Itinerary?",
     "subtitle": "Let AI build your perfect trip plan in 30 seconds. Real venues, smart routing, three budget tiers — completely free.",
-    "button": "Generate My Itinerary — Free",
-    "mobileNotify": "Get notified when the mobile app launches"
+    "button": "Generate My Itinerary — Free"
   }
 }
