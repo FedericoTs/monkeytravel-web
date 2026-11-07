@@ -228,7 +228,7 @@ export default async function FreeTripPlannerPage({
 
         <LandingFaq title={t('faq.title')} items={faqItems} />
 
-        <LandingFinalCta namespace="freeTripPlanner" subscribeSource="free-trip-planner-cta" />
+        <LandingFinalCta namespace="freeTripPlanner" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 text-center">
           <LastUpdated date={CONTENT_UPDATED} />
         </div>

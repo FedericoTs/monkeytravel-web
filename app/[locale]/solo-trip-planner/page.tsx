@@ -187,7 +187,7 @@ export default async function SoloTripPlannerPage({
           locale={locale}
         />
 
-        <LandingFinalCta namespace="soloTripPlanner" subscribeSource="solo-trip-planner-cta" />
+        <LandingFinalCta namespace="soloTripPlanner" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 text-center">
           <LastUpdated date={CONTENT_UPDATED} />
         </div>

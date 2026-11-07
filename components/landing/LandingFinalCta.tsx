@@ -1,5 +1,4 @@
 import { getTranslations } from "next-intl/server";
-import EmailSubscribe from "@/components/EmailSubscribe";
 import { Link } from "@/lib/i18n/routing";
 
 const SURFACES = {
@@ -10,13 +9,11 @@ const SURFACES = {
 /** The closing call to plan a trip, with the newsletter signup: `cta.*` in the page's namespace. */
 export default async function LandingFinalCta({
   namespace,
-  subscribeSource,
   ctaHref = "/trips/new",
   surface = "white",
 }: {
   namespace: string;
   /** Which page a newsletter signup came from. */
-  subscribeSource: string;
   ctaHref?: string;
   surface?: keyof typeof SURFACES;
 }) {
@@ -62,13 +59,6 @@ export default async function LandingFinalCta({
               </Link>
             </div>
 
-            {/* Newsletter signup */}
-            <div className="pt-8 border-t border-white/10 max-w-md mx-auto">
-              <p className="text-sm text-white/55 mb-4">
-                {t("cta.mobileNotify")}
-              </p>
-              <EmailSubscribe variant="dark" source={subscribeSource} />
-            </div>
           </div>
         </div>
       </div>

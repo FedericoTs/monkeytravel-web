@@ -330,7 +330,7 @@ export default async function GroupTripPlannerPage({
 
         <LandingFaq title={t('faq.title')} items={faqItems} surface="white" />
 
-        <LandingFinalCta namespace="groupTripPlanner" subscribeSource="group-trip-planner-cta" surface="alt" />
+        <LandingFinalCta namespace="groupTripPlanner" surface="alt" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 text-center">
           <LastUpdated date={CONTENT_UPDATED} />
         </div>

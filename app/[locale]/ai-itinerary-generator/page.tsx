@@ -186,7 +186,7 @@ export default async function AIItineraryGeneratorPage({
           locale={locale}
         />
 
-        <LandingFinalCta namespace="aiItineraryGenerator" subscribeSource="ai-itinerary-generator-cta" />
+        <LandingFinalCta namespace="aiItineraryGenerator" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 text-center">
           <LastUpdated date={CONTENT_UPDATED} />
         </div>

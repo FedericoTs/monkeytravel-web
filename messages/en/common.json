@@ -350,18 +350,6 @@
       "errorId": "Error ID: {digest}"
     }
   },
-  "emailSubscribe": {
-    "placeholder": "Enter your email",
-    "joining": "Joining...",
-    "youreIn": "You're In!",
-    "getEarlyAccess": "Get Early Access",
-    "joinWaitlist": "Join Waitlist",
-    "subscribe": "Subscribe",
-    "joined": "Joined!",
-    "successMessage": "You're on the list! We'll notify you when we launch.",
-    "errorMessage": "Something went wrong. Please try again.",
-    "invalidEmail": "Please enter a valid email address"
-  },
   "aiAssistant": {
     "title": "Trip Assistant",
     "howCanIHelp": "How can I help?",

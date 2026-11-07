@@ -14,7 +14,6 @@ export const MARKETING_CLIENT_NAMESPACES = [
   "common.language",
   "common.maintenance",
   "common.referral",
-  "common.emailSubscribe",
   "common.pageShare",
   "common.curatedEscapes",
   "common.errorPage",

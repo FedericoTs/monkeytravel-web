@@ -211,7 +211,7 @@ export default async function MultiCityTripPlannerPage({
 
         <LandingFaq title={t('faq.title')} items={faqItems} badge={t('faq.badge')} />
 
-        <LandingFinalCta namespace="multiCityTripPlanner" subscribeSource="multi-city-trip-planner-cta" ctaHref="/trips/new?multi=1" />
+        <LandingFinalCta namespace="multiCityTripPlanner" ctaHref="/trips/new?multi=1" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 text-center">
           <LastUpdated date={CONTENT_UPDATED} />
         </div>
