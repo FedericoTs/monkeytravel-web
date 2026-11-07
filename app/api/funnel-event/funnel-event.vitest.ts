@@ -49,6 +49,29 @@ describe("client-fired funnel events", () => {
     ]);
   });
 
+  it("records a share of a match result, which has no trip", async () => {
+    const res = await post({ event_type: "trip_card_shared", kind: "match", method: "whatsapp" });
+    expect(res.status).toBe(204);
+    expect(inserted).toEqual([
+      {
+        event_type: "trip_card_shared",
+        trip_id: null,
+        session_id: "e2eprobe-test",
+        user_id: "user-1",
+        metadata: { kind: "match", method: "whatsapp" },
+      },
+    ]);
+    expect((await post({ event_type: "trip_card_shared", kind: "match", method: "carrier-pigeon" })).status).toBe(400);
+    expect((await post({ event_type: "trip_card_shared", kind: "poster", method: "whatsapp" })).status).toBe(400);
+  });
+
+  it("records a plan pressed on a match result, with no trip to point to", async () => {
+    const res = await post({ event_type: "plan_own_clicked", destination: "kyoto", surface: "match" });
+    expect(res.status).toBe(204);
+    expect(inserted[0]?.trip_id).toBeNull();
+    expect(inserted[0]?.metadata).toEqual({ destination: "kyoto", referral_code: null, surface: "match" });
+  });
+
   it("still records plan-own clicks with their destination and referral code", async () => {
     const res = await post({ event_type: "plan_own_clicked", trip_id: TRIP, destination: "Lisbon", referral_code: "abc" });
     expect(res.status).toBe(204);

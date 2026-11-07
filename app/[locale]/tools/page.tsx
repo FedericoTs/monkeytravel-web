@@ -4,7 +4,7 @@ import Navbar from "@/components/Navbar";
  * Content freshness signal for the WebPage schema. Bump ONLY when this
  * page's copy actually changes — never automate it.
  */
-const CONTENT_UPDATED = '2026-08-24';
+const CONTENT_UPDATED = '2026-11-07';
 import {
   generateBreadcrumbSchema,
   generateWebPageSchema,
@@ -80,8 +80,17 @@ export default async function ToolsLandingPage({
   const t = await getTranslations("tools.landing");
   const tCheckPlan = await getTranslations("tools.checkPlan");
   const tPassport = await getTranslations("passport");
+  const tMatch = await getTranslations("match");
 
   const tools = [
+    {
+      slug: "where-should-i-go",
+      href: "/where-should-i-go",
+      icon: "🧭",
+      title: tMatch("page.toolTitle"),
+      description: tMatch("page.toolDescription"),
+      live: true,
+    },
     {
       slug: "check-my-plan",
       icon: "✅",
@@ -190,7 +199,7 @@ export default async function ToolsLandingPage({
             return tool.live ? (
               <Link
                 key={tool.slug}
-                href={`/tools/${tool.slug}`}
+                href={tool.href ?? `/tools/${tool.slug}`}
                 className="block"
               >
                 {card}

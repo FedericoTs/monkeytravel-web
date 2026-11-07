@@ -262,7 +262,7 @@ function seasonalPopular(month: number, limit = 6): SeasonalPopular[] {
 // Free-text ?destination= fallback (page.tsx resolves known slugs): capitalized,
 // coords filled in by autocomplete on confirm.
 /** Where a link that fills in the trip's shape came from. */
-const prefillSource = (from: string | null | undefined) => (from === "trip" || from === "check" ? from : "article");
+const prefillSource = (from: string | null | undefined) => (from === "trip" || from === "check" || from === "match" ? from : "article");
 
 function capitalizeFreeText(param: string | null | undefined): string {
   const trimmed = (param ?? "").trim().slice(0, 120);
@@ -379,7 +379,10 @@ export default function NewTripPage({
   // trip, so collab demand is measurable. Group intent also shows an invite
   // hint in step 1 and puts the anonymous share button in crew mode.
   // "unspecified" = user clicked Continue without touching the toggle.
-  const [tripIntent, setTripIntent] = useState<TripIntent>("unspecified");
+  const [tripIntent, setTripIntent] = useState<TripIntent>(() => {
+    const who = searchParams?.get("who");
+    return who === "solo" || who === "group" ? who : "unspecified";
+  });
 
   // Auth state comes from the single AuthProvider, not a local getUser()
   // listener. isAuthenticated is tri-state (null = loading, then true/false);

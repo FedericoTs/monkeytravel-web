@@ -9,6 +9,11 @@ import sharp from "sharp";
 export const LINK_CARD_MAX_BYTES = 300_000;
 const QUALITIES = [82, 72, 62, 52];
 
+/** A card someone posts or saves: no size limit to meet, so it stays sharp. */
+export async function shareCardJpeg(png: ArrayBuffer): Promise<Buffer> {
+  return sharp(Buffer.from(png)).flatten({ background: "#ffffff" }).jpeg({ quality: 85, mozjpeg: true }).toBuffer();
+}
+
 export async function linkCardJpeg(png: ArrayBuffer): Promise<Buffer> {
   let jpeg = Buffer.alloc(0);
   for (const quality of QUALITIES) {

@@ -35,6 +35,7 @@ export default async function Footer() {
       { label: t('packingList'), href: '/tools/packing-list' },
       { label: t('visaChecker'), href: '/tools/visa-checker' },
       { label: t('checkPlan'), href: '/tools/check-my-plan' },
+      { label: t('whereToGo'), href: '/where-should-i-go' },
       { label: t('features'), href: '/#features' },
       { label: t('howItWorks'), href: '/#how-it-works' },
     ],
