@@ -490,9 +490,12 @@ export default function NewTripPage({
   const [budgetTier, setBudgetTier] = useState<BudgetTier>("balanced");
   // Backpacker Mode. Default "classic"; "backpacker" (a) passes travelStyle to
   // the generate API so Gemini gets the backpacker directive, (b) persists
-  // travel_style into trip_meta. It arrives with a restored draft or
-  // session-tray snapshot; the step-1 toggle only shows while it is active.
-  const [travelStyle, setTravelStyle] = useState<"classic" | "backpacker">("classic");
+  // travel_style into trip_meta. It arrives with a link from the backpacker
+  // page, a restored draft or a session-tray snapshot; the step-1 toggle only
+  // shows while it is active.
+  const [travelStyle, setTravelStyle] = useState<"classic" | "backpacker">(() =>
+    searchParams?.get("style") === "backpacker" ? "backpacker" : "classic",
+  );
   const [pace, setPace] = useState<TripPace>("moderate");
   const [selectedVibes, setSelectedVibes] = useState<TripVibe[]>([]);
   const [requirements, setRequirements] = useState("");

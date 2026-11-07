@@ -38,7 +38,7 @@
   },
   "features": {
     "title": "Built for how backpackers actually travel",
-    "subtitle": "Most AI trip planners default to mid-range tourist plans. Toggle Backpacker Mode and every line of the itinerary reorients around your demo — accommodation, activities, food, transit, social life.",
+    "subtitle": "Most AI trip planners default to mid-range tourist plans. In Backpacker Mode every line of the itinerary changes to suit you: accommodation, activities, food, transit, social life.",
     "items": {
       "hostels": {
         "title": "Hostels-first accommodation",
@@ -70,8 +70,8 @@
     "title": "How it works",
     "steps": {
       "toggle": {
-        "title": "Toggle 🎒 Backpacker mode",
-        "body": "Step 1 of the wizard. Pick the toggle, pick a destination, pick dates. That's it."
+        "title": "Open the planner from here",
+        "body": "Every button on this page opens it with 🎒 Backpacker mode on. Pick a destination and dates. That's it."
       },
       "generate": {
         "title": "Generate in 30 seconds",
@@ -137,7 +137,7 @@
       },
       "neighbourhoods": {
         "question": "Will it suggest hostels in good neighbourhoods?",
-        "answer": "Yes. The AI knows which neighbourhoods are hostel-dense and backpacker-friendly in each major destination — Bairro Alto in Lisbon, El Born in Barcelona, Khao San in Bangkok, Friedrichshain in Berlin, and so on. It also factors in safety, public transit access, and proximity to social spots like pub crawls and night markets."
+        "answer": "Yes. The AI knows which neighbourhoods are hostel-dense and backpacker-friendly in each major destination — Bairro Alto in Lisbon, El Born in Barcelona, Khao San in Bangkok, Friedrichshain in Berlin, and so on. It also looks at public transit and social spots like pub crawls and night markets. Read recent reviews before you book."
       },
       "multiCity": {
         "question": "Can I do a multi-city / overland route?",
@@ -151,7 +151,7 @@
   },
   "finalCta": {
     "title": "Your next backpacker trip is 30 seconds away.",
-    "subtitle": "Pick a destination. Toggle Backpacker mode. Generate. We'll handle the hostels and the FlixBus connections.",
+    "subtitle": "Pick a destination and dates, and generate. We'll suggest the hostels and the bus connections.",
     "button": "Plan my backpacker trip"
   }
 }

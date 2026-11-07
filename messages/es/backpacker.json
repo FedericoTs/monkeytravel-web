@@ -38,7 +38,7 @@
   },
   "features": {
     "title": "Pensado para cómo viaja un mochilero de verdad",
-    "subtitle": "La mayoría de las IAs por defecto te arman un viaje turístico de gama media. Activas el Modo Mochilero y todo el itinerario cambia: alojamiento, actividades, comida, transporte y vida social.",
+    "subtitle": "La mayoría de las IAs por defecto te arman un viaje turístico de gama media. En el Modo Mochilero todo el itinerario cambia: alojamiento, actividades, comida, transporte y vida social.",
     "items": {
       "hostels": {
         "title": "Hostels antes que hoteles",
@@ -70,8 +70,8 @@
     "title": "Cómo funciona",
     "steps": {
       "toggle": {
-        "title": "Activa el modo 🎒 Mochilero",
-        "body": "Paso 1 del asistente. Activas el modo, eliges destino y fechas. Y ya está."
+        "title": "Abre el planificador desde aquí",
+        "body": "Todos los botones de esta página lo abren con el modo 🎒 Mochilero activado. Eliges destino y fechas. Y ya está."
       },
       "generate": {
         "title": "Genera en 30 segundos",
@@ -137,7 +137,7 @@
       },
       "neighbourhoods": {
         "question": "¿Recomendará hostels en buenos barrios?",
-        "answer": "Sí. La AI sabe qué barrios concentran hostels y son más mochileros en cada destino: Bairro Alto en Lisboa, El Born en Barcelona, Khao San en Bangkok, Friedrichshain en Berlín, etc. También tiene en cuenta la seguridad, el acceso al transporte público y la cercanía a planes sociales como pub crawls o mercados nocturnos."
+        "answer": "Sí. La AI sabe qué barrios concentran hostels y son más mochileros en cada destino: Bairro Alto en Lisboa, El Born en Barcelona, Khao San en Bangkok, Friedrichshain en Berlín, etc. También tiene en cuenta el transporte público y los planes sociales como pub crawls o mercados nocturnos. Lee reseñas recientes antes de reservar."
       },
       "multiCity": {
         "question": "¿Puedo hacer una ruta por varias ciudades?",
@@ -151,7 +151,7 @@
   },
   "finalCta": {
     "title": "Tu próximo viaje mochilero está a 30 segundos.",
-    "subtitle": "Elige destino. Activa el modo Mochilero. Genera. Nosotros nos ocupamos de los hostels y de las conexiones de FlixBus.",
+    "subtitle": "Elige destino y fechas, y genera. Nosotros te sugerimos los hostels y las conexiones en autobús.",
     "button": "Planear mi viaje mochilero"
   }
 }
