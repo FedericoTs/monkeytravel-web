@@ -86,6 +86,16 @@ describe("generateTripOutline", () => {
     expect(prompts[1]).not.toContain("Places travellers kept here");
   });
 
+  it("outlines the days for who's coming", async () => {
+    answer = JSON.stringify({ days: [day(1, ["a"]), day(2, ["b"]), day(3, ["c"])] });
+    await generateTripOutline({ ...params, tripIntent: "solo" }, 3);
+    expect(prompts[0]).toContain("Travellers: one person travelling alone.");
+    await generateTripOutline({ ...params, tripIntent: "group" }, 3);
+    expect(prompts[1]).toContain("Travellers: friends travelling together.");
+    await generateTripOutline(params, 3);
+    expect(prompts[2]).not.toContain("Travellers:");
+  });
+
   it("keeps every place to eat to the trip's diet", async () => {
     answer = JSON.stringify({ days: [day(1, ["a"]), day(2, ["b"]), day(3, ["c"])] });
     await generateTripOutline({ ...params, profilePreferences: { dietaryPreferences: ["vegan", "gluten-free"] } }, 3);

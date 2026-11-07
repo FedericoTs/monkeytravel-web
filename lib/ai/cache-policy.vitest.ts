@@ -15,6 +15,11 @@ describe("cachePolicy", () => {
     expect(cachePolicy(trip({ mustDos: [], profilePreferences: { dietaryPreferences: [] } }), false, 3).tailored).toBe(false);
   });
 
+  it("counts a plan shaped by who's coming as tailored", () => {
+    expect(cachePolicy(trip({ tripIntent: "solo" }), false, 3).tailored).toBe(true);
+    expect(cachePolicy(trip({ tripIntent: "group" }), false, 3).tailored).toBe(true);
+  });
+
   it("carries the fresh flag and the trip's length", () => {
     expect(cachePolicy(trip(), true, 5)).toEqual({ tailored: false, fresh: true, totalDays: 5 });
   });

@@ -36,7 +36,7 @@ export function generationRequest(
     fresh?: boolean;
   }
 ): GenerationRequest {
-  const { destination, startDate, endDate, budgetTier, pace, vibes, mustDos, travelStyle, anchors, dietary } = answers;
+  const { destination, startDate, endDate, budgetTier, pace, vibes, mustDos, travelStyle, tripIntent, anchors, dietary } = answers;
   const isMultiCity = extra.legs.length > 1;
   const isAnchored = !isMultiCity && anchors.length > 0;
   const params: TripCreationParams = {
@@ -51,6 +51,7 @@ export function generationRequest(
     requirements: extra.requirements || undefined,
     ...(mustDos.length > 0 ? { mustDos } : {}),
     travelStyle,
+    ...(tripIntent === "solo" || tripIntent === "group" ? { tripIntent } : {}),
     ...(isMultiCity ? { destinations: extra.legs } : {}),
     ...(isAnchored ? { anchors } : {}),
   };

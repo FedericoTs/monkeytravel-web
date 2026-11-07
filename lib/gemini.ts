@@ -55,6 +55,12 @@ export async function generateItinerary(
     pace: params.pace,
     vibes: params.vibes,
     language: options?.language,
+    mustDos: params.mustDos,
+    interests: params.interests,
+    requirements: params.requirements,
+    travelStyle: params.travelStyle,
+    tripIntent: params.tripIntent,
+    profile: params.profilePreferences,
     anchorBrief: options?.anchorBrief,
   });
 

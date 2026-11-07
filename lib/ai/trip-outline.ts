@@ -11,6 +11,7 @@ import { geminiCostUsd } from "@/lib/ai/gemini-cost";
 import type { TripCreationParams } from "@/types";
 import { LANGUAGE_NAMES, type SupportedLanguage } from "@/lib/ai/language";
 import type { KnownPlace } from "@/lib/ai/known-places";
+import { travellersLine } from "@/lib/ai/trip-prompt";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -83,6 +84,7 @@ export async function generateTripOutline(
     params.vibes?.length ? `Vibes, most important first: ${params.vibes.join(", ")}.` : "",
     params.interests?.length ? `Interests: ${params.interests.join(", ")}.` : "",
     params.travelStyle === "backpacker" ? "Backpacker trip: free and cheap sights, walking tours, markets." : "",
+    travellersLine(params),
     params.mustDos?.length
       ? `Must-dos, each on exactly one sensible day as one of its places, meals included: ${params.mustDos.join("; ")}.`
       : "",

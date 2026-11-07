@@ -142,6 +142,7 @@ export function tripParamsFromBody(
       : {}),
     // Whitelisted, so untrusted strings can't flow into the AI system prompt.
     travelStyle: body.travelStyle === "backpacker" ? "backpacker" : "classic",
+    ...(body.tripIntent === "solo" || body.tripIntent === "group" ? { tripIntent: body.tripIntent } : {}),
     profilePreferences,
   };
 }

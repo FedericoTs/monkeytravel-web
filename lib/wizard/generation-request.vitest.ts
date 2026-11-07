@@ -47,9 +47,15 @@ describe("generationRequest", () => {
       vibes: ["foodie"],
       interests: ["food"],
       travelStyle: "backpacker",
+      tripIntent: "solo",
       locale: "pt",
     });
     expect([stream, isMultiCity, isAnchored]).toEqual([true, false, false]);
+  });
+
+  it("leaves out who's coming when nobody answered", () => {
+    const { body } = generationRequest({ ...answers, tripIntent: "unspecified" }, extra);
+    expect(body).not.toHaveProperty("tripIntent");
   });
 
   it("sends wishes, diets, the requirements, the season and a fresh ask when there are some", () => {

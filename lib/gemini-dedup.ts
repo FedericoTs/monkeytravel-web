@@ -35,7 +35,7 @@ function hashParams(params: Record<string, unknown>): string {
     const value = params[key];
     if (value !== undefined && value !== null) {
       if (Array.isArray(value)) {
-        parts.push(`${key}:${value.sort().join(",")}`);
+        parts.push(`${key}:${[...value].sort().join(",")}`);
       } else if (typeof value === "object") {
         parts.push(`${key}:${JSON.stringify(value)}`);
       } else {
@@ -71,6 +71,12 @@ export interface ItineraryDedupParams {
    * over the same trip shape with different wishes must not coalesce.
    */
   mustDos?: string[];
+  /** The rest of what the prompt is built from: requests that differ here want different plans. */
+  interests?: string[];
+  requirements?: string;
+  travelStyle?: string;
+  tripIntent?: string;
+  profile?: object;
   /**
    * Anchored-trip segment brief (F1). Two anchored generations over the same
    * dates with different constraints must NOT coalesce — the brief is part
@@ -113,6 +119,11 @@ export function getItineraryDedupKey(params: ItineraryDedupParams): string {
     vibes: params.vibes || [],
     lang: params.language || "en",
     mustDos: params.mustDos || [],
+    interests: params.interests,
+    requirements: params.requirements,
+    style: params.travelStyle,
+    intent: params.tripIntent,
+    profile: params.profile,
     anchor: params.anchorBrief || "",
   })}`;
 }
