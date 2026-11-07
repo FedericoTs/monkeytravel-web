@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 import { loadUserContext } from "@/lib/ai/user-context";
 import { requestLocale, type SupportedLanguage } from "@/lib/ai/language";
 import { withTripDiet } from "@/lib/trips/diet";
+import { daylightFor, readCoordinates } from "@/lib/ai/daylight";
 import type { TripCreationParams, UserProfilePreferences } from "@/types";
 
 // Anti-abuse: cap ANONYMOUS generations per IP/day (defense-in-depth on top of
@@ -143,6 +144,13 @@ export function tripParamsFromBody(
     // Whitelisted, so untrusted strings can't flow into the AI system prompt.
     travelStyle: body.travelStyle === "backpacker" ? "backpacker" : "classic",
     ...(body.tripIntent === "solo" || body.tripIntent === "group" ? { tripIntent: body.tripIntent } : {}),
+    ...withDaylight(body),
     profilePreferences,
   };
+}
+
+/** The sun at the destination, when the planner sent where it is. */
+function withDaylight(body: Record<string, unknown>): Pick<TripCreationParams, "daylight"> {
+  const daylight = daylightFor(readCoordinates(body.destinationCoords), body.startDate, body.endDate);
+  return daylight ? { daylight } : {};
 }
