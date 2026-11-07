@@ -31,6 +31,7 @@
 // pulls the SDK into the shared chunk); use the lazy helpers from ./events.
 export {
   identifyUser,
+  forgetSignedOutPerson,
   resetUser,
   aliasUser,
   aliasAnonToUser,

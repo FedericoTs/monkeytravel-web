@@ -8,7 +8,7 @@ import {
   setUserId,
   setUserPropertiesEnhanced,
 } from "@/lib/analytics";
-import { identifyUser, type PostHogUserProperties } from "@/lib/posthog";
+import { forgetSignedOutPerson, identifyUser, type PostHogUserProperties } from "@/lib/posthog";
 import { safeGet, safeSet } from "@/lib/safe-storage";
 import { isSupportedLanguage } from "@/lib/ai/language";
 import { logWriteError } from "@/lib/supabase/log-write-error";
@@ -66,12 +66,15 @@ export default function SessionTracker() {
     const trackSession = async () => {
       // Fetch auth user directly — we cannot use useAuth() here, see docblock.
       // Without a session cookie there is nobody to look up, so anonymous
-      // visitors never download the Supabase client for this.
-      const supabase = hasSessionCookie()
-        ? await import("@/lib/supabase/client").then(({ createClient }) => createClient())
-        : null;
-      const user = supabase ? (await supabase.auth.getUser()).data.user : null;
-      if (!user || !supabase) return;
+      // visitors never download the Supabase client for this. A browser
+      // PostHog still knows as a signed-in person has been signed out.
+      if (!hasSessionCookie()) {
+        forgetSignedOutPerson();
+        return;
+      }
+      const supabase = await import("@/lib/supabase/client").then(({ createClient }) => createClient());
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user) return;
 
       // Set user ID for cross-session tracking
       setUserId(user.id);
