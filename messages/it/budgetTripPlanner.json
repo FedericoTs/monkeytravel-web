@@ -33,7 +33,7 @@
     "items": {
       "priceComparison": {
         "title": "Scegli il Livello Giusto",
-        "description": "Pianifica su uno qualsiasi dei 3 livelli di budget — Economico, Bilanciato o Premium — con un costo stimato per ogni giorno, così scegli quello che fa per te."
+        "description": "Pianifica su uno qualsiasi dei 3 livelli di budget — Economico, Equilibrato o Premium — con un costo stimato per ogni giorno, così scegli quello che fa per te."
       },
       "budgetTiers": {
         "title": "3 Livelli di Budget",
@@ -119,7 +119,7 @@
       },
       "budgetTiers": {
         "question": "Quali sono i 3 livelli di budget?",
-        "answer": "Scegli un livello per ogni itinerario: Economico (ostelli, cibo di strada, attività gratuite), Bilanciato (hotel di fascia media, ristoranti locali, attrazioni a pagamento) o Premium (hotel boutique, alta cucina, tour privati). Vedi i costi stimati per quel livello, e cambiandolo il piano viene ricostruito."
+        "answer": "Scegli un livello per ogni itinerario: Economico (ostelli, cibo di strada, attività gratuite), Equilibrato (hotel di fascia media, ristoranti locali, attrazioni a pagamento) o Premium (hotel boutique, alta cucina, tour privati). Vedi i costi stimati per quel livello, e cambiandolo il piano viene ricostruito."
       },
       "saveMoney": {
         "question": "Come mi aiuta MonkeyTravel a risparmiare?",

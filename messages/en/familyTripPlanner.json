@@ -37,7 +37,7 @@
       },
       "ageAppropriate": {
         "title": "Age-Appropriate Suggestions",
-        "description": "Traveling with toddlers is different from traveling with teens. Add your children's ages under Special Requirements in step 2, and the plan takes them into account."
+        "description": "Traveling with toddlers is different from traveling with teens. In step 2, open Customize and add your children's ages under Special Requirements, and the plan takes them into account."
       },
       "familyBudget": {
         "title": "Family Budget Management",
@@ -111,7 +111,7 @@
     "items": {
       "whatAges": {
         "question": "What ages does the family trip planner support?",
-        "answer": "Any age. Add each child's age under Special Requirements in step 2 and the AI takes it into account, from stroller-friendly walks to adventure activities for teens. It doesn't know your children, so look over the plan."
+        "answer": "Any age. In step 2, open Customize and add each child's age under Special Requirements, and the AI takes it into account, from stroller-friendly walks to adventure activities for teens. It doesn't know your children, so look over the plan."
       },
       "isFree": {
         "question": "Is the family trip planner free?",

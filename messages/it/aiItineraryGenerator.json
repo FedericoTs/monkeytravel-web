@@ -96,7 +96,7 @@
       },
       "budgetOptions": {
         "label": "Livelli di budget",
-        "monkey": "Economico, Bilanciato o Premium: il livello lo scegli tu",
+        "monkey": "Economico, Equilibrato o Premium: il livello lo scegli tu",
         "chatgpt": "Un solo suggerimento generico senza dati sui prezzi"
       },
       "exportOptions": {
@@ -111,7 +111,7 @@
     "items": {
       "howFast": {
         "question": "Quanto velocemente genera un itinerario?",
-        "answer": "MonkeyTravel genera un itinerario completo giorno per giorno in circa 30 secondi, al livello di budget che scegli (Economico, Bilanciato o Premium), con luoghi reali, costi stimati e fasce orarie ottimizzate, pronto da modificare o esportare."
+        "answer": "MonkeyTravel genera un itinerario completo giorno per giorno in circa 30 secondi, al livello di budget che scegli (Economico, Equilibrato o Premium), con luoghi reali, costi stimati e fasce orarie ottimizzate, pronto da modificare o esportare."
       },
       "howAccurate": {
         "question": "Quanto sono precisi gli itinerari generati?",

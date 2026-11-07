@@ -37,11 +37,11 @@
       },
       "ageAppropriate": {
         "title": "Suggerimenti Adatti all'Età",
-        "description": "Viaggiare con i neonati è diverso dal viaggiare con gli adolescenti. Aggiungi l'età dei tuoi figli in Requisiti Speciali, al passo 2, e il piano ne tiene conto."
+        "description": "Viaggiare con i neonati è diverso dal viaggiare con gli adolescenti. Al passo 2, apri Personalizza e aggiungi l'età dei tuoi figli in Requisiti Speciali, e il piano ne tiene conto."
       },
       "familyBudget": {
         "title": "Gestione del Budget Familiare",
-        "description": "I viaggi in famiglia costano in fretta. Scegli Economico, Bilanciato o Premium e vedi un costo stimato per ogni tappa. Controlla prezzi e tariffe bambini prima di prenotare."
+        "description": "I viaggi in famiglia costano in fretta. Scegli Economico, Equilibrato o Premium e vedi un costo stimato per ogni tappa. Controlla prezzi e tariffe bambini prima di prenotare."
       },
       "safeDestinations": {
         "title": "Luoghi Che Puoi Verificare",
@@ -111,7 +111,7 @@
     "items": {
       "whatAges": {
         "question": "Per quali età funziona il pianificatore di viaggi per famiglie?",
-        "answer": "Qualsiasi età. Aggiungi l'età di ogni bambino in Requisiti Speciali, al passo 2, e l'AI ne tiene conto, dalle passeggiate adatte al passeggino alle attività avventurose per adolescenti. Non conosce i tuoi figli, quindi controlla il piano."
+        "answer": "Qualsiasi età. Al passo 2, apri Personalizza e aggiungi l'età di ogni bambino in Requisiti Speciali, e l'AI ne tiene conto, dalle passeggiate adatte al passeggino alle attività avventurose per adolescenti. Non conosce i tuoi figli, quindi controlla il piano."
       },
       "isFree": {
         "question": "Il pianificatore di viaggi per famiglie è gratis?",

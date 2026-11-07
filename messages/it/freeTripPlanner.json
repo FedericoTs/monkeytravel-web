@@ -33,7 +33,7 @@
     "items": {
       "aiItineraries": {
         "title": "Itinerari Generati con AI",
-        "description": "Ottieni piani personalizzati giorno per giorno in base alla tua destinazione, date, budget e stile di viaggio. Tre opzioni: Economico, Bilanciato e Premium."
+        "description": "Ottieni piani personalizzati giorno per giorno in base alla tua destinazione, date, budget e stile di viaggio. Tre opzioni: Economico, Equilibrato e Premium."
       },
       "realVenues": {
         "title": "Luoghi Reali, Costi Stimati",
@@ -91,7 +91,7 @@
       },
       "budget": {
         "label": "Livelli di budget",
-        "monkey": "3 opzioni: Economico, Bilanciato, Premium",
+        "monkey": "3 opzioni: Economico, Equilibrato, Premium",
         "chatgpt": "Un solo suggerimento generico"
       },
       "collaboration": {

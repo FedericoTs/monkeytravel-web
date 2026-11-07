@@ -135,7 +135,7 @@
       },
       "differentBudgets": {
         "question": "Cosa succede se i membri del gruppo hanno budget diversi?",
-        "answer": "Scegli un livello per ogni piano: Economico, Bilanciato o Premium. Se i budget sono diversi, parti dal più basso. Da lì tutti possono votare le attività e proporre modifiche."
+        "answer": "Scegli un livello per ogni piano: Economico, Equilibrato o Premium. Se i budget sono diversi, parti dal più basso. Da lì tutti possono votare le attività e proporre modifiche."
       },
       "isFree": {
         "question": "La funzione di pianificazione di gruppo è gratuita?",

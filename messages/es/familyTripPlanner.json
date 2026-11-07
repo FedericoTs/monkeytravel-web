@@ -37,7 +37,7 @@
       },
       "ageAppropriate": {
         "title": "Sugerencias Adaptadas por Edad",
-        "description": "Viajar con bebés es diferente a viajar con adolescentes. Añade la edad de tus hijos en Requisitos Especiales, en el paso 2, y el plan la tiene en cuenta."
+        "description": "Viajar con bebés es diferente a viajar con adolescentes. En el paso 2, abre Personaliza y añade la edad de tus hijos en Requisitos Especiales, y el plan la tiene en cuenta."
       },
       "familyBudget": {
         "title": "Gestión del Presupuesto Familiar",
@@ -111,7 +111,7 @@
     "items": {
       "whatAges": {
         "question": "¿Para qué edades funciona el planificador de viajes familiares?",
-        "answer": "Cualquier edad. Añade la edad de cada niño en Requisitos Especiales, en el paso 2, y la AI la tiene en cuenta, desde paseos aptos para cochecito hasta actividades de aventura para adolescentes. No conoce a tus hijos, así que revisa el plan."
+        "answer": "Cualquier edad. En el paso 2, abre Personaliza y añade la edad de cada niño en Requisitos Especiales, y la AI la tiene en cuenta, desde paseos aptos para cochecito hasta actividades de aventura para adolescentes. No conoce a tus hijos, así que revisa el plan."
       },
       "isFree": {
         "question": "¿El planificador de viajes familiares es gratis?",

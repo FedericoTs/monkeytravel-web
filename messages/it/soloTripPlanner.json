@@ -53,7 +53,7 @@
       },
       "soloBudget": {
         "title": "Budget Ottimizzato per Uno",
-        "description": "Senza dividere le spese, i conti sono diversi. Ricevi costi stimati su tre livelli di budget: Economico, Bilanciato e Premium."
+        "description": "Senza dividere le spese, i conti sono diversi. Ricevi costi stimati su tre livelli di budget: Economico, Equilibrato e Premium."
       }
     }
   },
@@ -131,7 +131,7 @@
       },
       "budgetSolo": {
         "question": "Come funziona il budget per i viaggiatori solitari?",
-        "answer": "MonkeyTravel stima i costi su tre livelli: Economico, Bilanciato e Premium. I costi sono mostrati per tappa e per giorno, non divisi tra un gruppo, quindi verifica come si applicano a te."
+        "answer": "MonkeyTravel stima i costi su tre livelli: Economico, Equilibrato e Premium. I costi sono mostrati per tappa e per giorno, non divisi tra un gruppo, quindi verifica come si applicano a te."
       }
     }
   },
