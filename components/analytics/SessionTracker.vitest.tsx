@@ -13,7 +13,7 @@ const analytics = vi.hoisted(() => ({
   setUserId: vi.fn(),
   setUserPropertiesEnhanced: vi.fn(),
 }));
-const posthog = vi.hoisted(() => ({ identifyUser: vi.fn() }));
+const posthog = vi.hoisted(() => ({ identifyUser: vi.fn(), forgetSignedOutPerson: vi.fn() }));
 let refusing: string | null = null;
 const updates: FakeQuery[] = [];
 
@@ -95,6 +95,7 @@ describe("SessionTracker", () => {
   it("sets the person's properties from what it read", async () => {
     render(<SessionTracker />);
     await vi.waitFor(() => expect(posthog.identifyUser).toHaveBeenCalled());
+    expect(posthog.forgetSignedOutPerson).not.toHaveBeenCalled();
     expect(posthog.identifyUser.mock.calls[0][1]).toMatchObject({
       subscription_tier: "pro",
       preferred_language: "it",
