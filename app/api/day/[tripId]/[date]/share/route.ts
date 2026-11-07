@@ -71,7 +71,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         user_id: ownerId,
         metadata: { via: "day_digest" },
       });
-      await captureServerEvent(ownerId, "crew_link_created", { tripId: id, via: "day_digest" }).catch(() => {});
+      await captureServerEvent(ownerId, "crew_link_created", { trip_id: id, via: "day_digest" }).catch(() => {});
       await enrichTripByIdAdmin(id, "share");
     });
   }

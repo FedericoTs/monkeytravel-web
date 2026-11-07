@@ -220,9 +220,9 @@ export default async function SharedTripPage({ params, searchParams }: PageProps
         distinctId = viewerUserId;
         visitorScope = "user";
       }
+      // Never the token itself: whoever holds it can open the trip.
       await captureServerEvent(distinctId, "crew_link_visited", {
-        tripId: trip.id,
-        shareToken: token,
+        trip_id: trip.id,
         visitor_scope: visitorScope,
         crew_ask: crewAsk,
       });

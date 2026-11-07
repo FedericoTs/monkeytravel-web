@@ -146,7 +146,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
       // cookie id is the distinct id. Fire-and-forget; a telemetry failure
       // must never fail the vote.
       captureServerEvent(voterCookieId, "crew_vote_cast", {
-        tripId: trip.id,
+        trip_id: trip.id,
         activityId: activity_id,
         voteType: vote_type,
       }).catch(() => {});

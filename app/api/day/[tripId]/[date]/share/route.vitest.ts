@@ -109,7 +109,7 @@ describe("POST /api/day/[tripId]/[date]/share", () => {
       user_id: OWNER,
       metadata: { via: "day_digest" },
     });
-    expect(captureServerEvent).toHaveBeenCalledWith(OWNER, "crew_link_created", { tripId: TRIP, via: "day_digest" });
+    expect(captureServerEvent).toHaveBeenCalledWith(OWNER, "crew_link_created", { trip_id: TRIP, via: "day_digest" });
     expect(enrichTripByIdAdmin).toHaveBeenCalledWith(TRIP, "share");
   });
 

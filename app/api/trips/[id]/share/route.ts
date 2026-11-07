@@ -62,7 +62,7 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
       // Crew Loop PostHog: mirror of the funnel event above (new-mint branch
       // only, so it fires at most once per trip).
       await captureServerEvent(user.id, "crew_link_created", {
-        tripId: id,
+        trip_id: id,
       }).catch(() => {});
       // First share is the moment voters start arriving: upgrade curated
       // fallback images to real place photos (full-trip budget). See

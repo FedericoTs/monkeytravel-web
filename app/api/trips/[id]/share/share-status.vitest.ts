@@ -161,7 +161,7 @@ describe("creating and revoking stay with the owner", () => {
 });
 
 describe("creating a new link", () => {
-  it("counts it in analytics without the token, which opens the trip", async () => {
+  it("counts it in analytics under the trip's id, without the token, which opens the trip", async () => {
     row = { ...LISTED, share_token: null, shared_at: null, visibility: "private", submitted_to_trending_at: null };
     const res = await POST(req("POST"), ctx);
     expect(res.status).toBe(200);
@@ -176,6 +176,7 @@ describe("creating a new link", () => {
       user_id: OWNER,
       metadata: { via: "share_button" },
     });
+    expect(captureServerEvent).toHaveBeenCalledWith(OWNER, "crew_link_created", { trip_id: TRIP });
     const logged = JSON.stringify([vi.mocked(logFunnelEventServer).mock.calls, vi.mocked(captureServerEvent).mock.calls]);
     expect(logged).not.toContain(minted);
   });
