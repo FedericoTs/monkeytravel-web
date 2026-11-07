@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { readFileSync } from "fs";
 
 /**
  * The server and edge SDKs send spans as one transaction per request. The
@@ -25,5 +26,13 @@ describe("server and edge tracing", () => {
     await import("../../sentry.edge.config");
     expect(init).toHaveBeenCalledTimes(1);
     expect(init.mock.calls[0][0]).toMatchObject({ traceLifecycle: "static" });
+  });
+
+  it("the build keeps the tracing code in the server and edge bundles", () => {
+    // withSentryConfig turns excludeTracing into a build-time define that
+    // Next.js applies to every bundle, server and edge included, so with it
+    // nothing on the server is ever sampled.
+    const config = readFileSync("next.config.ts", "utf8");
+    expect(config).not.toMatch(/excludeTracing:\s*true/);
   });
 });
