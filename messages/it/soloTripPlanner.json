@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Pianificatore di Viaggi in Solitaria — Itinerari AI per Viaggiatori Solitari | MonkeyTravel",
-    "description": "Pianifica la tua avventura in solitaria con AI in pochi secondi. Itinerari personalizzati con consigli di sicurezza, punti sociali, ristoranti solo-friendly ed esperienze locali. 100% gratuito."
+    "description": "Pianifica il tuo viaggio in solitaria con l'AI. Itinerario giorno per giorno modificabile chattando, con esperienze locali e posti dove mangiare. 100% gratis."
   },
   "breadcrumbs": {
     "home": "Home",
@@ -10,7 +10,7 @@
   "hero": {
     "badge": "Per Viaggiatori Solitari — 100% Gratuito",
     "title": "Il Pianificatore AI di Viaggi in Solitaria per Esploratori Senza Paura",
-    "subtitle": "Viaggiare da soli non significa pianificare da soli. Ottieni un itinerario personalizzato giorno per giorno con consigli di sicurezza, punti sociali e locali solo-friendly — in meno di 60 secondi.",
+    "subtitle": "Viaggiare da soli non significa pianificare da soli. Ricevi un itinerario giorno per giorno personalizzato in meno di 60 secondi, poi chiedi all'assistente luoghi adatti a chi viaggia da solo o consigli di sicurezza.",
     "cta": "Pianifica il Mio Viaggio Solo — Gratis",
     "secondaryCta": "Scopri Come Funziona",
     "trustSignals": {
@@ -23,17 +23,17 @@
     "heading": "Cos'è un pianificatore di viaggi in solitaria?",
     "definition": "Un pianificatore di viaggi in solitaria costruisce un itinerario per una persona, che è un problema diverso dal ridurre un piano di gruppo a un posto solo.",
     "distinguish": "Viaggiare da soli cambia cosa significa una buona giornata. Puoi muoverti più in fretta e cambiare idea a mezzogiorno, ma mangi da solo, porti il tuo zaino e certi posti si visitano semplicemente meglio con la luce.",
-    "product": "MonkeyTravel costruisce un programma giorno per giorno con luoghi reali e i tempi di spostamento, su tre livelli di budget, e tutto resta modificabile se decidi di fermarti una notte in più.",
+    "product": "MonkeyTravel crea un programma giorno per giorno con luoghi reali e il tempo di spostamento tra l'uno e l'altro, su tre livelli di budget, e tutto resta modificabile se decidi di fermarti una notte in più.",
     "example": "Significa anche che il piano deve essere facile da abbandonare. Le giornate in solitaria migliori spesso iniziano come previsto e finiscono in un posto dove non avevi intenzione di andare.",
     "honest": "È uno strumento di pianificazione, non un servizio di sicurezza. Controlla le indicazioni locali per i posti su cui hai dubbi e fidati di quelle prima che dell'itinerario."
   },
   "features": {
     "title": "Tutto Ciò Che un Viaggiatore Solitario Ha Bisogno",
-    "subtitle": "Pianificazione con AI progettata specificamente per viaggiatori indipendenti. Sicurezza, spontaneità e connessioni sociali incluse.",
+    "subtitle": "Pianificazione con l'AI per viaggiatori indipendenti, con spazio per l'improvvisazione. Cambia qualsiasi cosa chiedendolo.",
     "items": {
       "soloSafety": {
-        "title": "Informazioni di Sicurezza per Solitari",
-        "description": "Ottieni valutazioni di sicurezza per quartiere, percorsi ben illuminati e consigli specifici per zona per esplorare con fiducia — di giorno o di notte."
+        "title": "Chiedi Della Sicurezza",
+        "description": "Chiedi all'assistente di una zona o del ritorno a piedi di notte e risponde in base a ciò che sa. È uno strumento di pianificazione, non un servizio di sicurezza, quindi consulta anche le indicazioni locali."
       },
       "flexibleSchedule": {
         "title": "Itinerari Flessibili e Spontanei",
@@ -53,7 +53,7 @@
       },
       "soloBudget": {
         "title": "Budget Ottimizzato per Uno",
-        "description": "Nessun costo da dividere significa calcoli diversi. Ottieni prezzi precisi per un singolo viaggiatore su tre livelli: Economico, Bilanciato e Premium."
+        "description": "Senza dividere le spese, i conti sono diversi. Ricevi costi stimati su tre livelli di budget: Economico, Bilanciato e Premium."
       }
     }
   },
@@ -66,7 +66,7 @@
       },
       "step2": {
         "title": "L'AI Crea la Tua Avventura Solo",
-        "description": "La nostra AI genera un itinerario completo ottimizzato per solitari in meno di 60 secondi — con consigli di sicurezza, locali solo-friendly e orari flessibili."
+        "description": "La nostra AI genera un itinerario completo in meno di 60 secondi, con orari flessibili che puoi modificare chattando."
       },
       "step3": {
         "title": "Esplora con Fiducia",
@@ -86,7 +86,7 @@
       },
       "safetyInfo": {
         "label": "Informazioni di sicurezza",
-        "monkey": "Valutazioni di sicurezza per quartiere incluse",
+        "monkey": "Chiedi all'assistente; consulta le indicazioni locali",
         "other": "Sparse, aneddotiche e spesso obsolete"
       },
       "planningTime": {
@@ -101,7 +101,7 @@
       },
       "currentData": {
         "label": "Informazioni aggiornate",
-        "monkey": "Prezzi reali e locali verificati",
+        "monkey": "Luoghi reali e costi stimati",
         "other": "I post nei forum possono avere anni"
       }
     }
@@ -111,7 +111,7 @@
     "items": {
       "isSafe": {
         "question": "È sicuro viaggiare da soli?",
-        "answer": "Viaggiare da soli è uno dei modi più gratificanti per esplorare il mondo, e milioni lo fanno in sicurezza ogni anno. MonkeyTravel aiuta includendo informazioni di sicurezza per quartiere, raccomandando zone frequentate e suggerendo locali solo-friendly in ogni itinerario."
+        "answer": "Viaggiare da soli è uno dei modi più gratificanti per esplorare il mondo, e milioni di persone lo fanno in sicurezza ogni anno. MonkeyTravel può privilegiare zone frequentate e conosciute se glielo chiedi, ma è uno strumento di pianificazione, non un servizio di sicurezza, quindi consulta le indicazioni locali per qualsiasi posto di cui non sei sicuro."
       },
       "soloFriendly": {
         "question": "Cosa rende un itinerario \"solo-friendly\"?",
@@ -131,7 +131,7 @@
       },
       "budgetSolo": {
         "question": "Come funziona il budget per i viaggiatori solitari?",
-        "answer": "MonkeyTravel calcola prezzi precisi per una persona su tre livelli: Economico, Bilanciato e Premium. A differenza dei pianificatori di gruppo che dividono i costi, la nostra modalità solo ti dà costi realistici per persona per alloggio, cibo, attività e trasporti."
+        "answer": "MonkeyTravel stima i costi su tre livelli: Economico, Bilanciato e Premium. I costi sono mostrati per tappa e per giorno, non divisi tra un gruppo, quindi verifica come si applicano a te."
       }
     }
   },

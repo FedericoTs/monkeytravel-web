@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Solo Trip Planner — AI-Powered Itineraries for Solo Travelers | MonkeyTravel",
-    "description": "Plan your solo adventure with AI in seconds. Get personalized itineraries with safety tips, social spots, solo-friendly restaurants, and local experiences. 100% free."
+    "description": "Plan your solo adventure with AI in seconds. Get a personalized day-by-day itinerary you can change by chatting, with local experiences and places to eat. 100% free."
   },
   "breadcrumbs": {
     "home": "Home",
@@ -10,7 +10,7 @@
   "hero": {
     "badge": "Built for Solo Travelers — 100% Free",
     "title": "The AI Solo Trip Planner for Fearless Explorers",
-    "subtitle": "Traveling alone doesn't mean planning alone. Get a personalized day-by-day itinerary with safety tips, social spots, and solo-friendly venues — in under 60 seconds.",
+    "subtitle": "Traveling alone doesn't mean planning alone. Get a personalized day-by-day itinerary in under 60 seconds, then ask the assistant for solo-friendly places or safety tips.",
     "cta": "Plan My Solo Trip — Free",
     "secondaryCta": "See How It Works",
     "trustSignals": {
@@ -23,17 +23,17 @@
     "heading": "What is a solo trip planner?",
     "definition": "A solo trip planner builds an itinerary for one person, which is a different problem from shrinking a group plan down to one seat.",
     "distinguish": "Travelling alone changes what a good day looks like. You can move faster and change your mind at noon, but you also eat alone, carry your own bag, and some places are simply better reached in daylight.",
-    "product": "MonkeyTravel builds a day-by-day schedule with real venues and the travel time between them, at three budget levels, and everything stays editable when you decide to stay somewhere an extra night.",
+    "product": "MonkeyTravel builds a day-by-day schedule with real places and the travel time between them, at three budget levels, and everything stays editable when you decide to stay somewhere an extra night.",
     "example": "It also means the plan should be easy to abandon. The best solo days often start on schedule and end somewhere you had no intention of going.",
     "honest": "It is a planning tool, not a safety service. Check local guidance for anywhere you are unsure about, and trust that over the itinerary."
   },
   "features": {
     "title": "Everything a Solo Traveler Needs",
-    "subtitle": "AI-powered planning designed specifically for independent travelers. Safety, spontaneity, and social connections built in.",
+    "subtitle": "AI-powered planning for independent travelers, with room for spontaneity. Change anything by asking.",
     "items": {
       "soloSafety": {
-        "title": "Solo Safety Insights",
-        "description": "Get neighborhood safety ratings, well-lit walking routes, and area-specific tips so you can explore with confidence — day or night."
+        "title": "Ask About Safety",
+        "description": "Ask the assistant about an area or a walk back at night and it answers from what it knows. It's a planning tool, not a safety service, so check local guidance too."
       },
       "flexibleSchedule": {
         "title": "Flexible, Spontaneous Itineraries",
@@ -53,7 +53,7 @@
       },
       "soloBudget": {
         "title": "Budget Optimized for One",
-        "description": "No splitting costs means different math. Get accurate single-traveler pricing across three budget tiers: Budget, Balanced, and Premium."
+        "description": "No splitting costs means different math. Get cost estimates at three budget levels: Budget, Balanced and Premium."
       }
     }
   },
@@ -66,7 +66,7 @@
       },
       "step2": {
         "title": "AI Crafts Your Solo Adventure",
-        "description": "Our AI generates a complete solo-optimized itinerary in under 60 seconds — with safety tips, solo-friendly venues, and flexible timing."
+        "description": "Our AI generates a complete itinerary in under 60 seconds, with flexible timing you can change by chatting."
       },
       "step3": {
         "title": "Explore with Confidence",
@@ -86,7 +86,7 @@
       },
       "safetyInfo": {
         "label": "Safety information",
-        "monkey": "Neighborhood safety ratings included",
+        "monkey": "Ask the assistant; check local guidance",
         "other": "Scattered, anecdotal, often outdated"
       },
       "planningTime": {
@@ -101,7 +101,7 @@
       },
       "currentData": {
         "label": "Up-to-date info",
-        "monkey": "Real prices and verified venues",
+        "monkey": "Real places and estimated costs",
         "other": "Forum posts may be years old"
       }
     }
@@ -111,7 +111,7 @@
     "items": {
       "isSafe": {
         "question": "Is solo travel safe?",
-        "answer": "Solo travel is one of the most rewarding ways to explore the world, and millions do it safely every year. MonkeyTravel helps by including neighborhood safety insights, recommending well-traveled areas, and suggesting solo-friendly venues in every itinerary."
+        "answer": "Solo travel is one of the most rewarding ways to explore the world, and millions do it safely every year. MonkeyTravel can favor busy, well-known areas if you ask, but it's a planning tool, not a safety service, so check local guidance for anywhere you're unsure about."
       },
       "soloFriendly": {
         "question": "What makes an itinerary \"solo-friendly\"?",
@@ -131,7 +131,7 @@
       },
       "budgetSolo": {
         "question": "How does budgeting work for solo travelers?",
-        "answer": "MonkeyTravel calculates accurate single-person pricing across three tiers: Budget, Balanced, and Premium. Unlike group planners that split costs, our solo mode gives you realistic per-person costs for accommodation, food, activities, and transport."
+        "answer": "MonkeyTravel estimates costs at three levels: Budget, Balanced and Premium. Costs are shown per stop and per day, not split across a group, so check how each one applies to you."
       }
     }
   },

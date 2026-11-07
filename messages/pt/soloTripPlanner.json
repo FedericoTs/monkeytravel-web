@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Planejador de Viagens Solo — Roteiros com AI para Viajantes Solo | MonkeyTravel",
-    "description": "Planeje sua aventura solo com AI em segundos. Receba roteiros personalizados com dicas de segurança, pontos sociais, restaurantes ideais para quem viaja sozinho e experiências locais. 100% grátis."
+    "description": "Planeje sua viagem solo com AI. Roteiro dia a dia que você muda conversando, com experiências locais e lugares para comer. 100% grátis."
   },
   "breadcrumbs": {
     "home": "Início",
@@ -10,7 +10,7 @@
   "hero": {
     "badge": "Feito para Viajantes Solo — 100% Grátis",
     "title": "O Planejador de Viagens Solo com AI para Exploradores Destemidos",
-    "subtitle": "Viajar sozinho não significa planejar sozinho. Receba um roteiro personalizado dia a dia com dicas de segurança, pontos sociais e lugares ideais para quem viaja sozinho — em menos de 60 segundos.",
+    "subtitle": "Viajar sozinho não significa planejar sozinho. Receba um roteiro dia a dia personalizado em menos de 60 segundos e peça ao assistente lugares bons para quem viaja sozinho ou dicas de segurança.",
     "cta": "Planejar Minha Viagem Solo — Grátis",
     "secondaryCta": "Veja Como Funciona",
     "trustSignals": {
@@ -23,17 +23,17 @@
     "heading": "O que é um planejador de viagens sozinho?",
     "definition": "Um planejador de viagens sozinho monta um roteiro para uma pessoa, o que é um problema diferente de encolher um plano de grupo até sobrar um lugar.",
     "distinguish": "Viajar sozinho muda o que é um bom dia. Você anda mais rápido e pode mudar de ideia ao meio-dia, mas também come sozinho, carrega a própria mochila e alguns lugares simplesmente se visitam melhor com luz do dia.",
-    "product": "O MonkeyTravel monta um roteiro dia a dia com lugares reais e o tempo de deslocamento entre eles, em três níveis de orçamento, e tudo continua editável se você decidir ficar mais uma noite.",
+    "product": "O MonkeyTravel monta uma programação dia a dia com lugares reais e o tempo de deslocamento entre eles, em três níveis de orçamento, e tudo continua editável se você decidir ficar uma noite a mais em algum lugar.",
     "example": "Isso também significa que o plano precisa ser fácil de abandonar. Os melhores dias sozinho costumam começar como planejado e terminar num lugar aonde você não pretendia ir.",
     "honest": "É uma ferramenta de planejamento, não um serviço de segurança. Consulte as orientações locais de qualquer lugar em que tiver dúvida e confie nelas antes do roteiro."
   },
   "features": {
     "title": "Tudo o Que um Viajante Solo Precisa",
-    "subtitle": "Planejamento com AI criado especialmente para viajantes independentes. Segurança, espontaneidade e conexões sociais já incluídas.",
+    "subtitle": "Planejamento com AI para viajantes independentes, com espaço para o improviso. Mude qualquer coisa só pedindo.",
     "items": {
       "soloSafety": {
-        "title": "Insights de Segurança para Quem Viaja Sozinho",
-        "description": "Receba notas de segurança por bairro, rotas de caminhada bem iluminadas e dicas específicas de cada área para explorar com confiança — de dia ou de noite."
+        "title": "Pergunte Sobre Segurança",
+        "description": "Pergunte ao assistente sobre uma região ou sobre voltar a pé à noite e ele responde com o que sabe. É uma ferramenta de planejamento, não um serviço de segurança, então consulte também as orientações locais."
       },
       "flexibleSchedule": {
         "title": "Roteiros Flexíveis e Espontâneos",
@@ -53,7 +53,7 @@
       },
       "soloBudget": {
         "title": "Orçamento Otimizado para Uma Pessoa",
-        "description": "Sem dividir custos, a conta é outra. Receba preços precisos para quem viaja sozinho em três faixas de orçamento: Econômico, Equilibrado e Premium."
+        "description": "Sem dividir custos, a conta é outra. Receba custos estimados em três níveis de orçamento: Econômico, Equilibrado e Premium."
       }
     }
   },
@@ -66,7 +66,7 @@
       },
       "step2": {
         "title": "A AI Cria Sua Aventura Solo",
-        "description": "Nossa AI gera um roteiro completo e otimizado para viajar sozinho em menos de 60 segundos — com dicas de segurança, lugares ideais para quem viaja solo e horários flexíveis."
+        "description": "Nossa AI gera um roteiro completo em menos de 60 segundos, com horários flexíveis que você pode mudar conversando."
       },
       "step3": {
         "title": "Explore com Confiança",
@@ -86,7 +86,7 @@
       },
       "safetyInfo": {
         "label": "Informações de segurança",
-        "monkey": "Notas de segurança por bairro já incluídas",
+        "monkey": "Pergunte ao assistente; consulte as orientações locais",
         "other": "Espalhadas, anedóticas e muitas vezes desatualizadas"
       },
       "planningTime": {
@@ -101,7 +101,7 @@
       },
       "currentData": {
         "label": "Informações atualizadas",
-        "monkey": "Preços reais e lugares verificados",
+        "monkey": "Lugares reais e custos estimados",
         "other": "Posts de fóruns podem ter anos de idade"
       }
     }
@@ -111,7 +111,7 @@
     "items": {
       "isSafe": {
         "question": "Viajar sozinho é seguro?",
-        "answer": "Viajar sozinho é uma das formas mais gratificantes de explorar o mundo, e milhões de pessoas fazem isso com segurança todos os anos. O MonkeyTravel ajuda incluindo insights de segurança por bairro, recomendando áreas movimentadas e sugerindo lugares ideais para quem viaja sozinho em cada roteiro."
+        "answer": "Viajar sozinho é uma das formas mais gratificantes de explorar o mundo, e milhões de pessoas fazem isso com segurança todos os anos. O MonkeyTravel pode priorizar áreas movimentadas e conhecidas se você pedir, mas é uma ferramenta de planejamento, não um serviço de segurança, então consulte as orientações locais sobre qualquer lugar em que você tenha dúvida."
       },
       "soloFriendly": {
         "question": "O que torna um roteiro \"ideal para quem viaja sozinho\"?",
@@ -131,7 +131,7 @@
       },
       "budgetSolo": {
         "question": "Como funciona o orçamento para viajantes solo?",
-        "answer": "O MonkeyTravel calcula preços precisos para uma pessoa em três faixas: Econômico, Equilibrado e Premium. Ao contrário dos planejadores de grupo que dividem custos, nosso modo solo mostra custos realistas por pessoa para hospedagem, comida, atividades e transporte."
+        "answer": "O MonkeyTravel estima os custos em três níveis: Econômico, Equilibrado e Premium. Os custos aparecem por parada e por dia, sem divisão entre um grupo, então confira como cada um se aplica a você."
       }
     }
   },

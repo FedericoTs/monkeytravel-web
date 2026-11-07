@@ -173,7 +173,7 @@
     "features": {
       "webApp": "Web app disponibile ora — completamente gratis",
       "dayByDay": "Itinerari giorno per giorno con orari",
-      "realPhotos": "Foto reali, valutazioni e orari",
+      "realPhotos": "Foto e valutazioni reali",
       "export": "Esporta in PDF, condividi con amici",
       "mobile": "iOS e Android in arrivo"
     },
@@ -194,7 +194,7 @@
       },
       "hallucinations": {
         "title": "Nessun Luogo Falso",
-        "description": "Ogni ristorante, attrazione e caffè è verificato con dati reali di Google."
+        "description": "Salva un viaggio e i posti dove mangiare vengono verificati su Google Maps. Quelli chiusi vengono sostituiti."
       },
       "soloOnly": {
         "title": "Nessuna Pianificazione Solo Individuale",

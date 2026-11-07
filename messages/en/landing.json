@@ -112,7 +112,7 @@
         "badge": "Unique"
       },
       "realData": {
-        "title": "Verified Places",
+        "title": "Checked Places",
         "description": "Real Google ratings and photos a tap away. Save a trip and we check its places to eat on Google Maps, and change any that have closed."
       }
     }
@@ -173,7 +173,7 @@
     "features": {
       "webApp": "Web app live now — completely free",
       "dayByDay": "Day-by-day itineraries with timing",
-      "realPhotos": "Real photos, ratings & hours",
+      "realPhotos": "Real photos & ratings",
       "export": "Export to PDF, share with friends",
       "mobile": "iOS & Android coming soon"
     },
@@ -194,7 +194,7 @@
       },
       "hallucinations": {
         "title": "No Fake Places",
-        "description": "Every restaurant, attraction, and cafe is verified with real Google data."
+        "description": "Save a trip and its places to eat get checked on Google Maps. Any that have closed get changed."
       },
       "soloOnly": {
         "title": "No Solo-Only Planning",

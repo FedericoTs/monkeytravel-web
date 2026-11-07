@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Generatore di Itinerari con AI — Piani di Viaggio Giorno per Giorno | MonkeyTravel",
-    "description": "Genera itinerari di viaggio completi con AI in 30 secondi. Piani giorno per giorno con luoghi reali, prezzi attuali e blocchi orari intelligenti. Gratuito, senza registrazione."
+    "description": "Genera itinerari completi con l'AI in 30 secondi. Piani giorno per giorno con luoghi reali, costi stimati e fasce orarie. Gratis, senza registrazione."
   },
   "breadcrumbs": {
     "home": "Home",
@@ -10,7 +10,7 @@
   "hero": {
     "badge": "Con AI — Genera Itinerari in 30 Secondi",
     "title": "Il Generatore di Itinerari con AI Che Pianifica Come un Professionista",
-    "subtitle": "Inserisci una destinazione e ottieni un itinerario completo giorno per giorno con luoghi reali, prezzi attuali e blocchi orari ottimizzati — tutto generato dall'AI in circa 30 secondi.",
+    "subtitle": "Inserisci una destinazione e ricevi un itinerario completo giorno per giorno con luoghi reali, costi stimati e fasce orarie ottimizzate — tutto generato dall'AI in circa 30 secondi.",
     "cta": "Genera il Mio Itinerario",
     "secondaryCta": "Scopri Come Funziona",
     "trustSignals": {
@@ -23,7 +23,7 @@
     "heading": "Cos'è un generatore di itinerari AI?",
     "definition": "Un generatore di itinerari AI prende una destinazione e un numero di giorni e restituisce un programma finito: quali luoghi, in che ordine, in quale giorno — invece di un elenco di opzioni da sistemare da solo.",
     "distinguish": "La parte difficile non è scegliere bei posti. È metterli in sequenza: tenere ogni giornata coerente sulla mappa, lasciare tempo per mangiare e spostarsi, e non farti attraversare la città nell'ora sbagliata.",
-    "product": "MonkeyTravel crea il piano completo giorno per giorno in circa 30 secondi, con luoghi reali e prezzi attuali su tre livelli di budget. Ogni blocco si può spostare o sostituire.",
+    "product": "MonkeyTravel crea un piano completo giorno per giorno in circa 30 secondi, con luoghi reali e costi stimati al livello di budget che scegli. Poi puoi spostare o sostituire ogni blocco.",
     "example": "Un piano di tre giorni a Lisbona dovrebbe tenere Belém in un unico blocco invece di spargerlo su due mattine. Quel tipo di ordine è quasi tutto il lavoro del generatore.",
     "honest": "Nessun generatore azzecca una città al primo colpo. Consideralo una buona prima bozza da modificare, non un piano da seguire alla cieca."
   },
@@ -66,7 +66,7 @@
       },
       "step2": {
         "title": "L'AI Genera il Tuo Itinerario",
-        "description": "Il nostro motore AI costruisce un piano completo giorno per giorno in circa 30 secondi — con luoghi reali, blocchi orari e tre livelli di budget da confrontare."
+        "description": "La nostra AI crea un piano completo giorno per giorno in circa 30 secondi — con luoghi reali, fasce orarie e costi stimati al tuo livello di budget."
       },
       "step3": {
         "title": "Personalizza ed Esporta",
@@ -85,8 +85,8 @@
         "chatgpt": "Lista di testo non strutturata di suggerimenti"
       },
       "realVenues": {
-        "label": "Luoghi verificati",
-        "monkey": "Luoghi reali con prezzi e valutazioni attuali",
+        "label": "Luoghi reali",
+        "monkey": "Luoghi reali, con le valutazioni di Google a un tocco",
         "chatgpt": "Spesso include luoghi chiusi o fittizi"
       },
       "timeBlocks": {
@@ -111,7 +111,7 @@
     "items": {
       "howFast": {
         "question": "Quanto velocemente genera un itinerario?",
-        "answer": "MonkeyTravel genera un itinerario completo giorno per giorno in circa 30 secondi. Otterrai tre livelli di budget (Economico, Bilanciato, Premium) con luoghi reali, prezzi e blocchi orari ottimizzati — tutto pronto per personalizzare o esportare immediatamente."
+        "answer": "MonkeyTravel genera un itinerario completo giorno per giorno in circa 30 secondi, al livello di budget che scegli (Economico, Bilanciato o Premium), con luoghi reali, costi stimati e fasce orarie ottimizzate, pronto da modificare o esportare."
       },
       "howAccurate": {
         "question": "Quanto sono precisi gli itinerari generati?",
@@ -133,7 +133,7 @@
   },
   "cta": {
     "title": "Pronto a Generare il Tuo Itinerario?",
-    "subtitle": "Lascia che l'AI costruisca il tuo piano di viaggio perfetto in 30 secondi. Luoghi reali, percorsi intelligenti, tre livelli di budget — completamente gratis.",
+    "subtitle": "Lascia che l'AI crei il tuo piano di viaggio in 30 secondi. Luoghi reali, percorsi intelligenti, tre livelli di budget — completamente gratis.",
     "button": "Genera il Mio Itinerario — Gratis"
   }
 }

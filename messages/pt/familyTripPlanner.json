@@ -10,7 +10,7 @@
   "hero": {
     "badge": "Feito para Famílias — 100% Grátis",
     "title": "O Planejador de Viagens em Família com AI Que Deixa Todo Mundo Feliz",
-    "subtitle": "Informe seu destino e os detalhes da sua família. Tenha um roteiro pensado para crianças e adequado à idade em menos de 60 segundos — com restaurantes para famílias, atividades seguras e horários equilibrados.",
+    "subtitle": "Informe seu destino e os dados da família. Receba um roteiro dia a dia em menos de 60 segundos, com ritmo mais calmo e programação equilibrada que você pode mudar conversando.",
     "cta": "Planejar Nossa Viagem em Família — Grátis",
     "secondaryCta": "Veja Como Funciona",
     "trustSignals": {
@@ -23,7 +23,7 @@
     "heading": "O que é um planejador de viagens em família?",
     "definition": "Um planejador de viagens em família monta um programa que funciona para todos ao mesmo tempo, incluindo quem precisa de soneca, banheiro ou uma pausa dos museus.",
     "distinguish": "A restrição real é o ritmo, não os lugares. Um dia confortável sozinho fica inviável com uma criança de cinco anos: são menos paradas, mais folga e distâncias curtas, para ninguém desmoronar no caminho.",
-    "product": "O MonkeyTravel monta os dias no ritmo que você escolher, com lugares reais e o tempo de deslocamento entre eles, em três níveis de orçamento. O que não servir para a sua família pode ser trocado.",
+    "product": "O MonkeyTravel monta os dias em torno do ritmo que você escolher, com lugares reais e o tempo de deslocamento entre eles, em três níveis de orçamento. O que não combinar com a sua família pode ser trocado.",
     "example": "Um museu de manhã, almoço ali perto e um parque à tarde é um dia real. Três museus do outro lado da cidade é um plano que lê bem e termina em choro.",
     "honest": "Ele não conhece as suas crianças. Use o ritmo como ponto de partida e corte uma parada assim que o dia parecer apertado."
   },
@@ -44,8 +44,8 @@
         "description": "Viagens em família somam rápido. Tenha roteiros em três faixas de orçamento — Econômico, Equilibrado e Premium — com custos transparentes por pessoa, incluindo preços para crianças."
       },
       "safeDestinations": {
-        "title": "Destinos Seguros e Testados",
-        "description": "Cada lugar recomendado é verificado quanto à segurança para famílias. Priorizamos locais bem avaliados, acolhedores para famílias e com boa acessibilidade."
+        "title": "Lugares Que Você Pode Conferir",
+        "description": "Abra qualquer parada para ver as avaliações e fotos do Google. Você conhece seus filhos melhor que ninguém: diga ao assistente o que não serve para eles e ele muda o plano."
       },
       "familySchedule": {
         "title": "Horários Familiares Equilibrados",
@@ -118,8 +118,8 @@
         "answer": "Sim, a MonkeyTravel é totalmente grátis para famílias. Crie roteiros familiares, compartilhe planos com seu parceiro e planeje em várias faixas de orçamento — tudo sem pagar nada e sem informar cartão de crédito."
       },
       "howSafe": {
-        "question": "Como vocês garantem que as atividades são seguras para as crianças?",
-        "answer": "Cada lugar do nosso banco de dados inclui avaliações de adequação para famílias com base em avaliações reais. Priorizamos locais bem estabelecidos e muito bem avaliados, e sinalizamos qualquer lugar que possa não ser adequado para crianças pequenas."
+        "question": "Vocês verificam se as atividades são seguras para crianças?",
+        "answer": "Não verificamos se os lugares são seguros nem adequados para crianças, então confira o que gerar dúvida. Você pode abrir as avaliações e fotos do Google de qualquer parada e pedir ao assistente que troque o que não combinar com a sua família."
       },
       "specialNeeds": {
         "question": "Posso planejar para crianças com necessidades alimentares ou alergias?",

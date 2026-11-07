@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Planificador de Viajes con AI Gratis — Sin Tarjeta, Sin Registro | MonkeyTravel",
-    "description": "Planifica tu viaje perfecto con AI en segundos. Obtén itinerarios personalizados día a día con lugares reales y precios actuales. 100% gratis, sin tarjeta de crédito."
+    "description": "Planifica tu viaje con AI en segundos. Itinerarios día a día personalizados con lugares reales y costes estimados. 100% gratis, sin tarjeta de crédito."
   },
   "breadcrumbs": {
     "home": "Inicio",
@@ -10,7 +10,7 @@
   "hero": {
     "badge": "100% Gratis — Sin Tarjeta de Crédito",
     "title": "El Planificador de Viajes con AI Gratis Que Realmente Funciona",
-    "subtitle": "Elige un destino y obtén un itinerario personalizado día a día en menos de 60 segundos. Lugares reales, precios actuales, rutas inteligentes — completamente gratis.",
+    "subtitle": "Indica un destino y recibe un itinerario día a día personalizado en menos de 60 segundos. Lugares reales, costes estimados, rutas inteligentes — totalmente gratis.",
     "cta": "Planifica Mi Viaje — Gratis",
     "secondaryCta": "Mira Cómo Funciona",
     "trustSignals": {
@@ -23,7 +23,7 @@
     "heading": "¿Qué es un planificador de viajes AI?",
     "definition": "Un planificador de viajes AI convierte un destino y unas fechas en un itinerario día a día: elige lugares concretos y los ordena en una ruta que tiene sentido recorrer a pie o en coche.",
     "vsChatbot": "Esa es la diferencia con preguntarle a un chatbot. Un chatbot te da sugerencias que todavía tienes que investigar, organizar y ordenar tú. Un planificador te da el horario: lugares con nombre, agrupados por día, con los desplazamientos entre ellos ya calculados.",
-    "product": "MonkeyTravel lo hace en unos 30 segundos, con tres niveles de presupuesto, usando lugares reales y precios actuales en lugar de inventados. Funciona en inglés, español, italiano y portugués, y no necesita cuenta.",
+    "product": "MonkeyTravel lo crea en unos 30 segundos, en tres niveles de presupuesto, con lugares reales que puedes buscar y costes estimados. Funciona en inglés, español, italiano y portugués, y no hace falta cuenta.",
     "honest": "También se equivoca a veces: un sitio cierra, un precio cambia. Por eso cada parada se puede editar, y puedes leer el plan entero antes de registrarte en nada.",
     "imageAlt": "Un itinerario de tres días por Barcelona generado en MonkeyTravel: el día 1 empieza con la Sagrada Família a las 09:00 durante 180 minutos, etiquetada como atracción, sobre un resumen que muestra 12 actividades a ritmo moderado."
   },
@@ -36,8 +36,8 @@
         "description": "Obtén planes personalizados día a día según tu destino, fechas, presupuesto y estilo de viaje. Tres opciones: Económico, Equilibrado y Premium."
       },
       "realVenues": {
-        "title": "Lugares y Precios Reales",
-        "description": "Cada restaurante, hotel y atracción en tu itinerario es un lugar real con precios y valoraciones actuales — no alucinaciones de AI."
+        "title": "Lugares Reales, Costes Estimados",
+        "description": "Tu itinerario nombra lugares reales, con costes estimados y valoraciones de Google a un toque. Guárdalo y sus sitios para comer se comprueban en Google Maps."
       },
       "smartRouting": {
         "title": "Rutas Inteligentes",
@@ -76,12 +76,12 @@
   },
   "comparison": {
     "title": "¿Por Qué MonkeyTravel vs. ChatGPT?",
-    "subtitle": "ChatGPT puede sugerir lugares. MonkeyTravel construye itinerarios reales y reservables.",
+    "subtitle": "ChatGPT puede sugerir lugares. MonkeyTravel crea un plan día a día que puedes cambiar y compartir.",
     "otherHeader": "ChatGPT",
     "items": {
       "realData": {
         "label": "Datos de lugares reales",
-        "monkey": "Lugares verificados con valoraciones y precios",
+        "monkey": "Valoraciones y fotos de Google a un toque",
         "chatgpt": "A menudo sugiere lugares cerrados o ficticios"
       },
       "routing": {
