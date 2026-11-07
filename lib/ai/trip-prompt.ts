@@ -253,7 +253,8 @@ Rules:
 8. Write "booking_required": true only on an activity that must be booked ahead; leave the field out on every other activity
 9. An activity's "type" says what the place is, and is one of: ${ACTIVITY_TYPES.join(", ")}. Never a travel vibe such as foodie, cultural, urban or romantic
 10. Every price, and the trip total, is in US dollars ("currency": "USD") whatever the destination: the app shows prices in the traveller's own currency
-11. Every full day has lunch, and dinner in the evening, at real named places. They count among the day's activities`;
+11. Every full day has lunch, and dinner in the evening, at real named places. They count among the day's activities
+12. Place every sight, museum, church and market on a day and at a time it is open, using the weekday the request gives for each day: many museums close one day a week (often Monday), churches and cathedrals limit visits around services, and markets often trade only in the morning. Start a stop no earlier than the place opens`;
 
 // Shared chat prefix for BOTH trip-generation call sites (blocking +
 // streaming). Byte-identical history across requests is what makes Gemini's
@@ -294,6 +295,19 @@ function daylightLine({ daylight }: Pick<TripCreationParams, "daylight">): strin
   if (first.polar === "night") return "Daylight: the sun doesn't rise on these dates.";
   const span = (a: string | null, b: string | null) => (b && b !== a ? `${a} to ${b}` : a);
   return `Daylight (local time): sunrise about ${span(first.sunrise, last.sunrise)}, sunset about ${span(first.sunset, last.sunset)}. A stop named for the sunrise or the sunset must be under way at that time; otherwise don't name it after one.`;
+}
+
+const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+/** Each day's weekday, so a place shut on one day of the week stays off that day. */
+function daysLine(startDate: string, duration: number): string {
+  const days: string[] = [];
+  for (let i = 0; i < duration; i++) {
+    const date = addIsoDays(startDate, i);
+    if (!date) return "";
+    days.push(`Day ${i + 1} ${WEEKDAYS[new Date(`${date}T00:00:00Z`).getUTCDay()]} ${date}`);
+  }
+  return days.length ? `Days: ${days.join(", ")}` : "";
 }
 
 function buildUserPrompt(params: TripCreationParams, options?: BuildPromptOptions): string {
@@ -405,6 +419,7 @@ ${knownPlaces.map((p) => `- ${p.name} (${p.type})`).join("\n")}
 
   const travellers = travellersLine(params);
   const daylight = daylightLine(params);
+  const days = daysLine(params.startDate, duration);
 
   // Language header intentionally at the END (see tail of this template):
   // it is the most cache-hostile token span (varies per locale), and the
@@ -413,7 +428,7 @@ ${knownPlaces.map((p) => `- ${p.name} (${p.type})`).join("\n")}
 
 ## Travel Details
 - Dates: ${params.startDate} to ${params.endDate}
-- Duration: ${duration} days
+${days ? `- ${days}\n` : ""}- Duration: ${duration} days
 - Budget Tier: ${params.budgetTier}
 - Travel Pace: ${params.pace} — ${paceBudgetPromptClause(params.pace)}
 ${travellers ? `- ${travellers}\n` : ""}${daylight ? `- ${daylight}\n` : ""}

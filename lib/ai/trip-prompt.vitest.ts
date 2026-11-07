@@ -16,6 +16,33 @@ describe("what every plan is asked for", () => {
   it("describes each stop with why it is worth it", () => {
     expect(spec).toMatch(/"description": "What to do here and why it is worth it, in about 25 words"/);
   });
+
+  it("places every sight on a day and at a time it is open", () => {
+    expect(spec).toMatch(/Place every sight, museum, church and market on a day and at a time it is open/);
+  });
+});
+
+describe("each day's weekday", () => {
+  const trip = (startDate: string, endDate: string): TripCreationParams => ({
+    destination: "Seville, Spain",
+    startDate,
+    endDate,
+    budgetTier: "balanced",
+    pace: "moderate",
+    vibes: [],
+    interests: [],
+  });
+
+  it("names the weekday of every day, so a place shut on Mondays stays off the Monday", () => {
+    expect(buildUserPrompt(trip("2026-11-28", "2026-11-30"))).toContain(
+      "- Days: Day 1 Saturday 2026-11-28, Day 2 Sunday 2026-11-29, Day 3 Monday 2026-11-30",
+    );
+  });
+
+  it("keeps the line with the trip's details", () => {
+    const details = buildUserPrompt(trip("2027-03-25", "2027-03-25")).split("## Travel Details")[1].split("\n\n")[0];
+    expect(details).toContain("- Days: Day 1 Thursday 2027-03-25");
+  });
 });
 
 describe("who's coming", () => {
