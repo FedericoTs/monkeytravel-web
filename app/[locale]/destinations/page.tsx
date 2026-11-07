@@ -2,6 +2,7 @@ import LanguageAlternates, { localizedPath } from "@/components/i18n/LanguageAlt
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
+import MatchInvite from "@/components/match/MatchInvite";
 import { routing } from "@/lib/i18n/routing";
 import type { Locale } from "@/lib/destinations/types";
 import { destinations } from "@/lib/destinations/data";
@@ -61,6 +62,7 @@ export default async function DestinationsIndexPage({ params }: PageProps) {
 
   const loc = locale as Locale;
   const t = await getTranslations("destinations");
+  const tMatch = await getTranslations("match");
 
   const localePrefix = locale === routing.defaultLocale ? "" : `/${locale}`;
 
@@ -223,6 +225,12 @@ export default async function DestinationsIndexPage({ params }: PageProps) {
                 ))}
               </ul>
             </div>
+          </div>
+        </section>
+
+        <section className="pt-10 sm:pt-12 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <MatchInvite title={tMatch("invite.hubTitle")} body={tMatch("invite.hubBody")} cta={tMatch("invite.cta")} />
           </div>
         </section>
 

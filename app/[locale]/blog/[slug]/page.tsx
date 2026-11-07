@@ -25,6 +25,8 @@ import Footer from "@/components/Footer";
 import { BlogContent, BlogByline, BlogCard, BlogDestinationPicks, BlogInlineAiCta, BlogPlanThisCta, BlogPrevNext, BlogSidebar, ReadingProgress } from "@/components/blog";
 import ShareRow from "@/components/ShareRow";
 import { getPrimaryDestinationFromTags } from "@/lib/blog/primaryDestination";
+import { readerIsChoosing } from "@/lib/blog/choosing";
+import MatchInvite from "@/components/match/MatchInvite";
 import { tripsNewHrefForPost } from "@/lib/blog/trip-prefill";
 import { landingPagesForPost } from "@/lib/blog/landing-page-links";
 import StickyBlogCta from "@/components/blog/StickyBlogCta";
@@ -169,6 +171,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
 
   const t = await getTranslations("blog");
   const tCommon = await getTranslations("common");
+  const tMatch = await getTranslations("match");
   const { frontmatter, html } = post;
 
   const localePrefix = locale === routing.defaultLocale ? "" : `/${locale}`;
@@ -432,6 +435,9 @@ export default async function BlogDetailPage({ params }: PageProps) {
                   toc={toc}
                   tocLabel={t("detail.tableOfContents")}
                   inlineSlot={
+                    readerIsChoosing(frontmatter, primaryDestination !== null) ? (
+                      <MatchInvite title={tMatch("invite.title")} body={tMatch("invite.body")} cta={tMatch("invite.cta")} className="my-10" />
+                    ) : (
                     <BlogInlineAiCta
                       title={t("detail.inlineAiCta.title")}
                       description={t("detail.inlineAiCta.description")}
@@ -439,6 +445,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
                       ctaHref={tripsNewHref}
                       checkLabel={t("detail.inlineAiCta.check")}
                     />
+                    )
                   }
                 />
                 {primaryDestination && (
