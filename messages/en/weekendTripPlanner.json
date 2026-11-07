@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Weekend Trip Planner — AI-Powered 2-3 Day Getaways | MonkeyTravel",
-    "description": "Plan the perfect weekend getaway in 15 minutes with AI. Get personalized 2-3 day itineraries with local gems, real prices, and smart scheduling. 100% free."
+    "description": "Plan a weekend getaway with AI in seconds. Get a personalized 2-3 day itinerary with local gems, cost estimates and smart scheduling. 100% free."
   },
   "breadcrumbs": {
     "home": "Home",
@@ -23,7 +23,7 @@
     "heading": "What is a weekend trip planner?",
     "definition": "A weekend trip planner builds a two- or three-day itinerary, where the scarce resource is hours rather than money.",
     "distinguish": "On a short trip the cost of a bad decision is much higher. One badly placed stop, one long crossing of the city, and you have spent a meaningful fraction of the entire trip getting somewhere rather than being there.",
-    "product": "MonkeyTravel plans the days in geographic order with the travel time between stops made explicit, so a Saturday does not quietly turn into three hours of transit. Real venues, current prices, three budget levels.",
+    "product": "MonkeyTravel plans the days in geographic order with the travel time between stops made explicit, so a Saturday does not quietly turn into three hours of transit. Real places, cost estimates, three budget levels.",
     "example": "Two days is roughly eight usable hours each once you subtract sleep, meals and getting there. Planning against that number instead of a wishlist is the whole job.",
     "honest": "It optimises the route, not your train times. If you arrive late on Friday, shorten day one yourself before you set off."
   },
@@ -53,7 +53,7 @@
       },
       "lastMinute": {
         "title": "Last-Minute Ready",
-        "description": "Decided to go this Friday? No problem. Get a polished itinerary for this weekend with real-time availability and current prices."
+        "description": "Decided to go this Friday? No problem. Get a polished itinerary for this weekend in about 30 seconds, and check availability before you go."
       }
     }
   },
@@ -66,7 +66,7 @@
       },
       "step2": {
         "title": "AI Plans Your 2-3 Day Trip",
-        "description": "Our AI builds a day-by-day weekend itinerary with real venues, walking routes, and smart timing so you make the most of every hour."
+        "description": "Our AI builds a day-by-day weekend itinerary with real places, walking routes and smart timing so you make the most of every hour."
       },
       "step3": {
         "title": "Pack Your Bag and Go",
@@ -96,7 +96,7 @@
       },
       "budgetControl": {
         "label": "Budget control",
-        "monkey": "3 tiers with real prices upfront",
+        "monkey": "3 levels with cost estimates upfront",
         "chatgpt": "Surprise costs and no price estimates"
       },
       "lastMinuteChanges": {

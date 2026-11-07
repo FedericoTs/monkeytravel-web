@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Gerador de Roteiros com AI — Planos de Viagem Dia a Dia | MonkeyTravel",
-    "description": "Gere roteiros de viagem completos com AI em 30 segundos. Planos dia a dia com lugares reais, preços atuais e blocos de tempo inteligentes. Grátis, sem cadastro."
+    "description": "Gere roteiros de viagem completos com AI em 30 segundos. Planos dia a dia com lugares reais, custos estimados e blocos de horário. Grátis e sem cadastro."
   },
   "breadcrumbs": {
     "home": "Início",
@@ -10,7 +10,7 @@
   "hero": {
     "badge": "Com AI — Gera Roteiros em 30 Segundos",
     "title": "O Gerador de Roteiros com AI Que Planeja Como um Profissional",
-    "subtitle": "Digite um destino e receba um roteiro completo dia a dia com lugares reais, preços atuais e blocos de tempo otimizados — tudo gerado por AI em cerca de 30 segundos.",
+    "subtitle": "Informe um destino e receba um roteiro completo dia a dia com lugares reais, custos estimados e blocos de horário otimizados — tudo gerado por AI em cerca de 30 segundos.",
     "cta": "Gerar Meu Roteiro",
     "secondaryCta": "Veja Como Funciona",
     "trustSignals": {
@@ -23,7 +23,7 @@
     "heading": "O que é um gerador de roteiros com AI?",
     "definition": "Um gerador de roteiros com AI recebe um destino e um número de dias e devolve um programa pronto: quais lugares, em que ordem, em qual dia — em vez de uma lista de opções para você organizar sozinho.",
     "distinguish": "O difícil não é escolher bons lugares. É colocá-los em sequência: manter cada dia coerente no mapa, deixar tempo para comer e se deslocar, e não fazer você atravessar a cidade na hora errada.",
-    "product": "O MonkeyTravel monta o roteiro completo dia a dia em cerca de 30 segundos, com lugares reais e preços atuais em três níveis de orçamento. Cada bloco pode ser movido ou trocado depois.",
+    "product": "O MonkeyTravel monta um plano completo dia a dia em cerca de 30 segundos, com lugares reais e custos estimados no nível de orçamento que você escolher. Depois, cada bloco pode ser movido ou trocado.",
     "example": "Um roteiro de três dias em Lisboa deveria manter Belém em um único bloco, em vez de espalhá-lo por duas manhãs. Esse tipo de ordenação é quase todo o trabalho do gerador.",
     "honest": "Nenhum gerador acerta uma cidade de primeira. Trate o resultado como um bom primeiro rascunho para editar, não como um plano a seguir às cegas."
   },
@@ -66,7 +66,7 @@
       },
       "step2": {
         "title": "A AI Gera o Seu Roteiro",
-        "description": "Nosso motor de AI monta um plano completo dia a dia em cerca de 30 segundos — com lugares reais, blocos de tempo e três níveis de orçamento para comparar."
+        "description": "Nossa AI monta um plano completo dia a dia em cerca de 30 segundos — com lugares reais, blocos de horário e custos estimados no seu nível de orçamento."
       },
       "step3": {
         "title": "Personalize e Exporte",
@@ -85,8 +85,8 @@
         "chatgpt": "Lista de texto sem estrutura de sugestões"
       },
       "realVenues": {
-        "label": "Lugares verificados",
-        "monkey": "Lugares reais com preços e avaliações atuais",
+        "label": "Lugares reais",
+        "monkey": "Lugares reais, com as avaliações do Google a um toque",
         "chatgpt": "Muitas vezes inclui lugares fechados ou fictícios"
       },
       "timeBlocks": {
@@ -111,7 +111,7 @@
     "items": {
       "howFast": {
         "question": "Com que rapidez ele gera um roteiro?",
-        "answer": "O MonkeyTravel gera um roteiro completo dia a dia em cerca de 30 segundos. Você recebe três níveis de orçamento (Econômico, Equilibrado, Premium) com lugares reais, preços e blocos de tempo otimizados — tudo pronto para personalizar ou exportar imediatamente."
+        "answer": "O MonkeyTravel gera um roteiro completo dia a dia em cerca de 30 segundos, no nível de orçamento que você escolher (Econômico, Equilibrado ou Premium), com lugares reais, custos estimados e blocos de horário otimizados, pronto para editar ou exportar."
       },
       "howAccurate": {
         "question": "Quão precisos são os roteiros gerados?",
@@ -133,7 +133,7 @@
   },
   "cta": {
     "title": "Pronto Para Gerar Seu Roteiro?",
-    "subtitle": "Deixe a AI montar seu plano de viagem perfeito em 30 segundos. Lugares reais, rotas inteligentes, três níveis de orçamento — totalmente grátis.",
+    "subtitle": "Deixe a AI montar o plano da sua viagem em 30 segundos. Lugares reais, rotas inteligentes, três níveis de orçamento — totalmente grátis.",
     "button": "Gerar Meu Roteiro — Grátis"
   }
 }

@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Planejador de Viagens de Fim de Semana — Escapadas de 2-3 Dias com AI | MonkeyTravel",
-    "description": "Planeje a escapada de fim de semana perfeita em 15 minutos com AI. Tenha roteiros personalizados de 2-3 dias com joias locais, preços reais e organização inteligente. 100% grátis."
+    "description": "Planeje uma escapada de fim de semana com AI. Roteiro de 2 a 3 dias com achados locais, custos estimados e horários inteligentes. 100% grátis."
   },
   "breadcrumbs": {
     "home": "Início",
@@ -23,7 +23,7 @@
     "heading": "O que é um planejador de viagens de fim de semana?",
     "definition": "Um planejador de viagens de fim de semana monta um roteiro de dois ou três dias, em que o recurso escasso são as horas, não o dinheiro.",
     "distinguish": "Numa viagem curta, uma decisão ruim custa muito mais. Uma parada mal colocada, uma travessia longa pela cidade, e você gastou boa parte da viagem chegando aos lugares em vez de aproveitá-los.",
-    "product": "O MonkeyTravel ordena os dias geograficamente e deixa explícito o tempo entre as paradas, para que um sábado não vire, sem você perceber, três horas de transporte. Lugares reais, preços atuais, três níveis de orçamento.",
+    "product": "O MonkeyTravel organiza os dias por região e deixa explícito o tempo de deslocamento entre as paradas, para um sábado não virar, sem você perceber, três horas de trânsito. Lugares reais, custos estimados, três níveis de orçamento.",
     "example": "Dois dias são cerca de oito horas úteis cada um, depois de descontar sono, refeições e o deslocamento. Planejar em cima desse número, e não de uma lista de desejos, é o trabalho inteiro.",
     "honest": "Ele otimiza a rota, não os seus horários de trem. Se você chegar tarde na sexta, encurte o primeiro dia por conta própria antes de sair."
   },
@@ -53,7 +53,7 @@
       },
       "lastMinute": {
         "title": "Pronto de Última Hora",
-        "description": "Decidiu viajar nesta sexta? Sem problema. Receba um roteiro caprichado para este fim de semana com disponibilidade em tempo real e preços atuais."
+        "description": "Decidiu ir nesta sexta? Sem problema. Receba um roteiro caprichado para este fim de semana em cerca de 30 segundos e confira a disponibilidade antes de viajar."
       }
     }
   },
@@ -66,7 +66,7 @@
       },
       "step2": {
         "title": "A AI Planeja Sua Viagem de 2-3 Dias",
-        "description": "Nossa AI monta um roteiro de fim de semana dia a dia com lugares reais, trajetos a pé e horários inteligentes para você aproveitar cada hora ao máximo."
+        "description": "Nossa AI monta um roteiro de fim de semana dia a dia com lugares reais, trajetos a pé e horários inteligentes para aproveitar cada hora."
       },
       "step3": {
         "title": "Faça as Malas e Vá",
@@ -96,7 +96,7 @@
       },
       "budgetControl": {
         "label": "Controle de orçamento",
-        "monkey": "3 níveis com preços reais já de cara",
+        "monkey": "3 níveis com custos estimados desde o início",
         "chatgpt": "Custos surpresa e nenhuma estimativa de preço"
       },
       "lastMinuteChanges": {

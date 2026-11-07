@@ -10,7 +10,7 @@
   "hero": {
     "badge": "Built for Families — 100% Free",
     "title": "The AI Family Trip Planner That Keeps Everyone Happy",
-    "subtitle": "Enter your destination and family details. Get a kid-friendly, age-appropriate itinerary in under 60 seconds — with family restaurants, safe activities, and balanced schedules.",
+    "subtitle": "Enter your destination and family details. Get a day-by-day itinerary in under 60 seconds, with a slower pace and balanced schedules you can change by chatting.",
     "cta": "Plan Our Family Trip — Free",
     "secondaryCta": "See How It Works",
     "trustSignals": {
@@ -23,7 +23,7 @@
     "heading": "What is a family trip planner?",
     "definition": "A family trip planner builds a schedule that works for everyone at once, including the people who need a nap, a toilet, or a break from museums.",
     "distinguish": "The real constraint is pace, not places. A day that is comfortable alone becomes unworkable with a five-year-old, so the problem is fitting fewer stops with more slack, close enough together that nobody falls apart in transit.",
-    "product": "MonkeyTravel builds days around a pace you choose, with real venues and the travel time between them, at three budget levels. Anything that does not suit your family can be swapped out.",
+    "product": "MonkeyTravel builds days around a pace you choose, with real places and the travel time between them, at three budget levels. Anything that does not suit your family can be swapped out.",
     "example": "A morning museum, lunch nearby and an afternoon park is a real day. Three museums across town is a plan that reads well and ends in tears.",
     "honest": "It does not know your children. Treat the pace as a starting point, and cut a stop whenever the day looks tight."
   },
@@ -44,8 +44,8 @@
         "description": "Family trips add up fast. Get itineraries across three budget tiers — Budget, Balanced, and Premium — with transparent per-person costs including kids' pricing."
       },
       "safeDestinations": {
-        "title": "Safe, Tested Destinations",
-        "description": "Every recommended venue is verified for family safety. We prioritize well-reviewed, family-welcoming locations with good accessibility."
+        "title": "Places You Can Check",
+        "description": "Open any stop to see its Google ratings and photos. You know your children best: tell the assistant what doesn't suit them and it changes the plan."
       },
       "familySchedule": {
         "title": "Balanced Family Schedules",
@@ -118,8 +118,8 @@
         "answer": "Yes, MonkeyTravel is completely free for families. Create family itineraries, share plans with your partner, and plan across multiple budget tiers — all without paying anything or entering a credit card."
       },
       "howSafe": {
-        "question": "How do you ensure activities are safe for kids?",
-        "answer": "Every venue in our database includes family-friendliness ratings based on real reviews. We prioritize well-established, highly-rated locations and flag any venues that may not be suitable for young children."
+        "question": "Do you check that activities are safe for kids?",
+        "answer": "We don't check places for safety or for children, so look over anything you're unsure about. You can open Google's ratings and photos for any stop, and ask the assistant to swap whatever doesn't suit your family."
       },
       "specialNeeds": {
         "question": "Can I plan for children with dietary needs or allergies?",

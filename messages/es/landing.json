@@ -112,7 +112,7 @@
         "badge": "Único"
       },
       "realData": {
-        "title": "Lugares Verificados",
+        "title": "Lugares Comprobados",
         "description": "Valoraciones y fotos reales de Google a un toque. Guarda un viaje y comprobamos sus sitios para comer en Google Maps, y cambiamos los que hayan cerrado."
       }
     }
@@ -173,7 +173,7 @@
     "features": {
       "webApp": "Web app disponible ahora — completamente gratis",
       "dayByDay": "Itinerarios día a día con horarios",
-      "realPhotos": "Fotos reales, calificaciones y horarios",
+      "realPhotos": "Fotos y valoraciones reales",
       "export": "Exporta a PDF, comparte con amigos",
       "mobile": "iOS y Android próximamente"
     },
@@ -194,7 +194,7 @@
       },
       "hallucinations": {
         "title": "Sin Lugares Falsos",
-        "description": "Cada restaurante, atracción y café está verificado con datos reales de Google."
+        "description": "Guarda un viaje y sus sitios para comer se comprueban en Google Maps. Los que hayan cerrado se cambian."
       },
       "soloOnly": {
         "title": "Sin Planificación Solo Individual",

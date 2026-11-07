@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Budget Trip Planner — Travel More, Spend Less | MonkeyTravel",
-    "description": "Plan affordable trips with AI. Get personalized itineraries with real prices across 3 budget tiers. Find cheap flights, affordable stays, and free activities. 100% free tool."
+    "description": "Plan affordable trips with AI. Get personalized day-by-day itineraries with cost estimates at 3 budget levels, free activities included. 100% free tool."
   },
   "breadcrumbs": {
     "home": "Home",
@@ -10,12 +10,12 @@
   "hero": {
     "badge": "Smart Budget Travel — Powered by AI",
     "title": "The Budget Trip Planner That Saves You Real Money",
-    "subtitle": "Set your daily budget, and our AI finds the best destinations, flights, stays, and activities that fit. Real prices, real savings — from $30/day.",
+    "subtitle": "Choose your budget level, and our AI plans days that fit it, with an estimated cost for each activity and meal.",
     "cta": "Plan My Budget Trip",
     "secondaryCta": "See How It Works",
     "trustSignals": {
       "free": "100% free tool",
-      "noCard": "Real price data",
+      "noCard": "No card needed",
       "instant": "3 budget tiers"
     }
   },
@@ -23,25 +23,25 @@
     "heading": "What is a budget trip planner?",
     "definition": "A budget trip planner builds the itinerary around what you can spend, instead of building one first and hoping the total works out.",
     "distinguish": "That only means something if the budget actually shapes the choices — cheaper neighbourhoods, free viewpoints, markets instead of restaurants, walking instead of taxis. A number added up at the end is a receipt, not a plan.",
-    "product": "MonkeyTravel plans at three budget levels and shows current prices per activity, so you can see where the money goes before you commit. Changing tier rebuilds the itinerary rather than trimming it.",
+    "product": "MonkeyTravel plans at three budget levels and shows an estimated cost per activity, so you can see where the money goes before you commit. Changing level rebuilds the itinerary rather than trimming it.",
     "example": "In practice that is the difference between a 60-euro day and a 140-euro day in the same city, doing broadly similar things. The plan changes, not just the total.",
-    "honest": "Prices move, and ours are estimates drawn from real venue data rather than live quotes. Check anything you are actually booking."
+    "honest": "Prices move, and ours are AI estimates rather than live quotes. Check anything you are actually booking."
   },
   "features": {
     "title": "Budget Travel, Without the Compromise",
-    "subtitle": "Every itinerary includes actual costs so you know exactly what you'll spend before you go.",
+    "subtitle": "Every itinerary includes cost estimates, so you have a good idea of what you'll spend before you go.",
     "items": {
       "priceComparison": {
         "title": "Side-by-Side Price Comparison",
-        "description": "Every itinerary comes in 3 budget tiers — Budget, Balanced, and Premium — with real daily cost breakdowns so you can pick the right one."
+        "description": "Plan at any of 3 budget levels — Budget, Balanced or Premium — with an estimated cost for each day, so you can pick what fits."
       },
       "budgetTiers": {
         "title": "3 Budget Tiers Per Trip",
-        "description": "See exactly what $30/day, $75/day, or $150+/day looks like in any destination. Compare accommodation, food, and activity costs across tiers."
+        "description": "See what each level looks like in any destination, from street food and free sights to fine dining and private tours."
       },
       "costBreakdown": {
         "title": "Full Cost Breakdown",
-        "description": "Every activity, meal, and hotel shows real prices. Get a total trip estimate before you book anything — no surprises on the road."
+        "description": "Every activity and meal shows an estimated cost, with a total for the trip before you book anything."
       },
       "cheapFlights": {
         "title": "Affordable Flight Tips",
@@ -49,7 +49,7 @@
       },
       "affordableStays": {
         "title": "Budget-Friendly Stays",
-        "description": "From hostels to guesthouses to budget hotels — each tier shows verified accommodations with real nightly rates and ratings."
+        "description": "The plan links you to hotel search for your destination, so you can compare real nightly rates yourself, from hostels to boutique hotels."
       },
       "freeActivities": {
         "title": "Free Activities & Hidden Gems",
@@ -66,7 +66,7 @@
       },
       "step2": {
         "title": "AI Finds the Best Deals",
-        "description": "Our AI builds a complete itinerary optimized for your budget — real hotels, real restaurants, real prices. Three tiers to compare."
+        "description": "Our AI builds a complete itinerary for your budget level, with real places and an estimated cost for each one."
       },
       "step3": {
         "title": "Travel for Less",
@@ -81,7 +81,7 @@
     "items": {
       "pricing": {
         "label": "Real pricing",
-        "monkey": "Actual costs for hotels, food, and activities",
+        "monkey": "Estimated costs for food and activities",
         "other": "Vague estimates like \"budget about $50/day\""
       },
       "personalized": {
@@ -95,8 +95,8 @@
         "other": "Usually one \"budget\" suggestion only"
       },
       "upToDate": {
-        "label": "Up-to-date prices",
-        "monkey": "Current prices checked against real data",
+        "label": "Price estimates",
+        "monkey": "Marked as estimates: check before you book",
         "other": "Blog posts may be months or years old"
       },
       "complete": {
@@ -111,19 +111,19 @@
     "items": {
       "howCheap": {
         "question": "How cheap can I travel with MonkeyTravel?",
-        "answer": "Our Budget tier starts at around $30/day in affordable destinations like Southeast Asia, Eastern Europe, and Central America. This includes accommodation, meals, and activities. The exact cost depends on your destination and travel style."
+        "answer": "It depends on where you go. A Budget plan aims for under $100 a day and leans on street food and free sights, so it costs far less in low-cost destinations. Plans show estimates for activities and meals; flights and hotels are extra."
       },
       "pricesReal": {
         "question": "Are the prices in the itinerary accurate?",
-        "answer": "Yes. MonkeyTravel uses real venue data with current prices and ratings. We show actual hotel rates, restaurant price ranges, and activity costs — not rough estimates. We recommend double-checking closer to your travel date as prices can fluctuate."
+        "answer": "They're estimates, not live quotes. The AI estimates a cost for each activity and meal at your budget level, and Google's price level is a tap away for any stop. Check anything you're booking, as prices change."
       },
       "budgetTiers": {
         "question": "What are the 3 budget tiers?",
-        "answer": "Every itinerary comes in Budget (hostels, street food, free activities), Balanced (mid-range hotels, local restaurants, paid attractions), and Premium (boutique hotels, fine dining, private tours). You see real costs for each tier so you can decide."
+        "answer": "You choose a level for each itinerary: Budget (hostels, street food, free activities), Balanced (mid-range hotels, local restaurants, paid attractions) or Premium (boutique hotels, fine dining, private tours). You see estimated costs for that level, and changing it rebuilds the plan."
       },
       "saveMoney": {
         "question": "How does MonkeyTravel help me save money?",
-        "answer": "We optimize your itinerary by grouping activities by location (less transport cost), suggesting free alternatives, highlighting affordable meal spots, and comparing budget tiers side-by-side so you can see exactly where your money goes."
+        "answer": "We group activities by location (less transport cost), suggest free alternatives and affordable meal spots, and show an estimated cost for each stop, so you can see where your money goes."
       },
       "hiddenCosts": {
         "question": "Are there hidden costs in the tool itself?",
@@ -137,7 +137,7 @@
   },
   "cta": {
     "title": "Ready to Travel More for Less?",
-    "subtitle": "See exactly what your dream trip costs — with real prices across 3 budget tiers. 100% free, always.",
+    "subtitle": "See roughly what your trip costs, with estimates at 3 budget levels. 100% free.",
     "button": "Plan My Budget Trip — Free"
   }
 }

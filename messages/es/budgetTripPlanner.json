@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Planificador de Viajes Económicos — Viaja Más, Gasta Menos | MonkeyTravel",
-    "description": "Planifica viajes asequibles con AI. Obtén itinerarios personalizados con precios reales en 3 niveles de presupuesto. Encuentra vuelos baratos, alojamientos económicos y actividades gratis. Herramienta 100% gratuita."
+    "description": "Planifica viajes económicos con AI. Itinerarios día a día con costes estimados en 3 niveles de presupuesto y actividades gratis. Herramienta 100% gratis."
   },
   "breadcrumbs": {
     "home": "Inicio",
@@ -10,12 +10,12 @@
   "hero": {
     "badge": "Viajes Económicos Inteligentes — Con AI",
     "title": "El Planificador de Viajes Económicos Que Te Ahorra Dinero Real",
-    "subtitle": "Establece tu presupuesto diario y nuestra AI encuentra los mejores destinos, vuelos, alojamientos y actividades que encajan. Precios reales, ahorros reales — desde $30/día.",
+    "subtitle": "Elige tu nivel de presupuesto y nuestra AI planifica días que encajen, con un coste estimado para cada actividad y cada comida.",
     "cta": "Planifica Mi Viaje Económico",
     "secondaryCta": "Mira Cómo Funciona",
     "trustSignals": {
       "free": "Herramienta 100% gratis",
-      "noCard": "Datos de precios reales",
+      "noCard": "Sin tarjeta",
       "instant": "3 niveles de presupuesto"
     }
   },
@@ -23,25 +23,25 @@
     "heading": "¿Qué es un planificador de viajes económicos?",
     "definition": "Un planificador de viajes económicos construye el itinerario a partir de lo que puedes gastar, en vez de hacer uno primero y esperar que la suma cuadre.",
     "distinguish": "Eso solo sirve si el presupuesto cambia de verdad las decisiones: barrios más baratos, miradores gratis, mercados en vez de restaurantes, caminar en vez de taxis. Un número sumado al final es un recibo, no un plan.",
-    "product": "MonkeyTravel planifica en tres niveles de presupuesto y muestra precios actuales por actividad, para que veas a dónde va el dinero antes de comprometerte. Cambiar de nivel rehace el itinerario, no lo recorta.",
+    "product": "MonkeyTravel planifica en tres niveles de presupuesto y muestra un coste estimado por actividad, para que veas a dónde va el dinero antes de comprometerte. Cambiar de nivel rehace el itinerario, no lo recorta.",
     "example": "En la práctica es la diferencia entre un día de 60 euros y uno de 140 en la misma ciudad, haciendo cosas parecidas. Cambia el plan, no solo el total.",
-    "honest": "Los precios cambian, y los nuestros son estimaciones a partir de datos reales de los sitios, no cotizaciones en vivo. Comprueba todo lo que vayas a reservar."
+    "honest": "Los precios cambian, y los nuestros son estimaciones de la AI, no cotizaciones en vivo. Comprueba todo lo que vayas a reservar."
   },
   "features": {
     "title": "Viajes Económicos, Sin Compromisos",
-    "subtitle": "Cada itinerario incluye costes reales para que sepas exactamente cuánto gastarás antes de salir.",
+    "subtitle": "Cada itinerario incluye costes estimados, para que tengas una buena idea de cuánto gastarás antes de salir.",
     "items": {
       "priceComparison": {
         "title": "Comparación de Precios Lado a Lado",
-        "description": "Cada itinerario viene en 3 niveles — Económico, Equilibrado y Premium — con desgloses de costes diarios reales para que elijas el adecuado."
+        "description": "Planifica en cualquiera de los 3 niveles de presupuesto — Económico, Equilibrado o Premium — con un coste estimado por día, para elegir el que te convenga."
       },
       "budgetTiers": {
         "title": "3 Niveles de Presupuesto Por Viaje",
-        "description": "Mira exactamente cómo es gastar $30/día, $75/día o $150+/día en cualquier destino. Compara alojamiento, comida y actividades entre niveles."
+        "description": "Mira cómo es cada nivel en cualquier destino, desde comida callejera y visitas gratis hasta alta cocina y tours privados."
       },
       "costBreakdown": {
         "title": "Desglose Completo de Costes",
-        "description": "Cada actividad, comida y hotel muestra precios reales. Obtén una estimación total del viaje antes de reservar — sin sorpresas en el camino."
+        "description": "Cada actividad y cada comida muestra un coste estimado, con un total del viaje antes de reservar nada."
       },
       "cheapFlights": {
         "title": "Consejos de Vuelos Económicos",
@@ -49,7 +49,7 @@
       },
       "affordableStays": {
         "title": "Alojamientos Económicos",
-        "description": "Desde hostales hasta casas de huéspedes y hoteles económicos — cada nivel muestra alojamientos verificados con tarifas y valoraciones reales."
+        "description": "El plan te lleva a la búsqueda de hoteles de tu destino, para que compares por tu cuenta las tarifas reales por noche, de hostales a hoteles boutique."
       },
       "freeActivities": {
         "title": "Actividades Gratis y Joyas Ocultas",
@@ -66,7 +66,7 @@
       },
       "step2": {
         "title": "La AI Encuentra las Mejores Ofertas",
-        "description": "Nuestra AI construye un itinerario completo optimizado para tu presupuesto — hoteles reales, restaurantes reales, precios reales. Tres niveles para comparar."
+        "description": "Nuestra AI crea un itinerario completo para tu nivel de presupuesto, con lugares reales y un coste estimado para cada uno."
       },
       "step3": {
         "title": "Viaja Gastando Menos",
@@ -81,7 +81,7 @@
     "items": {
       "pricing": {
         "label": "Precios reales",
-        "monkey": "Costes reales de hoteles, comida y actividades",
+        "monkey": "Costes estimados de comida y actividades",
         "other": "Estimaciones vagas como \"presupuesta unos $50/día\""
       },
       "personalized": {
@@ -95,8 +95,8 @@
         "other": "Normalmente solo una sugerencia \"económica\""
       },
       "upToDate": {
-        "label": "Precios actualizados",
-        "monkey": "Precios actuales verificados con datos reales",
+        "label": "Precios estimados",
+        "monkey": "Marcados como estimaciones: comprueba antes de reservar",
         "other": "Los posts del blog pueden tener meses o años"
       },
       "complete": {
@@ -111,19 +111,19 @@
     "items": {
       "howCheap": {
         "question": "¿Qué tan barato puedo viajar con MonkeyTravel?",
-        "answer": "Nuestro nivel Económico empieza en unos $30/día en destinos asequibles como el Sudeste Asiático, Europa del Este y América Central. Esto incluye alojamiento, comidas y actividades. El coste exacto depende de tu destino y estilo de viaje."
+        "answer": "Depende de adónde vayas. Un plan Económico apunta a menos de $100 al día y se apoya en comida callejera y visitas gratis, así que cuesta bastante menos en destinos baratos. Los planes muestran estimaciones de actividades y comidas; vuelos y hoteles van aparte."
       },
       "pricesReal": {
         "question": "¿Son precisos los precios del itinerario?",
-        "answer": "Sí. MonkeyTravel usa datos reales de lugares con precios y valoraciones actuales. Mostramos tarifas reales de hoteles, rangos de precios de restaurantes y costes de actividades — no estimaciones aproximadas. Recomendamos verificar más cerca de tu fecha de viaje ya que los precios pueden fluctuar."
+        "answer": "Son estimaciones, no cotizaciones en vivo. La AI estima un coste para cada actividad y comida según tu nivel de presupuesto, y el nivel de precio de Google está a un toque en cada parada. Comprueba lo que vayas a reservar, porque los precios cambian."
       },
       "budgetTiers": {
         "question": "¿Cuáles son los 3 niveles de presupuesto?",
-        "answer": "Cada itinerario viene en Económico (hostales, comida callejera, actividades gratis), Equilibrado (hoteles de gama media, restaurantes locales, atracciones de pago) y Premium (hoteles boutique, alta cocina, tours privados). Ves costes reales para cada nivel y decides."
+        "answer": "Eliges un nivel para cada itinerario: Económico (hostales, comida callejera, actividades gratis), Equilibrado (hoteles de gama media, restaurantes locales, atracciones de pago) o Premium (hoteles boutique, alta cocina, tours privados). Ves los costes estimados de ese nivel, y al cambiarlo se rehace el plan."
       },
       "saveMoney": {
         "question": "¿Cómo me ayuda MonkeyTravel a ahorrar dinero?",
-        "answer": "Optimizamos tu itinerario agrupando actividades por ubicación (menos coste de transporte), sugiriendo alternativas gratuitas, destacando opciones de comida asequible y comparando niveles de presupuesto para que veas exactamente en qué se va tu dinero."
+        "answer": "Agrupamos las actividades por zona (menos gasto en transporte), sugerimos alternativas gratis y sitios económicos para comer, y mostramos un coste estimado de cada parada, para que veas a dónde va tu dinero."
       },
       "hiddenCosts": {
         "question": "¿Hay costes ocultos en la herramienta?",
@@ -137,7 +137,7 @@
   },
   "cta": {
     "title": "¿Listo Para Viajar Más Gastando Menos?",
-    "subtitle": "Mira exactamente cuánto cuesta tu viaje soñado — con precios reales en 3 niveles de presupuesto. 100% gratis, siempre.",
+    "subtitle": "Mira más o menos cuánto cuesta tu viaje, con estimaciones en 3 niveles de presupuesto. 100% gratis.",
     "button": "Planifica Mi Viaje Económico — Gratis"
   }
 }

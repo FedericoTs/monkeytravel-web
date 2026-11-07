@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Pianificatore di Weekend — Fughe di 2-3 Giorni con AI | MonkeyTravel",
-    "description": "Pianifica la fuga del weekend perfetta in 15 minuti con AI. Itinerari personalizzati di 2-3 giorni con gemme locali, prezzi reali e programmazione intelligente. 100% gratis."
+    "description": "Pianifica una gita di fine settimana con l'AI. Itinerario di 2-3 giorni con angoli locali, costi stimati e orari intelligenti. 100% gratis."
   },
   "breadcrumbs": {
     "home": "Home",
@@ -23,7 +23,7 @@
     "heading": "Cos'è un pianificatore di weekend?",
     "definition": "Un pianificatore di weekend costruisce un itinerario di due o tre giorni, dove la risorsa scarsa sono le ore e non i soldi.",
     "distinguish": "In un viaggio breve una decisione sbagliata costa molto di più. Una tappa messa male, un lungo attraversamento della città, e hai speso una fetta consistente del viaggio per arrivare nei posti invece che per starci.",
-    "product": "MonkeyTravel ordina le giornate in modo geografico e rende esplicito il tempo tra una tappa e l'altra, così il sabato non diventa in silenzio tre ore di trasporti. Luoghi reali, prezzi attuali, tre livelli di budget.",
+    "product": "MonkeyTravel ordina le giornate per zona e rende esplicito il tempo di spostamento tra le tappe, così un sabato non si trasforma di nascosto in tre ore di trasferimenti. Luoghi reali, costi stimati, tre livelli di budget.",
     "example": "Due giorni sono circa otto ore utili ciascuno, una volta tolti sonno, pasti e viaggio. Pianificare su quel numero invece che su una lista di desideri è tutto il lavoro.",
     "honest": "Ottimizza il percorso, non i tuoi orari dei treni. Se arrivi tardi il venerdì, accorcia tu il primo giorno prima di partire."
   },
@@ -53,7 +53,7 @@
       },
       "lastMinute": {
         "title": "Pronto all'Ultimo Minuto",
-        "description": "Hai deciso di partire questo venerdì? Nessun problema. Ottieni un itinerario completo per questo weekend con disponibilità in tempo reale e prezzi aggiornati."
+        "description": "Hai deciso di partire questo venerdì? Nessun problema. Ricevi un itinerario curato per questo weekend in circa 30 secondi e verifica la disponibilità prima di partire."
       }
     }
   },
@@ -66,7 +66,7 @@
       },
       "step2": {
         "title": "L'AI Pianifica il Tuo Viaggio di 2-3 Giorni",
-        "description": "La nostra AI costruisce un itinerario del weekend giorno per giorno con luoghi reali, percorsi a piedi e tempistiche intelligenti per sfruttare ogni ora al massimo."
+        "description": "La nostra AI crea un itinerario di weekend giorno per giorno con luoghi reali, percorsi a piedi e orari intelligenti per sfruttare ogni ora."
       },
       "step3": {
         "title": "Fai la Valigia e Parti",
@@ -96,7 +96,7 @@
       },
       "budgetControl": {
         "label": "Controllo del budget",
-        "monkey": "3 livelli con prezzi reali fin dall'inizio",
+        "monkey": "3 livelli con costi stimati fin dall'inizio",
         "chatgpt": "Costi a sorpresa e nessuna stima dei prezzi"
       },
       "lastMinuteChanges": {
