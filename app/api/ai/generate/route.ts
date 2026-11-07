@@ -29,6 +29,7 @@ import {
 } from "@/lib/ai/multi-city";
 import { generateAnchoredItinerary, validateAnchors } from "@/lib/ai/anchored";
 import { knownPlacesFor } from "@/lib/ai/known-places";
+import { keepOffClosingDays } from "@/lib/ai/closing-days";
 import { inPlanCurrency } from "@/lib/ai/plan-currency";
 import { isRealPoint } from "@/lib/trip/placeholder-point";
 import type { TripAnchor } from "@/types";
@@ -229,6 +230,12 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
           }
         })()
       );
+    }
+
+    // No stop on a day it's shut (lib/ai/closing-days.ts). A multi-city or
+    // anchored trip keeps its order: its cities and commitments fix the days.
+    if (!isMultiCity && !isAnchored) {
+      itinerary = (await keepOffClosingDays(itinerary, params.destination)).itinerary;
     }
 
     // Assign activity images server-side (prevents a client race), cached
