@@ -1259,8 +1259,8 @@
       "planOwnLead": "Vai para outro lugar?"
     },
     "savedHero": {
-      "aiTitle": "Roteiro gerado por AI com dados verificados",
-      "aiDescription": "Este roteiro foi criado por AI e enriquecido com dados em tempo real do Google Places. Fotos, avaliações e faixas de preço são verificadas, mas recomendamos conferir novamente os horários de funcionamento e a disponibilidade antes da viagem. Clique em \"Mais\" em qualquer atividade para ver detalhes verificados e fotos.",
+      "aiTitle": "Roteiro gerado por AI",
+      "aiDescription": "Este roteiro foi criado por AI. Clique em \"Mais\" em qualquer atividade para ver as fotos, avaliações e faixas de preço do Google, e confira novamente os horários de funcionamento e a disponibilidade antes da viagem.",
       "loveTitle": "Gostou deste roteiro?",
       "loveDescription": "Salve-o na sua conta e torne-o seu. Edite horários, troque atividades, adicione notas e compartilhe com seus companheiros de viagem.",
       "saveButton": "Salvar em Minhas Viagens",

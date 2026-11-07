@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Budget Trip Planner — Travel More, Spend Less",
-    "description": "Plan affordable trips with AI. Get personalized itineraries with real prices across 3 budget tiers. Find cheap flights, affordable stays, and free activities. 100% free tool."
+    "description": "Plan affordable trips with AI. Get personalized itineraries with cost estimates at 3 budget levels, free activities included. 100% free tool."
   },
   "breadcrumbs": {
     "home": "Home",
@@ -32,11 +32,11 @@
     "subtitle": "Every itinerary includes cost estimates, so you have a good idea of what you'll spend before you go.",
     "items": {
       "priceComparison": {
-        "title": "Side-by-Side Price Comparison",
+        "title": "Pick the Level That Fits",
         "description": "Plan at any of 3 budget levels — Budget, Balanced or Premium — with an estimated cost for each day, so you can pick what fits."
       },
       "budgetTiers": {
-        "title": "3 Budget Tiers Per Trip",
+        "title": "3 Budget Levels",
         "description": "See what each level looks like in any destination, from street food and free sights to fine dining and private tours."
       },
       "costBreakdown": {
@@ -44,8 +44,8 @@
         "description": "Every activity and meal shows an estimated cost, with a total for the trip before you book anything."
       },
       "cheapFlights": {
-        "title": "Affordable Flight Tips",
-        "description": "AI suggests the cheapest times to fly and budget-friendly airports. Save hundreds by being flexible with your travel dates."
+        "title": "Ask About Flights",
+        "description": "Flights aren't in the plan's costs. Ask the assistant about the cheapest times to fly and which airports to try, then check the fares yourself."
       },
       "affordableStays": {
         "title": "Budget-Friendly Stays",
@@ -53,7 +53,7 @@
       },
       "freeActivities": {
         "title": "Free Activities & Hidden Gems",
-        "description": "Every Budget tier itinerary includes free walking tours, parks, viewpoints, and local experiences that cost nothing but are unforgettable."
+        "description": "Budget plans lean on free walking tours, parks, viewpoints and local experiences that cost nothing but are unforgettable."
       }
     }
   },
@@ -62,25 +62,25 @@
     "steps": {
       "step1": {
         "title": "Set Your Budget",
-        "description": "Tell us your destination, travel dates, and daily budget. Not sure? We'll show you what's possible at every price point."
+        "description": "Tell us your destination and travel dates, then choose a budget level. Not sure? Try one: changing it rebuilds the plan."
       },
       "step2": {
-        "title": "AI Finds the Best Deals",
+        "title": "AI Plans Within Your Budget",
         "description": "Our AI builds a complete itinerary for your budget level, with real places and an estimated cost for each one."
       },
       "step3": {
         "title": "Travel for Less",
-        "description": "Hit the road with a fully costed plan. Know exactly what you'll spend each day — and keep more money for souvenirs."
+        "description": "Hit the road with a costed plan. See roughly what you'll spend each day, and keep more money for souvenirs."
       }
     }
   },
   "comparison": {
     "title": "MonkeyTravel vs. Budget Travel Blogs",
-    "subtitle": "Blogs give tips. MonkeyTravel gives you a complete, priced itinerary.",
+    "subtitle": "Blogs give tips. MonkeyTravel gives you a complete itinerary with estimated costs.",
     "otherHeader": "Budget Blogs + Spreadsheets",
     "items": {
       "pricing": {
-        "label": "Real pricing",
+        "label": "Cost per stop",
         "monkey": "Estimated costs for food and activities",
         "other": "Vague estimates like \"budget about $50/day\""
       },
@@ -91,7 +91,7 @@
       },
       "tiers": {
         "label": "Budget tiers",
-        "monkey": "3 tiers with daily cost comparison",
+        "monkey": "3 levels, with an estimated cost per day",
         "other": "Usually one \"budget\" suggestion only"
       },
       "upToDate": {

@@ -109,7 +109,7 @@
       "collaborate": {
         "title": "Built for Groups",
         "description": "Everyone gets a vote. Everyone can edit. No more \"I'll just plan everything\" martyrdom.",
-        "badge": "Unique"
+        "badge": "Free"
       },
       "realData": {
         "title": "Checked Places",
@@ -193,7 +193,7 @@
         "description": "Works in your browser. Phone, tablet, laptop — just open and plan."
       },
       "hallucinations": {
-        "title": "No Fake Places",
+        "title": "No Closed Restaurants",
         "description": "Save a trip and its places to eat get checked on Google Maps. Any that have closed get changed."
       },
       "soloOnly": {

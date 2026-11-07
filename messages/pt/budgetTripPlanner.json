@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Planejador de Viagens Econômicas — Viaje Mais, Gaste Menos",
-    "description": "Planeje viagens acessíveis com AI. Roteiros com preços reais em 3 níveis de orçamento. Encontre voos baratos, hospedagens econômicas e atividades gratuitas. 100% grátis."
+    "description": "Planeje viagens acessíveis com AI. Roteiros com custos estimados em 3 níveis de orçamento, atividades gratuitas incluídas. 100% grátis."
   },
   "breadcrumbs": {
     "home": "Início",
@@ -32,11 +32,11 @@
     "subtitle": "Todo roteiro inclui custos estimados, para você ter uma boa ideia do que vai gastar antes de viajar.",
     "items": {
       "priceComparison": {
-        "title": "Comparação de Preços Lado a Lado",
+        "title": "Escolha o Nível Certo",
         "description": "Planeje em qualquer um dos 3 níveis de orçamento — Econômico, Equilibrado ou Premium — com um custo estimado por dia, para escolher o que combina com você."
       },
       "budgetTiers": {
-        "title": "3 Níveis de Orçamento Por Viagem",
+        "title": "3 Níveis de Orçamento",
         "description": "Veja como é cada nível em qualquer destino, de comida de rua e atrações gratuitas a alta gastronomia e passeios privativos."
       },
       "costBreakdown": {
@@ -44,8 +44,8 @@
         "description": "Cada atividade e refeição mostra um custo estimado, com um total da viagem antes de você reservar qualquer coisa."
       },
       "cheapFlights": {
-        "title": "Dicas de Voos em Conta",
-        "description": "A AI sugere os melhores horários para voar e aeroportos mais baratos. Economize centenas sendo flexível com as datas da viagem."
+        "title": "Pergunte Sobre Voos",
+        "description": "Os voos não entram nos custos do plano. Pergunte ao assistente quando é mais barato voar e quais aeroportos tentar, e depois confira as tarifas."
       },
       "affordableStays": {
         "title": "Hospedagens em Conta",
@@ -53,7 +53,7 @@
       },
       "freeActivities": {
         "title": "Atividades Gratuitas e Joias Escondidas",
-        "description": "Todo roteiro do nível Econômico inclui passeios a pé gratuitos, parques, mirantes e experiências locais que não custam nada, mas são inesquecíveis."
+        "description": "Os planos do nível Econômico apostam em passeios a pé gratuitos, parques, mirantes e experiências locais que não custam nada, mas são inesquecíveis."
       }
     }
   },
@@ -62,25 +62,25 @@
     "steps": {
       "step1": {
         "title": "Defina Seu Orçamento",
-        "description": "Conte para a gente seu destino, as datas da viagem e o orçamento diário. Está em dúvida? A gente mostra o que dá para fazer em cada faixa de preço."
+        "description": "Conte para a gente seu destino e as datas da viagem, e escolha um nível de orçamento. Está em dúvida? Experimente um: ao mudar, o plano é refeito."
       },
       "step2": {
-        "title": "A AI Encontra as Melhores Ofertas",
+        "title": "A AI Planeja Dentro do Seu Orçamento",
         "description": "Nossa AI monta um roteiro completo para o seu nível de orçamento, com lugares reais e um custo estimado para cada um."
       },
       "step3": {
         "title": "Viaje Gastando Menos",
-        "description": "Pegue a estrada com um plano com todos os custos calculados. Saiba exatamente quanto vai gastar por dia — e guarde mais dinheiro para as lembranças."
+        "description": "Pegue a estrada com um plano com custos. Veja mais ou menos quanto vai gastar por dia, e guarde mais dinheiro para as lembrancinhas."
       }
     }
   },
   "comparison": {
     "title": "MonkeyTravel vs. Blogs de Viagem Econômica",
-    "subtitle": "Blogs dão dicas. A MonkeyTravel te dá um roteiro completo e com preços.",
+    "subtitle": "Blogs dão dicas. A MonkeyTravel te dá um roteiro completo com custos estimados.",
     "otherHeader": "Blogs de Viagem Econômica + Planilhas",
     "items": {
       "pricing": {
-        "label": "Preços reais",
+        "label": "Custo por parada",
         "monkey": "Custos estimados de comida e atividades",
         "other": "Estimativas vagas como \"reserve uns US$ 50/dia\""
       },
@@ -91,7 +91,7 @@
       },
       "tiers": {
         "label": "Níveis de orçamento",
-        "monkey": "3 níveis com comparação de custos diários",
+        "monkey": "3 níveis, com um custo estimado por dia",
         "other": "Geralmente só uma sugestão \"econômica\""
       },
       "upToDate": {

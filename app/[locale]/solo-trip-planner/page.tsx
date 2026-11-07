@@ -19,7 +19,7 @@ import { landingMetadata } from '@/lib/seo/landing-metadata';
  * changes — never automate it. A date that moves on every build tells Google
  * the whole site churns and teaches it to discount lastmod everywhere.
  */
-const CONTENT_UPDATED = '2026-11-02';
+const CONTENT_UPDATED = '2026-11-07';
 const PAGE_PATH = '/solo-trip-planner';
 
 export const generateMetadata = landingMetadata('soloTripPlanner', PAGE_PATH, 'MonkeyTravel — Solo Trip Planner');

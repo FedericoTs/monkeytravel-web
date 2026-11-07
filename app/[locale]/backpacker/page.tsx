@@ -101,7 +101,7 @@ async function fetchBackpackerTrips(): Promise<ExploreFeedResponse | null> {
  * changes — never automate it. A date that moves on every build tells Google
  * the whole site churns and teaches it to discount lastmod everywhere.
  */
-const CONTENT_UPDATED = '2026-05-29';
+const CONTENT_UPDATED = '2026-11-07';
 const PAGE_PATH = "/backpacker";
 
 export async function generateMetadata({

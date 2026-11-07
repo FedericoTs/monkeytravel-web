@@ -109,7 +109,7 @@
       "collaborate": {
         "title": "Fatto per i Gruppi",
         "description": "Tutti votano. Tutti possono modificare. Basta con il \"ci penso io a tutto\".",
-        "badge": "Unico"
+        "badge": "Gratis"
       },
       "realData": {
         "title": "Luoghi Verificati",
@@ -193,7 +193,7 @@
         "description": "Funziona nel tuo browser. Telefono, tablet, laptop — basta aprire e pianificare."
       },
       "hallucinations": {
-        "title": "Nessun Luogo Falso",
+        "title": "Nessun Ristorante Chiuso",
         "description": "Salva un viaggio e i posti dove mangiare vengono verificati su Google Maps. Quelli chiusi vengono sostituiti."
       },
       "soloOnly": {

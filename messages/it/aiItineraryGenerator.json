@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Generatore di Itinerari con AI — Giorno per Giorno",
-    "description": "Genera itinerari di viaggio completi con AI in 30 secondi. Piani giorno per giorno con luoghi reali, prezzi attuali e blocchi orari intelligenti. Gratuito, senza registrazione."
+    "description": "Genera itinerari di viaggio completi con AI in 30 secondi. Piani giorno per giorno con luoghi reali, costi stimati e blocchi orari intelligenti. Gratuito, senza registrazione."
   },
   "breadcrumbs": {
     "home": "Home",
@@ -33,7 +33,7 @@
     "items": {
       "smartItineraries": {
         "title": "Itinerari AI Intelligenti",
-        "description": "Algoritmi avanzati analizzano migliaia di dati per creare piani giorno per giorno perfettamente strutturati con blocchi mattina, pomeriggio e sera."
+        "description": "Ogni giorno è organizzato in blocchi di mattina, pomeriggio e sera, con luoghi vicini tra loro e il tempo per spostarsi."
       },
       "realTimeData": {
         "title": "Dati Reali dei Luoghi",
@@ -96,7 +96,7 @@
       },
       "budgetOptions": {
         "label": "Livelli di budget",
-        "monkey": "3 itinerari completi: Economico, Bilanciato, Premium",
+        "monkey": "Economico, Bilanciato o Premium: il livello lo scegli tu",
         "chatgpt": "Un solo suggerimento generico senza dati sui prezzi"
       },
       "exportOptions": {

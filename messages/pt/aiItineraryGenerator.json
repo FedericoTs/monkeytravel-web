@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Gerador de Roteiros com AI — Planos de Viagem Dia a Dia",
-    "description": "Gere roteiros de viagem completos com AI em 30 segundos. Planos dia a dia com lugares reais, preços atuais e blocos de tempo inteligentes. Grátis, sem cadastro."
+    "description": "Gere roteiros de viagem completos com AI em 30 segundos. Planos dia a dia com lugares reais, custos estimados e blocos de tempo inteligentes. Grátis, sem cadastro."
   },
   "breadcrumbs": {
     "home": "Início",
@@ -33,7 +33,7 @@
     "items": {
       "smartItineraries": {
         "title": "Roteiros Inteligentes com AI",
-        "description": "Algoritmos avançados analisam milhares de dados para criar planos dia a dia perfeitamente estruturados com blocos de manhã, tarde e noite."
+        "description": "Cada dia é organizado em blocos de manhã, tarde e noite, com lugares próximos e tempo para ir de um a outro."
       },
       "realTimeData": {
         "title": "Dados Reais de Lugares",
@@ -96,7 +96,7 @@
       },
       "budgetOptions": {
         "label": "Níveis de orçamento",
-        "monkey": "3 roteiros completos: Econômico, Equilibrado, Premium",
+        "monkey": "Econômico, Equilibrado ou Premium: você escolhe o nível",
         "chatgpt": "Uma sugestão genérica sem dados de preços"
       },
       "exportOptions": {

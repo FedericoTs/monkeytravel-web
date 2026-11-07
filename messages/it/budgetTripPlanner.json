@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Pianificatore di Viaggi Economici con AI",
-    "description": "Pianifica viaggi accessibili con AI. Ottieni itinerari personalizzati con prezzi reali su 3 livelli di budget. Trova voli economici, alloggi convenienti e attività gratuite. Strumento 100% gratuito."
+    "description": "Pianifica viaggi accessibili con AI. Ottieni itinerari personalizzati con costi stimati su 3 livelli di budget, attività gratuite incluse. Strumento 100% gratuito."
   },
   "breadcrumbs": {
     "home": "Home",
@@ -32,11 +32,11 @@
     "subtitle": "Ogni itinerario include costi stimati, così hai un'idea chiara di quanto spenderai prima di partire.",
     "items": {
       "priceComparison": {
-        "title": "Confronto Prezzi Fianco a Fianco",
+        "title": "Scegli il Livello Giusto",
         "description": "Pianifica su uno qualsiasi dei 3 livelli di budget — Economico, Bilanciato o Premium — con un costo stimato per ogni giorno, così scegli quello che fa per te."
       },
       "budgetTiers": {
-        "title": "3 Livelli di Budget Per Viaggio",
+        "title": "3 Livelli di Budget",
         "description": "Scopri come si presenta ogni livello in qualsiasi destinazione, dal cibo di strada e le visite gratuite all'alta cucina e ai tour privati."
       },
       "costBreakdown": {
@@ -44,8 +44,8 @@
         "description": "Ogni attività e ogni pasto mostra un costo stimato, con un totale del viaggio prima di prenotare qualsiasi cosa."
       },
       "cheapFlights": {
-        "title": "Consigli per Voli Economici",
-        "description": "L'AI suggerisce i periodi più economici per volare e gli aeroporti convenienti. Risparmia centinaia di euro essendo flessibile con le date di viaggio."
+        "title": "Chiedi dei Voli",
+        "description": "I voli non sono nei costi del piano. Chiedi all'assistente quando conviene volare e quali aeroporti provare, poi controlla tu le tariffe."
       },
       "affordableStays": {
         "title": "Alloggi Economici",
@@ -53,7 +53,7 @@
       },
       "freeActivities": {
         "title": "Attività Gratuite e Gemme Nascoste",
-        "description": "Ogni itinerario Economico include tour a piedi gratuiti, parchi, punti panoramici e esperienze locali che non costano nulla ma sono indimenticabili."
+        "description": "I piani Economici puntano su tour a piedi gratuiti, parchi, punti panoramici ed esperienze locali che non costano nulla ma sono indimenticabili."
       }
     }
   },
@@ -62,25 +62,25 @@
     "steps": {
       "step1": {
         "title": "Imposta il Tuo Budget",
-        "description": "Dicci la tua destinazione, le date di viaggio e il budget giornaliero. Non sei sicuro? Ti mostriamo cosa è possibile ad ogni livello di prezzo."
+        "description": "Dicci la tua destinazione e le date di viaggio, poi scegli un livello di budget. Non sei sicuro? Provane uno: cambiandolo, il piano si rifà."
       },
       "step2": {
-        "title": "L'AI Trova le Migliori Offerte",
+        "title": "L'AI Pianifica Nel Tuo Budget",
         "description": "La nostra AI crea un itinerario completo per il tuo livello di budget, con luoghi reali e un costo stimato per ciascuno."
       },
       "step3": {
         "title": "Viaggia Spendendo Meno",
-        "description": "Parti con un piano completamente costificato. Sai esattamente quanto spenderai ogni giorno — e tieni più soldi per i souvenir."
+        "description": "Parti con un piano con i costi. Vedi più o meno quanto spenderai ogni giorno, e tieni più soldi per i souvenir."
       }
     }
   },
   "comparison": {
     "title": "MonkeyTravel vs. Blog di Viaggi Economici",
-    "subtitle": "I blog danno consigli. MonkeyTravel ti dà un itinerario completo con prezzi.",
+    "subtitle": "I blog danno consigli. MonkeyTravel ti dà un itinerario completo con costi stimati.",
     "otherHeader": "Blog di Viaggi Economici + Fogli di Calcolo",
     "items": {
       "pricing": {
-        "label": "Prezzi reali",
+        "label": "Costo per tappa",
         "monkey": "Costi stimati per cibo e attività",
         "other": "Stime vaghe come \"prevedi circa $50/giorno\""
       },
@@ -91,7 +91,7 @@
       },
       "tiers": {
         "label": "Livelli di budget",
-        "monkey": "3 livelli con confronto dei costi giornalieri",
+        "monkey": "3 livelli, con un costo stimato al giorno",
         "other": "Di solito solo un suggerimento \"economico\""
       },
       "upToDate": {
