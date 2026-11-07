@@ -26,6 +26,7 @@
 
 import { reportPageTranslation } from "@/lib/analytics/page-translated";
 import { posthogActionFor, POSTHOG_COOKIELESS_MODE } from "@/lib/analytics/posthog-consent";
+import { scrubCapture } from "@/lib/analytics/scrub-url";
 import { CONSENT_CHANGE_EVENT } from "@/lib/consent/types";
 import { configureSentry, sentry } from "@/lib/observability/sentry";
 import { SENTRY_DATA_COLLECTION } from "@/lib/observability/sentry-data-collection";
@@ -286,6 +287,9 @@ function initMonitoring() {
         // the request and rotates daily.
         cookieless_mode: POSTHOG_COOKIELESS_MODE,
         person_profiles: "identified_only",
+        // Shared-trip, invite, join and day-link keys never leave the page
+        // (lib/analytics/scrub-url.ts).
+        before_send: scrubCapture,
         loaded: (ph) => {
           applyPosthogConsent(ph, initialConsent);
           console.log("[PostHog] Initialized, consent:", posthogActionFor(initialConsent));
