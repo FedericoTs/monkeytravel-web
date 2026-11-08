@@ -411,6 +411,19 @@ describe("composeReply: what a change said and didn't do", () => {
     expect(composeReply({ ...base, reply: "I've added an extra day of beaches.", edits: [d2] })).not.toContain("stays at");
   });
 
+  it("says the trip keeps its length when the reply gives it more days than the change does", () => {
+    // Asked for cities with their dates, not for "more days".
+    const reply = "I've updated your trip to have 16 days, starting in Paris and ending in Budapest.";
+    expect(composeReply({ ...base, reply, edits: [d2] })).toContain("The trip stays at 5 days");
+    // The days it really has, or fewer, need no note.
+    expect(composeReply({ ...base, reply: "Here's Day 2 of your 5-day trip.", edits: [d2] })).not.toContain("stays at");
+    expect(composeReply({ ...base, reply: "Day 2 now opens your 3-day stay in Paris.", edits: [d2] })).not.toContain("stays at");
+    // A change that does make the trip longer.
+    const longer = validateEdits(trip(), { edits: [edit(2), edit(6)], tripLength: 6 }, "EUR");
+    expect(longer.tripLength).toBe(6);
+    expect(composeReply({ ...base, reply: "Your trip now has 6 days.", edits: longer.edits, tripLength: longer.tripLength })).not.toContain("stays at");
+  });
+
   it("drops 'already in EUR' next to an edit, and keeps the change's prices", () => {
     const reply = "I've moved the Alcazaba to Day 2. Lunch there is about 25 EUR. The plan already shows costs in EUR, so no change was needed.";
     expect(composeReply({ ...base, reply, edits: [d2], currency: "EUR" })).toBe(
