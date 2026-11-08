@@ -142,6 +142,15 @@ function EditableActivityCard({
     setIsEditing(true);
   };
 
+  // Tapping the stop itself opens its editor, as the page's hint says. Its
+  // buttons, links and fields keep their own jobs, and the pencil stays the
+  // way in from a keyboard.
+  const handleCardTap = (e: React.MouseEvent) => {
+    if (!isEditMode || isEditing) return;
+    if ((e.target as HTMLElement).closest("button, a, input, textarea, select, [role='button'], [role='menuitem']")) return;
+    startEditing();
+  };
+
   const handleSaveEdit = () => {
     onUpdate({ ...editValues, name: editValues.name.trim() });
     setIsEditing(false);
@@ -293,7 +302,7 @@ function EditableActivityCard({
       )}
 
       {/* Main Content */}
-      <div className="p-3 sm:p-4">
+      <div className={`p-3 sm:p-4 ${isEditMode && !isEditing ? "cursor-pointer" : ""}`} onClick={handleCardTap}>
         <div className="flex gap-3 sm:gap-4">
           {/* Time Column - hidden on mobile */}
           <div className="hidden sm:flex flex-shrink-0 text-center w-16 flex-col">
