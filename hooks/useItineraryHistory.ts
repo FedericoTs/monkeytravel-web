@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ItineraryDay } from "@/types";
 
 interface HistoryEntry {
@@ -25,6 +25,12 @@ export function useItineraryHistory(
 ) {
   const [undoStack, setUndoStack] = useState<HistoryEntry[]>([]);
   const [redoStack, setRedoStack] = useState<HistoryEntry[]>([]);
+  // The plan as it is now. A card that hasn't re-rendered calls the push it
+  // was given at an earlier render; its snapshot must not be that render's plan.
+  const latest = useRef(itinerary);
+  useEffect(() => {
+    latest.current = itinerary;
+  }, [itinerary]);
 
   const clear = useCallback(() => {
     setUndoStack([]);
@@ -33,12 +39,12 @@ export function useItineraryHistory(
 
   const push = useCallback((action: string) => {
     setUndoStack(prev => [...prev.slice(-MAX_HISTORY + 1), {
-      itinerary: JSON.parse(JSON.stringify(itinerary)),
+      itinerary: JSON.parse(JSON.stringify(latest.current)),
       action,
       timestamp: Date.now()
     }]);
     setRedoStack([]); // Clear redo stack on new action
-  }, [itinerary]);
+  }, []);
 
   const undo = useCallback(() => {
     if (undoStack.length === 0) return;
