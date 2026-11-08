@@ -7,7 +7,7 @@ import { useToast } from "@/components/ui/Toast";
 import { captureActivityModified } from "@/lib/posthog/events";
 import { hapticSelection } from "@/lib/native/haptics";
 import { applyMove, describeMove, isSameDayTarget, locateActivity } from "@/lib/trip/itinerary-dnd";
-import { findActivityById, moveActivityToDay, recalculateActivityTimes } from "@/lib/utils/activity-id";
+import { findActivityById, fitMovedStop, moveActivityToDay } from "@/lib/utils/activity-id";
 import type { ItineraryDay } from "@/types";
 
 interface ItineraryMovesOptions {
@@ -70,8 +70,9 @@ export function useItineraryMoves({ tripId, itinerary, setItinerary, pushUndo, u
       const targetDayNumber = next[targetDayIndex]?.day_number ?? targetDayIndex + 1;
       const sourceDayNumber = next[sourceDayIndex]?.day_number ?? sourceDayIndex + 1;
       pushUndo(`Move activity to day ${targetDayNumber}`);
-      const withSourceTimes = recalculateActivityTimes(next, sourceDayIndex);
-      setItinerary(recalculateActivityTimes(withSourceTimes, targetDayIndex));
+      // The stop keeps its time from the sheet (it landed in its time order)
+      // or takes the slot it was dropped in; the day it left keeps its times.
+      setItinerary(fitMovedStop(next, targetDayIndex, activityId, method === "menu" ? "keep" : "slot"));
       hapticSelection();
       focusDay(targetDayNumber);
       addToast(t("editActivity.movedToDay", { day: targetDayNumber }), "success", 6000, {
@@ -163,7 +164,7 @@ export function useItineraryMoves({ tripId, itinerary, setItinerary, pushUndo, u
       if (from.index === to.index) return; // dropped where it started
 
       pushUndo("Reorder activities");
-      setItinerary(recalculateActivityTimes(settled, move.targetDayIndex));
+      setItinerary(fitMovedStop(settled, move.targetDayIndex, activeId, "slot"));
       hapticSelection();
     },
     [dragPreview, commitMove, pushUndo, setItinerary],

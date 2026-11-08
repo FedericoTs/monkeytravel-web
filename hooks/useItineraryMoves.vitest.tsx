@@ -84,6 +84,14 @@ describe("useItineraryMoves: the card's Move to another day sheet", () => {
     });
   });
 
+  it("keeps the times the traveller had: the moved stop's own, and every one on both days", () => {
+    const { result } = render();
+    act(() => result.current.moves.moveToDay("a2", 1));
+
+    const times = result.current.itinerary.map((d) => d.activities.map((a) => `${a.start_time} ${a.id}`));
+    expect(times).toEqual([["09:00 a1"], ["10:00 b1", "14:00 a2"]]);
+  });
+
   it("counts only the first move as the first modification", () => {
     const { result } = render();
     act(() => result.current.moves.moveToDay("b1", 0));
