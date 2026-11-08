@@ -34,3 +34,31 @@ describe("VibeSelector", () => {
     expect(card("foodie").style.borderColor).toBe("var(--vibe-foodie)");
   });
 });
+
+/**
+ * In autumn the planner suggests Foodie on step 2. A traveller who then tapped
+ * Cultural got Foodie as the plan's main vibe (half its weight) and Cultural
+ * second. The suggestion now gives way to their first pick.
+ */
+describe("a suggested vibe", () => {
+  it("is replaced by the traveller's first pick, which then leads", () => {
+    const onVibesChange = vi.fn();
+    render(<VibeSelector selectedVibes={["foodie"]} onVibesChange={onVibesChange} suggested />);
+    fireEvent.click(card("cultural"));
+    expect(onVibesChange).toHaveBeenCalledWith(["cultural"]);
+  });
+
+  it("goes when it is tapped, as any chosen vibe does", () => {
+    const onVibesChange = vi.fn();
+    render(<VibeSelector selectedVibes={["cultural", "romantic"]} onVibesChange={onVibesChange} suggested />);
+    fireEvent.click(card("romantic"));
+    expect(onVibesChange).toHaveBeenCalledWith(["cultural"]);
+  });
+
+  it("does not change how the traveller's own picks add up", () => {
+    const onVibesChange = vi.fn();
+    render(<VibeSelector selectedVibes={["foodie"]} onVibesChange={onVibesChange} />);
+    fireEvent.click(card("cultural"));
+    expect(onVibesChange).toHaveBeenCalledWith(["foodie", "cultural"]);
+  });
+});

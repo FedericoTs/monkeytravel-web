@@ -526,6 +526,8 @@ export default function NewTripPage({
   );
   const [pace, setPace] = useState<TripPace>("moderate");
   const [selectedVibes, setSelectedVibes] = useState<TripVibe[]>([]);
+  // The vibes are the season's suggestion until the traveller picks one.
+  const [vibesSuggested, setVibesSuggested] = useState(false);
   const [requirements, setRequirements] = useState("");
   // Must-do wishlist: undated wishes ("Great Wall", "eat Peking duck")
   // entered as chips on step 2. Distinct from anchors (date-pinned) and from
@@ -666,6 +668,7 @@ export default function NewTripPage({
     (v: TripVibe[]) => {
       trackFieldInteraction("vibe");
       setSelectedVibes(v);
+      setVibesSuggested(false);
     },
     [trackFieldInteraction]
   );
@@ -1731,7 +1734,10 @@ export default function NewTripPage({
     if (step === 1 && seasonalContext && selectedVibes.length === 0 && startDate) {
       try {
         const seed = seasonalVibeSeed(seasonalContext, startDate);
-        if (seed.length > 0) setSelectedVibes(seed);
+        if (seed.length > 0) {
+          setSelectedVibes(seed);
+          setVibesSuggested(true);
+        }
       } catch (err) {
         // Non-fatal: if the helper throws, step 2 just
         // starts empty.
@@ -1913,6 +1919,7 @@ export default function NewTripPage({
             destination={destination}
             selectedVibes={selectedVibes}
             handleVibesChange={handleVibesChange}
+            vibesSuggested={vibesSuggested}
             mustDos={mustDos}
             setMustDos={setMustDos}
             mustDoInput={mustDoInput}
