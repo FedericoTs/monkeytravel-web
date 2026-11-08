@@ -1,13 +1,12 @@
 /**
  * Where a pre-trip reminder's button points, shared by the cron and the audit
- * script (relative imports, so tsx resolves them). The day-before and
- * departure-day emails are read on a phone, often signed out: they open trip
- * day 1 through a signed link, or the trip page if it cannot be signed.
+ * script (relative imports, so tsx resolves them). Reminders are read on a
+ * phone, mostly signed out, and the trip page asks them to sign in first: so
+ * every reminder opens trip day 1 through a signed link, read-only with a way
+ * on to the trip, or the trip page if the link cannot be signed.
  */
 import { digestDayUrl } from "../trips/day-link";
 import type { TripReminderSlot } from "./templates/TripReminder";
-
-const DAY_ONE_SLOTS: ReadonlySet<TripReminderSlot> = new Set(["confirm_1d", "morning_of"]);
 
 export interface ReminderCtaOpts {
   /** Absolute app origin, e.g. https://monkeytravel.app. */
@@ -20,6 +19,5 @@ export interface ReminderCtaOpts {
 }
 
 export function reminderCtaUrl(slot: TripReminderSlot, opts: ReminderCtaOpts): string {
-  if (DAY_ONE_SLOTS.has(slot)) return digestDayUrl({ ...opts, day: 1, slot });
-  return `${opts.appUrl}/trips/${opts.tripId}?slot=${slot}`;
+  return digestDayUrl({ ...opts, day: 1, slot });
 }

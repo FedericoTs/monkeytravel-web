@@ -128,8 +128,8 @@ export async function sendSlotEmail(
   const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app";
   const tripUrl = `${APP_URL}/trips/${trip.id}?slot=${row.slot}`;
 
-  // Where the CTA points: reminderCtaUrl (the trip, or day 1 without sign-in
-  // the day before and the morning of departure) and postTripCtaUrl (return →
+  // Where the CTA points: reminderCtaUrl (day 1 without sign-in, or the trip
+  // if the link can't be signed) and postTripCtaUrl (return →
   // the answer "yes, I went", later slots → wizard), shared with the audit script
   // so it vets what ships. `slot`, not `utm_source`: a utm_* param on an internal
   // link overwrites the stored acquisition source.
