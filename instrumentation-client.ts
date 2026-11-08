@@ -40,10 +40,10 @@ if (typeof window !== "undefined") {
 
 // Helper to check consent from localStorage (runs before React)
 function getStoredConsent(): { analytics: boolean; sessionRecording: boolean } | null {
-  if (typeof window === "undefined" || typeof localStorage === "undefined") {
-    return null;
-  }
+  if (typeof window === "undefined") return null;
+  // Touching localStorage itself throws when the browser blocks storage.
   try {
+    if (typeof localStorage === "undefined") return null;
     const stored = localStorage.getItem("mt_cookie_consent");
     if (!stored) return null;
     const record = JSON.parse(stored);
