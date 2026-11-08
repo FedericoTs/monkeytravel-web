@@ -28,6 +28,13 @@ describe("server and edge tracing", () => {
     expect(init.mock.calls[0][0]).toMatchObject({ traceLifecycle: "static" });
   });
 
+  it("server and edge messages are titled by their text, not by the helper that sends them", async () => {
+    await import("../../sentry.server.config");
+    await import("../../sentry.edge.config");
+    expect(init).toHaveBeenCalledTimes(2);
+    for (const [options] of init.mock.calls) expect(options).toMatchObject({ attachStacktrace: false });
+  });
+
   it("the build keeps the tracing code in the server and edge bundles", () => {
     // withSentryConfig turns excludeTracing into a build-time define that
     // Next.js applies to every bundle, server and edge included, so with it
