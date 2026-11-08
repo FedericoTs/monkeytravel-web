@@ -180,7 +180,7 @@
       "freeReassurance": "Gratis: mira tu viaje día a día completo antes de registrarte",
       "flexibleDatesCta": "¿Aún no sabes las fechas? Usa fechas flexibles",
       "flexibleDatesActive": "Fechas flexibles — puedes ajustarlas cuando quieras",
-      "backpackerModeOn": "Modo Mochilero — ACTIVO",
+      "backpackerModeOn": "Modo mochilero — ACTIVO",
       "backpackerModeSummary": "Albergues · Presupuesto · Social",
       "backpackerModeNote": "Daremos prioridad a albergues, free tours a pie, comida callejera y transporte público.",
       "editorial": {
@@ -219,8 +219,8 @@
     "returningUser": {
       "welcomeBack": "¡Bienvenido de nuevo!",
       "subtitle": "Ya tienes viajes guardados. ¿Quieres continuar donde lo dejaste?",
-      "goToMyTrips": "Ir a Mis Viajes",
-      "startNewTrip": "Empezar un Viaje Nuevo",
+      "goToMyTrips": "Ir a mis viajes",
+      "startNewTrip": "Empezar un viaje nuevo",
       "dismiss": "Cerrar"
     },
     "step2": {
@@ -231,7 +231,7 @@
       "daysLabel": "{count} días",
       "customize": "Personaliza presupuesto, ritmo y preferencias",
       "customizeDefaults": "(por defecto: presupuesto equilibrado, ritmo moderado)",
-      "generate": "Generar Itinerario",
+      "generate": "Generar itinerario",
       "back": "Atrás",
       "mustDos": {
         "title": "¿Algo que tengas que ver, hacer o probar sí o sí?",
@@ -261,14 +261,14 @@
       "notQuiteRight": "¿No es lo que buscabas?",
       "viewCards": "Tarjetas",
       "viewTimeline": "Cronología",
-      "hideMap": "Ocultar Mapa",
-      "showMap": "Mostrar Mapa",
-      "startOver": "Empezar de Nuevo",
+      "hideMap": "Ocultar mapa",
+      "showMap": "Mostrar mapa",
+      "startOver": "Empezar de nuevo",
       "regenerate": "Regenerar",
-      "saveTrip": "Guardar Viaje",
+      "saveTrip": "Guardar viaje",
       "saving": "Guardando...",
       "duration": "Duración",
-      "estBudget": "Presupuesto Estimado",
+      "estBudget": "Presupuesto estimado",
       "activities": "Actividades",
       "pace": "Ritmo",
       "days": "{count, plural, one {# día} other {# días}}",
@@ -286,8 +286,8 @@
         "endOfTrip": "Ese es todo el viaje."
       },
       "dayLabel": "Día {n}",
-      "packingSuggestions": "Sugerencias de Equipaje",
-      "dailyBudget": "Presupuesto Estimado",
+      "packingSuggestions": "Sugerencias de equipaje",
+      "dailyBudget": "Presupuesto estimado",
       "mobileSaveNudge": "{count, plural, one {# día} other {# días}} — guardado solo en este navegador hasta que lo conserves",
       "saveHeaderNudge": "{count, plural, one {# día} other {# días}} — solo en este navegador",
       "shareForVotes": "Envíaselo a quienes vienen",
@@ -395,7 +395,7 @@
       "description": "Actividades al aire libre, rutas de senderismo y experiencias de adrenalina"
     },
     "cultural": {
-      "label": "Explorador Cultural",
+      "label": "Explorador cultural",
       "description": "Museos, sitios históricos, tradiciones locales y maravillas del pasado"
     },
     "foodie": {
@@ -403,23 +403,23 @@
       "description": "Cocina local, tours gastronómicos, mercados y experiencias culinarias"
     },
     "wellness": {
-      "label": "Bienestar y Relajación",
+      "label": "Bienestar y relajación",
       "description": "Spas, retiros de yoga, jardines tranquilos y experiencias rejuvenecedoras"
     },
     "romantic": {
-      "label": "Escapada Romántica",
+      "label": "Escapada romántica",
       "description": "Lugares pintorescos, puestas de sol, cenas íntimas y actividades en pareja"
     },
     "urban": {
-      "label": "Explorador Urbano",
+      "label": "Explorador urbano",
       "description": "Vida de ciudad, zonas comerciales, vida nocturna y atracciones modernas"
     },
     "nature": {
-      "label": "Amante de la Naturaleza",
+      "label": "Amante de la naturaleza",
       "description": "Parques, jardines, paisajes escenicso y encuentros con la fauna"
     },
     "offbeat": {
-      "label": "Fuera de lo Común",
+      "label": "Fuera de lo común",
       "description": "Joyas escondidas, secretos locales y experiencias poco convencionales"
     },
     "time-traveler": {
@@ -427,11 +427,11 @@
       "description": "Ruinas antiguas, castillos medievales y monumentos históricos"
     },
     "photo-hunter": {
-      "label": "Cazador de Fotos",
+      "label": "Cazador de fotos",
       "description": "Lugares instagrameables, miradores y locaciones fotogenicas"
     },
     "local-life": {
-      "label": "Vida Local",
+      "label": "Vida local",
       "description": "Barrios, cafés locales, mercados y experiencias auténticas"
     },
     "night-owl": {
@@ -473,7 +473,7 @@
     }
   },
   "requirements": {
-    "title": "Requisitos Especiales",
+    "title": "Requisitos especiales",
     "placeholder": "ej., accesible en silla de ruedas, restaurantes vegetarianos, apto para niños...",
     "hint": "Opcional - cuéntanos sobre cualquier necesidad específica"
   },
@@ -504,8 +504,8 @@
   "result": {
     "title": "Tu Itinerario en {destination}",
     "daysCount": "{count} Días",
-    "saveTrip": "Guardar Viaje",
-    "startOver": "Empezar de Nuevo",
+    "saveTrip": "Guardar viaje",
+    "startOver": "Empezar de nuevo",
     "regenerate": "Regenerar",
     "share": "Compartir",
     "export": "Exportar",
@@ -537,7 +537,7 @@
     "todaysActivities": "Actividades de hoy",
     "progressCompleted": "{completed}/{total} completadas",
     "noActivitiesToday": "No hay actividades planeadas para hoy",
-    "dayComplete": "¡Día Completado!",
+    "dayComplete": "¡Día completado!",
     "allActivitiesCompleted": "Has completado todas las actividades de hoy",
     "doneBadge": "✓ Hecho",
     "skippedBadge": "Omitida",
@@ -548,9 +548,9 @@
     "free": "Gratis",
     "tips": "Consejos",
     "directions": "Cómo llegar",
-    "moreInfo": "Más Info",
+    "moreInfo": "Más info",
     "booking": "Reserva",
-    "insiderTips": "Consejos Locales",
+    "insiderTips": "Consejos locales",
     "aiEstimate": "Estimación AI"
   },
   "detail": {
@@ -576,17 +576,17 @@
       "busy": "Alguien está editando este viaje ahora mismo. Inténtalo de nuevo en un momento."
     },
     "regeneratingDay": "Regenerando Día {number}…",
-    "backToTrips": "Volver a Viajes",
+    "backToTrips": "Volver a viajes",
     "cards": "Tarjetas",
     "timeline": "Cronología",
     "viewToggle": "Vista del itinerario",
-    "showMap": "Mostrar Mapa",
-    "hideMap": "Ocultar Mapa",
+    "showMap": "Mostrar mapa",
+    "hideMap": "Ocultar mapa",
     "loadingMap": "Cargando mapa...",
-    "editTrip": "Editar Viaje",
+    "editTrip": "Editar viaje",
     "editing": "Editando",
-    "editingMode": "Modo Edición",
-    "optimizeRoute": "Optimizar Ruta",
+    "editingMode": "Modo edición",
+    "optimizeRoute": "Optimizar ruta",
     "optimize": "Optimizar",
     "routeOptimized": "Ruta optimizada",
     "routeOptimizedSave": "Ruta optimizada. Guarda los cambios para conservarla.",
@@ -595,13 +595,13 @@
     "activityRegenerateFailed": "No se pudo regenerar la actividad. Inténtalo de nuevo.",
     "activityRegenerateLimit": "Has alcanzado el límite de regeneraciones de este mes. La actividad no ha cambiado.",
     "saveChangesFailed": "No se pudieron guardar los cambios. Inténtalo de nuevo.",
-    "estBudget": "Presupuesto Est.",
+    "estBudget": "Presupuesto est.",
     "noItinerary": "Aún no hay itinerario",
     "noItineraryMessage": "Este viaje aún no tiene actividades planificadas.",
     "reorderActivities": "Arrastra para reordenar, o suéltalo en otro día. Usa ⋯ para moverlo con precisión.",
     "unsavedChanges": "Cambios sin guardar",
-    "discardChanges": "Descartar Cambios",
-    "saveChanges": "Guardar Cambios",
+    "discardChanges": "Descartar cambios",
+    "saveChanges": "Guardar cambios",
     "doneEditing": "Listo",
     "cancel": "Cancelar",
     "saving": "Guardando...",
@@ -627,12 +627,12 @@
     "aiGenerated": "Itinerario Generado con AI",
     "aiGeneratedDescription": "Este itinerario fue creado por AI.",
     "clickMoreInfo": "Haz clic en \"Más\" en cualquier actividad para ver los detalles y las fotos de Google.",
-    "editModeActive": "Modo Edición Activo",
+    "editModeActive": "Modo edición activo",
     "editModeInstructions": "Arrastra para reordenar, toca para editar, o usa el menú para eliminar actividades. Haz clic en el botón verde de arriba cuando termines.",
     "aiAssistant": "Asistente AI",
     "customizeTrip": "Personaliza tu viaje",
     "aiHelp": "Ayuda AI",
-    "aiTripAssistant": "Asistente de Viaje AI",
+    "aiTripAssistant": "Asistente de viaje AI",
     "suggestActivity": "+ Sugerir una actividad para este día",
     "proposalSubmitted": "¡Propuesta enviada! Otros viajeros votarán sobre ella.",
     "proposalApproved": "Propuesta aprobada: «{name}» ya está en el día {day}.",
@@ -671,14 +671,14 @@
     "editActivity": "Editar actividad",
     "regenerateWithAI": "Regenerar con AI",
     "deleteActivity": "Eliminar actividad",
-    "deleteConfirmTitle": "¿Eliminar Actividad?",
+    "deleteConfirmTitle": "¿Eliminar actividad?",
     "deleteConfirmMessage": "\"{name}\" será eliminada de tu itinerario.",
     "regenerating": "Regenerando actividad con AI..."
   },
   "addActivity": {
-    "title": "Añadir Actividad",
+    "title": "Añadir actividad",
     "addToDay": "Añadir Actividad al Día {day}",
-    "activityName": "Nombre de Actividad",
+    "activityName": "Nombre de actividad",
     "activityNamePlaceholder": "ej., Visitar el mercado local",
     "type": "Tipo",
     "duration": "Duración",
@@ -708,7 +708,7 @@
     "wineBar": "Vinoteca",
     "park": "Parque",
     "market": "Mercado",
-    "nightlife": "Vida Nocturna",
+    "nightlife": "Vida nocturna",
     "spa": "Spa",
     "wellness": "Bienestar",
     "event": "Evento",
@@ -736,37 +736,37 @@
     "joinWaitlist": "Únete a la lista de espera para acceso anticipado"
   },
   "save": {
-    "title": "Guardar Tu Viaje",
+    "title": "Guardar tu viaje",
     "subtitle": "Crea una cuenta para guardar y acceder a tu viaje en cualquier momento",
     "saving": "Guardando tu viaje...",
     "success": "¡Viaje guardado exitosamente!",
     "error": "Error al guardar el viaje. Por favor, inténtalo de nuevo."
   },
   "startOver": {
-    "title": "¿Empezar de Nuevo?",
+    "title": "¿Empezar de nuevo?",
     "message": "Esto descartara tu itinerario actual y empezara desde cero.",
-    "confirm": "Si, Empezar de Nuevo",
-    "cancel": "Mantener Viaje Actual"
+    "confirm": "Sí, empezar de nuevo",
+    "cancel": "Mantener viaje actual"
   },
   "template": {
     "loadingMap": "Cargando mapa...",
-    "curatedEscape": "Escapada Seleccionada",
+    "curatedEscape": "Escapada seleccionada",
     "durationDays": "{count, plural, one {# día} other {# días}}",
     "travelersUsed": "{count} viajeros lo han usado",
-    "backToTrips": "Volver a Viajes",
+    "backToTrips": "Volver a viajes",
     "cards": "Tarjetas",
     "timeline": "Cronología",
-    "showMap": "Mostrar Mapa",
-    "hideMap": "Ocultar Mapa",
+    "showMap": "Mostrar mapa",
+    "hideMap": "Ocultar mapa",
     "dayFallback": "Día {number}",
-    "estBudget": "Presupuesto Est.",
-    "noItineraryTitle": "Sin Itinerario Disponible",
+    "estBudget": "Presupuesto est.",
+    "noItineraryTitle": "Sin itinerario disponible",
     "noItineraryMessage": "Esta plantilla aún no tiene actividades.",
     "curatedTitle": "Seleccionado por Expertos en Viajes",
     "curatedDescription": "Este itinerario ha sido creado cuidadosamente con las mejores experiencias, restaurantes y joyas ocultas. Guárdalo en tu cuenta para personalizar fechas, cambiar actividades y hacerlo tuyo.",
     "loveThisItinerary": "¿Te encanta este itinerario?",
     "saveAndSetDates": "Guárdalo en tu cuenta y configura las fechas de tu viaje",
-    "saveToMyTrips": "Guardar en Mis Viajes",
+    "saveToMyTrips": "Guardar en mis viajes",
     "trustBadges": {
       "freeForever": "Gratis para siempre",
       "fullyEditable": "Totalmente editable",
@@ -774,7 +774,7 @@
     },
     "footer": {
       "tagline": "Planificación de viajes con AI, fácil y rápida",
-      "createOwnTrip": "Crea Tu Propio Viaje"
+      "createOwnTrip": "Crea tu propio viaje"
     },
     "price": {
       "free": "Gratis"
@@ -802,15 +802,15 @@
       "winter": "Invierno"
     },
     "crowd": {
-      "peak": "Temporada Alta",
+      "peak": "Temporada alta",
       "high": "Concurrida",
       "moderate": "Moderada",
-      "low": "Temporada Baja"
+      "low": "Temporada baja"
     },
-    "expectedWeather": "Clima Previsto",
-    "liveData": "Datos en Vivo",
+    "expectedWeather": "Clima previsto",
+    "liveData": "Datos en vivo",
     "rainyDays": "~{count, plural, one {# día de lluvia previsto} other {# días de lluvia previstos}}",
-    "holidaysAndEvents": "Festividades y Eventos",
+    "holidaysAndEvents": "Festividades y eventos",
     "suggestedVibes": "Estilos sugeridos para esta temporada",
     "vibesHint": "Son sugerencias basadas en la temporada. Elegirás tus estilos en el siguiente paso.",
     "vibeReasons": {
@@ -835,7 +835,7 @@
   "unavailable": {
     "title": "Este viaje no está abierto para ti",
     "body": "Puede que se haya eliminado o que todavía no se haya compartido con esta cuenta. Si alguien te envió el enlace, pídele que te invite con el botón Compartir del viaje.",
-    "myTrips": "Mis Viajes",
+    "myTrips": "Mis viajes",
     "planTrip": "Planifica tu propio viaje"
   }
 }
