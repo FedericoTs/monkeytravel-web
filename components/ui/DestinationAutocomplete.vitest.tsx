@@ -126,6 +126,29 @@ describe("destination field (WAI-ARIA combobox)", () => {
     expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ fullText: "Lisbon, Portugal" }));
   });
 
+  // The popular list stayed under "Lisbon" until the search answered, and a
+  // quick tap on its first row picked Santorini.
+  it("while the search for a typed place runs, shows only the popular places that match it", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        if (url.includes("/api/destinations/popular")) return { json: async () => ({ predictions: POPULAR }) };
+        return new Promise(() => {}); // the search hasn't answered yet
+      })
+    );
+    const { input } = renderField();
+    act(() => input.focus());
+    fireEvent.focus(input);
+    await screen.findByRole("option", { name: /Paris/ });
+    fireEvent.change(input, { target: { value: "Lisbon" } });
+    await settle();
+    expect(screen.queryByRole("option")).toBeNull();
+    expect(screen.queryByRole("listbox")).toBeNull();
+    fireEvent.change(input, { target: { value: "PARÍ" } });
+    await settle();
+    expect(screen.getAllByRole("option").map((o) => o.textContent)).toEqual([expect.stringMatching(/Paris/)]);
+  });
+
   it("Enter on the popular list picks nothing: it doesn't answer what was typed", async () => {
     const { input, onSelect } = renderField();
     act(() => input.focus());
