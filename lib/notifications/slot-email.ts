@@ -64,9 +64,15 @@ const GROUP_ASK_SLOTS = new Set<string>(["pack_early_14d", "visa_check_7d"]);
  * VALUES rather than a JSON dump of the row — JSON.stringify escapes embedded
  * quotes, so a weather note containing one would never contain itself.
  */
-function ownEnrichmentStrings(trip: TripEmailRow): string[] {
-  const day1 = trip.day1 as { activities?: unknown } | null | undefined;
-  const activities = Array.isArray(day1?.activities) ? day1.activities : [];
+export function ownEnrichmentStrings(trip: TripEmailRow): string[] {
+  // Every day's stops, not day one's only: the travel-day email lists
+  // tomorrow's plan too, and a line from this trip's own days is never a
+  // line from another trip.
+  const days = [trip.day1, ...(Array.isArray(trip.itinerary) ? trip.itinerary : [])];
+  const activities = days.flatMap((day) => {
+    const stops = (day as { activities?: unknown } | null | undefined)?.activities;
+    return Array.isArray(stops) ? stops : [];
+  });
   return [
     typeof trip.weather_note === "string" ? trip.weather_note : "",
     ...(Array.isArray(trip.highlights) ? trip.highlights : []),
