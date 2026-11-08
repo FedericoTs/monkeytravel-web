@@ -110,6 +110,96 @@ describe("assistTrip on a reply that breaks a rule", () => {
   });
 });
 
+// The reply says the change is made while "edits" is empty.
+describe("assistTrip on a change it says it made but didn't send", () => {
+  const timed = (n: number, names: string[]) =>
+    ({ day_number: n, date: `2026-12-2${n}`, activities: names.map((name) => ({ name, time_slot: "morning", start_time: "09:00" })) }) as unknown as ItineraryDay;
+  const days = [timed(1, ["Kiyomizu-dera"]), timed(2, ["Fushimi Inari-taisha"]), timed(3, ["Kinkaku-ji", "Dinner at Gion Kappa"])];
+  const ryokan = { ...input, message: "I'll stay at a ryokan on the 23rd night add that", days };
+  const said = (reply: string) => ({ response: { text: () => JSON.stringify({ reply, edits: [] }) } });
+  const claimed = said("I've added a ryokan stay for the night of the 23rd.");
+  const day3 = (names: string[]) => ({
+    response: {
+      text: () =>
+        JSON.stringify({
+          reply: "Here's Day 3 with your ryokan check-in.",
+          edits: [{ day_number: 3, activities: names.map((name) => ({ name, start_time: "09:00" })) }],
+        }),
+    },
+  });
+
+  it("asks once more for the change, and keeps it", async () => {
+    generateContent.mockResolvedValueOnce(claimed).mockResolvedValueOnce(day3(["Kinkaku-ji", "Dinner at Gion Kappa", "Check in at the ryokan"]));
+    const out = await run(ryokan);
+    expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain('CORRECTION: Your \\"reply\\" says the plan changes, but \\"edits\\" is empty.');
+    expect(out.edits.map((e) => e.day_number)).toEqual([3]);
+    expect(out.reply).toBe("Here's Day 3 with your ryokan check-in.");
+  });
+
+  it("keeps a second try that makes the change but takes a stop out to fit it", async () => {
+    generateContent.mockResolvedValueOnce(claimed).mockResolvedValueOnce(day3(["Kinkaku-ji", "Check in at the ryokan"]));
+    const out = await run(ryokan);
+    expect(out.edits[0].activities.map((a) => a.name)).toEqual(["Kinkaku-ji", "Check in at the ryokan"]);
+  });
+
+  it("says nothing changed when the second try sends nothing either", async () => {
+    generateContent.mockResolvedValue(claimed);
+    const out = await run(ryokan);
+    expect(generateContent).toHaveBeenCalledTimes(2);
+    expect(out.edits).toEqual([]);
+    expect(out.reply).toMatch(/^I haven't changed your plan/);
+  });
+
+  it("keeps nothing over a second try that changes another day than the one named", async () => {
+    const onDay1 = { ...ryokan, message: "put a gelato stop on day 1" };
+    generateContent
+      .mockResolvedValueOnce(said("I've added a gelato stop to Day 1."))
+      .mockResolvedValueOnce(edited(2, ["Fushimi Inari-taisha", "Gelato near the shrine"]));
+    const out = await run(onDay1);
+    expect(generateContent).toHaveBeenCalledTimes(2);
+    expect(out.edits).toEqual([]);
+  });
+
+  it("keeps nothing over a second try that leaves the day as it was", async () => {
+    generateContent.mockResolvedValueOnce(claimed).mockResolvedValueOnce(day3(["Kinkaku-ji", "Dinner at Gion Kappa"]));
+    const out = await run(ryokan);
+    expect(out.edits).toEqual([]);
+  });
+
+  it("keeps nothing over a second try that makes the trip longer unasked", async () => {
+    const longer = {
+      response: { text: () => JSON.stringify({ reply: "Here's a new Day 4 at the ryokan.", trip_length: 4, edits: [{ day_number: 4, activities: [{ name: "Ryokan stay" }] }] }) },
+    };
+    generateContent.mockResolvedValueOnce(claimed).mockResolvedValueOnce(longer);
+    const out = await run(ryokan);
+    expect(out.tripLength).toBeUndefined();
+    expect(out.edits).toEqual([]);
+  });
+
+  it("keeps nothing over a second try that changes days instead of adding the ones asked for", async () => {
+    const moreDays = { ...ryokan, message: "add 2 more days for Nara" };
+    generateContent
+      .mockResolvedValueOnce(said("I've added two days for Nara."))
+      .mockResolvedValueOnce({
+        response: { text: () => JSON.stringify({ reply: "I've extended your trip with Nara.", edits: [{ day_number: 3, activities: [{ name: "Nara Park" }] }] }) },
+      });
+    const out = await run(moreDays);
+    expect(out.edits).toEqual([]);
+  });
+
+  it("keeps nothing over a second try that changes days when the yes agreed to more days", async () => {
+    const agreed = { ...ryokan, message: "yes", history: [{ role: "assistant" as const, text: "Want me to add 2 more days for Nara?" }] };
+    generateContent
+      .mockResolvedValueOnce(said("I've added two days for Nara."))
+      .mockResolvedValueOnce({
+        response: { text: () => JSON.stringify({ reply: "I've extended your trip with Nara.", edits: [{ day_number: 3, activities: [{ name: "Nara Park" }] }] }) },
+      });
+    const out = await run(agreed);
+    expect(generateContent).toHaveBeenCalledTimes(2);
+    expect(out.edits).toEqual([]);
+  });
+});
+
 describe("assistTrip on a change about more days than one reply holds", () => {
   const days = Array.from({ length: 9 }, (_, i) => ({
     ...day(i + 1),

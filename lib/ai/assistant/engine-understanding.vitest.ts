@@ -284,6 +284,11 @@ describe("correctionFor", () => {
     const empty = (reply: string) => correctionFor({ message: "togliamo il ristorante alla sera", days }, { reply, edits: [] });
     expect(empty("Ecco la proposta per rimuovere Restaurace Mlejnice dal Giorno 2.")).toContain('"edits" is empty');
     expect(empty("Ok, I'll propose adding a Beer Spa on Day 2.")).toContain('"edits" is empty');
+    // Said to be made already, with nothing sent: "I've added…" and an empty "edits".
+    expect(empty("I've added a ryokan stay for the night of the 23rd.")).toContain('"edits" is empty');
+    expect(empty("Ho aggiunto il ryokan alla sera del 23.")).toContain('"edits" is empty');
+    // A currency request is answered by the page, not by edits.
+    expect(correctionFor({ message: "show prices in dollars", days }, { reply: "I've updated the prices to USD.", edits: [] })).toBeNull();
     // With the change attached, the words are true.
     expect(correctionFor({ message: "add a beer spa on day 2", days }, { reply: "Here's the proposal.", edits: [edit(2, ["B", "Beer spa"])] })).toBeNull();
   });
