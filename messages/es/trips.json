@@ -608,6 +608,8 @@
     "changesSaved": "¡Cambios guardados!",
     "allChangesSaved": "Todos los cambios guardados",
     "saveFailed": "No se pudo guardar — toca para reintentar",
+    "saveFailedNotice": "Tu último cambio no se guardó.",
+    "retrySave": "Reintentar",
     "conflictTitle": "Este viaje se ha modificado en otro lugar",
     "conflictBody": "Se guardó una versión más reciente después de que abrieras esta página, desde otro participante o en otra pestaña. Tus últimos cambios aún no están guardados.",
     "conflictLoadLatest": "Cargar la versión más reciente",

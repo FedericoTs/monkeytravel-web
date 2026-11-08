@@ -79,6 +79,7 @@ import { CancelTripDialog, CancelledTripNote, ConfirmTripCard, TripStatusBadge, 
 import { dayOptionsOf } from "@/components/trip/ItineraryDnd";
 
 import { useAssistantFirstVisit } from "@/hooks/useAssistantFirstVisit";
+import { useSaveFailedNotice } from "@/hooks/useSaveFailedNotice";
 import { useTripCover } from "@/hooks/useTripCover";
 import { useItinerarySync } from "@/hooks/useItinerarySync";
 import ItineraryConflictBanner from "@/components/trip/ItineraryConflictBanner";
@@ -417,6 +418,14 @@ export default function TripDetailClient({
     setRenderEpoch,
     setAiUpdatedActivityId,
   });
+  // Saves again after a failed save: clearing the failed-payload guard and
+  // nudging editedItinerary re-triggers the debounced save effect.
+  const retrySave = () => {
+    lastFailedSaveRef.current = null;
+    setEditedItinerary((prev) => [...prev]);
+  };
+  // A failed save says so on every screen, with a Retry.
+  useSaveFailedNotice(saveStatus, retrySave);
   // A kept trip's stand-in photos become real ones when its owner opens it.
   // The server already stored them; both copies change, so nothing looks edited.
   useKeptTripPhotos({
@@ -1070,10 +1079,7 @@ export default function TripDetailClient({
             canUndo={canUndo}
             canRedo={canRedo}
             saveStatus={saveStatus}
-            onRetrySave={() => {
-              lastFailedSaveRef.current = null;
-              setEditedItinerary((prev) => [...prev]);
-            }}
+            onRetrySave={retrySave}
             isEditMode={isEditMode}
             canEdit={canEdit}
             handleEnterEditMode={handleEnterEditMode}
