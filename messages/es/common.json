@@ -2698,6 +2698,7 @@
     "goingFor": "A lo que vas",
     "dayOne": "Día uno",
     "today": "El plan de hoy",
+    "tomorrow": "El plan de mañana",
     "yourHighlights": "Tus momentos destacados",
     "weatherNoRain": "{range} · sin lluvia prevista",
     "weatherWithRain": "{range} · lluvia {wet} de {days, plural, one {# día} other {# días}}",

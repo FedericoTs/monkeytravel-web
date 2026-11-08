@@ -2698,6 +2698,7 @@
     "goingFor": "What you're going for",
     "dayOne": "Day one",
     "today": "Today's plan",
+    "tomorrow": "Tomorrow's plan",
     "yourHighlights": "Your highlights",
     "weatherNoRain": "{range} · no rain expected",
     "weatherWithRain": "{range} · rain on {wet} of {days, plural, one {# day} other {# days}}",
