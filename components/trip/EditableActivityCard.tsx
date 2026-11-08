@@ -60,6 +60,27 @@ export interface EditableActivityCardProps {
   onRemoveVote?: () => Promise<void>;
 }
 
+/** The editor's fields, from the stop as it is. */
+function editValuesOf(activity: Activity) {
+  return {
+    start_time: activity.start_time,
+    duration_minutes: activity.duration_minutes,
+    name: activity.name,
+    description: activity.description,
+  };
+}
+
+/** A name, a clock time, and a duration from 5 minutes to a day. */
+function canSaveEdit(values: ReturnType<typeof editValuesOf>): boolean {
+  return (
+    values.name.trim() !== "" &&
+    /^([01]\d|2[0-3]):[0-5]\d$/.test(values.start_time ?? "") &&
+    Number.isFinite(values.duration_minutes) &&
+    values.duration_minutes >= 5 &&
+    values.duration_minutes <= 24 * 60
+  );
+}
+
 function EditableActivityCard({
   activity,
   index,
@@ -95,12 +116,8 @@ function EditableActivityCard({
   const [expanded, setExpanded] = useState(false);
   const [showMoveSheet, setShowMoveSheet] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editValues, setEditValues] = useState({
-    start_time: activity.start_time,
-    duration_minutes: activity.duration_minutes,
-    name: activity.name,
-    description: activity.description,
-  });
+  const [editValues, setEditValues] = useState(() => editValuesOf(activity));
+  const canSave = canSaveEdit(editValues);
 
   // Handle photo capture from PlaceGallery
   const handlePhotoCapture = (photoUrl: string) => {
@@ -117,23 +134,20 @@ function EditableActivityCard({
   const kind = normalizeActivityType(activity.type, activity.name);
   const colors = getActivityTypeColors(kind);
 
+  // The editor opens on the stop as it is now: a reorder, a regenerate or an
+  // undo changes it while this card stays mounted.
+  const startEditing = () => {
+    setEditValues(editValuesOf(activity));
+    setIsEditing(true);
+  };
+
   const handleSaveEdit = () => {
-    onUpdate({
-      start_time: editValues.start_time,
-      duration_minutes: editValues.duration_minutes,
-      name: editValues.name,
-      description: editValues.description,
-    });
+    onUpdate({ ...editValues, name: editValues.name.trim() });
     setIsEditing(false);
   };
 
   const handleCancelEdit = () => {
-    setEditValues({
-      start_time: activity.start_time,
-      duration_minutes: activity.duration_minutes,
-      name: activity.name,
-      description: activity.description,
-    });
+    setEditValues(editValuesOf(activity));
     setIsEditing(false);
   };
 
@@ -185,7 +199,7 @@ function EditableActivityCard({
         <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5" data-testid="activity-actions">
           <button
             type="button"
-            onClick={() => setIsEditing(true)}
+            onClick={startEditing}
             className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-slate-700 shadow-md transition-colors hover:bg-slate-50"
             title={t('editActivity.editActivity')}
             aria-label={t('editActivity.editActivity')}
@@ -409,7 +423,8 @@ function EditableActivityCard({
                 </button>
                 <button
                   onClick={handleSaveEdit}
-                  className="px-3 py-1.5 text-sm font-medium text-white bg-[var(--primary)] hover:bg-[var(--primary)]/90 rounded-lg transition-colors"
+                  disabled={!canSave}
+                  className="px-3 py-1.5 text-sm font-medium text-white bg-[var(--primary)] hover:bg-[var(--primary)]/90 rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {t('detail.saveChanges')}
                 </button>
