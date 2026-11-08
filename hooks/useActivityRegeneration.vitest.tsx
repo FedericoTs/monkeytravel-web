@@ -90,7 +90,7 @@ describe("useActivityRegeneration", () => {
       label: "detail.undo",
       onClick: expect.any(Function),
     });
-    addToast.mock.calls.at(-1)[3].onClick();
+    addToast.mock.calls.at(-1)![3].onClick();
     expect(props.undo).toHaveBeenCalledTimes(1);
   });
 

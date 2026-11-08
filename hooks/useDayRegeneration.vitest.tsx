@@ -90,7 +90,7 @@ describe("useDayRegeneration", () => {
     expect([from, to]).toEqual([7, 8]);
     expect((props.setRenderEpoch.mock.calls[0][0] as (v: number) => number)(5)).toBe(6);
     expect(addToast).toHaveBeenCalledWith('detail.regenerateDay.done {"number":2}', "success", 6000, { label: "detail.undo", onClick: expect.any(Function) });
-    addToast.mock.calls.at(-1)[3].onClick();
+    addToast.mock.calls.at(-1)![3].onClick();
     expect(props.undo).toHaveBeenCalledTimes(1);
   });
 
