@@ -237,6 +237,7 @@ export async function sendSlotEmail(
         goingFor: ctxT("goingFor"),
         dayOne: ctxT("dayOne"),
         today: ctxT("today"),
+        tomorrow: ctxT("tomorrow"),
         yourHighlights: ctxT("yourHighlights"),
       }
     );

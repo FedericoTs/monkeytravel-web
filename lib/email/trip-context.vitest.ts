@@ -27,6 +27,7 @@ const L: ContextLabels = {
   goingFor: "What you're going for",
   dayOne: "Day one",
   today: "Today's plan",
+  tomorrow: "Tomorrow's plan",
   yourHighlights: "Your highlights",
 };
 
@@ -87,6 +88,23 @@ describe("slot → block mapping", () => {
     // Same content, different framing — that is the whole point.
     expect(confirm[0].items).toEqual(morning[0].items);
     expect(morning[0].items?.[0]).toEqual({ text: "Louvre Museum", meta: "09:30" });
+  });
+
+  it("morning_of also shows tomorrow's plan: the day-2 digest due that morning yields to it", () => {
+    const day2 = { day_number: 2, activities: [{ name: "Musée d'Orsay", start_time: "10:00" }, { name: "Septime", time_slot: "evening" }] };
+    const morning = buildContextBlocks("morning_of", { ...FULL, itinerary: [FULL.day1, day2] }, L);
+    expect(morning.map((b) => b.label)).toEqual([L.today, L.tomorrow]);
+    expect(morning[1].items).toEqual([
+      { text: "Musée d'Orsay", meta: "10:00" },
+      { text: "Septime", meta: "evening" },
+    ]);
+    // The day before departure has no "tomorrow" block: day one is the news.
+    expect(buildContextBlocks("confirm_1d", { ...FULL, itinerary: [FULL.day1, day2] }, L)).toHaveLength(1);
+  });
+
+  it("morning_of of a one-day trip, or with no itinerary, shows today only", () => {
+    expect(buildContextBlocks("morning_of", { ...FULL, itinerary: [FULL.day1] }, L).map((b) => b.label)).toEqual([L.today]);
+    expect(buildContextBlocks("morning_of", { ...FULL, itinerary: "not a list" }, L).map((b) => b.label)).toEqual([L.today]);
   });
 
   it("followup_return_3d recaps the highlights", () => {
