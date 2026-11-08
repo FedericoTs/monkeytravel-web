@@ -273,7 +273,7 @@ export default function TripDetailClient({
   // The assistant on a first visit: it opens by itself, its trigger pulses
   // until it has been opened once, and its docked column is kept from the
   // first paint.
-  const { hasSeenAssistant, assistantDockReserved } = useAssistantFirstVisit({
+  const { hasSeenAssistant, assistantDockReserved, openedItself: assistantOpenedItself } = useAssistantFirstVisit({
     canUseAssistant,
     assistantSeen,
     isAIAssistantOpen,
@@ -1384,6 +1384,7 @@ export default function TripDetailClient({
         isAnchored={(trip.meta?.anchors?.length ?? 0) > 0}
         onManageCollaborators={openCrewShareModal}
         paused={dayRegenPrompt !== null || confirmCancelTrip || isBookingDrawerOpen || isPasteBookingOpen}
+        quietThisVisit={assistantOpenedItself}
       />
 
       {/* Mobile Bottom Navigation - hidden during edit mode */}
