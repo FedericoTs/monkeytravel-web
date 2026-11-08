@@ -7,6 +7,7 @@ import { lockedActivityNames } from "@/lib/ai/anchors-core";
 import { maxTripDays } from "@/lib/ai/assistant/structural";
 import type { Activity, ItineraryDay } from "@/types";
 import { normalizeActivityType } from "@/lib/trip/activity-type";
+import { knownPoints, stopLocation } from "./stop-location";
 
 const VALID_TIME_SLOTS = new Set(["morning", "afternoon", "evening"]);
 const VALID_TIERS = new Set(["free", "budget", "moderate", "expensive"]);
@@ -53,10 +54,11 @@ export function clockTime(v: unknown): string | null {
   return h ? hm(Number(h[1]), Number(h[2] ?? 0)) : null;
 }
 
-function normalizeActivity(raw: unknown, idx: number, cur: string): Activity | null {
+function normalizeActivity(raw: unknown, idx: number, cur: string, known: { lat: number; lng: number }[]): Activity | null {
   const a = (raw ?? {}) as Record<string, unknown>;
   const name = typeof a.name === "string" ? a.name.trim() : "";
   if (!name) return null; // no name → unrenderable, drop
+  const coordinates = stopLocation(a.coordinates, known);
   const slot = VALID_TIME_SLOTS.has(String(a.time_slot))
     ? String(a.time_slot)
     : idx === 0
@@ -83,6 +85,7 @@ function normalizeActivity(raw: unknown, idx: number, cur: string): Activity | n
     },
     tips: Array.isArray(a.tips) ? (a.tips as unknown[]).map(String).slice(0, 4) : [],
     booking_required: a.booking_required === true,
+    ...(coordinates ? { coordinates } : {}),
   } as Activity;
 }
 
@@ -106,6 +109,7 @@ export function validateEdits(
 ): { edits: DayEdit[]; tripLength?: number; lockedDays: { dayNumber: number; names: string[] }[]; lengthRefused: boolean } {
   const current = days.length;
   const max = maxTripDays(days);
+  const known = knownPoints(days);
   const byDay = new Map<number, DayEdit>();
   for (const r of raw.edits) {
     if (!r || typeof r !== "object") continue;
@@ -113,7 +117,7 @@ export function validateEdits(
     const dayNumber = Math.round(num(e.day_number, 0));
     if (dayNumber < 1 || dayNumber > max) continue;
     const activities = (Array.isArray(e.activities) ? e.activities : [])
-      .map((x, i) => normalizeActivity(x, i, cur))
+      .map((x, i) => normalizeActivity(x, i, cur, known))
       .filter((x): x is Activity => x !== null);
     const emptied = allowEmpty && Array.isArray(e.activities) && e.activities.length === 0;
     if (activities.length === 0 && !emptied) continue;
