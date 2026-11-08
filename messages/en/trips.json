@@ -608,6 +608,8 @@
     "changesSaved": "Changes saved!",
     "allChangesSaved": "All changes saved",
     "saveFailed": "Couldn't save — tap to retry",
+    "saveFailedNotice": "Your last change wasn't saved.",
+    "retrySave": "Retry",
     "conflictTitle": "This trip was changed somewhere else",
     "conflictBody": "A newer version was saved after you opened this page, by a trip mate or in another tab. Your latest changes are not saved yet.",
     "conflictLoadLatest": "Load latest version",

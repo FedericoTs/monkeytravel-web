@@ -608,6 +608,8 @@
     "changesSaved": "Alterações salvas!",
     "allChangesSaved": "Todas as alterações salvas",
     "saveFailed": "Não foi possível salvar — toque para tentar de novo",
+    "saveFailedNotice": "Sua última alteração não foi salva.",
+    "retrySave": "Tentar de novo",
     "conflictTitle": "Esta viagem foi alterada em outro lugar",
     "conflictBody": "Uma versão mais recente foi salva depois que você abriu esta página, por um companheiro de viagem ou em outra aba. Suas últimas alterações ainda não foram salvas.",
     "conflictLoadLatest": "Carregar a versão mais recente",
