@@ -38,6 +38,7 @@ export default function PreferencesStep({
   destination,
   selectedVibes,
   handleVibesChange,
+  vibesSuggested = false,
   mustDos,
   setMustDos,
   mustDoInput,
@@ -56,6 +57,8 @@ export default function PreferencesStep({
   destination: string;
   selectedVibes: TripVibe[];
   handleVibesChange: (vibes: TripVibe[]) => void;
+  /** The vibes are the season's suggestion, not yet the traveller's pick. */
+  vibesSuggested?: boolean;
   mustDos: string[];
   setMustDos: Dispatch<SetStateAction<string[]>>;
   /** A wish being typed, not added yet. */
@@ -100,6 +103,7 @@ export default function PreferencesStep({
         selectedVibes={selectedVibes}
         onVibesChange={handleVibesChange}
         maxVibes={3}
+        suggested={vibesSuggested}
       />
 
       {/* Must-do wishlist — visible, first-class, on step 2 ON

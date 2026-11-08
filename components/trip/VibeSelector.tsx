@@ -29,12 +29,19 @@ interface VibeSelectorProps {
   selectedVibes: TripVibe[];
   onVibesChange: (vibes: TripVibe[]) => void;
   maxVibes?: number;
+  /**
+   * The selection is the planner's suggestion (the season's vibe), not the
+   * traveller's: the first other vibe they tap replaces it, so their pick
+   * leads the plan instead of following the suggestion.
+   */
+  suggested?: boolean;
 }
 
 function VibeSelectorInner({
   selectedVibes,
   onVibesChange,
   maxVibes = VIBES_MAX,
+  suggested = false,
 }: VibeSelectorProps) {
   const t = useTranslations("common.vibes");
 
@@ -68,12 +75,15 @@ function VibeSelectorInner({
         // Remove vibe
         const newVibes = selectedVibes.filter((v) => v !== vibeId);
         onVibesChange(newVibes);
+      } else if (suggested) {
+        // The traveller's first pick replaces the suggestion.
+        onVibesChange([vibeId]);
       } else if (selectedVibes.length < maxVibes) {
         // Add vibe
         onVibesChange([...selectedVibes, vibeId]);
       }
     },
-    [selectedVibes, onVibesChange, maxVibes]
+    [selectedVibes, onVibesChange, maxVibes, suggested]
   );
 
   const getSelectionOrder = (vibeId: TripVibe): number | null => {
