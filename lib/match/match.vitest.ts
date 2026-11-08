@@ -46,7 +46,8 @@ describe("the code in the link", () => {
 
   it("reads a continent from the geo header, and doesn't guess one", () => {
     expect(homeFromContinent("EU")).toBe("e");
-    expect(homeFromContinent("sa")).toBe("m");
+    expect(homeFromContinent("NA")).toBe("m");
+    expect(homeFromContinent("sa")).toBe("s");
     expect(homeFromContinent("AN")).toBe("x");
     expect(homeFromContinent(null)).toBe("x");
   });
@@ -99,6 +100,37 @@ describe("the score", () => {
   });
 });
 
+/**
+ * "Not far: a short flight" from North America ranked Rio de Janeiro high, with
+ * "Closer to home" under it: the Americas were one continent. They are two now.
+ */
+describe("a short flight in the Americas", () => {
+  const shortFlight = (home: Home) => person([0, 0, 4, 1, 0, 0], home);
+
+  it("knows which places are in North America and which in South America", () => {
+    const continent = (slug: string) => MATCH_PLACES.find((p) => p.slug === slug)?.continent;
+    expect(continent("rio-de-janeiro")).toBe("south-america");
+    expect(continent("cancun")).toBe("north-america");
+    expect(continent("new-york")).toBe("north-america");
+  });
+
+  it("from North America counts a North American place as near and a South American one as far", () => {
+    const north = place({ continent: "north-america" });
+    const south = place({ continent: "south-america" });
+    expect(placeScore(north, shortFlight("m"))).toBeGreaterThan(placeScore(south, shortFlight("m")));
+  });
+
+  it("from South America, the other way round", () => {
+    const north = place({ continent: "north-america" });
+    const south = place({ continent: "south-america" });
+    expect(placeScore(south, shortFlight("s"))).toBeGreaterThan(placeScore(north, shortFlight("s")));
+  });
+
+  it("reads a South American friend's code", () => {
+    expect(parseCode(makeCode([0, 0, 4, 1, 0, 0], "s"))).toEqual({ answers: [0, 0, 4, 1, 0, 0], home: "s" });
+  });
+});
+
 describe("the ranking", () => {
   it("gives the same answer every time for the same link", () => {
     const people = [person([0, 1, 2, 1, 2, 2], "m")];
@@ -126,7 +158,7 @@ describe("the ranking", () => {
   it("uses the whole list: every place is someone's best, and no place takes more than one result in eight", () => {
     const wins = new Map<string, number>();
     const sets = everyAnswerSet();
-    const homes: Home[] = ["e", "a", "m"];
+    const homes: Home[] = ["e", "a", "m", "s"];
     for (const answers of sets) {
       for (const home of homes) {
         const top = rankPlaces(MATCH_PLACES, [{ answers, home }])[0].place.slug;
