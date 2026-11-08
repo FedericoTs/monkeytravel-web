@@ -18,8 +18,12 @@ export const QUESTIONS = [
 
 export type QuestionId = (typeof QUESTIONS)[number]["id"];
 
-/** Where the person is, by continent. `x` when it isn't known. */
-export type Home = "e" | "a" | "m" | "f" | "o" | "x";
+/**
+ * Where the person is, by continent, the Americas split in two: `m` is North
+ * America (Central America and the Caribbean with it), `s` South America. `x`
+ * when it isn't known.
+ */
+export type Home = "e" | "a" | "m" | "s" | "f" | "o" | "x";
 
 export interface Person {
   /** The chosen option of each question, in question order. */
@@ -27,14 +31,14 @@ export interface Person {
   home: Home;
 }
 
-const HOME_BY_CONTINENT: Record<string, Home> = { EU: "e", AS: "a", NA: "m", SA: "m", AF: "f", OC: "o" };
+const HOME_BY_CONTINENT: Record<string, Home> = { EU: "e", AS: "a", NA: "m", SA: "s", AF: "f", OC: "o" };
 
 /** The letter for a continent code as Vercel's geo header gives it. */
 export function homeFromContinent(continent: string | null | undefined): Home {
   return (continent && HOME_BY_CONTINENT[continent.toUpperCase()]) || "x";
 }
 
-const CODE_RE = /^[0-9]{6}[eamfox]$/;
+const CODE_RE = /^[0-9]{6}[eamsfox]$/;
 
 export function makeCode(answers: readonly number[], home: Home): string {
   return `${answers.join("")}${home}`;

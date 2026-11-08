@@ -36,12 +36,34 @@ const ALSO_TAGGED: Readonly<Record<string, readonly string[]>> = {
   santorini: ["luxury", "wellness", "nature"],
 };
 
+/** South American countries, by English name. */
+const SOUTH_AMERICA = new Set([
+  "Argentina",
+  "Bolivia",
+  "Brazil",
+  "Chile",
+  "Colombia",
+  "Ecuador",
+  "Guyana",
+  "Paraguay",
+  "Peru",
+  "Suriname",
+  "Uruguay",
+  "Venezuela",
+]);
+
+/** The continent a place is on, for how far it is: the Americas are two, as the person's home is. */
+function matchContinent(destination: Destination): string {
+  if (destination.continent !== "americas") return destination.continent;
+  return SOUTH_AMERICA.has(destination.country.en) ? "south-america" : "north-america";
+}
+
 /** Every destination with a picked photo; a place without one is left out. */
 const IN_THE_MATCH: Destination[] = destinations.filter((destination) => destination.slug in PLACE_PHOTOS);
 
 export const MATCH_PLACES: readonly MatchPlace[] = IN_THE_MATCH.map((destination) => ({
   slug: destination.slug,
-  continent: destination.continent,
+  continent: matchContinent(destination),
   budgetLevel: destination.stats.budgetLevel,
   bestMonths: destination.stats.bestMonths,
   tags: [...destination.tags, ...(ALSO_TAGGED[destination.slug] ?? [])],
