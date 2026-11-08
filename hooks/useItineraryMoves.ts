@@ -94,16 +94,23 @@ export function useItineraryMoves({ tripId, itinerary, setItinerary, pushUndo, u
   );
 
   // The sheet path: land in the chronological slot of the chosen day, so a
-  // morning activity stays a morning activity.
+  // morning activity stays a morning activity. It starts from the plan as it
+  // is now: a card that hasn't re-rendered calls the moveToDay it was given at
+  // an earlier render.
+  const latest = useRef(itinerary);
+  useEffect(() => {
+    latest.current = itinerary;
+  }, [itinerary]);
   const moveToDay = useCallback(
     (activityId: string, targetDayIndex: number) => {
-      const location = findActivityById(itinerary, activityId);
+      const current = latest.current;
+      const location = findActivityById(current, activityId);
       if (!location || location.dayIndex === targetDayIndex) return;
-      const moved = moveActivityToDay(itinerary, activityId, targetDayIndex, "auto");
-      if (moved === itinerary) return;
+      const moved = moveActivityToDay(current, activityId, targetDayIndex, "auto");
+      if (moved === current) return;
       commitMove(moved, activityId, location.dayIndex, targetDayIndex, "menu");
     },
-    [itinerary, commitMove],
+    [commitMove],
   );
 
   const onDragStart = useCallback(
