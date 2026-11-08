@@ -145,15 +145,21 @@ function SortableActivityCard({
   );
 }
 
-// Memoize to prevent re-renders when sibling cards update during drag operations
-// Compares activity by id and key properties that affect rendering
-export default memo(SortableActivityCard, (prevProps, nextProps) => {
+/**
+ * Whether the card can skip a render: memo keeps it from re-rendering when
+ * sibling cards update during drag operations. Compares the activity by id and
+ * the properties that affect rendering. Pure; unit-tested.
+ */
+export function sameSortableCard(prevProps: EditableActivityCardProps, nextProps: EditableActivityCardProps): boolean {
   // Quick equality check on activity id and index
   if (prevProps.activity.id !== nextProps.activity.id) return false;
   if (prevProps.index !== nextProps.index) return false;
   if (prevProps.isEditMode !== nextProps.isEditMode) return false;
   if (prevProps.isRegenerating !== nextProps.isRegenerating) return false;
   if (prevProps.currentDayIndex !== nextProps.currentDayIndex) return false;
+  // Memoized upstream on the itinerary: a new identity means a day changed, and
+  // the card's actions and the move sheet's counts must be this render's.
+  if (prevProps.dayOptions !== nextProps.dayOptions) return false;
 
   // Check key activity properties that affect visual rendering
   const prev = prevProps.activity;
@@ -171,4 +177,6 @@ export default memo(SortableActivityCard, (prevProps, nextProps) => {
   if (prevProps.totalVoters !== nextProps.totalVoters) return false;
 
   return true;
-});
+}
+
+export default memo(SortableActivityCard, sameSortableCard);
