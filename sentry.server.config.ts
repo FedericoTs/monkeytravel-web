@@ -33,6 +33,11 @@ Sentry.init({
   // since v11): the tracing views and the sampling above are set up for it.
   traceLifecycle: "static",
 
+  // A message reported by lib/observability/server-failure.ts is sent from
+  // inside its helper, so a stack attached to it names that helper, and Sentry
+  // would title every such issue "send" instead of by its message.
+  attachStacktrace: false,
+
   // Enable debug mode in development
   debug: false,
 
