@@ -1,5 +1,5 @@
 {
-  "nothingChanged": "Não alterei o seu itinerário: não consegui fazer essa alteração daqui. Você pode fazê-la com \"Editar Viagem\".",
+  "nothingChanged": "Não alterei o seu itinerário: não consegui fazer essa alteração daqui. Você pode fazê-la com \"Editar viagem\".",
   "noProposal": "(Esta alteração não está pronta: não há nada para confirmar. Peça de novo com o dia e a atividade.)",
   "preparedChange": "Preparei esta alteração.",
   "wizardNothingChanged": "Não alterei o seu plano: não consegui fazer essa alteração. Tente pedir dia a dia, por exemplo \"faça do dia 3 um dia de observação de baleias\".",
@@ -9,7 +9,7 @@
   "wizardFallbackPrepared": "Aqui está a alteração.",
   "wizardFallbackIdle": "Estou aqui para ajudar: pergunte o que quiser sobre a sua viagem.",
   "lengthUnchanged": "(A viagem continua com {days, plural, =1 {# dia} other {# dias}}: não consegui preparar os dias novos. Peça de novo, um dia de cada vez.)",
-  "nothingKept": "Daqui não consigo guardar dados como hotéis ou horários de voo, e só me lembro das últimas mensagens. Você pode colocá-los no plano com \"Editar Viagem\".",
+  "nothingKept": "Daqui não consigo guardar dados como hotéis ou horários de voo, e só me lembro das últimas mensagens. Você pode colocá-los no plano com \"Editar viagem\".",
   "daysLeft": "(Os dias {list} ainda não mudaram: diga \"continue\" e faço o mesmo neles.)",
   "daysNotAdded": "{count, plural, =1 {(O dia {list} ainda não foi adicionado: diga \"continue\" e eu o adiciono.)} other {(Os dias {list} ainda não foram adicionados: diga \"continue\" e eu os adiciono.)}}",
   "travelTimesLeaves": "(Confira o dia {day}: você parte às {leaves}, então os planos deveriam terminar até as {until}, e o dia ainda tem: {names}.)",
