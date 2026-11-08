@@ -2,7 +2,7 @@ import { GENERATION_ID_HEADER } from "@/lib/ai/generation-id";
 import { streamGeneration } from "@/lib/streaming/client";
 import type { SseDayData, SseOutlineData } from "@/lib/streaming/sse";
 import type { GeneratedItinerary } from "@/types";
-import { GENERATION_TIMEOUT_MS, postJsonWithTimeout, recoverGeneration } from "./generation-recovery";
+import { GENERATION_TIMEOUT_MS, STREAM_QUIET_MS, postJsonWithTimeout, recoverGeneration } from "./generation-recovery";
 
 /** A generation's answer: the plan, or why there is none. */
 export type GenerationAnswer = {
@@ -27,6 +27,7 @@ const DEFAULTS = {
   recover: recoverGeneration<GenerationAnswer>,
   postJson: postJsonWithTimeout<GenerationAnswer>,
   timeoutMs: GENERATION_TIMEOUT_MS,
+  quietMs: STREAM_QUIET_MS,
 };
 
 /**
@@ -35,8 +36,8 @@ const DEFAULTS = {
  * once more (generateWithRecovery).
  *
  * Streams first when the trip can stream (multi-city and anchored trips get
- * one merged JSON body instead); a stream that goes quiet for `timeoutMs` is
- * given up as lost. A stream cut once under way may still have finished on
+ * one merged JSON body instead); a stream that goes quiet for `quietMs` is
+ * given up as lost, and the JSON endpoint is given `timeoutMs`. A stream cut once under way may still have finished on
  * the server, so its plan is asked for by id before generating again. Then
  * the JSON endpoint, which also answers when the stream failed before any
  * data (rate limit, Gemini off, network) or sent an `error` event mid-flight:
@@ -49,7 +50,7 @@ export async function attemptGeneration(
   progress: GenerationProgress,
   deps: Partial<typeof DEFAULTS> = {}
 ): Promise<GenerationAnswer> {
-  const { stream, recover, postJson, timeoutMs } = { ...DEFAULTS, ...deps };
+  const { stream, recover, postJson, timeoutMs, quietMs } = { ...DEFAULTS, ...deps };
   const headers = { [GENERATION_ID_HEADER]: generationId };
   progress.reset();
 
@@ -59,10 +60,10 @@ export async function attemptGeneration(
   let streamStarted = false;
   if (request.stream) {
     const quiet = new AbortController();
-    let quietTimer = setTimeout(() => quiet.abort(), timeoutMs);
+    let quietTimer = setTimeout(() => quiet.abort(), quietMs);
     const heard = () => {
       clearTimeout(quietTimer);
-      quietTimer = setTimeout(() => quiet.abort(), timeoutMs);
+      quietTimer = setTimeout(() => quiet.abort(), quietMs);
     };
     try {
       await stream(

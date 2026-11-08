@@ -13,6 +13,9 @@ import { classifyGenerationFailure } from "@/lib/wizard/generation-failure";
 /** Longer than any generation takes: past it, the answer is taken as lost. */
 export const GENERATION_TIMEOUT_MS = 90_000;
 
+/** Longer than any wait between a streamed plan's events: a stream silent this long is stuck. */
+export const STREAM_QUIET_MS = 25_000;
+
 export type LostGenerationError = Error & { generationId?: string };
 
 /** The answer never arrived: the connection dropped, or the wait ran out. */
