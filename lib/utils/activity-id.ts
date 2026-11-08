@@ -6,11 +6,13 @@ import {
   getAverageSpeed,
 } from "@/lib/math/distance";
 import { formatMinutesToTime } from "@/lib/datetime/format";
+import { isRealPoint } from "@/lib/trip/placeholder-point";
 
 /**
  * Calculate travel time between two activities in minutes
  * Uses local Haversine calculation - no API calls
- * @returns Travel time in minutes, or null if coordinates missing
+ * @returns Travel time in minutes, or null when either place has no known
+ * location: no coordinates, 0,0, or the coordinate fallback's placeholder point
  */
 export function calculateTravelMinutes(
   fromActivity: Activity,
@@ -19,7 +21,7 @@ export function calculateTravelMinutes(
   const origin = fromActivity.coordinates;
   const destination = toActivity.coordinates;
 
-  if (!origin || !destination) return null;
+  if (!isRealPoint(origin) || !isRealPoint(destination)) return null;
 
   const straightLineDistance = calculateHaversineDistance(origin, destination, "m");
   const mode = straightLineDistance < 1200 ? "WALKING" : "DRIVING";

@@ -1,6 +1,13 @@
 import { describe, it, expect } from "vitest";
 import type { ItineraryDay, Activity } from "@/types";
-import { ensureActivityIds, ensureActivityIdsStable, moveActivityToDay, stableActivityId } from "./activity-id";
+import {
+  calculateTravelMinutes,
+  ensureActivityIds,
+  ensureActivityIdsStable,
+  moveActivityToDay,
+  recalculateActivityTimes,
+  stableActivityId,
+} from "./activity-id";
 
 describe("ensureActivityIdsStable", () => {
   const stored = () =>
@@ -94,5 +101,53 @@ describe("moveActivityToDay", () => {
     const snapshot = JSON.stringify(it);
     moveActivityToDay(it, "a1", 2, "auto");
     expect(JSON.stringify(it)).toBe(snapshot);
+  });
+});
+
+// Stops with a known location in Kyoto, and stops the coordinate fallback put
+// on its placeholder point in Bavaria (lib/trip/placeholder-point.ts) because
+// it didn't know the city.
+const BAMBOO_GROVE = { lat: 35.016954, lng: 135.671542 };
+const TENRYU_JI = { lat: 35.015978, lng: 135.67789 };
+const NARA = { lat: 34.689, lng: 135.8398 };
+const ON_PLACEHOLDER = { lat: 48.0124765, lng: 10.0019811 };
+const ALSO_ON_PLACEHOLDER = { lat: 48.01552, lng: 10.0075297 };
+
+const at = (name: string, coordinates: { lat: number; lng: number } | undefined, start = "23:00", duration = 90): Activity =>
+  ({ id: name, name, type: "attraction", start_time: start, duration_minutes: duration, coordinates }) as unknown as Activity;
+
+describe("calculateTravelMinutes", () => {
+  it("measures between two known places, near or out of town", () => {
+    expect(calculateTravelMinutes(at("Bamboo Grove", BAMBOO_GROVE), at("Tenryu-ji", TENRYU_JI))).toBe(10);
+    expect(calculateTravelMinutes(at("Bamboo Grove", BAMBOO_GROVE), at("Nara", NARA))).toBe(155);
+  });
+
+  it("has no travel time when either place has no known location", () => {
+    const kyoto = at("Bamboo Grove", BAMBOO_GROVE);
+    expect(calculateTravelMinutes(kyoto, at("Kiyomizu-dera", ON_PLACEHOLDER))).toBeNull();
+    expect(calculateTravelMinutes(at("Kiyomizu-dera", ON_PLACEHOLDER), kyoto)).toBeNull();
+    expect(calculateTravelMinutes(at("Gion", { lat: 0, lng: 0 }), kyoto)).toBeNull();
+    expect(calculateTravelMinutes(kyoto, at("Gion", undefined))).toBeNull();
+  });
+});
+
+describe("recalculateActivityTimes", () => {
+  it("times a day holding stops with no known location from their durations, never stacking them at 23:00", () => {
+    const days = [
+      day(
+        1,
+        at("Arashiyama Bamboo Grove", BAMBOO_GROVE, "09:00", 75),
+        at("Kiyomizu-dera", ON_PLACEHOLDER),
+        at("Sannenzaka and Ninenzaka", ALSO_ON_PLACEHOLDER),
+      ),
+    ];
+    // 09:00 + 75 min + the 30 min allowed for an unknown journey, then +90 +30.
+    expect(recalculateActivityTimes(days, 0)[0].activities.map((a) => a.start_time)).toEqual(["09:00", "10:45", "12:45"]);
+  });
+
+  it("still times a day trip out of town by its distance", () => {
+    const days = [day(1, at("Arashiyama Bamboo Grove", BAMBOO_GROVE, "09:00", 75), at("Nara Park", NARA, "11:00", 120))];
+    // 09:00 + 75 min + 155 min on the road + 5 min to settle in.
+    expect(recalculateActivityTimes(days, 0)[0].activities.map((a) => a.start_time)).toEqual(["09:00", "12:55"]);
   });
 });
