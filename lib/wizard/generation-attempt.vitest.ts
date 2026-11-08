@@ -145,7 +145,7 @@ describe("attemptGeneration", () => {
         })
     );
     const postJson = vi.fn();
-    const pending = attemptGeneration("gen-1", request(), progress(), { stream, postJson, timeoutMs: 1000 });
+    const pending = attemptGeneration("gen-1", request(), progress(), { stream, postJson, quietMs: 1000 });
     await vi.advanceTimersByTimeAsync(2400);
     expect(await pending).toEqual({ itinerary: streamedPlan });
     expect(postJson).not.toHaveBeenCalled();
@@ -167,9 +167,58 @@ describe("attemptGeneration", () => {
     );
     const recover = vi.fn(async () => null);
     const postJson = vi.fn(async () => answer(200, { itinerary: jsonPlan }));
-    const pending = attemptGeneration("gen-1", request(), progress(), { stream, recover, postJson, timeoutMs: 1000 });
+    const pending = attemptGeneration("gen-1", request(), progress(), { stream, recover, postJson, quietMs: 1000 });
     await vi.advanceTimersByTimeAsync(1000);
     expect(await pending).toEqual({ itinerary: jsonPlan });
     expect(aborted).toBe(true);
+  });
+
+  it("gives up a stream that never sends a byte after 25 s, then asks the JSON endpoint", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    let aborted = false;
+    const stream = vi.fn(
+      (_body: unknown, _handlers: StreamHandlers, opts?: { signal?: AbortSignal }) =>
+        new Promise<void>((_resolve, reject) => {
+          opts?.signal?.addEventListener("abort", () => {
+            aborted = true;
+            reject(new Error("aborted"));
+          });
+        })
+    );
+    const recover = vi.fn(async () => null);
+    const postJson = vi.fn(async () => answer(200, { itinerary: jsonPlan }));
+    const pending = attemptGeneration("gen-1", request(), progress(), { stream, recover, postJson });
+    await vi.advanceTimersByTimeAsync(24_999);
+    expect(aborted).toBe(false);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(await pending).toEqual({ itinerary: jsonPlan });
+    // Nothing had started, so there is no finished plan to collect first.
+    expect(recover).not.toHaveBeenCalled();
+  });
+
+  it("takes a stream silent for 25 s as stuck, not one silent for less, and gives the JSON endpoint its 90 s", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    let aborted = false;
+    const stream = vi.fn(
+      (_body: unknown, handlers: StreamHandlers, opts?: { signal?: AbortSignal }) =>
+        new Promise<void>((_resolve, reject) => {
+          handlers.onStart?.();
+          opts?.signal?.addEventListener("abort", () => {
+            aborted = true;
+            reject(new Error("aborted"));
+          });
+        })
+    );
+    const recover = vi.fn(async () => null);
+    const postJson = vi.fn(async () => answer(200, { itinerary: jsonPlan }));
+    const pending = attemptGeneration("gen-1", request(), progress(), { stream, recover, postJson });
+    await vi.advanceTimersByTimeAsync(24_999);
+    expect(aborted).toBe(false);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(await pending).toEqual({ itinerary: jsonPlan });
+    expect(aborted).toBe(true);
+    expect(postJson).toHaveBeenCalledWith("/api/ai/generate", expect.anything(), expect.objectContaining({ timeoutMs: 90_000 }));
   });
 });
