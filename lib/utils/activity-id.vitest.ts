@@ -111,7 +111,6 @@ const BAMBOO_GROVE = { lat: 35.016954, lng: 135.671542 };
 const TENRYU_JI = { lat: 35.015978, lng: 135.67789 };
 const NARA = { lat: 34.689, lng: 135.8398 };
 const ON_PLACEHOLDER = { lat: 48.0124765, lng: 10.0019811 };
-const ALSO_ON_PLACEHOLDER = { lat: 48.01552, lng: 10.0075297 };
 
 const at = (name: string, coordinates: { lat: number; lng: number } | undefined, start = "23:00", duration = 90): Activity =>
   ({ id: name, name, type: "attraction", start_time: start, duration_minutes: duration, coordinates }) as unknown as Activity;
@@ -175,14 +174,10 @@ describe("fitMovedStop", () => {
 
   it("never moves a booked stop or a fixed plan, and times the rest around them", () => {
     const train = stop("Shinkansen", "10:30", 60, { booking_required: true });
-    const wedding = stop("Wedding", "12:00", 60, { locked: true } as Partial<Activity>);
-    expect(times(fitMovedStop(order(A(), D(), train, wedding, C()), 0, "D", "slot")[0])).toEqual([
-      "09:00 A",
-      "10:30 D",
-      "10:30 Shinkansen",
-      "12:00 Wedding",
-      "13:30 C",
-    ]);
+    const wedding = stop("Wedding", "11:00", 60, { locked: true } as Partial<Activity>);
+    // D now runs 10:30 to 12:00, over each of them: they keep their times, and C goes after them.
+    expect(times(fitMovedStop(order(A(), D(), train, C()), 0, "D", "slot")[0])).toEqual(["09:00 A", "10:30 D", "10:30 Shinkansen", "12:00 C"]);
+    expect(times(fitMovedStop(order(A(), D(), wedding, C()), 0, "D", "slot")[0])).toEqual(["09:00 A", "10:30 D", "11:00 Wedding", "12:30 C"]);
     // A fixed stop that was moved keeps its own time too.
     expect(times(fitMovedStop(order(A(), train), 0, "Shinkansen", "slot")[0])).toEqual(["09:00 A", "10:30 Shinkansen"]);
   });
