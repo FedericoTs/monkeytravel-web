@@ -3,6 +3,7 @@
 import { useCallback, useState, type Dispatch, type SetStateAction } from "react";
 import { useTranslations } from "next-intl";
 import { useToast } from "@/components/ui/Toast";
+import { useUndoToast } from "@/hooks/useUndoToast";
 import { trackActivityRegenerated } from "@/lib/analytics";
 import { replaceActivity } from "@/lib/utils/activity-id";
 import { isModelOutageResponse } from "@/lib/ai/model-outage";
@@ -21,6 +22,7 @@ export function useActivityRegeneration({
   itinerary,
   setItinerary,
   pushUndo,
+  undo,
   setSaveError,
 }: {
   tripId: string;
@@ -28,11 +30,14 @@ export function useActivityRegeneration({
   itinerary: ItineraryDay[];
   setItinerary: Dispatch<SetStateAction<ItineraryDay[]>>;
   pushUndo: (action: string) => void;
+  /** Takes back the last change; the message naming the new activity offers it. */
+  undo: () => void;
   setSaveError: (message: string | null) => void;
 }) {
   const t = useTranslations("trips");
   const tAssistant = useTranslations("common.ai.assistant");
   const { addToast } = useToast();
+  const notifyUndoable = useUndoToast(undo);
   const [regeneratingActivityId, setRegeneratingActivityId] = useState<string | null>(null);
 
   const handleActivityRegenerate = useCallback(
@@ -67,6 +72,7 @@ export function useActivityRegeneration({
             id: activityId,
           })
         );
+        notifyUndoable(t("editActivity.regenerated", { name: data.activity.name }));
         // Track activity regeneration for retention analytics
         trackActivityRegenerated({
           tripId,
@@ -86,7 +92,7 @@ export function useActivityRegeneration({
         setRegeneratingActivityId(null);
       }
     },
-    [tripId, destination, itinerary, pushUndo, t, tAssistant, setSaveError, addToast, setItinerary]
+    [tripId, destination, itinerary, pushUndo, notifyUndoable, t, tAssistant, setSaveError, addToast, setItinerary]
   );
 
   return { regeneratingActivityId, handleActivityRegenerate };
