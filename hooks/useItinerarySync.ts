@@ -675,6 +675,28 @@ export function useItinerarySync({
     [sync, router, setEditedItinerary]
   );
 
+  // New dates, with the days moved onto them (lib/trips/change-dates.ts), in
+  // one write: the trip's dates and its days' dates never disagree. Saved, the
+  // page shows that copy and fetches the server's props again (the hero's
+  // dates, the countdown). False when the trip changed elsewhere meanwhile or
+  // the write failed: nothing changes.
+  const writeTripDates = useCallback(
+    (start: string, end: string, next: ItineraryDay[]) =>
+      runItineraryWrite(async () => {
+        const payload = JSON.stringify(next);
+        const result = await sync.send(payload, sync.baseVersion(), { start_date: start, end_date: end });
+        if (result.kind !== "saved") return false;
+        adoptSaved(payload, result.version);
+        setEditedItinerary(JSON.parse(payload));
+        // An undo would bring back the days on their old dates.
+        clearHistory();
+        setRenderEpoch((v) => v + 1);
+        router.refresh();
+        return true;
+      }),
+    [runItineraryWrite, sync, adoptSaved, setEditedItinerary, clearHistory, setRenderEpoch, router]
+  );
+
   // The concierge's apply, already stored at `serverVersion`.
   const adoptStoredItinerary = useCallback(
     (next: ItineraryDay[], serverVersion?: number | null) => {
@@ -716,5 +738,6 @@ export function useItinerarySync({
     refetchQueued,
     adoptDayWrite,
     adoptStoredItinerary,
+    writeTripDates,
   };
 }

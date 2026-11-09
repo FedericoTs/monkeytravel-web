@@ -26,7 +26,7 @@ const stop = (extra: Partial<Activity> = {}): Activity => ({
   ...extra,
 });
 
-function card(activity: Activity) {
+function card(activity: Activity, isEditMode = true) {
   const onUpdate = vi.fn();
   const ui = (a: Activity) => (
     <NextIntlClientProvider locale="en" messages={{ common: enCommon, trips: enTrips }}>
@@ -35,7 +35,7 @@ function card(activity: Activity) {
         index={0}
         currency="USD"
         showGallery={false}
-        isEditMode
+        isEditMode={isEditMode}
         onDelete={() => {}}
         onUpdate={onUpdate}
         onMoveToDay={() => {}}
@@ -107,6 +107,33 @@ describe("EditableActivityCard's editor", () => {
     expect(saveButton().disabled).toBe(true);
     type(enCommon.addActivity.duration, "60");
     expect(saveButton().disabled).toBe(false);
+  });
+
+  // The page's hint says "tap a card to edit".
+  it("opens when the stop itself is tapped", () => {
+    card(stop());
+    fireEvent.click(screen.getByRole("heading", { name: "Lunch at Nishiki Market" }));
+    expect(field(enCommon.activity.startTime).value).toBe("12:30");
+  });
+
+  it("leaves the stop's own links and buttons to their jobs", () => {
+    card(stop());
+    fireEvent.click(screen.getAllByRole("link")[0]);
+    expect(screen.queryAllByLabelText(enCommon.activity.startTime)).toHaveLength(0);
+  });
+
+  it("keeps what is being typed when the open editor is tapped", () => {
+    card(stop());
+    openEditor();
+    type(enCommon.addActivity.activityName, "Gion at dusk");
+    fireEvent.click(screen.getByText("Nakagyo"));
+    expect(field(enCommon.addActivity.activityName).value).toBe("Gion at dusk");
+  });
+
+  it("opens nothing for someone who can't edit the trip", () => {
+    card(stop(), false);
+    fireEvent.click(screen.getByRole("heading", { name: "Lunch at Nishiki Market" }));
+    expect(screen.queryAllByLabelText(enCommon.activity.startTime)).toHaveLength(0);
   });
 
   it("saves the name without the spaces around it", () => {

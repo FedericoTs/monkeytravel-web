@@ -66,8 +66,14 @@ export interface ItinerarySync {
    * The itinerary PATCH. Call ONLY inside a task. `base` is the version the
    * payload was derived from (baseVersion() when the payload was built).
    */
-  send(payload: string, base: number | null): Promise<SaveResult>;
+  send(payload: string, base: number | null, fields?: TripFields): Promise<SaveResult>;
 }
+
+/**
+ * Trip fields that change together with the itinerary, written in the same
+ * PATCH: new dates and the days moved onto them must never disagree.
+ */
+export type TripFields = { start_date?: string; end_date?: string };
 
 /** A server write the tab refused to start; the message is for the person. */
 export class ItineraryWriteBlockedError extends Error {}
@@ -134,13 +140,13 @@ export function createItinerarySync(options: {
   let unacked: unknown[] = [];
   const doFetch = options.fetchImpl ?? ((...args: Parameters<typeof fetch>) => fetch(...args));
 
-  async function attempt(itinerary: unknown, sendBase: number | null): Promise<SaveResult> {
+  async function attempt(itinerary: unknown, sendBase: number | null, fields: TripFields): Promise<SaveResult> {
     let res: Response;
     try {
       res = await doFetch(`/api/trips/${options.tripId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ itinerary, ...(sendBase !== null ? { baseItineraryVersion: sendBase } : {}) }),
+        body: JSON.stringify({ ...fields, itinerary, ...(sendBase !== null ? { baseItineraryVersion: sendBase } : {}) }),
       });
     } catch {
       return { kind: "failed", status: null };
@@ -205,9 +211,9 @@ export function createItinerarySync(options: {
       return run;
     },
 
-    async send(payload, sendBase) {
+    async send(payload, sendBase, fields = {}) {
       const itinerary = JSON.parse(payload) as unknown;
-      let result = await attempt(itinerary, sendBase);
+      let result = await attempt(itinerary, sendBase, fields);
       if (result.kind === "conflict") {
         const server = result.server;
         if (
@@ -217,7 +223,7 @@ export function createItinerarySync(options: {
           // The newer version is this tab's own earlier save, whose reply was
           // lost, and this payload was built on top of it: send it once on it.
           unacked = [];
-          result = await attempt(itinerary, server.version);
+          result = await attempt(itinerary, server.version, fields);
         }
       }
       if (result.kind === "failed" && (result.status === null || result.status >= 500)) {
