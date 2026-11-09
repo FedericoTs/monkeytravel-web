@@ -476,6 +476,98 @@ describe("assistTrip on a change about more days than one reply holds", () => {
       expect(out.reply).toContain("(Não entrou nesta alteração: park do churrasco.)");
     });
 
+    it("asks once more for what a list still lacks after its parts, and keeps what it brings", async () => {
+      const list = { ...input, days: fortnight, locale: "pt", message: "adicione: o senhor restaurante, dhoosushi, park do churrasco e baraquias restaurante" };
+      generateContent
+        .mockResolvedValueOnce(reply([dayWith(1, "O Senhor Restaurante"), dayWith(2, "Dhoosushi")], [7, 8]))
+        .mockResolvedValueOnce(reply([dayWith(7, "Park do Churrasco")]))
+        .mockResolvedValueOnce(reply([dayWith(9, "Baraquias Restaurante")]));
+      const out = await run(list);
+      expect(generateContent).toHaveBeenCalledTimes(3);
+      expect(JSON.stringify(generateContent.mock.calls[2][0])).toContain("these places from their list aren't in the plan yet: baraquias restaurante");
+      expect(named(out)).toEqual([
+        [1, ["O Senhor Restaurante"]],
+        [2, ["Dhoosushi"]],
+        [7, ["Park do Churrasco"]],
+        [9, ["Baraquias Restaurante"]],
+      ]);
+      expect(out.reply).not.toContain("Não entrou");
+    });
+
+    it("keeps everything planned on that last ask too, or leaves the place named", async () => {
+      const dinnerOn9 = fortnight.map((d) => (d.day_number === 9 ? { ...d, activities: [...d.activities, { name: "Jantar na Choperia Brahma", start_time: "19:30" }] } : d)) as unknown as ItineraryDay[];
+      const list = {
+        ...input,
+        days: dinnerOn9,
+        locale: "pt",
+        message: "o senhor restaurante, dhoosushi, park do churrasco e baraquias restaurante",
+        history: [{ role: "user" as const, text: "quero adicionar restaurantes, não remova nada" }],
+      };
+      generateContent
+        .mockResolvedValueOnce(reply([dayWith(1, "O Senhor Restaurante"), dayWith(2, "Dhoosushi"), dayWith(3, "Park do Churrasco")]))
+        // The correction for the short list: no better.
+        .mockResolvedValueOnce(reply([dayWith(1, "O Senhor Restaurante"), dayWith(2, "Dhoosushi"), dayWith(3, "Park do Churrasco")]))
+        // The last ask swaps Day 9's dinner for it.
+        .mockResolvedValueOnce(reply([{ day_number: 9, activities: [{ name: "Sight I", start_time: "09:00" }, { name: "Baraquias Restaurante", start_time: "19:30" }] }]));
+      const out = await run(list);
+      expect(JSON.stringify(generateContent.mock.calls[2][0])).toContain("keeping every activity the day already has. ");
+      expect(out.edits.map((e) => e.day_number)).toEqual([1, 2, 3]);
+      expect(out.reply).toContain("(Não entrou nesta alteração: baraquias restaurante.)");
+    });
+
+    it("doesn't take a last ask that brings none of the list and loses a place already in", async () => {
+      const list = { ...input, days: fortnight, locale: "pt", message: "adicione: o senhor restaurante, dhoosushi, park do churrasco e baraquias restaurante" };
+      const three = reply([dayWith(1, "O Senhor Restaurante"), dayWith(2, "Dhoosushi"), dayWith(3, "Park do Churrasco")]);
+      generateContent
+        .mockResolvedValueOnce(three)
+        .mockResolvedValueOnce(three)
+        .mockResolvedValueOnce(reply([dayWith(1, "Café Lisboa")]));
+      const out = await run(list);
+      expect(generateContent).toHaveBeenCalledTimes(3);
+      expect(named(out)).toEqual([
+        [1, ["O Senhor Restaurante"]],
+        [2, ["Dhoosushi"]],
+        [3, ["Park do Churrasco"]],
+      ]);
+    });
+
+    // Replay, 11-09: "Let's Road" on one day, then "Lett's Road" added again on another.
+    it("knows a longer name a letter off as the same place, and keeps short names apart", async () => {
+      const list = {
+        ...input,
+        days: fortnight.slice(0, 4),
+        locale: "pt",
+        message: "adicione: lett's road, madalosso restaurante, bar basso, bar bassi, casa mineira, casa madeira, pasta bar e pasta barbieri",
+      };
+      generateContent.mockResolvedValueOnce(
+        reply([
+          dayWith(1, "Let's Road", "Madalosso"),
+          dayWith(2, "Lett's Road", "Bar Basso"),
+          dayWith(3, "Bar Bassi", "Casa Mineira", "Pasta Bar"),
+          dayWith(4, "Casa Madeira", "Pasta Barbieri"),
+        ]),
+      );
+      const out = await run(list);
+      expect(generateContent).toHaveBeenCalledTimes(1);
+      expect(named(out)).toEqual([
+        [1, ["Let's Road", "Madalosso"]],
+        [2, ["Bar Basso"]],
+        [3, ["Bar Bassi", "Casa Mineira", "Pasta Bar"]],
+        [4, ["Casa Madeira", "Pasta Barbieri"]],
+      ]);
+      expect(out.reply).not.toContain("Não entrou");
+    });
+
+    it("doesn't ask for the rest of a list when time is short", async () => {
+      const now = vi.spyOn(Date, "now").mockReturnValueOnce(0).mockReturnValue(40_000);
+      const list = { ...input, days: fortnight, locale: "pt", message: "adicione: o senhor restaurante, dhoosushi, park do churrasco e baraquias restaurante" };
+      generateContent.mockResolvedValueOnce(reply([dayWith(1, "O Senhor Restaurante"), dayWith(2, "Dhoosushi"), dayWith(3, "Park do Churrasco")]));
+      const out = await run(list);
+      now.mockRestore();
+      expect(generateContent).toHaveBeenCalledTimes(1);
+      expect(out.reply).toContain("(Não entrou nesta alteração: baraquias restaurante.)");
+    });
+
     it("takes out what they ask to now, even after saying to keep everything", async () => {
       const list = {
         ...input,
