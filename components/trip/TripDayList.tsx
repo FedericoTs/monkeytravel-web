@@ -77,7 +77,7 @@ interface DayContext {
   onOptimizeRoute: (dayNumber: number, activities: Activity[]) => void;
   /** Suggesting an activity to the crew; null for whoever may not. */
   onSuggestActivity: ((dayNumber: number) => void) | null;
-  onActivityDelete: (activityId: string) => void;
+  onActivityDelete: (activityId: string, name: string) => void;
   onActivityUpdate: (activityId: string, updates: Partial<Activity>) => void;
   onActivityRegenerate: (activityId: string, dayIndex: number) => void;
   onAddActivity: (dayIndex: number, activity: Partial<Activity>) => void;
@@ -299,7 +299,7 @@ function TripDay({
                         <SortableActivityCard
                           {...cardProps(activity, idx)}
                           isEditMode={true}
-                          onDelete={() => onActivityDelete(activity.id!)}
+                          onDelete={() => onActivityDelete(activity.id!, activity.name)}
                           onUpdate={(updates) => onActivityUpdate(activity.id!, updates)}
                           onMoveToDay={(targetDayIdx) => moves.moveToDay(activity.id!, targetDayIdx)}
                           onRegenerate={() => onActivityRegenerate(activity.id!, dayIndex)}

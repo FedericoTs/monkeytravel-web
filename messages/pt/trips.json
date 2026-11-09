@@ -665,6 +665,8 @@
     "activityCount": "{count, plural, one {# atividade} other {# atividades}}",
 
     "movedToDay": "Movida para o dia {day}",
+    "removed": "Removida: \"{name}\"",
+    "regenerated": "Trocada por \"{name}\"",
 
     "dropHere": "Solte aqui → início do dia {day}",
 
@@ -676,8 +678,6 @@
     "editActivity": "Editar atividade",
     "regenerateWithAI": "Gerar novamente com AI",
     "deleteActivity": "Excluir atividade",
-    "deleteConfirmTitle": "Excluir atividade?",
-    "deleteConfirmMessage": "\"{name}\" será removida do seu roteiro.",
     "regenerating": "Gerando atividade novamente com AI..."
   },
   "addActivity": {

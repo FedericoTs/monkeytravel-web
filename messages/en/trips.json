@@ -665,6 +665,8 @@
     "activityCount": "{count, plural, one {# activity} other {# activities}}",
 
     "movedToDay": "Moved to Day {day}",
+    "removed": "Removed \"{name}\"",
+    "regenerated": "Replaced with \"{name}\"",
 
     "dropHere": "Drop here → start of Day {day}",
 
@@ -676,8 +678,6 @@
     "editActivity": "Edit activity",
     "regenerateWithAI": "Regenerate with AI",
     "deleteActivity": "Delete activity",
-    "deleteConfirmTitle": "Delete Activity?",
-    "deleteConfirmMessage": "\"{name}\" will be removed from your itinerary.",
     "regenerating": "Regenerating activity with AI..."
   },
   "addActivity": {
