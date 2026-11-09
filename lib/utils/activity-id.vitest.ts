@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { ItineraryDay, Activity } from "@/types";
 import {
+  addActivity,
   calculateTravelMinutes,
   ensureActivityIds,
   ensureActivityIdsStable,
@@ -86,6 +87,9 @@ describe("moveActivityToDay", () => {
     expect(ids(moveActivityToDay(base(), "a3", 1, "auto"))[1]).toEqual(["b1", "b2", "a3"]);
     // empty day: only slot
     expect(ids(moveActivityToDay(base(), "a2", 2, "auto"))[2]).toEqual(["a2"]);
+    // 15:00, when b2 starts: after it
+    const atThree = [day(1, act("a1", "15:00")), day(2, act("b1", "10:00"), act("b2", "15:00"))];
+    expect(ids(moveActivityToDay(atThree, "a1", 1, "auto"))[1]).toEqual(["b1", "b2", "a1"]);
   });
 
   it("is a no-op for the same day, an unknown activity, or an invalid day", () => {
@@ -130,6 +134,29 @@ describe("calculateTravelMinutes", () => {
   });
 });
 
+describe("addActivity", () => {
+  const stop = (name: string, start: string, duration: number) => at(name, undefined, start, duration);
+  const times = (d: ItineraryDay) => d.activities.map((a) => `${a.start_time} ${a.name}`);
+  const plan = () => [day(1, stop("A", "09:00", 60), stop("B", "10:30", 60), stop("D", "18:00", 90))];
+
+  it("puts a new stop in its time order, keeping every time when it fits", () => {
+    expect(times(addActivity(plan(), 0, stop("Lunch", "12:00", 90))[0])).toEqual(["09:00 A", "10:30 B", "12:00 Lunch", "18:00 D"]);
+  });
+
+  it("keeps the time asked for, and moves a later stop only when the new one runs into it", () => {
+    // Asked for 10:30, when B starts: Tea takes 10:30, and B goes after it, with the 30 minutes of an unknown journey.
+    expect(times(addActivity(plan(), 0, stop("Tea", "10:30", 60))[0])).toEqual(["09:00 A", "10:30 Tea", "12:00 B", "18:00 D"]);
+    // Asked for 09:30, while A is still on: the time asked for stands.
+    const packed = [day(1, stop("A", "09:00", 60), stop("B", "10:30", 60))];
+    expect(times(addActivity(packed, 0, stop("Museum", "09:30", 120))[0])).toEqual(["09:00 A", "09:30 Museum", "12:00 B"]);
+  });
+
+  it("leaves the plan as it is for a day it doesn't have", () => {
+    const p = plan();
+    expect(addActivity(p, 3, stop("X", "12:00", 60))).toBe(p);
+  });
+});
+
 describe("fitMovedStop", () => {
   const times = (d: ItineraryDay) => d.activities.map((a) => `${a.start_time} ${a.name}`);
   // Stops with no location: an unknown journey counts as 30 minutes.
@@ -157,6 +184,11 @@ describe("fitMovedStop", () => {
   it("starts a stop that arrives during the one before it once that one is over", () => {
     const plan = order(stop("Shoraian", "12:30", 90), stop("Kiyomizu-dera", "12:45", 90));
     expect(times(fitMovedStop(plan, 0, "Kiyomizu-dera", "keep")[0])).toEqual(["12:30 Shoraian", "14:30 Kiyomizu-dera"]);
+  });
+
+  it("keeps a time the traveller set, even during the stop before it, and makes room after it", () => {
+    const plan = order(stop("Shoraian", "12:30", 90), stop("Kiyomizu-dera", "12:45", 90), stop("Kinkaku-ji", "14:00", 75));
+    expect(times(fitMovedStop(plan, 0, "Kiyomizu-dera", "exact")[0])).toEqual(["12:30 Shoraian", "12:45 Kiyomizu-dera", "14:45 Kinkaku-ji"]);
   });
 
   it("gives a stop dragged into the list the slot after the one before it, and pushes only what it must", () => {
