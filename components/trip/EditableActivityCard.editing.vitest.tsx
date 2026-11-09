@@ -103,7 +103,9 @@ describe("EditableActivityCard's editor", () => {
   it("has a stop without a length given one before it saves", () => {
     card(stop({ duration_minutes: 0 }));
     openEditor();
-    expect((field(enCommon.addActivity.duration) as unknown as HTMLSelectElement).value).toBe("");
+    const length = field(enCommon.addActivity.duration) as unknown as HTMLSelectElement;
+    expect(length.value).toBe("");
+    expect(length.selectedOptions[0]?.text).toBe("—");
     expect(saveButton().disabled).toBe(true);
     type(enCommon.addActivity.duration, "60");
     expect(saveButton().disabled).toBe(false);
