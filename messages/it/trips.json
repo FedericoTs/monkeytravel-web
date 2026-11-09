@@ -667,6 +667,7 @@
     "movedToDay": "Spostata al giorno {day}",
     "removed": "Rimossa: \"{name}\"",
     "regenerated": "Sostituita con \"{name}\"",
+    "madeRoom": "{count, plural, one {La tappa successiva ora inizia più tardi} other {Le # tappe successive ora iniziano più tardi}}, per fare spazio",
 
     "dropHere": "Rilascia qui → inizio del giorno {day}",
 
