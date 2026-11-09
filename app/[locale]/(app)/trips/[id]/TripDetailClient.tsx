@@ -486,6 +486,8 @@ export default function TripDetailClient({
   // days move with them, and a longer trip's new days come empty
   // (lib/trips/change-dates.ts), in one write with the dates.
   const [showChangeDates, setShowChangeDates] = useState(false);
+  // What the assistant opens with when a button asks it for something.
+  const [assistantPrefill, setAssistantPrefill] = useState<string>();
   const handleChangeDates = useCallback(
     async (start: string, end: string) => {
       setShowChangeDates(false);
@@ -503,9 +505,13 @@ export default function TripDetailClient({
       const range = formatDateRange(start, end, locale);
       const added = next.length - editedItinerary.length;
       if (added > 0) {
-        addToast(t("detail.emptyDaysAdded", { range, count: added, from: editedItinerary.length + 1, to: next.length }), "success", 10000, {
+        const empty = { count: added, from: editedItinerary.length + 1, to: next.length };
+        addToast(t("detail.emptyDaysAdded", { range, ...empty }), "success", 10000, {
           label: t("detail.askAssistant"),
-          onClick: () => setIsAIAssistantOpen(true),
+          onClick: () => {
+            setAssistantPrefill(t("detail.planEmptyDays", empty));
+            setIsAIAssistantOpen(true);
+          },
         });
       } else {
         addToast(t("detail.datesChanged", { range }), "success");
@@ -1366,12 +1372,16 @@ export default function TripDetailClient({
           tripTitle={trip.title}
           itinerary={displayItinerary}
           isOpen={isAIAssistantOpen}
-          onClose={() => setIsAIAssistantOpen(false)}
+          onClose={() => {
+            setIsAIAssistantOpen(false);
+            setAssistantPrefill(undefined);
+          }}
           onRefetchTrip={async () => {
             await handleRefetchTrip();
           }}
           onFocusDay={handleFocusDayCard}
           runItineraryWrite={runItineraryWrite}
+          prefill={assistantPrefill}
         />
       )}
 
