@@ -309,6 +309,7 @@ test.describe("Editing a saved trip by hand", () => {
 
     await page.keyboard.press("Escape");
     await reopen(page);
-    await expect(page.getByTestId("day-drop-list-5")).toBeVisible({ timeout: 30_000 });
+    // The day itself; an empty day's drop strip only shows during a drag.
+    await expect(page.locator("#trip-day-5")).toBeVisible({ timeout: 30_000 });
   });
 });
