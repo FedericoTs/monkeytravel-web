@@ -71,7 +71,7 @@ import {
   deleteActivity,
   updateActivity,
 } from "@/lib/utils/activity-id";
-import { firstRealPoint, newActivity } from "@/lib/trips/new-activity";
+import { newActivity } from "@/lib/trips/new-activity";
 import TripDayList from "@/components/trip/TripDayList";
 import { useTranslations, useLocale } from "next-intl";
 import { JourneyRibbon } from "@/components/trips/JourneyRibbon";
@@ -703,10 +703,6 @@ export default function TripDetailClient({
     notifyUndoable,
   });
 
-  // The plan's first real map point, near which an added activity without
-  // coordinates is placed when its day has none either.
-  const destinationCoords = useMemo(() => firstRealPoint(editedItinerary), [editedItinerary]);
-
   // Handle adding a new activity to a day
   const handleAddActivity = useCallback(
     (dayIndex: number, partialActivity: Partial<Activity>) => {
@@ -717,12 +713,11 @@ export default function TripDetailClient({
         dayIndex,
         newActivity(day, partialActivity, {
           destination,
-          nearPoint: destinationCoords,
           currency: trip.budget?.currency || "USD",
         })
       );
     },
-    [editedItinerary, destination, trip.budget?.currency, destinationCoords, addStop]
+    [editedItinerary, destination, trip.budget?.currency, addStop]
   );
 
   // Drag-and-drop (within a day and across days) is useItineraryMoves, below
