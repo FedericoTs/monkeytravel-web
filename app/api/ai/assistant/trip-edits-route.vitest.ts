@@ -196,6 +196,20 @@ describe("trip-page assistant: free-form edits", () => {
     expect(recordUsage).toHaveBeenCalledWith(expect.objectContaining({ modelId: "engine-model", costCents: 0.2 }));
   });
 
+  it("hands the engine a change still waiting on its card, and says when the new one keeps it", async () => {
+    proposeTripEdits.mockResolvedValue({ reply: "Ready: Wigwam on Day 3.", revisedDays: [wigwamDay3], summary: "", waitingKept: true, meta });
+    const waiting = { days: [wigwamDay3], reason: "Day 3: Wigwam." };
+    const { json } = await send("and Temple Bar too", { waiting });
+    expect(proposeTripEdits).toHaveBeenCalledWith(expect.objectContaining({ waiting }));
+    expect(json.waitingKept).toBe(true);
+
+    // A day the trip doesn't have isn't one, and a new change that doesn't keep it says nothing.
+    proposeTripEdits.mockResolvedValue({ reply: "Ready.", revisedDays: [wigwamDay3], summary: "", meta });
+    const { json: plain } = await send("and Temple Bar too", { waiting: { days: [{ ...wigwamDay3, day_number: 40 }] } });
+    expect(proposeTripEdits).toHaveBeenLastCalledWith(expect.objectContaining({ waiting: undefined }));
+    expect(plain.waitingKept).toBeUndefined();
+  });
+
   // The note follows the answer: put first, it would read "Not saved yet: …
   // Absolutely! I've extended…".
   it("keeps the honesty rule: a reply claiming the change is done keeps its answer, then says it isn't saved", async () => {

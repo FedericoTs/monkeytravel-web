@@ -25,6 +25,7 @@ const CATHEDRAL = "Cathedral visit";
 const LUNCH = "Riverside lunch";
 const BRIDGE = "Bridge walk";
 const GARDEN = "Crystal Palace gardens";
+const CELLAR = "Port wine cellar";
 const AS_STORED = [CATHEDRAL, LUNCH, BRIDGE];
 
 function iso(offsetDays: number): string {
@@ -99,7 +100,7 @@ const prepared = (pendingChange: PendingChange) => ({
 
 /** Answers the assistant's turns in this order, staying on the last; returns what was asked. */
 async function answerTurns(page: Page, ...replies: { status?: number; body: unknown }[]) {
-  const asked: Array<{ tripId?: string; message?: string; itinerary?: ItineraryDay[] }> = [];
+  const asked: Array<{ tripId?: string; message?: string; itinerary?: ItineraryDay[]; waiting?: { days?: ItineraryDay[] } }> = [];
   await page.route("**/api/ai/assistant", async (route) => {
     if (route.request().method() !== "POST") return route.fallback();
     asked.push(route.request().postDataJSON());
@@ -284,6 +285,33 @@ test.describe("asking the AI on the trip page", () => {
       await expect(dayList(page, 1)).toContainText(GARDEN);
       // The yes was the tap they meant: it never reached the model.
       expect(asked).toHaveLength(3);
+    });
+
+    // Five restaurants waited on a card while the traveller asked for "the others
+    // too", and the next card held only the others: the five were never saved.
+    test("a request that builds on a waiting change keeps both, in one save", async ({ page }) => {
+      const [dayOne] = (calmerDayOne() as Extract<PendingChange, { type: "apply_draft" }>).days;
+      const dayTwo = storedDays()[1];
+      const both: PendingChange = {
+        type: "apply_draft",
+        days: [dayOne, { ...dayTwo, activities: [...dayTwo.activities, activity("t-d2a2", CELLAR, "16:00")] }],
+        changedDayNumbers: [1, 2],
+      };
+      const asked = await answerTurns(page, { body: prepared(calmerDayOne()) }, { body: { ...prepared(both), waitingKept: true } });
+      const input = await openAssistant(page);
+      await send(input, "Make the first morning calmer");
+      await expect(page.getByText("Not in your trip yet")).toBeVisible();
+
+      await send(input, "And a wine cellar on day 2 as well");
+      await expect.poll(() => asked.length).toBe(2);
+      await expect(page.getByText("Not in your trip yet")).toBeVisible();
+      await expect(page.getByText("No problem! Let me know if you'd like to try something else.")).toHaveCount(0);
+      expect(asked[1].waiting?.days?.map((d) => d.day_number)).toEqual([1]);
+      expect(await storedNames()).toEqual(AS_STORED);
+
+      await page.getByRole("button", { name: "Save to my trip" }).click();
+      await expect.poll(storedNames, { timeout: 30_000 }).toEqual([GARDEN, LUNCH, BRIDGE, CELLAR]);
+      await expect(dayList(page, 2)).toContainText(CELLAR);
     });
 
     test("a day with a fixed plan is refused by name, and stays", async ({ page }) => {

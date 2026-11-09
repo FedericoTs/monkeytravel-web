@@ -271,6 +271,50 @@ describe("a proposal on screen", () => {
     fireEvent.click((await cardButtons())[1]);
     await waitFor(() => expect(posted.chat).toHaveLength(2));
     expect(posted.chat[1].message).toMatch(/tryDifferent .*Change it/);
+    // Another try replaces the change, so it doesn't go with the question.
+    expect(posted.chat[1].waiting).toBeUndefined();
+  });
+
+  // Five restaurants waited on a card while the traveller asked for "the others
+  // too"; the next card held only the others, and the five were never saved.
+  it("goes with a message that builds on it, and stays when the server keeps it", async () => {
+    const both = { ...proposal, days: [...proposal.days, { day_number: 2, date: "2027-03-12", activities: [{ ...activity, id: "a2", name: "Malahide" }] }], changedDayNumbers: [1, 2] };
+    const { posted } = serve({
+      chat: (body) =>
+        json(body.message === "Change it" ? proposing() : reply("Both are ready.", { pendingChange: both, waitingKept: true, message: { role: "assistant", content: "Both are ready.", timestamp: "t", action: { type: "apply_draft", applied: false, pending: true } } })),
+    });
+    open();
+    send("Change it");
+    await applyButton();
+    send("and Malahide on day 2 too");
+    expect(await screen.findByText("Both are ready.")).toBeTruthy();
+    expect(posted.chat[1].waiting).toEqual({ days: proposal.days });
+    expect(screen.queryByText("cancelledMessage")).toBeNull();
+    fireEvent.click(await applyButton());
+    await waitFor(() => expect(posted.apply).toHaveLength(1));
+    expect((posted.apply[0].days as ItineraryDay[]).map((d) => d.day_number)).toEqual([1, 2]);
+  });
+
+  it("a plain no doesn't go with the message, and says the change has gone", async () => {
+    const { posted } = serve({ chat: (body) => json(body.message === "Change it" ? proposing() : reply("Fine.")) });
+    open();
+    send("Change it");
+    await applyButton();
+    send("no");
+    expect(await screen.findByText("Fine.")).toBeTruthy();
+    expect(posted.chat[1].waiting).toBeUndefined();
+    expect(screen.getByText("cancelledMessage")).toBeTruthy();
+  });
+
+  it("comes back on its card when the message fails", async () => {
+    serve({ chat: (body) => (body.message === "Change it" ? json(proposing()) : json({ error: "busy" }, 500)) });
+    open();
+    send("Change it");
+    await applyButton();
+    send("and Malahide on day 2 too");
+    await waitFor(() => expect(box().value).toBe("and Malahide on day 2 too"));
+    expect(await applyButton()).toBeTruthy();
+    expect(screen.queryByText("cancelledMessage")).toBeNull();
   });
 });
 
