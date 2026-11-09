@@ -77,3 +77,25 @@ describe("useStopEdit's new stop", () => {
     expect(times(setItinerary.mock.calls[0][0])).toEqual(["09:00 Museum", "12:00 Lunch", "14:00 Garden", "16:30 Tea", "20:00 Bar"]);
   });
 });
+
+describe("useStopEdit's room after a stop", () => {
+  // The museum runs to 13:00, into lunch at 12:00.
+  const overlapping = () => [day(stop("Museum", "09:00", 240), stop("Lunch", "12:00", 60), stop("Garden", "16:00", 90))];
+
+  it("moves the later stops only as much as they must, and says how many, with Undo", () => {
+    const { result, setItinerary, pushUndo, notifyUndoable } = setup(overlapping());
+    result.current.makeRoom("Museum");
+    expect(pushUndo).toHaveBeenCalledWith("Make room");
+    // 13:00 and the 30 minutes of an unknown journey; the garden already had room.
+    expect(times(setItinerary.mock.calls[0][0])).toEqual(["09:00 Museum", "13:30 Lunch", "16:00 Garden"]);
+    expect(notifyUndoable).toHaveBeenCalledWith("editActivity.madeRoom:1");
+  });
+
+  it("changes nothing for a stop it doesn't hold", () => {
+    const plan = overlapping();
+    const { result, setItinerary, notifyUndoable } = setup(plan);
+    result.current.makeRoom("nowhere");
+    expect(setItinerary.mock.calls[0][0]).toBe(plan);
+    expect(notifyUndoable).not.toHaveBeenCalled();
+  });
+});

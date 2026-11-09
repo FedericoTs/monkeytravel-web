@@ -3,14 +3,15 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import type { Activity, ItineraryDay } from "@/types";
-import { addActivity, editActivity, retimedCount } from "@/lib/utils/activity-id";
+import { addActivity, editActivity, findActivityById, fitMovedStop, retimedCount } from "@/lib/utils/activity-id";
 
 /**
  * Saves a stop's edit from its card, or a stop added to a day. Either goes in
  * its time order, and a later stop moves only when it now runs into it
  * (editActivity, addActivity); when any did, a message says how many, with
- * Undo. Both start from the plan as it is now: a card that hasn't re-rendered
- * calls the handler of an earlier render.
+ * Undo. Making room after a stop that runs into the next one moves the later
+ * stops the same way. All start from the plan as it is now: a card that
+ * hasn't re-rendered calls the handler of an earlier render.
  */
 export function useStopEdit({
   itinerary,
@@ -25,6 +26,7 @@ export function useStopEdit({
 }): {
   editStop: (activityId: string, updates: Partial<Activity>) => void;
   addStop: (dayIndex: number, activity: Activity) => void;
+  makeRoom: (activityId: string) => void;
 } {
   const t = useTranslations("trips");
   const latest = useRef(itinerary);
@@ -53,5 +55,13 @@ export function useStopEdit({
     (dayIndex: number, activity: Activity) => commit("Add activity", activity.id ?? "", (plan) => addActivity(plan, dayIndex, activity)),
     [commit]
   );
-  return { editStop, addStop };
+  const makeRoom = useCallback(
+    (activityId: string) =>
+      commit("Make room", activityId, (plan) => {
+        const found = findActivityById(plan, activityId);
+        return found ? fitMovedStop(plan, found.dayIndex, activityId, "exact") : plan;
+      }),
+    [commit]
+  );
+  return { editStop, addStop, makeRoom };
 }

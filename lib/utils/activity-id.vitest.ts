@@ -8,6 +8,7 @@ import {
   ensureActivityIdsStable,
   fitMovedStop,
   moveActivityToDay,
+  overlapMinutes,
   retimedCount,
   stableActivityId,
 } from "./activity-id";
@@ -202,6 +203,27 @@ describe("editActivity", () => {
     const p = plan();
     expect(editActivity(p, "Museum", { duration_minutes: 180 })[1]).toBe(p[1]);
     expect(editActivity(p, "nowhere", { start_time: "10:00" })).toBe(p);
+  });
+});
+
+describe("overlapMinutes", () => {
+  const stop = (name: string, start: string, duration: number) => at(name, undefined, start, duration);
+
+  it("is how long a stop is still on once the next has started", () => {
+    expect(overlapMinutes(stop("Museum", "09:00", 120), stop("Lunch", "10:30", 60))).toBe(30);
+    // The next one starts before this one: all of its time left counts.
+    expect(overlapMinutes(stop("Museum", "12:00", 120), stop("Lunch", "11:00", 60))).toBe(180);
+  });
+
+  it("is nothing when the next one starts once it ends, or when a time or its length is unknown", () => {
+    expect(overlapMinutes(stop("Museum", "09:00", 120), stop("Lunch", "11:00", 60))).toBe(0);
+    expect(overlapMinutes(stop("Museum", "09:00", 120), stop("Lunch", "12:00", 60))).toBe(0);
+    expect(overlapMinutes(stop("Museum", "", 120), stop("Lunch", "10:30", 60))).toBe(0);
+    expect(overlapMinutes(stop("Museum", "09:00", 120), stop("Lunch", "", 60))).toBe(0);
+    expect(overlapMinutes(stop("Museum", "09:00", 0), stop("Lunch", "09:30", 60))).toBe(0);
+    // Not read as midnight, or as no length at all.
+    expect(overlapMinutes(stop("Museum", "", 120), stop("Lunch", "00:30", 60))).toBe(0);
+    expect(overlapMinutes(stop("Museum", "12:00", 0), stop("Lunch", "11:00", 60))).toBe(0);
   });
 });
 
