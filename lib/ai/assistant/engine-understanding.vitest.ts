@@ -5,7 +5,7 @@ import { buildPrompt } from "./edit-prompt";
 import { composeReply } from "./edit-reply";
 import type { DayEdit } from "./edit-validation";
 import { correctionFor } from "./engine";
-import { asksForMoreDays } from "./message-asks";
+import { asksForMoreDays, asksToAdd, keepsEverything } from "./message-asks";
 import { keepSavedActivities, takenOut } from "./saved-activities";
 import { outsideTravelTimes, readTravelTimes } from "./travel-times";
 import { asksToRemove, replyLanguage } from "./honesty";
@@ -129,6 +129,43 @@ describe("takenOut", () => {
     expect(asksToRemove("take out all restaurants")).toBe(true);
     expect(asksToRemove("quita todos los restaurantes")).toBe(true);
     expect(asksToRemove("add a Jameson whiskey distillery tour")).toBe(false);
+  });
+});
+
+describe("what must stay", () => {
+  it("is not a request to remove it", () => {
+    // From a real conversation: the drafts kept swapping out this dinner.
+    expect(asksToRemove("coloque em outro dia, não substitua o jantar na Choperia Brahma")).toBe(false);
+    expect(asksToRemove("não remova nada que já esteja planejado, somente adicione")).toBe(false);
+    expect(asksToRemove("Não quero que você remova nada do que já está")).toBe(false);
+    expect(asksToRemove("add a jazz bar but don't replace the dinner")).toBe(false);
+    expect(asksToRemove("añade una cena sin quitar nada")).toBe(false);
+    expect(asksToRemove("aggiungi una cena senza togliere niente")).toBe(false);
+    // A removal asked for is still one, next to something kept.
+    expect(asksToRemove("don't change day 2, but replace the museum with a park")).toBe(true);
+    expect(asksToRemove("a day without museums")).toBe(true);
+    expect(asksToRemove("não quero mais o museu, substitua por um parque")).toBe(true);
+    expect(asksToRemove("No, cambia el museo por un parque")).toBe(true);
+  });
+
+  it("holds for the whole request when they say to keep everything", () => {
+    expect(keepsEverything("vou pedir para você adicionar alguns restaurantes. não remova nada que já esteja planejado")).toBe(true);
+    expect(keepsEverything("somente adicione em dias que ficarem mais apropriados")).toBe(true);
+    expect(keepsEverything("add these bars, don't remove anything")).toBe(true);
+    expect(keepsEverything("just add them where they fit")).toBe(true);
+    expect(keepsEverything("añádelos sin quitar nada")).toBe(true);
+    expect(keepsEverything("non togliere niente, aggiungi solo questi")).toBe(true);
+    expect(keepsEverything("add a museum on day 2")).toBe(false);
+    expect(keepsEverything("remove the museum on day 2")).toBe(false);
+  });
+});
+
+describe("asksToAdd", () => {
+  it("hears a polite or formal ask, as Brazilian and Spanish travellers write it", () => {
+    for (const ask of ["adicione um restaurante no primeiro dia", "coloque em outro dia", "acrescente um bar", "inclua o museu", "añada una cena", "agregue un bar", "incluya el museo", "aggiunga una cena", "metta il museo il giorno 2"]) {
+      expect(asksToAdd(ask), ask).toBe(true);
+    }
+    expect(asksToAdd("o que tem para fazer à noite?")).toBe(false);
   });
 });
 
@@ -263,6 +300,21 @@ describe("correctionFor", () => {
     const full = [day(1, ["A1", "A2", "A3"]), day(2, ["B1", "B2", "B3"])];
     expect(correctionFor({ message: "add Hakone", days: full }, { reply: "Day 2 is Hakone.", edits: [edit(2, ["Hakone ropeway", "Lake Ashi", "Onsen"])] })).toBeNull();
     expect(correctionFor({ message: "replace B with a salsa class", days }, { reply: "Done.", edits: [edit(2, ["Salsa class"])] })).toBeNull();
+  });
+
+  it("keeps everything when they said not to remove anything, however much a day loses", () => {
+    const full = [day(1, ["A1", "A2", "A3"]), day(2, ["B1", "B2", "B3"])];
+    const swapped = { reply: "Dia 2 com os restaurantes.", edits: [edit(2, ["Madalosso", "Bar do Alemão", "Zefy Diner"])] };
+    const told = { role: "user" as const, text: "não remova nada que já esteja planejado, somente adicione" };
+    const c = correctionFor({ message: "izakaya tanuki, madalosso, bar do alemão", days: full, history: [told] }, swapped);
+    expect(c).toContain("keep everything already planned");
+    expect(c).toContain("B1 and B2 and B3");
+    // In the same message, with a polite ask.
+    expect(correctionFor({ message: "adicione estes restaurantes, não remova nada", days: full }, swapped)).toContain("keep everything");
+    // Told nothing of the kind, a whole day given to what they add is how it fits.
+    expect(correctionFor({ message: "add Madalosso, Bar do Alemão and Zefy Diner", days: full }, swapped)).toBeNull();
+    // Asking now for something to go is a change of mind.
+    expect(correctionFor({ message: "tire o B1 e coloque o Madalosso", days: full, history: [told] }, { ...swapped, edits: [edit(2, ["Madalosso", "B2", "B3"])] })).toBeNull();
   });
 
   it("sends back edits that changed nothing", () => {

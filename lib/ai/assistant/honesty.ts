@@ -446,14 +446,23 @@ export function planCostsReply(
 // Asking for something to go: "remove", "take out", "instead", "quita", "togli"…
 const REMOVAL_ASK = new RegExp(
   `${start}${words(
-    "remove|removing|take\\s+out|delete|drop|skip|cut|get\\s+rid|without|replace|replacing|instead|swap|no\\s+more|quita|quitar|elimina|eliminar|borra|sin|en\\s+vez|en\\s+lugar|sustituye|cambia|togli|togliere|rimuovi|cancella|senza|invece|sostituisci|tira|tirar|remova|exclua|apaga|sem|em\\s+vez|troca|substitua"
+    "remove|removing|take\\s+out|delete|drop|skip|cut|get\\s+rid|without|replace|replacing|instead|swap|no\\s+more|quita|quite|quitar|elimina|elimine|eliminar|borra|borre|sin|en\\s+vez|en\\s+lugar|sustituye|sustituya|cambia|cambie|togli|tolga|togliere|rimuovi|rimuova|cancella|cancelli|senza|invece|sostituisci|sostituisca|tira|tire|tirar|retire|retirar|remova|exclua|apaga|apague|sem|em\\s+vez|troca|troque|substitua"
   )}${end}`,
   "iu"
 );
 
+// Saying what must stay is not asking for it to go: "não substitua o jantar",
+// "don't replace the dinner", "sin quitar nada", "senza togliere niente".
+const KEPT = new RegExp(
+  `${start}${words("don['’]?t|do\\s+not|never|without|não|nao|nunca|sem|no|sin|non|mai|senza")}\\s+(?:[${L}'’]+\\s+){0,3}?${words(
+    "remove|removing|take\\s+out|taking\\s+out|delete|deleting|drop|dropping|cut|cutting|replace|replacing|swap|swapping|skip|skipping|lose|losing|touch|touching|change|changing|quites|quitar|quitando|elimines|eliminar|borres|borrar|sustituyas|sustituir|reemplaces|reemplazar|cambies|cambiar|saques|sacar|toques|tocar|togliere|togli|togliendo|rimuovere|rimuovi|eliminare|elimina|cancellare|cancella|sostituire|sostituisci|cambiare|cambia|toccare|tocca|remova|remover|removendo|retire|retirar|tire|tirar|exclua|excluir|apague|apagar|substitua|substituir|troque|trocar|elimine|mexa|mexer|mude|mudar"
+  )}${end}`,
+  "giu"
+);
+
 /** Does the traveller's message ask for something to be taken out or swapped? */
 export function asksToRemove(message: string | null | undefined): boolean {
-  return REMOVAL_ASK.test(message ?? "");
+  return REMOVAL_ASK.test((message ?? "").replace(KEPT, " "));
 }
 
 /**

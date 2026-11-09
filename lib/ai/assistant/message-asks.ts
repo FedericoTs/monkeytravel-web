@@ -65,11 +65,36 @@ export function tellsWhereTheyStay(message: string): boolean {
 // A clock time: "23:00", "21h30", "3pm", "2 p.m.", "las 23 horas", "alle 14", "às 9h".
 export const TELLS_TIME = /(?<![\p{L}\p{N}])(?:\d{1,2}[:.h]\d{2}|\d{1,2}\s*[ap]\.?m\.?(?![\p{L}])|(?:las|alle|às|as)\s+\d{1,2}(?![\p{N}]))/iu;
 
-// Asking for something to be added: "add", "include", "agrega", "aggiungi"…
+// Asking for something to be added: "add", "include", "agrega", "aggiungi",
+// and the polite forms many travellers write: "adicione", "coloque", "añada".
 const ADD_ASK =
-  /(?<![\p{L}])(?:add|adding|include|put|insert|fit|squeeze|agrega|agregar|añade|añadir|incluye|incluir|pon|aggiungi|aggiungere|inserisci|includi|metti|adiciona|adicionar|acrescenta|inclui|incluir|coloca)(?![\p{L}])/iu;
+  /(?<![\p{L}])(?:add|adding|include|put|insert|fit|squeeze|agrega|agregar|agregue|añade|añadir|añada|incluye|incluir|incluya|pon|ponga|poner|inserte|aggiungi|aggiungere|aggiunga|inserisci|inserisca|includi|includa|metti|metta|mettere|adiciona|adicionar|adicione|acrescenta|acrescentar|acrescente|inclui|inclua|coloca|coloque|colocar|ponha|insira|encaixe)(?![\p{L}])/iu;
 
 /** Does the traveller's message ask for something to be added? */
 export function asksToAdd(message: string): boolean {
   return ADD_ASK.test(message);
+}
+
+// Everything already planned stays: "não remova nada", "somente adicione",
+// "don't remove anything", "just add", "sin quitar nada", "non togliere niente".
+const KEEP_ALL = new RegExp(
+  [
+    "(?:don['’]?t|do\\s+not|never|without)\\s+(?:remove|removing|take\\s+out|taking\\s+out|delete|deleting|drop|dropping|replace|replacing|change|changing|touch|touching)\\s+(?:anything|any\\s+of)",
+    "(?:only|just)\\s+add",
+    "keep\\s+(?:everything|all\\s+(?:of\\s+)?(?:the|what|my))",
+    "(?:não|nao|nunca|sem)\\s+(?:\\p{L}+\\s+){0,3}?(?:remova|remover|tire|tirar|retire|retirar|exclua|excluir|substitua|substituir|apague|apagar|mexa|mexer)\\s+(?:nada|em\\s+nada|nenhum)",
+    "(?:somente|apenas|só)\\s+(?:adicione|adicionar|acrescente|acrescentar|inclua|incluir|coloque|colocar)",
+    "(?:no|nunca|sin)\\s+(?:\\p{L}+\\s+){0,3}?(?:quites|quitar|elimines|eliminar|borres|borrar|sustituyas|sustituir|cambies|cambiar|toques|tocar)\\s+nada",
+    "solo\\s+(?:añade|añada|añadir|agrega|agregue|agregar|incluye|incluya|incluir)",
+    "(?:non|mai|senza)\\s+(?:\\p{L}+\\s+){0,3}?(?:togliere|togli|rimuovere|rimuovi|eliminare|elimina|cancellare|cancella|sostituire|sostituisci|cambiare|cambia|toccare|tocca)\\s+(?:niente|nulla)",
+    "solo\\s+(?:aggiungi|aggiunga|aggiungere|inserisci|inserisca|inserire)",
+  ]
+    .map((p) => `(?<![\\p{L}])${p}(?![\\p{L}])`)
+    .join("|"),
+  "iu",
+);
+
+/** Do they want every activity already planned kept, whatever is added? */
+export function keepsEverything(text: string): boolean {
+  return KEEP_ALL.test(text);
 }
