@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { ItineraryDay, Activity } from "@/types";
 import {
+  addActivity,
   calculateTravelMinutes,
   ensureActivityIds,
   ensureActivityIdsStable,
@@ -127,6 +128,28 @@ describe("calculateTravelMinutes", () => {
     expect(calculateTravelMinutes(at("Kiyomizu-dera", ON_PLACEHOLDER), kyoto)).toBeNull();
     expect(calculateTravelMinutes(at("Gion", { lat: 0, lng: 0 }), kyoto)).toBeNull();
     expect(calculateTravelMinutes(kyoto, at("Gion", undefined))).toBeNull();
+  });
+});
+
+describe("addActivity", () => {
+  const stop = (name: string, start: string, duration: number) => at(name, undefined, start, duration);
+  const times = (d: ItineraryDay) => d.activities.map((a) => `${a.start_time} ${a.name}`);
+  const plan = () => [day(1, stop("A", "09:00", 60), stop("B", "10:30", 60), stop("D", "18:00", 90))];
+
+  it("puts a new stop in its time order, keeping every time when it fits", () => {
+    expect(times(addActivity(plan(), 0, stop("Lunch", "12:00", 90))[0])).toEqual(["09:00 A", "10:30 B", "12:00 Lunch", "18:00 D"]);
+  });
+
+  it("starts a new stop once the one before it is over, and moves later ones only as needed", () => {
+    // Asked for 10:30, when B starts: after B, then the 30 minutes of an unknown journey.
+    expect(times(addActivity(plan(), 0, stop("Tea", "10:30", 60))[0])).toEqual(["09:00 A", "10:30 B", "12:00 Tea", "18:00 D"]);
+    const packed = [day(1, stop("A", "09:00", 60), stop("B", "10:30", 60))];
+    expect(times(addActivity(packed, 0, stop("Museum", "09:30", 120))[0])).toEqual(["09:00 A", "10:30 Museum", "13:00 B"]);
+  });
+
+  it("leaves the plan as it is for a day it doesn't have", () => {
+    const p = plan();
+    expect(addActivity(p, 3, stop("X", "12:00", 60))).toBe(p);
   });
 });
 

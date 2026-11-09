@@ -273,7 +273,7 @@ export function getAllActivityNames(itinerary: ItineraryDay[]): string[] {
 }
 
 /**
- * Add a new activity to a specific day
+ * Add a new activity to a day, in its time order.
  */
 export function addActivity(
   itinerary: ItineraryDay[],
@@ -284,11 +284,13 @@ export function addActivity(
     return itinerary;
   }
 
-  return itinerary.map((day, i) =>
-    i === dayIndex
-      ? { ...day, activities: [...day.activities, activity] }
-      : day
-  );
+  // In its time order, starting once the stop before it is over; a later stop
+  // moves only when the new one runs into it (fitMovedStop).
+  const day = itinerary[dayIndex];
+  const at = chronologicalInsertIndex(day, activity.start_time);
+  const activities = [...day.activities.slice(0, at), activity, ...day.activities.slice(at)];
+  const added = itinerary.map((d, i) => (i === dayIndex ? { ...d, activities } : d));
+  return activity.id ? fitMovedStop(added, dayIndex, activity.id, "keep") : added;
 }
 
 /**

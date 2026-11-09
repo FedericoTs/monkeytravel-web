@@ -38,6 +38,7 @@ import { useCurrency } from "@/lib/locale";
 import type { TimelineItem } from "@/lib/proposals/timeline";
 import { dayBudgetLabel, showsDayBudget } from "@/lib/trip/day-budget";
 import type { Activity, ItineraryDay } from "@/types";
+import { calculateNextTimeSlot } from "@/lib/utils/activity-id";
 
 type Proposal = ComponentProps<typeof InlineProposalCard>["proposal"];
 type VotingProps = Pick<
@@ -360,6 +361,7 @@ function TripDay({
                 dayIndex={dayIndex}
                 destination={destination}
                 onAdd={(partialActivity) => onAddActivity(dayIndex, partialActivity)}
+                suggestedTime={calculateNextTimeSlot(day)}
               />
             </div>
           )}
