@@ -286,6 +286,11 @@ export function lengthUnchangedNote(language: string | undefined, days: number):
   return note(language, "lengthUnchanged", { days });
 }
 
+/** Places of a list they asked to add that the change doesn't hold, named after the reply. */
+export function listMissingNote(language: string | undefined, names: string[]): string {
+  return note(language, "listMissing", { list: names.join(", ") });
+}
+
 /** A new change that also holds the one still waiting for its button. */
 export function waitingKeptNote(language: string | undefined): string {
   return note(language, "waitingKept");

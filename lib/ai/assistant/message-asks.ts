@@ -98,3 +98,25 @@ const KEEP_ALL = new RegExp(
 export function keepsEverything(text: string): boolean {
   return KEEP_ALL.test(text);
 }
+
+// A list of places: "izakaya tanuki, o senhor restaurante, …, bar do alemao e
+// lett's road". Three or more short items between commas, the last two joined
+// by "and" in the traveller's language; a leading article is dropped.
+const LIST_ITEM = /^[\p{L}\p{N}'’&.\- ]{2,60}$/u;
+const LIST_AND = /\s+(?:e|and|y|ed|&)\s+/iu;
+const LIST_ARTICLE = /^(?:o|a|os|as|the|el|la|los|las|il|lo|gli|le)\s+/iu;
+// "Add these: …" or "Add Bar Basso, …": the ask before the first place.
+const LIST_LEAD = new RegExp(`^${ADD_ASK.source}(?:\\s+(?:these|estes|estas|estos|questi|queste|also|too|também|también|anche))?\\s+`, "iu");
+
+/** The places a message lists, or [] when it lists none. */
+export function listedPlaces(text: string): string[] {
+  for (const sentence of text.split(/[.!?;:\n]+/)) {
+    const parts = sentence.split(",").map((p) => p.trim()).filter(Boolean);
+    if (parts.length < 2) continue;
+    const last = parts.pop() as string;
+    parts[0] = parts[0].replace(LIST_LEAD, "");
+    const items = [...parts, ...last.split(LIST_AND)].map((p) => p.trim().replace(LIST_ARTICLE, "")).filter(Boolean);
+    if (items.length >= 3 && items.every((p) => LIST_ITEM.test(p) && p.split(/\s+/).length <= 6)) return items;
+  }
+  return [];
+}
