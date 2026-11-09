@@ -359,6 +359,11 @@ function EditableActivityCard({
                     />
                   ) : (
                     <h4 className="font-semibold text-slate-900 text-base sm:text-lg">
+                      {activity.locked && (
+                        <span className="mr-1" title={tc("lockedActivity")} aria-label={tc("lockedActivity")}>
+                          📌
+                        </span>
+                      )}
                       {activity.name}
                     </h4>
                   )}
@@ -551,6 +556,7 @@ export default memo(EditableActivityCard, (prevProps, nextProps) => {
   if (prev.image_url !== next.image_url) return false;
   if (prev.type !== next.type) return false;
   if (prev.description !== next.description) return false;
+  if (prev.locked !== next.locked) return false;
 
   // Voting props
   if (prevProps.votingEnabled !== nextProps.votingEnabled) return false;
