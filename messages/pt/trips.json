@@ -669,6 +669,8 @@
     "removed": "Removida: \"{name}\"",
     "regenerated": "Trocada por \"{name}\"",
     "madeRoom": "{count, plural, one {A parada seguinte agora começa mais tarde} other {As # paradas seguintes agora começam mais tarde}}, para dar espaço",
+    "overlap": "Sobrepõe-se a «{name}» em {duration}",
+    "makeRoom": "Abrir espaço",
 
     "dropHere": "Solte aqui → início do dia {day}",
 

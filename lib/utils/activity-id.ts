@@ -283,6 +283,17 @@ export function editActivity(
   return fitMovedStop(itinerary.map((d, i) => (i === dayIndex ? { ...d, activities } : d)), dayIndex, activityId, "exact");
 }
 
+/**
+ * How long `activity` is still on once `next` has started, in minutes: 0 when
+ * the next one starts after it ends, or when a time or its length is unknown.
+ */
+export function overlapMinutes(activity: Activity, next: Activity): number {
+  const start = minutesOf(activity.start_time);
+  const nextStart = minutesOf(next.start_time);
+  if (start === null || nextStart === null || !(activity.duration_minutes > 0)) return 0;
+  return Math.max(0, start + activity.duration_minutes - nextStart);
+}
+
 /** How many stops, other than `exceptId`, start at another time in `after` than in `before`. */
 export function retimedCount(before: ItineraryDay[], after: ItineraryDay[], exceptId: string): number {
   const was = new Map(before.flatMap((d) => d.activities.map((a) => [a.id, a.start_time] as const)));
@@ -389,7 +400,7 @@ function minutesOf(time: string | undefined): number | null {
 }
 
 /** A stop the traveller fixed: booked, or a fixed plan. Its time never moves. */
-function isFixed(activity: Activity): boolean {
+export function isFixed(activity: Activity): boolean {
   return activity.booking_required === true || (activity as { locked?: boolean }).locked === true;
 }
 

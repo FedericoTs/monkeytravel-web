@@ -702,7 +702,7 @@ export default function TripDetailClient({
 
   // A stop's edit from its card, or a stop added: in its time order, with room
   // made after it, and a message with Undo when other stops moved.
-  const { editStop: handleActivityUpdate, addStop } = useStopEdit({
+  const { editStop: handleActivityUpdate, addStop, makeRoom } = useStopEdit({
     itinerary: editedItinerary,
     setItinerary: setEditedItinerary,
     pushUndo,
@@ -1300,6 +1300,7 @@ export default function TripDetailClient({
           onSuggestActivity={votingEnabled && canPropose ? handleOpenProposeModal : null}
           onActivityDelete={handleActivityDelete}
           onActivityUpdate={handleActivityUpdate}
+          onMakeRoom={makeRoom}
           onActivityRegenerate={handleActivityRegenerate}
           onAddActivity={handleAddActivity}
           onPhotoCapture={handlePhotoCapture}
