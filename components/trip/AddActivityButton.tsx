@@ -6,6 +6,7 @@ import { Activity } from "@/types";
 import { useActivitySearch, type ActivitySearchResult } from "@/hooks/useActivitySearch";
 import { useTranslations } from "next-intl";
 import { ActivityResultRow } from "./ActivityResultRow";
+import DurationSelect from "./DurationSelect";
 
 interface AddActivityButtonProps {
   dayIndex: number;
@@ -203,19 +204,12 @@ export default function AddActivityButton({
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">{t("duration")}</label>
-              <select
-                aria-label={t("duration")}
+              <DurationSelect
+                label={t("duration")}
                 value={customActivity.duration}
-                onChange={(e) => setCustomActivity({ ...customActivity, duration: Number(e.target.value) })}
+                onChange={(minutes) => setCustomActivity({ ...customActivity, duration: minutes })}
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
-              >
-                <option value={30}>{t("durations.30min")}</option>
-                <option value={60}>{t("durations.1hr")}</option>
-                <option value={90}>{t("durations.90min")}</option>
-                <option value={120}>{t("durations.2hr")}</option>
-                <option value={180}>{t("durations.3hr")}</option>
-                <option value={240}>{t("durations.4hr")}</option>
-              </select>
+              />
             </div>
           </div>
 
