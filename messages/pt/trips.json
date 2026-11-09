@@ -594,6 +594,7 @@
     "datesNotChanged": "Não foi possível alterar as datas. Tente de novo.",
     "emptyDaysAdded": "Novas datas: {range}. {count, plural, one {O dia {from} está vazio: adicione paradas ou peça ao assistente para planejá-lo.} other {Os dias {from}–{to} estão vazios: adicione paradas ou peça ao assistente para planejá-los.}}",
     "askAssistant": "Perguntar ao assistente",
+    "planEmptyDays": "{count, plural, one {Planeje o dia {from} para mim} other {Planeje os dias {from} a {to} para mim}}",
     "routeOptimizedSave": "Rota otimizada. Salve as alterações para mantê-la.",
     "pageTitle": "Detalhes da viagem",
     "exitEditing": "Sair",
@@ -667,6 +668,7 @@
     "movedToDay": "Movida para o dia {day}",
     "removed": "Removida: \"{name}\"",
     "regenerated": "Trocada por \"{name}\"",
+    "madeRoom": "{count, plural, one {A parada seguinte agora começa mais tarde} other {As # paradas seguintes agora começam mais tarde}}, para dar espaço",
 
     "dropHere": "Solte aqui → início do dia {day}",
 

@@ -594,6 +594,7 @@
     "datesNotChanged": "Couldn't change the dates. Try again.",
     "emptyDaysAdded": "New dates: {range}. {count, plural, one {Day {from} is empty: add stops, or ask the assistant to plan it.} other {Days {from}–{to} are empty: add stops, or ask the assistant to plan them.}}",
     "askAssistant": "Ask the assistant",
+    "planEmptyDays": "{count, plural, one {Plan day {from} for me} other {Plan days {from} to {to} for me}}",
     "routeOptimizedSave": "Route optimized. Save your changes to keep it.",
     "pageTitle": "Trip Details",
     "exitEditing": "Exit",
@@ -667,6 +668,7 @@
     "movedToDay": "Moved to Day {day}",
     "removed": "Removed \"{name}\"",
     "regenerated": "Replaced with \"{name}\"",
+    "madeRoom": "{count, plural, one {The stop after it now starts later} other {# stops after it now start later}}, to make room",
 
     "dropHere": "Drop here → start of Day {day}",
 

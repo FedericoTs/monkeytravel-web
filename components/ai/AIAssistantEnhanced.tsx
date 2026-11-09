@@ -26,6 +26,12 @@ interface AIAssistantEnhancedProps {
   // (transcripts: "I don't see the updates on the webpage"). Called after an
   // applied action refetches, and when the user taps the action badge.
   onFocusDay?: (dayNumber: number) => void;
+  /**
+   * A question the page puts in the box when the panel opens, from a button
+   * that asks the assistant for something. The traveller sends it as it is,
+   * or changes it first.
+   */
+  prefill?: string;
 }
 
 // Quick action IDs - labels come from translations
@@ -121,6 +127,7 @@ export default function AIAssistantEnhanced({
   onRefetchTrip,
   onFocusDay,
   runItineraryWrite,
+  prefill,
 }: AIAssistantEnhancedProps) {
   const t = useTranslations("common.ai.assistant");
   const tCommon = useTranslations("common");
@@ -167,6 +174,11 @@ export default function AIAssistantEnhanced({
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isOpen]);
+
+  // The page's question goes in the box once, when the panel opens with it.
+  useEffect(() => {
+    if (isOpen && prefill) setInput(prefill);
+  }, [isOpen, prefill, setInput]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

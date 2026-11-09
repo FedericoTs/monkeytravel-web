@@ -256,6 +256,42 @@ export function updateActivity(
 }
 
 /**
+ * A stop's edit by the traveller. A new start time puts it in its time order
+ * at that time, before a stop that starts then; with a new time or length, a
+ * later stop moves only when this one now runs into it (fitMovedStop,
+ * "exact"). The times before it stay.
+ */
+export function editActivity(
+  itinerary: ItineraryDay[],
+  activityId: string,
+  updates: Partial<Activity>
+): ItineraryDay[] {
+  const found = findActivityById(itinerary, activityId);
+  if (!found) return itinerary;
+  const { activity, dayIndex, activityIndex } = found;
+  const edited = { ...activity, ...updates };
+  const newTime = edited.start_time !== activity.start_time;
+  if (!newTime && edited.duration_minutes === activity.duration_minutes) {
+    return updateActivity(itinerary, activityId, updates);
+  }
+
+  const day = itinerary[dayIndex];
+  const others = day.activities.filter((a) => a.id !== activityId);
+  const at = newTime ? chronologicalInsertIndex({ ...day, activities: others }, edited.start_time, "before") : activityIndex;
+  const stop = newTime && edited.start_time ? { ...edited, time_slot: determineTimeSlot(edited.start_time) } : edited;
+  const activities = [...others.slice(0, at), stop, ...others.slice(at)];
+  return fitMovedStop(itinerary.map((d, i) => (i === dayIndex ? { ...d, activities } : d)), dayIndex, activityId, "exact");
+}
+
+/** How many stops, other than `exceptId`, start at another time in `after` than in `before`. */
+export function retimedCount(before: ItineraryDay[], after: ItineraryDay[], exceptId: string): number {
+  const was = new Map(before.flatMap((d) => d.activities.map((a) => [a.id, a.start_time] as const)));
+  return after
+    .flatMap((d) => d.activities)
+    .filter((a) => a.id !== exceptId && was.has(a.id) && was.get(a.id) !== a.start_time).length;
+}
+
+/**
  * Replace an activity with a new one (used for regeneration)
  */
 export function replaceActivity(

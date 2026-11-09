@@ -189,6 +189,9 @@ describe("asksForMoreDays", () => {
     "aggiungi 2 giorni in più",
     "mais um dia em Lisboa",
     "make it 9 days",
+    "add another day",
+    "add a day after Rome",
+    "aggiungi un altro giorno a Firenze",
   ])("hears a request for more days: %s", (text) => {
     expect(asksForMoreDays(text)).toBe(true);
   });
@@ -199,6 +202,28 @@ describe("asksForMoreDays", () => {
       expect(asksForMoreDays(text)).toBe(false);
     }
   );
+
+  // A day of the trip, by its number or as the last one, is where the change goes.
+  it.each([
+    "add a gelato stop on day 1",
+    "add dinner to day 3, near the hotel",
+    "aggiungi una cena al giorno 3",
+    "agrega un museo el día 2",
+    "adicione um jantar no dia 4",
+    "add a museum on the last day",
+    "aggiungi un aperitivo l'ultimo giorno",
+    "añade una cena el último día",
+  ])("hears a day of the trip, not more days, in: %s", (text) => {
+    expect(asksForMoreDays(text)).toBe(false);
+  });
+
+  it("hears a day the trip doesn't have yet as more days", () => {
+    expect(asksForMoreDays("add day 6 in Pisa", 5)).toBe(true);
+    expect(asksForMoreDays("aggiungi il giorno 6 a Pisa", 5)).toBe(true);
+    expect(asksForMoreDays("add a gelato stop on day 5", 5)).toBe(false);
+    // Without the trip's length, a day by its number is one of the trip's.
+    expect(asksForMoreDays("add day 6 in Pisa")).toBe(false);
+  });
 });
 
 describe("correctionFor", () => {
@@ -271,7 +296,13 @@ describe("correctionFor", () => {
   it("refuses a longer trip nobody asked for, but not one they did", () => {
     const longer = { reply: "Added Óbidos as day 6.", edits: [edit(6, ["Óbidos"])], tripLength: 6 };
     expect(correctionFor({ message: "include Cascais and Óbidos", days }, longer)).toContain("Keep the trip at 5 days");
+    // A stop asked for on a day of the trip, with a day added on top.
+    const plusDay = { reply: "Added gelato on day 5, and Óbidos as day 6.", edits: [edit(5, ["E", "Gelato"]), edit(6, ["Óbidos"])], tripLength: 6 };
+    expect(correctionFor({ message: "add a gelato stop on day 5", days }, plusDay)).toContain("Keep the trip at 5 days");
+    expect(correctionFor({ message: "aggiungi un aperitivo l'ultimo giorno", days }, longer)).toContain("Keep the trip at 5 days");
     expect(correctionFor({ message: "add one more day for Óbidos", days }, longer)).toBeNull();
+    // A day the trip doesn't have yet.
+    expect(correctionFor({ message: "add day 6 in Óbidos", days }, longer)).toBeNull();
     expect(
       correctionFor(
         { message: "yes", days, history: [{ role: "assistant", text: "Want me to add 1 more day for Óbidos?" }] },
