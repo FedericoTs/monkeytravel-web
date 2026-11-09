@@ -5,6 +5,7 @@ import { join } from "node:path";
 import {
   announcedButMissing,
   announcesProposal,
+  claimedTripDays,
   claimsItineraryChange,
   claimsLongerTrip,
   claimsToRemember,
@@ -525,6 +526,23 @@ describe("more claims the guard used to miss", () => {
     expect(claimsLongerTrip("Ho aggiunto un giorno in più a Firenze.")).toBe(true);
     expect(claimsLongerTrip("Adicionei mais um dia em Lisboa.")).toBe(true);
     expect(claimsLongerTrip("Day 3 now ends with dinner in Gion.")).toBe(false);
+  });
+
+  it("reads how many days a reply says the whole trip has", () => {
+    expect(claimedTripDays("I've updated your trip to have 16 days, starting in Paris.")).toBe(16);
+    expect(claimedTripDays("Your itinerary now has 16 days.")).toBe(16);
+    expect(claimedTripDays("Here's your 16-day itinerary across six cities.")).toBe(16);
+    expect(claimedTripDays("Ho portato il viaggio a 16 giorni.")).toBe(16);
+    expect(claimedTripDays("Ecco il tuo itinerario di 16 giorni.")).toBe(16);
+    expect(claimedTripDays("He ampliado el viaje a 16 días.")).toBe(16);
+    expect(claimedTripDays("Aquí tienes tu itinerario de 16 días.")).toBe(16);
+    expect(claimedTripDays("Aqui está a sua viagem de 16 dias.")).toBe(16);
+    // Days that aren't the whole trip's.
+    expect(claimedTripDays("Paris gets 4 days, then Berlin.")).toBeNull();
+    expect(claimedTripDays("Day 2 now opens your 3-day stay in Paris.")).toBeNull();
+    expect(claimedTripDays("I've added an extra day of beaches.")).toBeNull();
+    expect(claimedTripDays("Day 16 ends in Budapest.")).toBeNull();
+    expect(claimedTripDays("The first 6 days are in Paris.")).toBeNull();
   });
 });
 
