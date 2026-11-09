@@ -59,6 +59,8 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 const MORE_DAYS_START_MS = 32_000;
 /** …and stops waiting for them here, inside the route's 60 s. */
 const MORE_DAYS_DEADLINE_MS = 52_000;
+/** A list still short asks once more for its missing places, if it can start by now. */
+const FILL_START_MS = 36_000;
 /** Tokens the model may think for before answering (see assistTrip). */
 const THINKING_BUDGET = 1024;
 /** Later than this, a reply that needs correcting stands: the route has 60 s. */
@@ -143,6 +145,11 @@ function keepsDayStops(days: ItineraryDay[], e: DayEdit): boolean {
   return names(days.find((d) => d.day_number === e.day_number)?.activities ?? []) === names(e.activities);
 }
 
+/** What the last ask for a list's missing places says. */
+function fillPrompt(missing: string[], keepAll: boolean): string {
+  return `CONTINUE: these places from their list aren't in the plan yet: ${missing.join(", ")}. Return in "edits" only the days you add them to, each day in full: add each place once, on the day and at the time it fits best (a restaurant at lunch or dinner), keeping every activity the day already has${keepAll ? "" : " unless it truly can't fit"}. "more_days" is [], "trip_length" is null, and "reply" is one short line.`;
+}
+
 /**
  * What the next part of a change is asked with; `length` when the trip gets
  * longer, `keepAll` when they said to keep everything already planned.
@@ -159,11 +166,29 @@ function continuePrompt(reply: string, done: number[], group: number[], current:
 
 const placeName = (s: string) =>
   ` ${s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim()} `;
-/** The same place by name: "Madalosso" and "Madalosso Restaurante". */
+/** How many letters to add, drop or change to turn one name into the other. */
+function editDistance(a: string, b: string): number {
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const row = [i];
+    for (let j = 1; j <= b.length; j++) row[j] = Math.min(prev[j] + 1, row[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    prev = row;
+  }
+  return prev[b.length];
+}
+
+/**
+ * The same place by name: "Madalosso" and "Madalosso Restaurante", or a letter
+ * off in a longer name, as the model sometimes writes one ("Let's Road" for
+ * "Lett's Road"); a short one like "Bar Basso" has to match.
+ */
 const samePlace = (a: string, b: string) => {
-  const x = placeName(a);
-  const y = placeName(b);
-  return x.trim().length >= 6 && y.trim().length >= 6 && (x.includes(y) || y.includes(x));
+  const x = placeName(a).trim();
+  const y = placeName(b).trim();
+  if (x.length < 6 || y.length < 6) return false;
+  if (` ${x} `.includes(` ${y} `) || ` ${y} `.includes(` ${x} `)) return true;
+  const shorter = Math.min(x.length, y.length);
+  return shorter >= 10 && editDistance(x, y) <= (shorter >= 16 ? 2 : 1);
 };
 
 /** The places listed in the message or the traveller's last messages. */
@@ -499,19 +524,47 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
     edits.sort((a, b) => a.day_number - b.day_number);
     daysLeft = daysLeft.filter((n) => !answered.has(n));
   }
-  // Told to keep everything, a day that takes something out isn't part of the
-  // change, whichever reply or part made it: what it added is named as missing.
-  if (keepAll) {
-    const gone = new Set(takenOut(input.days, edits).map((n) => n.trim().toLowerCase()));
-    edits = edits.filter((e) => !(input.days.find((d) => d.day_number === e.day_number)?.activities ?? []).some((a) => gone.has((a?.name ?? "").trim().toLowerCase())));
+  const settle = (list: DayEdit[]): DayEdit[] => {
+    let kept = list;
+    // Told to keep everything, a day that takes something out isn't part of the
+    // change, whichever reply or part made it: what it added is named as missing.
+    if (keepAll) {
+      const gone = new Set(takenOut(input.days, kept).map((n) => n.trim().toLowerCase()));
+      kept = kept.filter((e) => !(input.days.find((d) => d.day_number === e.day_number)?.activities ?? []).some((a) => gone.has((a?.name ?? "").trim().toLowerCase())));
+    }
+    // Each place of their list once, whichever reply or part placed it; then a
+    // day left as it was, or a part's day that only moved times, isn't a change.
+    return listedOnce(input.days, listedInTalk(input), kept).filter(
+      (e) =>
+        e.day_number > current ||
+        (!leavesDayAsItWas(input.days, e) && !(fromParts.has(e.day_number) && changesStops && keepsDayStops(input.days, e))),
+    );
+  };
+  edits = settle(edits);
+
+  // A list still short once every part is in: one more ask for just its missing
+  // places, on the plan as it now stands, while there's time. Kept only when it
+  // brings more of the list.
+  const short = daysLeft.length === 0 && tripLength === undefined ? missingFromList(input, edits) : [];
+  if (short.length > 0 && Date.now() - startedAt < FILL_START_MS) {
+    try {
+      const now = withEdits(input.days, edits);
+      const fill = readOutcome(
+        input,
+        await within(ask(`${buildPrompt({ ...input, days: now })}\n\n${fillPrompt(short, keepAll)}`, 1), MORE_DAYS_DEADLINE_MS - (Date.now() - startedAt)),
+        cur,
+      ).edits.filter((e) => e.day_number <= current);
+      const byDay = new Map(edits.map((e) => [e.day_number, e]));
+      fill.forEach((e) => {
+        fromParts.add(e.day_number);
+        byDay.set(e.day_number, e);
+      });
+      const filled = settle([...byDay.values()].sort((a, b) => a.day_number - b.day_number));
+      if (missingFromList(input, filled).length < short.length) edits = filled;
+    } catch (err) {
+      console.warn("assistant-anon: asking for the rest of the list failed:", err instanceof Error ? err.message : err);
+    }
   }
-  // Each place of their list once, whichever reply or part placed it; then a
-  // day left as it was, or a part's day that only moved times, isn't a change.
-  edits = listedOnce(input.days, listedInTalk(input), edits).filter(
-    (e) =>
-      e.day_number > current ||
-      (!leavesDayAsItWas(input.days, e) && !(fromParts.has(e.day_number) && changesStops && keepsDayStops(input.days, e))),
-  );
 
   // A longer trip goes as far as its new days came back. The rest are named,
   // to be asked for again; with none back, the trip keeps its length.
