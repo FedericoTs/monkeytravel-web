@@ -48,6 +48,7 @@ import {
   TELLS_TIME,
   asksForMoreDays,
   asksToAdd,
+  keepsEverything,
 } from "./message-asks";
 import { type TravelTime, readTravelTimes, outsideTravelTimes, minutesOf } from "./travel-times";
 import { composeReply } from "./edit-reply";
@@ -206,9 +207,14 @@ export function correctionFor(
   if (o.edits.length > 0 && o.tripLength === undefined && o.edits.every((e) => leavesDayAsItWas(input.days, e))) {
     return `Your edits left every day as it was. Make the change the traveller asked for, or say plainly in "reply" that you didn't.`;
   }
-  // Asked only to add, a day lost one or two of its activities (a whole day
-  // swapped for a day trip is the expected way to fit one in).
+  // Told to keep everything planned ("não remova nada"), now or in their last
+  // messages, a day lost activities; or asked only to add, it lost one or two
+  // (a whole day swapped for a day trip is the expected way to fit one in).
   const dropped = takenOut(input.days, o.edits);
+  const told = [input.message, ...(input.history ?? []).slice(-4).filter((t) => t.role === "user").map((t) => t.text)].join("\n");
+  if (dropped.length > 0 && !asksToRemove(input.message) && keepsEverything(told)) {
+    return `They asked you to keep everything already planned. Keep ${dropped.join(" and ")} and add alongside: a day can hold more activities, so move times rather than take anything out.`;
+  }
   if (asksToAdd(input.message) && !asksToRemove(input.message) && dropped.length > 0 && dropped.length <= 2) {
     return `They asked only to add. Keep ${dropped.join(" and ")} and add the new activity alongside, moving times if needed. Take something out only if the day truly can't fit it, and then say which in "reply".`;
   }
