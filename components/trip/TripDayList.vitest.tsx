@@ -344,7 +344,8 @@ describe("while editing", () => {
     expect(screen.queryByText("viewing a2")).toBeNull();
     expect(card).toMatchObject({ index: 1, isEditMode: true, availableDays: [1, 2, 3], dayOptions, currentDayIndex: 0 });
     (card.onDelete as () => void)();
-    expect(handlers.onActivityDelete).toHaveBeenCalledWith("a2");
+    // With its name, for the message that says it was removed.
+    expect(handlers.onActivityDelete).toHaveBeenCalledWith("a2", "a2");
     (card.onUpdate as (u: Partial<Activity>) => void)({ name: "Renamed" });
     expect(handlers.onActivityUpdate).toHaveBeenCalledWith("a2", { name: "Renamed" });
     (card.onMoveToDay as (d: number) => void)(2);

@@ -34,6 +34,7 @@ function setup(answer: () => Promise<Response>) {
     itinerary: PLAN,
     setItinerary: vi.fn(),
     pushUndo: vi.fn(),
+    undo: vi.fn(),
     setSaveError: vi.fn(),
   };
   const view = renderHook(() => useActivityRegeneration(props));
@@ -85,6 +86,12 @@ describe("useActivityRegeneration", () => {
     ]);
     expect(tracked).toHaveBeenCalledWith({ tripId: "t1", activityType: "transport" });
     expect(props.setSaveError).not.toHaveBeenCalled();
+    expect(addToast).toHaveBeenCalledWith("editActivity.regenerated", "success", 6000, {
+      label: "detail.undo",
+      onClick: expect.any(Function),
+    });
+    addToast.mock.calls.at(-1)![3].onClick();
+    expect(props.undo).toHaveBeenCalledTimes(1);
   });
 
   it("counts a suggestion without a type as unknown", async () => {
