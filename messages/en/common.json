@@ -747,7 +747,10 @@
     "showRoute": "Show route",
     "hideRoute": "Hide route",
     "segmentDuration": "{duration} walk",
-    "disclaimerStraightLine": "Straight-line estimate — actual walking time may be longer."
+    "disclaimerStraightLine": "Straight-line estimate — actual walking time may be longer.",
+    "day": "Day {day}",
+    "showOnlyDay": "Show only day {day}",
+    "showAllDays": "Show all days"
   },
   "maintenance": {
     "title": "Under Maintenance",

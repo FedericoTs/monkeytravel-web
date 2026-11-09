@@ -17,9 +17,10 @@ export function firstRealPoint(itinerary: ItineraryDay[]): Coordinates | undefin
 }
 
 /**
- * The activity a planner adds to a day, from what they gave. It starts half
- * an hour after the day's last activity ends (09:00 on an empty day, 22:00
- * at the latest) and lasts 90 minutes unless said otherwise. Without
+ * The activity a planner adds to a day, from what they gave. It starts when
+ * they said, else half an hour after the day's last activity ends (09:00 on
+ * an empty day, 22:00 at the latest), and lasts 90 minutes unless said
+ * otherwise. Without
  * coordinates of its own it is placed near the day's other activities, else
  * near `nearPoint`. Its cost is the one given, else nothing yet in the trip's
  * `currency`.
@@ -29,7 +30,9 @@ export function newActivity(
   partialActivity: Partial<Activity>,
   { destination, nearPoint, currency }: { destination: string; nearPoint: Coordinates | undefined; currency: string }
 ): Activity {
-  const nextTime = calculateNextTimeSlot(day);
+  // The planner's time when they gave a clock time, else the next free slot.
+  const given = partialActivity.start_time;
+  const nextTime = given && /^([01]\d|2[0-3]):[0-5]\d$/.test(given) ? given : calculateNextTimeSlot(day);
 
   // Generate coordinates if not provided
   // Priority: 1) Use provided coordinates, 2) Generate from existing activities

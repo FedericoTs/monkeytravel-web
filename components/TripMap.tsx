@@ -482,7 +482,9 @@ function TripMapInner({
             return (
               <button
                 key={day.day_number}
-                title={isActive ? `Show all days` : `Show only Day ${day.day_number}`}
+                aria-label={t("day", { day: day.day_number })}
+                aria-pressed={isActive}
+                title={isActive ? t("showAllDays") : t("showOnlyDay", { day: day.day_number })}
                 onClick={() => {
                   // Toggle: clicking the active day clears the filter,
                   // clicking a different day switches to it.
