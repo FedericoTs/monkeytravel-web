@@ -162,19 +162,44 @@ const samePlace = (a: string, b: string) => {
   return x.trim().length >= 6 && y.trim().length >= 6 && (x.includes(y) || y.includes(x));
 };
 
+/** The places listed in the message or the traveller's last messages. */
+function listedInTalk(input: Pick<AssistInput, "message" | "history">): string[] {
+  return [input.message, ...(input.history ?? []).slice(-4).filter((t) => t.role === "user").map((t) => t.text)].flatMap(listedPlaces);
+}
+
 /**
- * A part asked to change more days "the same way" brought back what an earlier
- * part had placed on other days: a list of restaurants, added twice. What the
- * plan holds by now on another day is left off a part's day, unless that day
- * had it already. Pure; unit-tested through assistTrip.
+ * A place of the traveller's list goes on one day. Parts asked for later days
+ * "the same way", two of them at once, placed the list again, and one reply
+ * could repeat a place. Day by day, a listed place that the change or the plan
+ * already holds on another day is left off, unless this day had it already. A
+ * place added to every day ("breakfast at the hotel each day") isn't listed, and
+ * stays. Pure; unit-tested through assistTrip.
  */
-function withoutPlacedElsewhere(days: ItineraryDay[], sofar: ItineraryDay[], e: DayEdit): DayEdit {
-  const own = (days.find((d) => d.day_number === e.day_number)?.activities ?? []).map((a) => a?.name ?? "");
-  const elsewhere = sofar.filter((d) => d.day_number !== e.day_number).flatMap((d) => (d.activities ?? []).map((a) => a?.name ?? ""));
-  return {
-    ...e,
-    activities: e.activities.filter((a) => own.some((n) => samePlace(n, a.name)) || !elsewhere.some((n) => samePlace(n, a.name))),
-  };
+function listedOnce(days: ItineraryDay[], listed: string[], edits: DayEdit[]): DayEdit[] {
+  if (listed.length === 0) return edits;
+  const names = (list: Array<{ name?: unknown } | null | undefined>) => list.map((a) => (typeof a?.name === "string" ? a.name : ""));
+  const ownOf = (n: number) => names(days.find((d) => d.day_number === n)?.activities ?? []);
+  // What a day keeps of its own whatever happens: it had it already.
+  const keepsOwn = (e: DayEdit) => names(e.activities).filter((a) => ownOf(e.day_number).some((n) => samePlace(n, a)));
+  const sorted = [...edits].sort((a, b) => a.day_number - b.day_number);
+  const done: string[] = [];
+  return sorted.map((e) => {
+    const own = ownOf(e.day_number);
+    // Where it already is: an earlier changed day as kept, a later one's own, or a day left as it was.
+    const elsewhere = [
+      ...done,
+      ...sorted.filter((x) => x.day_number > e.day_number).flatMap(keepsOwn),
+      ...days.filter((d) => !sorted.some((x) => x.day_number === d.day_number)).flatMap((d) => names(d.activities ?? [])),
+    ];
+    const kept = {
+      ...e,
+      activities: e.activities.filter(
+        (a) => own.some((n) => samePlace(n, a.name)) || !listed.some((p) => samePlace(p, a.name)) || !elsewhere.some((n) => samePlace(n, a.name)),
+      ),
+    };
+    done.push(...names(kept.activities));
+    return kept;
+  });
 }
 
 /**
@@ -434,6 +459,10 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   // same way, and the days of a part that doesn't come back in time are named
   // in the reply.
   let daysLeft = outcome.moreDays;
+  // A change of what the days hold (places added or taken out): a part's day
+  // that only moved times isn't part of it. A change of times keeps those.
+  const changesStops = edits.some((e) => !keepsDayStops(input.days, e));
+  const fromParts = new Set<number>();
   if (daysLeft.length > 0 && Date.now() - startedAt < MORE_DAYS_START_MS) {
     const sofar = withEdits(input.days, edits);
     const done = edits.map((e) => e.day_number);
@@ -450,26 +479,25 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
       ),
     );
     const answered = new Set<number>();
-    // A change of what the days hold (places added or taken out): a part's day
-    // that only moved times isn't part of it. A change of times keeps those.
-    const changesStops = edits.some((e) => !keepsDayStops(input.days, e));
     parts.forEach((part, i) => {
       if (part.status !== "fulfilled") return;
       const group = new Set(groups[i]);
       groups[i].forEach((n) => answered.add(n));
       // Read at the trip's new length, so the new days a part brings count.
-      const more = readOutcome(input, { ...part.value, trip_length: tripLength ?? null, more_days: added }, cur).edits;
-      edits = [
-        ...edits,
-        ...more
-          .filter((e) => group.has(e.day_number))
-          .map((e) => withoutPlacedElsewhere(input.days, sofar, e))
-          .filter((e) => !leavesDayAsItWas(input.days, e) && !(changesStops && keepsDayStops(input.days, e))),
-      ];
+      const more = readOutcome(input, { ...part.value, trip_length: tripLength ?? null, more_days: added }, cur).edits.filter((e) => group.has(e.day_number));
+      more.forEach((e) => fromParts.add(e.day_number));
+      edits = [...edits, ...more];
     });
     edits.sort((a, b) => a.day_number - b.day_number);
     daysLeft = daysLeft.filter((n) => !answered.has(n));
   }
+  // Each place of their list once, whichever reply or part placed it; then a
+  // day left as it was, or a part's day that only moved times, isn't a change.
+  edits = listedOnce(input.days, listedInTalk(input), edits).filter(
+    (e) =>
+      e.day_number > current ||
+      (!leavesDayAsItWas(input.days, e) && !(fromParts.has(e.day_number) && changesStops && keepsDayStops(input.days, e))),
+  );
 
   // A longer trip goes as far as its new days came back. The rest are named,
   // to be asked for again; with none back, the trip keeps its length.
