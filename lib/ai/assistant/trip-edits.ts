@@ -12,7 +12,7 @@
 import type { AssistTurn } from "./edit-prompt";
 import type { DayEdit } from "./edit-validation";
 import { assistTrip } from "./engine";
-import { lengthUnchangedNote, ownerAddsDaysReply } from "@/lib/ai/assistant/honesty";
+import { lengthUnchangedNote, ownerAddsDaysReply, waitingKeptNote } from "@/lib/ai/assistant/honesty";
 import type { DisplayCurrency } from "@/lib/ai/assistant/plan-costs";
 import { addDaysISO, computeExtendedEndDate } from "@/lib/ai/assistant/structural";
 import { validateAndFixCoordinates } from "@/lib/trip/coordinate-fallback";
@@ -118,6 +118,55 @@ function leftOut(days: ItineraryDay[], revisedDays: ItineraryDay[]): string[] {
     .map((a) => a.name);
 }
 
+/** The change still waiting for its button when the traveller wrote again, as the page sends it back. */
+export interface WaitingChange {
+  /** Days of the trip, as the change would save them. */
+  days: ItineraryDay[];
+  /** What the card said it does. */
+  reason?: string;
+}
+
+/** The waiting change, if the request carries one about days this trip has. */
+export function readWaitingChange(raw: unknown, tripDays: number): WaitingChange | undefined {
+  const w = raw as { days?: unknown; reason?: unknown } | null | undefined;
+  if (!Array.isArray(w?.days)) return undefined;
+  const days = (w.days as unknown[]).filter((d): d is ItineraryDay => {
+    const day = d as ItineraryDay | null;
+    return (
+      Number.isInteger(day?.day_number) &&
+      day!.day_number >= 1 &&
+      day!.day_number <= tripDays &&
+      Array.isArray(day!.activities) &&
+      day!.activities.every((a) => typeof a?.name === "string")
+    );
+  });
+  if (days.length === 0) return undefined;
+  return { days: days.slice(0, tripDays), ...(typeof w?.reason === "string" ? { reason: w.reason.slice(0, 600) } : {}) };
+}
+
+const nameOf = (a: { name?: unknown } | null | undefined) => (typeof a?.name === "string" ? a.name.trim() : "");
+
+/** What a waiting change does to each of its days, for the engine: "Day 2: adds X; takes out Y". */
+export function waitingLines(days: ItineraryDay[], waiting: ItineraryDay[]): string[] {
+  return waiting.map((w) => {
+    const before = (days.find((d) => d.day_number === w.day_number)?.activities ?? []).map(nameOf);
+    const after = w.activities.map(nameOf);
+    const adds = after.filter((n) => n && !before.includes(n));
+    const out = before.filter((n) => n && !after.includes(n));
+    const parts = [adds.length ? `adds ${adds.join(", ")}` : "", out.length ? `takes out ${out.join(", ")}` : ""].filter(Boolean);
+    return `Day ${w.day_number}: ${parts.join("; ") || "changes times"}`;
+  });
+}
+
+/** Does this day hold what the saved day holds, by name and time, in order? */
+function asSaved(days: ItineraryDay[], day: ItineraryDay): boolean {
+  const saved = days.find((d) => d.day_number === day.day_number)?.activities ?? [];
+  return (
+    saved.length === day.activities.length &&
+    saved.every((a, i) => nameOf(a) === nameOf(day.activities[i]) && a?.start_time === day.activities[i]?.start_time)
+  );
+}
+
 export interface TripEditProposal {
   reply: string;
   /** The revised days, merged into the saved trip, then any new days; empty when nothing changes. */
@@ -126,6 +175,8 @@ export interface TripEditProposal {
   tripLength?: number;
   /** What changes, day by day, for the preview card. */
   summary: string;
+  /** The change that was waiting for its button is part of this one. */
+  waitingKept?: true;
   meta: { model: string; costUsd: number; generationTimeMs: number };
 }
 
@@ -147,17 +198,32 @@ export async function proposeTripEdits(input: {
   display?: DisplayCurrency;
   /** The trip's owner may add days: they move its dates (lib/ai/assistant-access.ts). */
   canAddDays?: boolean;
+  /**
+   * The change a previous reply prepared, still waiting for its button. The
+   * engine reads the plan with it and what it does, so a request that builds
+   * on it ("add the others too") keeps it, and one that turns it down undoes it.
+   */
+  waiting?: WaitingChange;
 }): Promise<TripEditProposal | null> {
-  const { canAddDays, ...ask } = input;
+  const { canAddDays, waiting, ...ask } = input;
+  const current = input.days.length;
+  const held = (waiting?.days ?? []).filter((w) => w.day_number >= 1 && w.day_number <= current);
+  const view = held.length ? input.days.map((d) => held.find((w) => w.day_number === d.day_number) ?? d) : input.days;
   // The change waits for this page's button, which the route's reply names.
   // Only the owner adds days, and the engine is told so.
-  const result = await assistTrip({ ...ask, canAddDays: canAddDays === true, autoApply: false, ownLead: true });
+  const result = await assistTrip({
+    ...ask,
+    days: view,
+    ...(held.length ? { unsaved: waitingLines(input.days, held) } : {}),
+    canAddDays: canAddDays === true,
+    autoApply: false,
+    ownLead: true,
+  });
   if (result.currency) return null;
 
   // The owner's longer trip gets its new days ("aggiungi altri 7 giorni" used
   // to answer that the trip stays at 7 days). A shorter trip is made by moving
   // the dates, so that one keeps its length. Edits to the existing days stand.
-  const current = input.days.length;
   const longer = result.tripLength !== undefined && result.tripLength > current;
   const adds = longer && canAddDays === true;
   const edits = result.edits.filter((e) => e.day_number <= current);
@@ -176,13 +242,26 @@ export async function proposeTripEdits(input: {
   }
 
   const added = adds ? newTripDays(input.days, result.edits, input.endDate) : [];
-  const revisedDays = [...(edits.length > 0 ? mergeTripEdits(input.days, edits) : []), ...added];
+  const merged = edits.length > 0 ? mergeTripEdits(input.days, edits) : [];
+  // The waiting change stays in this one, under what this reply changes; a day
+  // the reply puts back as it was saved changes nothing, and goes.
+  const carried = held.filter((w) => !merged.some((m) => m.day_number === w.day_number));
+  const revisedDays = [
+    ...[...merged, ...carried].sort((a, b) => a.day_number - b.day_number).filter((d) => !asSaved(input.days, d)),
+    ...added,
+  ];
+  const waitingKept = held.length > 0 && revisedDays.some((d) => held.some((w) => w.day_number === d.day_number));
+  if (waitingKept && edits.length > 0 && carried.some((d) => !asSaved(input.days, d))) {
+    reply = `${reply} ${waitingKeptNote(input.locale)}`;
+  }
   // The model can swap out a saved activity while its reply calls the change
   // an addition, so the card names what the change takes out before Apply.
   const removed = leftOut(input.days, revisedDays);
-  const summary = (adds ? result.edits : edits)
-    .filter((e) => e.summary.trim())
-    .map((e) => `${label} ${e.day_number}: ${e.summary.trim()}`)
+  const summary = [
+    carried.length && waiting?.reason ? waiting.reason.trim() : "",
+    ...(adds ? result.edits : edits).filter((e) => e.summary.trim()).map((e) => `${label} ${e.day_number}: ${e.summary.trim()}`),
+  ]
+    .filter(Boolean)
     .join(" ");
   return {
     reply,
@@ -191,6 +270,7 @@ export async function proposeTripEdits(input: {
     summary: removed.length
       ? `${summary} ${LEAVES_OUT[input.locale] ?? LEAVES_OUT.en}: ${removed.join(", ")}.`.trim()
       : summary,
+    ...(waitingKept ? { waitingKept: true as const } : {}),
     meta: result.meta,
   };
 }

@@ -21,6 +21,7 @@ export interface AssistantRequest {
   conversationId?: string;
   itinerary?: ItineraryDay[]; // Current itinerary for modifications
   display?: unknown; // The currency the page shows prices in (readDisplayCurrency)
+  waiting?: unknown; // The change still waiting on its card (readWaitingChange)
 }
 
 /**

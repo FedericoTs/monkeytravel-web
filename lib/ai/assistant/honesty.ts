@@ -286,6 +286,11 @@ export function lengthUnchangedNote(language: string | undefined, days: number):
   return note(language, "lengthUnchanged", { days });
 }
 
+/** A new change that also holds the one still waiting for its button. */
+export function waitingKeptNote(language: string | undefined): string {
+  return note(language, "waitingKept");
+}
+
 // "Noted" and "recorded" tell the traveller that their hotel or flight is
 // kept somewhere. The trip assistant keeps nothing but the last few messages.
 const REMEMBER_PATTERNS: RegExp[] = [

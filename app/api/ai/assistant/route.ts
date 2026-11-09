@@ -21,6 +21,7 @@ import {
   proposedChange,
   proposeTripEdits,
   readDisplayCurrency,
+  readWaitingChange,
   type TripEditProposal,
 } from "@/lib/ai/assistant/trip-edits";
 import { readAssistantTurn } from "@/lib/ai/assistant/turn";
@@ -94,6 +95,7 @@ export async function POST(request: NextRequest) {
           history: conversationTurns(conversation.messages),
           display: readDisplayCurrency(body.display),
           canAddDays: assistantRole === "owner",
+          waiting: readWaitingChange(body.waiting, itinerary.length),
         });
       } catch (err) {
         // Out of credit, the chat is refused too.
@@ -201,6 +203,8 @@ export async function POST(request: NextRequest) {
       message: reply,
       conversationId: conversation.id,
       pendingChange,
+      // The change that was waiting for its button is in this one: the page keeps it.
+      ...(tripEdits?.waitingKept && pendingChange?.type === "apply_draft" ? { waitingKept: true } : {}),
       usage: {
         ...spent,
         tier: usageCheck.tier,

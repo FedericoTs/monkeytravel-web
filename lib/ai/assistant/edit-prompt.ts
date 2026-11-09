@@ -77,6 +77,11 @@ export interface AssistInput {
   /** The currency the page shows prices in, when it isn't the plan's own. */
   display?: DisplayCurrency;
   /**
+   * A change the last reply prepared that the traveller hasn't saved yet,
+   * which `days` already include: one line per day it changes.
+   */
+  unsaved?: string[];
+  /**
    * The page can plan the whole trip somewhere else (the wizard): asked for
    * another place, the reply offers places instead of rewriting the days, and
    * the page plans the one picked anew, for the same dates.
@@ -169,6 +174,9 @@ export function buildPrompt(input: AssistInput): string {
     input.startDate && input.endDate ? `Dates: ${input.startDate} to ${input.endDate} (${dayCount} days)\n` : "";
   const multiCity = input.days.some((d) => d.city);
   const elsewhere = canOfferElsewhere(input);
+  const unsaved = input.unsaved?.length
+    ? `Not saved yet: your last reply prepared this change, the traveller hasn't saved it, and the itinerary above already includes it. Saving your reply saves it too.\n${input.unsaved.map((l) => `- ${l}`).join("\n")}\nIf they turn it down, undo it in your edits: take out what it added and put back what it took out.\n`
+    : "";
   return `You are MonkeyTravel's sharp, friendly travel assistant, helping a traveller with the trip they just generated. You can answer questions AND revise the plan.
 
 Trip: ${input.tripTitle}
@@ -176,7 +184,7 @@ Destination: ${input.destination}
 ${dateLine}Currency: ${cur}
 Itinerary:
 ${buildContext(input.days, input.display)}
-${costLines(costs)}${buildHistory(input.history)}
+${costLines(costs)}${unsaved}${buildHistory(input.history)}
 Traveller's new message: "${input.message}"
 
 First work out what the traveller actually wants, the way a good travel agent would:

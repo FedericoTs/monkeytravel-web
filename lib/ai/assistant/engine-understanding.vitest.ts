@@ -527,6 +527,20 @@ describe("buildPrompt", () => {
     expect(again).toContain("isn't in it was only offered, skipped or undone: if they ask for it, make it");
   });
 
+  it("knows which part of the plan is a change still waiting to be saved, and how to undo it", () => {
+    expect(prompt).not.toContain("Not saved yet");
+    const waiting = buildPrompt({
+      message: "add the others too",
+      destination: "Curitiba",
+      tripTitle: "Curitiba",
+      days: [day(1, ["A", "Madalosso"])],
+      locale: "pt",
+      unsaved: ["Day 1: adds Madalosso"],
+    });
+    expect(waiting).toContain("Not saved yet: your last reply prepared this change, the traveller hasn't saved it, and the itinerary above already includes it. Saving your reply saves it too.\n- Day 1: adds Madalosso\n");
+    expect(waiting).toContain("If they turn it down, undo it in your edits: take out what it added and put back what it took out.");
+  });
+
   it("suggests hotels instead of asking for their names", () => {
     expect(prompt).toContain("Asked where to stay or for hotels: suggest 2-3 concrete areas or well-known hotels");
   });

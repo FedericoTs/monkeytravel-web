@@ -20,6 +20,7 @@
   "pendingChangeNote": "Not saved yet: tap \"{button}\" below to update your trip.",
   "planCosts": "The activities in your plan come to about {amount}. Hotels and flights aren't in the plan, so add those on top.",
   "takesOut": "(This change takes out: {list}.)",
+  "waitingKept": "(This also keeps the earlier change, which was not saved yet.)",
   "missingAnswer": "I couldn't put that answer together. Ask me one thing at a time, like what to do on day 2.",
   "currencySwitched": "Done: prices now show in {code}.",
   "elsewhereNote": "Pick a place below and I'll plan it for the same dates."
