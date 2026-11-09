@@ -173,6 +173,25 @@ describe("claimsItineraryChange", () => {
     expect(claimsItineraryChange("")).toBe(false);
     expect(claimsItineraryChange(undefined)).toBe(false);
   });
+
+  // A traveller said "I'll send you the restaurants, don't remove anything" and
+  // was told "I couldn't make that change": the promise waited for their list.
+  it.each([
+    "Claro! Assim que você me enviar os nomes, vou adicionar cada restaurante no dia mais próximo, sem remover nada.",
+    "Perfeito, vou adicionar os restaurantes quando você me passar a lista.",
+    "Sure! Once you send me the list, I'll add each one to the day it fits best.",
+    "I'll add them as soon as you tell me which bars you have in mind.",
+    "¡Claro! En cuanto me pases los nombres, voy a añadir cada uno al mejor día.",
+    "Certo! Appena mi mandi i nomi, aggiungerò ogni ristorante al giorno più adatto.",
+  ])("leaves a promise that waits for the traveller's list alone: %s", (text) => {
+    expect(claimsItineraryChange(text)).toBe(false);
+  });
+
+  it("still catches a promise next to a question, and a claim next to a wait", () => {
+    expect(claimsItineraryChange("Vou adicionar o Madalosso no dia 3. Quer que eu inclua mais algum?")).toBe(true);
+    expect(claimsItineraryChange("Vou adicionar o Madalosso no dia 3. Quando você me passar os outros, adiciono também.")).toBe(true);
+    expect(claimsItineraryChange("I've added the Madalosso to Day 3. Once you send the others, I'll add them too.")).toBe(true);
+  });
 });
 
 // Live replies sent with no change attached, and how they read in es/pt.
