@@ -11,6 +11,8 @@ interface AddActivityButtonProps {
   dayIndex: number;
   destination: string;
   onAdd: (activity: Partial<Activity>) => void;
+  /** When the custom form's stop starts unless the planner picks a time: the day's next free slot. */
+  suggestedTime?: string;
   className?: string;
 }
 
@@ -27,6 +29,7 @@ export default function AddActivityButton({
   dayIndex,
   destination,
   onAdd,
+  suggestedTime = "09:00",
   className = "",
 }: AddActivityButtonProps) {
   const t = useTranslations("common.addActivity");
@@ -92,7 +95,13 @@ export default function AddActivityButton({
     type: "activity",
     description: "",
     duration: 90,
+    startTime: suggestedTime,
   });
+  // The form opens on the day's next free slot, as the day stands now.
+  const openCustomForm = () => {
+    setCustomActivity((current) => ({ ...current, startTime: suggestedTime }));
+    setShowCustomForm(true);
+  };
 
   const handleCustomSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,9 +112,10 @@ export default function AddActivityButton({
       type: customActivity.type,
       description: customActivity.description,
       duration_minutes: customActivity.duration,
+      start_time: customActivity.startTime,
     });
 
-    setCustomActivity({ name: "", type: "activity", description: "", duration: 90 });
+    setCustomActivity({ name: "", type: "activity", description: "", duration: 90, startTime: suggestedTime });
     setShowCustomForm(false);
     setIsExpanded(false);
   };
@@ -157,6 +167,19 @@ export default function AddActivityButton({
               placeholder={t("activityPlaceholder")}
               className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
               autoFocus
+            />
+          </div>
+
+          <div>
+            <label htmlFor={`${formId}-start`} className="block text-sm font-medium text-slate-700 mb-1">
+              {tCommon("activity.startTime")}
+            </label>
+            <input
+              id={`${formId}-start`}
+              type="time"
+              value={customActivity.startTime}
+              onChange={(e) => setCustomActivity({ ...customActivity, startTime: e.target.value })}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
             />
           </div>
 
@@ -289,7 +312,7 @@ export default function AddActivityButton({
               <div className="text-center py-6 text-slate-500">
                 <p>{t("noResults", { query: searchQuery })}</p>
                 <button
-                  onClick={() => setShowCustomForm(true)}
+                  onClick={openCustomForm}
                   className="mt-2 text-[var(--primary-ink)] hover:underline text-sm"
                 >
                   {t("addManually")}
@@ -304,7 +327,7 @@ export default function AddActivityButton({
 
           {/* Add Custom Link */}
           <button
-            onClick={() => setShowCustomForm(true)}
+            onClick={openCustomForm}
             className="w-full text-center py-2 text-sm text-[var(--primary-ink)] hover:bg-[var(--primary)]/5 rounded-lg transition-colors"
           >
             + {t("addCustom")}

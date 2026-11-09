@@ -37,6 +37,12 @@ describe("newActivity", () => {
     expect(newActivity(day(act("21:00")), {}, OPTS).start_time).toBe("22:00");
   });
 
+  it("starts when the planner said, when that is a clock time", () => {
+    expect(newActivity(day(act("09:00")), { start_time: "15:00" }, OPTS)).toMatchObject({ start_time: "15:00", time_slot: "afternoon" });
+    expect(newActivity(day(act("09:00", { duration_minutes: 60 })), { start_time: "25:00" }, OPTS).start_time).toBe("10:30");
+    expect(newActivity(day(act("09:00", { duration_minutes: 60 })), { start_time: "" }, OPTS).start_time).toBe("10:30");
+  });
+
   it("takes its part of the day from its start", () => {
     expect(newActivity(day(), {}, OPTS).time_slot).toBe("morning");
     expect(newActivity(day(act("12:00")), {}, OPTS).time_slot).toBe("afternoon");
