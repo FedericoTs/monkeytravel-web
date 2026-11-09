@@ -983,15 +983,6 @@
       "transport": "Transport",
       "activity": "Activity",
       "other": "Other"
-    },
-    "durations": {
-      "30min": "30 min",
-      "1hr": "1 hour",
-      "2hr": "2 hours",
-      "3hr": "3 hours",
-      "4hr": "4 hours",
-      "halfDay": "Half day",
-      "90min": "1.5 hours"
     }
   },
   "regenerate": {
@@ -1724,13 +1715,6 @@
       "morning": "Morning",
       "afternoon": "Afternoon",
       "evening": "Evening"
-    },
-    "durations": {
-      "30min": "30 min",
-      "1hour": "1 hour",
-      "1_5hours": "1.5 hours",
-      "2hours": "2 hours",
-      "3hours": "3 hours"
     },
     "form": {
       "nameLabel": "Activity Name",
