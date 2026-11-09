@@ -747,7 +747,10 @@
     "showRoute": "Mostrar ruta",
     "hideRoute": "Ocultar ruta",
     "segmentDuration": "{duration} a pie",
-    "disclaimerStraightLine": "Estimación en línea recta — el tiempo real a pie puede ser mayor."
+    "disclaimerStraightLine": "Estimación en línea recta — el tiempo real a pie puede ser mayor.",
+    "day": "Día {day}",
+    "showOnlyDay": "Mostrar solo el día {day}",
+    "showAllDays": "Mostrar todos los días"
   },
   "maintenance": {
     "title": "En Mantenimiento",
