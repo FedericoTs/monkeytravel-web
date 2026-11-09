@@ -547,16 +547,10 @@ export default memo(EditableActivityCard, (prevProps, nextProps) => {
   if (prevProps.dayOptions !== nextProps.dayOptions) return false;
   if (prevProps.currency !== nextProps.currency) return false;
 
-  // Check key activity properties that affect rendering
-  const prev = prevProps.activity;
-  const next = nextProps.activity;
-  if (prev.name !== next.name) return false;
-  if (prev.start_time !== next.start_time) return false;
-  if (prev.duration_minutes !== next.duration_minutes) return false;
-  if (prev.image_url !== next.image_url) return false;
-  if (prev.type !== next.type) return false;
-  if (prev.description !== next.description) return false;
-  if (prev.locked !== next.locked) return false;
+  // The stop itself. The plan is updated immutably, so a new object is a
+  // changed stop, whatever changed in it (its price, its place, a booking);
+  // an unchanged stop keeps its object.
+  if (prevProps.activity !== nextProps.activity) return false;
 
   // Voting props
   if (prevProps.votingEnabled !== nextProps.votingEnabled) return false;
