@@ -3,10 +3,12 @@ import type { ItineraryDay, Activity } from "@/types";
 import {
   addActivity,
   calculateTravelMinutes,
+  editActivity,
   ensureActivityIds,
   ensureActivityIdsStable,
   fitMovedStop,
   moveActivityToDay,
+  retimedCount,
   stableActivityId,
 } from "./activity-id";
 
@@ -154,6 +156,69 @@ describe("addActivity", () => {
   it("leaves the plan as it is for a day it doesn't have", () => {
     const p = plan();
     expect(addActivity(p, 3, stop("X", "12:00", 60))).toBe(p);
+  });
+});
+
+describe("editActivity", () => {
+  // Stops with no location: an unknown journey counts as 30 minutes.
+  const stop = (name: string, start: string, duration: number) => at(name, undefined, start, duration);
+  const times = (d: ItineraryDay) => d.activities.map((a) => `${a.start_time} ${a.name}`);
+  const plan = () => [
+    day(1, stop("Museum", "09:00", 120), stop("Lunch", "12:00", 60), stop("Garden", "14:00", 90), stop("Dinner", "19:00", 90)),
+    day(2, stop("Market", "10:00", 60)),
+  ];
+
+  it("puts a stop given a new time in its time order, at that time, and names its part of the day", () => {
+    const out = editActivity(plan(), "Museum", { start_time: "16:00" });
+    expect(times(out[0])).toEqual(["12:00 Lunch", "14:00 Garden", "16:00 Museum", "19:00 Dinner"]);
+    expect(out[0].activities[2]).toMatchObject({ time_slot: "afternoon" });
+  });
+
+  it("makes room after a stop that now runs longer, only as much as it must", () => {
+    // 09:00 for 3 hours, then 30 minutes to get anywhere: lunch at 12:30, and the garden still has room.
+    expect(times(editActivity(plan(), "Museum", { duration_minutes: 180 })[0])).toEqual(["09:00 Museum", "12:30 Lunch", "14:00 Garden", "19:00 Dinner"]);
+  });
+
+  it("takes the time of a stop that starts then, which goes after it", () => {
+    expect(times(editActivity(plan(), "Dinner", { start_time: "14:00" })[0])).toEqual(["09:00 Museum", "12:00 Lunch", "14:00 Dinner", "16:00 Garden"]);
+  });
+
+  it("keeps the time set, even while the stop before it is still on", () => {
+    expect(times(editActivity(plan(), "Lunch", { start_time: "10:30" })[0])).toEqual(["09:00 Museum", "10:30 Lunch", "14:00 Garden", "19:00 Dinner"]);
+  });
+
+  it("never pulls a stop earlier", () => {
+    expect(times(editActivity(plan(), "Museum", { duration_minutes: 60 })[0])).toEqual(["09:00 Museum", "12:00 Lunch", "14:00 Garden", "19:00 Dinner"]);
+  });
+
+  it("changes only what was changed when the time and length stay", () => {
+    const p = plan();
+    const out = editActivity(p, "Lunch", { name: "Ramen", start_time: "12:00" });
+    expect(times(out[0])).toEqual(["09:00 Museum", "12:00 Ramen", "14:00 Garden", "19:00 Dinner"]);
+    expect(out[1]).toEqual(p[1]);
+  });
+
+  it("leaves the other days, and a stop it doesn't hold, as they are", () => {
+    const p = plan();
+    expect(editActivity(p, "Museum", { duration_minutes: 180 })[1]).toBe(p[1]);
+    expect(editActivity(p, "nowhere", { start_time: "10:00" })).toBe(p);
+  });
+});
+
+describe("retimedCount", () => {
+  const stop = (name: string, start: string, duration: number) => at(name, undefined, start, duration);
+  const plan = () => [day(1, stop("Museum", "09:00", 120), stop("Lunch", "12:00", 60), stop("Garden", "14:00", 90))];
+
+  it("counts the other stops that start at another time", () => {
+    const p = plan();
+    expect(retimedCount(p, editActivity(p, "Museum", { duration_minutes: 180 }), "Museum")).toBe(1);
+    expect(retimedCount(p, editActivity(p, "Museum", { duration_minutes: 300 }), "Museum")).toBe(2);
+  });
+
+  it("leaves out the stop that was edited, and a stop that wasn't there before", () => {
+    const p = plan();
+    expect(retimedCount(p, editActivity(p, "Lunch", { start_time: "12:30" }), "Lunch")).toBe(0);
+    expect(retimedCount(p, addActivity(p, 0, stop("Tea", "16:30", 30)), "nothing")).toBe(0);
   });
 });
 
