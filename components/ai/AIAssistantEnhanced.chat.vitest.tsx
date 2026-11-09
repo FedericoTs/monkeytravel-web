@@ -106,6 +106,31 @@ describe("opening the panel", () => {
     send("Hello");
     expect(await screen.findByText("Sure.")).toBeTruthy();
   });
+
+  // A button on the page that asks the assistant for something ("days 5 to 6
+  // are empty: ask the assistant") opens it with the question in the box.
+  it("opens with the question a button put in the box, to send as it is or change first", async () => {
+    const { posted } = serve({ chat: () => json(reply("Here are days 5 and 6.")) });
+    const props = { tripId: "trip-1", tripTitle: "Dublin", itinerary: days, onClose: () => {} };
+    const { rerender } = render(<AIAssistantEnhanced {...props} isOpen={false} prefill="Plan days 5 to 6" />);
+    rerender(<AIAssistantEnhanced {...props} isOpen prefill="Plan days 5 to 6" />);
+    expect(box().value).toBe("Plan days 5 to 6");
+
+    // Changed by the traveller, it stays changed.
+    fireEvent.change(box(), { target: { value: "Plan days 5 to 6 around the old town" } });
+    rerender(<AIAssistantEnhanced {...props} isOpen prefill="Plan days 5 to 6" />);
+    expect(box().value).toBe("Plan days 5 to 6 around the old town");
+
+    fireEvent.submit(box().closest("form") as HTMLFormElement);
+    await screen.findByText("Here are days 5 and 6.");
+    expect(posted.chat[0]).toMatchObject({ message: "Plan days 5 to 6 around the old town" });
+  });
+
+  it("opens on an empty box without one", () => {
+    serve({});
+    open();
+    expect(box().value).toBe("");
+  });
 });
 
 describe("asking", () => {
