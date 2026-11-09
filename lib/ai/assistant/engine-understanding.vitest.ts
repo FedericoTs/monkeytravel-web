@@ -5,7 +5,7 @@ import { buildPrompt } from "./edit-prompt";
 import { composeReply } from "./edit-reply";
 import type { DayEdit } from "./edit-validation";
 import { correctionFor } from "./engine";
-import { asksForMoreDays, asksToAdd, keepsEverything } from "./message-asks";
+import { asksForMoreDays, asksToAdd, keepsEverything, listedPlaces } from "./message-asks";
 import { keepSavedActivities, takenOut } from "./saved-activities";
 import { outsideTravelTimes, readTravelTimes } from "./travel-times";
 import { asksToRemove, replyLanguage } from "./honesty";
@@ -157,6 +157,34 @@ describe("what must stay", () => {
     expect(keepsEverything("non togliere niente, aggiungi solo questi")).toBe(true);
     expect(keepsEverything("add a museum on day 2")).toBe(false);
     expect(keepsEverything("remove the museum on day 2")).toBe(false);
+  });
+});
+
+const TEN =
+  "izakaya tanuki, o senhor restaurante, baraquias restaurante, dhoosushi, madalosso restaurante, park do churrasco restaurante, cantina do délio, zefy diner, bar do alemao e lett's road. Eles podem ser opção para almoço ou jantar.";
+
+describe("listedPlaces", () => {
+  it("reads the places of a list, the last two joined by and, without their article", () => {
+    expect(listedPlaces(TEN)).toEqual([
+      "izakaya tanuki",
+      "senhor restaurante",
+      "baraquias restaurante",
+      "dhoosushi",
+      "madalosso restaurante",
+      "park do churrasco restaurante",
+      "cantina do délio",
+      "zefy diner",
+      "bar do alemao",
+      "lett's road",
+    ]);
+    expect(listedPlaces("Add Bar Basso, Nottingham Forest and Camparino in Galleria")).toEqual(["Bar Basso", "Nottingham Forest", "Camparino in Galleria"]);
+  });
+
+  it("finds none in a message without a list", () => {
+    expect(listedPlaces("add a cooking class on day 2")).toEqual([]);
+    expect(listedPlaces("add Madalosso and Zefy Diner")).toEqual([]);
+    expect(listedPlaces("I'd like more time at the beach, less driving, and earlier dinners because we travel with a toddler who sleeps early")).toEqual([]);
+    expect(listedPlaces("We want slow mornings, long lunches by the sea, and no early starts at all please")).toEqual([]);
   });
 });
 
@@ -315,6 +343,32 @@ describe("correctionFor", () => {
     expect(correctionFor({ message: "add Madalosso, Bar do Alemão and Zefy Diner", days: full }, swapped)).toBeNull();
     // Asking now for something to go is a change of mind.
     expect(correctionFor({ message: "tire o B1 e coloque o Madalosso", days: full, history: [told] }, { ...swapped, edits: [edit(2, ["Madalosso", "B2", "B3"])] })).toBeNull();
+  });
+
+  // Live, 11-09: ten restaurants asked for, eight added, and a reply naming all ten.
+  it("sends back a list of places that came back short, naming what's missing", () => {
+    const plan = [day(1, ["A", "Zefy Diner"]), day(2, ["B"]), day(3, ["C"])];
+    const told = { role: "user" as const, text: "quero adicionar alguns restaurantes da minha lista" };
+    const message = "madalosso restaurante, zefy diner, bar do alemao, baraquias restaurante e lett's road.";
+    const short = { reply: "Adicionei todos.", edits: [edit(2, ["B", "Madalosso"]), edit(3, ["C", "Bar do Alemão", "Lett's Road"])] };
+    const c = correctionFor({ message, days: plan, history: [told] }, short);
+    // Zefy Diner was already in the plan; the accent and "Restaurante" don't hide a place.
+    expect(c).toBe(
+      `These places from their list aren't in your edits: baraquias restaurante. Add each one once, on a day where it fits, keeping everything else, or say in "reply" which can't fit and why.`,
+    );
+    // The rest is still to come, on the days a later part brings.
+    expect(correctionFor({ message, days: plan, history: [told] }, { ...short, moreDays: [4] })).toBeNull();
+    // Not asked to add them: a list in a question is just a question.
+    expect(correctionFor({ message: `${message} quais abrem de domingo?`, days: plan, history: [] }, short)).toBeNull();
+    // A list of kinds, which no place's name repeats, isn't held to it.
+    expect(correctionFor({ message: "add museums, parks, markets and viewpoints", days: plan }, { reply: "Done.", edits: [edit(2, ["B", "Museu Paranaense"])] })).toBeNull();
+  });
+
+  it("names the places a list still lacks after the change, whatever the reply says", () => {
+    const base = { lockedDays: [], lengthRefused: false, locale: "pt", currentDays: 3, ownLead: true, edits: [edit(2, ["B", "Madalosso"])] };
+    expect(composeReply({ ...base, reply: "Adicionei todos os restaurantes.", listMissing: ["baraquias restaurante", "senhor restaurante"] })).toBe(
+      "Adicionei todos os restaurantes. (Não entrou nesta alteração: baraquias restaurante, senhor restaurante.)",
+    );
   });
 
   it("sends back edits that changed nothing", () => {

@@ -12,6 +12,7 @@ import {
   hasFigures,
   replyLanguage,
   takesOutNote,
+  listMissingNote,
   travelTimesNote,
   notAppliedLead,
   claimsItineraryChange,
@@ -74,6 +75,8 @@ export function composeReply(p: {
   askedForMoreDays?: boolean;
   /** Activities the change takes out that the traveller didn't ask to remove. */
   takenOut?: string[];
+  /** Places of a list they asked to add that the change doesn't hold. */
+  listMissing?: string[];
   /** Places are offered for the whole trip; the page plans the one picked. */
   offersElsewhere?: boolean;
 }): string {
@@ -163,6 +166,8 @@ export function composeReply(p: {
   };
   const unmentioned = (p.takenOut ?? []).filter((n) => !namedInReply(n));
   if (unmentioned.length > 0) text = `${text} ${takesOutNote(locale, unmentioned)}`;
+  // "I've added all ten" with eight in the change: name the two.
+  if ((p.listMissing?.length ?? 0) > 0) text = `${text} ${listMissingNote(locale, p.listMissing!)}`;
   // Told to present an unapplied edit as ready, the model still writes "I've
   // updated…" most of the time: lead with the truth so Apply isn't skipped.
   if (!p.autoApplied && !p.ownLead && claimsItineraryChange(p.reply)) text = `${notAppliedLead(locale)} ${text}`;

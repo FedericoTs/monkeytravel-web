@@ -49,6 +49,7 @@ import {
   asksForMoreDays,
   asksToAdd,
   keepsEverything,
+  listedPlaces,
 } from "./message-asks";
 import { type TravelTime, readTravelTimes, outsideTravelTimes, minutesOf } from "./travel-times";
 import { composeReply } from "./edit-reply";
@@ -176,6 +177,22 @@ function withoutPlacedElsewhere(days: ItineraryDay[], sofar: ItineraryDay[], e: 
   };
 }
 
+/**
+ * The places of a list they asked to add that neither the change nor the plan
+ * holds: ten restaurants came back as eight, with a reply naming all ten. Only
+ * for a list most of whose places did come back, so a list of kinds ("museums,
+ * parks and markets") is left alone. Pure; unit-tested.
+ */
+export function missingFromList(input: Pick<AssistInput, "message" | "history" | "days">, edits: DayEdit[]): string[] {
+  const listed = listedPlaces(input.message);
+  if (listed.length < 3) return [];
+  const told = [input.message, ...(input.history ?? []).slice(-4).filter((t) => t.role === "user").map((t) => t.text)].join("\n");
+  if (!asksToAdd(told) && !keepsEverything(told)) return [];
+  const names = [...input.days.flatMap((d) => (d.activities ?? []).map((a) => a?.name ?? "")), ...edits.flatMap((e) => e.activities.map((a) => a.name))];
+  const missing = listed.filter((p) => !names.some((n) => samePlace(n, p)));
+  return missing.length > 0 && listed.length - missing.length >= Math.ceil(listed.length / 2) ? missing : [];
+}
+
 /** The promise's value, or a rejection once `ms` have passed. */
 function within<T>(promise: Promise<T>, ms: number): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -188,7 +205,9 @@ function within<T>(promise: Promise<T>, ms: number): Promise<T> {
 /** What a reply got wrong that one more try may fix, or null. Pure; unit-tested. */
 export function correctionFor(
   input: Pick<AssistInput, "message" | "history" | "days" | "canAddDays">,
-  o: Pick<Outcome, "reply" | "edits" | "tripLength"> & Partial<Pick<Outcome, "travelTimes" | "elsewhere" | "lengthRefused">>,
+  o: Pick<Outcome, "reply" | "edits" | "tripLength"> & Partial<Pick<Outcome, "travelTimes" | "elsewhere" | "lengthRefused" | "moreDays">>,
+  /** Hold the reply to a list of places they asked to add (on by default). */
+  rules: { list?: boolean } = {},
 ): string | null {
   // Other places offered for the whole trip: there are no days to correct.
   if ((o.elsewhere?.length ?? 0) > 0) return null;
@@ -248,6 +267,11 @@ export function correctionFor(
   }
   if (asksToAdd(input.message) && !asksToRemove(input.message) && dropped.length > 0 && dropped.length <= 2) {
     return `They asked only to add. Keep ${dropped.join(" and ")} and add the new activity alongside, moving times if needed. Take something out only if the day truly can't fit it, and then say which in "reply".`;
+  }
+  // A list of places to add came back short, with no other days to come.
+  const missing = rules.list !== false && (o.moreDays?.length ?? 0) === 0 ? missingFromList(input, o.edits) : [];
+  if (missing.length > 0) {
+    return `These places from their list aren't in your edits: ${missing.join(", ")}. Add each one once, on a day where it fits, keeping everything else, or say in "reply" which can't fit and why.`;
   }
   // A saved activity (its name is kept, see keepSavedActivities) added to a
   // day while the one day that has it is left as it was. A name on several
@@ -384,7 +408,12 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
       const retried = readOutcome(input, await ask(`${prompt}\n\nCORRECTION: ${correction}`, 1), cur);
       // Held to the first reply's travel times too, in case it drops them.
       const times = [...retried.travelTimes, ...outcome.travelTimes];
-      if (!correctionFor(input, { ...retried, travelTimes: times }) || betterThanNothing(input, outcome, retried)) outcome = retried;
+      const fixed = { ...retried, travelTimes: times };
+      // A list that comes back with more of its places is better, if nothing else is broken.
+      const moreOfList =
+        missingFromList(input, retried.edits).length < missingFromList(input, outcome.edits).length &&
+        !correctionFor(input, fixed, { list: false });
+      if (!correctionFor(input, fixed) || betterThanNothing(input, outcome, retried) || moreOfList) outcome = retried;
     } catch (err) {
       console.warn("assistant-anon: correction failed, keeping the first reply:", err instanceof Error ? err.message : err);
     }
@@ -456,6 +485,8 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   // Rarely, a changed day still doesn't fit an arrival or a departure after
   // the correction: the reply says so rather than leave it for the airport.
   const outsideTimes = outsideTravelTimes(edits, outcome.travelTimes);
+  // A list that still came back short says what's missing, whatever the reply claims.
+  const listMissing = daysLeft.length === 0 ? missingFromList(input, edits) : [];
 
   const currency = currencyRequested(input.message) ?? undefined;
   const finalReply = composeReply({
@@ -477,6 +508,7 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
     askedForMoreDays: asksForMoreDays(input.message, input.days.length),
     takenOut: input.explainRemovals && !asksToRemove(input.message) ? takenOut(input.days, edits) : [],
     offersElsewhere: outcome.elsewhere.length > 0,
+    listMissing,
   });
 
   return {

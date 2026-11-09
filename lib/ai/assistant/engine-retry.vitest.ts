@@ -278,6 +278,61 @@ describe("assistTrip on a change about more days than one reply holds", () => {
     ]);
   });
 
+  // Live, 11-09: ten restaurants asked for, eight added, a reply naming all ten.
+  it("asks once more for a list that came back short, and names what still isn't in", async () => {
+    const list = { ...long, message: "adicione estes: madalosso restaurante, zefy diner, bar do alemao e lett's road", locale: "pt" };
+    const added = (names: string[]) => ({
+      response: {
+        text: () =>
+          JSON.stringify({
+            reply: "Adicionei os quatro restaurantes.",
+            edits: names.map((name, i) => ({ day_number: i + 1, summary: "Jantar.", activities: [{ name: `Day ${i + 1} thing`, start_time: "09:00" }, { name, start_time: "19:30" }] })),
+          }),
+      },
+    });
+    generateContent.mockResolvedValueOnce(added(["Madalosso", "Zefy Diner"])).mockResolvedValueOnce(added(["Madalosso", "Zefy Diner", "Bar do Alemão"]));
+    const out = await run(list);
+    expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain("These places from their list aren't in your edits: bar do alemao, lett's road");
+    expect(out.edits.map((e) => e.activities[1].name)).toEqual(["Madalosso", "Zefy Diner", "Bar do Alemão"]);
+    expect(out.reply).toContain("(Não entrou nesta alteração: lett's road.)");
+  });
+
+  it("doesn't take a second try that adds more of the list but drops what they said to keep", async () => {
+    const sights = ["Jardim Botânico", "Ópera de Arame", "Museu Oscar Niemeyer"];
+    const curitiba = sights.map((name, i) => ({ day_number: i + 1, date: `2027-11-1${i + 1}`, activities: [{ name, time_slot: "morning", start_time: "09:00" }] })) as unknown as ItineraryDay[];
+    const list = { ...long, days: curitiba, message: "não remova nada, só adicione: madalosso restaurante, zefy diner, bar do alemao e lett's road", locale: "pt" };
+    const withDinner = (n: number, name: string) => ({ day_number: n, activities: [{ name: sights[n - 1], start_time: "09:00" }, { name, start_time: "19:30" }] });
+    const first = { response: { text: () => JSON.stringify({ reply: "Adicionei.", edits: [withDinner(1, "Madalosso"), withDinner(2, "Zefy Diner")] }) } };
+    // Day 3 loses its museum to make room.
+    const second = {
+      response: {
+        text: () =>
+          JSON.stringify({ reply: "Adicionei.", edits: [withDinner(1, "Madalosso"), withDinner(2, "Zefy Diner"), { day_number: 3, activities: [{ name: "Bar do Alemão", start_time: "19:30" }] }] }),
+      },
+    };
+    generateContent.mockResolvedValueOnce(first).mockResolvedValueOnce(second);
+    const out = await run(list);
+    expect(out.edits.map((e) => e.day_number)).toEqual([1, 2]);
+  });
+
+  it("leaves the places of days still to come to the note about those days", async () => {
+    const list = { ...long, message: "adicione: madalosso restaurante, zefy diner, bar do alemao e lett's road", locale: "pt" };
+    const first = {
+      response: {
+        text: () =>
+          JSON.stringify({
+            reply: "Os quatro restaurantes.",
+            more_days: [7, 8],
+            edits: ["Madalosso", "Zefy Diner"].map((name, i) => ({ day_number: i + 1, activities: [{ name: `Day ${i + 1} thing`, start_time: "09:00" }, { name, start_time: "19:30" }] })),
+          }),
+      },
+    };
+    generateContent.mockResolvedValueOnce(first).mockRejectedValueOnce(overloaded());
+    const out = await run(list);
+    expect(out.reply).toContain("7, 8");
+    expect(out.reply).not.toContain("Não entrou nesta alteração");
+  });
+
   it("keeps a part's days that only move times when the change is about times", async () => {
     const later = (days: number[], more: number[] = []) => ({
       response: {
