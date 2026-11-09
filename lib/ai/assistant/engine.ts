@@ -143,14 +143,18 @@ function keepsDayStops(days: ItineraryDay[], e: DayEdit): boolean {
   return names(days.find((d) => d.day_number === e.day_number)?.activities ?? []) === names(e.activities);
 }
 
-/** What the next part of a change is asked with; `length` when the trip gets longer. */
-function continuePrompt(reply: string, done: number[], group: number[], current: number, length?: number): string {
+/**
+ * What the next part of a change is asked with; `length` when the trip gets
+ * longer, `keepAll` when they said to keep everything already planned.
+ */
+function continuePrompt(reply: string, done: number[], group: number[], current: number, length?: number, keepAll = false): string {
   const fresh = length !== undefined ? group.filter((n) => n > current) : [];
   const newDays =
     fresh.length > 0
       ? ` Days ${fresh.join(", ")} are new days at the end of the trip, which now has ${length} days: plan each in full, carrying on from the day before and repeating nothing the trip already holds.`
       : "";
-  return `CONTINUE: you are partway through this change. Your reply was: "${reply.slice(0, 600)}". Days ${done.join(", ")} are done, and the itinerary above shows them. Now return Days ${group.join(", ")} in "edits", each in full, changed the same way, and no other day. Each thing they asked to add goes on one day only: add nothing the itinerary above already holds, and leave out of "edits" a day this change doesn't need.${newDays} "more_days" is [], "trip_length" is ${length ?? "null"}, and "reply" is one short line.`;
+  const keep = keepAll ? " They asked you to keep everything already planned: keep every activity these days have, and add alongside." : "";
+  return `CONTINUE: you are partway through this change. Your reply was: "${reply.slice(0, 600)}". Days ${done.join(", ")} are done, and the itinerary above shows them. Now return Days ${group.join(", ")} in "edits", each in full, changed the same way, and no other day. Each thing they asked to add goes on one day only: add nothing the itinerary above already holds, and leave out of "edits" a day this change doesn't need.${keep}${newDays} "more_days" is [], "trip_length" is ${length ?? "null"}, and "reply" is one short line.`;
 }
 
 const placeName = (s: string) =>
@@ -463,6 +467,10 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   // that only moved times isn't part of it. A change of times keeps those.
   const changesStops = edits.some((e) => !keepsDayStops(input.days, e));
   const fromParts = new Set<number>();
+  // Told to keep everything planned ("não remova nada"), now or in their last messages.
+  const keepAll =
+    keepsEverything([input.message, ...(input.history ?? []).slice(-4).filter((t) => t.role === "user").map((t) => t.text)].join("\n")) &&
+    !asksToRemove(input.message);
   if (daysLeft.length > 0 && Date.now() - startedAt < MORE_DAYS_START_MS) {
     const sofar = withEdits(input.days, edits);
     const done = edits.map((e) => e.day_number);
@@ -473,7 +481,7 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
     const parts = await Promise.allSettled(
       groups.map((group) =>
         within(
-          ask(`${buildPrompt({ ...input, days: sofar })}\n\n${continuePrompt(reply, done, group, current, longer)}`, 1),
+          ask(`${buildPrompt({ ...input, days: sofar })}\n\n${continuePrompt(reply, done, group, current, longer, keepAll)}`, 1),
           MORE_DAYS_DEADLINE_MS - (Date.now() - startedAt),
         ),
       ),
@@ -490,6 +498,12 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
     });
     edits.sort((a, b) => a.day_number - b.day_number);
     daysLeft = daysLeft.filter((n) => !answered.has(n));
+  }
+  // Told to keep everything, a day that takes something out isn't part of the
+  // change, whichever reply or part made it: what it added is named as missing.
+  if (keepAll) {
+    const gone = new Set(takenOut(input.days, edits).map((n) => n.trim().toLowerCase()));
+    edits = edits.filter((e) => !(input.days.find((d) => d.day_number === e.day_number)?.activities ?? []).some((a) => gone.has((a?.name ?? "").trim().toLowerCase())));
   }
   // Each place of their list once, whichever reply or part placed it; then a
   // day left as it was, or a part's day that only moved times, isn't a change.

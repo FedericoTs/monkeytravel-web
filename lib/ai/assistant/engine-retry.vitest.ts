@@ -451,6 +451,56 @@ describe("assistTrip on a change about more days than one reply holds", () => {
       ]);
     });
 
+    // Live, 11-09: told "não remova nada", a part swapped a day's dinner for a
+    // restaurant of the list; only the first reply was held to keeping everything.
+    it("doesn't take a day that takes something out when they said to keep everything, from a part either", async () => {
+      const dinnerOn8 = fortnight.map((d) => (d.day_number === 8 ? { ...d, activities: [...d.activities, { name: "Jantar na Choperia Brahma", start_time: "19:30" }] } : d)) as unknown as ItineraryDay[];
+      const list = {
+        ...input,
+        days: dinnerOn8,
+        locale: "pt",
+        message: "o senhor restaurante, dhoosushi, park do churrasco e baraquias restaurante",
+        history: [{ role: "user" as const, text: "quero adicionar restaurantes, não quero que você remova nada do que já está" }],
+      };
+      const swapped = { day_number: 8, activities: [{ name: "Sight H", start_time: "09:00" }, { name: "Park do Churrasco", start_time: "19:30" }] };
+      generateContent
+        .mockResolvedValueOnce(reply([dayWith(1, "O Senhor Restaurante"), dayWith(2, "Dhoosushi")], [7, 8]))
+        .mockResolvedValueOnce(reply([dayWith(7, "Baraquias Restaurante"), swapped]));
+      const out = await run(list);
+      expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain("They asked you to keep everything already planned");
+      expect(named(out)).toEqual([
+        [1, ["O Senhor Restaurante"]],
+        [2, ["Dhoosushi"]],
+        [7, ["Baraquias Restaurante"]],
+      ]);
+      expect(out.reply).toContain("(Não entrou nesta alteração: park do churrasco.)");
+    });
+
+    it("takes out what they ask to now, even after saying to keep everything", async () => {
+      const list = {
+        ...input,
+        days: fortnight.slice(0, 3),
+        locale: "pt",
+        message: "tire o Sight A e coloque o Madalosso no lugar",
+        history: [{ role: "user" as const, text: "não remova nada do que já está" }],
+      };
+      generateContent.mockResolvedValueOnce(reply([{ day_number: 1, activities: [{ name: "Madalosso", start_time: "09:00" }] }]));
+      const out = await run(list);
+      expect(out.edits.map((e) => [e.day_number, e.activities.map((a) => a.name)])).toEqual([[1, ["Madalosso"]]]);
+    });
+
+    it("takes a part's day that replaces something when they didn't say to keep everything", async () => {
+      const dinnerOn8 = fortnight.map((d) => (d.day_number === 8 ? { ...d, activities: [...d.activities, { name: "Jantar na Choperia Brahma", start_time: "19:30" }] } : d)) as unknown as ItineraryDay[];
+      const list = { ...input, days: dinnerOn8, locale: "pt", message: "adicione: o senhor restaurante, dhoosushi, park do churrasco e baraquias restaurante" };
+      const swapped = { day_number: 8, activities: [{ name: "Sight H", start_time: "09:00" }, { name: "Park do Churrasco", start_time: "19:30" }] };
+      generateContent
+        .mockResolvedValueOnce(reply([dayWith(1, "O Senhor Restaurante"), dayWith(2, "Dhoosushi")], [7, 8]))
+        .mockResolvedValueOnce(reply([dayWith(7, "Baraquias Restaurante"), swapped]));
+      const out = await run(list);
+      expect(JSON.stringify(generateContent.mock.calls[1][0])).not.toContain("They asked you to keep everything already planned");
+      expect(out.edits.map((e) => e.day_number)).toEqual([1, 2, 7, 8]);
+    });
+
     it("puts what they add to every day on every day, parts included", async () => {
       const daily = { ...input, days: fortnight, locale: "en", message: "add breakfast at the hotel every day" };
       const breakfast = (n: number) => ({ day_number: n, activities: [{ name: "Breakfast at the hotel", start_time: "08:00" }, { name: `Sight ${String.fromCharCode(64 + n)}`, start_time: "09:00" }] });
