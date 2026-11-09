@@ -35,6 +35,7 @@ function setup(answer: () => Promise<Response>) {
   const props = {
     tripId: "t1",
     pushUndo: vi.fn((_action: string) => void order.push("undo")),
+    undo: vi.fn(),
     runItineraryWrite: vi.fn(async (task: () => Promise<unknown>, _options?: { keepsLocalEdits?: boolean }) => task()),
     adoptDayWrite: vi.fn(
       async (_splice: (it: ItineraryDay[]) => ItineraryDay[], _from: number | null, _to: number | null) =>
@@ -88,7 +89,9 @@ describe("useDayRegeneration", () => {
     expect(splice(PLAN)[1].activities[0].id).toBeTruthy();
     expect([from, to]).toEqual([7, 8]);
     expect((props.setRenderEpoch.mock.calls[0][0] as (v: number) => number)(5)).toBe(6);
-    expect(addToast).toHaveBeenCalledWith('detail.regenerateDay.done {"number":2}', "success");
+    expect(addToast).toHaveBeenCalledWith('detail.regenerateDay.done {"number":2}', "success", 6000, { label: "detail.undo", onClick: expect.any(Function) });
+    addToast.mock.calls.at(-1)![3].onClick();
+    expect(props.undo).toHaveBeenCalledTimes(1);
   });
 
   it("sends the traveller's words trimmed and cut at 500 characters, and none when blank", async () => {
@@ -108,7 +111,7 @@ describe("useDayRegeneration", () => {
     const { props, regenerate } = setup(json(200, { data: { day: NEW_DAY, fromVersion: "7", itineraryVersion: null } }));
     await regenerate();
     expect(props.adoptDayWrite).toHaveBeenCalledTimes(1);
-    expect(addToast).toHaveBeenCalledWith('detail.regenerateDay.done {"number":2}', "success");
+    expect(addToast).toHaveBeenCalledWith('detail.regenerateDay.done {"number":2}', "success", 6000, { label: "detail.undo", onClick: expect.any(Function) });
   });
 
   it.each([

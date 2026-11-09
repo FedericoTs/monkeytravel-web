@@ -660,6 +660,8 @@
     "activityCount": "{count, plural, one {# attività} other {# attività}}",
 
     "movedToDay": "Spostata al giorno {day}",
+    "removed": "Rimossa: \"{name}\"",
+    "regenerated": "Sostituita con \"{name}\"",
 
     "dropHere": "Rilascia qui → inizio del giorno {day}",
 
@@ -671,8 +673,6 @@
     "editActivity": "Modifica attività",
     "regenerateWithAI": "Rigenera con AI",
     "deleteActivity": "Elimina attività",
-    "deleteConfirmTitle": "Eliminare attività?",
-    "deleteConfirmMessage": "\"{name}\" sarà rimossa dal tuo itinerario.",
     "regenerating": "Rigenerazione attività con AI..."
   },
   "addActivity": {

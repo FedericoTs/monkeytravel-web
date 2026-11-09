@@ -114,7 +114,6 @@ function EditableActivityCard({
   const price = priceOf(activity, currency);
   const typeLabel = useActivityTypeLabel();
   const [expanded, setExpanded] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showMoveSheet, setShowMoveSheet] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editValues, setEditValues] = useState(() => editValuesOf(activity));
@@ -224,7 +223,7 @@ function EditableActivityCard({
               {t('editActivity.regenerateWithAI')}
             </TripActionsMenuItem>
             <TripActionsMenuItem
-              onClick={() => setShowDeleteConfirm(true)}
+              onClick={onDelete}
               icon={<Trash2 className="h-4 w-4" aria-hidden="true" />}
               tone="danger"
             >
@@ -247,38 +246,6 @@ function EditableActivityCard({
           onMoveToDay(idx === -1 ? dayNumber - 1 : idx);
         }}
       />
-
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && (
-        <div className="absolute inset-0 bg-white/95 rounded-xl z-20 flex items-center justify-center p-4">
-          <div className="text-center">
-            <div className="w-12 h-12 rounded-full bg-red-100 text-red-500 flex items-center justify-center mx-auto mb-3">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </div>
-            <h4 className="font-semibold text-slate-900 mb-1">{t('editActivity.deleteConfirmTitle')}</h4>
-            <p className="text-sm text-slate-600 mb-4">{t('editActivity.deleteConfirmMessage', { name: activity.name })}</p>
-            <div className="flex items-center justify-center gap-2">
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
-              >
-                {tc('buttons.cancel')}
-              </button>
-              <button
-                onClick={() => {
-                  onDelete();
-                  setShowDeleteConfirm(false);
-                }}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
-              >
-                {tc('buttons.delete')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Image Thumbnail - matches ActivityCard design */}
       {activity.image_url && (
