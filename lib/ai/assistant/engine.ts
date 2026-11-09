@@ -197,10 +197,10 @@ export function correctionFor(
     return `Day ${outside.day}: ${when}. ${outside.names.join(", ")} ${outside.names.length > 1 ? "don't" : "doesn't"} fit. Move what matters to a day with room, or leave it out, and say so in "reply".`;
   }
   const recent = [input.message, ...(input.history ?? []).slice(-2).map((t) => t.text)].join("\n");
-  if (o.tripLength !== undefined && o.tripLength > current && !asksForMoreDays(recent)) {
+  if (o.tripLength !== undefined && o.tripLength > current && !asksForMoreDays(recent, current)) {
     return `Keep the trip at ${current} days: fit the change into the existing days and say in "reply" what it replaces. Add days only when the traveller asks.`;
   }
-  if (o.tripLength === undefined && input.canAddDays !== false && asksForMoreDays(recent) && (o.lengthRefused || claimsLongerTrip(o.reply))) {
+  if (o.tripLength === undefined && input.canAddDays !== false && asksForMoreDays(recent, current) && (o.lengthRefused || claimsLongerTrip(o.reply))) {
     return `The longer trip didn't come back whole. The trip has ${current} days. Set "trip_length" to the new total, and return every day from the first new one to the new last day, in "edits" or listed in "more_days": new days in the middle of the trip move the later days along. If you can't, change nothing and say why in "reply".`;
   }
   if (o.edits.length > 0 && o.tripLength === undefined && o.edits.every((e) => leavesDayAsItWas(input.days, e))) {
@@ -251,7 +251,7 @@ export function betterThanNothing(
   if (first.edits.length > 0 || first.tripLength !== undefined) return false;
   if (retried.edits.length === 0 || retried.tripLength !== undefined) return false;
   const recent = [input.message, ...(input.history ?? []).slice(-2).map((t) => t.text)].join("\n");
-  if (asksForMoreDays(recent)) return false;
+  if (asksForMoreDays(recent, input.days.length)) return false;
   const day = dayMentioned(input.message);
   if (day && !retried.edits.some((e) => e.day_number === day)) return false;
   return !retried.edits.every((e) => leavesDayAsItWas(input.days, e));
@@ -428,7 +428,7 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
     daysLeft,
     notAdded,
     outsideTimes,
-    askedForMoreDays: asksForMoreDays(input.message),
+    askedForMoreDays: asksForMoreDays(input.message, input.days.length),
     takenOut: input.explainRemovals && !asksToRemove(input.message) ? takenOut(input.days, edits) : [],
     offersElsewhere: outcome.elsewhere.length > 0,
   });

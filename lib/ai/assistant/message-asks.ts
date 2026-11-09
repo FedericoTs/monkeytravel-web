@@ -7,12 +7,15 @@
 
 // "Add 2 more days", "one more night", "extend the trip", "un día más",
 // "2 giorni in più", "mais um dia", or a length in days. The wizard's date
-// change asks with "set trip_length".
+// change asks with "set trip_length". A day of the trip is where a change
+// goes, not more days: "add dinner on day 3", "l'ultimo giorno".
 const L = "\\p{L}";
+const THAT_DAY =
+  "(?<!(?:first|last|next|same|second|third|final|each|every|that|this|primo|ultimo|secondo|terzo|stesso|ogni|quel|questo|primer|primero|último|segundo|tercer|tercero|mismo|cada|ese|este|primeiro|terceiro|mesmo|esse)\\s+)";
 const MORE_DAYS = new RegExp(
   [
     "trip_length",
-    `(?<![${L}])(?:add|adding|extra|more|another|extend|extending|longer|lengthen|más|otro|otra|añad\\p{L}*|agreg\\p{L}*|extend\\p{L}*|alarg\\p{L}*|più|altr[oi]|aggiung\\p{L}*|allung\\p{L}*|estend\\p{L}*|mais|outr[oa]s?|adicion\\p{L}*|acrescent\\p{L}*|prolong\\p{L}*)(?![${L}])[^.?!\\n]{0,24}?(?<![${L}])(?:day|days|night|nights|día|días|noche|noches|giorno|giorni|notte|notti|dia|dias|noite|noites)(?![${L}])`,
+    `(?<![${L}])(?:add|adding|extra|more|another|extend|extending|longer|lengthen|más|otro|otra|añad\\p{L}*|agreg\\p{L}*|extend\\p{L}*|alarg\\p{L}*|più|altr[oi]|aggiung\\p{L}*|allung\\p{L}*|estend\\p{L}*|mais|outr[oa]s?|adicion\\p{L}*|acrescent\\p{L}*|prolong\\p{L}*)(?![${L}])[^.?!\\n]{0,24}?(?<![${L}])${THAT_DAY}(?:day|days|night|nights|día|días|noche|noches|giorno|giorni|notte|notti|dia|dias|noite|noites)(?![${L}])(?!\\s*\\d)`,
     `(?<![${L}])(?:giorn[oi]|nott[ei])\\s+in\\s+più`,
     `(?<![${L}\\p{N}])\\d{1,2}\\s*(?:days|nights|días|noches|giorni|notti|dias|noites)(?![${L}])`,
   ].join("|"),
@@ -23,9 +26,18 @@ const MORE_DAYS = new RegExp(
 const DAY_TRIP =
   /day[\s-]?trips?|excursi[oó]n(?:es)? de un d[ií]a|gite? di un giorno|excurs(?:ão|ões) de um dia|bate[\s-]?volta/giu;
 
-/** Does the conversation ask for a longer trip? */
-export function asksForMoreDays(text: string): boolean {
-  return MORE_DAYS.test(text.replace(DAY_TRIP, " "));
+// A day by its number: "day 6", "giorno 6", "día 6", "dia 6".
+const DAY_NUMBER = /(?<![\p{L}])(?:day|giorno|día|dia)\s+(\d{1,2})(?![\p{N}])/giu;
+
+/**
+ * Does the conversation ask for a longer trip? A day named by its number is
+ * one of the trip's, unless the trip doesn't have it yet: "add day 6" to a
+ * trip of `tripDays` 5.
+ */
+export function asksForMoreDays(text: string, tripDays?: number): boolean {
+  const asked = text.replace(DAY_TRIP, " ");
+  if (MORE_DAYS.test(asked)) return true;
+  return tripDays !== undefined && [...asked.matchAll(DAY_NUMBER)].some((m) => Number(m[1]) > tripDays);
 }
 
 // A day with nothing planned: "leave day 2 free", "deixe o dia 2 livre".
