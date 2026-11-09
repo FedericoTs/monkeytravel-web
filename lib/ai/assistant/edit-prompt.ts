@@ -245,6 +245,7 @@ Return STRICT JSON (no markdown) in this EXACT shape:
           "type": ${ACTIVITY_TYPES.map((t) => `"${t}"`).join(" | ")},
           "description": "1 short sentence in ${language}",
           "location": "neighbourhood or area",
+          "coordinates": { "lat": <latitude, 6 decimals>, "lng": <longitude, 6 decimals> } (where the place really is),
           "estimated_cost": { "amount": <number in ${cur}>, "currency": "${cur}", "tier": "free" | "budget" | "moderate" | "expensive" },
           "booking_required": false
         }

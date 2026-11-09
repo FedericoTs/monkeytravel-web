@@ -141,3 +141,18 @@ describe("applyAssistantEdits on one day", () => {
     expect(new Set(all).size).toBe(all.length);
   });
 });
+
+describe("applyAssistantEdits and where a stop is", () => {
+  it("keeps a saved stop's location over the one an edit sends, and takes a new stop's", () => {
+    const out = applyAssistantEdits(trip(), [
+      {
+        day_number: 3,
+        activities: [
+          act("Orca Watching", { coordinates: { lat: 69.1, lng: 19.1 } as never }),
+          act("Fjellheisen", { coordinates: { lat: 69.6338, lng: 18.9993 } as never }),
+        ],
+      },
+    ]);
+    expect(out[2].activities.map((a) => a.coordinates)).toEqual([{ lat: 69, lng: 19 }, { lat: 69.6338, lng: 18.9993 }]);
+  });
+});

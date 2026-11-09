@@ -6,11 +6,13 @@ import {
   getAverageSpeed,
 } from "@/lib/math/distance";
 import { formatMinutesToTime } from "@/lib/datetime/format";
+import { isRealPoint } from "@/lib/trip/placeholder-point";
 
 /**
  * Calculate travel time between two activities in minutes
  * Uses local Haversine calculation - no API calls
- * @returns Travel time in minutes, or null if coordinates missing
+ * @returns Travel time in minutes, or null when either place has no known
+ * location: no coordinates, 0,0, or the coordinate fallback's placeholder point
  */
 export function calculateTravelMinutes(
   fromActivity: Activity,
@@ -19,7 +21,7 @@ export function calculateTravelMinutes(
   const origin = fromActivity.coordinates;
   const destination = toActivity.coordinates;
 
-  if (!origin || !destination) return null;
+  if (!isRealPoint(origin) || !isRealPoint(destination)) return null;
 
   const straightLineDistance = calculateHaversineDistance(origin, destination, "m");
   const mode = straightLineDistance < 1200 ? "WALKING" : "DRIVING";
@@ -46,189 +48,6 @@ export function calculateTravelMinutes(
   const minutes = Math.ceil(totalDurationSeconds / 60 / 5) * 5;
 
   return minutes;
-}
-
-// ============================================================
-// Activity Type-Aware Scheduling
-// ============================================================
-
-/**
- * Time preferences for different activity types (in minutes from midnight)
- */
-interface TypeTimePreference {
-  /** Preferred time ranges for this activity type */
-  preferredRanges?: { start: number; end: number }[];
-  /** Minimum start time (activity shouldn't start before this) */
-  minStart?: number;
-  /** Maximum start time (activity shouldn't start after this, or warn) */
-  maxStart?: number;
-}
-
-const ACTIVITY_TYPE_TIMING: Record<string, TypeTimePreference> = {
-  // Food & Dining - align with meal times
-  restaurant: {
-    preferredRanges: [
-      { start: 7 * 60, end: 10 * 60 },        // Breakfast: 07:00-10:00
-      { start: 12 * 60, end: 14.5 * 60 },     // Lunch: 12:00-14:30
-      { start: 18.5 * 60, end: 21.5 * 60 },   // Dinner: 18:30-21:30
-    ],
-  },
-  food: {
-    preferredRanges: [
-      { start: 7 * 60, end: 10 * 60 },
-      { start: 12 * 60, end: 14.5 * 60 },
-      { start: 18.5 * 60, end: 21.5 * 60 },
-    ],
-  },
-  foodie: {
-    preferredRanges: [
-      { start: 12 * 60, end: 14.5 * 60 },
-      { start: 18.5 * 60, end: 21.5 * 60 },
-    ],
-  },
-  cafe: {
-    preferredRanges: [
-      { start: 7 * 60, end: 11 * 60 },        // Morning coffee
-      { start: 14 * 60, end: 17 * 60 },       // Afternoon break
-    ],
-  },
-  // Nightlife - evening only
-  bar: {
-    minStart: 17 * 60,                        // Not before 17:00
-    preferredRanges: [
-      { start: 18 * 60, end: 23 * 60 },
-    ],
-  },
-  "wine bar": {
-    minStart: 17 * 60,
-    preferredRanges: [
-      { start: 17 * 60, end: 22 * 60 },
-    ],
-  },
-  nightlife: {
-    minStart: 20 * 60,                        // Not before 20:00
-    preferredRanges: [
-      { start: 21 * 60, end: 24 * 60 },
-    ],
-  },
-  entertainment: {
-    preferredRanges: [
-      { start: 10 * 60, end: 22 * 60 },       // Flexible, but daytime to evening
-    ],
-  },
-  // Cultural - daytime activities
-  museum: {
-    minStart: 9 * 60,
-    maxStart: 17 * 60,                        // Warn if starting after 17:00
-    preferredRanges: [
-      { start: 9 * 60, end: 17 * 60 },
-    ],
-  },
-  cultural: {
-    minStart: 9 * 60,
-    maxStart: 18 * 60,
-  },
-  attraction: {
-    minStart: 8 * 60,
-    maxStart: 18 * 60,
-  },
-  landmark: {
-    minStart: 8 * 60,
-    maxStart: 19 * 60,
-  },
-  // Nature & Outdoors - morning preferred
-  nature: {
-    preferredRanges: [
-      { start: 7 * 60, end: 12 * 60 },        // Morning (cooler, better light)
-      { start: 15 * 60, end: 18 * 60 },       // Late afternoon
-    ],
-  },
-  park: {
-    preferredRanges: [
-      { start: 7 * 60, end: 12 * 60 },
-      { start: 15 * 60, end: 19 * 60 },
-    ],
-  },
-  // Wellness - typically morning or afternoon
-  spa: {
-    preferredRanges: [
-      { start: 9 * 60, end: 12 * 60 },
-      { start: 14 * 60, end: 18 * 60 },
-    ],
-  },
-  wellness: {
-    preferredRanges: [
-      { start: 8 * 60, end: 12 * 60 },
-      { start: 14 * 60, end: 18 * 60 },
-    ],
-  },
-  // Shopping - business hours
-  shopping: {
-    minStart: 9 * 60,
-    maxStart: 20 * 60,
-    preferredRanges: [
-      { start: 10 * 60, end: 19 * 60 },
-    ],
-  },
-  market: {
-    preferredRanges: [
-      { start: 7 * 60, end: 13 * 60 },        // Markets often best in morning
-    ],
-  },
-};
-
-/**
- * Check if a time falls within any of the preferred ranges
- */
-function isInPreferredTimeRange(
-  timeMinutes: number,
-  preferences: TypeTimePreference
-): boolean {
-  if (!preferences.preferredRanges) return true;
-  return preferences.preferredRanges.some(
-    (range) => timeMinutes >= range.start && timeMinutes <= range.end
-  );
-}
-
-/**
- * Find the nearest future preferred time slot for an activity type
- * @returns Adjusted time in minutes, or original if no adjustment needed
- */
-function adjustToPreferredTime(
-  calculatedTimeMinutes: number,
-  activityType: string,
-  maxWaitMinutes: number = 90  // Max time to wait for preferred slot
-): number {
-  const preferences = ACTIVITY_TYPE_TIMING[activityType];
-  if (!preferences) return calculatedTimeMinutes;
-
-  // Check minimum start time
-  if (preferences.minStart && calculatedTimeMinutes < preferences.minStart) {
-    return preferences.minStart;
-  }
-
-  // If no preferred ranges, just return calculated time
-  if (!preferences.preferredRanges) return calculatedTimeMinutes;
-
-  // Check if already in a preferred range
-  if (isInPreferredTimeRange(calculatedTimeMinutes, preferences)) {
-    return calculatedTimeMinutes;
-  }
-
-  // Find the next preferred range start
-  for (const range of preferences.preferredRanges) {
-    if (range.start > calculatedTimeMinutes) {
-      const waitTime = range.start - calculatedTimeMinutes;
-      // Only adjust if the wait is reasonable
-      if (waitTime <= maxWaitMinutes) {
-        return range.start;
-      }
-      break; // Don't check further ranges
-    }
-  }
-
-  // No suitable preferred time found, use calculated time
-  return calculatedTimeMinutes;
 }
 
 /**
@@ -510,112 +329,76 @@ export function determineTimeSlot(time: string): "morning" | "afternoon" | "even
   return "evening";
 }
 
+/** A journey of unknown length: one place, or both, has no known location. */
+const UNKNOWN_JOURNEY_MINUTES = 30;
+/** Getting from the door to the next stop, on top of a measured journey. */
+const SETTLE_MINUTES = 5;
+/** A stop's length when it gives none. */
+const DEFAULT_DURATION_MINUTES = 90;
+/** The latest start a time can show. */
+const LAST_MINUTE = 23 * 60 + 59;
+
+/** Minutes after midnight for "HH:MM", or null. */
+function minutesOf(time: string | undefined): number | null {
+  const m = /^(\d{1,2}):(\d{2})/.exec(time ?? "");
+  return m ? Number(m[1]) * 60 + Number(m[2]) : null;
+}
+
+/** A stop the traveller fixed: booked, or a fixed plan. Its time never moves. */
+function isFixed(activity: Activity): boolean {
+  return activity.booking_required === true || (activity as { locked?: boolean }).locked === true;
+}
+
+/** The earliest `next` can start: when `prev` ends, plus the journey between them. */
+function earliestAfter(prev: Activity, next: Activity): number | null {
+  const start = minutesOf(prev.start_time);
+  if (start === null) return null;
+  const travel = calculateTravelMinutes(prev, next);
+  const journey = travel === null ? UNKNOWN_JOURNEY_MINUTES : travel + SETTLE_MINUTES;
+  return start + (prev.duration_minutes || DEFAULT_DURATION_MINUTES) + journey;
+}
+
 /**
- * Recalculate activity times for a day with smart scheduling
- *
- * Features:
- * - Uses actual travel time (Haversine-based, no API calls)
- * - Respects booking_required activities as time anchors
- * - Adjusts times based on activity type (restaurants at meal times, etc.)
- * - Compresses schedule to fill gaps when activities are moved/removed
- * - Returns warnings for late schedules
- *
- * Algorithm:
- * 1. First activity keeps its original time
- * 2. Activities with booking_required keep their times (anchors)
- * 3. Other activities are scheduled based on previous activity end + travel time
- * 4. Activity types influence timing (e.g., restaurants near meal times)
+ * The day's times after a stop was moved into it or within it. Only the moved
+ * stop gets a new time: its own ("keep", for a stop that arrived from another
+ * day in its time order) or the slot after the stop before it ("slot", for a
+ * stop put at a place in the list; at the top, the day's start). It starts no
+ * earlier than the one before it ends, journey included, and each later stop
+ * moves only when it would start before then. Nothing is pulled earlier, a
+ * booked stop or a fixed plan keeps its time, and the other days are left as
+ * they are.
  */
-export function recalculateActivityTimes(
+export function fitMovedStop(
   itinerary: ItineraryDay[],
-  dayIndex: number
+  dayIndex: number,
+  movedId: string,
+  mode: "keep" | "slot"
 ): ItineraryDay[] {
-  if (dayIndex < 0 || dayIndex >= itinerary.length) {
-    return itinerary;
-  }
-
   const day = itinerary[dayIndex];
-  if (!day.activities || day.activities.length === 0) {
-    return itinerary;
+  const at = day ? day.activities.findIndex((a) => a.id === movedId) : -1;
+  if (!day || at === -1) return itinerary;
+
+  const activities = [...day.activities];
+  const retime = (i: number, minutes: number) => {
+    const time = formatMinutesToTime(Math.min(minutes, LAST_MINUTE));
+    activities[i] = { ...activities[i], start_time: time, time_slot: determineTimeSlot(time) };
+  };
+
+  const moved = activities[at];
+  if (!isFixed(moved)) {
+    const own = minutesOf(moved.start_time);
+    const wanted = mode === "keep" ? own : at === 0 ? (minutesOf(activities[1]?.start_time) ?? own) : null;
+    const after = at > 0 ? earliestAfter(activities[at - 1], moved) : null;
+    const start = Math.max(wanted ?? after ?? own ?? 9 * 60, after ?? 0);
+    if (start !== own) retime(at, start);
   }
 
-  const DEFAULT_BUFFER_MINUTES = 30; // Fallback when coordinates missing
-  const TRANSITION_BUFFER_MINUTES = 5; // Extra time for settling in
-
-  // Build updated activities array incrementally so we can reference previous updates
-  const updatedActivities: Activity[] = [];
-
-  for (let index = 0; index < day.activities.length; index++) {
-    const activity = day.activities[index];
-
-    // First activity: apply type-aware scheduling from day start
-    if (index === 0) {
-      // Default start time for the day
-      const defaultDayStart = 9 * 60; // 09:00
-
-      // Apply type-aware timing for first activity
-      // This ensures a dinner restaurant moved to first position
-      // gets scheduled at breakfast time, not its original dinner time
-      const firstActivityMinutes = adjustToPreferredTime(defaultDayStart, activity.type);
-
-      // Format the time
-      const time = formatMinutesToTime(firstActivityMinutes);
-
-      updatedActivities.push({
-        ...activity,
-        start_time: time,
-        time_slot: determineTimeSlot(time),
-      });
-      continue;
-    }
-
-    // Anchor activities: booking_required keeps their original time
-    if (activity.booking_required && activity.start_time) {
-      updatedActivities.push({
-        ...activity,
-        time_slot: determineTimeSlot(activity.start_time),
-      });
-      continue;
-    }
-
-    // Get the UPDATED previous activity (not the original)
-    const prevActivity = updatedActivities[index - 1];
-    const prevStart = prevActivity.start_time || "09:00";
-    const prevDuration = prevActivity.duration_minutes || 90;
-
-    // Parse previous start time
-    const [prevHours, prevMinutes] = prevStart.split(":").map(Number);
-    const prevStartMinutes = prevHours * 60 + prevMinutes;
-    const prevEndMinutes = prevStartMinutes + prevDuration;
-
-    // Calculate travel time using Haversine (or fallback)
-    const travelMinutes = calculateTravelMinutes(prevActivity, activity);
-    const gapMinutes = travelMinutes !== null
-      ? travelMinutes + TRANSITION_BUFFER_MINUTES
-      : DEFAULT_BUFFER_MINUTES;
-
-    // Base calculated start time
-    let nextMinutes = prevEndMinutes + gapMinutes;
-
-    // Apply activity type timing preferences
-    nextMinutes = adjustToPreferredTime(nextMinutes, activity.type);
-
-    // Cap at 23:00 to avoid going past midnight
-    if (nextMinutes >= 23 * 60) {
-      nextMinutes = 23 * 60;
-    }
-
-    // Format the new time
-    const newTime = formatMinutesToTime(nextMinutes);
-
-    updatedActivities.push({
-      ...activity,
-      start_time: newTime,
-      time_slot: determineTimeSlot(newTime),
-    });
+  for (let i = at + 1; i < activities.length; i++) {
+    if (isFixed(activities[i])) continue;
+    const earliest = earliestAfter(activities[i - 1], activities[i]);
+    const own = minutesOf(activities[i].start_time);
+    if (earliest !== null && (own === null || own < earliest)) retime(i, earliest);
   }
 
-  return itinerary.map((d, i) =>
-    i === dayIndex ? { ...d, activities: updatedActivities } : d
-  );
+  return itinerary.map((d, i) => (i === dayIndex ? { ...d, activities } : d));
 }

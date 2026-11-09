@@ -101,6 +101,7 @@ Return ONLY valid JSON:
           "description": "2-3 sentence description",
           "location": "Neighborhood",
           "address": "Street address if known",
+          "coordinates": { "lat": <latitude, 6 decimals>, "lng": <longitude, 6 decimals> },
           "start_time": "09:00",
           "duration_minutes": 120,
           "estimated_cost": { "amount": 20, "currency": "EUR", "tier": "moderate" },

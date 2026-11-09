@@ -25,6 +25,30 @@ const edit = (n: number, names = ["A", "B"], extra: Record<string, unknown> = {}
 });
 
 describe("validateEdits", () => {
+  it("keeps where a new stop is when it's a real point near the trip", () => {
+    const kyoto = [day(1, { activities: [{ ...act("Fushimi Inari-taisha"), coordinates: { lat: 34.967146, lng: 135.772675 } }] as never })];
+    const located = (coordinates: unknown) => ({ ...act("Stop"), coordinates });
+    const out = validateEdits(
+      kyoto,
+      {
+        edits: [
+          {
+            day_number: 1,
+            activities: [
+              located({ lat: 34.994856, lng: 135.78505 }),
+              located({ lat: 48.85837, lng: 2.294481 }),
+              located({ lat: 48.003, lng: 10.004 }),
+              act("Gion"),
+            ],
+          },
+        ],
+        tripLength: null,
+      },
+      "JPY"
+    );
+    expect(out.edits[0].activities.map((a) => a.coordinates)).toEqual([{ lat: 34.994856, lng: 135.78505 }, undefined, undefined, undefined]);
+  });
+
   it("keeps every day of a swap, in day order", () => {
     const out = validateEdits(trip(), { edits: [edit(5), edit(2)], tripLength: null }, "EUR");
     expect(out.edits.map((e) => e.day_number)).toEqual([2, 5]);
@@ -250,6 +274,11 @@ describe("buildPrompt", () => {
     const prompt = buildPrompt({ message: "Suggest a great local restaurant to add", destination: "Lisbon", tripTitle: "Lisbon", days: trip(), locale: "en" });
     expect(prompt).toContain("pick the day with the most room where it fits, add it there without removing anything");
     expect(prompt).toContain("Don't ask which day");
+  });
+
+  it("asks where each activity is, so a new stop can be put on the map", () => {
+    const prompt = buildPrompt({ message: "add a fado show", destination: "Lisbon", tripTitle: "Lisbon", days: trip(), locale: "en" });
+    expect(prompt).toContain('"coordinates": { "lat": <latitude, 6 decimals>, "lng": <longitude, 6 decimals> }');
   });
 
   it("asks for the plan's words in the trip's language, English when it isn't one of the four", () => {

@@ -17,6 +17,7 @@ import { generateActivityId } from "@/lib/utils/activity-id";
 import { addIsoDays } from "@/lib/dates/iso-date";
 import { normalizeActivityType } from "@/lib/trip/activity-type";
 import { MAX_TRIP_DAYS, MAX_TRIP_DAYS_MULTI } from "@/lib/trips/request-limits";
+import { knownPoints, stopLocation } from "./stop-location";
 
 // The platform-wide trip length ceilings, the ones generation applies too:
 // the assistant must not be a side door past them.
@@ -240,7 +241,8 @@ function asString(value: unknown, fallback = ""): string {
 
 function normalizeActivity(
   raw: Record<string, unknown>,
-  existingByName: Map<string, Activity>
+  existingByName: Map<string, Activity>,
+  known: { lat: number; lng: number }[]
 ): Activity | null {
   const name = asString(raw.name).trim();
   if (!name) return null;
@@ -272,7 +274,7 @@ function normalizeActivity(
       Number.isFinite(duration) && duration > 0
         ? Math.round(duration)
         : existing?.duration_minutes || 90,
-    coordinates: existing?.coordinates ?? (raw.coordinates as Activity["coordinates"]),
+    coordinates: existing?.coordinates ?? stopLocation(raw.coordinates, known),
     estimated_cost: existing?.estimated_cost ?? {
       amount: Number(rawCost.amount) || 0,
       currency: asString(rawCost.currency, "EUR"),
@@ -317,6 +319,7 @@ export function normalizeDraftDays(
       existingByName.set(activity.name.toLowerCase(), activity);
     }
   }
+  const known = knownPoints(currentItinerary);
 
   const revisedByNumber = new Map<number, ItineraryDay>();
 
@@ -330,7 +333,7 @@ export function normalizeDraftDays(
       const activities = (Array.isArray(raw.activities) ? raw.activities : [])
         .slice(0, MAX_ACTIVITIES_PER_DAY)
         .map((a) =>
-          normalizeActivity((a ?? {}) as Record<string, unknown>, existingByName)
+          normalizeActivity((a ?? {}) as Record<string, unknown>, existingByName, known)
         )
         .filter((a): a is Activity => a !== null);
       if (activities.length === 0) continue;

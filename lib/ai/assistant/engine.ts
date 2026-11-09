@@ -23,6 +23,7 @@ import {
   announcedButMissing,
   announcesProposal,
   asksToRemove,
+  claimsItineraryChange,
   claimsLongerTrip,
   isConfirmation,
   offersChange,
@@ -227,7 +228,33 @@ export function correctionFor(
       }
     }
   }
+  // Said to be made, with nothing sent: "I've added…" and an empty "edits". A
+  // currency request is the page's to answer, with no edits.
+  if (!prepared && claimsItineraryChange(o.reply) && !currencyRequested(input.message)) {
+    return `Your "reply" says the plan changes, but "edits" is empty. Put that change in "edits" now, or say plainly in "reply" that you couldn't make it.`;
+  }
   return null;
+}
+
+/**
+ * Whether a second try that still breaks a rule beats a first reply that
+ * prepared nothing, which the traveller would read as "I couldn't make that
+ * change". It does when it changes the day they named, keeps the trip's length
+ * and wasn't asked for more days: like any change, it is shown before it's
+ * saved or can be undone, with what it takes out named. Pure; unit-tested.
+ */
+export function betterThanNothing(
+  input: Pick<AssistInput, "message" | "history" | "days">,
+  first: Pick<Outcome, "edits" | "tripLength">,
+  retried: Pick<Outcome, "edits" | "tripLength">,
+): boolean {
+  if (first.edits.length > 0 || first.tripLength !== undefined) return false;
+  if (retried.edits.length === 0 || retried.tripLength !== undefined) return false;
+  const recent = [input.message, ...(input.history ?? []).slice(-2).map((t) => t.text)].join("\n");
+  if (asksForMoreDays(recent)) return false;
+  const day = dayMentioned(input.message);
+  if (day && !retried.edits.some((e) => e.day_number === day)) return false;
+  return !retried.edits.every((e) => leavesDayAsItWas(input.days, e));
 }
 
 /** 429, 500 and 503 ("high demand") are the model pool's, not the request's. */
@@ -320,7 +347,7 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
       const retried = readOutcome(input, await ask(`${prompt}\n\nCORRECTION: ${correction}`, 1), cur);
       // Held to the first reply's travel times too, in case it drops them.
       const times = [...retried.travelTimes, ...outcome.travelTimes];
-      if (!correctionFor(input, { ...retried, travelTimes: times })) outcome = retried;
+      if (!correctionFor(input, { ...retried, travelTimes: times }) || betterThanNothing(input, outcome, retried)) outcome = retried;
     } catch (err) {
       console.warn("assistant-anon: correction failed, keeping the first reply:", err instanceof Error ? err.message : err);
     }
