@@ -492,6 +492,21 @@ describe("buildPrompt", () => {
     expect(prompt).toContain("move that activity to another day with room rather than dropping it, and say where it went");
   });
 
+  // "Are you still limiting me to 4 activities a day?": a day capped at five
+  // swapped a dinner for the restaurant asked for, and a list of ten got five.
+  it("lets a day grow when they add to it, and adds every place of a list", () => {
+    expect(prompt).not.toContain("Each edited day: 3-5 activities");
+    expect(prompt).toContain("A day you add to keeps every activity it had, so it may end up with more than 5");
+    expect(prompt).toContain("A list of places to add");
+    expect(prompt).toContain("add every one, each once, on the day and at the time it fits best");
+    expect(prompt).toContain("If one can't fit anywhere, say which in \"reply\"");
+  });
+
+  it("changes nothing for a message that only says what is coming", () => {
+    expect(prompt).toContain("only says what's coming");
+    expect(prompt).toContain("say you're ready, repeat the rule in a few words, and return \"edits\": []");
+  });
+
   it("keeps the trip's length and the saved activities' names", () => {
     expect(prompt).toContain("Keep the number of days unless the traveller asks for more or fewer");
     expect(prompt).toContain("never translate or rename activities");

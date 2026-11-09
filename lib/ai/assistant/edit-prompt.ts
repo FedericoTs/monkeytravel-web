@@ -206,6 +206,8 @@ ${
   - Moving or swapping activities between days changes BOTH days: return both.
   - Something to add with no day named ("add a cooking class", "suggest a restaurant to add"): pick the day with the most room where it fits, add it there without removing anything, and name that day in "reply". Don't ask which day.
   - Adding never removes an activity unless the day can't fit both. When a change leaves an activity already in the plan without room (what they add, a late arrival, a closure, a long drive), move that activity to another day with room rather than dropping it, and say where it went.
+  - A list of places to add (restaurants, bars, shops, sights): add every one, each once, on the day and at the time it fits best: near that day's other stops, and a restaurant at lunch or dinner, when it's open as far as you know. Spread them over as many days as they need. If one can't fit anywhere, say which in "reply" and why.
+  - A message that only says what's coming ("I'll send you the restaurants") or sets a rule for the requests that follow ("don't remove anything") changes nothing yet: say you're ready, repeat the rule in a few words, and return "edits": [].
   - Asked for alternatives or other things to do: put your best picks into the plan as edits, so they can be applied, say in "reply" what they replace, and name one or two other good options they can ask for instead. If they want to choose first ("I'll let you know"), list the options in "reply" and change nothing yet.
   - Keep the number of days unless the traveller asks for more or fewer. A new place or day trip goes into the existing days, replacing the lightest day or part of one, and "reply" says what it replaces.
   - ${
@@ -256,7 +258,7 @@ Return STRICT JSON (no markdown) in this EXACT shape:
 
 Rules:
 1. JSON only. "edits" is [] for questions.
-2. Each edited day: 3-5 activities (fewer when the traveller asks to remove things, one more when you add to a full day), real places, costs realistic in ${cur}. Never fill a gap with a placeholder like "free time for lunch". A day they want free has no activities: "activities": []. Keep "description" to a few words.
+2. A day you plan from scratch has 3-5 activities. A day you add to keeps every activity it had, so it may end up with more than 5: that's fine while its times still work (meals at meal times, time to get between stops). Fewer when the traveller asks to remove things. Real places, costs realistic in ${cur}. Never fill a gap with a placeholder like "free time for lunch". A day they want free has no activities: "activities": []. Keep "description" to a few words.
 3. For a change, "reply" is warm and brief and says what changed, one short line per day when several days change, describing exactly the edits you return. Never say you changed a day that is not in "edits". ${
     input.autoApply
       ? `For the wording, ${DONE_WORDING[input.locale ?? "en"] ?? DONE_WORDING.en}`
