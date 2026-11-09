@@ -11,8 +11,15 @@ update public.google_places_cache
  where cache_type = 'wikimedia_landmark'
    and expires_at > cached_at + case when data ? 'none' then interval '14 days' else interval '30 days' end;
 
-select cron.schedule(
-  'purge-expired-landmark-photos',
-  '15 3 * * *',
-  $$delete from public.google_places_cache where cache_type = 'wikimedia_landmark' and expires_at < now()$$
-);
+-- The signed-in tests' database (supabase/ci) has no pg_cron; production does.
+do $do$
+begin
+  if exists (select 1 from pg_namespace where nspname = 'cron') then
+    perform cron.schedule(
+      'purge-expired-landmark-photos',
+      '15 3 * * *',
+      $cmd$delete from public.google_places_cache where cache_type = 'wikimedia_landmark' and expires_at < now()$cmd$
+    );
+  end if;
+end
+$do$;
