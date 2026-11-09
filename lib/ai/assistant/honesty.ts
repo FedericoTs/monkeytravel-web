@@ -362,6 +362,28 @@ export function claimsLongerTrip(text: string | null | undefined): boolean {
   return !!text && LONGER_TRIP.some((re) => re.test(text));
 }
 
+// The whole trip's length as a reply gives it: "your trip to have 16 days",
+// "a 16-day itinerary", "il viaggio a 16 giorni". A city's share of the days
+// ("Paris gets 4 days", "a 3-day stay") isn't the trip's.
+const TRIP_DAYS: RegExp[] = [
+  /(?<![\p{L}\p{N}])(?:trip|itinerary|plan|journey)\s+(?:now\s+)?(?:to\s+have|has|have|of|is|lasts|spans|covers)\s+(?:now\s+)?(?:a\s+total\s+of\s+)?(\d{1,2})\s+(?:full\s+)?days(?!\p{L})/iu,
+  /(?<![\p{L}\p{N}])(?:extend(?:ed)?|lengthen(?:ed)?|expand(?:ed)?|updated|changed|increased)\s+(?:your\s+|the\s+)?(?:trip|itinerary|plan)\s+to\s+(\d{1,2})\s+days(?!\p{L})/iu,
+  /(?<![\p{L}\p{N}])(\d{1,2})[-\s]day\s+(?:trip|itinerary|plan|journey)(?!\p{L})/iu,
+  /(?<![\p{L}\p{N}])(?:viaggio|itinerario|piano)\s+(?:ora\s+)?(?:di|a|ha|dura)\s+(\d{1,2})\s+giorni(?!\p{L})/iu,
+  /(?<![\p{L}\p{N}])(?:viaje|itinerario|plan)\s+(?:ahora\s+)?(?:de|a|tiene|dura)\s+(\d{1,2})\s+días(?!\p{L})/iu,
+  /(?<![\p{L}\p{N}])(?:viagem|roteiro|itinerário|plano)\s+(?:agora\s+)?(?:de|para|tem|dura)\s+(\d{1,2})\s+dias(?!\p{L})/iu,
+];
+
+/** How many days this reply says the whole trip has, or null when it says none. */
+export function claimedTripDays(text: string | null | undefined): number | null {
+  if (!text) return null;
+  for (const re of TRIP_DAYS) {
+    const m = re.exec(text);
+    if (m) return Number(m[1]);
+  }
+  return null;
+}
+
 /** Appended when a change concerned more days than could be prepared in time. */
 export function daysLeftNote(language: string | undefined, days: number[]): string {
   return note(language, "daysLeft", { list: days.join(", ") });

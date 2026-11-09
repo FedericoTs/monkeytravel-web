@@ -5,6 +5,7 @@
 import {
   announcedButMissing,
   announcesProposal,
+  claimedTripDays,
   claimsLongerTrip,
   daysLeftNote,
   daysNotAddedNote,
@@ -145,7 +146,11 @@ export function composeReply(p: {
   if (left.length > 0) text = `${text} ${daysLeftNote(locale, left)}`;
   if (notAdded.length > 0) text = `${text} ${daysNotAddedNote(locale, notAdded)}`;
   for (const v of p.outsideTimes ?? []) text = `${text} ${travelTimesNote(locale, v)}`;
-  if (p.lengthRefused || (p.tripLength === undefined && p.askedForMoreDays && claimsLongerTrip(text))) {
+  // A reply that gives the trip more days than the change leaves it ("I've
+  // updated your trip to have 16 days" on 14 days) says so too.
+  const saysLonger =
+    p.tripLength === undefined && ((p.askedForMoreDays && claimsLongerTrip(text)) || (claimedTripDays(text) ?? 0) > p.currentDays);
+  if (p.lengthRefused || saysLonger) {
     text = `${text} ${lengthUnchangedNote(locale, p.currentDays)}`;
   }
   // "Add a Jameson tour" quietly replaced the Guinness visit: name what goes,
