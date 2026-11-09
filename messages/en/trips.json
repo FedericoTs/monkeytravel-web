@@ -662,6 +662,7 @@
     "movedToDay": "Moved to Day {day}",
     "removed": "Removed \"{name}\"",
     "regenerated": "Replaced with \"{name}\"",
+    "madeRoom": "{count, plural, one {The stop after it now starts later} other {# stops after it now start later}}, to make room",
 
     "dropHere": "Drop here → start of Day {day}",
 
