@@ -71,7 +71,7 @@ import {
   deleteActivity,
   updateActivity,
 } from "@/lib/utils/activity-id";
-import { firstRealPoint, newActivity } from "@/lib/trips/new-activity";
+import { newActivity } from "@/lib/trips/new-activity";
 import TripDayList from "@/components/trip/TripDayList";
 import { useTranslations, useLocale } from "next-intl";
 import { JourneyRibbon } from "@/components/trips/JourneyRibbon";
@@ -486,6 +486,8 @@ export default function TripDetailClient({
   // days move with them, and a longer trip's new days come empty
   // (lib/trips/change-dates.ts), in one write with the dates.
   const [showChangeDates, setShowChangeDates] = useState(false);
+  // What the assistant opens with when a button asks it for something.
+  const [assistantPrefill, setAssistantPrefill] = useState<string>();
   const handleChangeDates = useCallback(
     async (start: string, end: string) => {
       setShowChangeDates(false);
@@ -503,9 +505,13 @@ export default function TripDetailClient({
       const range = formatDateRange(start, end, locale);
       const added = next.length - editedItinerary.length;
       if (added > 0) {
-        addToast(t("detail.emptyDaysAdded", { range, count: added, from: editedItinerary.length + 1, to: next.length }), "success", 10000, {
+        const empty = { count: added, from: editedItinerary.length + 1, to: next.length };
+        addToast(t("detail.emptyDaysAdded", { range, ...empty }), "success", 10000, {
           label: t("detail.askAssistant"),
-          onClick: () => setIsAIAssistantOpen(true),
+          onClick: () => {
+            setAssistantPrefill(t("detail.planEmptyDays", empty));
+            setIsAIAssistantOpen(true);
+          },
         });
       } else {
         addToast(t("detail.datesChanged", { range }), "success");
@@ -703,10 +709,6 @@ export default function TripDetailClient({
     notifyUndoable,
   });
 
-  // The plan's first real map point, near which an added activity without
-  // coordinates is placed when its day has none either.
-  const destinationCoords = useMemo(() => firstRealPoint(editedItinerary), [editedItinerary]);
-
   // Handle adding a new activity to a day
   const handleAddActivity = useCallback(
     (dayIndex: number, partialActivity: Partial<Activity>) => {
@@ -717,12 +719,11 @@ export default function TripDetailClient({
         dayIndex,
         newActivity(day, partialActivity, {
           destination,
-          nearPoint: destinationCoords,
           currency: trip.budget?.currency || "USD",
         })
       );
     },
-    [editedItinerary, destination, trip.budget?.currency, destinationCoords, addStop]
+    [editedItinerary, destination, trip.budget?.currency, addStop]
   );
 
   // Drag-and-drop (within a day and across days) is useItineraryMoves, below
@@ -1372,12 +1373,16 @@ export default function TripDetailClient({
           tripTitle={trip.title}
           itinerary={displayItinerary}
           isOpen={isAIAssistantOpen}
-          onClose={() => setIsAIAssistantOpen(false)}
+          onClose={() => {
+            setIsAIAssistantOpen(false);
+            setAssistantPrefill(undefined);
+          }}
           onRefetchTrip={async () => {
             await handleRefetchTrip();
           }}
           onFocusDay={handleFocusDayCard}
           runItineraryWrite={runItineraryWrite}
+          prefill={assistantPrefill}
         />
       )}
 

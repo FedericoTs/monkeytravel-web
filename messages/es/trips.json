@@ -594,6 +594,7 @@
     "datesNotChanged": "No se pudieron cambiar las fechas. Inténtalo de nuevo.",
     "emptyDaysAdded": "Nuevas fechas: {range}. {count, plural, one {El día {from} está vacío: añade paradas o pide al asistente que lo planifique.} other {Los días {from}–{to} están vacíos: añade paradas o pide al asistente que los planifique.}}",
     "askAssistant": "Preguntar al asistente",
+    "planEmptyDays": "{count, plural, one {Planifícame el día {from}} other {Planifícame los días del {from} al {to}}}",
     "routeOptimizedSave": "Ruta optimizada. Guarda los cambios para conservarla.",
     "pageTitle": "Detalles del viaje",
     "exitEditing": "Salir",

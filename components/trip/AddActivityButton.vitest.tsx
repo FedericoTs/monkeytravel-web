@@ -56,4 +56,19 @@ describe("AddActivityButton's own stop", () => {
     fireEvent.click(screen.getByRole("button", { name: enCommon.addActivity.add }));
     expect(onAdd).toHaveBeenCalledWith(expect.objectContaining({ name: "Check in at the ryokan", start_time: "15:00" }));
   });
+
+  // The same lengths as a stop's editor, written as the card writes them.
+  it("offers lengths as the card writes them, an hour and a half to start with, and adds the one picked", () => {
+    const onAdd = openForm("10:00");
+    const length = screen.getByLabelText(enCommon.addActivity.duration) as HTMLSelectElement;
+    expect([...length.options].map((o) => o.text)).toEqual([
+      "15 min", "30 min", "45 min", "1 h", "1 h 30 min", "2 h", "2 h 30 min", "3 h", "4 h", "5 h", "6 h", "8 h",
+    ]);
+    expect(length.selectedOptions[0].text).toBe("1 h 30 min");
+
+    fireEvent.change(length, { target: { value: "45" } });
+    fireEvent.change(screen.getByLabelText(enCommon.addActivity.activityNameRequired), { target: { value: "Matcha at Ippodo" } });
+    fireEvent.click(screen.getByRole("button", { name: enCommon.addActivity.add }));
+    expect(onAdd).toHaveBeenCalledWith(expect.objectContaining({ name: "Matcha at Ippodo", duration_minutes: 45 }));
+  });
 });
