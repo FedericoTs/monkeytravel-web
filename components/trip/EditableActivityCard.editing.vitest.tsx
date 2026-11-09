@@ -69,7 +69,7 @@ describe("EditableActivityCard's editor", () => {
     expect(onUpdate).toHaveBeenCalledWith(expect.objectContaining({ start_time: "14:00", name: "Nishiki Market tasting walk", duration_minutes: 75 }));
   });
 
-  it("saves nothing without a name, a time, or a duration", () => {
+  it("saves nothing without a name or a time", () => {
     const { onUpdate } = card(stop());
     openEditor();
 
@@ -79,14 +79,33 @@ describe("EditableActivityCard's editor", () => {
 
     type(enCommon.activity.startTime, "");
     expect(saveButton().disabled).toBe(true);
-    type(enCommon.activity.startTime, "18:00");
-
-    type(enCommon.addActivity.duration, "0");
-    expect(saveButton().disabled).toBe(true);
     fireEvent.click(saveButton());
     expect(onUpdate).not.toHaveBeenCalled();
 
-    type(enCommon.addActivity.duration, "90");
+    type(enCommon.activity.startTime, "18:00");
+    expect(saveButton().disabled).toBe(false);
+  });
+
+  it("offers lengths in hours and minutes, the stop's own among them, and saves the one picked", () => {
+    const { onUpdate } = card(stop());
+    openEditor();
+    const length = field(enCommon.addActivity.duration) as unknown as HTMLSelectElement;
+    expect([...length.options].map((o) => o.text)).toEqual([
+      "15 min", "30 min", "45 min", "1 h", "1 h 15 min", "1 h 30 min", "2 h", "2 h 30 min", "3 h", "4 h", "5 h", "6 h", "8 h",
+    ]);
+    expect(length.selectedOptions[0].text).toBe("1 h 15 min");
+
+    type(enCommon.addActivity.duration, "120");
+    fireEvent.click(saveButton());
+    expect(onUpdate).toHaveBeenCalledWith(expect.objectContaining({ duration_minutes: 120 }));
+  });
+
+  it("has a stop without a length given one before it saves", () => {
+    card(stop({ duration_minutes: 0 }));
+    openEditor();
+    expect((field(enCommon.addActivity.duration) as unknown as HTMLSelectElement).value).toBe("");
+    expect(saveButton().disabled).toBe(true);
+    type(enCommon.addActivity.duration, "60");
     expect(saveButton().disabled).toBe(false);
   });
 

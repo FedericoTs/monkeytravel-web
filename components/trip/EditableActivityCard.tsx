@@ -13,6 +13,7 @@ import { CalendarDays, Pencil, Sparkles, Trash2 } from "lucide-react";
 import TripActionsMenu, { TripActionsMenuItem } from "./TripActionsMenu";
 import MoveToDaySheet, { type MoveToDayOption } from "./MoveToDaySheet";
 import UnverifiedNote from "./UnverifiedNote";
+import DurationSelect from "./DurationSelect";
 import { normalizeActivityType } from "@/lib/trip/activity-type";
 import { ActivityCardDetails, ActivityKindIcon } from "./ActivityCardParts";
 import { Spinner } from "@/components/ui/Spinner";
@@ -263,7 +264,7 @@ function EditableActivityCard({
       <div className="p-3 sm:p-4">
         <div className="flex gap-3 sm:gap-4">
           {/* Time Column - hidden on mobile */}
-          <div className="hidden sm:flex flex-shrink-0 text-center w-16 flex-col">
+          <div className={`hidden sm:flex flex-shrink-0 text-center flex-col ${isEditing ? "w-28" : "w-16"}`}>
             {isEditing ? (
               <input
                 aria-label={tc("activity.startTime")}
@@ -278,14 +279,11 @@ function EditableActivityCard({
               </div>
             )}
             {isEditing ? (
-              <input
-                aria-label={tc("addActivity.duration")}
-                type="number"
+              <DurationSelect
+                label={tc("addActivity.duration")}
                 value={editValues.duration_minutes}
-                onChange={(e) => setEditValues({ ...editValues, duration_minutes: parseInt(e.target.value) || 0 })}
+                onChange={(minutes) => setEditValues({ ...editValues, duration_minutes: minutes })}
                 className="w-full text-xs border border-slate-200 rounded px-1 py-1 mt-1"
-                min="15"
-                step="15"
               />
             ) : (
               <div className="text-xs text-slate-500">
@@ -318,16 +316,12 @@ function EditableActivityCard({
                     className="text-sm border border-slate-200 rounded px-2 py-1 w-24"
                   />
                   <span className="text-slate-500">·</span>
-                  <input
-                    aria-label={tc("addActivity.duration")}
-                    type="number"
+                  <DurationSelect
+                    label={tc("addActivity.duration")}
                     value={editValues.duration_minutes}
-                    onChange={(e) => setEditValues({ ...editValues, duration_minutes: parseInt(e.target.value) || 0 })}
-                    className="text-sm border border-slate-200 rounded px-2 py-1 w-16"
-                    min="15"
-                    step="15"
+                    onChange={(minutes) => setEditValues({ ...editValues, duration_minutes: minutes })}
+                    className="text-sm border border-slate-200 rounded px-2 py-1"
                   />
-                  <span className="text-slate-500 text-xs">min</span>
                 </>
               ) : (
                 <>
