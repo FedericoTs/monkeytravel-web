@@ -51,6 +51,27 @@ export function moveItineraryDates(days: ItineraryDay[], start: string, length: 
 }
 
 /**
+ * A saved trip's days on new dates: moved to `start`, the first ones kept for
+ * a shorter trip, and for a longer one, new empty days on the dates that
+ * follow, in the city the trip ends in, for the traveller to fill (or to ask
+ * the assistant for). Null when the dates don't make a trip.
+ */
+export function savedTripOnNewDates(days: ItineraryDay[], start: string, end: string, maxDays: number): ItineraryDay[] | null {
+  const change = planDateChange(days.length, start, end, maxDays);
+  if (change.kind === "invalid") return null;
+  const moved = moveItineraryDates(days, start, change.length);
+  if (change.kind !== "longer") return moved;
+  const city = days[days.length - 1]?.city;
+  const added = Array.from({ length: change.length - days.length }, (_, i): ItineraryDay => ({
+    day_number: days.length + 1 + i,
+    date: addIsoDaysOrThrow(start, days.length + i),
+    activities: [],
+    ...(city ? { city } : {}),
+  }));
+  return [...moved, ...added];
+}
+
+/**
  * The assistant's ask for a longer trip: the new days only, at the end and
  * planned like the others, with the plan as it stands on the new dates and
  * the dates it covers so far.

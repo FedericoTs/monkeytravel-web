@@ -1,6 +1,6 @@
 /** @vitest-environment node */
 import { describe, it, expect } from "vitest";
-import { inclusiveDays, planDateChange, moveItineraryDates, extraDaysAsk, extraDaysFrom } from "./change-dates";
+import { inclusiveDays, planDateChange, moveItineraryDates, extraDaysAsk, extraDaysFrom, savedTripOnNewDates } from "./change-dates";
 import type { GeneratedItinerary, ItineraryDay } from "@/types";
 
 const day = (n: number, name: string): ItineraryDay =>
@@ -42,6 +42,42 @@ describe("planDateChange", () => {
     expect(planDateChange(5, "2026-12-05", "2026-12-01", 14)).toEqual({ kind: "invalid", reason: "order" });
     expect(planDateChange(5, "2026-12-01", "2026-12-20", 14)).toEqual({ kind: "invalid", reason: "tooLong" });
     expect(planDateChange(5, "2026-12-01", "not-a-date", 14)).toEqual({ kind: "invalid", reason: "dates" });
+  });
+});
+
+describe("savedTripOnNewDates", () => {
+  it("moves the days, or keeps the first ones of a shorter trip", () => {
+    expect(savedTripOnNewDates(trip, "2026-12-30", "2027-01-03", 14)?.map((d) => [d.date, d.activities[0].name])).toEqual([
+      ["2026-12-30", "Colosseum"],
+      ["2026-12-31", "Vatican"],
+      ["2027-01-01", "Trastevere"],
+      ["2027-01-02", "Borghese"],
+      ["2027-01-03", "Ostia"],
+    ]);
+    expect(savedTripOnNewDates(trip, "2026-12-01", "2026-12-02", 14)?.map((d) => d.activities[0].name)).toEqual(["Colosseum", "Vatican"]);
+  });
+
+  // A saved trip has no assistant waiting to plan them: the new days come
+  // empty, on their dates, in the city the trip ends in, for the traveller to fill.
+  it("adds the new days of a longer trip empty, on their dates", () => {
+    const inNaples = [...trip.slice(0, 4), { ...trip[4], city: "Naples" }];
+    const longer = savedTripOnNewDates(inNaples, "2026-12-01", "2026-12-07", 14)!;
+    expect(longer.map((d) => [d.day_number, d.date, d.activities.length])).toEqual([
+      [1, "2026-12-01", 1],
+      [2, "2026-12-02", 1],
+      [3, "2026-12-03", 1],
+      [4, "2026-12-04", 1],
+      [5, "2026-12-05", 1],
+      [6, "2026-12-06", 0],
+      [7, "2026-12-07", 0],
+    ]);
+    expect(longer[6]).toMatchObject({ city: "Naples" });
+    expect(longer[6].theme).toBeUndefined();
+  });
+
+  it("is nothing for dates that don't make a trip", () => {
+    expect(savedTripOnNewDates(trip, "2026-12-05", "2026-12-01", 14)).toBeNull();
+    expect(savedTripOnNewDates(trip, "2026-12-01", "2027-01-30", 14)).toBeNull();
   });
 });
 

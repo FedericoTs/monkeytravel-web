@@ -8,7 +8,7 @@ import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, Collaborato
 import { ROLE_PERMISSIONS } from "@/types";
 import { getTripDestination } from "@/lib/trips/destination";
 import { shownTripStatus } from "@/lib/trips/status";
-import { toLocalISODate } from "@/lib/utils/date-local";
+import { localTodayISO, toLocalISODate } from "@/lib/utils/date-local";
 import { hasCoordinates } from "@/lib/trips/has-coordinates";
 import { withFoundPhotos } from "@/lib/trips/keep-place-photos";
 import { useItineraryCopies } from "@/hooks/useItineraryCopies";
@@ -54,7 +54,11 @@ import {
 import TripPackingEssentials from "@/components/trip/TripPackingEssentials";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import DaySlider from "@/components/ui/DaySlider";
-import { tripNights } from "@/lib/dates/iso-date";
+import { maxTripStartDate, tripNights } from "@/lib/dates/iso-date";
+import { savedTripOnNewDates } from "@/lib/trips/change-dates";
+import { ItineraryWriteBlockedError } from "@/lib/trips/itinerary-sync";
+import { maxTripDays } from "@/lib/ai/assistant/structural";
+import { formatDateRange } from "@/lib/datetime";
 import {
   CountdownHero,
   PreTripChecklist,
@@ -105,6 +109,7 @@ const BookingDrawer = dynamic(() => import("@/components/booking/BookingDrawer")
 // PreviewChangeCard and changes the plan only when the user applies it (with
 // undo).
 const AIAssistant = dynamic(() => import("@/components/ai/AIAssistantEnhanced"), { ssr: false });
+const ChangeDatesModal = dynamic(() => import("@/components/trip/ChangeDatesModal"), { ssr: false });
 const OngoingTripView = dynamic(() => import("@/components/trip/OngoingTripView"), { ssr: false });
 const CollaboratorOnboarding = dynamic(() => import("@/components/collaboration/CollaboratorOnboarding"), { ssr: false });
 // Share ask, gated on engagement — self-contained, renders null until it fires.
@@ -405,6 +410,7 @@ export default function TripDetailClient({
     refetchQueued,
     adoptDayWrite,
     adoptStoredItinerary,
+    writeTripDates,
   } = useItinerarySync({
     trip,
     initialItinerary,
@@ -472,6 +478,38 @@ export default function TripDetailClient({
 
   // Toast notifications
   const { addToast } = useToast();
+
+  // The owner changes the trip's dates from the hero, as in the planner: the
+  // days move with them, and a longer trip's new days come empty
+  // (lib/trips/change-dates.ts), in one write with the dates.
+  const [showChangeDates, setShowChangeDates] = useState(false);
+  const handleChangeDates = useCallback(
+    async (start: string, end: string) => {
+      setShowChangeDates(false);
+      const next = savedTripOnNewDates(editedItinerary, start, end, maxTripDays(editedItinerary));
+      if (!next) return;
+      try {
+        if (!(await writeTripDates(start, end, next))) {
+          addToast(t("detail.datesNotChanged"), "error");
+          return;
+        }
+      } catch (error) {
+        addToast(error instanceof ItineraryWriteBlockedError ? error.message : t("detail.datesNotChanged"), "error");
+        return;
+      }
+      const range = formatDateRange(start, end, locale);
+      const added = next.length - editedItinerary.length;
+      if (added > 0) {
+        addToast(t("detail.emptyDaysAdded", { range, count: added, from: editedItinerary.length + 1, to: next.length }), "success", 10000, {
+          label: t("detail.askAssistant"),
+          onClick: () => setIsAIAssistantOpen(true),
+        });
+      } else {
+        addToast(t("detail.datesChanged", { range }), "success");
+      }
+    },
+    [editedItinerary, writeTripDates, addToast, t, locale]
+  );
 
 
   const {
@@ -846,6 +884,8 @@ export default function TripDetailClient({
         title={trip.title}
         subtitle={trip.description}
         dateRange={dateRange}
+        onEditDates={ambientEdit ? () => setShowChangeDates(true) : undefined}
+        editDatesLabel={t("wizard.changeDates.button")}
         budget={trip.budget?.total ? trip.budget : undefined}
         days={trip.itinerary.length}
         nights={tripNights(trip.startDate, trip.endDate)}
@@ -1355,6 +1395,22 @@ export default function TripDetailClient({
         totalVoters={voterCount}
         isOwner={userRole === 'owner'}
       />
+
+      {/* The trip's dates, from the hero (owner) */}
+      {ambientEdit && (
+        <ChangeDatesModal
+          isOpen={showChangeDates}
+          onClose={() => setShowChangeDates(false)}
+          startDate={trip.startDate}
+          endDate={trip.endDate}
+          currentDays={editedItinerary.length}
+          maxDays={maxTripDays(editedItinerary)}
+          minDate={localTodayISO()}
+          maxStartDate={maxTripStartDate()}
+          newDaysEmpty
+          onConfirm={(start, end) => void handleChangeDates(start, end)}
+        />
+      )}
 
       {/* Route Optimization Modal */}
       <RouteOptimizationModal
