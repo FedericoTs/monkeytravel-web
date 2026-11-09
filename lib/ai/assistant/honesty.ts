@@ -101,17 +101,35 @@ const CLAIM_PATTERNS: RegExp[] = [
   new RegExp(`${start}(?:(?:está|están)\\s+ahora\\s+libres?|ahora\\s+(?:está|están|quedan?)\\s+libres?|(?:quedó|quedaron|ha\\s+quedado|han\\s+quedado)\\s+libres?)${end}`, "iu"),
   new RegExp(`${start}(?:(?:è|sono)\\s+ora\\s+liber[oiae]|ora\\s+(?:è|sono)\\s+liber[oiae]|(?:è|sono)\\s+stat[oaie]\\s+liberat[oaie])${end}`, "iu"),
   new RegExp(`${start}(?:(?:está|estão)\\s+agora\\s+livres?|agora\\s+(?:está|estão|fica|ficam)\\s+livres?|(?:ficou|ficaram)\\s+livres?)${end}`, "iu"),
-  // Promises (see EN_PROMISE_VERBS above)
+];
+
+// Promises (see EN_PROMISE_VERBS above)
+const PROMISE_PATTERNS: RegExp[] = [
   new RegExp(`${start}(?:i(?:['’]ll|\\s+will)|let\\s+me|i(?:['’]m|\\s+am)\\s+(?:going|preparing|about)\\s+to)\\s+(?:now\\s+|just\\s+|also\\s+|go\\s+ahead\\s+and\\s+)?${EN_PROMISE_VERBS}${end}`, "iu"),
   new RegExp(`${start}(?<!no\\s)(?:voy\\s+a\\s+(?:lo\\s+|la\\s+|los\\s+|las\\s+)?${ES_INFINITIVES}|${ES_INFINITIVES}é)${end}`, "iu"),
   new RegExp(`${start}(?<!non\\s)(?:${IT_FUTURES}|sto\\s+per\\s+${IT_INFINITIVES})${end}`, "iu"),
   new RegExp(`${start}(?<!não\\s)(?:vou\\s+${PT_INFINITIVES}|${PT_FUTURES})${end}`, "iu"),
 ];
 
-/** Does this reply say the itinerary was (or now is) changed? */
+// A promise that waits for something from the traveller is not a claim: "Once
+// you send me the list, I'll add each one", "assim que você me enviar os nomes".
+const WAITS_FOR_THEM = new RegExp(
+  `${start}(?:${[
+    "(?:once|when|as\\s+soon\\s+as|after|if)\\s+you(?:['’]ve)?\\s+(?:send|sent|tell|told|share|shared|give|given|list|paste|let\\s+me\\s+know|confirm|choose|pick|decide)",
+    "(?:quando|assim\\s+que|logo\\s+que|depois\\s+que|se|caso)\\s+(?:você\\s+)?(?:me\\s+)?(?:enviar|envie|mandar|mande|passar|passe|disser|diga|informar|informe|listar|compartilhar|indicar|escolher|confirmar)",
+    "(?:cuando|en\\s+cuanto|apenas|una\\s+vez\\s+que|si)\\s+(?:me\\s+)?(?:envíes|envías|mandes|mandas|pases|pasas|digas|dices|indiques|indicas|compartas|compartes|confirmes|confirmas|elijas|eliges)",
+    "(?:quando|appena|non\\s+appena|una\\s+volta\\s+che|se)\\s+(?:mi\\s+)?(?:mandi|invii|dici|indichi|scrivi|condividi|confermi|scegli)",
+  ].join("|")})${end}`,
+  "iu"
+);
+
+/** Does this reply say the itinerary was (or now is, or will be) changed? */
 export function claimsItineraryChange(text: string | null | undefined): boolean {
   if (!text) return false;
-  return CLAIM_PATTERNS.some((re) => re.test(text));
+  if (CLAIM_PATTERNS.some((re) => re.test(text))) return true;
+  return text
+    .split(/(?<=[.!?])\s+|\n+/)
+    .some((sentence) => !WAITS_FOR_THEM.test(sentence) && PROMISE_PATTERNS.some((re) => re.test(sentence)));
 }
 
 // Handing over a proposal: "Ecco la proposta per rimuovere…", "Here is the
