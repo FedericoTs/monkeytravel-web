@@ -11,6 +11,7 @@ import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import { useActivitySearch, type ActivitySearchResult } from "@/hooks/useActivitySearch";
 import { formatDuration } from "@/lib/datetime/duration";
 import { ActivityResultRow } from "@/components/trip/ActivityResultRow";
+import DurationSelect from "@/components/trip/DurationSelect";
 
 interface ProposeActivitySheetProps {
   isOpen: boolean;
@@ -361,19 +362,13 @@ export function ProposeActivitySheet({
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">{t("form.durationLabel")}</label>
-                <select
-                  aria-label={t("form.durationLabel")}
+                <DurationSelect
+                  label={t("form.durationLabel")}
                   value={customActivity.duration}
-                  onChange={(e) => setCustomActivity({ ...customActivity, duration: Number(e.target.value) })}
+                  onChange={(minutes) => setCustomActivity({ ...customActivity, duration: minutes })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg
                              focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
-                >
-                  <option value={30}>{t("durations.30min")}</option>
-                  <option value={60}>{t("durations.1hour")}</option>
-                  <option value={90}>{t("durations.1_5hours")}</option>
-                  <option value={120}>{t("durations.2hours")}</option>
-                  <option value={180}>{t("durations.3hours")}</option>
-                </select>
+                />
               </div>
             </div>
 
