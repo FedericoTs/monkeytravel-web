@@ -154,14 +154,20 @@ function timeToMinutes(time: string | undefined): number | null {
  * The slot in `day` where an activity starting at `startTime` keeps its
  * place in the day's chronological order: before the first activity that
  * starts later, else at the end. A morning museum moved to another day stays
- * a morning museum instead of being tacked onto the evening.
+ * a morning museum instead of being tacked onto the evening. A stop the
+ * traveller set to a time goes before one that starts then (`sameTime:
+ * "before"`), which then makes room for it.
  */
-export function chronologicalInsertIndex(day: ItineraryDay, startTime: string | undefined): number {
+export function chronologicalInsertIndex(
+  day: ItineraryDay,
+  startTime: string | undefined,
+  sameTime: "after" | "before" = "after"
+): number {
   const minutes = timeToMinutes(startTime);
   if (minutes === null) return day.activities.length;
   const idx = day.activities.findIndex((a) => {
     const other = timeToMinutes(a.start_time);
-    return other !== null && other > minutes;
+    return other !== null && (other > minutes || (sameTime === "before" && other === minutes));
   });
   return idx === -1 ? day.activities.length : idx;
 }
@@ -273,7 +279,7 @@ export function getAllActivityNames(itinerary: ItineraryDay[]): string[] {
 }
 
 /**
- * Add a new activity to a specific day
+ * Add a new activity to a day, in its time order.
  */
 export function addActivity(
   itinerary: ItineraryDay[],
@@ -284,11 +290,13 @@ export function addActivity(
     return itinerary;
   }
 
-  return itinerary.map((day, i) =>
-    i === dayIndex
-      ? { ...day, activities: [...day.activities, activity] }
-      : day
-  );
+  // At the time asked for, in its time order; a later stop moves only when the
+  // new one runs into it (fitMovedStop).
+  const day = itinerary[dayIndex];
+  const at = chronologicalInsertIndex(day, activity.start_time, "before");
+  const activities = [...day.activities.slice(0, at), activity, ...day.activities.slice(at)];
+  const added = itinerary.map((d, i) => (i === dayIndex ? { ...d, activities } : d));
+  return activity.id ? fitMovedStop(added, dayIndex, activity.id, "exact") : added;
 }
 
 /**
@@ -359,20 +367,21 @@ function earliestAfter(prev: Activity, next: Activity): number | null {
 }
 
 /**
- * The day's times after a stop was moved into it or within it. Only the moved
- * stop gets a new time: its own ("keep", for a stop that arrived from another
- * day in its time order) or the slot after the stop before it ("slot", for a
- * stop put at a place in the list; at the top, the day's start). It starts no
- * earlier than the one before it ends, journey included, and each later stop
- * moves only when it would start before then. Nothing is pulled earlier, a
- * booked stop or a fixed plan keeps its time, and the other days are left as
- * they are.
+ * The day's times after a stop was moved into it or within it, or set by the
+ * traveller. Only the moved stop gets a new time: its own ("keep", for a stop
+ * that arrived from another day in its time order) or the slot after the stop
+ * before it ("slot", for a stop put at a place in the list; at the top, the
+ * day's start), starting no earlier than the one before it ends, journey
+ * included. A time the traveller set ("exact") stays as it is. Each later stop
+ * moves only when it would start before the one before it ends. Nothing is
+ * pulled earlier, a booked stop or a fixed plan keeps its time, and the other
+ * days are left as they are.
  */
 export function fitMovedStop(
   itinerary: ItineraryDay[],
   dayIndex: number,
   movedId: string,
-  mode: "keep" | "slot"
+  mode: "keep" | "slot" | "exact"
 ): ItineraryDay[] {
   const day = itinerary[dayIndex];
   const at = day ? day.activities.findIndex((a) => a.id === movedId) : -1;
@@ -385,7 +394,7 @@ export function fitMovedStop(
   };
 
   const moved = activities[at];
-  if (!isFixed(moved)) {
+  if (!isFixed(moved) && mode !== "exact") {
     const own = minutesOf(moved.start_time);
     const wanted = mode === "keep" ? own : at === 0 ? (minutesOf(activities[1]?.start_time) ?? own) : null;
     const after = at > 0 ? earliestAfter(activities[at - 1], moved) : null;

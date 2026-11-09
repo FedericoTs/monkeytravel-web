@@ -747,7 +747,10 @@
     "showRoute": "Mostra percorso",
     "hideRoute": "Nascondi percorso",
     "segmentDuration": "{duration} a piedi",
-    "disclaimerStraightLine": "Stima in linea d'aria — il tempo reale a piedi potrebbe essere maggiore."
+    "disclaimerStraightLine": "Stima in linea d'aria — il tempo reale a piedi potrebbe essere maggiore.",
+    "day": "Giorno {day}",
+    "showOnlyDay": "Mostra solo il giorno {day}",
+    "showAllDays": "Mostra tutti i giorni"
   },
   "maintenance": {
     "title": "In Manutenzione",
