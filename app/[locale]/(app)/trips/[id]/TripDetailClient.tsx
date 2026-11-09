@@ -74,6 +74,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { JourneyRibbon } from "@/components/trips/JourneyRibbon";
 import { buildJourneyStops } from "@/lib/ai/transfer-legs";
 import { useItineraryMoves } from "@/hooks/useItineraryMoves";
+import { useUndoToast } from "@/hooks/useUndoToast";
 import { useItineraryHistory } from "@/hooks/useItineraryHistory";
 import { CancelTripDialog, CancelledTripNote, ConfirmTripCard, TripStatusBadge, useTripStatus } from "@/components/trip/TripStatus";
 import { dayOptionsOf } from "@/components/trip/ItineraryDnd";
@@ -338,6 +339,8 @@ export default function TripDetailClient({
     canUndo,
     canRedo,
   } = useItineraryHistory(editedItinerary, setEditedItinerary, forgetFailedSave);
+  // A change the traveller can take back says so, with an Undo.
+  const notifyUndoable = useUndoToast(undo);
 
   // Trip phase detection for Timeline feature.
   // trip.startDate / trip.endDate come from the DB as YYYY-MM-DD strings, and
@@ -639,17 +642,19 @@ export default function TripDetailClient({
       return newItinerary;
     });
     // A solo owner's edits save themselves; edit mode has a Save button.
-    addToast(t(ambientEdit ? "detail.routeOptimized" : "detail.routeOptimizedSave"), "success");
-  }, [pushUndo, addToast, ambientEdit, t, setEditedItinerary]);
+    notifyUndoable(t(ambientEdit ? "detail.routeOptimized" : "detail.routeOptimizedSave"));
+  }, [pushUndo, notifyUndoable, ambientEdit, t, setEditedItinerary]);
 
   // Edit handlers (with undo support). Moves between days come from
   // useItineraryMoves further down, after handleFocusDayCard, which it uses to
   // scroll to the destination day.
 
-  const handleActivityDelete = useCallback((activityId: string) => {
+  // A stop goes at once: the message that says so can take it back.
+  const handleActivityDelete = useCallback((activityId: string, name: string) => {
     pushUndo("Delete activity");
     setEditedItinerary((prev) => deleteActivity(prev, activityId));
-  }, [pushUndo, setEditedItinerary]);
+    notifyUndoable(t("editActivity.removed", { name }));
+  }, [pushUndo, setEditedItinerary, notifyUndoable, t]);
 
   const handleActivityUpdate = useCallback(
     (activityId: string, updates: Partial<Activity>) => {
@@ -715,6 +720,7 @@ export default function TripDetailClient({
     itinerary: editedItinerary,
     setItinerary: setEditedItinerary,
     pushUndo,
+    undo,
     setSaveError,
   });
 
@@ -722,6 +728,7 @@ export default function TripDetailClient({
   const { regeneratingDayNumber, handleDayRegenerate } = useDayRegeneration({
     tripId: trip.id,
     pushUndo,
+    undo,
     runItineraryWrite,
     adoptDayWrite,
     setRenderEpoch,
