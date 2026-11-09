@@ -208,6 +208,18 @@ describe("a stop still on when the next one starts", () => {
     expect(overlapOf("train")).toBeNull();
   });
 
+  // The preview of a drag can put a card where it overlaps: a note coming and
+  // going would move the days under the pointer, and the drop with them.
+  it("isn't noted while a card is being dragged", () => {
+    moves.dragging = true;
+    try {
+      show({ ...editing, days: oneDay([timed("museum", "09:00", 240), timed("lunch", "12:00", 60)]) });
+      expect(overlapOf("museum")).toBeNull();
+    } finally {
+      moves.dragging = false;
+    }
+  });
+
   it("isn't noted for whoever is only looking", () => {
     const activities = [timed("museum", "09:00", 240), timed("lunch", "12:00", 60)];
     handlers.timelineOf.mockImplementation(() => activities.map((data, index) => ({ type: "activity", data, index })));

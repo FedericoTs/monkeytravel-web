@@ -219,10 +219,11 @@ function TripDay({
   const dayTravelData = travelData.get(day.day_number);
 
   // A stop still on when the next one starts, for whoever is editing: making
-  // room moves the later stops, unless the next one is fixed.
+  // room moves the later stops, unless the next one is fixed. Not during a
+  // drag: a note that comes and goes would move the days under the pointer.
   const overlapOf = (activity: Activity, idx: number) => {
     const next = day.activities[idx + 1];
-    const minutes = editingActive && next ? overlapMinutes(activity, next) : 0;
+    const minutes = editingActive && !moves.dragging && next ? overlapMinutes(activity, next) : 0;
     if (minutes === 0 || !next) return null;
     const id = activity.id;
     return { minutes, nextName: next.name, onMakeRoom: id && !isFixed(next) ? () => onMakeRoom(id) : null };
