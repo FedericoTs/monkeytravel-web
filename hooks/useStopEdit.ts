@@ -50,7 +50,7 @@ export function useStopEdit({
     [commit]
   );
   const addStop = useCallback(
-    (dayIndex: number, activity: Activity) => commit("Add activity", activity.id, (plan) => addActivity(plan, dayIndex, activity)),
+    (dayIndex: number, activity: Activity) => commit("Add activity", activity.id ?? "", (plan) => addActivity(plan, dayIndex, activity)),
     [commit]
   );
   return { editStop, addStop };
