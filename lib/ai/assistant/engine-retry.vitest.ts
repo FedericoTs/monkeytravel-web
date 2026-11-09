@@ -233,6 +233,67 @@ describe("assistTrip on a change about more days than one reply holds", () => {
     expect(out.reply).toContain("Days 7, 8, 9 aren't changed yet");
   });
 
+  // A list of ten restaurants: the first part placed all ten on Days 1-6, and the
+  // part asked for Days 7-12 "the same way" added five of them again.
+  it("adds nothing on a part's day that an earlier part already placed on another", async () => {
+    // Days 1 and 7 both start with the same breakfast, which a day keeps.
+    const breakfast = { name: "Breakfast at Hotel Bourbon", time_slot: "morning", start_time: "08:00" };
+    const withBreakfast = days.map((d) => (d.day_number === 1 || d.day_number === 7 ? { ...d, activities: [breakfast, ...d.activities] } : d)) as unknown as ItineraryDay[];
+    const list = { ...long, days: withBreakfast, message: "add Madalosso Restaurante, Zefy Diner, Café Lisboa and Bar do Alemão" };
+    const first = {
+      response: {
+        text: () =>
+          JSON.stringify({
+            reply: "All four are in.",
+            more_days: [7, 8, 9],
+            edits: [
+              { day_number: 1, summary: "Lunch.", activities: [breakfast, { name: "Day 1 thing", start_time: "09:00" }, { name: "Madalosso Restaurante", start_time: "12:30" }] },
+              { day_number: 2, summary: "Dinner.", activities: [{ name: "Day 2 thing", start_time: "09:00" }, { name: "Zefy Diner", start_time: "19:30" }, { name: "Café Lisboa", start_time: "16:00" }] },
+            ],
+          }),
+      },
+    };
+    const part = {
+      response: {
+        text: () =>
+          JSON.stringify({
+            reply: "ok",
+            edits: [
+              { day_number: 7, activities: [breakfast, { name: "Day 7 thing", start_time: "09:00" }, { name: "Madalosso", start_time: "12:30" }] },
+              { day_number: 8, activities: [{ name: "Day 8 thing", start_time: "09:00" }, { name: "Café", start_time: "16:00" }, { name: "Bar do Alemão", start_time: "19:00" }, { name: "Zefy Diner Curitiba", start_time: "21:00" }] },
+              { day_number: 9, activities: [{ name: "Day 9 thing", start_time: "10:30" }] },
+            ],
+          }),
+      },
+    };
+    generateContent.mockResolvedValueOnce(first).mockResolvedValueOnce(part);
+    const out = await run(list);
+    expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain("Each thing they asked to add goes on one day only");
+    // Day 7 is back as it was and Day 9 only moved, so neither is part of the
+    // change; a short "Café" isn't taken for Café Lisboa.
+    expect(out.edits.map((e) => [e.day_number, e.activities.map((a) => a.name)])).toEqual([
+      [1, ["Breakfast at Hotel Bourbon", "Day 1 thing", "Madalosso Restaurante"]],
+      [2, ["Day 2 thing", "Zefy Diner", "Café Lisboa"]],
+      [8, ["Day 8 thing", "Café", "Bar do Alemão"]],
+    ]);
+  });
+
+  it("keeps a part's days that only move times when the change is about times", async () => {
+    const later = (days: number[], more: number[] = []) => ({
+      response: {
+        text: () =>
+          JSON.stringify({
+            reply: "Every day starts at 10:30.",
+            more_days: more,
+            edits: days.map((n) => ({ day_number: n, summary: "Later.", activities: [{ name: `Day ${n} thing`, start_time: "10:30" }] })),
+          }),
+      },
+    });
+    generateContent.mockResolvedValueOnce(later([1, 2, 3, 4, 5, 6], [7, 8, 9])).mockResolvedValueOnce(later([7, 8, 9]));
+    const out = await run({ ...long, message: "start every day at 10:30" });
+    expect(out.edits.map((e) => e.day_number)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  });
+
   it("keeps a day a part left as it was out of the change", async () => {
     const same = { response: { text: () => JSON.stringify({ reply: "ok", edits: [{ day_number: 7, activities: [{ name: "Day 7 thing", time_slot: "morning" }] }] }) } };
     generateContent.mockResolvedValueOnce(daysReply([1, 2, 3, 4, 5, 6], [7])).mockResolvedValueOnce(same);

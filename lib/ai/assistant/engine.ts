@@ -134,6 +134,13 @@ function leavesDayAsItWas(days: ItineraryDay[], e: DayEdit): boolean {
   return old.length === e.activities.length && old.every((a, i) => a?.name === e.activities[i].name && a?.start_time === e.activities[i].start_time);
 }
 
+/** Does the edit keep its day's activities, whatever their times? */
+function keepsDayStops(days: ItineraryDay[], e: DayEdit): boolean {
+  const names = (list: Array<{ name?: unknown } | null | undefined>) =>
+    list.map((a) => (typeof a?.name === "string" ? a.name.trim().toLowerCase() : "")).sort().join("\n");
+  return names(days.find((d) => d.day_number === e.day_number)?.activities ?? []) === names(e.activities);
+}
+
 /** What the next part of a change is asked with; `length` when the trip gets longer. */
 function continuePrompt(reply: string, done: number[], group: number[], current: number, length?: number): string {
   const fresh = length !== undefined ? group.filter((n) => n > current) : [];
@@ -141,7 +148,31 @@ function continuePrompt(reply: string, done: number[], group: number[], current:
     fresh.length > 0
       ? ` Days ${fresh.join(", ")} are new days at the end of the trip, which now has ${length} days: plan each in full, carrying on from the day before and repeating nothing the trip already holds.`
       : "";
-  return `CONTINUE: you are partway through this change. Your reply was: "${reply.slice(0, 600)}". Days ${done.join(", ")} are done, and the itinerary above shows them. Now return Days ${group.join(", ")} in "edits", each in full, changed the same way, and no other day.${newDays} "more_days" is [], "trip_length" is ${length ?? "null"}, and "reply" is one short line.`;
+  return `CONTINUE: you are partway through this change. Your reply was: "${reply.slice(0, 600)}". Days ${done.join(", ")} are done, and the itinerary above shows them. Now return Days ${group.join(", ")} in "edits", each in full, changed the same way, and no other day. Each thing they asked to add goes on one day only: add nothing the itinerary above already holds, and leave out of "edits" a day this change doesn't need.${newDays} "more_days" is [], "trip_length" is ${length ?? "null"}, and "reply" is one short line.`;
+}
+
+const placeName = (s: string) =>
+  ` ${s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim()} `;
+/** The same place by name: "Madalosso" and "Madalosso Restaurante". */
+const samePlace = (a: string, b: string) => {
+  const x = placeName(a);
+  const y = placeName(b);
+  return x.trim().length >= 6 && y.trim().length >= 6 && (x.includes(y) || y.includes(x));
+};
+
+/**
+ * A part asked to change more days "the same way" brought back what an earlier
+ * part had placed on other days: a list of restaurants, added twice. What the
+ * plan holds by now on another day is left off a part's day, unless that day
+ * had it already. Pure; unit-tested through assistTrip.
+ */
+function withoutPlacedElsewhere(days: ItineraryDay[], sofar: ItineraryDay[], e: DayEdit): DayEdit {
+  const own = (days.find((d) => d.day_number === e.day_number)?.activities ?? []).map((a) => a?.name ?? "");
+  const elsewhere = sofar.filter((d) => d.day_number !== e.day_number).flatMap((d) => (d.activities ?? []).map((a) => a?.name ?? ""));
+  return {
+    ...e,
+    activities: e.activities.filter((a) => own.some((n) => samePlace(n, a.name)) || !elsewhere.some((n) => samePlace(n, a.name))),
+  };
 }
 
 /** The promise's value, or a rejection once `ms` have passed. */
@@ -384,13 +415,22 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
       ),
     );
     const answered = new Set<number>();
+    // A change of what the days hold (places added or taken out): a part's day
+    // that only moved times isn't part of it. A change of times keeps those.
+    const changesStops = edits.some((e) => !keepsDayStops(input.days, e));
     parts.forEach((part, i) => {
       if (part.status !== "fulfilled") return;
       const group = new Set(groups[i]);
       groups[i].forEach((n) => answered.add(n));
       // Read at the trip's new length, so the new days a part brings count.
       const more = readOutcome(input, { ...part.value, trip_length: tripLength ?? null, more_days: added }, cur).edits;
-      edits = [...edits, ...more.filter((e) => group.has(e.day_number) && !leavesDayAsItWas(input.days, e))];
+      edits = [
+        ...edits,
+        ...more
+          .filter((e) => group.has(e.day_number))
+          .map((e) => withoutPlacedElsewhere(input.days, sofar, e))
+          .filter((e) => !leavesDayAsItWas(input.days, e) && !(changesStops && keepsDayStops(input.days, e))),
+      ];
     });
     edits.sort((a, b) => a.day_number - b.day_number);
     daysLeft = daysLeft.filter((n) => !answered.has(n));
