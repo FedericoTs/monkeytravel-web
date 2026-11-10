@@ -241,6 +241,9 @@ describe("withoutOtherCitiesPlaces", () => {
     // …nor needed: "Haedong Yonggungsa" is the temple.
     const temple = city("Busan", [[place("Haedong Yonggungsa", 35.1884, 129.2233)]]);
     expect(mustDosOfOtherCities(["haedong yonggungsa temple"], [temple, seoul], 1)).toEqual(["haedong yonggungsa temple"]);
+    // One word of it is another place.
+    const village = city("Busan", [[place("Haedong Haenyeo Chon", 35.1891, 129.2232)]]);
+    expect(mustDosOfOtherCities(["haedong yonggungsa temple"], [village, seoul], 1)).toEqual([]);
   });
 
   // The plan made before: Seoul's last two days held only Busan's must-dos.
