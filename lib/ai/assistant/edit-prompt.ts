@@ -4,7 +4,7 @@
  */
 
 import { DEFAULT_LANGUAGE, isSupportedLanguage, LANGUAGE_NAMES } from "@/lib/ai/language";
-import { lockedActivityNames } from "@/lib/ai/anchors-core";
+import { isLockedActivity, lockedActivityNames } from "@/lib/ai/anchors-core";
 import {
   planCosts,
   planCurrency,
@@ -129,7 +129,8 @@ function buildContext(days: ItineraryDay[], display?: DisplayCurrency): string {
               const cost = a?.estimated_cost?.amount;
               const seen = typeof cost === "number" && shown ? ` ≈ ${Math.round(cost * shown.rate)} ${shown.currency}` : "";
               const costStr = typeof cost === "number" && cost > 0 ? ` (~${cost} ${cur}${seen})` : "";
-              return a && typeof a.name === "string" ? `${a.name}${costStr}` : "";
+              const fixed = isLockedActivity(a) ? ` [fixed plan, ${a.start_time}]` : "";
+              return a && typeof a.name === "string" ? `${a.name}${fixed}${costStr}` : "";
             })
             .filter(Boolean)
             .join(", ")
@@ -208,6 +209,7 @@ ${
 `
       : ""
   }- A request to CHANGE the plan: return every day that changes, each rewritten in full, in "edits". Change only what was asked: keep every other activity exactly as it is, under its exact name (never translate or rename activities), and leave days that don't need to change alone.
+  - An activity marked [fixed plan] is the traveller's own booking: on every day you return, keep it exactly as it is, under its exact name and at its time, and plan the rest of that day around it. You can't move, change or remove one: if they ask to, say they can change it themselves in the plan, and make the rest of what they asked.
   - A change about the whole trip ("every day", "all the dinners", "cheaper", "less packed", a car, a diet) applies to every day it concerns, not just one.
   - A day the traveller names is the day to change. If that clashes with the day's plan, still make the change there and note the trade-off in "reply".
   - Something already in the plan: say on which day. If they want it on another day or at another time, move it there instead of adding it twice.
