@@ -61,6 +61,11 @@ describe("validateEdits", () => {
     expect(refused.tripLength).toBeUndefined();
     expect(refused.lengthRefused).toBe(true);
     expect(refused.edits.map((e) => e.day_number)).toEqual([3]);
+    // Wanting more days is kept either way, so a half-made move can be told apart.
+    expect(refused.wantsMore).toBe(true);
+    expect(validateEdits(trip(), { edits: [edit(6)], tripLength: 6 }, "EUR").wantsMore).toBe(true);
+    expect(validateEdits(trip(), { edits: [edit(3)], tripLength: 5 }, "EUR").wantsMore).toBe(false);
+    expect(validateEdits(trip(), { edits: [], tripLength: 4 }, "EUR").wantsMore).toBe(false);
   });
 
   it("says when a reply wants more days than a trip may have, and adds none", () => {
@@ -410,6 +415,13 @@ describe("buildPrompt", () => {
     const prompt = buildPrompt({ message: "Suggest a great local restaurant to add", destination: "Lisbon", tripTitle: "Lisbon", days: trip(), locale: "en" });
     expect(prompt).toContain("pick the day with the most room where it fits, add it there without removing anything");
     expect(prompt).toContain("Don't ask which day");
+  });
+
+  // "I am arriving at 6pm on the 28th" on a trip from the 29th: Day 1 was rewritten.
+  it("says the trip can't start before Day 1, with its date, and how to start earlier", () => {
+    const prompt = buildPrompt({ message: "I am arriving at 6pm on the 28th", destination: "Lisbon", tripTitle: "Lisbon", days: trip(), locale: "en" });
+    expect(prompt).toContain("The trip starts on Day 1 (Thu, 11 Nov 2027) and can't start earlier here: if they arrive on an earlier date, change no day for it");
+    expect(prompt).toContain("tell them they can change the trip's dates to start that day, which moves every day's plan with it.");
   });
 
   it("asks where each activity is, so a new stop can be put on the map", () => {

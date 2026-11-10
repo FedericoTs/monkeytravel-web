@@ -406,7 +406,8 @@ function countsWrong(input: Pick<AssistInput, "message" | "days">, reply: string
 /** What a reply got wrong that one more try may fix, or null. Pure; unit-tested. */
 export function correctionFor(
   input: Pick<AssistInput, "message" | "history" | "days" | "canAddDays" | "startDate">,
-  o: Pick<Outcome, "reply" | "edits" | "tripLength"> & Partial<Pick<Outcome, "travelTimes" | "elsewhere" | "lengthRefused" | "moreDays" | "lockedDays" | "overCap">>,
+  o: Pick<Outcome, "reply" | "edits" | "tripLength"> &
+    Partial<Pick<Outcome, "travelTimes" | "elsewhere" | "lengthRefused" | "moreDays" | "lockedDays" | "overCap" | "wantsMore">>,
   /** Hold the reply to a list of places they asked to add (on by default). */
   rules: { list?: boolean } = {},
 ): string | null {
@@ -482,8 +483,11 @@ export function correctionFor(
     return `Day ${outside.day}: ${when}. ${outside.names.join(", ")} ${outside.names.length > 1 ? "don't" : "doesn't"} fit. Move what matters to a day with room, or leave it out, and say so in "reply".`;
   }
   const recent = [input.message, ...(input.history ?? []).slice(-2).map((t) => t.text)].join("\n");
-  if (o.tripLength !== undefined && o.tripLength > current && !asksForMoreDays(recent, current)) {
-    return `Keep the trip at ${current} days: fit the change into the existing days and say in "reply" what it replaces. Add days only when the traveller asks.`;
+  // A longer trip nobody asked for, whether its new days came back or not: "I am
+  // arriving at 6pm on the 28th" on a trip from the 29th got a new Day 1 over the
+  // 29th's plan, and a note that the trip stays at 8 days.
+  if (((o.tripLength !== undefined && o.tripLength > current) || o.wantsMore) && !asksForMoreDays(recent, current)) {
+    return `Keep the trip at ${current} days: fit the change into the existing days and say in "reply" what it replaces. Add days only when the traveller asks. If they arrive before Day 1's date, change no day for it, and in "reply" tell them they can change the trip's dates to start that day, which moves every day's plan with it.`;
   }
   // How long the trip is comes from its dates: "isn't 28 Nov to 6 Dec 8 days?"
   // got "You're totally right!", and "count, it's 8" a day cut from the trip.
@@ -658,7 +662,11 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   // Still more days than a trip may have: nothing of that reply stands either,
   // and the reply says why (tripCap).
   const capped = outcome.overCap;
-  if (keptLength || capped) {
+  // A longer trip nobody asked for whose new days still didn't come back: its
+  // edits are half of a move (a new Day 1 over the first day's plan), so none stands.
+  const asked = asksForMoreDays([input.message, ...(input.history ?? []).slice(-2).map((t) => t.text)].join("\n"), current);
+  const halfLonger = outcome.wantsMore && outcome.lengthRefused && !asked;
+  if (keptLength || capped || halfLonger) {
     tripLength = undefined;
     edits = [];
   }
@@ -673,7 +681,7 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   // giorni" could not be done in one reply). They are asked for together, the
   // same way, and the days of a part that doesn't come back in time are named
   // in the reply.
-  let daysLeft = keptLength || capped ? [] : outcome.moreDays;
+  let daysLeft = keptLength || capped || halfLonger ? [] : outcome.moreDays;
   // A regroup that moved places from days it left as they were takes those days
   // in the next part, which gives them places of their own.
   if (asksToRegroup(input.message)) {

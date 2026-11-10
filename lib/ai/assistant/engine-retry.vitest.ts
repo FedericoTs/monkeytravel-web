@@ -750,6 +750,64 @@ describe("assistTrip on a trip at its longest", () => {
   });
 });
 
+// "I am arriving at 6pm on the 28th" on a trip from the 29th: the reply made Day 1
+// the arrival evening, over the 29th's plan, for a 9-day trip whose last day never
+// came, and said both "9 days in total" and "the trip stays at 8 days".
+describe("assistTrip on an arrival before Day 1", () => {
+  const days = Array.from({ length: 8 }, (_, i) => ({
+    ...day(i + 1),
+    activities: [{ name: `Day ${i + 1} thing`, time_slot: "morning", start_time: "09:00" }],
+  })) as unknown as ItineraryDay[];
+  const arriving = { ...input, message: "I am arriving at 6pm on the 28th", days, locale: "en" };
+  const newDayOne = {
+    response: {
+      text: () =>
+        JSON.stringify({
+          reply: "Here is an updated Day 1 to accommodate your arrival, adding a day to your trip.",
+          trip_length: 9,
+          // The days the move would push along, to be asked for next.
+          more_days: [2, 3, 4, 5, 6, 7, 8],
+          edits: [{ day_number: 1, summary: "Arrival", activities: [{ name: "Noi Bai International Airport", start_time: "18:00" }, { name: "Dinner", start_time: "21:00" }] }],
+        }),
+    },
+  };
+
+  it("keeps Day 1 as it was when the model holds to a new first day", async () => {
+    generateContent.mockResolvedValue(newDayOne);
+    const out = await run(arriving);
+    expect(generateContent).toHaveBeenCalledTimes(2);
+    expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain("If they arrive before Day 1's date, change no day for it");
+    expect(out.edits).toEqual([]);
+    expect(out.tripLength).toBeUndefined();
+    expect(out.reply).toMatch(/^I haven't changed your plan/);
+  });
+
+  it("keeps a change to a day they asked for when the longer trip they also asked for didn't come back", async () => {
+    const both = {
+      response: {
+        text: () =>
+          JSON.stringify({
+            reply: "Here's a market on Day 3, and a new Day 9.",
+            trip_length: 9,
+            edits: [{ day_number: 3, summary: "Market", activities: [{ name: "Dong Xuan Market", start_time: "09:00" }] }],
+          }),
+      },
+    };
+    generateContent.mockResolvedValue(both);
+    const out = await run({ ...arriving, message: "add one more day, and a market on day 3" });
+    expect(out.edits.map((e) => e.day_number)).toEqual([3]);
+    expect(out.reply).toContain("(The trip stays at 8 days");
+  });
+
+  it("keeps the model's answer once it leaves Day 1 alone", async () => {
+    const honest = { response: { text: () => JSON.stringify({ reply: "You land the evening before Day 1, so Day 1 stays a full day. To add the 28th, move the trip's dates.", edits: [] }) } };
+    generateContent.mockResolvedValueOnce(newDayOne).mockResolvedValueOnce(honest);
+    const out = await run(arriving);
+    expect(out.edits).toEqual([]);
+    expect(out.reply).toBe("You land the evening before Day 1, so Day 1 stays a full day. To add the 28th, move the trip's dates.");
+  });
+});
+
 // A day must end in time for the traveller's departure.
 describe("assistTrip on a day that doesn't fit when they leave", () => {
   const fiveDays = Array.from({ length: 5 }, (_, i) => day(i + 1));

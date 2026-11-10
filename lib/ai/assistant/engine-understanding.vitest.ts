@@ -567,6 +567,19 @@ describe("correctionFor", () => {
     ).toBeNull();
   });
 
+  // "I am arriving at 6pm on the 28th" on a trip from the 29th: the reply made a
+  // new Day 1 of the arrival, over the 29th's plan, and the new last day never came.
+  it("refuses a longer trip nobody asked for whose new days didn't come back", () => {
+    const arrival = { reply: "Here is an updated Day 1 for your arrival.", edits: [edit(1, ["Airport", "Dinner"])], lengthRefused: true, wantsMore: true };
+    const told = correctionFor({ message: "I am arriving at 6pm on the 28th", days }, arrival);
+    expect(told).toContain("Keep the trip at 5 days");
+    expect(told).toContain("If they arrive before Day 1's date, change no day for it, and in \"reply\" tell them they can change the trip's dates to start that day");
+    // Asked for, it's the longer trip's own rule.
+    expect(correctionFor({ message: "add a day at the start, we arrive on the 28th", days }, arrival)).not.toContain("Keep the trip at");
+    // A shorter trip refused for its fixed plans isn't a longer one.
+    expect(correctionFor({ message: "I am arriving at 6pm on the 28th", days }, { ...arrival, wantsMore: false })).toBeNull();
+  });
+
   it("asks for the change a reply hands over with no edits", () => {
     const empty = (reply: string) => correctionFor({ message: "togliamo il ristorante alla sera", days }, { reply, edits: [] });
     expect(empty("Ecco la proposta per rimuovere Restaurace Mlejnice dal Giorno 2.")).toContain('"edits" is empty');

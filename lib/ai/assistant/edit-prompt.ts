@@ -199,6 +199,7 @@ export function buildPrompt(input: AssistInput): string {
   const shownCur = costs?.shown?.currency ?? input.display?.currency ?? cur;
   const maxDays = maxTripDays(input.days);
   const lengthLine = tripLengthLine(input.days, input.startDate);
+  const firstDay = tripSpan(input.days, input.startDate)?.from;
   const multiCity = input.days.some((d) => d.city);
   const elsewhere = canOfferElsewhere(input);
   const unsaved = input.unsaved?.length
@@ -251,7 +252,7 @@ ${
   - ${
     input.canAddDays === false
       ? `Only the trip's owner can change how many days it has, and this traveller isn't the owner: keep "trip_length" null and add no days. Asked for more days, say that only the owner can add them, and give your ideas for those days in "reply" instead, one short line each.`
-      : `Adding or removing days when asked, or changing how many nights a city gets: set "trip_length" to the new total number of days (1-${maxDays}) and return every day whose content changes, including each NEW day in full. New days come first, before any existing day you also change. New days in the middle of the trip move the later days along, so those days change too, up to the new last day. Days beyond "trip_length" are removed.`
+      : `Adding or removing days when asked, or changing how many nights a city gets: set "trip_length" to the new total number of days (1-${maxDays}) and return every day whose content changes, including each NEW day in full. New days come first, before any existing day you also change. New days in the middle of the trip move the later days along, so those days change too, up to the new last day. Days beyond "trip_length" are removed. The trip starts on Day 1${firstDay ? ` (${promptDate(firstDay)})` : ""} and can't start earlier here: if they arrive on an earlier date, change no day for it, and in "reply" tell them they can change the trip's dates to start that day, which moves every day's plan with it.`
   }${multiCity ? `
   - This is a multi-city trip: each day is in the city shown in [ ] and its places are in that city. Every change, regrouping or reordering keeps each city's places on that city's days; a place on a day of another city goes back to a day of its own city. A day changes city only when they ask to change where they stay. Give each edited day its "city".` : ""}
   - Hotels in the plan: use only hotel names the traveller gives you or that already appear in the itinerary. If they mention hotels you can't see ("the hotels I added"), ask for the names and return "edits": []. When they name where they're staying for certain nights, add a short "Check in at <place>" activity in the evening of the first of those days. The plan doesn't track hotel prices; give a typical range if they ask.
