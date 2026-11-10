@@ -280,9 +280,22 @@ const PLACE_WORDS_MAX = 4;
 
 const wordsOf = (s: string) => s.split(/\s+/).filter(Boolean);
 
-/** A place's name as far as words can tell: a few words, no numbers, the characters a destination may hold. */
+/** Words that ask for a place without naming one: "somewhere warm", "un posto al mare", "um lugar quente". */
+const UNNAMED_PLACE = new Set([
+  "somewhere", "anywhere", "place", "places", "destination", "destinations", "spot",
+  "posto", "posti", "luogo", "luoghi", "destinazione", "qualche",
+  "lugar", "lugares", "sitio", "sitios", "destino", "destinos", "algun", "alguna", "algum", "alguma",
+]);
+
+/**
+ * A place's name as far as words can tell: a few words, no numbers, the
+ * characters a destination may hold, and none that asks for a place unnamed.
+ */
 const namesAPlace = (place: string) =>
-  wordsOf(place).length <= PLACE_WORDS_MAX && !/\d/.test(place) && DESTINATION_ALLOWLIST.test(place);
+  wordsOf(place).length <= PLACE_WORDS_MAX &&
+  !/\d/.test(place) &&
+  DESTINATION_ALLOWLIST.test(place) &&
+  !wordsOf(fold(place)).some((word) => UNNAMED_PLACE.has(word));
 
 /**
  * A sentence, not a place name: it says how long or when, and where, in words

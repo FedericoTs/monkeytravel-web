@@ -107,6 +107,23 @@ describe("readTripSentence", () => {
     expect(isTripSentence(read("Paris and London 10 days"))).toBe(true);
   });
 
+  // "Somewhere warm" asks for a place without naming one: no place to plan.
+  it("is no sentence when the place asked for isn't named", () => {
+    for (const request of [
+      "quero um lugar quente com praia para 6 dias com os filhos",
+      "somewhere warm with the kids in May",
+      "un posto caldo al mare per 4 giorni",
+      "algún sitio con playa 8 días en julio",
+      "a quiet spot by the sea for a week",
+      // Accents aside: "sítio" is "sitio".
+      "um sítio com praia para 5 dias",
+    ]) {
+      expect(isTripSentence(read(request)), request).toBe(false);
+      expect(looksLikeRequest(request), request).toBe(true);
+    }
+    expect(isTripSentence(read("5 days in Lisbon in March"))).toBe(true);
+  });
+
   // Words around the length ("make me", "un itinerario") would be a second place.
   it("is a sentence for one place: several are the request reader's", () => {
     for (const request of [
