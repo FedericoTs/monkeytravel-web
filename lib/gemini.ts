@@ -8,6 +8,7 @@ import { validateAndFixCoordinates } from "./trip/coordinate-fallback";
 import { tripSpanDays } from "./dates/iso-date";
 import { withServerFields } from "./ai/server-fields";
 import { ensureTripSummary, tryRepairTruncatedJSON } from "./ai/itinerary-text";
+import { mendJson } from "./ai/json-mend";
 import { inPlanCurrency } from "./ai/plan-currency";
 import { buildStaticChatHistory, buildUserPrompt, type BuildPromptOptions } from "./ai/trip-prompt";
 import {
@@ -143,11 +144,15 @@ async function itineraryAttempt(
 
     // Try to parse JSON, with a defensive repair pass for truncated output
     // (the model can hit maxOutputTokens mid-string).
+    // A slip mid-reply (an unescaped quote, a missing comma) is mended rather
+    // than costing another generation.
     const parseAttempt = (source: string): GeneratedItinerary => {
-      const itinerary = JSON.parse(source) as GeneratedItinerary;
+      const { value, mends } = mendJson(source);
+      const itinerary = value as GeneratedItinerary;
       if (!itinerary.destination || !itinerary.days || itinerary.days.length === 0) {
         throw new Error("Invalid itinerary structure");
       }
+      if (mends > 0) console.warn(`[gemini] mended ${mends} slip(s) in the model's JSON for "${params.destination}".`);
       return itinerary;
     };
 
