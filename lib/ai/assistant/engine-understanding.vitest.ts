@@ -5,10 +5,10 @@ import { buildPrompt } from "./edit-prompt";
 import { composeReply } from "./edit-reply";
 import type { DayEdit } from "./edit-validation";
 import { correctionFor } from "./engine";
-import { asksForMoreDays, asksToAdd, keepsEverything, listedPlaces } from "./message-asks";
+import { asksForFewerDays, asksForMoreDays, asksToAdd, keepsEverything, listedPlaces, talksAboutDayCount } from "./message-asks";
 import { keepSavedActivities, takenOut } from "./saved-activities";
 import { outsideTravelTimes, readTravelTimes } from "./travel-times";
-import { asksToRemove, replyLanguage } from "./honesty";
+import { asksToRemove, replyLanguage, statedDayCounts } from "./honesty";
 
 /**
  * The trip assistant should understand what a traveller means and do what
@@ -242,6 +242,76 @@ describe("replyLanguage", () => {
       takenOut: ["Guinness Storehouse"],
     });
     expect(out).toContain("(Este cambio quita: Guinness Storehouse.)");
+  });
+});
+
+// "Isn't 28 Nov to 6 Dec 8 days instead of 9?" got "You're totally right!", and
+// "count, it's 8" a trip cut to 8 days. Dates of a 9-day trip, 8 nights.
+const ALGARVE = Array.from({ length: 9 }, (_, i) => ({
+  day_number: i + 1,
+  date: i < 3 ? `2026-11-${28 + i}` : `2026-12-0${i - 2}`,
+  activities: [act(`Algarve ${i + 1}`)],
+})) as unknown as ItineraryDay[];
+
+describe("how long the trip is", () => {
+  it.each([
+    "please make it 8 days, remove the last day",
+    "can we shorten the trip",
+    "drop the last day",
+    "one day less",
+    "I need an 8 day one",
+    "togli l'ultimo giorno",
+    "un día menos",
+    "quita un día",
+    "tira o último dia",
+    "pode encurtar a viagem?",
+    "we leave a day earlier",
+    "let's end the trip on the 5th",
+    "partiamo un giorno prima",
+  ])("hears a shorter trip asked for: %s", (text) => {
+    expect(asksForFewerDays(text)).toBe(true);
+  });
+
+  it.each(["No in this chat here, count, it's 8", "Count em, day by day", "Count", "add a museum on day 2", "make day 3 lighter"])(
+    "hears no shorter trip in: %s",
+    (text) => {
+      expect(asksForFewerDays(text)).toBe(false);
+    },
+  );
+
+  it("knows when the count is in question", () => {
+    for (const m of ["Also kind if confused isn't 28 nov to 6 dec 8 days instead of 9 days?", "Still 9 days?", "Count", "No in this chat here, count, it's 8", "how many nights is it", "quanti giorni sono?", "¿cuántos días son?"]) {
+      expect(talksAboutDayCount(m), m).toBe(true);
+    }
+    for (const m of ["add a museum on day 2", "make day 3 lighter", "we land at 17:15"]) expect(talksAboutDayCount(m), m).toBe(false);
+  });
+
+  it("reads the count a reply gives, and not an offer", () => {
+    expect(statedDayCounts("You're totally right! From November 28 to December 6 is indeed 8 days total.")).toEqual([8, 8]);
+    expect(statedDayCounts("Yes, November 28 to December 6 is 9 days in total (Day 1 through Day 9)!")).toEqual([9, 9]);
+    expect(statedDayCounts("You're right, let's count it as 8 days!")).toEqual([8]);
+    expect(statedDayCounts("It's 9 days and 8 nights.")).toEqual([9]);
+    expect(statedDayCounts("Del 28 de noviembre al 6 de diciembre son 9 días.")).toEqual([9]);
+    expect(statedDayCounts("Dal 28 novembre al 6 dicembre sono 9 giorni.")).toEqual([9]);
+    expect(statedDayCounts("De 28 de novembro a 6 de dezembro são 9 dias.")).toEqual([9]);
+    expect(statedDayCounts("Would you like an 8-day trip instead? I can end it on December 5.")).toEqual([]);
+  });
+
+  it("asks again when a reply cuts days nobody asked to cut, or gives another count", () => {
+    const told = { days: ALGARVE, startDate: "2026-11-28" };
+    const cut = correctionFor({ ...told, message: "No in this chat here, count, it's 8" }, { reply: "I've adjusted your itinerary to 8 days.", edits: [], tripLength: 8 });
+    expect(cut).toContain("The trip is Sat, 28 Nov 2026 to Sun, 6 Dec 2026: 9 days and 8 nights, Day 1 to Day 9.");
+    expect(cut).toContain("Your edits make the trip shorter, which they didn't ask for.");
+    expect(cut).toContain("say kindly that 9 days are 8 nights");
+    const agreed = { reply: "You're totally right! From November 28 to December 6 is indeed 8 days total.", edits: [] };
+    expect(correctionFor({ ...told, message: "isn't 28 nov to 6 dec 8 days instead of 9 days?" }, agreed)).toContain('Your "reply" gives it another number of days.');
+    // Asked for, or agreed to when offered, a shorter trip is a change.
+    expect(correctionFor({ ...told, message: "please make it 8 days, remove the last day" }, { reply: "Your trip now ends on December 5.", edits: [], tripLength: 8 })).toBeNull();
+    const offer = { role: "assistant" as const, text: "Would you like me to remove the last day and shorten your trip to 8 days?" };
+    expect(correctionFor({ ...told, message: "yes", history: [offer] }, { reply: "Done: 8 days, ending December 5.", edits: [], tripLength: 8 })).toBeNull();
+    // The right count, or a count nobody asked about, needs nothing.
+    expect(correctionFor({ ...told, message: "Still 9 days?" }, { reply: "Yes, it's 9 days and 8 nights.", edits: [] })).toBeNull();
+    expect(correctionFor({ ...told, message: "what's the best beach?" }, { reply: "Praia da Marinha. A 2-day stay there is 2 days well spent.", edits: [] })).toBeNull();
   });
 });
 
@@ -564,6 +634,22 @@ describe("buildPrompt", () => {
   it("keeps the trip's length and the saved activities' names", () => {
     expect(prompt).toContain("Keep the number of days unless the traveller asks for more or fewer");
     expect(prompt).toContain("never translate or rename activities");
+  });
+
+  it("gives the trip's length from its dates, and each day its date", () => {
+    const algarve = buildPrompt({ message: "count, it's 8", destination: "Algarve", tripTitle: "Algarve", days: ALGARVE, startDate: "2026-11-28", endDate: "2026-12-06", locale: "en" });
+    expect(algarve).toContain("The trip is Sat, 28 Nov 2026 to Sun, 6 Dec 2026: 9 days and 8 nights, Day 1 to Day 9.");
+    expect(algarve).toContain("Day 1 (Sat, 28 Nov 2026): Algarve 1");
+    expect(algarve).toContain("Day 9 (Sun, 6 Dec 2026): Algarve 9");
+    expect(algarve).toContain("Never agree to another count, however sure they are");
+    expect(algarve).toContain("Insisting on a count isn't asking to change it");
+    expect(buildPrompt({ message: "count, it's 8", destination: "Algarve", tripTitle: "Algarve", days: ALGARVE, locale: "en" })).toContain(
+      "The trip is Sat, 28 Nov 2026 to Sun, 6 Dec 2026: 9 days and 8 nights",
+    );
+    // Days without dates count from the start; with no dates at all, the count alone.
+    const undated = ALGARVE.slice(0, 2).map((d) => ({ ...d, date: "" }));
+    expect(buildPrompt({ message: "hi", destination: "Algarve", tripTitle: "Algarve", days: undated, startDate: "2026-11-28", locale: "en" })).toContain("Day 2 (Sun, 29 Nov 2026): Algarve 2");
+    expect(buildPrompt({ message: "hi", destination: "Algarve", tripTitle: "Algarve", days: undated.slice(0, 1), locale: "en" })).toContain("The trip is 1 day and 0 nights, Day 1 to Day 1.");
   });
 
   it("knows a change asked for again after Undo isn't in the plan", () => {

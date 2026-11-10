@@ -11,7 +11,8 @@ import {
   type DisplayCurrency,
   type PlanCosts,
 } from "@/lib/ai/assistant/plan-costs";
-import { MAX_TRIP_DAYS_MULTI, maxTripDays } from "@/lib/ai/assistant/structural";
+import { addDaysISO, MAX_TRIP_DAYS_MULTI, maxTripDays } from "@/lib/ai/assistant/structural";
+import type { TripSpan } from "@/lib/ai/assistant/honesty";
 import type { ItineraryDay } from "@/types";
 import { ACTIVITY_TYPES } from "@/lib/trip/activity-type";
 
@@ -115,9 +116,35 @@ function costLines(costs: PlanCosts | null): string {
   return `Activity costs, as the traveller sees them in ${view.currency}: ${perDay}. Total ~${view.total} ${view.currency}${own}. These count only what the plan lists: hotels, and any travel it doesn't list, cost extra.\n`;
 }
 
+/** A day's date: its own, or counted from the trip's start. */
+function dateOf(day: ItineraryDay | undefined, startDate?: string): string | null {
+  if (!day) return null;
+  return addDaysISO(day.date, 0) ?? addDaysISO(startDate, day.day_number - 1);
+}
+
+/** The trip's first and last dates and its number of days, when its dates are known. */
+export function tripSpan(days: ItineraryDay[], startDate?: string): TripSpan | null {
+  const from = dateOf(days[0], startDate);
+  const to = dateOf(days[days.length - 1], startDate);
+  return from && to ? { from, to, days: days.length } : null;
+}
+
+const PROMPT_DATE = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+const promptDate = (iso: string) => PROMPT_DATE.format(new Date(`${iso}T00:00:00Z`));
+const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
+/** How long the trip is, counted from its dates: what a reply must hold to. */
+export function tripLengthLine(days: ItineraryDay[], startDate?: string): string {
+  const n = days.length;
+  const span = tripSpan(days, startDate);
+  const length = `${count(n, "day", "days")} and ${count(n - 1, "night", "nights")}, Day 1 to Day ${n}`;
+  return span ? `The trip is ${promptDate(span.from)} to ${promptDate(span.to)}: ${length}.` : `The trip is ${length}.`;
+}
+
 // Each price names its currency, and the one the traveller sees when that
 // differs: a bare "(~250)" next to a euro total was quoted back as euros.
-function buildContext(days: ItineraryDay[], display?: DisplayCurrency): string {
+// Each day shows its date, so "count them, day by day" has the dates to count.
+function buildContext(days: ItineraryDay[], display?: DisplayCurrency, startDate?: string): string {
   const cur = planCurrency(days);
   const shown = display && display.currency !== cur && display.rate > 0 ? display : undefined;
   return days
@@ -136,7 +163,8 @@ function buildContext(days: ItineraryDay[], display?: DisplayCurrency): string {
         : "";
       const label = d.theme || d.title || "";
       const city = d.city ? ` [${d.city}]` : "";
-      return `Day ${d.day_number}${city}${label ? ` — ${label}` : ""}: ${acts}`;
+      const date = dateOf(d, startDate);
+      return `Day ${d.day_number}${date ? ` (${promptDate(date)})` : ""}${city}${label ? ` — ${label}` : ""}: ${acts}`;
     })
     .join("\n");
 }
@@ -168,10 +196,8 @@ export function buildPrompt(input: AssistInput): string {
   const cur = planCurrency(input.days);
   const costs = planCosts(input.days, input.display);
   const shownCur = costs?.shown?.currency ?? input.display?.currency ?? cur;
-  const dayCount = input.days.length;
   const maxDays = maxTripDays(input.days);
-  const dateLine =
-    input.startDate && input.endDate ? `Dates: ${input.startDate} to ${input.endDate} (${dayCount} days)\n` : "";
+  const lengthLine = tripLengthLine(input.days, input.startDate);
   const multiCity = input.days.some((d) => d.city);
   const elsewhere = canOfferElsewhere(input);
   const unsaved = input.unsaved?.length
@@ -181,9 +207,10 @@ export function buildPrompt(input: AssistInput): string {
 
 Trip: ${input.tripTitle}
 Destination: ${input.destination}
-${dateLine}Currency: ${cur}
+${lengthLine}
+Currency: ${cur}
 Itinerary:
-${buildContext(input.days, input.display)}
+${buildContext(input.days, input.display, input.startDate)}
 ${costLines(costs)}${unsaved}${buildHistory(input.history)}
 Traveller's new message: "${input.message}"
 
@@ -191,6 +218,7 @@ First work out what the traveller actually wants, the way a good travel agent wo
 - A statement about their trip asks you to fit the plan to it: "we have a car", "my hotel is near X", "we land at 11:00 on day 1", "my wife is vegetarian", "I'm travelling with my 70-year-old mother". Change every day it affects.
 - A limit on distance or time ("close to the wineries", "walkable", "no more than 20 minutes from the hotel") holds for the whole plan, not just the stop it mentions. Check every stop it touches on your first answer, and move the stay or the stops until they fit. Say in "reply" which stop still can't.
 - What they told you about their trip, in this message or earlier in the conversation, still holds unless they changed it: when they arrive and leave, who is travelling, a car, a diet, where they stay. Every day you edit or add must fit it. Their earlier requests were already answered: don't make them again unless asked.
+- The trip's length above is counted from its dates and is always right. Never agree to another count, however sure they are: people often count the nights, or leave out the day they arrive. Say kindly how it's counted, day by day with the dates if they ask. Insisting on a count isn't asking to change it: add or remove days only when they ask for that.
 - A misspelled or partial name means the most likely real place near the destination ("aya sofya" is Hagia Sophia).
 - Ambiguous wording takes the meaning a travel agent would assume ("activities under 18" means suitable for under-18s). Ask one short question only when the readings would lead to very different plans.
 - A short "yes", "ok", "do it" or "continue" answers your previous message: make exactly the change you offered there, or the one it said some days still needed, nothing more. With nothing offered before it, ask what they'd like to change.

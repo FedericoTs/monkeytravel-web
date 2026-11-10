@@ -26,6 +26,7 @@ import {
   claimsItineraryChange,
   claimsLongerTrip,
   isConfirmation,
+  statedDayCounts,
   offersChange,
 } from "@/lib/ai/assistant/honesty";
 import { planCosts, planCurrency } from "@/lib/ai/assistant/plan-costs";
@@ -38,6 +39,8 @@ import {
   canOfferElsewhere,
   buildPrompt,
   MAX_DAYS_PER_REPLY,
+  tripLengthLine,
+  tripSpan,
 } from "./edit-prompt";
 import { type DayEdit, validateEdits, plainText, str, num } from "./edit-validation";
 import { keepSavedActivities, takenOut } from "./saved-activities";
@@ -47,9 +50,11 @@ import {
   CHECK_IN,
   TELLS_TIME,
   asksForMoreDays,
+  asksForFewerDays,
   asksToAdd,
   keepsEverything,
   listedPlaces,
+  talksAboutDayCount,
 } from "./message-asks";
 import { type TravelTime, readTravelTimes, outsideTravelTimes, minutesOf } from "./travel-times";
 import { composeReply } from "./edit-reply";
@@ -256,9 +261,25 @@ function within<T>(promise: Promise<T>, ms: number): Promise<T> {
   return Promise.race([promise, late]).finally(() => clearTimeout(timer));
 }
 
+/**
+ * A shorter trip they didn't ask for: "count, it's 8" argues the count and asks
+ * for nothing. A yes to an offer of fewer days asks for it.
+ */
+function cutUnasked(input: Pick<AssistInput, "message" | "history" | "days">, tripLength: number | undefined): boolean {
+  if (tripLength === undefined || tripLength >= input.days.length) return false;
+  const last = input.history?.at(-1);
+  const offered = isConfirmation(input.message) && last?.role === "assistant" && asksForFewerDays(last.text);
+  return !asksForFewerDays(input.message) && !offered;
+}
+
+/** A reply about how long the trip is that gives it another number of days than it has. */
+function countsWrong(input: Pick<AssistInput, "message" | "days">, reply: string, tripLength: number | undefined): boolean {
+  return talksAboutDayCount(input.message) && statedDayCounts(reply).some((n) => n !== (tripLength ?? input.days.length));
+}
+
 /** What a reply got wrong that one more try may fix, or null. Pure; unit-tested. */
 export function correctionFor(
-  input: Pick<AssistInput, "message" | "history" | "days" | "canAddDays">,
+  input: Pick<AssistInput, "message" | "history" | "days" | "canAddDays" | "startDate">,
   o: Pick<Outcome, "reply" | "edits" | "tripLength"> & Partial<Pick<Outcome, "travelTimes" | "elsewhere" | "lengthRefused" | "moreDays">>,
   /** Hold the reply to a list of places they asked to add (on by default). */
   rules: { list?: boolean } = {},
@@ -304,6 +325,13 @@ export function correctionFor(
   const recent = [input.message, ...(input.history ?? []).slice(-2).map((t) => t.text)].join("\n");
   if (o.tripLength !== undefined && o.tripLength > current && !asksForMoreDays(recent, current)) {
     return `Keep the trip at ${current} days: fit the change into the existing days and say in "reply" what it replaces. Add days only when the traveller asks.`;
+  }
+  // How long the trip is comes from its dates: "isn't 28 Nov to 6 Dec 8 days?"
+  // got "You're totally right!", and "count, it's 8" a day cut from the trip.
+  const cut = cutUnasked(input, o.tripLength);
+  if (cut || countsWrong(input, o.reply, o.tripLength)) {
+    const wrong = cut ? "Your edits make the trip shorter, which they didn't ask for." : 'Your "reply" gives it another number of days.';
+    return `${tripLengthLine(input.days, input.startDate)} ${wrong} Keep every day and give this count. If they count it differently, say kindly that ${current} days are ${current - 1} nights, day by day with the dates if they ask. Add or remove days only when they ask for that.`;
   }
   if (o.tripLength === undefined && input.canAddDays !== false && asksForMoreDays(recent, current) && (o.lengthRefused || claimsLongerTrip(o.reply))) {
     return `The longer trip didn't come back whole. The trip has ${current} days. Set "trip_length" to the new total, and return every day from the first new one to the new last day, in "edits" or listed in "more_days": new days in the middle of the trip move the later days along. If you can't, change nothing and say why in "reply".`;
@@ -476,6 +504,12 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   let { tripLength, lengthRefused } = outcome;
   let edits = outcome.edits;
   const current = input.days.length;
+  // A shorter trip nobody asked for keeps every day, and nothing of that reply stands.
+  const keptLength = cutUnasked(input, tripLength);
+  if (keptLength) {
+    tripLength = undefined;
+    edits = [];
+  }
   // The new days of a longer trip.
   const added =
     tripLength !== undefined && tripLength > current
@@ -487,7 +521,7 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   // giorni" could not be done in one reply). They are asked for together, the
   // same way, and the days of a part that doesn't come back in time are named
   // in the reply.
-  let daysLeft = outcome.moreDays;
+  let daysLeft = keptLength ? [] : outcome.moreDays;
   // A change of what the days hold (places added or taken out): a part's day
   // that only moved times isn't part of it. A change of times keeps those.
   const changesStops = edits.some((e) => !keepsDayStops(input.days, e));
@@ -584,6 +618,9 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   const listMissing = daysLeft.length === 0 ? missingFromList(input, edits) : [];
 
   const currency = currencyRequested(input.message) ?? undefined;
+  // The count from the dates, when the reply gives another or a cut was turned down.
+  const span = tripSpan(input.days, input.startDate);
+  const dayCount = span && (keptLength || countsWrong(input, reply, tripLength)) ? span : undefined;
   const finalReply = composeReply({
     reply,
     edits,
@@ -604,6 +641,7 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
     takenOut: input.explainRemovals && !asksToRemove(input.message) ? takenOut(input.days, edits) : [],
     offersElsewhere: outcome.elsewhere.length > 0,
     listMissing,
+    dayCount,
   });
 
   return {

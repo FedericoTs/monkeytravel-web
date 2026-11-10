@@ -178,6 +178,21 @@ describe("composeReply", () => {
     expect(text).toMatch(/^Day 2 is built around a fixed plan \(Flight\)/);
   });
 
+  it("gives the count from the dates when the reply gives another", () => {
+    const span = { from: "2026-11-28", to: "2026-12-06", days: 9 };
+    const agreed = "You're totally right! From November 28 to December 6 is indeed 8 days total.";
+    expect(composeReply({ ...base, currentDays: 9, reply: agreed, edits: [], dayCount: span })).toBe(
+      "November 28 to December 6 is 9 days and 8 nights, so the trip keeps all 9 days. To make it shorter, tell me which day to take out.",
+    );
+    expect(composeReply({ ...base, locale: "es", currentDays: 9, reply: "¡Tienes razón! Son 8 días.", edits: [], dayCount: span })).toBe(
+      "Del 28 de noviembre al 6 de diciembre son 9 días y 8 noches, así que el viaje mantiene sus 9 días. Para acortarlo, dime qué día quitar.",
+    );
+    const [d2] = validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").edits;
+    expect(composeReply({ ...base, currentDays: 9, reply: "Here's Day 2, the beach day of your 8 days.", edits: [d2], dayCount: span })).toBe(
+      "Here's Day 2, the beach day of your 8 days. (November 28 to December 6 is 9 days and 8 nights.)",
+    );
+  });
+
   it("answers in the traveller's language", () => {
     expect(composeReply({ ...base, locale: "it", reply: "Ho aggiunto una cena al giorno 7.", edits: [] })).toMatch(/^Non ho modificato il tuo piano/);
   });

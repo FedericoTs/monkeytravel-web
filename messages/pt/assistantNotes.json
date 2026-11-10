@@ -22,6 +22,8 @@
   "takesOut": "(Esta alteração tira: {list}.)",
   "waitingKept": "(Isto também mantém a alteração anterior, que ainda não estava salva.)",
   "listMissing": "(Não entrou nesta alteração: {list}.)",
+  "dayCount": "De {from} a {to} são {days, plural, =1 {# dia} other {# dias}} e {nights, plural, =1 {# noite} other {# noites}}, então a viagem continua com {days} dias. Para encurtar, me diga qual dia tirar.",
+  "dayCountNote": "(De {from} a {to} são {days, plural, =1 {# dia} other {# dias}} e {nights, plural, =1 {# noite} other {# noites}}.)",
   "missingAnswer": "Não consegui preparar essa resposta. Pergunte uma coisa de cada vez, por exemplo o que fazer no dia 2.",
   "currencySwitched": "Pronto: agora os preços aparecem em {code}.",
   "elsewhereNote": "Escolha um lugar abaixo e eu o planejo para as mesmas datas."

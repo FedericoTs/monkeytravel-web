@@ -13,6 +13,9 @@ import {
   replyLanguage,
   takesOutNote,
   listMissingNote,
+  dayCountNote,
+  dayCountReply,
+  type TripSpan,
   travelTimesNote,
   notAppliedLead,
   claimsItineraryChange,
@@ -79,6 +82,8 @@ export function composeReply(p: {
   listMissing?: string[];
   /** Places are offered for the whole trip; the page plans the one picked. */
   offersElsewhere?: boolean;
+  /** The trip's length from its dates: the reply gave another, or a cut nobody asked for was turned down. */
+  dayCount?: TripSpan;
 }): string {
   const prepared = p.edits.length > 0 || p.tripLength !== undefined;
   // Notes join the reply, in its language: a Spanish message about a plan
@@ -98,6 +103,10 @@ export function composeReply(p: {
   if (p.offersElsewhere && !prepared) {
     return p.reply && !claimsItineraryChange(p.reply) ? p.reply : elsewhereNote(locale);
   }
+
+  // "You're totally right, 8 days" for 9 days of dates, or a day cut nobody asked
+  // for: the count from the dates instead.
+  if (p.dayCount && !prepared) return dayCountReply(locale, p.dayCount);
 
   // A day withheld for a fixed plan: the model's "I've updated Day 5" would be
   // worse than the bug. Say what happened.
@@ -168,6 +177,7 @@ export function composeReply(p: {
   if (unmentioned.length > 0) text = `${text} ${takesOutNote(locale, unmentioned)}`;
   // "I've added all ten" with eight in the change: name the two.
   if ((p.listMissing?.length ?? 0) > 0) text = `${text} ${listMissingNote(locale, p.listMissing!)}`;
+  if (p.dayCount) text = `${text} ${dayCountNote(locale, p.dayCount)}`;
   // Told to present an unapplied edit as ready, the model still writes "I've
   // updated…" most of the time: lead with the truth so Apply isn't skipped.
   if (!p.autoApplied && !p.ownLead && claimsItineraryChange(p.reply)) text = `${notAppliedLead(locale)} ${text}`;

@@ -22,6 +22,8 @@
   "takesOut": "(This change takes out: {list}.)",
   "waitingKept": "(This also keeps the earlier change, which was not saved yet.)",
   "listMissing": "(Not in this change: {list}.)",
+  "dayCount": "{from} to {to} is {days, plural, =1 {# day} other {# days}} and {nights, plural, =1 {# night} other {# nights}}, so the trip keeps all {days} days. To make it shorter, tell me which day to take out.",
+  "dayCountNote": "({from} to {to} is {days, plural, =1 {# day} other {# days}} and {nights, plural, =1 {# night} other {# nights}}.)",
   "missingAnswer": "I couldn't put that answer together. Ask me one thing at a time, like what to do on day 2.",
   "currencySwitched": "Done: prices now show in {code}.",
   "elsewhereNote": "Pick a place below and I'll plan it for the same dates."

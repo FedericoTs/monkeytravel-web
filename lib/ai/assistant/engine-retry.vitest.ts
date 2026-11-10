@@ -753,6 +753,52 @@ describe("assistTrip on a day that doesn't fit when they leave", () => {
   });
 });
 
+// 28 Nov to 6 Dec is 9 days and 8 nights. "Isn't it 8 days?" got "You're totally
+// right!", and "count, it's 8", twice, cut the trip to 8 days.
+describe("assistTrip on how long the trip is", () => {
+  const days = Array.from({ length: 9 }, (_, i) => ({
+    day_number: i + 1,
+    date: i < 3 ? `2026-11-${28 + i}` : `2026-12-0${i - 2}`,
+    activities: [{ name: `Algarve ${i + 1}`, time_slot: "morning", start_time: "10:00" }],
+  })) as unknown as ItineraryDay[];
+  const algarve = { ...input, destination: "Algarve, Portugal", days, startDate: "2026-11-28", endDate: "2026-12-06", autoApply: true };
+  const said = (reply: string, trip_length: number | null = null, edits: unknown[] = []) => ({ response: { text: () => JSON.stringify({ reply, trip_length, edits }) } });
+  const lastDayOn8 = { day_number: 8, activities: [{ name: "Algarve 8", start_time: "10:00" }, { name: "Algarve 9", start_time: "15:00" }] };
+  const cutTo8 = said("I've adjusted your itinerary to 8 days, running from November 28 to December 5.", 8, [lastDayOn8]);
+  const counted = said("28 November to 6 December is 9 days and 8 nights: Day 1 is the 28th and Day 9 the 6th.");
+
+  it("asks again when a day is cut that nobody asked to cut, and keeps the better answer", async () => {
+    generateContent.mockResolvedValueOnce(cutTo8).mockResolvedValueOnce(counted);
+    const out = await run({ ...algarve, message: "No in this chat here, count, it's 8" });
+    expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain("CORRECTION: The trip is Sat, 28 Nov 2026 to Sun, 6 Dec 2026: 9 days and 8 nights");
+    expect(out.tripLength).toBeUndefined();
+    expect(out.reply).toBe("28 November to 6 December is 9 days and 8 nights: Day 1 is the 28th and Day 9 the 6th.");
+  });
+
+  it("keeps every day, and gives the count, when both answers cut one", async () => {
+    generateContent.mockResolvedValue(cutTo8);
+    const out = await run({ ...algarve, message: "No in this chat here, count, it's 8" });
+    expect(generateContent).toHaveBeenCalledTimes(2);
+    expect(out.tripLength).toBeUndefined();
+    expect(out.edits).toEqual([]);
+    expect(out.reply).toBe("November 28 to December 6 is 9 days and 8 nights, so the trip keeps all 9 days. To make it shorter, tell me which day to take out.");
+  });
+
+  it("asks again when the reply agrees to a wrong count", async () => {
+    generateContent.mockResolvedValueOnce(said("You're totally right! From November 28 to December 6 is indeed 8 days total.")).mockResolvedValueOnce(counted);
+    const out = await run({ ...algarve, message: "Also kind if confused isn't 28 nov to 6 dec 8 days instead of 9 days?" });
+    expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain('Your \\"reply\\" gives it another number of days.');
+    expect(out.reply).toBe("28 November to 6 December is 9 days and 8 nights: Day 1 is the 28th and Day 9 the 6th.");
+  });
+
+  it("cuts the day they ask to cut", async () => {
+    generateContent.mockResolvedValueOnce(said("Your trip now ends on December 5.", 8));
+    const out = await run({ ...algarve, message: "please make it 8 days, remove the last day" });
+    expect(generateContent).toHaveBeenCalledTimes(1);
+    expect(out.tripLength).toBe(8);
+  });
+});
+
 describe("isModelOverloaded", () => {
   it("is true only for 429, 500 and 503", () => {
     expect([429, 500, 503].map((status) => mod.isModelOverloaded({ status }))).toEqual([true, true, true]);
