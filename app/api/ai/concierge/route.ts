@@ -21,6 +21,7 @@
  */
 
 import { NextRequest } from "next/server";
+import { waitUntil } from "@vercel/functions";
 import { conciergeAnswerStream, conciergePrompt } from "@/lib/ai/concierge-answer";
 import { buildTripContext, loadConciergeMemory, loadConciergeTrip, loadDayProgress, resolveTodaySlice } from "@/lib/ai/concierge-trip";
 import { GoogleGenerativeAI } from "@/lib/ai/genai-compat";
@@ -142,9 +143,11 @@ export async function POST(request: NextRequest) {
       // An ask counts once the model is answering: one it refused costs the
       // traveller nothing, and one they walk away from mid-answer still counts.
       onFirstText: () => {
-        void incrementUsage(user.id, "aiAssistantMessages").catch((err) => {
-          console.error("[concierge] usage increment failed", err);
-        });
+        waitUntil(
+          incrementUsage(user.id, "aiAssistantMessages").catch((err) => {
+            console.error("[concierge] usage increment failed", err);
+          })
+        );
       },
     });
 

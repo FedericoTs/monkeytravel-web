@@ -1,4 +1,5 @@
 import { NextRequest, after } from "next/server";
+import { waitUntil } from "@vercel/functions";
 import { getAuthenticatedUser, verifyTripAccess } from "@/lib/api/auth";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { errors, apiSuccess, apiError } from "@/lib/api/response-wrapper";
@@ -218,7 +219,9 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
     // owner's schedule. Only owners reach this today (dates and the mute are
     // owner-only above); this keeps it right if that ever changes.
     if (startDateChanged || endDateChanged || muteChanged) {
-      void scheduleTripNotifications({ tripId: id, userId: trip.user_id });
+      // In waitUntil, not a floating promise: the function can be frozen once
+      // the response is sent, leaving the old dates' reminders in place.
+      waitUntil(scheduleTripNotifications({ tripId: id, userId: trip.user_id }));
     }
 
     return apiSuccess({ success: true, trip: updatedTrip });
