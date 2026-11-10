@@ -27,7 +27,7 @@ const defaultLocale = "en";
 // behind the newest commit touching the files it covers, so the rot cannot
 // happen silently. Update the constant AND the path list together when
 // content moves.
-const LASTMOD_HOMEPAGE = "2026-11-07";
+const LASTMOD_HOMEPAGE = "2026-11-10";
 const LASTMOD_LANDING = "2026-11-07";
 const LASTMOD_TOOLS = "2026-11-07";
 const LASTMOD_EXPLORE = "2026-10-28";
