@@ -18,6 +18,7 @@ import {
   addDaysISO,
   mergeCityItineraries,
   validateLegs,
+  withoutOtherCitiesPlaces,
 } from "./multi-city-core";
 
 export type { CityLeg } from "./multi-city-core";
@@ -63,9 +64,14 @@ export async function generateMultiCityItinerary(
     )
   );
 
+  // Each city keeps only its own places: a must-do of another city stays off its days.
+  const inTheirCities = withoutOtherCitiesPlaces(results);
+  if (inTheirCities.dropped.length > 0) {
+    console.warn(`[multi-city] left out places in another city: ${inTheirCities.dropped.join(", ")}`);
+  }
   // Transfer-leg labels follow the same language the per-city generations
   // used — it rides on the generation options, not the base params.
-  const merged = mergeCityItineraries(legs, results, tripStartDate, {
+  const merged = mergeCityItineraries(legs, inTheirCities.results, tripStartDate, {
     language: options?.language,
   });
 

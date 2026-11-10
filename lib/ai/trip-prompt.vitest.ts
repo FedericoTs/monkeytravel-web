@@ -115,3 +115,50 @@ describe("daylight", () => {
     expect(buildUserPrompt(trip())).not.toContain("Daylight");
   });
 });
+
+// A trip through Busan and Seoul listed ten must-dos for both cities, and each
+// city's plan was told to schedule every one: Busan sights landed on Seoul days.
+describe("must-dos on a trip through several cities", () => {
+  const mustDos = ["gamcheon culture village", "gyeongbokgung palace", "songdo cable car"];
+  const leg = (over: Partial<TripCreationParams> = {}): TripCreationParams => ({
+    destination: "Seoul",
+    startDate: "2026-11-14",
+    endDate: "2026-11-17",
+    budgetTier: "balanced",
+    pace: "moderate",
+    vibes: [],
+    interests: [],
+    mustDos,
+    destinations: [
+      { city: "Busan", nights: 4 },
+      { city: "Seoul", nights: 4 },
+    ],
+    ...over,
+  });
+
+  it("asks each city for only the ones there, leaving the others to their own days", () => {
+    const prompt = buildUserPrompt(leg());
+    expect(prompt).toContain("This plan covers Seoul, one city of a trip that also visits Busan, which gets its own days.");
+    expect(prompt).toContain("include each one that is in or near Seoul");
+    expect(prompt).toContain("Leave out the ones in or near Busan: never put a place of Busan on a day here.");
+    expect(prompt).toContain("- gamcheon culture village");
+    expect(prompt).not.toContain("schedule every one");
+  });
+
+  // "gyeongbukgung palace" was left out of every plan: Gyeongbokgung Palace.
+  it("takes a misspelled must-do for the real place it means", () => {
+    expect(buildUserPrompt(leg())).toContain("(a misspelled or partial name means the most likely real place)");
+    expect(buildUserPrompt(leg({ destinations: undefined }))).toContain("(a misspelled or partial name means the most likely real place)");
+  });
+
+  it("names every other city", () => {
+    const three = leg({ destinations: [{ city: "Busan", nights: 3 }, { city: "Seoul", nights: 3 }, { city: "Gyeongju", nights: 2 }] });
+    expect(buildUserPrompt(three)).toContain("one city of a trip that also visits Busan and Gyeongju, which get their own days.");
+  });
+
+  it("still asks a trip to one place for every one", () => {
+    const single = buildUserPrompt(leg({ destination: "Seoul, South Korea", destinations: undefined }));
+    expect(single).toContain("Traveller Must-Dos (explicitly requested — schedule every one)");
+    expect(single).not.toContain("one city of a trip");
+  });
+});
