@@ -10,6 +10,9 @@ export const MAX_TRIP_DAYS = 14;
  */
 export const MAX_TRIP_DAYS_MULTI = 21;
 
+/** The most nights one city of a multi-city route may have. */
+export const ROUTE_STOP_NIGHTS_MAX = 10;
+
 /** A destination's name, in characters. */
 export const DESTINATION_MIN_LENGTH = 2;
 export const DESTINATION_MAX_LENGTH = 100;

@@ -209,7 +209,14 @@
       "destinationTooLong": "That looks like a request rather than a place. Put the destination here (max 100 characters) and add the details on the next step.",
       "keepAsNote": "Move it to the next step",
       "findMatch": "Not sure where to go? Find my place",
-      "movedToNotes": "Saved for the next step. Now, where are you going?"
+      "movedToNotes": "Saved for the next step. Now, where are you going?",
+      "request": {
+        "title": "That reads like your whole trip. We can fill in the place and dates from it.",
+        "fill": "Fill in from what I wrote",
+        "reading": "Reading it…",
+        "filled": "Filled in from what you wrote: check the dates, then continue. Your words go to the next step too.",
+        "capped": "Trips can be up to {max} days, so this one has {max}."
+      }
     },
     "express": {
       "title": "Your trip, as we read it",

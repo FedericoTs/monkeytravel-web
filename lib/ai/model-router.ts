@@ -42,7 +42,8 @@ export type GeminiPurpose =
   | "assistant-optimize"
   | "assistant-edits"
   | "assistant-chat"
-  | "anchor-import";
+  | "anchor-import"
+  | "request-reading";
 
 export type GeminiModelId =
   | "gemini-2.5-flash"
@@ -70,6 +71,9 @@ const PURPOSE_TO_MODEL: Record<GeminiPurpose, GeminiModelId> = {
   // a small array of dated commitments. Same shape of work as email-parser,
   // and responseSchema carries the contract, so the cheapest tier is enough.
   "anchor-import": "gemini-2.5-flash-lite",
+  // A trip typed into the destination box, read into the wizard's fields: it
+  // has to know places and count dates, so the plans' model.
+  "request-reading": "gemini-3.5-flash-lite",
 };
 
 const ALLOWED_OVERRIDES = new Set<string>([
