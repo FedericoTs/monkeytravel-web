@@ -46,6 +46,7 @@ vi.mock("@/lib/posthog/events", () => ({
 
 import AuthPromptModal from "./AuthPromptModal";
 import { captureAuthMethodSwitched, captureAuthPromptDismissed, captureMagicLinkRequestFailed } from "@/lib/posthog/events";
+import { trackWizardEvent } from "@/components/wizard/wizardEvents";
 
 /** Get to the state where the code input exists: request the link first. */
 async function reachCodeEntry() {
@@ -533,5 +534,55 @@ describe("closing the box", () => {
     fireEvent.click(screen.getByRole("button", { name: "closeModal" }));
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(captureAuthPromptDismissed).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * The same presses for every visitor. PostHog only hears from those who
+ * accepted analytics cookies, so without these rows a Save that ended with
+ * no account can't be split into closed at once, pressed Google and never
+ * came back, or left with the box open.
+ */
+describe("what the box tells the funnel", () => {
+  const closedRows = () => vi.mocked(trackWizardEvent).mock.calls.filter(([step]) => step === "auth_modal_closed");
+
+  it("counts a close, with the destination and how long the box was open", () => {
+    const now = vi.spyOn(Date, "now").mockReturnValue(1_000_000);
+    render(<AuthPromptModal isOpen onClose={() => {}} destination="Lisbon, Portugal" redirectPath="/trips/new" />);
+    now.mockReturnValue(1_004_200);
+    fireEvent.click(screen.getByRole("button", { name: "closeModal" }));
+    expect(closedRows()).toEqual([["auth_modal_closed", { destination: "Lisbon, Portugal", elapsed_ms: 4_200 }]]);
+    now.mockRestore();
+  });
+
+  it("counts a click outside the same way", () => {
+    render(<AuthPromptModal isOpen onClose={() => {}} destination="" redirectPath="/trips/new" />);
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(closedRows()).toHaveLength(1);
+    expect(closedRows()[0][1]).toMatchObject({ destination: undefined });
+  });
+
+  it("doesn't count a close once the email has gone out", async () => {
+    await reachCodeEntry();
+    fireEvent.click(screen.getByRole("button", { name: "closeModal" }));
+    expect(closedRows()).toEqual([]);
+  });
+
+  it("doesn't count a close on the way to the password page", async () => {
+    render(<AuthPromptModal isOpen onClose={() => {}} destination="" redirectPath="/trips/new" />);
+    fireEvent.click(screen.getByRole("button", { name: "preferPassword" }));
+    await waitFor(() => expect(push).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole("button", { name: "closeModal" }));
+    expect(closedRows()).toEqual([]);
+  });
+
+  it("counts a Google press once, however often it's pressed on the way out", async () => {
+    render(<AuthPromptModal isOpen onClose={() => {}} destination="Lisbon, Portugal" redirectPath="/trips/new" />);
+    const google = screen.getByRole("button", { name: "googleButton" });
+    fireEvent.click(google);
+    fireEvent.click(google);
+    await waitFor(() => expect(signInWithOAuth).toHaveBeenCalledTimes(1));
+    const pressed = vi.mocked(trackWizardEvent).mock.calls.filter(([step]) => step === "auth_google_pressed");
+    expect(pressed).toEqual([["auth_google_pressed", { destination: "Lisbon, Portugal" }]]);
   });
 });
