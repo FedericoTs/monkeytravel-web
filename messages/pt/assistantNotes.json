@@ -9,6 +9,7 @@
   "fixedKept": "(O compromisso fixo do dia {day} fica como você definiu: {fixed}.)",
   "cityKept": "(Os lugares de {other} ficam fora dos dias de {city}: {list}.)",
   "cityMoved": "{count, plural, =1 {(Passa para os dias de {city}: {list}.)} other {(Passam para os dias de {city}: {list}.)}}",
+  "notRepeated": "{count, plural, =1 {(Já está em outro dia, então não se repete: {list}.)} other {(Já estão em outros dias, então não se repetem: {list}.)}}",
   "wizardFallbackPrepared": "Aqui está a alteração.",
   "wizardFallbackIdle": "Estou aqui para ajudar: pergunte o que quiser sobre a sua viagem.",
   "lengthUnchanged": "(A viagem continua com {days, plural, =1 {# dia} other {# dias}}: não consegui preparar os dias novos. Peça de novo, um dia de cada vez.)",

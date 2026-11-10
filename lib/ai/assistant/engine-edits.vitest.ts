@@ -253,6 +253,18 @@ describe("composeReply", () => {
     expect(composeReply({ ...base, locale: "it", reply: "Fatto.", edits: [d2], cityMoved: [moved[0]] })).toBe("Fatto. (Passa ai giorni di Busan: Songdo Cable Car.)");
   });
 
+  it("says a place the reply names isn't repeated on a day, as another day keeps it", () => {
+    const [d2] = validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").edits;
+    const notRepeated = ["N Seoul Tower", "Lotte World Tower"];
+    expect(composeReply({ ...base, reply: "That day now has N Seoul Tower and Myeongdong.", edits: [d2], notRepeated })).toBe(
+      "That day now has N Seoul Tower and Myeongdong. (Already on another day, so not repeated: N Seoul Tower.)",
+    );
+    expect(composeReply({ ...base, reply: "Done: new places for that day.", edits: [d2], notRepeated })).toBe("Done: new places for that day.");
+    expect(composeReply({ ...base, locale: "es", reply: "Listo: N Seoul Tower y Lotte World Tower.", edits: [d2], notRepeated })).toBe(
+      "Listo: N Seoul Tower y Lotte World Tower. (Ya están en otros días, así que no se repiten: N Seoul Tower, Lotte World Tower.)",
+    );
+  });
+
   it("gives the count from the dates when the reply gives another", () => {
     const span = { from: "2026-11-28", to: "2026-12-06", days: 9 };
     const agreed = "You're totally right! From November 28 to December 6 is indeed 8 days total.";

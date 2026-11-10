@@ -9,6 +9,7 @@
   "fixedKept": "(The fixed plan on Day {day} stays as you set it: {fixed}.)",
   "cityKept": "({other} places stay off {city} days: {list}.)",
   "cityMoved": "(Moved to {city} days: {list}.)",
+  "notRepeated": "{count, plural, =1 {(Already on another day, so not repeated: {list}.)} other {(Already on other days, so not repeated: {list}.)}}",
   "wizardFallbackPrepared": "Here's the change.",
   "wizardFallbackIdle": "Here to help — ask me anything about your trip.",
   "lengthUnchanged": "(The trip stays at {days, plural, =1 {# day} other {# days}}: I couldn't prepare the new days. Ask me again, one day at a time.)",
