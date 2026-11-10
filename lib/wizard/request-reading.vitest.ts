@@ -68,8 +68,22 @@ const fill = (r: Partial<RequestReading>, opts: Partial<Parameters<typeof fillOf
   fillOf(reading(r), { today: TODAY, multiCity: true, chosen: null, ...opts });
 
 describe("fillOf", () => {
-  it("fills nothing when no place was named", () => {
-    expect(fill({ days: 7, vibes: ["wellness"] })).toBeNull();
+  it("fills nothing when the request says nothing step 1 holds", () => {
+    expect(fill({})).toBeNull();
+  });
+
+  it("keeps a time and who's going for the place picked next when no place was named", () => {
+    expect(fill({ days: 5, who: "family" })).toMatchObject({
+      destination: "",
+      route: null,
+      startDate: "2026-12-01",
+      endDate: "2026-12-05",
+      datesSaid: false,
+      intent: "group",
+    });
+    expect(fill({ month: 7 })).toMatchObject({ destination: "", startDate: "2027-07-15", endDate: "2027-07-19" });
+    // No time said: the dates stay as they are.
+    expect(fill({ who: "solo", vibes: ["wellness"] })).toMatchObject({ destination: "", startDate: "", endDate: "", intent: "solo", vibes: ["wellness"] });
   });
 
   it("pencils in a one-place trip for the days and month asked", () => {

@@ -78,10 +78,11 @@ export function readingOf(answer: ReadingAnswer, today: string): RequestReading 
 
 /** What a reading fills in on step 1. */
 export interface RequestFill {
-  /** The place, or the places joined: the route's label when there is a route. */
+  /** The place, or the places joined: the route's label when there is a route; "" when it names none. */
   destination: string;
   /** With multi-city on and several places: the route builder's rows. */
   route: Array<{ city: string; nights: number }> | null;
+  /** "" when the request names no place and gives no time: the dates stay as they are. */
   startDate: string;
   endDate: string;
   /** The dates are the traveller's own (picked, or in the request), not pencilled in. */
@@ -126,21 +127,25 @@ function placesLabel(names: string[]): string {
 }
 
 /**
- * Step 1's fields from a reading, or null when it names no place. Dates the
- * traveller picked stay; otherwise the request's, else pencilled in as for a
- * one-sentence trip. Several places make a route when multi-city is on, and a
- * trip never runs past the most days it may have.
+ * Step 1's fields from a reading, or null when it says nothing step 1 holds.
+ * Dates the traveller picked stay; otherwise the request's, else pencilled in
+ * as for a one-sentence trip. Several places make a route when multi-city is
+ * on, and a trip never runs past the most days it may have. A request with no
+ * place keeps its time and who's going for the place picked next.
  */
 export function fillOf(
   reading: RequestReading,
   opts: { today: string; multiCity: boolean; chosen: { start: string; end: string } | null }
 ): RequestFill | null {
-  if (reading.places.length === 0) return null;
   const places = reading.places.slice(0, MAX_CITIES);
+  // With no place, what it says for the place picked next: a time, who's going.
+  const timed = reading.days !== null || reading.startDate !== null || reading.month !== null;
+  if (places.length === 0 && !timed && !reading.who && reading.vibes.length === 0 && !reading.budget) return null;
   const isRoute = opts.multiCity && places.length > 1;
   const cap = isRoute ? MAX_TRIP_DAYS_MULTI : MAX_TRIP_DAYS;
 
-  const ownDays = places.every((p) => p.days !== null) ? places.reduce((sum, p) => sum + (p.days ?? 0), 0) : null;
+  const ownDays =
+    places.length > 0 && places.every((p) => p.days !== null) ? places.reduce((sum, p) => sum + (p.days ?? 0), 0) : null;
   const dates = opts.chosen ?? (reading.startDate && reading.endDate ? { start: reading.startDate, end: reading.endDate } : null);
   const asked = dates ? tripSpanDays(dates.start, dates.end) : (reading.days ?? ownDays ?? (isRoute ? places.length * 3 : 5));
   const length = Math.max(isRoute ? places.length : 2, Math.min(asked, cap));
@@ -148,11 +153,13 @@ export function fillOf(
 
   const route = isRoute ? routeRows(places, length) : null;
   const endDate = addIsoDays(startDate, (route ? total(route) : length) - 1) ?? startDate;
+  // No place and no time: the dates stay as they are.
+  const dated = places.length > 0 || timed;
   return {
-    destination: route ? joinCities(route.map((r) => r.city)) : placesLabel(reading.places.map((p) => p.name)),
+    destination: route ? joinCities(route.map((r) => r.city)) : places.length > 0 ? placesLabel(reading.places.map((p) => p.name)) : "",
     route,
-    startDate,
-    endDate,
+    startDate: dated ? startDate : "",
+    endDate: dated ? endDate : "",
     datesSaid: dates !== null || reading.startDate !== null,
     capped: asked > cap ? cap : null,
     intent: reading.who === "solo" ? "solo" : reading.who === "family" || reading.who === "friends" ? "group" : null,

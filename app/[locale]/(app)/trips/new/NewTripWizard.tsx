@@ -1212,8 +1212,20 @@ export default function NewTripPage({
     const chosen = startDate && endDate && !flexibleDates ? { start: startDate, end: endDate } : null;
     const fill = reading ? fillOf(reading, { today, multiCity: MULTI_CITY_ENABLED, chosen }) : null;
     setRequirements((prev) => withNote(prev, text));
-    if (!fill) {
+    // The time, who's going, vibes and budget, for the place filled in or picked next.
+    const keepDetails = (f: NonNullable<typeof fill>) => {
+      if (f.startDate) {
+        setStartDate(f.startDate);
+        setEndDate(f.endDate);
+        setFlexibleDates(!f.datesSaid);
+      }
+      if (f.vibes.length > 0) setSelectedVibes(f.vibes);
+      if (f.intent) setTripIntent(f.intent);
+      if (f.budget) setBudgetTier(f.budget === "luxury" ? "premium" : "budget");
+    };
+    if (!fill?.destination) {
       setDestination("");
+      if (fill) keepDetails(fill);
       setReadingRequest(false);
       return "kept";
     }
@@ -1228,13 +1240,8 @@ export default function NewTripPage({
       setDestination(filledAs);
       setDestinationCoords(place?.coordinates ?? null);
       if (place?.coordinates) coordsPlaceRef.current = filledAs;
-      setEndDate(fill.endDate);
     }
-    setStartDate(fill.startDate);
-    setFlexibleDates(!fill.datesSaid);
-    if (fill.vibes.length > 0) setSelectedVibes(fill.vibes);
-    if (fill.intent) setTripIntent(fill.intent);
-    if (fill.budget) setBudgetTier(fill.budget === "luxury" ? "premium" : "budget");
+    keepDetails(fill);
     setRequestFilled({ destination: filledAs, capped: fill.capped });
     setReadingRequest(false);
     return "filled";
