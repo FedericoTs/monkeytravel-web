@@ -30,6 +30,7 @@ import {
 import { generateAnchoredItinerary, validateAnchors } from "@/lib/ai/anchored";
 import { knownPlacesFor } from "@/lib/ai/known-places";
 import { keepOffClosingDays } from "@/lib/ai/closing-days";
+import { keepMustDos } from "@/lib/ai/must-dos";
 import { inPlanCurrency } from "@/lib/ai/plan-currency";
 import { isRealPoint } from "@/lib/trip/placeholder-point";
 import type { TripAnchor } from "@/types";
@@ -232,6 +233,11 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       );
     }
 
+    // A must-do the plan holds nowhere gets one short question, and goes in
+    // where it fits (lib/ai/must-dos.ts).
+    const mustDosIn = await keepMustDos(itinerary, params.destination, params.mustDos, userLanguage);
+    itinerary = mustDosIn.itinerary;
+
     // No stop on a day it's shut (lib/ai/closing-days.ts). A multi-city or
     // anchored trip keeps its order: its cities and commitments fix the days.
     if (!isMultiCity && !isAnchored) {
@@ -284,6 +290,8 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         // "Try Different Version": a regenerate that skipped the cache.
         fresh: wantsFresh,
         ...(profilePreferences.dietaryPreferences?.length ? { dietary: profilePreferences.dietaryPreferences } : {}),
+        // Must-dos the plan held nowhere, and how many of them went in.
+        ...(mustDosIn.missing > 0 ? { must_dos: { missing: mustDosIn.missing, added: mustDosIn.added } } : {}),
         ...(generationId ? { generation_id: generationId } : {}),
       },
     });
