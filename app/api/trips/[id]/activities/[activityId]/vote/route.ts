@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { waitUntil } from "@vercel/functions";
 import { getAuthenticatedUser, verifyTripAccess } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripActivityRouteContext } from "@/lib/api/route-context";
@@ -168,15 +169,19 @@ export async function POST(request: NextRequest, context: TripActivityRouteConte
       } catch {
         // Best-effort, like the email itself.
       }
-      void sendVoteEmail({
-        ownerId: trip.user_id,
-        voterId: user.id,
-        tripId,
-        activityId,
-        voterName,
-        activityLabel,
-        vote: voteType,
-      });
+      // In waitUntil, not floating: the function can be frozen once the
+      // response is sent, and the owner's email with it.
+      waitUntil(
+        sendVoteEmail({
+          ownerId: trip.user_id,
+          voterId: user.id,
+          tripId,
+          activityId,
+          voterName,
+          activityLabel,
+          vote: voteType,
+        })
+      );
     }
 
     return apiSuccess({

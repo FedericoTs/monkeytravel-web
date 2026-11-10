@@ -105,7 +105,7 @@ vi.mock("@/lib/api/auth", () => ({
       : { user: null, supabase: fakeUserClient(), errorResponse: new Response(null, { status: 401 }) },
 }));
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => fakeAdmin() }));
-vi.mock("@/lib/notifications/scheduling", () => ({ scheduleTripNotifications: vi.fn() }));
+vi.mock("@/lib/notifications/scheduling", () => ({ scheduleTripNotifications: vi.fn(async () => ({ ok: true })) }));
 vi.mock("@/lib/referral/completion", () => ({ completeReferralIfEligible: async () => ({ wasReferred: false }) }));
 vi.mock("@/lib/posthog/server", () => ({ captureServerEvent: vi.fn() }));
 

@@ -354,14 +354,16 @@ async function healExpiredPhoto(
     const fresh = await healsInFlight.run(photoIndex ? `${placeId}#${photoIndex}` : placeId, async () => {
       const reusable = photoIndex ? null : reusableFreshRef(await readCachedPhoto(placeId), deadName);
       if (reusable) {
-        void logApiCall({
-          apiName: "google_places_details",
-          endpoint: "places/{id}:photos (render self-heal, reused fresh cache)",
-          status: 200,
-          responseTimeMs: 0,
-          cacheHit: true,
-          costUsd: 0,
-        });
+        waitUntil(
+          logApiCall({
+            apiName: "google_places_details",
+            endpoint: "places/{id}:photos (render self-heal, reused fresh cache)",
+            status: 200,
+            responseTimeMs: 0,
+            cacheHit: true,
+            costUsd: 0,
+          })
+        );
         return reusable;
       }
       const photos = await photoListsInFlight.run(placeId, () =>
@@ -390,11 +392,12 @@ async function healExpiredPhoto(
       return null;
     }
 
-    // Fire-and-forget: point the cache at the live ref so freshly generated
-    // itineraries stop inheriting the dead one. Deliberately not awaited —
-    // the user's image must not wait on our bookkeeping, and a failed write
-    // only costs us one more heal later.
-    void (async () => {
+    // Point the cache at the live ref so freshly generated itineraries stop
+    // inheriting the dead one. Not awaited: the user's image must not wait on
+    // our bookkeeping. In waitUntil, not a floating promise: the function can
+    // be frozen once the response is sent, and the write with it, which costs
+    // another heal later.
+    waitUntil((async () => {
       if (photoIndex) return;
       try {
         const supabase = createAdminClient();
@@ -412,7 +415,7 @@ async function healExpiredPhoto(
           err instanceof Error ? err.message : err
         );
       }
-    })();
+    })());
 
     console.info(`[places/photo] healed expired photo ref for place ${placeId}`);
 

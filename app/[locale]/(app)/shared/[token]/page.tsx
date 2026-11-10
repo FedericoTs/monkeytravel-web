@@ -1,6 +1,7 @@
 import { tripCardUrl } from "@/lib/seo/og-image";
 import { cache } from "react";
 import { cookies, headers } from "next/headers";
+import { waitUntil } from "@vercel/functions";
 import { createClient, signedInUserId } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
@@ -186,8 +187,10 @@ export default async function SharedTripPage({ params, searchParams }: PageProps
     isOwner,
     tripHasOwner: !!trip.user_id,
   });
+  // In waitUntil, not floating: the function can be frozen once the page is
+  // sent, and an unfinished write with it.
   if (visitVerdict === "counted") {
-    void logSharedTripVisit(trip.id as string, { crewAsk, day: sentDay });
+    waitUntil(logSharedTripVisit(trip.id as string, { crewAsk, day: sentDay }));
   }
 
   // PostHog twin of the funnel event above, gated by the same verdict.
@@ -203,8 +206,8 @@ export default async function SharedTripPage({ params, searchParams }: PageProps
   // analytics cookie, and consent lives in localStorage (lib/consent/storage.ts),
   // which the server cannot read, so it could not honour a refusal.
   //
-  // Fire-and-forget like logSharedTripVisit; never blocks or breaks render.
-  void (async () => {
+  // Not awaited, in waitUntil like logSharedTripVisit; never blocks or breaks render.
+  waitUntil((async () => {
     if (visitVerdict !== "counted") return;
     try {
       const cookieStore = await cookies();
@@ -229,7 +232,7 @@ export default async function SharedTripPage({ params, searchParams }: PageProps
     } catch {
       // never break the render for telemetry
     }
-  })();
+  })());
 
   const tripMeta = (trip.trip_meta as TripMeta) || {};
 
