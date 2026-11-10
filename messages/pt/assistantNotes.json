@@ -7,6 +7,7 @@
   "notAppliedLead": "Ainda não aplicado: toque em \"Aplicar alteração\" abaixo para atualizar o seu plano.",
   "lockedDay": "O dia {day} tem um compromisso fixo que você definiu ({fixed}), então deixei como está: você mesmo pode mudá-lo no plano. Posso mudar todo o resto desse dia.",
   "fixedKept": "(O compromisso fixo do dia {day} fica como você definiu: {fixed}.)",
+  "cityKept": "(Os lugares de {other} ficam fora dos dias de {city}: {list}.)",
   "wizardFallbackPrepared": "Aqui está a alteração.",
   "wizardFallbackIdle": "Estou aqui para ajudar: pergunte o que quiser sobre a sua viagem.",
   "lengthUnchanged": "(A viagem continua com {days, plural, =1 {# dia} other {# dias}}: não consegui preparar os dias novos. Peça de novo, um dia de cada vez.)",

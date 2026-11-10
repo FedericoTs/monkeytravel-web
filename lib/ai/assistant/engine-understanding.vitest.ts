@@ -394,6 +394,50 @@ describe("correctionFor", () => {
     expect(correctionFor({ message: "move the wedding to the evening", days: fixed }, { ...moved, lockedDays: [] })).toBeNull();
   });
 
+  // "Cluster the itinerary by areas" on Busan and Seoul left Busan's sights on Seoul's last day.
+  describe("on a trip through two cities", () => {
+    const at = (name: string, lat: number, lng: number) => act(name, "10:00", { coordinates: { lat, lng } });
+    const cities = [
+      { day_number: 1, city: "Busan", activities: [at("Haeundae Beach", 35.1587, 129.1604), at("Jagalchi Market", 35.0966, 129.0306)] },
+      { day_number: 2, city: "Busan", activities: [at("Taejongdae", 35.0517, 129.0848)] },
+      { day_number: 3, city: "Seoul", activities: [at("Gyeongbokgung Palace", 37.5796, 126.977), at("Bukchon Hanok Village", 37.5826, 126.9831)] },
+      { day_number: 4, city: "Seoul", activities: [at("N Seoul Tower", 37.5512, 126.9882), at("Songdo Cable Car", 35.0758, 129.0166)] },
+    ] as unknown as ItineraryDay[];
+    const gamcheon = at("Gamcheon Culture Village", 35.0975, 129.0106);
+    const onDay = (n: number, activities: DayEdit["activities"]): DayEdit => ({ day_number: n, summary: "", activities });
+
+    it("asks again when a change puts another city's places on a day", () => {
+      const c = correctionFor({ message: "make day 3 calmer", days: cities }, { reply: "Done.", edits: [onDay(3, [cities[2].activities[0], gamcheon])] });
+      expect(c).toBe(
+        "Day 3 is in Seoul, but your edits put places in Busan on it: Gamcheon Culture Village. Each city's places stay on that city's days: move them to days in Busan, each once, or swap them for places in Seoul. Keep every day in its city.",
+      );
+    });
+
+    it("asks a regroup again for a day it leaves holding another city's places, unless it comes later", () => {
+      const regrouped = { reply: "Clustered.", edits: [onDay(1, [...cities[0].activities].reverse()), onDay(2, cities[1].activities)] };
+      const message = "cluster the itinerary by areas to explore instead of jumping around";
+      expect(correctionFor({ message, days: cities }, regrouped)).toContain(
+        "Day 4 is in Seoul, but it holds places in Busan: Songdo Cable Car. Regrouping keeps each city's places on that city's days: in \"edits\" now, return Day 4",
+      );
+      // A later part couldn't move them to Busan's days, so it is asked for now too…
+      expect(correctionFor({ message, days: cities }, { ...regrouped, moreDays: [3, 4] })).toContain("in \"edits\" now, return Day 4");
+      // …unless this reply put them there already.
+      const movedFirst = { reply: "Clustered.", edits: [onDay(1, [...cities[0].activities, cities[3].activities[1]])], moreDays: [3, 4] };
+      expect(correctionFor({ message, days: cities }, movedFirst)).toBeNull();
+      // Any other change leaves that day to them.
+      expect(correctionFor({ message: "make day 1 calmer", days: cities }, regrouped)).toBeNull();
+      // Done in the reply, it's done.
+      const fixed = { reply: "Clustered.", edits: [onDay(1, [...cities[0].activities, cities[3].activities[1]]), onDay(4, [cities[3].activities[0]])] };
+      expect(correctionFor({ message, days: cities }, fixed)).toBeNull();
+    });
+
+    it("takes a place on a day still to come as moved, not copied", () => {
+      const copied = { reply: "Done.", edits: [onDay(1, [...cities[0].activities, act("Taejongdae", "15:00")])] };
+      expect(correctionFor({ message: "add taejongdae to day 1", days: cities }, copied)).toContain("Taejongdae is already on Day 2");
+      expect(correctionFor({ message: "add taejongdae to day 1", days: cities }, { ...copied, moreDays: [2] })).toBeNull();
+    });
+  });
+
   it("sends a change made on another day than the one named back to that day", () => {
     const c = correctionFor({ message: "can we add the Oceanário on day 4", days }, { reply: "Added to day 5.", edits: [edit(5, ["Oceanário"])] });
     expect(c).toContain("Make the change on Day 4");
@@ -659,6 +703,19 @@ describe("buildPrompt", () => {
     const undated = ALGARVE.slice(0, 2).map((d) => ({ ...d, date: "" }));
     expect(buildPrompt({ message: "hi", destination: "Algarve", tripTitle: "Algarve", days: undated, startDate: "2026-11-28", locale: "en" })).toContain("Day 2 (Sun, 29 Nov 2026): Algarve 2");
     expect(buildPrompt({ message: "hi", destination: "Algarve", tripTitle: "Algarve", days: undated.slice(0, 1), locale: "en" })).toContain("The trip is 1 day and 0 nights, Day 1 to Day 1.");
+  });
+
+  it("keeps each city's places on its days, and each day in its city", () => {
+    const twoCities = buildPrompt({
+      message: "cluster by areas",
+      destination: "Busan & Seoul",
+      tripTitle: "Korea",
+      days: [{ ...day(1, ["A"]), city: "Busan" }, { ...day(2, ["B"]), city: "Seoul" }] as ItineraryDay[],
+      locale: "en",
+    });
+    expect(twoCities).toContain("Day 1 [Busan]: A");
+    expect(twoCities).toContain("Every change, regrouping or reordering keeps each city's places on that city's days; a place on a day of another city goes back to a day of its own city.");
+    expect(twoCities).toContain("A day changes city only when they ask to change where they stay.");
   });
 
   it("shows a fixed plan with its time, to plan the rest of its day around", () => {

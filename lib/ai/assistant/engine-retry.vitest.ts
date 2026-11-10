@@ -873,6 +873,76 @@ describe("assistTrip on a day with a fixed plan", () => {
   });
 });
 
+// "Cluster the itinerary by areas" on Busan and Seoul: Busan's sights stayed on Seoul's days.
+describe("assistTrip on a trip through two cities", () => {
+  const at = (name: string, lat: number, lng: number) => ({ name, time_slot: "morning", start_time: "10:00", coordinates: { lat, lng } });
+  const days = [
+    { day_number: 1, city: "Busan", date: "2026-11-10", activities: [at("Haeundae Beach", 35.1587, 129.1604), at("Jagalchi Market", 35.0966, 129.0306)] },
+    { day_number: 2, city: "Seoul", date: "2026-11-11", activities: [at("Gyeongbokgung Palace", 37.5796, 126.977), at("N Seoul Tower", 37.5512, 126.9882)] },
+  ] as unknown as ItineraryDay[];
+  const ask = { ...input, destination: "Busan & Seoul", days, message: "cluster the itinerary by areas" };
+  const reply = (edits: Array<[number, Array<[string, number, number]>]>) => ({
+    response: { text: () => JSON.stringify({ reply: "Grouped by area.", edits: edits.map(([n, list]) => ({ day_number: n, activities: list.map(([name, lat, lng]) => ({ name, start_time: "11:00", coordinates: { lat, lng } })) })) }) },
+  });
+  const mixed = reply([[2, [["N Seoul Tower", 37.5512, 126.9882], ["Gyeongbokgung Palace", 37.5796, 126.977], ["Gamcheon Culture Village", 35.0975, 129.0106]]]]);
+  const clean = reply([[1, [["Jagalchi Market", 35.0966, 129.0306], ["Gamcheon Culture Village", 35.0975, 129.0106], ["Haeundae Beach", 35.1587, 129.1604]]], [2, [["N Seoul Tower", 37.5512, 126.9882], ["Gyeongbokgung Palace", 37.5796, 126.977]]]]);
+  const named = (out: { edits: Array<{ day_number: number; activities: Array<{ name: string }> }> }) => out.edits.map((e) => `${e.day_number}: ${e.activities.map((a) => a.name).join(", ")}`);
+
+  it("asks again when a change puts another city's places on a day, and keeps the better one", async () => {
+    generateContent.mockResolvedValueOnce(mixed).mockResolvedValueOnce(clean);
+    const out = await run(ask);
+    expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain("CORRECTION: Day 2 is in Seoul, but your edits put places in Busan on it: Gamcheon Culture Village.");
+    expect(named(out)).toEqual(["1: Jagalchi Market, Gamcheon Culture Village, Haeundae Beach", "2: N Seoul Tower, Gyeongbokgung Palace"]);
+    expect(out.reply).toBe("Grouped by area.");
+  });
+
+  it("takes them off the day, and says so, when both replies put them there", async () => {
+    generateContent.mockResolvedValue(mixed);
+    const out = await run(ask);
+    expect(generateContent).toHaveBeenCalledTimes(2);
+    expect(named(out)).toEqual(["2: N Seoul Tower, Gyeongbokgung Palace"]);
+    expect(out.reply).toBe("Grouped by area. (Busan places stay off Seoul days: Gamcheon Culture Village.)");
+  });
+
+  // Fixing Seoul's last day, a regroup borrowed the day before's places and was
+  // turned down for it: the day before now comes in a part, with places of its own.
+  it("takes a day a regroup borrowed from in the next part, rather than asking again", async () => {
+    const rome = [
+      { day_number: 1, date: "2027-05-01", activities: [{ name: "Colosseum", start_time: "09:00" }, { name: "Pantheon", start_time: "13:00" }] },
+      { day_number: 2, date: "2027-05-02", activities: [{ name: "Vatican Museums", start_time: "09:00" }, { name: "Castel Sant'Angelo", start_time: "13:00" }] },
+      { day_number: 3, date: "2027-05-03", activities: [{ name: "Trevi Fountain", start_time: "09:00" }, { name: "Villa Borghese", start_time: "13:00" }] },
+    ] as unknown as ItineraryDay[];
+    const first = { response: { text: () => JSON.stringify({ reply: "Grouped.", edits: [{ day_number: 1, activities: [{ name: "Colosseum", start_time: "09:00" }, { name: "Pantheon", start_time: "11:00" }, { name: "Trevi Fountain", start_time: "15:00" }] }] }) } };
+    const part = { response: { text: () => JSON.stringify({ reply: "Done.", edits: [{ day_number: 3, activities: [{ name: "Spanish Steps", start_time: "10:00" }, { name: "Villa Borghese", start_time: "13:00" }] }] }) } };
+    generateContent.mockResolvedValueOnce(first).mockResolvedValueOnce(part);
+    const out = await run({ ...input, destination: "Rome", days: rome, message: "regroup the days by area" });
+    expect(generateContent).toHaveBeenCalledTimes(2);
+    expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain("Now return Days 3");
+    expect(out.edits.map((e) => `${e.day_number}: ${e.activities.map((a) => a.name).join(", ")}`)).toEqual(["1: Colosseum, Pantheon, Trevi Fountain", "3: Spanish Steps, Villa Borghese"]);
+    // Asked for something else, it is asked again to move it.
+    generateContent.mockReset();
+    generateContent.mockResolvedValueOnce(first).mockResolvedValueOnce(first);
+    await run({ ...input, destination: "Rome", days: rome, message: "add the trevi fountain to day 1" });
+    expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain("CORRECTION: Trevi Fountain is already on Day 3.");
+  });
+
+  it("tells a regroup's later part which of its days hold another city's places", async () => {
+    const three = [...days, { day_number: 3, city: "Seoul", date: "2026-11-12", activities: [at("Songdo Cable Car", 35.0758, 129.0166), at("Bukchon Hanok Village", 37.5826, 126.9831)] }] as unknown as ItineraryDay[];
+    const first = { response: { text: () => JSON.stringify({ reply: "Grouped.", more_days: [2, 3], edits: [{ day_number: 1, activities: [{ name: "Jagalchi Market", start_time: "10:00" }, { name: "Songdo Cable Car", start_time: "13:00" }, { name: "Haeundae Beach", start_time: "16:00" }] }] }) } };
+    generateContent.mockResolvedValueOnce(first).mockResolvedValueOnce(reply([[3, [["Bukchon Hanok Village", 37.5826, 126.9831], ["Insadong", 37.574, 126.985]]]]));
+    await run({ ...ask, days: three });
+    expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain("Day 3 is in Seoul, but it holds places in Busan (Songdo Cable Car): give it places in Seoul instead.");
+  });
+
+  it("keeps each day in its city when the reply moves it to another", async () => {
+    generateContent.mockResolvedValueOnce({
+      response: { text: () => JSON.stringify({ reply: "Done.", edits: [{ day_number: 2, city: "Busan", activities: [{ name: "N Seoul Tower", start_time: "10:00" }, { name: "Gyeongbokgung Palace", start_time: "13:00" }] }] }) },
+    });
+    const out = await run({ ...ask, message: "make day 2 start later" });
+    expect(out.edits[0].city).toBeUndefined();
+  });
+});
+
 describe("isModelOverloaded", () => {
   it("is true only for 429, 500 and 503", () => {
     expect([429, 500, 503].map((status) => mod.isModelOverloaded({ status }))).toEqual([true, true, true]);

@@ -14,6 +14,7 @@ import {
   takesOutNote,
   listMissingNote,
   fixedKeptNote,
+  cityKeptNote,
   dayCountNote,
   dayCountReply,
   type TripSpan,
@@ -33,6 +34,7 @@ import {
 import { type PlanCosts } from "@/lib/ai/assistant/plan-costs";
 import { daysMentioned } from "@/lib/ai/assistant/day-target";
 import { currencySwitchedNote, withoutCurrencyTalk } from "@/lib/ai/assistant/currency-request";
+import type { PlacesAway } from "./city-days";
 import type { DayEdit } from "./edit-validation";
 import { nameTokens, sameWord } from "./saved-activities";
 import type { OutsideTravelTimes } from "./travel-times";
@@ -86,6 +88,8 @@ export function composeReply(p: {
   offersElsewhere?: boolean;
   /** The trip's length from its dates: the reply gave another, or a cut nobody asked for was turned down. */
   dayCount?: TripSpan;
+  /** Places of another city taken off a city's days. */
+  cityKept?: PlacesAway[];
 }): string {
   const prepared = p.edits.length > 0 || p.tripLength !== undefined;
   // Notes join the reply, in its language: a Spanish message about a plan
@@ -182,6 +186,15 @@ export function composeReply(p: {
   // A fixed plan the reply moved or took out is back as the traveller set it.
   for (const d of p.lockedDays) text = `${text} ${fixedKeptNote(locale, d.dayNumber, d.names)}`;
   if (p.dayCount) text = `${text} ${dayCountNote(locale, p.dayCount)}`;
+  // Places of another city that came off a city's days.
+  const offCity = new Map<string, { other: string; city: string; names: string[] }>();
+  for (const x of p.cityKept ?? []) {
+    const key = `${x.other}\n${x.city}`;
+    const entry = offCity.get(key) ?? { other: x.other, city: x.city, names: [] };
+    entry.names.push(...x.activities.map((a) => a.name));
+    offCity.set(key, entry);
+  }
+  for (const x of offCity.values()) text = `${text} ${cityKeptNote(locale, x.other, x.city, x.names)}`;
   // Told to present an unapplied edit as ready, the model still writes "I've
   // updated…" most of the time: lead with the truth so Apply isn't skipped.
   if (!p.autoApplied && !p.ownLead && claimsItineraryChange(p.reply)) text = `${notAppliedLead(locale)} ${text}`;
