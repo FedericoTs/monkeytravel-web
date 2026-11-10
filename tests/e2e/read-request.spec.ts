@@ -112,6 +112,23 @@ test.describe("a whole trip typed as the destination", () => {
     });
   });
 
+  test("keeps the days for the place picked next when the request names none", async ({ page }) => {
+    await isolate(page);
+    await typeRequest(page, "somewhere warm with a beach for 6 days with the kids", {
+      places: [],
+      days: 6,
+      startDate: null,
+      endDate: null,
+      month: null,
+      who: "family",
+      vibes: [],
+      budget: null,
+    });
+    await expect(page.getByText("Saved for the next step. Now, where are you going?")).toBeVisible();
+    await expect(page.getByRole("combobox").first()).toHaveValue("");
+    await expect(page.getByText("6 days", { exact: true })).toBeVisible();
+  });
+
   test("keeps the words for the next step when no place could be read", async ({ page }) => {
     await isolate(page);
     await typeRequest(page, "somewhere warm with the kids in April, not too expensive please", null);
