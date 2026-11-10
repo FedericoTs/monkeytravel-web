@@ -148,6 +148,19 @@ describe("what must stay", () => {
     expect(asksToRemove("No, cambia el museo por un parque")).toBe(true);
   });
 
+  // From a real conversation: a regroup asked "instead of jumping around".
+  it("nor is how to plan it", () => {
+    expect(asksToRemove("cluster the itinerary by areas to explore instead of jumping around different areas")).toBe(false);
+    expect(asksToRemove("group the days by area instead of going back and forth")).toBe(false);
+    expect(asksToRemove("agrupa los días por zonas en vez de ir de un lado a otro")).toBe(false);
+    expect(asksToRemove("raggruppa per zone invece di andare avanti e indietro")).toBe(false);
+    expect(asksToRemove("agrupe por bairros em vez de ficar indo e voltando")).toBe(false);
+    // A place instead of another is still a swap.
+    expect(asksToRemove("the Orsay instead of the Louvre")).toBe(true);
+    expect(asksToRemove("go to the Orsay instead of going to the Louvre")).toBe(true);
+    expect(asksToRemove("cluster by areas and drop the museums instead of jumping around")).toBe(true);
+  });
+
   it("holds for the whole request when they say to keep everything", () => {
     expect(keepsEverything("vou pedir para você adicionar alguns restaurantes. não remova nada que já esteja planejado")).toBe(true);
     expect(keepsEverything("somente adicione em dias que ficarem mais apropriados")).toBe(true);

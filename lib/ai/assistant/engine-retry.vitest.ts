@@ -934,12 +934,124 @@ describe("assistTrip on a trip through two cities", () => {
     expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain("Day 3 is in Seoul, but it holds places in Busan (Songdo Cable Car): give it places in Seoul instead.");
   });
 
+  // A copy on a day of the other city is still to move: it isn't the one kept.
+  it("keeps a place a part puts on its city's day while a day of the other city still has it", async () => {
+    const three = [...days, { day_number: 3, city: "Seoul", date: "2026-11-12", activities: [at("Bukchon Hanok Village", 37.5826, 126.9831), at("Gamcheon Culture Village", 35.0975, 129.0106)] }] as unknown as ItineraryDay[];
+    const seoul = [["N Seoul Tower", 37.5512, 126.9882], ["Gyeongbokgung Palace", 37.5796, 126.977], ["Insadong", 37.574, 126.985]].map(([name, lat, lng]) => ({ name, start_time: "11:00", coordinates: { lat, lng } }));
+    const first = { response: { text: () => JSON.stringify({ reply: "Grouped.", more_days: [1], edits: [{ day_number: 2, activities: seoul }] }) } };
+    const part = reply([[1, [["Haeundae Beach", 35.1587, 129.1604], ["Jagalchi Market", 35.0966, 129.0306], ["Gamcheon Culture Village", 35.0975, 129.0106]]]]);
+    generateContent.mockResolvedValueOnce(first).mockResolvedValueOnce(first).mockResolvedValueOnce(part);
+    const out = await run({ ...ask, days: three });
+    expect(generateContent).toHaveBeenCalledTimes(3);
+    expect(JSON.stringify(generateContent.mock.calls[2][0])).toContain("Other days already have these, so use none of them: N Seoul Tower, Gyeongbokgung Palace, Insadong, Bukchon Hanok Village.");
+    expect(named(out)[0]).toBe("1: Haeundae Beach, Jagalchi Market, Gamcheon Culture Village");
+  });
+
+  // The last ask for a list's places also put BIFF Square on a Seoul day: it came
+  // off, and the answer was kept for the list. The reply says so.
+  it("names the places it took off another city's day in an answer it keeps", async () => {
+    const busan: Array<[string, number, number]> = [["Haeundae Beach", 35.1587, 129.1604], ["Jagalchi Market", 35.0966, 129.0306], ["Gamcheon Culture Village", 35.0975, 129.0106], ["Songdo Cable Car", 35.0758, 129.0166]];
+    const first = reply([[1, busan]]);
+    const fill = reply([
+      [1, [...busan, ["Taejongdae", 35.0517, 129.0848]]],
+      [2, [["Gyeongbokgung Palace", 37.5796, 126.977], ["N Seoul Tower", 37.5512, 126.9882], ["Bukchon Hanok Village", 37.5826, 126.9831], ["BIFF Square", 35.0985, 129.0273]]],
+    ]);
+    generateContent.mockResolvedValueOnce(first).mockResolvedValueOnce(first).mockResolvedValueOnce(fill);
+    const out = await run({ ...ask, message: "add Gamcheon Culture Village, Songdo Cable Car, Taejongdae and Bukchon Hanok Village" });
+    expect(JSON.stringify(generateContent.mock.calls[2][0])).toContain("these places from their list aren't in the plan yet: Taejongdae, Bukchon Hanok Village.");
+    expect(named(out)[1]).toBe("2: Gyeongbokgung Palace, N Seoul Tower, Bukchon Hanok Village");
+    expect(out.reply).toContain("(Busan places stay off Seoul days: BIFF Square.)");
+  });
+
+  // Put back on a Seoul day, Jagalchi Market came off it again: that answer isn't
+  // kept, and the reply doesn't speak of it.
+  it("leaves the reply as it was when it turns down the answer for a place left off every day", async () => {
+    generateContent
+      .mockResolvedValueOnce(reply([[1, [["Haeundae Beach", 35.1587, 129.1604], ["Gamcheon Culture Village", 35.0975, 129.0106]]]]))
+      .mockResolvedValueOnce(reply([[2, [["Gyeongbokgung Palace", 37.5796, 126.977], ["N Seoul Tower", 37.5512, 126.9882], ["Jagalchi Market", 35.0966, 129.0306]]]]));
+    const out = await run(ask);
+    expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain("left these places of the plan off every day: Jagalchi Market.");
+    expect(named(out)).toEqual(["1: Haeundae Beach, Gamcheon Culture Village"]);
+    expect(out.reply).toBe("Grouped by area.");
+  });
+
   it("keeps each day in its city when the reply moves it to another", async () => {
     generateContent.mockResolvedValueOnce({
       response: { text: () => JSON.stringify({ reply: "Done.", edits: [{ day_number: 2, city: "Busan", activities: [{ name: "N Seoul Tower", start_time: "10:00" }, { name: "Gyeongbokgung Palace", start_time: "13:00" }] }] }) },
     });
     const out = await run({ ...ask, message: "make day 2 start later" });
     expect(out.edits[0].city).toBeUndefined();
+  });
+});
+
+// "Cluster by areas" on a long trip: a part repeated a place the first reply had
+// placed, and places came back on no day at all.
+describe("assistTrip regrouping a trip", () => {
+  const at = (name: string, start_time: string) => ({ name, start_time });
+  const plan = [
+    { day_number: 1, date: "2027-05-01", activities: [at("Breakfast at the hotel", "08:00"), at("Colosseum", "09:00"), at("Pantheon", "13:00")] },
+    { day_number: 2, date: "2027-05-02", activities: [at("Breakfast at the hotel", "08:00"), at("Vatican Museums", "09:00"), at("Castel Sant'Angelo", "13:00")] },
+    { day_number: 3, date: "2027-05-03", activities: [at("Breakfast at the hotel", "08:00"), at("Trevi Fountain", "09:00"), at("Villa Borghese", "13:00")] },
+  ] as unknown as ItineraryDay[];
+  const regroup = { ...input, destination: "Rome", days: plan, message: "regroup the days by area" };
+  const reply = (edits: Array<[number, Array<[string, string]>]>, more_days: number[] = []) => ({
+    response: { text: () => JSON.stringify({ reply: "Grouped by area.", more_days, edits: edits.map(([n, list]) => ({ day_number: n, activities: list.map(([name, start_time]) => ({ name, start_time })) })) }) },
+  });
+  const named = (out: { edits: Array<{ day_number: number; activities: Array<{ name: string }> }> }) => out.edits.map((e) => `${e.day_number}: ${e.activities.map((a) => a.name).join(", ")}`);
+
+  it("tells its parts the places other days keep, and takes a part's repeats off its day", async () => {
+    const first = reply([[1, [["Breakfast at the hotel", "08:00"], ["Colosseum", "09:00"], ["Roman Forum", "11:00"], ["Pantheon", "15:00"]]]], [2, 3]);
+    const part = reply([
+      [2, [["Breakfast at the hotel", "08:00"], ["Vatican Museums", "09:00"], ["Castel Sant'Angelo", "13:00"], ["Roman Forum", "16:00"], ["Spanish Steps", "18:00"]]],
+      [3, [["Breakfast at the hotel", "08:00"], ["Trevi Fountain", "09:00"], ["Spanish Steps", "11:00"], ["Villa Borghese", "13:00"]]],
+    ]);
+    generateContent.mockResolvedValueOnce(first).mockResolvedValueOnce(part);
+    const out = await run(regroup);
+    expect(generateContent).toHaveBeenCalledTimes(2);
+    // The hotel breakfast is on every day on purpose.
+    expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain("Other days already have these, so use none of them: Colosseum, Roman Forum, Pantheon.");
+    // Day 2 is back as it was: the Roman Forum is on Day 1, the Spanish Steps on Day 3.
+    expect(named(out)).toEqual(["1: Breakfast at the hotel, Colosseum, Roman Forum, Pantheon", "3: Breakfast at the hotel, Trevi Fountain, Spanish Steps, Villa Borghese"]);
+  });
+
+  it("leaves a part's day whole when taking its repeats off would leave one place", async () => {
+    const first = reply([[1, [["Colosseum", "09:00"], ["Trevi Fountain", "11:00"], ["Villa Borghese", "14:00"], ["Pantheon", "17:00"]]]], [3]);
+    generateContent.mockResolvedValueOnce(first).mockResolvedValueOnce(reply([[3, [["Trevi Fountain", "09:00"], ["Villa Borghese", "11:00"], ["Spanish Steps", "15:00"]]]]));
+    const out = await run(regroup);
+    expect(named(out)).toEqual(["1: Colosseum, Trevi Fountain, Villa Borghese, Pantheon", "3: Trevi Fountain, Villa Borghese, Spanish Steps"]);
+  });
+
+  it("asks once more for the places it left off every day, and keeps the answer only when it brings them back", async () => {
+    const first = reply([
+      [1, [["Breakfast at the hotel", "08:00"], ["Colosseum", "09:00"], ["Roman Forum", "11:00"]]],
+      [3, [["Breakfast at the hotel", "08:00"], ["Trevi Fountain", "09:00"], ["Spanish Steps", "11:00"], ["Villa Borghese", "13:00"]]],
+    ]);
+    const back = reply([[1, [["Breakfast at the hotel", "08:00"], ["Colosseum", "09:00"], ["Roman Forum", "11:00"], ["Pantheon", "15:00"]]]]);
+    generateContent.mockResolvedValueOnce(first).mockResolvedValueOnce(back);
+    const out = await run(regroup);
+    expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain("CONTINUE: regrouping left these places of the plan off every day: Pantheon.");
+    expect(named(out)).toEqual(["1: Breakfast at the hotel, Colosseum, Roman Forum, Pantheon", "3: Breakfast at the hotel, Trevi Fountain, Spanish Steps, Villa Borghese"]);
+    // An answer that brings it back by taking another place out isn't kept.
+    generateContent.mockReset();
+    generateContent.mockResolvedValueOnce(first).mockResolvedValueOnce(reply([[2, [["Breakfast at the hotel", "08:00"], ["Vatican Museums", "09:00"], ["Pantheon", "13:00"]]]]));
+    const swapped = await run(regroup);
+    expect(named(swapped)).toEqual(["1: Breakfast at the hotel, Colosseum, Roman Forum", "3: Breakfast at the hotel, Trevi Fountain, Spanish Steps, Villa Borghese"]);
+  });
+
+  it("doesn't ask for them when they asked to take something out, to add or for a day trip, nor while days are still to come", async () => {
+    const asked = () => generateContent.mock.calls.some((c) => JSON.stringify(c[0]).includes("regrouping left"));
+    const first = reply([[1, [["Colosseum", "09:00"], ["Roman Forum", "11:00"]]]]);
+    for (const message of ["regroup the days by area and remove the Pantheon", "regroup the days by area and add the Roman Forum", "regroup the days by area with a day trip to Tivoli"]) {
+      generateContent.mockReset();
+      generateContent.mockResolvedValue(first);
+      await run({ ...regroup, message });
+      expect(asked()).toBe(false);
+    }
+    // The days a part didn't bring back may be where those places were going.
+    generateContent.mockReset();
+    generateContent.mockResolvedValueOnce(reply([[1, [["Colosseum", "09:00"], ["Roman Forum", "11:00"]]]], [2, 3])).mockRejectedValueOnce(overloaded());
+    await run(regroup);
+    expect(asked()).toBe(false);
   });
 });
 
