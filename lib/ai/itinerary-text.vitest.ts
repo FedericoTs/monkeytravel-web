@@ -64,6 +64,20 @@ describe("parseStreamedItinerary", () => {
     expect(out.trip_summary).toEqual({ total_estimated_cost: 0, currency: "USD", highlights: [], packing_suggestions: [] });
   });
 
+  // A slip mid-reply sent the traveller a second plan, a different one, after the first had streamed in.
+  it("mends a quote left unescaped and a comma left out, and keeps the plan as written", () => {
+    // Quotes the model didn't escape, and the comma between the days left out.
+    const slipped = full
+      .replace("Up through the lanes to the castle", 'Up the "Escadinhas" to the castle')
+      .replace('},{"day_number":2', '}{"day_number":2');
+    expect(() => JSON.parse(slipped)).toThrow(SyntaxError);
+    const out = parseStreamedItinerary(slipped, params);
+    expect(out.days).toHaveLength(2);
+    expect(out.days[1].activities[0].description).toBe('Up the "Escadinhas" to the castle');
+    expect(out.trip_summary.total_estimated_cost).toBe(400);
+    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining("mended 3 slip(s)"));
+  });
+
   it("throws the parse error when the reply is not an itinerary", () => {
     expect(() => parseStreamedItinerary('{"destination": {"name": "Lisbon"}, "days": []}', params)).toThrow("Invalid itinerary structure");
     expect(() => parseStreamedItinerary("not json at all", params)).toThrow(SyntaxError);
