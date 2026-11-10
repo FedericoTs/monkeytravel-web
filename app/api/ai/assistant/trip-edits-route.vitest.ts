@@ -20,7 +20,8 @@ vi.mock("@/lib/ai/assistant/trip-edits", async (importOriginal) => ({
 
 const chatCalls = vi.fn();
 let chatReply = '{"summary": "Which day should it go on?", "cards": []}';
-vi.mock("@/lib/ai/genai-compat", () => ({
+vi.mock("@/lib/ai/genai-compat", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/ai/genai-compat")>()),
   GoogleGenerativeAI: class {
     getGenerativeModel({ model }: { model: string }) {
       return {

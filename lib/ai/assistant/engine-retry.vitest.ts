@@ -1239,6 +1239,47 @@ describe("assistTrip on a day that repeats a place another day keeps", () => {
   });
 });
 
+describe("assistTrip on a name with two writing systems in one word", () => {
+  const at = (name: string, start_time: string) => ({ name, start_time });
+  const plan = [
+    { day_number: 1, date: "2027-05-01", activities: [at("Gyeongbokgung Palace", "09:00"), at("Bukchon Hanok Village", "13:00")] },
+    { day_number: 2, date: "2027-05-02", activities: [at("Myeongdong", "09:00"), at("N Seoul Tower", "13:00")] },
+  ] as unknown as ItineraryDay[];
+  const seoul = { ...input, destination: "Seoul", days: plan, message: "add a market to day 2" };
+  const day2 = (names: string[], reply = "Added Nam대mun to Day 2.") => ({
+    response: { text: () => JSON.stringify({ reply, edits: [{ day_number: 2, activities: names.map((name, i) => at(name, `${9 + i * 2}:00`.padStart(5, "0"))) }] }) },
+  });
+  const usual = (name: string) => ({ response: { text: () => JSON.stringify({ names: [{ number: 1, name }] }) } });
+  // The edit's reply is asked with a request object, the names with a question.
+  const answering = (edit: ReturnType<typeof day2>, name: string) => async (req: unknown) => (typeof req === "string" ? usual(name) : edit);
+  const questions = () => generateContent.mock.calls.map(([req]) => req).filter((req): req is string => typeof req === "string");
+  const named = (out: { edits: Array<{ day_number: number; activities: Array<{ name: string }> }> }) => out.edits.map((e) => `${e.day_number}: ${e.activities.map((a) => a.name).join(", ")}`);
+
+  it("gets its usual name, in the reply too", async () => {
+    generateContent.mockImplementation(answering(day2(["Myeongdong", "Nam대mun", "N Seoul Tower"]), "Namdaemun Market"));
+    const out = await run(seoul);
+    expect(questions()).toHaveLength(1);
+    expect(questions()[0]).toContain("1. Nam대mun");
+    expect(named(out)).toEqual(["2: Myeongdong, Namdaemun Market, N Seoul Tower"]);
+    expect(out.reply).toBe("Added Namdaemun Market to Day 2.");
+  });
+
+  it("keeps the name when the answer is another place", async () => {
+    generateContent.mockImplementation(answering(day2(["Myeongdong", "Nam대mun", "N Seoul Tower"]), "Gwangjang Market"));
+    const out = await run(seoul);
+    expect(named(out)).toEqual(["2: Myeongdong, Nam대mun, N Seoul Tower"]);
+    expect(out.reply).toBe("Added Nam대mun to Day 2.");
+  });
+
+  it("asks nothing about a name the plan already had", async () => {
+    const glued = plan.map((d) => (d.day_number === 2 ? { ...d, activities: [at("Myeongdong", "09:00"), at("Green波 Cafe", "11:00")] } : d)) as unknown as ItineraryDay[];
+    generateContent.mockImplementation(answering(day2(["Myeongdong", "Green波 Cafe", "Gwangjang Market"], "Added Gwangjang Market."), "Green Wave Cafe"));
+    const out = await run({ ...seoul, days: glued });
+    expect(questions()).toEqual([]);
+    expect(named(out)).toEqual(["2: Myeongdong, Green波 Cafe, Gwangjang Market"]);
+  });
+});
+
 describe("isModelOverloaded", () => {
   it("is true only for 429, 500 and 503", () => {
     expect([429, 500, 503].map((status) => mod.isModelOverloaded({ status }))).toEqual([true, true, true]);
