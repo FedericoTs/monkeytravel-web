@@ -82,6 +82,20 @@ describe("validateEdits", () => {
     expect(validateEdits(Array.from({ length: 16 }, (_, i) => day(i + 1)), { edits: [edit(3)], tripLength: 16 }, "EUR").overCap).toBe(false);
   });
 
+  it("says when a reply wants more days than a trip may have, and adds none", () => {
+    const fourteen = Array.from({ length: 14 }, (_, i) => day(i + 1));
+    const over = validateEdits(fourteen, { edits: [edit(15)], tripLength: 15 }, "EUR");
+    expect(over).toMatchObject({ overCap: true, lengthRefused: false });
+    expect(over.tripLength).toBeUndefined();
+    expect(over.edits).toEqual([]);
+    // Up to the cap is fine, and so is a trip through several cities up to its own.
+    expect(validateEdits(fourteen.slice(0, 13), { edits: [edit(14)], tripLength: 14 }, "EUR")).toMatchObject({ tripLength: 14, overCap: false });
+    const cities = fourteen.map((d) => ({ ...d, city: "Dublin" }));
+    expect(validateEdits(cities, { edits: [edit(15)], tripLength: 15 }, "EUR")).toMatchObject({ tripLength: 15, overCap: false });
+    // A trip already past the cap may keep its length.
+    expect(validateEdits(Array.from({ length: 16 }, (_, i) => day(i + 1)), { edits: [edit(3)], tripLength: 16 }, "EUR").overCap).toBe(false);
+  });
+
   it("counts a longer trip whose other new days come in the next parts", () => {
     const out = validateEdits(trip(), { edits: [edit(6)], tripLength: 8, moreDays: [7, 8] }, "EUR");
     expect(out).toMatchObject({ tripLength: 8, lengthRefused: false });

@@ -63,6 +63,8 @@ import { alsoInTheirCity, daysOfCity, keepDayCities, placesAway, withoutPlacesAw
 import { type TravelTime, readTravelTimes, outsideTravelTimes, minutesOf } from "./travel-times";
 import { composeReply } from "./edit-reply";
 import { maxTripDays } from "./structural";
+import { askForNames, gluedNames, renamesOf, withNames } from "@/lib/ai/one-script-names";
+import { resolveAiLanguage } from "@/lib/ai/language";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 /** A change about more days asks for the rest at once, if it can start by now… */
@@ -882,6 +884,17 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   // The repeats no longer on the day the reply may have named them for.
   const notRepeated = repeats.filter((r) => !stillRepeated(edits).some((t) => t.name === r.name && t.to === r.to)).map((r) => r.name);
 
+  // A new name with two writing systems in one word ("Nam대mun") gets its
+  // usual name, in the reply too (lib/ai/one-script-names.ts).
+  let renames = new Map<string, string>();
+  const glued = gluedNames(edits).filter((name) => !input.days.some((d) => d.activities.some((a) => a.name === name)));
+  if (glued.length > 0 && Date.now() - startedAt < FILL_START_MS) {
+    const named = await askForNames(input.destination, glued, resolveAiLanguage(input.locale));
+    costUsd += named.costUsd;
+    renames = renamesOf(glued, named.answer);
+    edits = withNames(edits, renames);
+  }
+
   // A longer trip goes as far as its new days came back. The rest are named,
   // to be asked for again; with none back, the trip keeps its length.
   let notAdded: number[] = [];
@@ -904,7 +917,7 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   const span = tripSpan(input.days, input.startDate);
   const dayCount = span && (keptLength || countsWrong(input, reply, tripLength)) ? span : undefined;
   const finalReply = composeReply({
-    reply,
+    reply: [...renames].reduce((text, [from, to]) => text.split(from).join(to), reply),
     edits,
     tripLength,
     lockedDays,
