@@ -541,9 +541,18 @@ const KEPT = new RegExp(
   "giu"
 );
 
+// Saying how to plan it is not asking for something to go: "cluster it by areas
+// instead of jumping around", "en vez de ir de un lado a otro".
+const HOW_TO_PLAN = new RegExp(
+  `${start}${words("instead\\s+of|en\\s+vez\\s+de|en\\s+lugar\\s+de|invece\\s+di|em\\s+vez\\s+de|ao\\s+inv[eé]s\\s+de")}\\s+(?:[${L}'’]+\\s+){0,3}?${words(
+    "around|back\\s+and\\s+forth|all\\s+over|from\\s+place\\s+to\\s+place|de\\s+un\\s+lado\\s+(?:a|para)\\s+otro|de\\s+un\\s+sitio\\s+a\\s+otro|avanti\\s+e\\s+indietro|da\\s+una\\s+parte\\s+all['’]altra|qua\\s+e\\s+l[aà]|de\\s+um\\s+lado\\s+(?:pro|pra|para\\s+o)\\s+outro|indo\\s+e\\s+voltando"
+  )}${end}`,
+  "giu"
+);
+
 /** Does the traveller's message ask for something to be taken out or swapped? */
 export function asksToRemove(message: string | null | undefined): boolean {
-  return REMOVAL_ASK.test((message ?? "").replace(KEPT, " "));
+  return REMOVAL_ASK.test((message ?? "").replace(KEPT, " ").replace(HOW_TO_PLAN, " "));
 }
 
 /**
