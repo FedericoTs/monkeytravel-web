@@ -15,6 +15,7 @@ import {
   listMissingNote,
   fixedKeptNote,
   cityKeptNote,
+  cityMovedNote,
   dayCountNote,
   dayCountReply,
   type TripSpan,
@@ -90,6 +91,8 @@ export function composeReply(p: {
   dayCount?: TripSpan;
   /** Places of another city taken off a city's days. */
   cityKept?: PlacesAway[];
+  /** Places of another city the change moved from a day of the wrong one to days of their own. */
+  cityMoved?: PlacesAway[];
 }): string {
   const prepared = p.edits.length > 0 || p.tripLength !== undefined;
   // Notes join the reply, in its language: a Spanish message about a plan
@@ -195,6 +198,10 @@ export function composeReply(p: {
     offCity.set(key, entry);
   }
   for (const x of offCity.values()) text = `${text} ${cityKeptNote(locale, x.other, x.city, x.names)}`;
+  // Places of another city now on days of their own city, unless the reply named them.
+  const toCity = new Map<string, string[]>();
+  for (const x of p.cityMoved ?? []) toCity.set(x.other, [...(toCity.get(x.other) ?? []), ...x.activities.map((a) => a.name).filter((n) => !namedInReply(n))]);
+  for (const [city, names] of toCity) if (names.length > 0) text = `${text} ${cityMovedNote(locale, city, names)}`;
   // Told to present an unapplied edit as ready, the model still writes "I've
   // updated…" most of the time: lead with the truth so Apply isn't skipped.
   if (!p.autoApplied && !p.ownLead && claimsItineraryChange(p.reply)) text = `${notAppliedLead(locale)} ${text}`;

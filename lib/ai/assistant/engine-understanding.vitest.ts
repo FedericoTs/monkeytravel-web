@@ -8,7 +8,7 @@ import { correctionFor } from "./engine";
 import { asksForFewerDays, asksForMoreDays, asksToAdd, keepsEverything, listedPlaces, talksAboutDayCount } from "./message-asks";
 import { keepSavedActivities, takenOut } from "./saved-activities";
 import { outsideTravelTimes, readTravelTimes } from "./travel-times";
-import { asksToRemove, replyLanguage, statedDayCounts } from "./honesty";
+import { asksToRemove, asksToTakeOut, replyLanguage, statedDayCounts } from "./honesty";
 
 /**
  * The trip assistant should understand what a traveller means and do what
@@ -159,6 +159,20 @@ describe("what must stay", () => {
     expect(asksToRemove("the Orsay instead of the Louvre")).toBe(true);
     expect(asksToRemove("go to the Orsay instead of going to the Louvre")).toBe(true);
     expect(asksToRemove("cluster by areas and drop the museums instead of jumping around")).toBe(true);
+  });
+
+  // "Would you like me to replace them with Seoul attractions?" "Yes, replace them."
+  it("goes for good only when they say so, not on a swap", () => {
+    expect(asksToTakeOut("remove the busan sights from the seoul days")).toBe(true);
+    expect(asksToTakeOut("take out all restaurants")).toBe(true);
+    expect(asksToTakeOut("quita los museos")).toBe(true);
+    expect(asksToTakeOut("togli il museo")).toBe(true);
+    expect(asksToTakeOut("yes, replace them with seoul sights")).toBe(false);
+    expect(asksToTakeOut("swap the museum for a park")).toBe(false);
+    expect(asksToTakeOut("the Orsay instead of the Louvre")).toBe(false);
+    expect(asksToTakeOut("why are there busan sights in seoul?")).toBe(false);
+    expect(asksToTakeOut("add a dinner but don't remove anything")).toBe(false);
+    expect(asksToTakeOut("cluster it by areas instead of jumping around")).toBe(false);
   });
 
   it("holds for the whole request when they say to keep everything", () => {

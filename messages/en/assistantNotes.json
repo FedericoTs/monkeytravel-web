@@ -8,6 +8,7 @@
   "lockedDay": "Day {day} has a fixed plan you set ({fixed}), so I left it as it is: you can change it yourself in the plan. I can change anything else on that day.",
   "fixedKept": "(The fixed plan on Day {day} stays as you set it: {fixed}.)",
   "cityKept": "({other} places stay off {city} days: {list}.)",
+  "cityMoved": "(Moved to {city} days: {list}.)",
   "wizardFallbackPrepared": "Here's the change.",
   "wizardFallbackIdle": "Here to help — ask me anything about your trip.",
   "lengthUnchanged": "(The trip stays at {days, plural, =1 {# day} other {# days}}: I couldn't prepare the new days. Ask me again, one day at a time.)",

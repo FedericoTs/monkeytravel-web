@@ -281,6 +281,11 @@ export function cityKeptNote(language: string | undefined, other: string, city: 
   return note(language, "cityKept", { other, city, list: names.join(", ") });
 }
 
+/** Appended when places of another city went from a day of the wrong one to days of their own city. */
+export function cityMovedNote(language: string | undefined, city: string, names: string[]): string {
+  return note(language, "cityMoved", { city, list: names.join(", "), count: names.length });
+}
+
 /** Appended when a change would have moved or taken out a fixed plan, which stays as it was. */
 export function fixedKeptNote(language: string | undefined, dayNumber: number, names: string[]): string {
   return note(language, "fixedKept", { day: String(dayNumber), fixed: names.join(", ") });
@@ -553,6 +558,20 @@ const HOW_TO_PLAN = new RegExp(
 /** Does the traveller's message ask for something to be taken out or swapped? */
 export function asksToRemove(message: string | null | undefined): boolean {
   return REMOVAL_ASK.test((message ?? "").replace(KEPT, " ").replace(HOW_TO_PLAN, " "));
+}
+
+// Asking for something to go for good: "remove", "take out", "quita", "togli"…
+// A swap ("replace them with Seoul sights", "instead") changes what a day holds.
+const TAKE_OUT = new RegExp(
+  `${start}${words(
+    "remove|removing|take\\s+out|delete|drop|skip|cut|get\\s+rid|no\\s+more|quita|quite|quitar|elimina|elimine|eliminar|borra|borre|togli|tolga|togliere|rimuovi|rimuova|cancella|cancelli|tira|tire|tirar|retire|retirar|remova|exclua|apaga|apague"
+  )}${end}`,
+  "iu"
+);
+
+/** Does the traveller's message ask for something to go for good, not for a swap? */
+export function asksToTakeOut(message: string | null | undefined): boolean {
+  return TAKE_OUT.test((message ?? "").replace(KEPT, " ").replace(HOW_TO_PLAN, " "));
 }
 
 /**

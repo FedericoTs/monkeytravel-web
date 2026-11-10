@@ -239,6 +239,20 @@ describe("composeReply", () => {
     );
   });
 
+  it("says which places of another city went to days of their own city, unless the reply did", () => {
+    const [d2] = validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").edits;
+    const off = (n: number, names: string[]) => ({ day: n, city: "Seoul", other: "Busan", activities: names.map(act) as never });
+    const moved = [off(7, ["Songdo Cable Car"]), off(8, ["Haeundae Sky Capsule"])];
+    expect(composeReply({ ...base, reply: "Fixed: that day is all Seoul now.", edits: [d2], cityMoved: moved })).toBe(
+      "Fixed: that day is all Seoul now. (Moved to Busan days: Songdo Cable Car, Haeundae Sky Capsule.)",
+    );
+    expect(composeReply({ ...base, reply: "Fixed, and the Songdo Cable Car is with the other Busan sights.", edits: [d2], cityMoved: moved })).toBe(
+      "Fixed, and the Songdo Cable Car is with the other Busan sights. (Moved to Busan days: Haeundae Sky Capsule.)",
+    );
+    expect(composeReply({ ...base, locale: "es", reply: "Listo.", edits: [d2], cityMoved: moved })).toBe("Listo. (Pasan a los días de Busan: Songdo Cable Car, Haeundae Sky Capsule.)");
+    expect(composeReply({ ...base, locale: "it", reply: "Fatto.", edits: [d2], cityMoved: [moved[0]] })).toBe("Fatto. (Passa ai giorni di Busan: Songdo Cable Car.)");
+  });
+
   it("gives the count from the dates when the reply gives another", () => {
     const span = { from: "2026-11-28", to: "2026-12-06", days: 9 };
     const agreed = "You're totally right! From November 28 to December 6 is indeed 8 days total.";

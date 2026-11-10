@@ -49,7 +49,7 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-async function run(i = input) {
+async function run(i: Parameters<typeof mod.assistTrip>[0] = input) {
   const p = mod.assistTrip(i);
   // Handled by the caller's expect; marked here so it isn't reported early.
   p.catch(() => {});
@@ -930,8 +930,10 @@ describe("assistTrip on a trip through two cities", () => {
     const three = [...days, { day_number: 3, city: "Seoul", date: "2026-11-12", activities: [at("Songdo Cable Car", 35.0758, 129.0166), at("Bukchon Hanok Village", 37.5826, 126.9831)] }] as unknown as ItineraryDay[];
     const first = { response: { text: () => JSON.stringify({ reply: "Grouped.", more_days: [2, 3], edits: [{ day_number: 1, activities: [{ name: "Jagalchi Market", start_time: "10:00" }, { name: "Songdo Cable Car", start_time: "13:00" }, { name: "Haeundae Beach", start_time: "16:00" }] }] }) } };
     generateContent.mockResolvedValueOnce(first).mockResolvedValueOnce(reply([[3, [["Bukchon Hanok Village", 37.5826, 126.9831], ["Insadong", 37.574, 126.985]]]]));
-    await run({ ...ask, days: three });
+    const out = await run({ ...ask, days: three });
     expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain("Day 3 is in Seoul, but it holds places in Busan (Songdo Cable Car): give it places in Seoul instead.");
+    // Asked to regroup, they expect places to move: no note for it.
+    expect(out.reply).toBe("Grouped.");
   });
 
   // A copy on a day of the other city is still to move: it isn't the one kept.
@@ -973,6 +975,48 @@ describe("assistTrip on a trip through two cities", () => {
     expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain("left these places of the plan off every day: Jagalchi Market.");
     expect(named(out)).toEqual(["1: Haeundae Beach, Gamcheon Culture Village"]);
     expect(out.reply).toBe("Grouped by area.");
+  });
+
+  // Gamcheon was on a Busan day already: taking its copy off the Seoul day moves nothing.
+  it("doesn't call a copy taken off a day of the wrong city moved", async () => {
+    const gamcheon = at("Gamcheon Culture Village", 35.0975, 129.0106);
+    const twice = [{ ...days[0], activities: [...days[0].activities, gamcheon] }, { ...days[1], activities: [...days[1].activities, gamcheon] }] as unknown as ItineraryDay[];
+    generateContent.mockResolvedValueOnce(reply([[2, [["Gyeongbokgung Palace", 37.5796, 126.977], ["N Seoul Tower", 37.5512, 126.9882], ["Bukchon Hanok Village", 37.5826, 126.9831]]]]));
+    const out = await run({ ...ask, days: twice, message: "why are there busan sights in seoul?" });
+    expect(generateContent).toHaveBeenCalledTimes(1);
+    expect(out.reply).toBe("Grouped by area.");
+  });
+
+  // "Why are there Busan sights in Seoul?": the reply gave Day 2 Seoul places,
+  // and Gamcheon Culture Village was on no day. It goes to a Busan day.
+  it("moves another city's place a change took off a day to a day of its own city, and says so", async () => {
+    const mixed = [days[0], { ...days[1], activities: [...days[1].activities, at("Gamcheon Culture Village", 35.0975, 129.0106)] }] as unknown as ItineraryDay[];
+    const first = reply([[2, [["Gyeongbokgung Palace", 37.5796, 126.977], ["Bukchon Hanok Village", 37.5826, 126.9831]]]]);
+    // It also redid Day 2, which isn't what it was asked for.
+    const back = reply([
+      [1, [["Haeundae Beach", 35.1587, 129.1604], ["Jagalchi Market", 35.0966, 129.0306], ["Gamcheon Culture Village", 35.0975, 129.0106]]],
+      [2, [["Gyeongbokgung Palace", 37.5796, 126.977], ["Myeongdong", 37.5636, 126.9827]]],
+    ]);
+    generateContent.mockResolvedValueOnce(first).mockResolvedValueOnce(back);
+    const out = await run({ ...ask, days: mixed, message: "why are there busan sights in seoul?" });
+    // Only the other city's place is asked about, with its city's days: N Seoul Tower made room for Bukchon.
+    expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain(
+      "CONTINUE: this change left these places of the plan off every day: Gamcheon Culture Village. Gamcheon Culture Village is in Busan: put it on Busan's days (Days 1), never on a day of another city.",
+    );
+    expect(named(out)).toEqual(["1: Haeundae Beach, Jagalchi Market, Gamcheon Culture Village", "2: Gyeongbokgung Palace, Bukchon Hanok Village"]);
+    expect(out.reply).toBe("Grouped by area. (Moved to Busan days: Gamcheon Culture Village.)");
+    // Asked to swap them for Seoul sights, they still go to a Busan day, and what else went is named.
+    generateContent.mockReset();
+    generateContent.mockResolvedValueOnce(first).mockResolvedValueOnce(back);
+    const swapped = await run({ ...ask, days: mixed, message: "yes, replace them with seoul sights", explainRemovals: true });
+    expect(named(swapped)[0]).toBe("1: Haeundae Beach, Jagalchi Market, Gamcheon Culture Village");
+    expect(swapped.reply).toBe("Grouped by area. (This change takes out: N Seoul Tower.) (Moved to Busan days: Gamcheon Culture Village.)");
+    // Asked to take them out, they stay out.
+    generateContent.mockReset();
+    generateContent.mockResolvedValueOnce(first).mockResolvedValueOnce(back);
+    const removed = await run({ ...ask, days: mixed, message: "remove the busan sights from the seoul days" });
+    expect(generateContent).toHaveBeenCalledTimes(1);
+    expect(removed.reply).toBe("Grouped by area.");
   });
 
   it("keeps each day in its city when the reply moves it to another", async () => {
@@ -1029,7 +1073,7 @@ describe("assistTrip regrouping a trip", () => {
     const back = reply([[1, [["Breakfast at the hotel", "08:00"], ["Colosseum", "09:00"], ["Roman Forum", "11:00"], ["Pantheon", "15:00"]]]]);
     generateContent.mockResolvedValueOnce(first).mockResolvedValueOnce(back);
     const out = await run(regroup);
-    expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain("CONTINUE: regrouping left these places of the plan off every day: Pantheon.");
+    expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain("CONTINUE: this change left these places of the plan off every day: Pantheon.");
     expect(named(out)).toEqual(["1: Breakfast at the hotel, Colosseum, Roman Forum, Pantheon", "3: Breakfast at the hotel, Trevi Fountain, Spanish Steps, Villa Borghese"]);
     // An answer that brings it back by taking another place out isn't kept.
     generateContent.mockReset();
@@ -1039,7 +1083,7 @@ describe("assistTrip regrouping a trip", () => {
   });
 
   it("doesn't ask for them when they asked to take something out, to add or for a day trip, nor while days are still to come", async () => {
-    const asked = () => generateContent.mock.calls.some((c) => JSON.stringify(c[0]).includes("regrouping left"));
+    const asked = () => generateContent.mock.calls.some((c) => JSON.stringify(c[0]).includes("left these places of the plan off every day"));
     const first = reply([[1, [["Colosseum", "09:00"], ["Roman Forum", "11:00"]]]]);
     for (const message of ["regroup the days by area and remove the Pantheon", "regroup the days by area and add the Roman Forum", "regroup the days by area with a day trip to Tivoli"]) {
       generateContent.mockReset();
