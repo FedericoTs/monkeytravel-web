@@ -84,6 +84,11 @@ export function placesAway(days: ItineraryDay[], edits: DayEdit[], message: stri
   return [...byDay.values()].sort((x, y) => x.day - y.day);
 }
 
+/** The numbers of a city's days: "Busan" and "Busan, South Korea" are one city. */
+export function daysOfCity(days: ItineraryDay[], city: string): number[] {
+  return days.filter((d) => d.city && cityKey(d.city) === cityKey(city)).map((d) => d.day_number);
+}
+
 /**
  * Of a day's places of another city, the ones the plan, as the change leaves
  * it, also holds on a day of that city: moved there, not lost.

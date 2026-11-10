@@ -8,6 +8,7 @@
   "lockedDay": "Il giorno {day} ha un impegno fisso che hai impostato tu ({fixed}), quindi l'ho lasciato com'è: puoi cambiarlo tu nel piano. Posso cambiare tutto il resto di quel giorno.",
   "fixedKept": "(L'impegno fisso del giorno {day} resta come l'hai impostato: {fixed}.)",
   "cityKept": "(I posti di {other} restano fuori dai giorni di {city}: {list}.)",
+  "cityMoved": "{count, plural, =1 {(Passa ai giorni di {city}: {list}.)} other {(Passano ai giorni di {city}: {list}.)}}",
   "wizardFallbackPrepared": "Ecco la modifica.",
   "wizardFallbackIdle": "Sono qui per aiutarti: chiedimi qualsiasi cosa sul tuo viaggio.",
   "lengthUnchanged": "(Il viaggio resta di {days, plural, =1 {# giorno} other {# giorni}}: non sono riuscito a preparare i giorni nuovi. Chiedimelo di nuovo, un giorno alla volta.)",

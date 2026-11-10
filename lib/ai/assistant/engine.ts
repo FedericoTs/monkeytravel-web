@@ -23,6 +23,7 @@ import {
   announcedButMissing,
   announcesProposal,
   asksToRemove,
+  asksToTakeOut,
   claimsItineraryChange,
   claimsLongerTrip,
   isConfirmation,
@@ -58,7 +59,7 @@ import {
   asksToRegroup,
   asksForDayTrip,
 } from "./message-asks";
-import { alsoInTheirCity, keepDayCities, placesAway, withoutPlacesAway, type PlacesAway } from "./city-days";
+import { alsoInTheirCity, daysOfCity, keepDayCities, placesAway, withoutPlacesAway, type PlacesAway } from "./city-days";
 import { type TravelTime, readTravelTimes, outsideTravelTimes, minutesOf } from "./travel-times";
 import { composeReply } from "./edit-reply";
 
@@ -157,9 +158,31 @@ function fillPrompt(missing: string[], keepAll: boolean): string {
   return `CONTINUE: these places from their list aren't in the plan yet: ${missing.join(", ")}. Return in "edits" only the days you add them to, each day in full: add each place once, on the day and at the time it fits best (a restaurant at lunch or dinner), keeping every activity the day already has${keepAll ? "" : " unless it truly can't fit"}. "more_days" is [], "trip_length" is null, and "reply" is one short line.`;
 }
 
-/** What the last ask for the places a regroup left off every day says. */
-function lostPrompt(lost: string[]): string {
-  return `CONTINUE: regrouping left these places of the plan off every day: ${lost.join(", ")}. Return in "edits" only the days you put them back on, each day in full: each place once, on a day near it where it fits (on a trip through several cities, a day in its city), keeping every activity the day already has. "more_days" is [], "trip_length" is null, and "reply" is one short line.`;
+/**
+ * What the last ask for the places a change left off every day says; `homes`
+ * names the city, and its days, of the ones that sat on a day of another.
+ */
+function lostPrompt(lost: string[], homes: { city: string; days: number[]; names: string[] }[] = []): string {
+  const where = homes
+    .map((h) => ` ${h.names.join(", ")} ${h.names.length > 1 ? "are" : "is"} in ${h.city}: put ${h.names.length > 1 ? "them" : "it"} on ${h.city}'s days (Days ${h.days.join(", ")}), never on a day of another city.`)
+    .join("");
+  return `CONTINUE: this change left these places of the plan off every day: ${lost.join(", ")}.${where} Return in "edits" only the days you put them back on, each day in full: each place once, on a day near it where it fits (on a trip through several cities, a day in its city). Keep every activity those days already have: add alongside, moving times to make room, and spread the places over several days rather than crowd one. Leave out one the plan already holds under another name. "more_days" is [], "trip_length" is null, and "reply" is one short line.`;
+}
+
+/**
+ * The places of another city that sat on a day of the wrong one (`misplaced`,
+ * city-days) and that the change put on another day, which didn't hold them
+ * before. Pure; unit-tested through assistTrip.
+ */
+function movedToTheirCity(days: ItineraryDay[], edits: DayEdit[], misplaced: PlacesAway[]): PlacesAway[] {
+  const plan = withEdits(days, edits);
+  const holds = (list: ItineraryDay[], n: number, name: string) => (list.find((d) => d.day_number === n)?.activities ?? []).some((a) => a?.name === name);
+  return misplaced.flatMap((x) => {
+    const moved = x.activities.filter(
+      (a) => !holds(plan, x.day, a.name) && plan.some((d) => d.day_number !== x.day && holds(plan, d.day_number, a.name) && !holds(days, d.day_number, a.name)),
+    );
+    return moved.length > 0 ? [{ ...x, activities: moved }] : [];
+  });
 }
 
 /**
@@ -742,29 +765,47 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
     }
   }
 
-  // A regroup keeps every place: once every part is in, one more ask for the
-  // ones it left off every day. Not when they asked to take something out, to
-  // add or for a day trip, which can each take a place's room. Kept when it
-  // brings back more.
-  const regroupOnly = regroup && !asksToRemove(input.message) && !asksToAdd(input.message) && !asksForDayTrip(input.message);
-  const lost = regroupOnly && daysLeft.length === 0 ? takenOut(input.days, edits) : [];
+  // Places a change left off every day get one more ask once every part is in,
+  // to go back on a day near them; kept when it brings back more. On a regroup,
+  // every such place (not when they asked to take something out, to add or for
+  // a day trip, which can each take a place's room); otherwise a place of
+  // another city that was on a day of the wrong one ("why are there Busan
+  // sights in Seoul?"), for a day of its own city, unless they asked for
+  // something to go for good: "replace them with Seoul sights" is a swap.
+  const misplaced = placesAway(input.days, [], input.message, new Set(input.days.map((d) => d.day_number)));
+  const gone = daysLeft.length === 0 ? takenOut(input.days, edits) : [];
+  const lost =
+    regroup && !asksToRemove(input.message) && !asksToAdd(input.message) && !asksForDayTrip(input.message)
+      ? gone
+      : asksToTakeOut(input.message)
+        ? []
+        : gone.filter((name) => misplaced.some((x) => x.activities.some((a) => a.name === name)));
   if (lost.length > 0 && Date.now() - startedAt < FILL_START_MS) {
     try {
       const now = withEdits(input.days, edits);
+      // Each place that sat on a day of another city goes to its own city's days.
+      const homes = [...new Set(misplaced.map((x) => x.other))]
+        .map((city) => ({
+          city,
+          days: daysOfCity(input.days, city),
+          names: lost.filter((name) => misplaced.some((x) => x.other === city && x.activities.some((a) => a.name === name))),
+        }))
+        .filter((h) => h.names.length > 0 && h.days.length > 0);
+      // Only a day that takes one of them back: the answer once redid Day 8 instead.
       const back = readOutcome(
         input,
-        await within(ask(`${buildPrompt({ ...input, days: now })}\n\n${lostPrompt(lost)}`, 1), MORE_DAYS_DEADLINE_MS - (Date.now() - startedAt)),
+        await within(ask(`${buildPrompt({ ...input, days: now })}\n\n${lostPrompt(lost, homes)}`, 1), MORE_DAYS_DEADLINE_MS - (Date.now() - startedAt)),
         cur,
-      ).edits.filter((e) => e.day_number <= current);
+      ).edits.filter((e) => e.day_number <= current && e.activities.some((a) => lost.includes(a.name)));
       const byDay = new Map(edits.map((e) => [e.day_number, e]));
       back.forEach((e) => {
         fromParts.add(e.day_number);
         byDay.set(e.day_number, e);
       });
       const filled = settle([...byDay.values()].sort((a, b) => a.day_number - b.day_number));
-      if (takenOut(input.days, filled.edits).length < lost.length) ({ edits, away: leftInTheirCity } = filled);
+      if (takenOut(input.days, filled.edits).length < gone.length) ({ edits, away: leftInTheirCity } = filled);
     } catch (err) {
-      console.warn("assistant-anon: asking for a regroup's lost places failed:", err instanceof Error ? err.message : err);
+      console.warn("assistant-anon: asking for the places a change left off every day failed:", err instanceof Error ? err.message : err);
     }
   }
 
@@ -806,11 +847,14 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
     notAdded,
     outsideTimes,
     askedForMoreDays: asksForMoreDays(input.message, input.days.length),
-    takenOut: input.explainRemovals && !asksToRemove(input.message) ? takenOut(input.days, edits) : [],
+    // Unless they asked for something to go for good: a swap can take out more than they named.
+    takenOut: input.explainRemovals && !asksToTakeOut(input.message) ? takenOut(input.days, edits) : [],
     offersElsewhere: outcome.elsewhere.length > 0,
     listMissing,
     dayCount,
     cityKept: leftInTheirCity,
+    // Asked to regroup, they expect places to move.
+    cityMoved: regroup ? [] : movedToTheirCity(input.days, edits, misplaced),
   });
 
   return {
