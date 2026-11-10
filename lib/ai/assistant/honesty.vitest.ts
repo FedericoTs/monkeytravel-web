@@ -204,6 +204,18 @@ const handedOver = [
   "Here's a proposal to add a pub experience to Day 3.",
   "Aquí tienes la propuesta para quitar la cena del día 2.",
   "Aqui está a proposta para remover o jantar do dia 2.",
+  // A new day handed over with no change: four replies on one trip.
+  "Aqui está o novo Dia 15 em Dublin para completar a sua viagem, pronto para salvar.",
+  "Aqui está um dia extra (Dia 15) pronto para salvar, explorando as belas paisagens costeiras de Howth.",
+  "Aqui está a sugestão para incluir a viagem entre os dias da sua rota de autocaravana, pronta para salvar.",
+  "Here's a new Day 15 in Dublin with Howth and Malahide Castle.",
+  "Here are 7 new days, ready to save: Kyoto, Nara and Osaka.",
+  "Here are 3 new days in the Algarve: beaches, Lagos and Sagres.",
+  "Ready to swap Days 1 and 2: the museum moves to Monday.",
+  "Aquí tienes un nuevo día 6 con una clase de cocina.",
+  "Aquí tienes 7 días nuevos, listos para guardar.",
+  "Ecco un nuovo giorno 6 con un corso di cucina.",
+  "Ecco 7 nuovi giorni, pronti da salvare.",
 ];
 const offers = [
   "Certo, posso rimuovere la cena al Restaurace Mlejnice dal tuo itinerario del Giorno 2.",
@@ -222,6 +234,11 @@ const notOffers = [
   "Il bus 59 è un'ottima alternativa per raggiungere il centro.",
   "Here's the plan for Day 2: the market, then lunch.",
   "Ecco il piano per il giorno 2.",
+  // Saving, or a day trip, is a fine thing to talk about.
+  "Your trip is ready to save: tap Save trip to keep it.",
+  "Sua viagem está pronta para salvar quando quiser.",
+  "Here's an extra day trip idea: Howth, 30 minutes by DART.",
+  "Here's a new day-trip option if you want one: Glendalough.",
 ];
 
 describe("announcesProposal", () => {

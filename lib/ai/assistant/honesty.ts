@@ -149,6 +149,18 @@ const PROPOSAL_PATTERNS: RegExp[] = [
   new RegExp(`${start}aqui\\s+(?:está|vai)\\s+(?:a\\s+minha|a|uma|minha)\\s+proposta${end}`, "iu"),
   new RegExp(`${start}(?:te\\s+)?proponho\\s+(?:a\\s+seguinte|a|esta|uma)\\s+(?:alteração|mudança)${end}`, "iu"),
   new RegExp(`${start}(?<!não\\s)(?:vou\\s+(?:te\\s+)?propor|proporei)${end}`, "iu"),
+  // The words the trip page's prompt gives a prepared change (READY_WORDING):
+  // "Here's a new Day 6 with…", "Ready to swap Days 1 and 2:…", "Here are 7 new
+  // days, ready to save:…". With nothing prepared, a promise: "aqui está um novo
+  // dia 15 em Dublin, pronto para salvar" came with no change, four times.
+  new RegExp(`${start}here(?:['’]s|\\s+is|\\s+are)\\s+(?:a|an|the|your|\\d+)\\s+(?:new|extra|additional)\\s+days?${end}(?!\\s*-?\\s*trips?)`, "iu"),
+  new RegExp(`(?:${SENTENCE_START}|,\\s*)ready\\s+(?:for\\s+you\\s+)?to\\s+(?:save|apply|swap|switch)${end}`, "iu"),
+  new RegExp(`${start}aquí\\s+(?:tienes|está|están|va|van)\\s+(?:el|un|tu|los|unos|\\d+)\\s+(?:nuevos?\\s+días?|días?\\s+(?:nuevos?|extras?|adicionales?))${end}`, "iu"),
+  new RegExp(`(?:${SENTENCE_START}|,\\s*)list[oa]s?\\s+para\\s+(?:guardar|aplicar|cambiar|intercambiar)${end}`, "iu"),
+  new RegExp(`${start}ecco\\s+(?:il|un|il\\s+tuo|i|dei|\\d+)\\s+(?:nuov[oi]\\s+giorn[oi]|giorn[oi]\\s+(?:nuov[oi]|extra|in\\s+più|aggiuntiv[oi]))${end}`, "iu"),
+  new RegExp(`(?:${SENTENCE_START}|,\\s*)pront[oaie]\\s+(?:da\\s+salvare|da\\s+applicare|a\\s+(?:scambiare|salvare|applicare))${end}`, "iu"),
+  new RegExp(`${start}aqui\\s+(?:está|estão|vai|vão)\\s+(?:o|um|o\\s+seu|seu|os|uns|\\d+)\\s+(?:novos?\\s+dias?|dias?\\s+(?:novos?|extras?|adicionais))${end}`, "iu"),
+  new RegExp(`(?:${SENTENCE_START}|,\\s*)pront[oa]s?\\s+para\\s+(?:salvar|aplicar|guardar|trocar)${end}`, "iu"),
 ];
 
 /** Does this reply say it comes with a proposed change? */
@@ -468,6 +480,11 @@ function spanValues(language: string | undefined, span: TripSpan) {
 /** The reply when nothing changes and it gave the trip another count, or a shorter trip nobody asked for. */
 export function dayCountReply(language: string | undefined, span: TripSpan): string {
   return note(language, "dayCount", spanValues(language, span));
+}
+
+/** A reply that wanted more days than a trip may have: none were added, and what can be done instead. */
+export function tripCapReply(language: string | undefined, max: number, days: number): string {
+  return note(language, "tripCap", { max, room: Math.max(0, max - days) });
 }
 
 /** Appended when a change's reply gives the trip another count than its dates. */
