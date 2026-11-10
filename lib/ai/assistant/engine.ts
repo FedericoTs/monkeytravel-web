@@ -55,7 +55,9 @@ import {
   keepsEverything,
   listedPlaces,
   talksAboutDayCount,
+  asksToRegroup,
 } from "./message-asks";
+import { alsoInTheirCity, keepDayCities, placesAway, withoutPlacesAway, type PlacesAway } from "./city-days";
 import { type TravelTime, readTravelTimes, outsideTravelTimes, minutesOf } from "./travel-times";
 import { composeReply } from "./edit-reply";
 
@@ -103,7 +105,8 @@ function readOutcome(input: AssistInput, obj: Record<string, unknown>, cur: stri
     cur,
     asksForFreeDay(input.message),
   );
-  const edits = keepSavedActivities(input.days, checked.edits, { reply, message: input.message });
+  const told = [input.message, ...(input.history ?? []).slice(-4).filter((t) => t.role === "user").map((t) => t.text)].join("\n");
+  const edits = keepDayCities(input.days, keepSavedActivities(input.days, checked.edits, { reply, message: input.message }), told);
   // The other days the change concerns, past what one reply holds.
   const length = checked.tripLength ?? input.days.length;
   const done = new Set(edits.map((e) => e.day_number));
@@ -155,16 +158,20 @@ function fillPrompt(missing: string[], keepAll: boolean): string {
 
 /**
  * What the next part of a change is asked with; `length` when the trip gets
- * longer, `keepAll` when they said to keep everything already planned.
+ * longer, `keepAll` when they said to keep everything already planned, `mixed`
+ * for its days that hold another city's places.
  */
-function continuePrompt(reply: string, done: number[], group: number[], current: number, length?: number, keepAll = false): string {
+function continuePrompt(reply: string, done: number[], group: number[], current: number, length?: number, keepAll = false, mixed: PlacesAway[] = []): string {
   const fresh = length !== undefined ? group.filter((n) => n > current) : [];
   const newDays =
     fresh.length > 0
       ? ` Days ${fresh.join(", ")} are new days at the end of the trip, which now has ${length} days: plan each in full, carrying on from the day before and repeating nothing the trip already holds.`
       : "";
   const keep = keepAll ? " They asked you to keep everything already planned: keep every activity these days have, and add alongside." : "";
-  return `CONTINUE: you are partway through this change. Your reply was: "${reply.slice(0, 600)}". Days ${done.join(", ")} are done, and the itinerary above shows them. Now return Days ${group.join(", ")} in "edits", each in full, changed the same way, and no other day. Each thing they asked to add goes on one day only: add nothing the itinerary above already holds, and leave out of "edits" a day this change doesn't need.${keep}${newDays} "more_days" is [], "trip_length" is ${length ?? "null"}, and "reply" is one short line.`;
+  const cities = mixed
+    .map((x) => ` Day ${x.day} is in ${x.city}, but it holds places in ${x.other} (${x.activities.map((a) => a.name).join(", ")}): give it places in ${x.city} instead.`)
+    .join("");
+  return `CONTINUE: you are partway through this change. Your reply was: "${reply.slice(0, 600)}". Days ${done.join(", ")} are done, and the itinerary above shows them. Now return Days ${group.join(", ")} in "edits", each in full, changed the same way, and no other day. Each thing they asked to add goes on one day only: add nothing the itinerary above already holds, and leave out of "edits" a day this change doesn't need.${keep}${cities}${newDays} "more_days" is [], "trip_length" is ${length ?? "null"}, and "reply" is one short line.`;
 }
 
 const placeName = (s: string) =>
@@ -250,6 +257,23 @@ export function missingFromList(input: Pick<AssistInput, "message" | "history" |
   return missing.length > 0 && listed.length - missing.length >= Math.ceil(listed.length / 2) ? missing : [];
 }
 
+/**
+ * Saved places (their names kept, see keepSavedActivities) an edited day now
+ * holds while the one day that had them is left as it was: `from` that day,
+ * `to` the edited one. A name on several saved days ("Breakfast at the hotel")
+ * recurs on purpose, and a day still to come in `later` can lose its copy then.
+ */
+function twinsOf(days: ItineraryDay[], edits: DayEdit[], later: number[]): { name: string; from: number; to: number }[] {
+  const key = (x?: string) => (x ?? "").trim().toLowerCase();
+  const edited = new Set([...edits.map((e) => e.day_number), ...later]);
+  return edits.flatMap((e) =>
+    e.activities.flatMap((a) => {
+      const holders = key(a.name) ? days.filter((d) => (d.activities ?? []).some((b) => key(b?.name) === key(a.name))) : [];
+      return holders.length === 1 && !edited.has(holders[0].day_number) ? [{ name: a.name, from: holders[0].day_number, to: e.day_number }] : [];
+    }),
+  );
+}
+
 /** The promise's value, or a rejection once `ms` have passed. */
 function within<T>(promise: Promise<T>, ms: number): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -304,6 +328,22 @@ export function correctionFor(
       .filter(isLockedActivity)
       .map((a) => `${a.name} at ${a.start_time}`);
     return `Day ${fixed.dayNumber} has a fixed plan the traveller set: ${plans.join(", ")}. Return it exactly as it is, under its exact name and at its time, on Day ${fixed.dayNumber} only, and plan the rest of that day around it. If they asked to move, change or remove it, leave it as it is and say in "reply" that they can change it themselves in the plan; make the rest of what they asked.`;
+  }
+  // A trip through several cities: a change puts no place of another city on a
+  // day, and a regroup leaves none there, nor for a later part, which can't move
+  // them to the other city's days ("cluster by areas" left Busan's sights on
+  // Seoul's last day).
+  const unchanged = new Set(input.days.map((d) => d.day_number).filter((n) => !o.edits.some((e) => e.day_number === n)));
+  const regroup = asksToRegroup(input.message);
+  const later = new Set(o.moreDays ?? []);
+  const mixed = placesAway(input.days, o.edits, input.message, new Set([...o.edits.map((e) => e.day_number), ...(regroup ? unchanged : [])]))
+    // A day still to come can take its own city's places then, once these are on their city's days.
+    .find((x) => !later.has(x.day) || alsoInTheirCity(input.days, o.edits, x).length < x.activities.length);
+  if (mixed) {
+    const names = mixed.activities.map((a) => a.name).join(", ");
+    return unchanged.has(mixed.day)
+      ? `Day ${mixed.day} is in ${mixed.city}, but it holds places in ${mixed.other}: ${names}. Regrouping keeps each city's places on that city's days: in "edits" now, return Day ${mixed.day} with places in ${mixed.city}, and put those on days in ${mixed.other} where they fit, each once. A place you move to Day ${mixed.day} from another day leaves that day: return that day too, in "edits" or "more_days".`
+      : `Day ${mixed.day} is in ${mixed.city}, but your edits put places in ${mixed.other} on it: ${names}. Each city's places stay on that city's days: move them to days in ${mixed.other}, each once, or swap them for places in ${mixed.city}. Keep every day in its city.`;
   }
   const day = dayMentioned(input.message);
   if (day && day <= current && o.edits.length > 0 && !o.edits.some((e) => e.day_number === day)) {
@@ -362,21 +402,11 @@ export function correctionFor(
   if (missing.length > 0) {
     return `These places from their list aren't in your edits: ${missing.join(", ")}. Add each one once, on a day where it fits, keeping everything else, or say in "reply" which can't fit and why.`;
   }
-  // A saved activity (its name is kept, see keepSavedActivities) added to a
-  // day while the one day that has it is left as it was. A name on several
-  // saved days ("Breakfast at the hotel") recurs on purpose.
-  const key = (x?: string) => (x ?? "").trim().toLowerCase();
-  const edited = new Set(o.edits.map((e) => e.day_number));
-  for (const e of o.edits) {
-    for (const a of e.activities) {
-      const name = key(a.name);
-      if (!name) continue;
-      const holders = input.days.filter((d) => (d.activities ?? []).some((b) => key(b?.name) === name));
-      if (holders.length === 1 && !edited.has(holders[0].day_number)) {
-        const twin = holders[0].day_number;
-        return `${a.name} is already on Day ${twin}. To have it on Day ${e.day_number}, move it: also return Day ${twin} without it. Otherwise leave it where it is and say so in "reply".`;
-      }
-    }
+  // A saved place added to a day while the day that has it is left as it was.
+  // A regroup takes that day in a later part instead (assistTrip).
+  const twin = regroup ? undefined : twinsOf(input.days, o.edits, o.moreDays ?? [])[0];
+  if (twin) {
+    return `${twin.name} is already on Day ${twin.from}. To have it on Day ${twin.to}, move it: also return Day ${twin.from} without it. Otherwise leave it where it is and say so in "reply".`;
   }
   // Said to be made, with nothing sent: "I've added…" and an empty "edits". A
   // currency request is the page's to answer, with no edits.
@@ -529,6 +559,11 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   // same way, and the days of a part that doesn't come back in time are named
   // in the reply.
   let daysLeft = keptLength ? [] : outcome.moreDays;
+  // A regroup that moved places from days it left as they were takes those days
+  // in the next part, which gives them places of their own.
+  if (asksToRegroup(input.message)) {
+    daysLeft = [...new Set([...daysLeft, ...twinsOf(input.days, edits, daysLeft).map((t) => t.from)])].sort((a, b) => a - b);
+  }
   // A change of what the days hold (places added or taken out): a part's day
   // that only moved times isn't part of it. A change of times keeps those.
   const changesStops = edits.some((e) => !keepsDayStops(input.days, e));
@@ -537,6 +572,9 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   const keepAll =
     keepsEverything([input.message, ...(input.history ?? []).slice(-4).filter((t) => t.role === "user").map((t) => t.text)].join("\n")) &&
     !asksToRemove(input.message);
+  // Asked to regroup a trip through several cities, a part's day that holds
+  // another city's places is told so (its places went to their city's days).
+  const regroup = asksToRegroup(input.message);
   if (daysLeft.length > 0 && Date.now() - startedAt < MORE_DAYS_START_MS) {
     const sofar = withEdits(input.days, edits);
     const done = edits.map((e) => e.day_number);
@@ -547,7 +585,10 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
     const parts = await Promise.allSettled(
       groups.map((group) =>
         within(
-          ask(`${buildPrompt({ ...input, days: sofar })}\n\n${continuePrompt(reply, done, group, current, longer, keepAll)}`, 1),
+          ask(
+            `${buildPrompt({ ...input, days: sofar })}\n\n${continuePrompt(reply, done, group, current, longer, keepAll, regroup ? placesAway(input.days, edits, input.message, new Set(group)) : [])}`,
+            1,
+          ),
           MORE_DAYS_DEADLINE_MS - (Date.now() - startedAt),
         ),
       ),
@@ -565,6 +606,8 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
     edits.sort((a, b) => a.day_number - b.day_number);
     daysLeft = daysLeft.filter((n) => !answered.has(n));
   }
+  // Places of another city that a reply or part still put on a day, taken off it.
+  let leftInTheirCity: PlacesAway[] = [];
   const settle = (list: DayEdit[]): DayEdit[] => {
     let kept = list;
     // Told to keep everything, a day that takes something out isn't part of the
@@ -573,6 +616,9 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
       const gone = new Set(takenOut(input.days, kept).map((n) => n.trim().toLowerCase()));
       kept = kept.filter((e) => !(input.days.find((d) => d.day_number === e.day_number)?.activities ?? []).some((a) => gone.has((a?.name ?? "").trim().toLowerCase())));
     }
+    const inCities = withoutPlacesAway(input.days, kept, input.message);
+    kept = inCities.edits;
+    leftInTheirCity = inCities.away;
     // Each place of their list once, whichever reply or part placed it; then a
     // day left as it was, or a part's day that only moved times, isn't a change.
     return listedOnce(input.days, listedInTalk(input), kept).filter(
@@ -649,6 +695,7 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
     offersElsewhere: outcome.elsewhere.length > 0,
     listMissing,
     dayCount,
+    cityKept: leftInTheirCity,
   });
 
   return {

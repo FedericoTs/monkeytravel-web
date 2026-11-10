@@ -101,7 +101,7 @@ export function validateLegs(legs: CityLeg[], expectedTotalNights?: number): voi
 /** Places this close, directly or through others, are in one area. */
 const SAME_AREA_KM = 100;
 
-type Point = { lat: number; lng: number };
+export type Point = { lat: number; lng: number };
 
 /** The area each point is in, as an index: points chained by SAME_AREA_KM share one. */
 function areasOf(points: Point[]): number[] {
@@ -140,29 +140,47 @@ function homeAreas(counts: Map<number, number>[]): Map<number, number> {
 }
 
 /**
+ * The places that are in another city's area, each with that city: every place
+ * comes with the city it is planned in. Each city's area is its own (homeAreas),
+ * so a city whose places are mostly another's still finds its own. Cities close
+ * enough to share an area, and a place where no city is, stay where they are.
+ * Pure; unit-tested.
+ */
+export function placesInOtherCities(places: { city: string; point: Point }[]): Map<number, string> {
+  const cities = [...new Set(places.map((p) => p.city))];
+  const area = areasOf(places.map((p) => p.point));
+  const counts = cities.map(() => new Map<number, number>());
+  places.forEach((p, k) => {
+    const c = counts[cities.indexOf(p.city)];
+    c.set(area[k], (c.get(area[k]) ?? 0) + 1);
+  });
+  const home = homeAreas(counts);
+  const cityOf = new Map([...home].map(([c, at]) => [at, cities[c]]));
+  const away = new Map<number, string>();
+  places.forEach((p, k) => {
+    const own = home.get(cities.indexOf(p.city));
+    const other = cityOf.get(area[k]);
+    if (own !== undefined && own !== area[k] && other !== undefined) away.set(k, other);
+  });
+  return away;
+}
+
+/**
  * Each city's plan without the places it holds in another city's area: every
  * city is asked with the whole trip's must-dos, and Seoul's days once held
- * Busan's sights. Each city's area is its own (homeAreas), so a plan that is
- * mostly another city's still finds its own. Cities close enough to share an
- * area, a day trip out to somewhere no city is, and the travel between cities
- * stay. Pure; unit-tested.
+ * Busan's sights (placesInOtherCities). The travel between cities stays.
+ * Pure; unit-tested.
  */
 export function withoutOtherCitiesPlaces(results: GeneratedItinerary[]): { results: GeneratedItinerary[]; dropped: string[]; strayed: number[] } {
   const places = results.flatMap((r, city) =>
     (r.days ?? []).flatMap((d) =>
-      (d.activities ?? []).filter((a) => a.type !== "transport" && isRealPoint(a.coordinates)).map((a) => ({ city, a })),
+      (d.activities ?? []).filter((a) => a.type !== "transport" && isRealPoint(a.coordinates)).map((a) => ({ city: String(city), a })),
     ),
   );
-  const area = areasOf(places.map((p) => p.a.coordinates as Point));
-  const counts = results.map(() => new Map<number, number>());
-  places.forEach((p, k) => counts[p.city].set(area[k], (counts[p.city].get(area[k]) ?? 0) + 1));
-  const home = homeAreas(counts);
-  const homes = [...home.values()];
-  const away = new Set(
-    places.filter((p, k) => home.has(p.city) && home.get(p.city) !== area[k] && homes.includes(area[k])).map((p) => p.a),
-  );
+  const elsewhere = placesInOtherCities(places.map((p) => ({ city: p.city, point: p.a.coordinates as Point })));
+  const away = new Set([...elsewhere.keys()].map((k) => places[k].a));
   const dropped = places.filter((p) => away.has(p.a)).map((p) => p.a.name);
-  const strayed = [...new Set(places.filter((p) => away.has(p.a)).map((p) => p.city))];
+  const strayed = [...new Set(places.filter((p) => away.has(p.a)).map((p) => Number(p.city)))];
   const kept = results.map((r) => ({
     ...r,
     days: (r.days ?? []).map((d) => ({ ...d, activities: (d.activities ?? []).filter((a) => !away.has(a)) })),

@@ -7,6 +7,7 @@ import {
   mergeCityItineraries,
   MultiCityError,
   mustDosOfOtherCities,
+  placesInOtherCities,
   withoutOtherCitiesPlaces,
   type CityLeg,
 } from "./multi-city-core";
@@ -262,6 +263,12 @@ describe("withoutOtherCitiesPlaces", () => {
   it("takes a city's area from most of its places, not its first", () => {
     const seoulFirst = city("Busan", [[place("Gyeongbokgung Palace", 37.5796, 126.977), place("Gamcheon Culture Village", 35.0975, 129.0106), place("Jagalchi Market", 35.0966, 129.0306)]]);
     expect(withoutOtherCitiesPlaces([seoulFirst, seoul]).dropped).toEqual(["Gyeongbokgung Palace", "Songdo Cable Car", "Gamcheon Culture Village"]);
+  });
+
+  it("names the city each place out of its own is in", () => {
+    const at = (city: string, lat: number, lng: number) => ({ city, point: { lat, lng } });
+    const away = placesInOtherCities([at("busan", 35.0975, 129.0106), at("busan", 35.1587, 129.1604), at("seoul", 37.5796, 126.977), at("seoul", 35.0758, 129.0166)]);
+    expect([...away]).toEqual([[3, "busan"]]);
   });
 
   it("keeps a day trip between cities close together", () => {
