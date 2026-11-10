@@ -799,6 +799,80 @@ describe("assistTrip on how long the trip is", () => {
   });
 });
 
+// "Add a tile museum before my flight" on the flight's day changed nothing: the
+// whole day was refused for its fixed plan.
+describe("assistTrip on a day with a fixed plan", () => {
+  const flight = { id: "anchor-f1", anchor_id: "f1", name: "Flight to Lisbon", time_slot: "afternoon", start_time: "15:00", duration_minutes: 120, locked: true };
+  const days = [
+    { day_number: 1, date: "2027-05-01", activities: [{ name: "Ribeira walk", time_slot: "morning", start_time: "10:00" }] },
+    { day_number: 2, date: "2027-05-02", activities: [{ name: "Bolhão market", time_slot: "morning", start_time: "09:00" }, flight] },
+  ] as unknown as ItineraryDay[];
+  const ask = { ...input, message: "add a tile museum before my flight on day 2", days };
+  const dayTwo = (reply: string, activities: Array<[string, string]>) => ({
+    response: { text: () => JSON.stringify({ reply, edits: [{ day_number: 2, activities: activities.map(([name, start_time]) => ({ name, start_time })) }] }) },
+  });
+  const named = (out: { edits: Array<{ activities: Array<{ name: string; start_time?: string }> }> }) =>
+    out.edits.map((e) => e.activities.map((a) => `${a.name} ${a.start_time}`));
+
+  it("changes the day around it, the fixed plan as stored", async () => {
+    generateContent.mockResolvedValueOnce(dayTwo("Here's Day 2 with the tile museum.", [["Bolhão market", "09:00"], ["Tile museum", "11:00"], ["Flight to Lisbon", "15:00"]]));
+    const out = await run(ask);
+    expect(generateContent).toHaveBeenCalledTimes(1);
+    expect(named(out)).toEqual([["Bolhão market 09:00", "Tile museum 11:00", "Flight to Lisbon 15:00"]]);
+    expect(out.edits[0].activities[2]).toMatchObject({ id: "anchor-f1", anchor_id: "f1", locked: true, duration_minutes: 120 });
+    expect(out.reply).toBe("Here's Day 2 with the tile museum.");
+  });
+
+  it("asks once more when the reply takes it out, and keeps the better day", async () => {
+    generateContent
+      .mockResolvedValueOnce(dayTwo("Here's Day 2 with the tile museum.", [["Tile museum", "11:00"], ["Lunch in Ribeira", "15:30"]]))
+      .mockResolvedValueOnce(dayTwo("Here's Day 2 with the tile museum.", [["Bolhão market", "09:00"], ["Tile museum", "11:00"], ["Flight to Lisbon", "15:00"]]));
+    const out = await run(ask);
+    expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain("CORRECTION: Day 2 has a fixed plan the traveller set: Flight to Lisbon at 15:00.");
+    expect(named(out)).toEqual([["Bolhão market 09:00", "Tile museum 11:00", "Flight to Lisbon 15:00"]]);
+    expect(out.reply).toBe("Here's Day 2 with the tile museum.");
+  });
+
+  it("keeps it in the change, and says so, when both replies take it out", async () => {
+    const without = dayTwo("Here's Day 2 with the tile museum.", [["Tile museum", "11:00"], ["Lunch in Ribeira", "15:30"]]);
+    generateContent.mockResolvedValue(without);
+    const out = await run(ask);
+    expect(generateContent).toHaveBeenCalledTimes(2);
+    expect(named(out)).toEqual([["Tile museum 11:00", "Flight to Lisbon 15:00", "Lunch in Ribeira 15:30"]]);
+    expect(out.reply).toBe("Here's Day 2 with the tile museum. (The fixed plan on Day 2 stays as you set it: Flight to Lisbon.)");
+  });
+
+  it("changes nothing, and says why, when only the fixed plan was to move", async () => {
+    generateContent.mockResolvedValue(dayTwo("I've moved your flight to 18:00.", [["Bolhão market", "09:00"], ["Flight to Lisbon", "18:00"]]));
+    const out = await run({ ...ask, message: "move my flight to 18:00" });
+    expect(out.edits).toEqual([]);
+    expect(out.reply).toMatch(/^Day 2 has a fixed plan you set \(Flight to Lisbon\), so I left it as it is/);
+  });
+
+  it("asks for the days after a fixed plan's day too", async () => {
+    const three = [...days, { day_number: 3, date: "2027-05-03", activities: [{ name: "Douro cruise", time_slot: "morning", start_time: "09:00" }, { ...flight, id: "anchor-f2", anchor_id: "f2", name: "Train to Coimbra", start_time: "18:00" }] }] as unknown as ItineraryDay[];
+    generateContent
+      .mockResolvedValueOnce({
+        response: { text: () => JSON.stringify({ reply: "Vegetarian lunches everywhere.", more_days: [2, 3], edits: [{ day_number: 1, activities: [{ name: "Ribeira walk", start_time: "10:00" }, { name: "Veggie lunch", start_time: "13:00" }] }] }) },
+      })
+      .mockResolvedValueOnce({
+        response: {
+          text: () =>
+            JSON.stringify({
+              reply: "Done.",
+              edits: [
+                { day_number: 2, activities: [{ name: "Bolhão market", start_time: "09:00" }, { name: "Veggie lunch 2", start_time: "13:00" }, { name: "Flight to Lisbon", start_time: "15:00" }] },
+                { day_number: 3, activities: [{ name: "Douro cruise", start_time: "09:00" }, { name: "Veggie lunch 3", start_time: "13:00" }, { name: "Train to Coimbra", start_time: "18:00" }] },
+              ],
+            }),
+        },
+      });
+    const out = await run({ ...ask, message: "vegetarian lunch every day", days: three });
+    expect(out.edits.map((e) => e.day_number)).toEqual([1, 2, 3]);
+    expect(named(out)[2]).toEqual(["Douro cruise 09:00", "Veggie lunch 3 13:00", "Train to Coimbra 18:00"]);
+  });
+});
+
 describe("isModelOverloaded", () => {
   it("is true only for 429, 500 and 503", () => {
     expect([429, 500, 503].map((status) => mod.isModelOverloaded({ status }))).toEqual([true, true, true]);

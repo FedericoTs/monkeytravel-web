@@ -329,6 +329,28 @@ test.describe("asking the AI on the trip page", () => {
       expect(await storedNames()).toEqual(AS_STORED);
     });
 
+    // The rest of a day with a fixed plan is the assistant's to change: the plan comes back as it was.
+    test("a change beside a fixed plan is saved, and the fixed plan stays as it was", async ({ page }) => {
+      const days = storedDays();
+      days[0].activities[0] = { ...days[0].activities[0], locked: true };
+      const { error } = await admin.from("trips").update({ itinerary: days }).eq("id", tripId);
+      if (error) throw error;
+      const [dayOne] = days;
+      const beside: PendingChange = {
+        type: "apply_draft",
+        days: [{ ...dayOne, activities: [...dayOne.activities, activity("t-d1a3", CELLAR, "16:00")] }],
+        changedDayNumbers: [1],
+      };
+
+      await answerTurns(page, { body: prepared(beside) });
+      await send(await openAssistant(page), "Add a wine cellar on day 1");
+      await page.getByRole("button", { name: "Save to my trip" }).click();
+
+      await expect.poll(storedNames, { timeout: 30_000 }).toEqual([CATHEDRAL, LUNCH, CELLAR, BRIDGE]);
+      expect((await storedRow()).itinerary[0].activities[0]).toMatchObject({ id: "t-d1a1", name: CATHEDRAL, start_time: "10:00", locked: true });
+      await expect(dayList(page, 1)).toContainText(CELLAR);
+    });
+
     test("undo refuses once the trip has moved on, and keeps the later change", async ({ page }) => {
       await answerTurns(page, { body: prepared(calmerDayOne()) });
       await send(await openAssistant(page), "Make the first morning calmer");

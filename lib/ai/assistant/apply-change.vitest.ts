@@ -280,6 +280,26 @@ describe("a fixed plan", () => {
     expect(applied({ changeType: "apply_draft", days: [newDay(2)] }, fixed()).dayCount).toBe(1);
   });
 
+  // The assistant now changes a day around its fixed plan, which comes back as stored.
+  it("lets a draft change the day around it", () => {
+    const alpha = act("a1", "Alpha", "09:00", { locked: true });
+    const around = newDay(1, "x", { activities: [alpha, act("n1", "New 1", "12:00")] });
+    const out = applied({ changeType: "apply_draft", days: [around] }, fixed());
+    expect(names(out.days[0])).toEqual(["Alpha", "New 1"]);
+    expect(out.days[0].activities[0]).toMatchObject({ id: "a1", locked: true, start_time: "09:00" });
+  });
+
+  it.each<[string, Partial<Activity>]>([
+    ["moved", { start_time: "16:00" }],
+    ["lengthened", { duration_minutes: 240 }],
+    ["renamed", { name: "Alpha at dusk" }],
+    ["no longer fixed", { locked: false }],
+    ["given another id", { id: "x9" }],
+  ])("stops a draft that keeps it %s", async (_how, changed) => {
+    const day = newDay(1, "x", { activities: [act("a1", "Alpha", "09:00", { locked: true, ...changed }), act("n1", "New 1", "12:00")] });
+    expect(await refused({ changeType: "apply_draft", days: [day] }, fixed())).toMatchObject({ status: 400, body: { code: "LOCKED", names: ["Alpha"] } });
+  });
+
   it("stops a shift only when its date would move", async () => {
     expect(await refused({ changeType: "shift_days", dayNumber: 2, shiftByDays: 1 }, trip(threeDays("c1")))).toMatchObject({ status: 400, body: { code: "LOCKED", names: ["Foxtrot"] } });
     expect(applied({ changeType: "shift_days", dayNumber: 2, shiftByDays: 1 }, fixed()).dayCount).toBe(2);

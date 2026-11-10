@@ -271,9 +271,14 @@ export function notAppliedLead(language: string | undefined): string {
   return note(language, "notAppliedLead");
 }
 
-/** The wizard assistant's reply when the only day it could change is fixed. */
+/** The assistant's reply when the only change asked was to a fixed plan, which stays as it was. */
 export function lockedDayReply(language: string | undefined, dayNumber: number, names: string[]): string {
   return note(language, "lockedDay", { day: String(dayNumber), fixed: names.join(", ") });
+}
+
+/** Appended when a change would have moved or taken out a fixed plan, which stays as it was. */
+export function fixedKeptNote(language: string | undefined, dayNumber: number, names: string[]): string {
+  return note(language, "fixedKept", { day: String(dayNumber), fixed: names.join(", ") });
 }
 
 /** The wizard assistant's fallbacks when the model returned no reply text. */
