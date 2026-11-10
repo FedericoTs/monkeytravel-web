@@ -276,6 +276,11 @@ export function lockedDayReply(language: string | undefined, dayNumber: number, 
   return note(language, "lockedDay", { day: String(dayNumber), fixed: names.join(", ") });
 }
 
+/** Appended when places of another city came off a city's days. */
+export function cityKeptNote(language: string | undefined, other: string, city: string, names: string[]): string {
+  return note(language, "cityKept", { other, city, list: names.join(", ") });
+}
+
 /** Appended when a change would have moved or taken out a fixed plan, which stays as it was. */
 export function fixedKeptNote(language: string | undefined, dayNumber: number, names: string[]): string {
   return note(language, "fixedKept", { day: String(dayNumber), fixed: names.join(", ") });

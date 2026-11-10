@@ -26,6 +26,21 @@ const MORE_DAYS = new RegExp(
 const DAY_TRIP =
   /day[\s-]?trips?|excursi[oó]n(?:es)? de un d[ií]a|gite? di un giorno|excurs(?:ão|ões) de um dia|bate[\s-]?volta/giu;
 
+/** Does the message ask for a day trip? */
+export function asksForDayTrip(text: string): boolean {
+  return new RegExp(DAY_TRIP.source, "iu").test(text);
+}
+
+// The plan regrouped: "cluster by areas", "group nearby places", "reorganize",
+// "stop jumping around", "agrupa por zonas", "raggruppa", "reorganize por bairro".
+const REGROUP =
+  /(?<![\p{L}])(?:cluster\p{L}*|group\p{L}*|regroup\p{L}*|re-?organi[sz]\p{L}*|organi[sz]\p{L}*|re-?order\p{L}*|re-?arrang\p{L}*|optimi[sz]\p{L}*|jumping\s+around|back\s+and\s+forth|by\s+(?:area|neighbou?rhood|district|zone)s?|agrup\p{L}*|reorganiz\p{L}*|ordena\p{L}*|optimiz\p{L}*|por\s+(?:zonas?|[aá]reas?|barrios?|bairros?|regi[oõ]\p{L}*)|raggrupp\p{L}*|riorganizz\p{L}*|organizz\p{L}*|ottimizz\p{L}*|per\s+zon[ae]|otimiz\p{L}*)(?![\p{L}])/iu;
+
+/** Does the message ask for the plan regrouped or put in a better order? */
+export function asksToRegroup(text: string): boolean {
+  return REGROUP.test(text);
+}
+
 // A day by its number: "day 6", "giorno 6", "día 6", "dia 6".
 const DAY_NUMBER = /(?<![\p{L}])(?:day|giorno|día|dia)\s+(\d{1,2})(?![\p{N}])/giu;
 

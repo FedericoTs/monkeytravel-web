@@ -228,6 +228,17 @@ describe("composeReply", () => {
     expect(composeReply({ ...base, reply: "Here's Day 2 with a museum.", edits: [d2] })).toBe("Here's Day 2 with a museum.");
   });
 
+  it("says which places of another city came off a city's days", () => {
+    const [d2] = validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").edits;
+    const off = (n: number, names: string[]) => ({ day: n, city: "Seoul", other: "Busan", activities: names.map(act) as never });
+    expect(composeReply({ ...base, reply: "Here are your days, grouped by area.", edits: [d2], cityKept: [off(7, ["Gamcheon Culture Village"]), off(8, ["Songdo Cable Car"])] })).toBe(
+      "Here are your days, grouped by area. (Busan places stay off Seoul days: Gamcheon Culture Village, Songdo Cable Car.)",
+    );
+    expect(composeReply({ ...base, locale: "pt", reply: "Aqui estão seus dias.", edits: [d2], cityKept: [off(7, ["Gamcheon"])] })).toBe(
+      "Aqui estão seus dias. (Os lugares de Busan ficam fora dos dias de Seoul: Gamcheon.)",
+    );
+  });
+
   it("gives the count from the dates when the reply gives another", () => {
     const span = { from: "2026-11-28", to: "2026-12-06", days: 9 };
     const agreed = "You're totally right! From November 28 to December 6 is indeed 8 days total.";
