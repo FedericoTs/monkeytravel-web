@@ -150,17 +150,18 @@ function resolveLocale(language?: string): TransferLocale {
   return language === "it" || language === "es" || language === "pt" ? language : "en";
 }
 
-/** First activity with usable coordinates in a list of days (search order as given). */
-function firstCoords(days: ItineraryDay[]): LatLng | null {
-  for (const day of days) {
-    for (const a of day.activities ?? []) {
-      const c = a.coordinates;
-      if (c && Number.isFinite(c.lat) && Number.isFinite(c.lng) && (c.lat !== 0 || c.lng !== 0) && !isPlaceholderPoint(c.lat, c.lng)) {
-        return c;
-      }
-    }
-  }
-  return null;
+/**
+ * The middle of a city's places, as many north of it as south and east as
+ * west, so one place pinned far away can't move it. Null with no usable pin.
+ */
+function middleOf(days: ItineraryDay[]): LatLng | null {
+  const points = days
+    .flatMap((day) => day.activities ?? [])
+    .map((a) => a.coordinates)
+    .filter((c): c is LatLng => !!c && Number.isFinite(c.lat) && Number.isFinite(c.lng) && (c.lat !== 0 || c.lng !== 0) && !isPlaceholderPoint(c.lat, c.lng));
+  if (points.length === 0) return null;
+  const mid = (xs: number[]) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)];
+  return { lat: mid(points.map((p) => p.lat)), lng: mid(points.map((p) => p.lng)) };
 }
 
 /**
@@ -172,15 +173,15 @@ function firstCoords(days: ItineraryDay[]): LatLng | null {
 export function buildTransferActivity(opts: {
   fromCity: string;
   toCity: string;
-  /** Previous city's days (searched last→first for departure coordinates). */
+  /** Previous city's days: the hop is measured from their middle (middleOf). */
   fromDays: ItineraryDay[];
-  /** Next city's days (searched first→last for arrival coordinates). */
+  /** Next city's days: the hop is measured to their middle. */
   toDays: ItineraryDay[];
   currency: string;
   language?: string;
 }): Activity {
-  const from = firstCoords([...opts.fromDays].reverse());
-  const to = firstCoords(opts.toDays);
+  const from = middleOf(opts.fromDays);
+  const to = middleOf(opts.toDays);
   const byRail = !!from && !!to && inRailRegion(from) && inRailRegion(to);
   const estimate = estimateTransfer(from && to ? haversineKm(from, to) : null, byRail);
   const labels = LABELS[resolveLocale(opts.language)];
