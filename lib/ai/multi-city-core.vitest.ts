@@ -6,6 +6,7 @@ import {
   validateLegs,
   mergeCityItineraries,
   MultiCityError,
+  mustDosOfOtherCities,
   withoutOtherCitiesPlaces,
   type CityLeg,
 } from "./multi-city-core";
@@ -228,6 +229,17 @@ describe("withoutOtherCitiesPlaces", () => {
     // and a place with no point stay too.
     expect(names(kept[1])).toEqual([["Train to Seoul", "Bukchon Hanok Village"], ["Gangchon Rail Bike", "N Seoul Tower", "Myeongdong street food"]]);
     expect(dropped).toEqual(["Gyeongbokgung Palace", "Songdo Cable Car", "Gamcheon Culture Village"]);
+    expect(withoutOtherCitiesPlaces([busan, seoul]).strayed).toEqual([0, 1]);
+  });
+
+  it("names the must-dos another city's plan holds, by the words that tell them apart", () => {
+    const mustDos = ["gamcheon culture village", "haedong yonggungsa temple", "gyeongbukgung palace", "busan tower", "jagalchi"];
+    expect(mustDosOfOtherCities(mustDos, [busan, seoul], 1)).toEqual(["gamcheon culture village", "jagalchi"]);
+    // Its own city's plan doesn't count, and a kind of place alone ("tower") isn't one…
+    expect(mustDosOfOtherCities(["n seoul tower", "busan tower"], [busan, seoul], 1)).toEqual([]);
+    // …nor needed: "Haedong Yonggungsa" is the temple.
+    const temple = city("Busan", [[place("Haedong Yonggungsa", 35.1884, 129.2233)]]);
+    expect(mustDosOfOtherCities(["haedong yonggungsa temple"], [temple, seoul], 1)).toEqual(["haedong yonggungsa temple"]);
   });
 
   // The plan made before: Seoul's last two days held only Busan's must-dos.

@@ -147,7 +147,7 @@ function homeAreas(counts: Map<number, number>[]): Map<number, number> {
  * area, a day trip out to somewhere no city is, and the travel between cities
  * stay. Pure; unit-tested.
  */
-export function withoutOtherCitiesPlaces(results: GeneratedItinerary[]): { results: GeneratedItinerary[]; dropped: string[] } {
+export function withoutOtherCitiesPlaces(results: GeneratedItinerary[]): { results: GeneratedItinerary[]; dropped: string[]; strayed: number[] } {
   const places = results.flatMap((r, city) =>
     (r.days ?? []).flatMap((d) =>
       (d.activities ?? []).filter((a) => a.type !== "transport" && isRealPoint(a.coordinates)).map((a) => ({ city, a })),
@@ -162,11 +162,44 @@ export function withoutOtherCitiesPlaces(results: GeneratedItinerary[]): { resul
     places.filter((p, k) => home.has(p.city) && home.get(p.city) !== area[k] && homes.includes(area[k])).map((p) => p.a),
   );
   const dropped = places.filter((p) => away.has(p.a)).map((p) => p.a.name);
+  const strayed = [...new Set(places.filter((p) => away.has(p.a)).map((p) => p.city))];
   const kept = results.map((r) => ({
     ...r,
     days: (r.days ?? []).map((d) => ({ ...d, activities: (d.activities ?? []).filter((a) => !away.has(a)) })),
   }));
-  return { results: kept, dropped };
+  return { results: kept, dropped, strayed };
+}
+
+const NOT_DISTINCT = new Set(
+  "the of de la le el los las del di da do dos das and at in a al to on for".split(" ").concat(
+    "temple palace park market museum tower bridge beach castle church cathedral garden gardens village street square".split(" "),
+  ),
+);
+/** The words that tell a place apart: "haedong yonggungsa temple" is "haedong yonggungsa". */
+function distinctWords(name: string): string[] {
+  const words = name
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase()
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter((w) => w.length >= 3);
+  const own = words.filter((w) => !NOT_DISTINCT.has(w));
+  return own.length ? own : words;
+}
+
+/**
+ * The must-dos another city's plan holds: a city asked again is asked without
+ * them, since their city has them. A must-do is held when every word that tells
+ * it apart is in a place's name.
+ */
+export function mustDosOfOtherCities(mustDos: string[], results: GeneratedItinerary[], city: number): string[] {
+  const names = results
+    .flatMap((r, i) => (i === city ? [] : (r.days ?? []).flatMap((d) => (d.activities ?? []).map((a) => a.name))))
+    .map((n) => new Set(distinctWords(n)));
+  return mustDos.filter((m) => {
+    const words = distinctWords(m);
+    return words.length > 0 && names.some((n) => words.every((w) => n.has(w)));
+  });
 }
 
 /**
