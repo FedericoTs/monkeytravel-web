@@ -22,9 +22,14 @@ async function pickPopular(page: Page) {
 
 async function generate(page: Page) {
   // The footer's own button: a typed place with no match shows a "Continue with …" button too, which picks
-  // the place and stays on step 1.
-  await page.getByTestId("wizard-continue").click();
-  await page.getByRole("heading", { name: "Set your travel style" }).waitFor({ timeout: 15_000 });
+  // the place and stays on step 1. Right after typing, the button can still be busy for a moment (one run
+  // waited on it for the whole test), so it's pressed until step 2 shows. Step 2 has no such button.
+  const travelStyle = page.getByRole("heading", { name: "Set your travel style" });
+  await expect(async () => {
+    if (await travelStyle.isVisible()) return;
+    await page.getByTestId("wizard-continue").click({ timeout: 3_000 });
+    await expect(travelStyle).toBeVisible({ timeout: 3_000 });
+  }).toPass({ timeout: 30_000 });
   const foodie = page.getByText("Foodie Journey", { exact: true }).filter({ visible: true }).first();
   const generateButton = page.getByRole("button", { name: "Generate Itinerary" });
   await expect(async () => {

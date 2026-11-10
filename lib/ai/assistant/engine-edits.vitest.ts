@@ -61,6 +61,39 @@ describe("validateEdits", () => {
     expect(refused.tripLength).toBeUndefined();
     expect(refused.lengthRefused).toBe(true);
     expect(refused.edits.map((e) => e.day_number)).toEqual([3]);
+    // Wanting more days is kept either way, so a half-made move can be told apart.
+    expect(refused.wantsMore).toBe(true);
+    expect(validateEdits(trip(), { edits: [edit(6)], tripLength: 6 }, "EUR").wantsMore).toBe(true);
+    expect(validateEdits(trip(), { edits: [edit(3)], tripLength: 5 }, "EUR").wantsMore).toBe(false);
+    expect(validateEdits(trip(), { edits: [], tripLength: 4 }, "EUR").wantsMore).toBe(false);
+  });
+
+  it("says when a reply wants more days than a trip may have, and adds none", () => {
+    const fourteen = Array.from({ length: 14 }, (_, i) => day(i + 1));
+    const over = validateEdits(fourteen, { edits: [edit(15)], tripLength: 15 }, "EUR");
+    expect(over).toMatchObject({ overCap: true, lengthRefused: false });
+    expect(over.tripLength).toBeUndefined();
+    expect(over.edits).toEqual([]);
+    // Up to the cap is fine, and so is a trip through several cities up to its own.
+    expect(validateEdits(fourteen.slice(0, 13), { edits: [edit(14)], tripLength: 14 }, "EUR")).toMatchObject({ tripLength: 14, overCap: false });
+    const cities = fourteen.map((d) => ({ ...d, city: "Dublin" }));
+    expect(validateEdits(cities, { edits: [edit(15)], tripLength: 15 }, "EUR")).toMatchObject({ tripLength: 15, overCap: false });
+    // A trip already past the cap may keep its length.
+    expect(validateEdits(Array.from({ length: 16 }, (_, i) => day(i + 1)), { edits: [edit(3)], tripLength: 16 }, "EUR").overCap).toBe(false);
+  });
+
+  it("says when a reply wants more days than a trip may have, and adds none", () => {
+    const fourteen = Array.from({ length: 14 }, (_, i) => day(i + 1));
+    const over = validateEdits(fourteen, { edits: [edit(15)], tripLength: 15 }, "EUR");
+    expect(over).toMatchObject({ overCap: true, lengthRefused: false });
+    expect(over.tripLength).toBeUndefined();
+    expect(over.edits).toEqual([]);
+    // Up to the cap is fine, and so is a trip through several cities up to its own.
+    expect(validateEdits(fourteen.slice(0, 13), { edits: [edit(14)], tripLength: 14 }, "EUR")).toMatchObject({ tripLength: 14, overCap: false });
+    const cities = fourteen.map((d) => ({ ...d, city: "Dublin" }));
+    expect(validateEdits(cities, { edits: [edit(15)], tripLength: 15 }, "EUR")).toMatchObject({ tripLength: 15, overCap: false });
+    // A trip already past the cap may keep its length.
+    expect(validateEdits(Array.from({ length: 16 }, (_, i) => day(i + 1)), { edits: [edit(3)], tripLength: 16 }, "EUR").overCap).toBe(false);
   });
 
   it("counts a longer trip whose other new days come in the next parts", () => {
@@ -284,6 +317,22 @@ describe("composeReply", () => {
     expect(composeReply({ ...base, locale: "it", reply: "Ho aggiunto una cena al giorno 7.", edits: [] })).toMatch(/^Non ho modificato il tuo piano/);
   });
 
+  it("says a trip at its longest gets no more days, and what can be done instead", () => {
+    const promised = "Aqui está um novo dia 15 em Dublin para você acrescentar ao seu roteiro, pronto para salvar.";
+    expect(composeReply({ ...base, locale: "pt", currentDays: 14, reply: promised, edits: [], tripCap: { max: 14, days: 14 } })).toBe(
+      "As viagens podem ter no máximo 14 dias, e esta já tem 14, por isso não acrescentei nenhum dia. Também posso encaixar o que você queria nos dias que já tem, no lugar das partes mais leves, ou você pode planejar os dias extras como uma segunda viagem.",
+    );
+    expect(composeReply({ ...base, currentDays: 12, reply: "Here are 5 new days, ready to save.", edits: [], tripCap: { max: 14, days: 12 } })).toBe(
+      "Trips can be at most 14 days, so this one can take 2 more: ask me for up to 2. I can also fit what you wanted into the days you have, in place of their lightest parts, or you can plan the extra days as a second trip.",
+    );
+    expect(composeReply({ ...base, locale: "it", currentDays: 13, reply: "Ecco 3 giorni in più.", edits: [], tripCap: { max: 14, days: 13 } })).toMatch(
+      /^I viaggi possono durare al massimo 14 giorni, quindi a questo se ne può aggiungere ancora uno: chiedimelo\./,
+    );
+    // A change that stands is the answer, whatever else was asked.
+    const [d2] = validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").edits;
+    expect(composeReply({ ...base, reply: "Here's Day 2 with a market.", edits: [d2], tripCap: { max: 14, days: 5 } })).toBe("Here's Day 2 with a market.");
+  });
+
   // Gemini can answer "Ho aggiunto un sesto giorno…" for an edit still
   // waiting for Apply, despite the prompt.
   it("an edit described as done says it waits for Apply", () => {
@@ -380,6 +429,13 @@ describe("buildPrompt", () => {
     const prompt = buildPrompt({ message: "Suggest a great local restaurant to add", destination: "Lisbon", tripTitle: "Lisbon", days: trip(), locale: "en" });
     expect(prompt).toContain("pick the day with the most room where it fits, add it there without removing anything");
     expect(prompt).toContain("Don't ask which day");
+  });
+
+  // "I am arriving at 6pm on the 28th" on a trip from the 29th: Day 1 was rewritten.
+  it("says the trip can't start before Day 1, with its date, and how to start earlier", () => {
+    const prompt = buildPrompt({ message: "I am arriving at 6pm on the 28th", destination: "Lisbon", tripTitle: "Lisbon", days: trip(), locale: "en" });
+    expect(prompt).toContain("The trip starts on Day 1 (Thu, 11 Nov 2027) and can't start earlier here: if they arrive on an earlier date, change no day for it");
+    expect(prompt).toContain("tell them they can change the trip's dates to start that day, which moves every day's plan with it.");
   });
 
   it("asks where each activity is, so a new stop can be put on the map", () => {

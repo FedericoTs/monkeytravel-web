@@ -28,6 +28,7 @@
   "listMissing": "(Not in this change: {list}.)",
   "dayCount": "{from} to {to} is {days, plural, =1 {# day} other {# days}} and {nights, plural, =1 {# night} other {# nights}}, so the trip keeps all {days} days. To make it shorter, tell me which day to take out.",
   "dayCountNote": "({from} to {to} is {days, plural, =1 {# day} other {# days}} and {nights, plural, =1 {# night} other {# nights}}.)",
+  "tripCap": "{room, plural, =0 {Trips can be at most {max} days, and this one already has {max}, so I haven't added a day.} =1 {Trips can be at most {max} days, so this one can take one more day: ask me for one.} other {Trips can be at most {max} days, so this one can take # more: ask me for up to #.}} I can also fit what you wanted into the days you have, in place of their lightest parts, or you can plan the extra days as a second trip.",
   "missingAnswer": "I couldn't put that answer together. Ask me one thing at a time, like what to do on day 2.",
   "currencySwitched": "Done: prices now show in {code}.",
   "elsewhereNote": "Pick a place below and I'll plan it for the same dates."

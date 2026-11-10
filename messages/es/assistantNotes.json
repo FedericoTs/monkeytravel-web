@@ -28,6 +28,7 @@
   "listMissing": "(No entró en este cambio: {list}.)",
   "dayCount": "Del {from} al {to} son {days, plural, =1 {# día} other {# días}} y {nights, plural, =1 {# noche} other {# noches}}, así que el viaje mantiene sus {days} días. Para acortarlo, dime qué día quitar.",
   "dayCountNote": "(Del {from} al {to} son {days, plural, =1 {# día} other {# días}} y {nights, plural, =1 {# noche} other {# noches}}.)",
+  "tripCap": "{room, plural, =0 {Los viajes pueden tener como máximo {max} días, y este ya tiene {max}, así que no he añadido ningún día.} =1 {Los viajes pueden tener como máximo {max} días, así que a este le cabe un día más: pídemelo.} other {Los viajes pueden tener como máximo {max} días, así que a este le caben # más: pídeme hasta #.}} También puedo meter lo que querías en los días que ya tienes, en lugar de sus partes más ligeras, o puedes planear los días extra como un segundo viaje.",
   "missingAnswer": "No he podido preparar esa respuesta. Pregúntame una cosa a la vez, por ejemplo qué hacer el día 2.",
   "currencySwitched": "Hecho: ahora los precios se muestran en {code}.",
   "elsewhereNote": "Elige un lugar abajo y lo planifico para las mismas fechas."

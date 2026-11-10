@@ -62,6 +62,9 @@ import {
 import { alsoInTheirCity, daysOfCity, keepDayCities, placesAway, withoutPlacesAway, type PlacesAway } from "./city-days";
 import { type TravelTime, readTravelTimes, outsideTravelTimes, minutesOf } from "./travel-times";
 import { composeReply } from "./edit-reply";
+import { maxTripDays } from "./structural";
+import { askForNames, gluedNames, renamesOf, withNames } from "@/lib/ai/one-script-names";
+import { resolveAiLanguage } from "@/lib/ai/language";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 /** A change about more days asks for the rest at once, if it can start by now… */
@@ -405,13 +408,22 @@ function countsWrong(input: Pick<AssistInput, "message" | "days">, reply: string
 /** What a reply got wrong that one more try may fix, or null. Pure; unit-tested. */
 export function correctionFor(
   input: Pick<AssistInput, "message" | "history" | "days" | "canAddDays" | "startDate">,
-  o: Pick<Outcome, "reply" | "edits" | "tripLength"> & Partial<Pick<Outcome, "travelTimes" | "elsewhere" | "lengthRefused" | "moreDays" | "lockedDays">>,
+  o: Pick<Outcome, "reply" | "edits" | "tripLength"> &
+    Partial<Pick<Outcome, "travelTimes" | "elsewhere" | "lengthRefused" | "moreDays" | "lockedDays" | "overCap" | "wantsMore">>,
   /** Hold the reply to a list of places they asked to add (on by default). */
   rules: { list?: boolean } = {},
 ): string | null {
   // Other places offered for the whole trip: there are no days to correct.
   if ((o.elsewhere?.length ?? 0) > 0) return null;
   const current = input.days.length;
+  // More days than a trip may have: "here is the new Day 15, ready to save" on a
+  // 14-day trip was dropped in silence, four times running.
+  if (o.overCap) {
+    const max = maxTripDays(input.days);
+    return current >= max
+      ? `Trips can be at most ${max} days, and this one has ${current}: keep "trip_length" null and add no day. Say so in "reply" in a few words, and offer instead to put what they wanted on one of the days, in place of its lightest part, or to plan those days as a separate trip.`
+      : `Trips can be at most ${max} days, and this one has ${current}: "trip_length" can be ${max} at most. Say so in "reply" in a few words.`;
+  }
   const prepared = o.edits.length > 0 || o.tripLength !== undefined;
   if (!prepared && announcesProposal(o.reply)) {
     return `Your "reply" hands over a change, but "edits" is empty. Put that change in "edits" now, or say plainly in "reply" that you couldn't make it.`;
@@ -473,8 +485,11 @@ export function correctionFor(
     return `Day ${outside.day}: ${when}. ${outside.names.join(", ")} ${outside.names.length > 1 ? "don't" : "doesn't"} fit. Move what matters to a day with room, or leave it out, and say so in "reply".`;
   }
   const recent = [input.message, ...(input.history ?? []).slice(-2).map((t) => t.text)].join("\n");
-  if (o.tripLength !== undefined && o.tripLength > current && !asksForMoreDays(recent, current)) {
-    return `Keep the trip at ${current} days: fit the change into the existing days and say in "reply" what it replaces. Add days only when the traveller asks.`;
+  // A longer trip nobody asked for, whether its new days came back or not: "I am
+  // arriving at 6pm on the 28th" on a trip from the 29th got a new Day 1 over the
+  // 29th's plan, and a note that the trip stays at 8 days.
+  if (((o.tripLength !== undefined && o.tripLength > current) || o.wantsMore) && !asksForMoreDays(recent, current)) {
+    return `Keep the trip at ${current} days: fit the change into the existing days and say in "reply" what it replaces. Add days only when the traveller asks. If they arrive before Day 1's date, change no day for it, and in "reply" tell them they can change the trip's dates to start that day, which moves every day's plan with it.`;
   }
   // How long the trip is comes from its dates: "isn't 28 Nov to 6 Dec 8 days?"
   // got "You're totally right!", and "count, it's 8" a day cut from the trip.
@@ -646,7 +661,14 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   const current = input.days.length;
   // A shorter trip nobody asked for keeps every day, and nothing of that reply stands.
   const keptLength = cutUnasked(input, tripLength);
-  if (keptLength) {
+  // Still more days than a trip may have: nothing of that reply stands either,
+  // and the reply says why (tripCap).
+  const capped = outcome.overCap;
+  // A longer trip nobody asked for whose new days still didn't come back: its
+  // edits are half of a move (a new Day 1 over the first day's plan), so none stands.
+  const asked = asksForMoreDays([input.message, ...(input.history ?? []).slice(-2).map((t) => t.text)].join("\n"), current);
+  const halfLonger = outcome.wantsMore && outcome.lengthRefused && !asked;
+  if (keptLength || capped || halfLonger) {
     tripLength = undefined;
     edits = [];
   }
@@ -661,7 +683,7 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   // giorni" could not be done in one reply). They are asked for together, the
   // same way, and the days of a part that doesn't come back in time are named
   // in the reply.
-  let daysLeft = keptLength ? [] : outcome.moreDays;
+  let daysLeft = keptLength || capped || halfLonger ? [] : outcome.moreDays;
   // A regroup that moved places from days it left as they were takes those days
   // in the next part, which gives them places of their own.
   if (asksToRegroup(input.message)) {
@@ -862,6 +884,17 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   // The repeats no longer on the day the reply may have named them for.
   const notRepeated = repeats.filter((r) => !stillRepeated(edits).some((t) => t.name === r.name && t.to === r.to)).map((r) => r.name);
 
+  // A new name with two writing systems in one word ("Nam대mun") gets its
+  // usual name, in the reply too (lib/ai/one-script-names.ts).
+  let renames = new Map<string, string>();
+  const glued = gluedNames(edits).filter((name) => !input.days.some((d) => d.activities.some((a) => a.name === name)));
+  if (glued.length > 0 && Date.now() - startedAt < FILL_START_MS) {
+    const named = await askForNames(input.destination, glued, resolveAiLanguage(input.locale));
+    costUsd += named.costUsd;
+    renames = renamesOf(glued, named.answer);
+    edits = withNames(edits, renames);
+  }
+
   // A longer trip goes as far as its new days came back. The rest are named,
   // to be asked for again; with none back, the trip keeps its length.
   let notAdded: number[] = [];
@@ -884,7 +917,7 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   const span = tripSpan(input.days, input.startDate);
   const dayCount = span && (keptLength || countsWrong(input, reply, tripLength)) ? span : undefined;
   const finalReply = composeReply({
-    reply,
+    reply: [...renames].reduce((text, [from, to]) => text.split(from).join(to), reply),
     edits,
     tripLength,
     lockedDays,
@@ -909,6 +942,7 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
     // Asked to regroup, they expect places to move.
     cityMoved: regroup ? [] : movedToTheirCity(input.days, edits, misplaced),
     notRepeated,
+    ...(capped ? { tripCap: { max: maxTripDays(input.days), days: current } } : {}),
   });
 
   return {
