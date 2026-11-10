@@ -977,6 +977,14 @@ describe("assistTrip on a trip through two cities", () => {
     expect(out.reply).toBe("Grouped by area.");
   });
 
+  // The Seoul day still has the Busan sight a change put on a Busan day: that copy isn't a repeat.
+  it("keeps another city's place a change put on a day of its own city, though the wrong day still has it", async () => {
+    const mixed = [days[0], { ...days[1], activities: [...days[1].activities, at("Gamcheon Culture Village", 35.0975, 129.0106)] }] as unknown as ItineraryDay[];
+    generateContent.mockResolvedValue(reply([[1, [["Haeundae Beach", 35.1587, 129.1604], ["Jagalchi Market", 35.0966, 129.0306], ["Gamcheon Culture Village", 35.0975, 129.0106]]]]));
+    const out = await run({ ...ask, days: mixed, message: "make day 1 a full day" });
+    expect(named(out)[0]).toBe("1: Haeundae Beach, Jagalchi Market, Gamcheon Culture Village");
+  });
+
   // Gamcheon was on a Busan day already: taking its copy off the Seoul day moves nothing.
   it("doesn't call a copy taken off a day of the wrong city moved", async () => {
     const gamcheon = at("Gamcheon Culture Village", 35.0975, 129.0106);
@@ -1096,6 +1104,88 @@ describe("assistTrip regrouping a trip", () => {
     generateContent.mockResolvedValueOnce(reply([[1, [["Colosseum", "09:00"], ["Roman Forum", "11:00"]]]], [2, 3])).mockRejectedValueOnce(overloaded());
     await run(regroup);
     expect(asked()).toBe(false);
+  });
+});
+
+// "Yes" to new Seoul places for Day 8 got Day 5's dinner at Gwangjang Market
+// again, and the retry kept it.
+describe("assistTrip on a day that repeats a place another day keeps", () => {
+  const at = (name: string, start_time: string) => ({ name, start_time });
+  const plan = [
+    { day_number: 1, date: "2027-05-01", activities: [at("Colosseum", "09:00"), at("Pantheon", "13:00")] },
+    { day_number: 2, date: "2027-05-02", activities: [at("Vatican Museums", "09:00"), at("Castel Sant'Angelo", "13:00")] },
+    { day_number: 3, date: "2027-05-03", activities: [at("Trevi Fountain", "09:00"), at("Villa Borghese", "13:00")] },
+  ] as unknown as ItineraryDay[];
+  const art = { ...input, destination: "Rome", days: plan, message: "make day 3 about art" };
+  const day3 = (names: string[], text = "Day 3 is all art now, with the Vatican Museums.") => ({
+    response: { text: () => JSON.stringify({ reply: text, edits: [{ day_number: 3, activities: names.map((name, i) => ({ name, start_time: `${9 + i * 3}:00`.padStart(5, "0") })) }] }) },
+  });
+  const repeated = day3(["Galleria Borghese", "Vatican Museums", "Villa Borghese"]);
+  const named = (out: { edits: Array<{ day_number: number; activities: Array<{ name: string }> }> }) => out.edits.map((e) => `${e.day_number}: ${e.activities.map((a) => a.name).join(", ")}`);
+
+  it("asks once more for other places, and says why the one it named isn't there", async () => {
+    // The answer also redid Day 1, which it wasn't asked for.
+    const other = {
+      response: {
+        text: () =>
+          JSON.stringify({
+            reply: "Done.",
+            edits: [
+              { day_number: 1, activities: [{ name: "Colosseum", start_time: "09:00" }, { name: "Roman Forum", start_time: "12:00" }] },
+              { day_number: 3, activities: [{ name: "Galleria Borghese", start_time: "09:00" }, { name: "Palazzo Barberini", start_time: "12:00" }, { name: "Villa Borghese", start_time: "15:00" }] },
+            ],
+          }),
+      },
+    };
+    generateContent.mockResolvedValueOnce(repeated).mockResolvedValueOnce(repeated).mockResolvedValueOnce(other);
+    const out = await run(art);
+    expect(generateContent).toHaveBeenCalledTimes(3);
+    expect(JSON.stringify(generateContent.mock.calls[2][0])).toContain("CONTINUE: Day 3 of this change repeats places other days keep: Vatican Museums (Day 2). Return Day 3 in");
+    expect(named(out)).toEqual(["3: Galleria Borghese, Palazzo Barberini, Villa Borghese"]);
+    expect(out.reply).toBe("Day 3 is all art now, with the Vatican Museums. (Already on another day, so not repeated: Vatican Museums.)");
+  });
+
+  it("takes the copy off the day when the answer still repeats it, unless the day would keep one place", async () => {
+    generateContent.mockResolvedValue(repeated);
+    expect(named(await run(art))).toEqual(["3: Galleria Borghese, Villa Borghese"]);
+    // An answer that still repeats it isn't kept, whatever else it changed.
+    generateContent.mockReset();
+    generateContent.mockResolvedValueOnce(repeated).mockResolvedValueOnce(repeated).mockResolvedValueOnce(day3(["Palazzo Barberini", "Vatican Museums", "Villa Borghese"]));
+    expect(named(await run(art))).toEqual(["3: Galleria Borghese, Villa Borghese"]);
+    generateContent.mockReset();
+    generateContent.mockResolvedValue(day3(["Vatican Museums", "Villa Borghese"]));
+    expect(named(await run(art))).toEqual(["3: Vatican Museums, Villa Borghese"]);
+  });
+
+  // A regroup moved the Trevi Fountain to Day 1, and the part for Day 3 didn't
+  // take it off there: the move stands (a regroup has its own repeat rules).
+  it("leaves a regroup's move as it is", async () => {
+    const moved = { response: { text: () => JSON.stringify({ reply: "Grouped.", edits: [{ day_number: 1, activities: [{ name: "Colosseum", start_time: "09:00" }, { name: "Pantheon", start_time: "12:00" }, { name: "Trevi Fountain", start_time: "15:00" }] }] }) } };
+    const nothing = { response: { text: () => JSON.stringify({ reply: "Done.", edits: [] }) } };
+    generateContent.mockResolvedValueOnce(moved).mockResolvedValueOnce(nothing);
+    const out = await run({ ...art, message: "regroup the days by area" });
+    expect(generateContent).toHaveBeenCalledTimes(2);
+    expect(named(out)).toEqual(["1: Colosseum, Pantheon, Trevi Fountain"]);
+  });
+
+  it("doesn't keep an answer that drops another of the day's places", async () => {
+    generateContent.mockResolvedValueOnce(repeated).mockResolvedValueOnce(repeated).mockResolvedValueOnce(day3(["Galleria Borghese", "Palazzo Barberini"], "Done."));
+    expect(named(await run(art))).toEqual(["3: Galleria Borghese, Villa Borghese"]);
+  });
+
+  it("waits while days of the change are still to come", async () => {
+    const more = { response: { text: () => JSON.stringify({ reply: "Day 3 is all art now.", more_days: [2], edits: [{ day_number: 3, activities: [{ name: "Galleria Borghese", start_time: "09:00" }, { name: "Vatican Museums", start_time: "12:00" }, { name: "Villa Borghese", start_time: "15:00" }] }] }) } };
+    generateContent.mockResolvedValueOnce(more).mockRejectedValueOnce(overloaded());
+    const out = await run(art);
+    expect(generateContent).toHaveBeenCalledTimes(2);
+    expect(named(out)).toEqual(["3: Galleria Borghese, Vatican Museums, Villa Borghese"]);
+  });
+
+  it("leaves a place they named where they asked for it", async () => {
+    generateContent.mockResolvedValue(repeated);
+    const out = await run({ ...art, message: "put the vatican museums on day 3 too" });
+    expect(generateContent).toHaveBeenCalledTimes(2);
+    expect(named(out)).toEqual(["3: Galleria Borghese, Vatican Museums, Villa Borghese"]);
   });
 });
 

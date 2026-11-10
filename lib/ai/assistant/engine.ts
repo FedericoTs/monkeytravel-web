@@ -44,7 +44,7 @@ import {
   tripSpan,
 } from "./edit-prompt";
 import { type DayEdit, validateEdits, plainText, str, num } from "./edit-validation";
-import { keepSavedActivities, takenOut } from "./saved-activities";
+import { keepSavedActivities, nameTokens, sameWord, takenOut } from "./saved-activities";
 import {
   asksForFreeDay,
   tellsWhereTheyStay,
@@ -167,6 +167,13 @@ function lostPrompt(lost: string[], homes: { city: string; days: number[]; names
     .map((h) => ` ${h.names.join(", ")} ${h.names.length > 1 ? "are" : "is"} in ${h.city}: put ${h.names.length > 1 ? "them" : "it"} on ${h.city}'s days (Days ${h.days.join(", ")}), never on a day of another city.`)
     .join("");
   return `CONTINUE: this change left these places of the plan off every day: ${lost.join(", ")}.${where} Return in "edits" only the days you put them back on, each day in full: each place once, on a day near it where it fits (on a trip through several cities, a day in its city). Keep every activity those days already have: add alongside, moving times to make room, and spread the places over several days rather than crowd one. Leave out one the plan already holds under another name. "more_days" is [], "trip_length" is null, and "reply" is one short line.`;
+}
+
+/** What the last ask for a rewritten day's copies of other days' places says. */
+function repeatsPrompt(repeats: { name: string; from: number; to: number }[]): string {
+  const days = [...new Set(repeats.map((r) => r.to))];
+  const which = repeats.map((r) => `${r.name} (Day ${r.from})`).join(", ");
+  return `CONTINUE: Day${days.length > 1 ? "s" : ""} ${days.join(", ")} of this change repeat${days.length > 1 ? "" : "s"} places other days keep: ${which}. Return ${days.length > 1 ? "those days" : `Day ${days[0]}`} in "edits", each in full, with other places nearby instead of those, keeping the rest of the day. "more_days" is [], "trip_length" is null, and "reply" is one short line.`;
 }
 
 /**
@@ -809,6 +816,52 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
     }
   }
 
+  // A rewritten day that holds a place another day keeps as it was, which they
+  // didn't name: "yes" to Seoul places for Day 8 got Day 5's dinner at Gwangjang
+  // Market again, and the retry kept it. One more ask for other places, kept
+  // when the repeats are gone and nothing else is; otherwise a copy comes off
+  // its day when the day keeps two places.
+  const said = nameTokens(input.message);
+  const named = (name: string) => {
+    const [first] = nameTokens(name);
+    return first !== undefined && said.some((s) => sameWord(first, s));
+  };
+  // A regroup has its own (withoutRepeats); a day of the change still to come may
+  // be where a copy goes; and a copy on a day of another city is the one to move.
+  const repeats =
+    regroup || daysLeft.length > 0
+      ? []
+      : twinsOf(input.days, edits, []).filter(
+          (t) => t.to <= current && !named(t.name) && !misplaced.some((x) => x.day === t.from && x.activities.some((a) => a.name === t.name)),
+        );
+  const stillRepeated = (list: DayEdit[]) => twinsOf(input.days, list, []).filter((t) => repeats.some((r) => r.name === t.name && r.to === t.to));
+  if (repeats.length > 0 && Date.now() - startedAt < FILL_START_MS) {
+    try {
+      const now = withEdits(input.days, edits);
+      const days = [...new Set(repeats.map((r) => r.to))];
+      const again = readOutcome(
+        input,
+        await within(ask(`${buildPrompt({ ...input, days: now })}\n\n${repeatsPrompt(repeats)}`, 1), MORE_DAYS_DEADLINE_MS - (Date.now() - startedAt)),
+        cur,
+      ).edits.filter((e) => days.includes(e.day_number));
+      const byDay = new Map(edits.map((e) => [e.day_number, e]));
+      again.forEach((e) => byDay.set(e.day_number, e));
+      const fixed = settle([...byDay.values()].sort((a, b) => a.day_number - b.day_number));
+      if (again.length > 0 && stillRepeated(fixed.edits).length === 0 && takenOut(input.days, fixed.edits).length <= takenOut(input.days, edits).length) {
+        ({ edits, away: leftInTheirCity } = fixed);
+      }
+    } catch (err) {
+      console.warn("assistant-anon: asking for other places than the repeated ones failed:", err instanceof Error ? err.message : err);
+    }
+  }
+  for (const t of stillRepeated(edits)) {
+    const day = edits.find((e) => e.day_number === t.to);
+    const left = day ? day.activities.filter((a) => a.name !== t.name) : [];
+    if (day && left.length >= 2) edits = edits.map((e) => (e === day ? { ...e, activities: left } : e));
+  }
+  // The repeats no longer on the day the reply may have named them for.
+  const notRepeated = repeats.filter((r) => !stillRepeated(edits).some((t) => t.name === r.name && t.to === r.to)).map((r) => r.name);
+
   // A longer trip goes as far as its new days came back. The rest are named,
   // to be asked for again; with none back, the trip keeps its length.
   let notAdded: number[] = [];
@@ -855,6 +908,7 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
     cityKept: leftInTheirCity,
     // Asked to regroup, they expect places to move.
     cityMoved: regroup ? [] : movedToTheirCity(input.days, edits, misplaced),
+    notRepeated,
   });
 
   return {
