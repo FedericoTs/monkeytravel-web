@@ -40,6 +40,42 @@ export function asksForMoreDays(text: string, tripDays?: number): boolean {
   return tripDays !== undefined && [...asked.matchAll(DAY_NUMBER)].some((m) => Number(m[1]) > tripDays);
 }
 
+// A shorter trip: "shorten it", "remove the last day", "one day less", "we leave a
+// day earlier", "end it on the 5th", "make it 8 days", "un día menos", "togli un
+// giorno", "tira um dia". A count they argue about ("count, it's 8") asks for nothing.
+const DAY_WORD = "(?:day|days|night|nights|día|días|noche|noches|giorno|giorni|notte|notti|dia|dias|noite|noites)";
+const FEWER_DAYS = new RegExp(
+  [
+    "trip_length",
+    `(?<![${L}])(?:shorten\\p{L}*|shorter|acort\\p{L}*|accorci\\p{L}*|encurt\\p{L}*|end|ends|ending|finish\\p{L}*|termin\\p{L}*|acab\\p{L}*|fini\\p{L}*)(?![${L}])`,
+    `(?<![${L}])(?:cut|cutting|remove|removing|drop|dropping|delete|lose|fewer|less|reduce\\p{L}*|skip|quit\\p{L}*|elimin\\p{L}*|borr\\p{L}*|menos|reduc\\p{L}*|togli\\p{L}*|rimuov\\p{L}*|cancell\\p{L}*|meno|riduc\\p{L}*|riduci|tir[ae]\\p{L}*|remov\\p{L}*|exclu\\p{L}*|reduz\\p{L}*)(?![${L}])[^.?!\\n]{0,24}?(?<![${L}])${DAY_WORD}(?![${L}])`,
+    `(?<![${L}])${DAY_WORD}\\s+(?:less|fewer|earlier|sooner|before|menos|antes|in\\s+meno|prima|a\\s+menos)(?![${L}])`,
+    `(?<![${L}\\p{N}])\\d{1,2}(?:\\s*|-)${DAY_WORD}(?![${L}])`,
+  ].join("|"),
+  "iu",
+);
+
+/** Does the message ask for a shorter trip? Saying how long it is doesn't. */
+export function asksForFewerDays(text: string): boolean {
+  return FEWER_DAYS.test(text.replace(DAY_TRIP, " "));
+}
+
+// How long the trip is, in question: "isn't it 8 days?", "count", "how many
+// nights", "cuántos días", "quanti giorni", "quantos dias".
+const COUNT_TALK = new RegExp(
+  [
+    `(?<![${L}])(?:count|counting|counted|cuenta|cuentas|contar|contando|conta|conti|contare|conte|contei)(?![${L}])`,
+    `(?<![${L}])(?:how\\s+many|cu[aá]nt[oa]s|quant[ie]|quant[oa]s)\\s+${DAY_WORD}(?![${L}])`,
+    `(?<![${L}\\p{N}])\\d{1,2}(?:\\s*|-)${DAY_WORD}(?![${L}])`,
+  ].join("|"),
+  "iu",
+);
+
+/** Does the message ask or argue how many days the trip has? */
+export function talksAboutDayCount(message: string): boolean {
+  return COUNT_TALK.test(message);
+}
+
 // A day with nothing planned: "leave day 2 free", "deixe o dia 2 livre".
 const FREE_DAY =
   /(?<![\p{L}])(?:free|empty|clear|day\s+off|nothing\s+planned|libres?|vac[ií][oa]s?|liber[oiae]|vuot[oiae]|livres?|vazi[oa]s?|folga)(?![\p{L}])/iu;

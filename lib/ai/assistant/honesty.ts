@@ -417,6 +417,49 @@ export function claimedTripDays(text: string | null | undefined): number | null 
   return null;
 }
 
+// A count of days a reply states: "28 Nov to 6 Dec is indeed 8 days total", "9
+// days in total", "let's count it as 8 days", "son 8 días", "sono 9 giorni",
+// "são 9 dias". An offer ("an 8-day trip instead") states none.
+const STATED_DAYS: RegExp[] = [
+  /(?<![\p{L}])(?:is|are|it['’]s|that['’]s|makes|spans|comes\s+to|count\s+it\s+as|counts\s+as)\s+(?:indeed\s+|actually\s+|exactly\s+|really\s+|in\s+fact\s+|only\s+|just\s+|still\s+)?(\d{1,2})\s+days(?![\p{L}'’])/giu,
+  /(?<![\p{L}\p{N}])(\d{1,2})\s+days\s+(?:in\s+)?total(?![\p{L}])/giu,
+  /(?<![\p{L}])(?:son|es|serían|suman)\s+(?:en\s+realidad\s+|exactamente\s+|realmente\s+|efectivamente\s+|solo\s+)?(\d{1,2})\s+días(?![\p{L}])/giu,
+  /(?<![\p{L}\p{N}])(\d{1,2})\s+días\s+en\s+total(?![\p{L}])/giu,
+  /(?<![\p{L}])(?:sono|è|fanno)\s+(?:in\s+realtà\s+|esattamente\s+|davvero\s+|effettivamente\s+|solo\s+)?(\d{1,2})\s+giorni(?![\p{L}])/giu,
+  /(?<![\p{L}\p{N}])(\d{1,2})\s+giorni\s+in\s+totale(?![\p{L}])/giu,
+  /(?<![\p{L}])(?:são|é|dá|dão|somam)\s+(?:na\s+verdade\s+|exatamente\s+|realmente\s+|mesmo\s+|só\s+|apenas\s+)?(\d{1,2})\s+dias(?![\p{L}])/giu,
+  /(?<![\p{L}\p{N}])(\d{1,2})\s+dias\s+(?:no\s+total|ao\s+todo)(?![\p{L}])/giu,
+];
+
+/** Every count of days the reply states for the trip or its dates. */
+export function statedDayCounts(text: string | null | undefined): number[] {
+  if (!text) return [];
+  return STATED_DAYS.flatMap((re) => [...text.matchAll(re)].map((m) => Number(m[1])));
+}
+
+/** A trip's first and last dates and its number of days, as notes give them. */
+export interface TripSpan {
+  from: string;
+  to: string;
+  days: number;
+}
+
+function spanValues(language: string | undefined, span: TripSpan) {
+  const format = new Intl.DateTimeFormat(resolveAiLanguage(language), { day: "numeric", month: "long", timeZone: "UTC" });
+  const date = (iso: string) => format.format(new Date(`${iso}T00:00:00Z`));
+  return { from: date(span.from), to: date(span.to), days: span.days, nights: Math.max(0, span.days - 1) };
+}
+
+/** The reply when nothing changes and it gave the trip another count, or a shorter trip nobody asked for. */
+export function dayCountReply(language: string | undefined, span: TripSpan): string {
+  return note(language, "dayCount", spanValues(language, span));
+}
+
+/** Appended when a change's reply gives the trip another count than its dates. */
+export function dayCountNote(language: string | undefined, span: TripSpan): string {
+  return note(language, "dayCountNote", spanValues(language, span));
+}
+
 /** Appended when a change concerned more days than could be prepared in time. */
 export function daysLeftNote(language: string | undefined, days: number[]): string {
   return note(language, "daysLeft", { list: days.join(", ") });

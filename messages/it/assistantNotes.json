@@ -23,6 +23,8 @@
   "takesOut": "(Questa modifica toglie: {list}.)",
   "waitingKept": "(Questo mantiene anche la modifica precedente, che non era ancora salvata.)",
   "listMissing": "(Non è in questa modifica: {list}.)",
+  "dayCount": "Dal {from} al {to} sono {days, plural, =1 {# giorno} other {# giorni}} e {nights, plural, =1 {# notte} other {# notti}}, quindi il viaggio resta di {days} giorni. Per accorciarlo, dimmi quale giorno togliere.",
+  "dayCountNote": "(Dal {from} al {to} sono {days, plural, =1 {# giorno} other {# giorni}} e {nights, plural, =1 {# notte} other {# notti}}.)",
   "missingAnswer": "Non sono riuscito a preparare questa risposta. Chiedimi una cosa alla volta, per esempio cosa fare il giorno 2.",
   "currencySwitched": "Fatto: ora i prezzi sono mostrati in {code}.",
   "elsewhereNote": "Scegli un luogo qui sotto e lo pianifico per le stesse date."
