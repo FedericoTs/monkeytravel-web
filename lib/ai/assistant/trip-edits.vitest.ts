@@ -147,6 +147,18 @@ describe("mergeTripEdits: the saved trip keeps what it holds", () => {
     const ids = out.flatMap((d) => d.activities.map((a) => a.id));
     expect(new Set(ids).size).toBe(ids.length);
   });
+
+  // The engine puts a day's fixed plan back as stored; the change to save keeps it so.
+  it("keeps a fixed plan whole, as the save expects it", () => {
+    const days = trip();
+    const flight = act("anchor-f1", "Flight to London", { locked: true, anchor_id: "f1", start_time: "18:00", time_slot: "evening", duration_minutes: 120 });
+    days[1].activities.push(flight);
+    const [day2] = mergeTripEdits(days, [
+      { day_number: 2, summary: "", activities: [engineActivity("National Gallery", "10:00", "morning"), engineActivity("Little Museum of Dublin", "14:00", "afternoon"), flight] },
+    ]);
+    expect(day2.activities.map((a) => a.name)).toEqual(["National Gallery", "Little Museum of Dublin", "Flight to London"]);
+    expect(day2.activities[2]).toEqual(flight);
+  });
 });
 
 describe("proposeTripEdits", () => {

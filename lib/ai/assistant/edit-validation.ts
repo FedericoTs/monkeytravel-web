@@ -3,10 +3,11 @@
  * against the trip, and every activity given the fields the views need.
  */
 
-import { lockedActivityNames } from "@/lib/ai/anchors-core";
+import { isLockedActivity, lockedActivityNames } from "@/lib/ai/anchors-core";
 import { maxTripDays } from "@/lib/ai/assistant/structural";
 import type { Activity, ItineraryDay } from "@/types";
 import { normalizeActivityType } from "@/lib/trip/activity-type";
+import { SAME_ACTIVITY, sameActivityScore } from "./saved-activities";
 import { knownPoints, stopLocation } from "./stop-location";
 
 const VALID_TIME_SLOTS = new Set(["morning", "afternoon", "evening"]);
@@ -89,6 +90,37 @@ function normalizeActivity(raw: unknown, idx: number, cur: string, known: { lat:
   } as Activity;
 }
 
+const minutes = (time: unknown) => {
+  const t = clockTime(time);
+  return t ? Number(t.slice(0, 2)) * 60 + Number(t.slice(3)) : 0;
+};
+
+/**
+ * An edited day's activities around its fixed plans. Each stays as stored, at
+ * its time: the traveller set it, and only they change it (anchors-core). The
+ * reply's own copy of a fixed plan gives way to it, on its day or any other.
+ * The fixed plans the reply took out, moved or copied go into `moved`.
+ */
+function aroundFixedPlans(activities: Activity[], own: Activity[], others: Activity[], moved: Activity[]): Activity[] {
+  const kept: Activity[] = [];
+  const out: Activity[] = [];
+  for (const a of activities) {
+    const fixed = [...own, ...others].find((f) => sameActivityScore(f, a) >= SAME_ACTIVITY);
+    if (!fixed) out.push(a);
+    else if (!own.includes(fixed)) moved.push(fixed);
+    else if (!kept.includes(fixed) && clockTime(a.start_time) === clockTime(fixed.start_time)) {
+      out.push(fixed);
+      kept.push(fixed);
+    }
+  }
+  for (const fixed of own.filter((f) => !kept.includes(f))) {
+    moved.push(fixed);
+    const at = out.findIndex((a) => minutes(a.start_time) > minutes(fixed.start_time));
+    out.splice(at === -1 ? out.length : at, 0, fixed);
+  }
+  return out;
+}
+
 /**
  * Validate the model's edits against the trip. Pure, so the rules are
  * unit-tested (lib/ai/assistant/engine-edits.vitest.ts).
@@ -96,8 +128,9 @@ function normalizeActivity(raw: unknown, idx: number, cur: string, known: { lat:
  * - A new trip length counts only if every added day comes back in full, or
  *   is one of "more_days", which the next parts bring; a shorter one may not
  *   drop a day holding a fixed plan (F1 anchor).
- * - A day holding a fixed plan is never rewritten: an edit REPLACES the whole
- *   day, and anchors are the traveller's to remove.
+ * - An edit replaces the whole day, so a day's fixed plans are put back as
+ *   stored, at their time (aroundFixedPlans); `lockedDays` names the ones the
+ *   reply took out, moved or copied to another day.
  * - Edits for days outside the trip are dropped; one per day (the last wins).
  */
 export function validateEdits(
@@ -142,16 +175,19 @@ export function validateEdits(
     else lengthRefused = true;
   }
 
-  const lockedDays: { dayNumber: number; names: string[] }[] = [];
+  // Each fixed plan of the trip, and its day.
+  const fixedDay = new Map<Activity, number>();
+  for (const d of days) for (const a of d.activities ?? []) if (isLockedActivity(a)) fixedDay.set(a, d.day_number);
+  const fixedOn = (n: number, on: boolean) => [...fixedDay].filter(([, d]) => (d === n) === on).map(([a]) => a);
+  const moved: Activity[] = [];
   const edits: DayEdit[] = [];
   for (const edit of [...byDay.values()].sort((a, b) => a.day_number - b.day_number)) {
     if (edit.day_number > length) continue;
-    const names = lockedActivityNames(days.find((d) => d.day_number === edit.day_number));
-    if (names.length > 0) {
-      lockedDays.push({ dayNumber: edit.day_number, names });
-      continue;
-    }
-    edits.push(edit);
+    const activities = fixedDay.size ? aroundFixedPlans(edit.activities, fixedOn(edit.day_number, true), fixedOn(edit.day_number, false), moved) : edit.activities;
+    edits.push({ ...edit, activities });
   }
+  const lockedDays = [...new Set(moved.map((a) => fixedDay.get(a)!))]
+    .sort((a, b) => a - b)
+    .map((dayNumber) => ({ dayNumber, names: [...new Set(moved.filter((a) => fixedDay.get(a) === dayNumber))].map((a) => a.name?.trim() || "Fixed plan") }));
   return { edits, tripLength: length !== current ? length : undefined, lockedDays, lengthRefused };
 }

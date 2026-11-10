@@ -78,11 +78,54 @@ describe("validateEdits", () => {
     expect(out.lengthRefused).toBe(true);
   });
 
-  it("never rewrites a day holding a fixed plan", () => {
-    const locked = [day(1), day(2, { activities: [{ ...act("Flight"), locked: true }] as never }), day(3)];
-    const out = validateEdits(locked, { edits: [edit(2), edit(3)], tripLength: null }, "EUR");
-    expect(out.edits.map((e) => e.day_number)).toEqual([3]);
-    expect(out.lockedDays).toEqual([{ dayNumber: 2, names: ["Flight"] }]);
+  // A day holding a fixed plan was refused whole: "add a museum before my flight" changed nothing.
+  describe("on a day with a fixed plan", () => {
+    const flight = { id: "anchor-f1", anchor_id: "f1", name: "Flight to Lisbon", time_slot: "afternoon", start_time: "15:00", duration_minutes: 120, locked: true };
+    const withFlight = () => [day(1), day(2, { activities: [act("Morning market"), flight] as never }), day(3)];
+    const at = (name: string, start_time: string) => ({ name, start_time });
+    const onDay = (n: number, activities: unknown[], allowEmpty = false) =>
+      validateEdits(withFlight(), { edits: [{ day_number: n, activities }], tripLength: null }, "EUR", allowEmpty);
+    const shown = (out: ReturnType<typeof validateEdits>) => out.edits.map((e) => e.activities.map((a) => `${a.name} ${a.start_time}`));
+
+    it("changes the rest of the day, with the fixed plan as stored", () => {
+      const out = onDay(2, [at("Tile museum", "10:00"), at("Flight to Lisbon", "15:00")]);
+      expect(shown(out)).toEqual([["Tile museum 10:00", "Flight to Lisbon 15:00"]]);
+      expect(out.edits[0].activities[1]).toBe(flight);
+      expect(out.lockedDays).toEqual([]);
+    });
+
+    it("takes a reworded copy for the fixed plan, in its place", () => {
+      const out = onDay(2, [at("Tile museum", "10:00"), at("Lisbon flight", "15:00"), at("Dinner in Alfama", "20:00")]);
+      expect(shown(out)).toEqual([["Tile museum 10:00", "Flight to Lisbon 15:00", "Dinner in Alfama 20:00"]]);
+      expect(out.lockedDays).toEqual([]);
+    });
+
+    it("puts back a fixed plan the reply took out, at its time, and names it", () => {
+      const out = onDay(2, [at("Tile museum", "10:00"), at("Sunset cruise", "18:00")]);
+      expect(shown(out)).toEqual([["Tile museum 10:00", "Flight to Lisbon 15:00", "Sunset cruise 18:00"]]);
+      expect(out.lockedDays).toEqual([{ dayNumber: 2, names: ["Flight to Lisbon"] }]);
+      // A day they want free keeps it too.
+      expect(shown(onDay(2, [], true))).toEqual([["Flight to Lisbon 15:00"]]);
+    });
+
+    it("keeps a fixed plan at its time when the reply moves it", () => {
+      const out = onDay(2, [at("Flight to Lisbon", "09:00"), at("Tile museum", "10:00"), at("Fado dinner", "21:00")]);
+      expect(shown(out)).toEqual([["Tile museum 10:00", "Flight to Lisbon 15:00", "Fado dinner 21:00"]]);
+      expect(out.lockedDays).toEqual([{ dayNumber: 2, names: ["Flight to Lisbon"] }]);
+    });
+
+    it("drops a copy of a fixed plan on another day, and a second copy on its own", () => {
+      const out = onDay(3, [at("Beach", "10:00"), at("Flight to Lisbon", "15:00")]);
+      expect(shown(out)).toEqual([["Beach 10:00"]]);
+      expect(out.lockedDays).toEqual([{ dayNumber: 2, names: ["Flight to Lisbon"] }]);
+      expect(shown(onDay(2, [at("Flight to Lisbon", "15:00"), at("Flight to Lisbon", "15:00")]))).toEqual([["Flight to Lisbon 15:00"]]);
+    });
+
+    it("leaves days without fixed plans as the reply has them", () => {
+      const out = validateEdits(trip(), { edits: [{ day_number: 2, activities: [at("Flight to Lisbon", "09:00")] }], tripLength: null }, "EUR");
+      expect(shown(out)).toEqual([["Flight to Lisbon 09:00"]]);
+      expect(out.lockedDays).toEqual([]);
+    });
   });
 
   it("drops edits outside the trip, with no activities, or with a bad day", () => {
@@ -173,9 +216,16 @@ describe("composeReply", () => {
     expect(text).toBe("Day 5 is gone, and your trip now ends on Day 4.");
   });
 
-  it("a day withheld for a fixed plan is explained", () => {
-    const text = composeReply({ ...base, reply: "I've updated Day 2.", edits: [], lockedDays: [{ dayNumber: 2, names: ["Flight"] }] });
-    expect(text).toMatch(/^Day 2 is built around a fixed plan \(Flight\)/);
+  it("a change only to a fixed plan says it stays, and where to change it", () => {
+    const text = composeReply({ ...base, reply: "I've moved your flight to 18:00.", edits: [], lockedDays: [{ dayNumber: 2, names: ["Flight"] }] });
+    expect(text).toBe("Day 2 has a fixed plan you set (Flight), so I left it as it is: you can change it yourself in the plan. I can change anything else on that day.");
+  });
+
+  it("a change that moved a fixed plan says it stays as set", () => {
+    const [d2] = validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").edits;
+    const text = composeReply({ ...base, reply: "Here's Day 2 with a museum, and the flight later.", edits: [d2], lockedDays: [{ dayNumber: 2, names: ["Flight"] }] });
+    expect(text).toBe("Here's Day 2 with a museum, and the flight later. (The fixed plan on Day 2 stays as you set it: Flight.)");
+    expect(composeReply({ ...base, reply: "Here's Day 2 with a museum.", edits: [d2] })).toBe("Here's Day 2 with a museum.");
   });
 
   it("answers in the traveller's language", () => {
@@ -198,7 +248,11 @@ describe("composeReply", () => {
 
   it("a fixed-plan day is explained in the traveller's language", () => {
     const text = composeReply({ ...base, locale: "es", reply: "He actualizado el día 2.", edits: [], lockedDays: [{ dayNumber: 2, names: ["Vuelo"] }] });
-    expect(text).toMatch(/^El día 2 gira en torno a un plan fijo \(Vuelo\)/);
+    expect(text).toMatch(/^El día 2 tiene un plan fijo que pusiste tú \(Vuelo\)/);
+    const [d2] = validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").edits;
+    expect(composeReply({ ...base, locale: "pt", reply: "Aqui está o dia 2.", edits: [d2], lockedDays: [{ dayNumber: 2, names: ["Voo"] }] })).toBe(
+      "Aqui está o dia 2. (O compromisso fixo do dia 2 fica como você definiu: Voo.)",
+    );
   });
 
   it("an empty reply falls back in the traveller's language", () => {

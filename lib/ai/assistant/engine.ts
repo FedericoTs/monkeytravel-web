@@ -18,7 +18,7 @@ import {
 import { logCacheMetrics } from "@/lib/ai/cache-metrics";
 import { getModelForPurpose, getSiblingModel, thinkingConfigFor } from "@/lib/ai/model-router";
 import { geminiCostUsd } from "@/lib/ai/gemini-cost";
-import { lockedActivityNames } from "@/lib/ai/anchors-core";
+import { isLockedActivity } from "@/lib/ai/anchors-core";
 import {
   announcedButMissing,
   announcesProposal,
@@ -99,13 +99,11 @@ function readOutcome(input: AssistInput, obj: Record<string, unknown>, cur: stri
     asksForFreeDay(input.message),
   );
   const edits = keepSavedActivities(input.days, checked.edits, { reply, message: input.message });
-  // The other days the change concerns, past what one reply holds. A day with
-  // a fixed plan is never rewritten (validateEdits), so it is not one of them.
+  // The other days the change concerns, past what one reply holds.
   const length = checked.tripLength ?? input.days.length;
   const done = new Set(edits.map((e) => e.day_number));
   const moreDays = [...new Set((Array.isArray(obj.more_days) ? obj.more_days : []).map((n) => Math.round(num(n, 0))))]
     .filter((n) => n >= 1 && n <= length && !done.has(n))
-    .filter((n) => lockedActivityNames(input.days.find((d) => d.day_number === n)).length === 0)
     .sort((a, b) => a - b);
   const elsewhere =
     canOfferElsewhere(input) && edits.length === 0 && checked.tripLength === undefined
@@ -259,7 +257,7 @@ function within<T>(promise: Promise<T>, ms: number): Promise<T> {
 /** What a reply got wrong that one more try may fix, or null. Pure; unit-tested. */
 export function correctionFor(
   input: Pick<AssistInput, "message" | "history" | "days" | "canAddDays">,
-  o: Pick<Outcome, "reply" | "edits" | "tripLength"> & Partial<Pick<Outcome, "travelTimes" | "elsewhere" | "lengthRefused" | "moreDays">>,
+  o: Pick<Outcome, "reply" | "edits" | "tripLength"> & Partial<Pick<Outcome, "travelTimes" | "elsewhere" | "lengthRefused" | "moreDays" | "lockedDays">>,
   /** Hold the reply to a list of places they asked to add (on by default). */
   rules: { list?: boolean } = {},
 ): string | null {
@@ -276,6 +274,15 @@ export function correctionFor(
   }
   if (!prepared && announcedButMissing(o.reply)) {
     return 'Your "reply" announced an answer without giving it. Put the whole answer in "reply" now.';
+  }
+  // A fixed plan the reply took out, moved or copied is back as it was
+  // (validateEdits), and the rest of its day may not fit around it.
+  const fixed = o.lockedDays?.[0];
+  if (fixed) {
+    const plans = (input.days.find((d) => d.day_number === fixed.dayNumber)?.activities ?? [])
+      .filter(isLockedActivity)
+      .map((a) => `${a.name} at ${a.start_time}`);
+    return `Day ${fixed.dayNumber} has a fixed plan the traveller set: ${plans.join(", ")}. Return it exactly as it is, under its exact name and at its time, on Day ${fixed.dayNumber} only, and plan the rest of that day around it. If they asked to move, change or remove it, leave it as it is and say in "reply" that they can change it themselves in the plan; make the rest of what they asked.`;
   }
   const day = dayMentioned(input.message);
   if (day && day <= current && o.edits.length > 0 && !o.edits.some((e) => e.day_number === day)) {

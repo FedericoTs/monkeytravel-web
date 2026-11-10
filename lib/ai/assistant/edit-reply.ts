@@ -13,6 +13,7 @@ import {
   replyLanguage,
   takesOutNote,
   listMissingNote,
+  fixedKeptNote,
   travelTimesNote,
   notAppliedLead,
   claimsItineraryChange,
@@ -52,6 +53,7 @@ export function composeReply(p: {
   reply: string;
   edits: DayEdit[];
   tripLength?: number;
+  /** Fixed plans, by day, that the reply moved or took out: they stay as they were. */
   lockedDays: { dayNumber: number; names: string[] }[];
   lengthRefused: boolean;
   locale?: string;
@@ -99,8 +101,8 @@ export function composeReply(p: {
     return p.reply && !claimsItineraryChange(p.reply) ? p.reply : elsewhereNote(locale);
   }
 
-  // A day withheld for a fixed plan: the model's "I've updated Day 5" would be
-  // worse than the bug. Say what happened.
+  // A change only to a fixed plan, which stays as it was: the model's "I've
+  // moved your flight" would be worse than the bug. Say what happened.
   if (p.lockedDays.length > 0 && !prepared) {
     const d = p.lockedDays[0];
     return lockedDayReply(locale, d.dayNumber, d.names);
@@ -168,6 +170,8 @@ export function composeReply(p: {
   if (unmentioned.length > 0) text = `${text} ${takesOutNote(locale, unmentioned)}`;
   // "I've added all ten" with eight in the change: name the two.
   if ((p.listMissing?.length ?? 0) > 0) text = `${text} ${listMissingNote(locale, p.listMissing!)}`;
+  // A fixed plan the reply moved or took out is back as the traveller set it.
+  for (const d of p.lockedDays) text = `${text} ${fixedKeptNote(locale, d.dayNumber, d.names)}`;
   // Told to present an unapplied edit as ready, the model still writes "I've
   // updated…" most of the time: lead with the truth so Apply isn't skipped.
   if (!p.autoApplied && !p.ownLead && claimsItineraryChange(p.reply)) text = `${notAppliedLead(locale)} ${text}`;

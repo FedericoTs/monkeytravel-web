@@ -315,6 +315,15 @@ describe("correctionFor", () => {
     expect(correctionFor({ message, days, canAddDays: false }, refused)).toBeNull();
   });
 
+  it("asks again around a fixed plan the reply moved or took out", () => {
+    const fixed = [day(1, ["A"]), { day_number: 2, activities: [act("B"), act("Wedding", "15:00", { locked: true })] } as unknown as ItineraryDay];
+    const moved = { reply: "Here's Day 2, with the wedding later.", edits: [edit(2, ["B", "Wedding"])], lockedDays: [{ dayNumber: 2, names: ["Wedding"] }] };
+    const c = correctionFor({ message: "move the wedding to the evening", days: fixed }, moved);
+    expect(c).toContain("Day 2 has a fixed plan the traveller set: Wedding at 15:00.");
+    expect(c).toContain("they can change it themselves in the plan");
+    expect(correctionFor({ message: "move the wedding to the evening", days: fixed }, { ...moved, lockedDays: [] })).toBeNull();
+  });
+
   it("sends a change made on another day than the one named back to that day", () => {
     const c = correctionFor({ message: "can we add the Oceanário on day 4", days }, { reply: "Added to day 5.", edits: [edit(5, ["Oceanário"])] });
     expect(c).toContain("Make the change on Day 4");
@@ -564,6 +573,14 @@ describe("buildPrompt", () => {
   it("keeps the trip's length and the saved activities' names", () => {
     expect(prompt).toContain("Keep the number of days unless the traveller asks for more or fewer");
     expect(prompt).toContain("never translate or rename activities");
+  });
+
+  it("shows a fixed plan with its time, to plan the rest of its day around", () => {
+    const fixed = { day_number: 1, activities: [act("Old town walk"), act("Flight to Porto", "17:30", { locked: true })] } as unknown as ItineraryDay;
+    const withFixed = buildPrompt({ message: "add lunch", destination: "Lisbon", tripTitle: "Lisbon", days: [fixed], locale: "en" });
+    expect(withFixed).toContain("Day 1: Old town walk, Flight to Porto [fixed plan, 17:30]");
+    expect(withFixed).toContain("An activity marked [fixed plan] is the traveller's own booking");
+    expect(withFixed).toContain("You can't move, change or remove one: if they ask to, say they can change it themselves in the plan");
   });
 
   it("knows a change asked for again after Undo isn't in the plan", () => {
