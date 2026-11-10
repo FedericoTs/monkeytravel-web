@@ -19,6 +19,7 @@ import {
   notRepeatedNote,
   dayCountNote,
   dayCountReply,
+  tripCapReply,
   type TripSpan,
   travelTimesNote,
   notAppliedLead,
@@ -96,6 +97,8 @@ export function composeReply(p: {
   cityMoved?: PlacesAway[];
   /** Places other days keep that the change doesn't repeat, though the reply may name them. */
   notRepeated?: string[];
+  /** The reply wanted more days than a trip may have (max), on a trip of `days`: none were added. */
+  tripCap?: { max: number; days: number };
 }): string {
   const prepared = p.edits.length > 0 || p.tripLength !== undefined;
   // Notes join the reply, in its language: a Spanish message about a plan
@@ -119,6 +122,10 @@ export function composeReply(p: {
   // "You're totally right, 8 days" for 9 days of dates, or a day cut nobody asked
   // for: the count from the dates instead.
   if (p.dayCount && !prepared) return dayCountReply(locale, p.dayCount);
+
+  // "Here is the new Day 15, ready to save" on a trip at its longest: say so,
+  // and what can be done instead.
+  if (p.tripCap && !prepared) return tripCapReply(locale, p.tripCap.max, p.tripCap.days);
 
   // A change only to a fixed plan, which stays as it was: the model's "I've
   // moved your flight" would be worse than the bug. Say what happened.

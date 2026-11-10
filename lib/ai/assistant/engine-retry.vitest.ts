@@ -700,6 +700,56 @@ describe("assistTrip adding more days than one reply holds", () => {
   });
 });
 
+// "Acrescentar dia 15 em dublin" on a 14-day trip: the reply handed over a new
+// Day 15, "pronto para salvar", four times, and each came with no change.
+describe("assistTrip on a trip at its longest", () => {
+  const days = (n: number) =>
+    Array.from({ length: n }, (_, i) => ({ ...day(i + 1), activities: [{ name: `Day ${i + 1} thing`, time_slot: "morning", start_time: "09:00" }] })) as unknown as ItineraryDay[];
+  const ask = { ...input, message: "Acrescentar dia 15 em dublin", days: days(14), locale: "pt" };
+  const day15 = {
+    response: {
+      text: () =>
+        JSON.stringify({
+          reply: "Aqui está o novo Dia 15 em Dublin, pronto para salvar.",
+          trip_length: 15,
+          // Its departure moved to the new last day, and another day still to come.
+          more_days: [3],
+          edits: [
+            { day_number: 14, summary: "Dublin", activities: [{ name: "Guinness Storehouse", start_time: "10:00" }] },
+            { day_number: 15, summary: "Dublin", activities: [{ name: "Trinity College", start_time: "10:00" }] },
+          ],
+        }),
+    },
+  };
+
+  it("says trips can be at most 14 days when the model keeps adding one, and keeps nothing of that reply", async () => {
+    generateContent.mockResolvedValue(day15);
+    const out = await run(ask);
+    // The first reply and the correction: no part is asked for the days it named.
+    expect(generateContent).toHaveBeenCalledTimes(2);
+    expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain('CORRECTION: Trips can be at most 14 days, and this one has 14: keep \\"trip_length\\" null and add no day.');
+    expect(out.edits).toEqual([]);
+    expect(out.tripLength).toBeUndefined();
+    expect(out.reply).toMatch(/^As viagens podem ter no máximo 14 dias, e esta já tem 14, por isso não acrescentei nenhum dia\./);
+  });
+
+  it("keeps the model's own answer once it keeps to the 14 days", async () => {
+    const honest = { response: { text: () => JSON.stringify({ reply: "As viagens podem ter no máximo 14 dias. Posso trocar o dia 9, o mais leve, por um dia em Dublin.", trip_length: null, edits: [] }) } };
+    generateContent.mockResolvedValueOnce(day15).mockResolvedValueOnce(honest);
+    const out = await run(ask);
+    expect(out.edits).toEqual([]);
+    expect(out.reply).toBe("As viagens podem ter no máximo 14 dias. Posso trocar o dia 9, o mais leve, por um dia em Dublin.");
+  });
+
+  it("tells a shorter trip how many days it can still take", async () => {
+    const more = { response: { text: () => JSON.stringify({ reply: "Here are 5 new days.", trip_length: 17, edits: [] }) } };
+    generateContent.mockResolvedValue(more);
+    const out = await run({ ...ask, message: "add 5 more days", days: days(12), locale: "en" });
+    expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain('Trips can be at most 14 days, and this one has 12: \\"trip_length\\" can be 14 at most.');
+    expect(out.reply).toMatch(/^Trips can be at most 14 days, so this one can take 2 more: ask me for up to 2\./);
+  });
+});
+
 // A day must end in time for the traveller's departure.
 describe("assistTrip on a day that doesn't fit when they leave", () => {
   const fiveDays = Array.from({ length: 5 }, (_, i) => day(i + 1));

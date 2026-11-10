@@ -139,7 +139,7 @@ export function validateEdits(
   cur: string,
   /** The traveller asked for a free day, so a day emptied is the change. */
   allowEmpty = false
-): { edits: DayEdit[]; tripLength?: number; lockedDays: { dayNumber: number; names: string[] }[]; lengthRefused: boolean } {
+): { edits: DayEdit[]; tripLength?: number; lockedDays: { dayNumber: number; names: string[] }[]; lengthRefused: boolean; overCap: boolean } {
   const current = days.length;
   const max = maxTripDays(days);
   const known = knownPoints(days);
@@ -166,6 +166,9 @@ export function validateEdits(
   let length = current;
   let lengthRefused = false;
   const wanted = Math.round(num(raw.tripLength, current));
+  // More days than a trip may have ("add day 15" to a 14-day trip): not made,
+  // and the reply mustn't hand them over.
+  const overCap = wanted > max && wanted > current;
   if (wanted !== current && wanted >= 1 && wanted <= max) {
     const added = Array.from({ length: Math.max(0, wanted - current) }, (_, i) => current + 1 + i);
     const later = new Set((Array.isArray(raw.moreDays) ? raw.moreDays : []).map((n) => Math.round(num(n, 0))));
@@ -189,5 +192,5 @@ export function validateEdits(
   const lockedDays = [...new Set(moved.map((a) => fixedDay.get(a)!))]
     .sort((a, b) => a - b)
     .map((dayNumber) => ({ dayNumber, names: [...new Set(moved.filter((a) => fixedDay.get(a) === dayNumber))].map((a) => a.name?.trim() || "Fixed plan") }));
-  return { edits, tripLength: length !== current ? length : undefined, lockedDays, lengthRefused };
+  return { edits, tripLength: length !== current ? length : undefined, lockedDays, lengthRefused, overCap };
 }
