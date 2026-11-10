@@ -420,6 +420,25 @@ ${knownPlaces.map((p) => `- ${p.name} (${p.type})`).join("\n")}
   const travellers = travellersLine(params);
   const daylight = daylightLine(params);
   const days = daysLine(params.startDate, duration);
+  // One city of a trip through several (lib/ai/multi-city): the must-dos are the
+  // whole trip's, and the other cities have their own days.
+  const otherCities = (params.destinations ?? [])
+    .map((d) => d.city.trim())
+    .filter((c) => c && c.toLowerCase() !== params.destination.trim().toLowerCase());
+  const others = otherCities.length > 1 ? `${otherCities.slice(0, -1).join(", ")} and ${otherCities.at(-1)}` : otherCities[0];
+  const mustDosSection = !params.mustDos?.length
+    ? ""
+    : others
+      ? `
+## Traveller Must-Dos (for the whole trip)
+This plan covers ${params.destination}, one city of a trip that also visits ${others}, which ${otherCities.length > 1 ? "get their" : "gets its"} own days. The traveller listed these by name for the whole trip: include each one that is in or near ${params.destination} as an activity on a sensible day (right area, right time slot, realistic duration), using the real place/dish/experience they named (a misspelled or partial name means the most likely real place). Leave out the ones in or near ${others}: never put a place of ${others} on a day here.
+${params.mustDos.map((m) => `- ${m}`).join("\n")}
+`
+      : `
+## Traveller Must-Dos (explicitly requested — schedule every one)
+The traveller listed these by name. Include EACH as an activity on a sensible day (right area of the city, right time slot, realistic duration). Use the real place/dish/experience they named (a misspelled or partial name means the most likely real place) — never substitute a look-alike. If one is genuinely impossible for these dates or this destination, omit it rather than faking it.
+${params.mustDos.map((m) => `- ${m}`).join("\n")}
+`;
 
   // Language header intentionally at the END (see tail of this template):
   // it is the most cache-hostile token span (varies per locale), and the
@@ -437,13 +456,7 @@ ${travelStyleSection}${vibeSection}${seasonalSection}## Traveler Preferences
 ${params.requirements ? `- Special Requirements: ${params.requirements}` : ""}
 ${
   // A part follows the outline, which already put each must-do on one day.
-  params.mustDos && params.mustDos.length > 0 && !part
-    ? `
-## Traveller Must-Dos (explicitly requested — schedule every one)
-The traveller listed these by name. Include EACH as an activity on a sensible day (right area of the city, right time slot, realistic duration). Use the real place/dish/experience they named — never substitute a look-alike. If one is genuinely impossible for these dates or this destination, omit it rather than faking it.
-${params.mustDos.map((m) => `- ${m}`).join("\n")}
-`
-    : ""
+  part ? "" : mustDosSection
 }${knownSection}${buildProfilePreferencesSection(params.profilePreferences)}${buildSchedulingPreferencesSection(params.profilePreferences)}
 
 ${anchorSection}${partSection}Generate the itinerary now, following the system rules and the Required Output schema exactly.${languageSection}`;

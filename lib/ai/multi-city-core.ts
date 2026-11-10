@@ -14,6 +14,8 @@ import type { GeneratedItinerary, ItineraryDay } from "@/types";
 import { buildTransferActivity, dayWithTransfer } from "./transfer-legs";
 import { flightLink, hotelLinks } from "./booking-links";
 import { addIsoDays } from "@/lib/dates/iso-date";
+import { haversineKm } from "@/lib/map/geo";
+import { isRealPoint } from "@/lib/trip/placeholder-point";
 
 /** Max cities per trip in v1 (caps complexity + generation quality). */
 export const MAX_CITIES = 5;
@@ -94,6 +96,77 @@ export function validateLegs(legs: CityLeg[], expectedTotalNights?: number): voi
       `city nights (${total}) must sum to the trip length (${expectedTotalNights})`
     );
   }
+}
+
+/** Places this close, directly or through others, are in one area. */
+const SAME_AREA_KM = 100;
+
+type Point = { lat: number; lng: number };
+
+/** The area each point is in, as an index: points chained by SAME_AREA_KM share one. */
+function areasOf(points: Point[]): number[] {
+  const area = points.map((_, i) => i);
+  const root = (i: number): number => (area[i] === i ? i : (area[i] = root(area[i])));
+  for (let i = 0; i < points.length; i++) {
+    for (let j = i + 1; j < points.length; j++) {
+      if (haversineKm(points[i], points[j]) <= SAME_AREA_KM) area[root(i)] = root(j);
+    }
+  }
+  return points.map((_, i) => root(i));
+}
+
+/**
+ * Each city's area: a different one for each, the way that puts the most of the
+ * cities' places at home. A city may have none, and then keeps its plan as it is.
+ */
+function homeAreas(counts: Map<number, number>[]): Map<number, number> {
+  let best = new Map<number, number>();
+  let bestScore = -1;
+  const walk = (city: number, picked: Map<number, number>, score: number) => {
+    if (city === counts.length) {
+      if (score > bestScore) [best, bestScore] = [new Map(picked), score];
+      return;
+    }
+    walk(city + 1, picked, score);
+    for (const [at, n] of counts[city]) {
+      if ([...picked.values()].includes(at)) continue;
+      picked.set(city, at);
+      walk(city + 1, picked, score + n);
+      picked.delete(city);
+    }
+  };
+  walk(0, new Map(), 0);
+  return best;
+}
+
+/**
+ * Each city's plan without the places it holds in another city's area: every
+ * city is asked with the whole trip's must-dos, and Seoul's days once held
+ * Busan's sights. Each city's area is its own (homeAreas), so a plan that is
+ * mostly another city's still finds its own. Cities close enough to share an
+ * area, a day trip out to somewhere no city is, and the travel between cities
+ * stay. Pure; unit-tested.
+ */
+export function withoutOtherCitiesPlaces(results: GeneratedItinerary[]): { results: GeneratedItinerary[]; dropped: string[] } {
+  const places = results.flatMap((r, city) =>
+    (r.days ?? []).flatMap((d) =>
+      (d.activities ?? []).filter((a) => a.type !== "transport" && isRealPoint(a.coordinates)).map((a) => ({ city, a })),
+    ),
+  );
+  const area = areasOf(places.map((p) => p.a.coordinates as Point));
+  const counts = results.map(() => new Map<number, number>());
+  places.forEach((p, k) => counts[p.city].set(area[k], (counts[p.city].get(area[k]) ?? 0) + 1));
+  const home = homeAreas(counts);
+  const homes = [...home.values()];
+  const away = new Set(
+    places.filter((p, k) => home.has(p.city) && home.get(p.city) !== area[k] && homes.includes(area[k])).map((p) => p.a),
+  );
+  const dropped = places.filter((p) => away.has(p.a)).map((p) => p.a.name);
+  const kept = results.map((r) => ({
+    ...r,
+    days: (r.days ?? []).map((d) => ({ ...d, activities: (d.activities ?? []).filter((a) => !away.has(a)) })),
+  }));
+  return { results: kept, dropped };
 }
 
 /**
