@@ -29,7 +29,7 @@ import DestinationField from "./DestinationField";
  */
 const REQUEST = "Somewhere warm in Europe with two kids in April, near a beach and not too expensive please";
 
-function field(destination: string, onKeepAsNote = vi.fn()) {
+function field(destination: string, onKeepAsNote = vi.fn(), extra: Partial<React.ComponentProps<typeof DestinationField>> = {}) {
   const props = {
     multiCityMode: false,
     setDestination: vi.fn(),
@@ -41,6 +41,7 @@ function field(destination: string, onKeepAsNote = vi.fn()) {
     inSeasonMonth: null,
     handleOneTapStart: vi.fn(),
     onKeepAsNote,
+    ...extra,
   };
   const view = render(
     <NextIntlClientProvider locale="en" messages={{ trips: enTrips }}>
@@ -93,6 +94,58 @@ describe("a request typed as the destination", () => {
       for (const key of ["keepAsNote", "findMatch", "movedToNotes"] as const) {
         expect(messages.wizard.step1[key], key).toBeTruthy();
       }
+      for (const key of ["title", "fill", "reading", "filled", "capped"] as const) {
+        expect(messages.wizard.step1.request[key], key).toBeTruthy();
+      }
+      expect(messages.wizard.step1.request.capped).toContain("{max}");
     }
+  });
+});
+
+/**
+ * A whole trip typed as a request ("Bali for 8 days with 3 kids") gets one
+ * offer to be read into the fields, in place of the warnings a place gets.
+ */
+describe("a whole trip typed as a request", () => {
+  const TRIP = "Bali for 8 days with 3 kids and our friends; somewhere quiet";
+  const step1 = enTrips.wizard.step1;
+
+  it("offers to fill step 1 in from it, or to keep it for the next step", () => {
+    const onReadRequest = vi.fn(async () => "filled" as const);
+    const { onKeepAsNote } = field(TRIP, vi.fn(), { requestLike: true, onReadRequest });
+    fireEvent.click(screen.getByRole("button", { name: step1.request.fill }));
+    expect(onReadRequest).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole("button", { name: step1.keepAsNote }));
+    expect(onKeepAsNote).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("link", { name: step1.findMatch })).toBeTruthy();
+    // Not the red warnings meant for a place's name.
+    expect(screen.queryByText(step1.destinationInvalidChars)).toBeNull();
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("says the words were kept when no place could be read from them", async () => {
+    const { show } = field(TRIP, vi.fn(), { requestLike: true, onReadRequest: async () => "kept" as const });
+    fireEvent.click(screen.getByRole("button", { name: step1.request.fill }));
+    await vi.waitFor(() => {
+      show("");
+      expect(screen.getByText(step1.movedToNotes)).toBeTruthy();
+    });
+  });
+
+  it("shows it is reading, and takes no second press meanwhile", () => {
+    field(TRIP, vi.fn(), { requestLike: true, readingRequest: true, onReadRequest: vi.fn() });
+    const button = screen.getByRole("button", { name: step1.request.reading });
+    expect(button.hasAttribute("disabled")).toBe(true);
+    expect(screen.getByRole("button", { name: step1.keepAsNote }).hasAttribute("disabled")).toBe(true);
+  });
+
+  it("keeps the warnings for a place's name, and offers nothing for a sentence read as a trip", () => {
+    field("Lisbon;", vi.fn(), { requestLike: false, onReadRequest: vi.fn() });
+    expect(screen.queryByRole("button", { name: step1.request.fill })).toBeNull();
+    expect(screen.getByText(step1.destinationInvalidChars)).toBeTruthy();
+    cleanup();
+    const expressTrip = { destination: "Lisbon", days: 5, month: 3, vibes: [], intent: null, budget: null };
+    field("5 days in Lisbon in March", vi.fn(), { requestLike: true, onReadRequest: vi.fn(), expressTrip });
+    expect(screen.queryByRole("button", { name: step1.request.fill })).toBeNull();
   });
 });

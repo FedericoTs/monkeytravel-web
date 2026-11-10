@@ -1,5 +1,5 @@
 import type { TripVibe } from "@/types";
-import { VIBES_MAX } from "@/lib/trips/request-limits";
+import { DESTINATION_ALLOWLIST, DESTINATION_MAX_LENGTH, VIBES_MAX } from "@/lib/trips/request-limits";
 
 /**
  * A trip described in one sentence ("5 days in Lisbon in March, food and
@@ -275,9 +275,46 @@ export function matchesPlace(typed: string, found: { mainText: string }): boolea
   return a.length > 0 && (a === b || b.startsWith(`${a} `) || a.startsWith(`${b} `));
 }
 
-/** A sentence, not a place name: it says how long or when, and where. */
+/** The most words a place's name runs to here: a longer run is the rest of a request. */
+const PLACE_WORDS_MAX = 4;
+
+const wordsOf = (s: string) => s.split(/\s+/).filter(Boolean);
+
+/** A place's name as far as words can tell: a few words, no numbers, the characters a destination may hold. */
+const namesAPlace = (place: string) =>
+  wordsOf(place).length <= PLACE_WORDS_MAX && !/\d/.test(place) && DESTINATION_ALLOWLIST.test(place);
+
+/**
+ * A sentence, not a place name: it says how long or when, and where, in words
+ * that can be one place's name. Several places are the words of a longer
+ * request more often than a list ("Bali & with 4 & two families"): that is
+ * read whole by the request reader, which also makes a list a route.
+ */
 export function isTripSentence(s: TripSentence): boolean {
-  return s.destination.length >= 2 && (s.days !== null || s.month !== null);
+  return (
+    s.destination.length >= 2 &&
+    (s.days !== null || s.month !== null) &&
+    !s.destination.includes(" & ") &&
+    namesAPlace(s.destination)
+  );
+}
+
+/** How a list of places is typed: commas, semicolons, "&", "+" or "and". */
+const LIST_SEPARATOR = /[,;&+]|\s(?:and|e|y|et)\s/i;
+
+/**
+ * Whether the destination field holds a request rather than a place or a list
+ * of places: a few words or more, with numbers, long runs of words, or more
+ * than a destination may hold.
+ */
+export function looksLikeRequest(text: string): boolean {
+  const trimmed = text.trim();
+  if (wordsOf(trimmed).length < 3) return false;
+  if (trimmed.length > DESTINATION_MAX_LENGTH || !DESTINATION_ALLOWLIST.test(trimmed)) return true;
+  return trimmed
+    .split(LIST_SEPARATOR)
+    .map((part) => part.trim())
+    .some((part) => part.length > 0 && !namesAPlace(part));
 }
 
 const addDays = (iso: string, n: number) => {

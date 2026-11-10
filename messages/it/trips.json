@@ -209,7 +209,14 @@
       "destinationTooLong": "Sembra una richiesta più che un luogo. Scrivi qui la destinazione (max 100 caratteri) e aggiungi i dettagli nel passaggio successivo.",
       "keepAsNote": "Spostala al passaggio successivo",
       "findMatch": "Non sai dove andare? Trova il mio posto",
-      "movedToNotes": "Salvata per il passaggio successivo. Ora, dove vai?"
+      "movedToNotes": "Salvata per il passaggio successivo. Ora, dove vai?",
+      "request": {
+        "title": "Sembra la descrizione di tutto il tuo viaggio. Possiamo compilare luogo e date da qui.",
+        "fill": "Compila da quello che ho scritto",
+        "reading": "Lo sto leggendo…",
+        "filled": "Compilato da quello che hai scritto: controlla le date e continua. Le tue parole passano anche al passaggio successivo.",
+        "capped": "I viaggi durano al massimo {max} giorni, quindi questo ne ha {max}."
+      }
     },
     "express": {
       "title": "Il tuo viaggio, come l'abbiamo capito",

@@ -37,7 +37,8 @@ import type { Diet } from "@/lib/trips/diet";
 // Step-1 components (above-the-fold) stay eager.
 import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
 import type { PlacePrediction } from "@/components/ui/DestinationAutocomplete";
-import { isTripSentence, matchesPlace, pencilledDates, readTripSentence } from "@/lib/wizard/trip-sentence";
+import { isTripSentence, looksLikeRequest, matchesPlace, pencilledDates, readTripSentence } from "@/lib/wizard/trip-sentence";
+import { fetchReading, fillOf } from "@/lib/wizard/request-reading";
 import AnchorEditor from "@/components/trip/AnchorEditor";
 import { buildSeasonalContext } from "@/lib/seasonal";
 import { generateWithRecovery } from "@/lib/wizard/generation-recovery";
@@ -128,6 +129,7 @@ function preloadResultViewChunks(): void {
   warm(import("@/components/trip/AnonymousShareButton").then((m) => { warmedShareButton = m.default; }));
 }
 import { useItineraryDraft } from "@/hooks/useItineraryDraft";
+import { useDebounce } from "@/hooks/useDebounce";
 import { useDraftRestore } from "@/hooks/useDraftRestore";
 import { useGeneratedPlan } from "@/hooks/useGeneratedPlan";
 import { useKeptPlan } from "@/hooks/useKeptPlan";
@@ -273,6 +275,9 @@ function capitalizeFreeText(param: string | null | undefined): string {
 
 // Vibes for a one-sentence plan that names none: generation needs at least one.
 const EXPRESS_VIBES: TripVibe[] = ["cultural", "foodie"];
+
+// How long the destination's text stays as typed before it is offered as a request to read.
+const REQUEST_SETTLE_MS = 600;
 
 /**
  * The place a one-sentence plan names, as the destination search knows it
@@ -1181,6 +1186,60 @@ export default function NewTripPage({
     setExpressBusy(false);
   };
 
+  // A whole trip typed as a request ("18 days in Vietnam in August, family of
+  // four") rather than a place, read into step 1 on request: the place or the
+  // route, the dates and who's going. The words go to the next step's notes
+  // either way, so a request that can't be read loses nothing. Offered once
+  // the typing pauses: "4 days in R", on the way to "4 days in Rome", is no
+  // request, and the one-sentence card takes over a key later.
+  const settledDestination = useDebounce(destination, REQUEST_SETTLE_MS);
+  const requestLike =
+    step === 1 &&
+    !expressTrip &&
+    !(MULTI_CITY_ENABLED && multiCityMode) &&
+    destination === settledDestination &&
+    looksLikeRequest(destination);
+  const [readingRequest, setReadingRequest] = useState(false);
+  // What a reading filled in, shown while the field still holds it.
+  const [requestFilled, setRequestFilled] = useState<{ destination: string; capped: number | null } | null>(null);
+
+  const handleReadRequest = async (): Promise<"filled" | "kept"> => {
+    const text = destination.trim();
+    setReadingRequest(true);
+    trackFieldInteraction("read_request");
+    const today = localTodayISO();
+    const reading = await fetchReading(text, locale, today);
+    const chosen = startDate && endDate && !flexibleDates ? { start: startDate, end: endDate } : null;
+    const fill = reading ? fillOf(reading, { today, multiCity: MULTI_CITY_ENABLED, chosen }) : null;
+    setRequirements((prev) => withNote(prev, text));
+    if (!fill) {
+      setDestination("");
+      setReadingRequest(false);
+      return "kept";
+    }
+    let filledAs = fill.destination;
+    if (fill.route) {
+      // The route's mirror sets the destination and the end date from the rows.
+      setMultiCityMode(true);
+      setCityRows(fill.route);
+    } else {
+      const place = await findExpressPlace(fill.destination, locale);
+      filledAs = place ? (place.fullText.length <= DESTINATION_MAX_LENGTH ? place.fullText : place.mainText) : fill.destination;
+      setDestination(filledAs);
+      setDestinationCoords(place?.coordinates ?? null);
+      if (place?.coordinates) coordsPlaceRef.current = filledAs;
+      setEndDate(fill.endDate);
+    }
+    setStartDate(fill.startDate);
+    setFlexibleDates(!fill.datesSaid);
+    if (fill.vibes.length > 0) setSelectedVibes(fill.vibes);
+    if (fill.intent) setTripIntent(fill.intent);
+    if (fill.budget) setBudgetTier(fill.budget === "luxury" ? "premium" : "budget");
+    setRequestFilled({ destination: filledAs, capped: fill.capped });
+    setReadingRequest(false);
+    return "filled";
+  };
+
   // The assistant offered another place for the whole trip and the traveller
   // picked it: planned anew for the same dates and style. Must-dos belong to
   // the old place. The plan on screen stays in the session tray.
@@ -1855,7 +1914,18 @@ export default function NewTripPage({
                 setRequirements((prev) => withNote(prev, destination));
                 setDestination("");
               }}
+              requestLike={requestLike}
+              readingRequest={readingRequest}
+              onReadRequest={handleReadRequest}
             />
+
+            {/* What a request filled in (a route hides the field above, so it sits here). */}
+            {requestFilled && destination === requestFilled.destination && (
+              <p className="text-sm text-[var(--foreground)]" aria-live="polite">
+                {t("wizard.step1.request.filled")}
+                {requestFilled.capped !== null && ` ${t("wizard.step1.request.capped", { max: requestFilled.capped })}`}
+              </p>
+            )}
 
             {/* Multi-city toggle — gated by NEXT_PUBLIC_MULTI_CITY_ENABLED.
                 Sits directly after the destination block in both states, so
@@ -1954,6 +2024,7 @@ export default function NewTripPage({
           setDatesPencilled={setDatesPencilled}
           handleContinue={handleContinue}
           handleGenerate={handleGenerate}
+          readOffered={requestLike}
         />
       </main>
 

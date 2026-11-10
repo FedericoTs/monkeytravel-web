@@ -17,7 +17,7 @@ const LOCALES = Object.keys(TRIPS) as Locale[];
 const BLOCKERS: Step1Blocker[] = ["short", "long", "chars", "too_many_days", "dates", "past"];
 
 /** The hint step 1's footer gives for `block`, as a traveller reads it. */
-function hint(locale: Locale, block: Step1Blocker): string {
+function hint(locale: Locale, block: Step1Blocker, readOffered = false): string {
   const { container, unmount } = render(
     <NextIntlClientProvider locale={locale} messages={{ trips: TRIPS[locale] }} onError={() => {}}>
       <WizardFooter
@@ -37,6 +37,7 @@ function hint(locale: Locale, block: Step1Blocker): string {
         setDatesPencilled={vi.fn()}
         handleContinue={vi.fn()}
         handleGenerate={vi.fn(async () => {})}
+        readOffered={readOffered}
       />
     </NextIntlClientProvider>
   );
@@ -46,6 +47,11 @@ function hint(locale: Locale, block: Step1Blocker): string {
 }
 
 describe("step 1's footer", () => {
+  it("leaves the way forward to the offer to read a whole trip typed as the destination", () => {
+    expect(hint("en", "chars", true)).toBe("");
+    expect(hint("en", "chars")).not.toBe("");
+  });
+
   it("says a trip that starts before today has to move", () => {
     expect(hint("en", "past")).toBe("Your trip has to start today or later");
     expect(hint("es", "past")).toBe("El viaje tiene que empezar hoy o más adelante");
