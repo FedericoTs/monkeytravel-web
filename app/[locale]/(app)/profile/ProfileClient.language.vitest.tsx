@@ -114,6 +114,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
   vi.restoreAllMocks();
   vi.useRealTimers();
 });
@@ -142,8 +143,19 @@ describe("the languages someone speaks", () => {
   });
 });
 
+describe("the Referrals & Rewards section", () => {
+  it("isn't shown with referrals switched off", () => {
+    vi.stubEnv("NEXT_PUBLIC_REFERRALS_ENABLED", "false");
+    show("en");
+    expect(screen.queryByText("Referrals & Rewards")).toBeNull();
+    expect(s.onShare).toBeNull();
+  });
+});
+
 describe("sharing the invite link", () => {
   const share = () => act(async () => s.onShare!());
+  // The section, and the share in it, show only with referrals switched on.
+  beforeEach(() => vi.stubEnv("NEXT_PUBLIC_REFERRALS_ENABLED", "true"));
 
   it("uses the page's language in the share sheet", async () => {
     const nativeShare = vi.fn(async () => {});
