@@ -16,6 +16,7 @@ import { hapticLight } from "@/lib/native/haptics";
 import CuratedEscapes from "@/components/templates/CuratedEscapesClient";
 import BlogTipsSection, { type BlogTip } from "@/components/blog/BlogTipsSection";
 import ReferralModal from "@/components/referral/ReferralModal";
+import { referralsShown } from "@/lib/referral/shown";
 import TripActionModal from "@/components/trips/TripActionModal";
 import TripCard, { type Trip } from "@/components/trips/TripCard";
 import WaitingRoom from "@/components/trips/WaitingRoom";
@@ -527,12 +528,14 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
           </div>
         )}
 
-        {/* Referral Progress Banner - Encourage invitations (HIGH PRIORITY) */}
-        <ReferralProgressBanner
-          lifetimeConversions={lifetimeConversions}
-          className="mb-6 sm:mb-8"
-          onInvite={() => setReferralModalOpen(true)}
-        />
+        {/* Referral Progress Banner, while referrals are switched on */}
+        {referralsShown() && (
+          <ReferralProgressBanner
+            lifetimeConversions={lifetimeConversions}
+            className="mb-6 sm:mb-8"
+            onInvite={() => setReferralModalOpen(true)}
+          />
+        )}
 
         {/* Someone who only has trips they were invited to sees those first. */}
         {activeTrips.length === 0 && sharedSection}

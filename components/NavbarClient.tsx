@@ -7,6 +7,7 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import { Gift } from 'lucide-react';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useTranslations } from 'next-intl';
+import { referralsShown } from '@/lib/referral/shown';
 
 // Loaded on demand, when first opened.
 const ReferralModal = dynamic(() => import('@/components/referral/ReferralModal'), { ssr: false });
@@ -122,13 +123,15 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
                 {t('navigation.admin')}
               </Link>
             )}
-            <button
-              onClick={openReferralModal}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium text-sm hover:from-amber-600 hover:to-orange-600 transition-colors shadow-md"
-            >
-              <Gift className="w-4 h-4" />
-              {t('buttons.share')}
-            </button>
+            {referralsShown() && (
+              <button
+                onClick={openReferralModal}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium text-sm hover:from-amber-600 hover:to-orange-600 transition-colors shadow-md"
+              >
+                <Gift className="w-4 h-4" />
+                {t('buttons.share')}
+              </button>
+            )}
             <Link
               href="/trips"
               className="inline-flex items-center px-5 py-2.5 rounded-full bg-[var(--primary)] text-white font-medium text-sm hover:bg-[var(--primary-light)] transition-colors shadow-md"
@@ -218,16 +221,18 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
                       {t('navigation.admin')}
                     </Link>
                   )}
-                  <button
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      openReferralModal();
-                    }}
-                    className="mt-2 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium"
-                  >
-                    <Gift className="w-5 h-5" />
-                    {t('buttons.share')}
-                  </button>
+                  {referralsShown() && (
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        openReferralModal();
+                      }}
+                      className="mt-2 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium"
+                    >
+                      <Gift className="w-5 h-5" />
+                      {t('buttons.share')}
+                    </button>
+                  )}
                   <Link
                     href="/trips"
                     className="mt-2 inline-flex items-center justify-center px-5 py-3 rounded-xl bg-[var(--primary)] text-white font-medium"
