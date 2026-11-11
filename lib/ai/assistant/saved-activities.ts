@@ -25,6 +25,37 @@ export const nameTokens = (name: string): string[] => [
   ),
 ];
 
+// Words many places share ("Oxford Street" and "Broadwick Street", "Piazza
+// Navona"), in the four languages, written as nameTokens leaves them.
+const PLACE_KIND_WORDS = new Set([
+  "street", "road", "avenue", "lane", "square", "plaza", "market", "markets", "museum", "park", "garden", "gardens",
+  "church", "cathedral", "palace", "bridge", "tower", "beach", "gallery", "castle", "temple", "shrine", "station",
+  "hall", "house", "centre", "center", "old", "town", "city", "village", "island", "lake", "river", "bay", "harbour",
+  "harbor", "port", "quarter", "district", "neighborhood", "neighbourhood", "hill", "fort", "fortress", "abbey",
+  "chapel", "basilica", "mosque", "mall", "theatre", "theater", "library", "zoo", "aquarium", "national", "royal",
+  "central", "grand", "great", "restaurant", "cafe", "bar", "pub", "bakery", "saint", "san", "santa", "santo", "sant",
+  "sao", "calle", "avenida", "mercado", "museo", "parque", "jardin", "jardines", "iglesia", "catedral", "palacio",
+  "puente", "torre", "playa", "galeria", "castillo", "templo", "estacion", "casa", "centro", "barrio", "mirador",
+  "lago", "rio", "puerto", "monasterio", "teatro", "biblioteca", "ciudad", "pueblo", "isla", "viejo", "vieja",
+  "antiguo", "antigua", "nacional", "real", "gran", "grande", "restaurante", "cafeteria", "panaderia", "via",
+  "viale", "piazza", "mercato", "parco", "giardino", "giardini", "chiesa", "duomo", "cattedrale", "palazzo", "ponte",
+  "spiaggia", "galleria", "castello", "tempio", "stazione", "quartiere", "belvedere", "fiume", "porto", "monastero",
+  "citta", "borgo", "isola", "vecchio", "vecchia", "antico", "antica", "nazionale", "reale", "ristorante",
+  "trattoria", "osteria", "pasticceria", "gelateria", "rua", "praca", "museu", "jardim", "igreja", "castelo", "praia",
+  "estacao", "bairro", "miradouro", "mosteiro", "cidade", "vila", "ilha", "velho", "velha", "antigo", "padaria",
+  "pastelaria", "los", "las", "les", "dos", "das", "der", "die", "des", "von",
+]);
+
+/**
+ * A name's own words: not ones many places share, nor the words of the trip's
+ * place ("Chinatown London" on a London trip is "chinatown"). [] for a name made
+ * of those only ("Tower of London"), which only the whole name names.
+ */
+export function ownWords(name: string, place = ""): string[] {
+  const where = nameTokens(place);
+  return nameTokens(name).filter((w) => !PLACE_KIND_WORDS.has(w) && !where.some((p) => sameWord(w, p)));
+}
+
 /** One letter added, dropped or changed: "catedral" and "cathedral". */
 function oneEditApart(a: string, b: string): boolean {
   if (Math.abs(a.length - b.length) > 1) return false;

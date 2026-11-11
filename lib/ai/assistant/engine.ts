@@ -952,6 +952,7 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
     lockedDays,
     lengthRefused,
     locale: input.locale,
+    destination: input.destination,
     currentDays: current,
     currency,
     autoApplied: input.autoApply,

@@ -40,7 +40,7 @@ import { daysMentioned } from "@/lib/ai/assistant/day-target";
 import { currencySwitchedNote, withoutCurrencyTalk } from "@/lib/ai/assistant/currency-request";
 import type { PlacesAway } from "./city-days";
 import type { DayEdit } from "./edit-validation";
-import { nameTokens, sameWord } from "./saved-activities";
+import { nameTokens, ownWords, sameWord } from "./saved-activities";
 import type { OutsideTravelTimes } from "./travel-times";
 
 /** A place, and the day of the plan that has it. */
@@ -69,6 +69,8 @@ export function composeReply(p: {
   lockedDays: { dayNumber: number; names: string[] }[];
   lengthRefused: boolean;
   locale?: string;
+  /** The trip's place, whose words name none of its stops. */
+  destination?: string;
   currentDays: number;
   currency?: string;
   /** The page applies the edits on arrival, so "I've updated…" will be true. */
@@ -193,10 +195,11 @@ export function composeReply(p: {
     text = `${text} ${lengthUnchangedNote(locale, p.currentDays)}`;
   }
   // "Add a Jameson tour" quietly replaced the Guinness visit: name what goes,
-  // unless the reply did ("the Gràcia activities" for "Lunch at Con Gracia").
+  // unless the reply did ("the Gràcia activities" for "Lunch at Con Gracia"), by
+  // the place's own words: "Broadwick Street" doesn't name "Oxford Street".
   const said = nameTokens(text);
   const namedInReply = (name: string) => {
-    const words = nameTokens(name);
+    const words = ownWords(name, p.destination);
     const found = words.filter((w) => said.some((s) => sameWord(w, s))).length;
     return text.toLowerCase().includes(name.toLowerCase()) || (words.length > 0 && found >= words.length / 2);
   };

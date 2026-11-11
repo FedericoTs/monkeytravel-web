@@ -1462,6 +1462,30 @@ describe("assistTrip on a name with two writing systems in one word", () => {
   });
 });
 
+// "Day 1 is your London walk now" named neither stop it took out: a place's
+// own words name it, not the trip's place or a word many places share.
+describe("assistTrip naming what a change takes out", () => {
+  it("names a stop by its own words, not by the trip's place", async () => {
+    const days = [
+      { day_number: 1, date: "2027-12-01", activities: [{ name: "Chinatown London", start_time: "10:00" }, { name: "British Museum", start_time: "14:00" }] },
+      { day_number: 2, date: "2027-12-02", activities: [{ name: "Tate Modern", start_time: "10:00" }] },
+    ] as unknown as ItineraryDay[];
+    generateContent.mockResolvedValueOnce({
+      response: {
+        text: () =>
+          JSON.stringify({
+            reply: "Day 1 is your London walk now, with Broadwick Street and Soho Square.",
+            edits: [{ day_number: 1, activities: [{ name: "Broadwick Street" }, { name: "Soho Square" }] }],
+          }),
+      },
+    });
+    const out = await run({ ...input, destination: "London, United Kingdom", tripTitle: "London", days, message: "make day 1 a walk around Soho", autoApply: true, explainRemovals: true });
+    expect(out.reply).toBe(
+      "Day 1 is your London walk now, with Broadwick Street and Soho Square. (This change takes out: Chinatown London, British Museum.)",
+    );
+  });
+});
+
 describe("isModelOverloaded", () => {
   it("is true only for 429, 500 and 503", () => {
     expect([429, 500, 503].map((status) => mod.isModelOverloaded({ status }))).toEqual([true, true, true]);
