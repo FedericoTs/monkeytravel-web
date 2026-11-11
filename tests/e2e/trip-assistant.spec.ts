@@ -1,11 +1,12 @@
 /**
- * The trip page's two ways of asking the AI, as the owner: the assistant ("Edit
- * with AI") and the concierge. What would reach the model is answered by the test,
- * so no model runs. Saving a change and undoing it go through the real routes, and
- * the trip's row is read back.
+ * Asking the AI on the trip page, as the owner: the assistant ("Edit with AI"), and
+ * the concierge when its switch is on (production has it off). What would reach the
+ * model is answered by the test, so no model runs. Saving a change and undoing it go
+ * through the real routes, and the trip's row is read back.
  *
  * Every test gets a trip of its own, a few weeks out, removed afterwards. Needs the
- * fixture owner's session, service credentials and a build with the concierge on:
+ * fixture owner's session and service credentials; the concierge's own tests need a
+ * build with NEXT_PUBLIC_CONCIERGE_ENABLED=true:
  *   KEY_FLOWS_AUTH_STATE=.auth/owner.json KEY_FLOWS_TRIP_ID=<manifest tripId> \
  *     npx playwright test tests/e2e/trip-assistant.spec.ts --project=chromium
  */
@@ -20,6 +21,8 @@ const SUPA_URL = envVar("NEXT_PUBLIC_SUPABASE_URL");
 const SERVICE_KEY = envVar("SUPABASE_SERVICE_ROLE_KEY");
 const FIXTURE_TRIP_ID = process.env.KEY_FLOWS_TRIP_ID;
 const AUTH_STATE = process.env.KEY_FLOWS_AUTH_STATE;
+// The build reads the same switch, so the test runner sees what the page was built with.
+const CONCIERGE_ON = process.env.NEXT_PUBLIC_CONCIERGE_ENABLED === "true";
 
 const CATHEDRAL = "Cathedral visit";
 const LUNCH = "Riverside lunch";
@@ -390,7 +393,15 @@ test.describe("asking the AI on the trip page", () => {
     });
   });
 
+  test("the assistant is the one way to ask, with the concierge switched off", async ({ page }) => {
+    test.skip(CONCIERGE_ON, "the concierge is switched on");
+    await openTrip(page, tripId);
+    await expect(page.getByRole("button", { name: "Edit with AI" })).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByRole("button", { name: /concierge/i })).toHaveCount(0);
+  });
+
   test.describe("the concierge", () => {
+    test.skip(!CONCIERGE_ON, "the concierge is switched off");
     const FIELD = "Ask the concierge";
     const done = { type: "done", isLiveTrip: false, dayNumber: null };
 
