@@ -3,7 +3,8 @@ import type { SessionTripData, SessionTripSnapshot } from "@/hooks/useSessionTri
 import type { KeptPlan } from "@/lib/plans/kept-plan";
 import type { TripIntent } from "@/lib/posthog/events";
 import { dietsFrom, type Diet } from "@/lib/trips/diet";
-import type { GeneratedItinerary, TripAnchor, TripVibe, BudgetTier, TripPace } from "@/types";
+import { readStay } from "@/lib/trips/stay";
+import type { GeneratedItinerary, TripAnchor, TripStay, TripVibe, BudgetTier, TripPace } from "@/types";
 import { FRESH_ANSWERS, type WizardAnswers } from "./answers";
 
 /** Where a restored draft goes: the wizard's fields, and the session tray. */
@@ -20,6 +21,7 @@ export interface DraftTargets {
   setAnchors: (value: TripAnchor[]) => void;
   setTripIntent: (value: TripIntent) => void;
   setFlexibleDates: (value: boolean) => void;
+  setStay: (value: TripStay | null) => void;
   setGeneratedItinerary: (value: GeneratedItinerary) => void;
   /** Makes the restored trip the tray's current one, adopting a matching entry. */
   registerRestore: (trip: SessionTripData) => void;
@@ -42,6 +44,7 @@ export function applyAnswers(answers: WizardAnswers, to: AnswerTargets): void {
   to.setDietary(answers.dietary);
   to.setTripIntent(answers.tripIntent);
   to.setFlexibleDates(answers.flexibleDates);
+  to.setStay(answers.stay);
 }
 
 /**
@@ -63,6 +66,8 @@ export function applyDraft(draft: ItineraryDraft, to: DraftTargets): void {
   if (draft.anchors && draft.anchors.length > 0) to.setAnchors(draft.anchors);
   if (draft.tripIntent === "solo" || draft.tripIntent === "group") to.setTripIntent(draft.tripIntent);
   if (draft.flexibleDates) to.setFlexibleDates(true);
+  const stay = readStay(draft.stay);
+  if (stay) to.setStay(stay);
   if (draft.generatedItinerary) {
     to.setGeneratedItinerary(draft.generatedItinerary);
     to.registerRestore({
@@ -80,6 +85,7 @@ export function applyDraft(draft: ItineraryDraft, to: DraftTargets): void {
       dietary: dietsFrom(draft.dietary),
       ...(draft.tripIntent === "solo" || draft.tripIntent === "group" ? { tripIntent: draft.tripIntent } : {}),
       ...(draft.flexibleDates ? { flexibleDates: true } : {}),
+      ...(stay ? { stay } : {}),
     });
   }
 }
@@ -115,6 +121,7 @@ export function applyKeptPlan(
   to.setFlexibleDates(plan.flexibleDates === true);
   to.setMustDos(plan.mustDos ?? []);
   to.setDietary(plan.dietary ?? []);
+  to.setStay(plan.stay ?? null);
   to.setAnchors([]);
   to.setDestinationCoords(null);
   to.setMultiCityMode(false);
@@ -134,6 +141,7 @@ export function applyKeptPlan(
     dietary: plan.dietary ?? [],
     tripIntent: plan.tripIntent ?? current.tripIntent,
     flexibleDates: plan.flexibleDates === true,
+    stay: plan.stay ?? null,
   });
 }
 
@@ -157,6 +165,7 @@ export function applySessionTrip(trip: SessionTripSnapshot, to: KeptPlanTargets)
       dietary: dietsFrom(trip.dietary),
       tripIntent: trip.tripIntent ?? FRESH_ANSWERS.tripIntent,
       flexibleDates: trip.flexibleDates === true,
+      stay: readStay(trip.stay),
     },
     to
   );
