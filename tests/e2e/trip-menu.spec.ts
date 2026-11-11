@@ -90,7 +90,9 @@ test.describe("the trip's More menu", () => {
 
   test("offers the calendar once, as Export's calendar file, and the file holds the trip", async ({ page }) => {
     await openTrip(page, tripId);
-    await page.getByRole("button", { name: "More", exact: true }).click({ timeout: 60_000 });
+    // The trip's menu, not a stop's own "More" (the menu's button opens a menu).
+    const tripMenu = page.getByRole("button", { name: "More", exact: true }).and(page.locator('[aria-haspopup="menu"]'));
+    await tripMenu.click({ timeout: 60_000 });
     const menu = page.getByRole("menu", { name: "More" });
     await expect(menu).toBeVisible();
     await expect(menu.getByRole("button", { name: "Export" })).toBeVisible();
