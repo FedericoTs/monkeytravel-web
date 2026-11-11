@@ -174,6 +174,28 @@ describe("claimsItineraryChange", () => {
     expect(claimsItineraryChange(undefined)).toBe(false);
   });
 
+  // A traveller landing at midnight asked to keep Day 1 empty and read "I've left
+  // Day 1 blank…" with nothing changed.
+  it.each([
+    "I've left Day 1 blank so you can rest after your night flight.",
+    "I have kept Day 1 free for your arrival.",
+    "I've left the first day open.",
+    "He dejado el día 1 libre para que descanses.",
+    "Ho lasciato il giorno 1 libero per il tuo arrivo.",
+    "Deixei o dia 1 livre para você descansar.",
+  ])("catches a day said to be left empty: %s", (text) => {
+    expect(claimsItineraryChange(text)).toBe(true);
+  });
+
+  it.each([
+    "I've left your plan as it is.",
+    "I've left Day 1 as it was.",
+    "Day 1 is free from noon, so the museum fits there.",
+    "Ho lasciato il piano com'era.",
+  ])("leaves what was left as it was alone: %s", (text) => {
+    expect(claimsItineraryChange(text)).toBe(false);
+  });
+
   // A traveller said "I'll send you the restaurants, don't remove anything" and
   // was told "I couldn't make that change": the promise waited for their list.
   it.each([
