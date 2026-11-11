@@ -72,7 +72,8 @@ describe("searchStays", () => {
   });
 
   it("answers nothing when Photon refuses or can't be reached: the field still takes typed words", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, json: async () => ({}) }));
+    // A refusal is never read as places, whatever its body holds.
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, json: async () => ({ features: [feature({ name: "Memmo Alfama" })] }) }));
     expect(await searchStays("memmo", { lat: 38.7, lng: -9.1 })).toEqual([]);
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
     expect(await searchStays("memmo", { lat: 38.7, lng: -9.1 })).toEqual([]);
