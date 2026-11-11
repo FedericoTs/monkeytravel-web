@@ -28,7 +28,6 @@ jobs:
       # it serves. Keep in step with the project's Vercel settings.
       EXPLORE_UGC_ENABLED: "true"
       NEXT_PUBLIC_EMAIL_PARSE_ENABLED: "true"
-      NEXT_PUBLIC_EXPENSE_LEDGER_ENABLED: "true"
       NEXT_PUBLIC_HERO_DOODLE_ENABLED: "true"
       NEXT_PUBLIC_MAP_ROUTES_ENABLED: "true"
       NEXT_PUBLIC_MULTI_CITY_ENABLED: "true"
@@ -92,7 +91,6 @@ jobs:
             tests/e2e/participants.spec.ts \
             tests/e2e/today.spec.ts \
             tests/e2e/crew-consensus-writes.spec.ts \
-            tests/e2e/expense-ledger.spec.ts \
             tests/e2e/itinerary-conflict.spec.ts \
             tests/e2e/regenerate-activity.spec.ts \
             tests/e2e/regenerate-day.spec.ts \
