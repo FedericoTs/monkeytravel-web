@@ -7,6 +7,7 @@
   "notAppliedLead": "Aún no aplicado: toca \"Aplicar cambio\" abajo para actualizar tu plan.",
   "lockedDay": "El día {day} tiene un plan fijo que pusiste tú ({fixed}), así que lo he dejado como estaba: puedes cambiarlo tú en el plan. Puedo cambiar todo lo demás de ese día.",
   "fixedKept": "(El plan fijo del día {day} se queda como lo pusiste: {fixed}.)",
+  "shortestStop": "{names}: {minutes} min, lo mínimo que puede durar una parada.",
   "cityKept": "(Los lugares de {other} no van en los días de {city}: {list}.)",
   "cityMoved": "{count, plural, =1 {(Pasa a los días de {city}: {list}.)} other {(Pasan a los días de {city}: {list}.)}}",
   "notRepeated": "{count, plural, =1 {(Ya está en otro día, así que no se repite: {list}.)} other {(Ya están en otros días, así que no se repiten: {list}.)}}",

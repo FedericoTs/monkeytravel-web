@@ -50,6 +50,35 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+describe("ParticipantsBar's More menu", () => {
+  it("isn't there when it has nothing to offer", async () => {
+    serve(group(1, false), group(1, false));
+    render(<ParticipantsBar shareToken="token-1" source="shared" crewAsk={false} tripTitle="Lisbon" />);
+    await waitFor(() => expect(countShown()).toBe("1"));
+    expect(screen.getByTestId("participants-join")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /share\.participants\.more/ })).toBeNull();
+  });
+
+  it("offers only what the page gives it", async () => {
+    serve(group(1, false), group(1, false));
+    render(<ParticipantsBar shareToken="token-1" source="shared" crewAsk={false} tripTitle="Lisbon" onFork={() => {}} />);
+    await waitFor(() => expect(countShown()).toBe("1"));
+    fireEvent.click(screen.getByRole("button", { name: /share\.participants\.more/ }));
+    expect(screen.getByRole("menuitem", { name: "share.participants.fork" })).toBeTruthy();
+    expect(screen.queryByRole("menuitem", { name: "share.participants.saveForLater" })).toBeNull();
+  });
+
+  it("offers Save for later when the page gives it", async () => {
+    serve(group(1, false), group(1, false));
+    const onSaveForLater = vi.fn();
+    render(<ParticipantsBar shareToken="token-1" source="shared" crewAsk={false} tripTitle="Lisbon" onSaveForLater={onSaveForLater} />);
+    await waitFor(() => expect(countShown()).toBe("1"));
+    fireEvent.click(screen.getByRole("button", { name: /share\.participants\.more/ }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "share.participants.saveForLater" }));
+    expect(onSaveForLater).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("ParticipantsBar", () => {
   it("says it in the page's language when the connection drops, not the browser's words", async () => {
     vi.stubGlobal(

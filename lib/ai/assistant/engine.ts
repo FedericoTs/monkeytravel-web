@@ -43,7 +43,7 @@ import {
   tripLengthLine,
   tripSpan,
 } from "./edit-prompt";
-import { type DayEdit, validateEdits, plainText, str, num } from "./edit-validation";
+import { type DayEdit, SHORTEST_STOP_MINUTES, validateEdits, plainText, str, num } from "./edit-validation";
 import { keepSavedActivities, nameTokens, sameWord, takenOut } from "./saved-activities";
 import {
   asksForFreeDay,
@@ -656,6 +656,8 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
     }
   }
   const { reply, lockedDays } = outcome;
+  // Stops asked for shorter than a stop can be, from this reply and any later parts.
+  const shortest = [...outcome.shortest];
   let { tripLength, lengthRefused } = outcome;
   let edits = outcome.edits;
   const current = input.days.length;
@@ -735,7 +737,9 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
       const group = new Set(groups[i]);
       groups[i].forEach((n) => answered.add(n));
       // Read at the trip's new length, so the new days a part brings count.
-      const more = readOutcome(input, { ...part.value, trip_length: tripLength ?? null, more_days: added }, cur).edits.filter((e) => group.has(e.day_number));
+      const read = readOutcome(input, { ...part.value, trip_length: tripLength ?? null, more_days: added }, cur);
+      shortest.push(...read.shortest);
+      const more = read.edits.filter((e) => group.has(e.day_number));
       more.forEach((e) => fromParts.add(e.day_number));
       edits = [...edits, ...more];
     });
@@ -942,6 +946,10 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
     // Asked to regroup, they expect places to move.
     cityMoved: regroup ? [] : movedToTheirCity(input.days, edits, misplaced),
     notRepeated,
+    // Only the ones the change still holds, at the shortest.
+    shortest: [...new Set(shortest)].filter((name) =>
+      edits.some((e) => e.activities.some((a) => a.name === name && a.duration_minutes === SHORTEST_STOP_MINUTES)),
+    ),
     ...(capped ? { tripCap: { max: maxTripDays(input.days), days: current } } : {}),
   });
 

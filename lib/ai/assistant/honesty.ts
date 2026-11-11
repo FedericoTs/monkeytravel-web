@@ -21,6 +21,7 @@
 
 import { resolveAiLanguage, type SupportedLanguage } from "@/lib/ai/language";
 import { note } from "./notes";
+import { SHORTEST_STOP_MINUTES } from "./edit-validation";
 import { applyButtonLabel } from "./apply-button";
 import type { StructuredAssistantResponse } from "@/types";
 
@@ -78,6 +79,11 @@ const CLAIM_PATTERNS: RegExp[] = [
   // "This update integrates Akihabara…", "Day 3, now with a sunset cruise".
   new RegExp(`${start}(?:this|the)\\s+(?:update|change|revision|new\\s+version|updated\\s+plan|revised\\s+plan)\\s+(?:now\\s+)?(?:integrates|incorporates|includes|adds|brings|puts)${end}`, "iu"),
   new RegExp(`${start}(?:day\\s+\\d+|your\\s+(?:trip|itinerary|plan|day)),?\\s+now\\s+with${end}`, "iu"),
+  // A day said to be emptied: "I've left Day 1 blank", "I have kept the first day free".
+  new RegExp(`${start}(?:i|we)(?:['’]ve|\\s+have)?\\s+(?:now\\s+|also\\s+|just\\s+)?(?:left|kept)\\s+(?:day\\s+\\d+|the\\s+[\\p{L}]+\\s+day|that\\s+day)\\s+(?:blank|empty|free|open|clear)${end}`, "iu"),
+  new RegExp(`${start}(?<!no\\s)(?:(?:he|hemos)\\s+dejado|dejé)\\s+(?:el\\s+)?(?:d[ií]a\\s+\\d+|primer\\s+d[ií]a)\\s+(?:libre|vac[ií]o|en\\s+blanco)${end}`, "iu"),
+  new RegExp(`${start}(?<!non\\s)(?:ho|abbiamo)\\s+(?:lasciato|tenuto)\\s+(?:il\\s+)?(?:giorno\\s+\\d+|primo\\s+giorno)\\s+(?:libero|vuoto|in\\s+bianco)${end}`, "iu"),
+  new RegExp(`${start}(?<!não\\s)(?:deixei|deixamos)\\s+(?:o\\s+)?(?:dia\\s+\\d+|primeiro\\s+dia)\\s+(?:livre|vazio|em\\s+branco)${end}`, "iu"),
   // A changed plan handed over as finished: "Here's an updated Day 1".
   new RegExp(`${start}here(?:['’]s|\\s+is|\\s+are)\\s+(?:an?\\s+|the\\s+|your\\s+)?(?:updated|revised|adjusted|modified|reworked)\\s+(?:\\d+-day\\s+)?(?:plan|itinerary|version|schedule|trip|days|day(?:\\s+\\d+)?)${end}`, "iu"),
   // Spanish
@@ -306,6 +312,11 @@ export function notRepeatedNote(language: string | undefined, names: string[]): 
 /** Appended when a change would have moved or taken out a fixed plan, which stays as it was. */
 export function fixedKeptNote(language: string | undefined, dayNumber: number, names: string[]): string {
   return note(language, "fixedKept", { day: String(dayNumber), fixed: names.join(", ") });
+}
+
+/** Appended when stops asked for shorter than a stop can be were set to the shortest. */
+export function shortestStopNote(language: string | undefined, names: string[]): string {
+  return note(language, "shortestStop", { names: names.join(", "), minutes: SHORTEST_STOP_MINUTES });
 }
 
 /** The wizard assistant's fallbacks when the model returned no reply text. */
