@@ -328,15 +328,47 @@ describe("composeReply", () => {
     expect(composeReply({ ...base, locale: "it", reply: "Fatto.", edits: [d2], cityMoved: [moved[0]] })).toBe("Fatto. (Passa ai giorni di Busan: Songdo Cable Car.)");
   });
 
-  it("says a place the reply names isn't repeated on a day, as another day keeps it", () => {
+  it("says a place the reply names isn't repeated on a day, and which day keeps it", () => {
     const [d2] = validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").edits;
-    const notRepeated = ["N Seoul Tower", "Lotte World Tower"];
+    const notRepeated = [
+      { name: "N Seoul Tower", day: 3 },
+      { name: "Lotte World Tower", day: 4 },
+    ];
     expect(composeReply({ ...base, reply: "That day now has N Seoul Tower and Myeongdong.", edits: [d2], notRepeated })).toBe(
-      "That day now has N Seoul Tower and Myeongdong. (Already on another day, so not repeated: N Seoul Tower.)",
+      "That day now has N Seoul Tower and Myeongdong. (Already on Day 3, so not added again: N Seoul Tower.)",
     );
     expect(composeReply({ ...base, reply: "Done: new places for that day.", edits: [d2], notRepeated })).toBe("Done: new places for that day.");
     expect(composeReply({ ...base, locale: "es", reply: "Listo: N Seoul Tower y Lotte World Tower.", edits: [d2], notRepeated })).toBe(
-      "Listo: N Seoul Tower y Lotte World Tower. (Ya están en otros días, así que no se repiten: N Seoul Tower, Lotte World Tower.)",
+      "Listo: N Seoul Tower y Lotte World Tower. (Ya está en el día 3, así que no se añade otra vez: N Seoul Tower.) (Ya está en el día 4, así que no se añade otra vez: Lotte World Tower.)",
+    );
+    const bothOn3 = notRepeated.map((x) => ({ ...x, day: 3 }));
+    expect(composeReply({ ...base, locale: "it", reply: "Fatto: N Seoul Tower e Lotte World Tower.", edits: [d2], notRepeated: bothOn3 })).toBe(
+      "Fatto: N Seoul Tower e Lotte World Tower. (Sono già nel giorno 3, quindi non si aggiungono di nuovo: N Seoul Tower, Lotte World Tower.)",
+    );
+  });
+
+  it("says where a place of their list already is, named in the reply or not, unless the reply says it", () => {
+    const [d2] = validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").edits;
+    const listedHeld = [{ name: "Chinatown London", day: 4 }];
+    expect(composeReply({ ...base, reply: "Day 2 has all your stops.", edits: [d2], listedHeld })).toBe(
+      "Day 2 has all your stops. (Already on Day 4, so not added again: Chinatown London.)",
+    );
+    expect(composeReply({ ...base, locale: "pt", reply: "O dia 2 tem todas as suas paradas.", edits: [d2], listedHeld })).toBe(
+      "O dia 2 tem todas as suas paradas. (Já está no dia 4, então não foi adicionado de novo: Chinatown London.)",
+    );
+    // The same place twice (two parts placed it) is named once.
+    expect(composeReply({ ...base, reply: "Day 2 has all your stops.", edits: [d2], listedHeld: [...listedHeld, ...listedHeld] })).toBe(
+      "Day 2 has all your stops. (Already on Day 4, so not added again: Chinatown London.)",
+    );
+    // A reply that names the place and the day that has it already says it.
+    expect(composeReply({ ...base, reply: "Chinatown stays on Day 4.", edits: [d2], listedHeld })).not.toContain("not added again");
+    // Several days, in day order.
+    expect(composeReply({ ...base, reply: "Day 2 has Gion and all your stops.", edits: [d2], notRepeated: [{ name: "Gion", day: 5 }], listedHeld })).toBe(
+      "Day 2 has Gion and all your stops. (Already on Day 4, so not added again: Chinatown London.) (Already on Day 5, so not added again: Gion.)",
+    );
+    // Naming the day alone isn't saying where the place is.
+    expect(composeReply({ ...base, reply: "Day 2 has all your stops, and Day 4 too.", edits: [d2], listedHeld })).toContain(
+      "(Already on Day 4, so not added again: Chinatown London.)",
     );
   });
 
