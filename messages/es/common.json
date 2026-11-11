@@ -90,6 +90,22 @@
     "disclosure": "Usamos tus respuestas para mejorar MonkeyTravel. Consulta nuestra",
     "privacyPolicy": "Política de privacidad"
   },
+  "whatYouNeed": {
+    "title": "Lo que te falta",
+    "heading": "Lo que te falta para este viaje",
+    "noted": "Anotado, gracias.",
+    "noteLabel": "¿Te falta algo más para este viaje? (opcional)",
+    "writeBack": "Pueden escribirme sobre esto",
+    "send": "Enviar",
+    "sending": "Enviando...",
+    "error": "No hemos podido guardarlo. Inténtalo de nuevo.",
+    "tryAgain": "Reintentar",
+    "thanksTitle": "Gracias",
+    "thanksBody": "Leemos todas las respuestas. Ellas deciden lo que construimos después.",
+    "yourTrips": "Ver tus viajes",
+    "disclosure": "Usamos tus respuestas para mejorar MonkeyTravel. Consulta nuestra",
+    "privacyPolicy": "Política de privacidad"
+  },
   "navigation": {
     "features": "Características",
     "howItWorks": "Cómo Funciona",
@@ -2653,6 +2669,15 @@
     "morning_of": {
       "heading": "Día de viaje",
       "body": "Llegó el día. Tu plan de hoy en {destination} está a un toque — ábrelo cuando necesites direcciones, horarios o saber qué sigue."
+    },
+    "needAsk": {
+      "question": "Una pregunta: ¿qué te falta todavía para este viaje?",
+      "stay": "Dónde alojarme",
+      "transport": "Cómo moverme de un sitio a otro",
+      "book": "Qué reservar con antelación",
+      "phone": "Tenerlo en el móvil durante el viaje",
+      "group": "Poner de acuerdo a mi grupo",
+      "set": "Nada, ya lo tengo todo"
     }
   },
   "tripFollowupEmail": {

@@ -17,7 +17,7 @@ import {
 import { tripStartCoordinate } from "@/lib/email/trip-coordinates";
 import { verifyRenderedEmail, blockingDefects, summarizeDefects } from "@/lib/email/verify-render";
 import { didNotGoUrl, postTripCtaUrl } from "@/lib/email/followup-cta";
-import { reminderCtaUrl } from "@/lib/email/reminder-cta";
+import { needAnswerUrls, reminderCtaUrl } from "@/lib/email/reminder-cta";
 import { resolveLocale, formatDateRange, formatDayMonth } from "@/lib/email/reminder-locale";
 import {
   type TripEmailRow,
@@ -55,6 +55,13 @@ const CONTEXT_NS = "common.emailContext";
  * the trip again after the day they make it, so the email is the second ask.
  */
 const GROUP_ASK_SLOTS = new Set<string>(["pack_early_14d", "visa_check_7d"]);
+
+/**
+ * The reminders before the trip that end with its one question, "what do you
+ * still need for this trip?" (lib/feedback/need.ts), until the owner answers
+ * it. Not the morning of: by then it's too late to help.
+ */
+const NEED_ASK_SLOTS = new Set<string>(["pack_early_14d", "visa_check_7d", "weather_3d", "confirm_1d"]);
 
 /**
  * Every enrichment string that legitimately belongs to this trip.
@@ -188,6 +195,29 @@ export async function sendSlotEmail(
     }
   }
 
+  // The one question (NEED_ASK_SLOTS), until the trip's owner has answered it.
+  // Optional like the group ask: a failed read, or links that can't be signed,
+  // leave it out and the reminder goes without it.
+  let needAsk: { question: string; answers: { label: string; url: string }[] } | undefined;
+  if (!followup && NEED_ASK_SLOTS.has(row.slot)) {
+    const { data: answered, error } = await svc
+      .from("user_feedback")
+      .select("id")
+      .eq("extra->>trip_id", trip.id)
+      .not("extra->>need", "is", null)
+      .limit(1);
+    const urls =
+      !error && (answered ?? []).length === 0
+        ? needAnswerUrls(row.slot as TripReminderSlot, { appUrl: APP_URL, locale, tripId: trip.id, userId: row.user_id })
+        : null;
+    if (urls) {
+      needAsk = {
+        question: ctaT("needAsk.question"),
+        answers: urls.map(({ need, url }) => ({ label: ctaT(`needAsk.${need}`), url })),
+      };
+    }
+  }
+
   // Per-trip enrichment. Built from data the generator already wrote, so
   // this adds no Gemini or Places call. Best-effort by design: a slot with
   // nothing to show renders no block, and a whole family of trips missing
@@ -275,6 +305,12 @@ export async function sendSlotEmail(
     ...(secondCta ? { secondCtaLabel: secondCta.label } : {}),
     ...(finalNote ? { finalNote } : {}),
     ...(groupAsk ? { groupAskText: groupAsk.text, groupAskLabel: groupAsk.label } : {}),
+    ...(needAsk
+      ? {
+          needAskQuestion: needAsk.question,
+          ...Object.fromEntries(needAsk.answers.map((a, i) => [`needAskAnswer${i}`, a.label])),
+        }
+      : {}),
   });
   if (unresolved) {
     // Deliberately a failure, not a degraded send. The row stays visible as
@@ -319,6 +355,7 @@ export async function sendSlotEmail(
           tripUrl: ctaUrl,
           contextBlocks,
           ...(groupAsk ? { groupAsk } : {}),
+          ...(needAsk ? { needAsk } : {}),
         },
       };
 

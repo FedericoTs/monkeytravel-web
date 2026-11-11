@@ -5,6 +5,7 @@
  * reason given after the first, adds a row, and the newest row for a trip is
  * the answer.
  */
+import { latestTripAnswers } from "./trip-answers";
 
 export const WENT_ANSWERS = ["yes", "no"] as const;
 export type WentAnswer = (typeof WENT_ANSWERS)[number];
@@ -27,11 +28,5 @@ export function isWentReason(answer: WentAnswer, value: unknown): value is strin
 export function latestWentAnswers(
   rows: readonly { extra?: Record<string, unknown> | null }[],
 ): Map<string, WentAnswer> {
-  const latest = new Map<string, WentAnswer>();
-  for (const { extra } of rows) {
-    const trip = extra?.trip_id;
-    if (typeof trip !== "string" || latest.has(trip) || !isWentAnswer(extra?.went)) continue;
-    latest.set(trip, extra.went);
-  }
-  return latest;
+  return latestTripAnswers(rows, "went", isWentAnswer);
 }
