@@ -468,6 +468,13 @@ describe("buildPrompt", () => {
     expect(prompt).toContain("Don't ask which day");
   });
 
+  // "Broadwick Street 5 min, Neal's Yard 10 min" came back at 20 and 30 minutes.
+  it("keeps the length a traveller gives a stop, down to the shortest a stop can be", () => {
+    const prompt = buildPrompt({ message: "Neal's Yard 10 min", destination: "London", tripTitle: "London", days: trip(), locale: "en" });
+    expect(prompt).toContain(`A length the traveller gives a stop ("5 min", "an hour") is its "duration_minutes" exactly, never rounded up`);
+    expect(prompt).toContain(`the shortest a stop can be is ${SHORTEST_STOP_MINUTES} minutes`);
+  });
+
   // "I am arriving at 6pm on the 28th" on a trip from the 29th: Day 1 was rewritten.
   it("says the trip can't start before Day 1, with its date, and how to start earlier", () => {
     const prompt = buildPrompt({ message: "I am arriving at 6pm on the 28th", destination: "Lisbon", tripTitle: "Lisbon", days: trip(), locale: "en" });
