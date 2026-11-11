@@ -145,6 +145,8 @@ export interface RetryConfig {
   maxDelay: number;
   /** HTTP status codes that should trigger retry */
   retryableStatuses: number[];
+  /** Each attempt gives up after this many ms with no answer (none when unset) */
+  timeoutMs?: number;
 }
 
 /**

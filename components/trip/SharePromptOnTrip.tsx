@@ -58,6 +58,12 @@ interface Props {
    * to close instead of opening on top of it.
    */
   paused?: boolean;
+  /**
+   * Something else opened by itself in this visit (the assistant, on a first
+   * visit). The page asks one thing per visit, so the prompt waits for the
+   * next one; a prompt already open stays open.
+   */
+  quietThisVisit?: boolean;
 }
 
 export default function SharePromptOnTrip({
@@ -72,6 +78,7 @@ export default function SharePromptOnTrip({
   isAnchored = false,
   onManageCollaborators,
   paused = false,
+  quietThisVisit = false,
 }: Props) {
   const [eligible, setEligible] = useState(false);
   const [engaged, setEngaged] = useState(false);
@@ -110,7 +117,7 @@ export default function SharePromptOnTrip({
 
   // --- engagement gate: scrolled into the plan, or dwelled long enough ------
   useEffect(() => {
-    if (!eligible || engaged) return;
+    if (!eligible || engaged || quietThisVisit) return;
 
     const onScroll = () => {
       if (window.scrollY > SCROLL_PX) setEngaged(true);
@@ -124,7 +131,7 @@ export default function SharePromptOnTrip({
       window.removeEventListener("scroll", onScroll);
       clearTimeout(timer);
     };
-  }, [eligible, engaged]);
+  }, [eligible, engaged, quietThisVisit]);
 
   // Derived, not mirrored into state: setting `open` from an effect trips
   // react-hooks/set-state-in-effect and buys nothing — visibility is a pure

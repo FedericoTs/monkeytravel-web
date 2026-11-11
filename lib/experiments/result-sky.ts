@@ -70,3 +70,19 @@ export function assignSky(input: {
   // Only a browser that keeps its draw counts: it sees one screen on every plan.
   return { arm, counted: write(DRAWN, arm) };
 }
+
+/** The PostHog calls that set and clear a property on every later event. */
+interface SuperProperties {
+  register(properties: Record<string, unknown>): void;
+  unregister(property: string): void;
+}
+
+/**
+ * A counted browser's PostHog events carry its arm under result_variant; any
+ * other browser's carry none, so a value an earlier test or draw left under
+ * that name stops riding on its events.
+ */
+export function syncSkyArm(posthog: SuperProperties, assignment: SkyAssignment): void {
+  if (assignment.counted) posthog.register({ result_variant: assignment.arm });
+  else posthog.unregister("result_variant");
+}

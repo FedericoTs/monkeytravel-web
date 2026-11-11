@@ -1,6 +1,7 @@
 import type { GeneratedItinerary, TripCreationParams } from "@/types";
 import { validateAndFixCoordinates } from "@/lib/trip/coordinate-fallback";
 import { withServerFields } from "@/lib/ai/server-fields";
+import { mendJson } from "@/lib/ai/json-mend";
 
 /**
  * The model's itinerary text as a plan: a truncated reply repaired, a missing
@@ -116,7 +117,12 @@ export function parseStreamedItinerary(
     return withServerFields(obj, params);
   };
   try {
-    return validate(JSON.parse(fullText) as GeneratedItinerary);
+    // A slip mid-reply (an unescaped quote, a missing comma) is mended rather
+    // than costing the traveller a second plan.
+    const { value, mends } = mendJson(fullText);
+    const itinerary = validate(value as GeneratedItinerary);
+    if (mends > 0) console.warn(`[gemini.streamed] mended ${mends} slip(s) in the model's JSON for "${params.destination}".`);
+    return itinerary;
   } catch (e) {
     const repaired = tryRepairTruncatedJSON(fullText);
     if (repaired) {

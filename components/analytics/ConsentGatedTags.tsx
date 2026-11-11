@@ -12,6 +12,10 @@
  * while it was granted. NEXT_PUBLIC_GA_CONSENT_MODE=gated instead mounts GA4
  * only after acceptance, without a code change.
  *
+ * GA4 loads on the production host only: a dev build, a preview deployment
+ * or a translation proxy serves the same pages, with the same measurement id,
+ * under another host. www never renders a page: it redirects to the apex.
+ *
  * The affiliate loader stays gated on marketing consent: it has no
  * cookieless mode, and its four services are disabled at account level
  * anyway, so it carries privacy exposure for no revenue.
@@ -22,10 +26,8 @@
  * dispatches, which makes it react the moment someone presses Accept All.
  *
  * NOT GATED, DELIBERATELY: Sentry. instrumentation-client.ts documents error
- * tracking as essential functionality, and already gates the two parts that
- * are not: performance sampling on analytics consent, session replay on
- * explicit sessionRecording consent. That is a defensible split, so it is left
- * exactly as it is.
+ * tracking as essential functionality, and the browser SDK does nothing that
+ * is not: it samples no performance and records no sessions.
  */
 
 import { useEffect, useState } from "react";
@@ -40,8 +42,39 @@ import {
   gaConsentModeFromEnv,
   gaConsentParamsFor,
 } from "@/lib/analytics/ga-consent";
+import { scrubUrl } from "@/lib/analytics/scrub-url";
+import { PROBE_SESSION_PREFIX } from "@/lib/analytics/telemetry-env";
+import { SITE_URL } from "@/lib/seo/canonical";
+import { safeGet, safeRemove, safeSet } from "@/lib/safe-storage";
+import { useIsClient } from "@/hooks/useIsClient";
 
 const AffiliateScript = dynamic(() => import("@/components/AffiliateScript"));
+
+const GA_HOST = new URL(SITE_URL).hostname;
+const TEAM_PARAM = "mt_team";
+
+/**
+ * Hits from the team's own devices carry traffic_type=internal, which GA4's
+ * Internal Traffic filter drops. Opening any page with ?mt_team=1 marks this
+ * device and ?mt_team=0 unmarks it. Production probes count too: they set
+ * their own e2eprobe- session cookie, which stays readable here, while the
+ * one the site mints is httpOnly.
+ */
+function isTeamDevice(): boolean {
+  const flag = new URLSearchParams(window.location.search).get(TEAM_PARAM);
+  if (flag === "1") safeSet(TEAM_PARAM, "1");
+  if (flag === "0") safeRemove(TEAM_PARAM);
+  return safeGet(TEAM_PARAM) === "1" || isProbeSession();
+}
+
+function isProbeSession(): boolean {
+  try {
+    return document.cookie.split(";").some((c) => c.trim().startsWith(`mt_session_id=${PROBE_SESSION_PREFIX}`));
+  } catch {
+    // A sandboxed frame cannot read cookies.
+    return false;
+  }
+}
 
 type GtagWindow = Window & {
   dataLayer?: unknown[];
@@ -117,7 +150,16 @@ function GaTag({ gaId }: { gaId: string }) {
   useEffect(() => {
     const gtag = gtagOn(window as GtagWindow);
     gtag("js", new Date());
-    gtag("config", gaId);
+    // A shared-trip or invite link opened from outside lands here with its
+    // key in the address; GA4 gets the address with the key replaced.
+    const href = window.location.href;
+    const scrubbed = scrubUrl(href);
+    const params = {
+      ...(isTeamDevice() ? { traffic_type: "internal" } : {}),
+      ...(scrubbed !== href ? { page_location: scrubbed } : {}),
+    };
+    if (Object.keys(params).length > 0) gtag("config", gaId, params);
+    else gtag("config", gaId);
   }, [gaId]);
   return <Script src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} strategy="lazyOnload" />;
 }
@@ -126,6 +168,8 @@ export function ConsentGatedTags() {
   // null = not read yet. In gated mode nothing renders in that state, which
   // also keeps the server and first client paint identical.
   const [consent, setConsent] = useState<ConsentState | null>(null);
+  // The host exists only in the browser: the server and hydration never mount GA4.
+  const gaHost = useIsClient() && window.location.hostname === GA_HOST;
   const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
   const gaMode = gaConsentModeFromEnv(process.env.NEXT_PUBLIC_GA_CONSENT_MODE);
 
@@ -148,7 +192,7 @@ export function ConsentGatedTags() {
     return () => window.removeEventListener(CONSENT_CHANGE_EVENT, onChange);
   }, [gaId, gaMode]);
 
-  const mountGa = !!gaId && (gaMode === "advanced" || !!consent?.analytics);
+  const mountGa = !!gaId && gaHost && (gaMode === "advanced" || !!consent?.analytics);
 
   return (
     <>

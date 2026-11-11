@@ -5,12 +5,23 @@
 import {
   announcedButMissing,
   announcesProposal,
+  claimedTripDays,
   claimsLongerTrip,
   daysLeftNote,
   daysNotAddedNote,
   hasFigures,
   replyLanguage,
   takesOutNote,
+  listMissingNote,
+  fixedKeptNote,
+  shortestStopNote,
+  cityKeptNote,
+  cityMovedNote,
+  notRepeatedNote,
+  dayCountNote,
+  dayCountReply,
+  tripCapReply,
+  type TripSpan,
   travelTimesNote,
   notAppliedLead,
   claimsItineraryChange,
@@ -27,6 +38,7 @@ import {
 import { type PlanCosts } from "@/lib/ai/assistant/plan-costs";
 import { daysMentioned } from "@/lib/ai/assistant/day-target";
 import { currencySwitchedNote, withoutCurrencyTalk } from "@/lib/ai/assistant/currency-request";
+import type { PlacesAway } from "./city-days";
 import type { DayEdit } from "./edit-validation";
 import { nameTokens, sameWord } from "./saved-activities";
 import type { OutsideTravelTimes } from "./travel-times";
@@ -50,6 +62,7 @@ export function composeReply(p: {
   reply: string;
   edits: DayEdit[];
   tripLength?: number;
+  /** Fixed plans, by day, that the reply moved or took out: they stay as they were. */
   lockedDays: { dayNumber: number; names: string[] }[];
   lengthRefused: boolean;
   locale?: string;
@@ -73,8 +86,22 @@ export function composeReply(p: {
   askedForMoreDays?: boolean;
   /** Activities the change takes out that the traveller didn't ask to remove. */
   takenOut?: string[];
+  /** Places of a list they asked to add that the change doesn't hold. */
+  listMissing?: string[];
   /** Places are offered for the whole trip; the page plans the one picked. */
   offersElsewhere?: boolean;
+  /** The trip's length from its dates: the reply gave another, or a cut nobody asked for was turned down. */
+  dayCount?: TripSpan;
+  /** Places of another city taken off a city's days. */
+  cityKept?: PlacesAway[];
+  /** Places of another city the change moved from a day of the wrong one to days of their own. */
+  cityMoved?: PlacesAway[];
+  /** Places other days keep that the change doesn't repeat, though the reply may name them. */
+  notRepeated?: string[];
+  /** The reply wanted more days than a trip may have (max), on a trip of `days`: none were added. */
+  tripCap?: { max: number; days: number };
+  /** Stops asked for shorter than a stop can be, set to the shortest. */
+  shortest?: string[];
 }): string {
   const prepared = p.edits.length > 0 || p.tripLength !== undefined;
   // Notes join the reply, in its language: a Spanish message about a plan
@@ -95,8 +122,16 @@ export function composeReply(p: {
     return p.reply && !claimsItineraryChange(p.reply) ? p.reply : elsewhereNote(locale);
   }
 
-  // A day withheld for a fixed plan: the model's "I've updated Day 5" would be
-  // worse than the bug. Say what happened.
+  // "You're totally right, 8 days" for 9 days of dates, or a day cut nobody asked
+  // for: the count from the dates instead.
+  if (p.dayCount && !prepared) return dayCountReply(locale, p.dayCount);
+
+  // "Here is the new Day 15, ready to save" on a trip at its longest: say so,
+  // and what can be done instead.
+  if (p.tripCap && !prepared) return tripCapReply(locale, p.tripCap.max, p.tripCap.days);
+
+  // A change only to a fixed plan, which stays as it was: the model's "I've
+  // moved your flight" would be worse than the bug. Say what happened.
   if (p.lockedDays.length > 0 && !prepared) {
     const d = p.lockedDays[0];
     return lockedDayReply(locale, d.dayNumber, d.names);
@@ -145,7 +180,11 @@ export function composeReply(p: {
   if (left.length > 0) text = `${text} ${daysLeftNote(locale, left)}`;
   if (notAdded.length > 0) text = `${text} ${daysNotAddedNote(locale, notAdded)}`;
   for (const v of p.outsideTimes ?? []) text = `${text} ${travelTimesNote(locale, v)}`;
-  if (p.lengthRefused || (p.tripLength === undefined && p.askedForMoreDays && claimsLongerTrip(text))) {
+  // A reply that gives the trip more days than the change leaves it ("I've
+  // updated your trip to have 16 days" on 14 days) says so too.
+  const saysLonger =
+    p.tripLength === undefined && ((p.askedForMoreDays && claimsLongerTrip(text)) || (claimedTripDays(text) ?? 0) > p.currentDays);
+  if (p.lengthRefused || saysLonger) {
     text = `${text} ${lengthUnchangedNote(locale, p.currentDays)}`;
   }
   // "Add a Jameson tour" quietly replaced the Guinness visit: name what goes,
@@ -158,6 +197,29 @@ export function composeReply(p: {
   };
   const unmentioned = (p.takenOut ?? []).filter((n) => !namedInReply(n));
   if (unmentioned.length > 0) text = `${text} ${takesOutNote(locale, unmentioned)}`;
+  // "I've added all ten" with eight in the change: name the two.
+  if ((p.listMissing?.length ?? 0) > 0) text = `${text} ${listMissingNote(locale, p.listMissing!)}`;
+  // A fixed plan the reply moved or took out is back as the traveller set it.
+  for (const d of p.lockedDays) text = `${text} ${fixedKeptNote(locale, d.dayNumber, d.names)}`;
+  // "Conduit Court Passage 1 min" is saved at the shortest a stop can be: say so, not "done".
+  if ((p.shortest?.length ?? 0) > 0) text = `${text} ${shortestStopNote(locale, p.shortest!)}`;
+  if (p.dayCount) text = `${text} ${dayCountNote(locale, p.dayCount)}`;
+  // Places of another city that came off a city's days.
+  const offCity = new Map<string, { other: string; city: string; names: string[] }>();
+  for (const x of p.cityKept ?? []) {
+    const key = `${x.other}\n${x.city}`;
+    const entry = offCity.get(key) ?? { other: x.other, city: x.city, names: [] };
+    entry.names.push(...x.activities.map((a) => a.name));
+    offCity.set(key, entry);
+  }
+  for (const x of offCity.values()) text = `${text} ${cityKeptNote(locale, x.other, x.city, x.names)}`;
+  // Places of another city now on days of their own city, unless the reply named them.
+  const toCity = new Map<string, string[]>();
+  for (const x of p.cityMoved ?? []) toCity.set(x.other, [...(toCity.get(x.other) ?? []), ...x.activities.map((a) => a.name).filter((n) => !namedInReply(n))]);
+  for (const [city, names] of toCity) if (names.length > 0) text = `${text} ${cityMovedNote(locale, city, names)}`;
+  // A place the reply names for a day that doesn't repeat it, as another day keeps it.
+  const notRepeated = (p.notRepeated ?? []).filter(namedInReply);
+  if (notRepeated.length > 0) text = `${text} ${notRepeatedNote(locale, notRepeated)}`;
   // Told to present an unapplied edit as ready, the model still writes "I've
   // updated…" most of the time: lead with the truth so Apply isn't skipped.
   if (!p.autoApplied && !p.ownLead && claimsItineraryChange(p.reply)) text = `${notAppliedLead(locale)} ${text}`;

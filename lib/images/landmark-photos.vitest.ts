@@ -1,11 +1,14 @@
 /** @vitest-environment node */
 import { createHash } from "crypto";
+import { readdirSync, readFileSync } from "fs";
+import { join } from "path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
  * Each place's Wikimedia photo is looked up once and shared through the cache:
- * a found photo for a year, "none" for two months, a failure not at all. A plan
- * being generated never waits for a lookup; a saved trip does.
+ * a found photo for 30 days, "none" for 14, a failure not at all, and a nightly
+ * job deletes what has expired. A plan being generated never waits for a
+ * lookup; a saved trip does.
  */
 
 const build = vi.fn();
@@ -58,14 +61,14 @@ describe("landmarkPhotos", () => {
     expect(build).not.toHaveBeenCalled();
   });
 
-  it("for a saved trip, looks up new places and keeps a photo for a year, none for two months", async () => {
+  it("for a saved trip, looks up new places and keeps a photo for 30 days, none for 14", async () => {
     build.mockImplementation(async (q: { names: string[] }) => (q.names[0] === "pantheon|rome" ? url("b") : null));
     const photos = await landmarkPhotos([lookup("pantheon|rome"), lookup("bar del fico|rome")], { waitMs: 5000, maxNew: 12 });
     expect(photos.get("pantheon|rome")).toBe(url("b"));
     expect(upserts.map((r) => [r.data, days(r)])).toEqual(
       expect.arrayContaining([
-        [{ url: url("b") }, 365],
-        [{ none: true }, 60],
+        [{ url: url("b") }, 30],
+        [{ none: true }, 14],
       ]),
     );
   });
@@ -112,5 +115,24 @@ describe("landmarkPhotos", () => {
     finish(url("e"));
     await Promise.all(background);
     expect(upserts.map((r) => r.data)).toContainEqual({ url: url("e") });
+  });
+});
+
+describe("expired lookups", () => {
+  const DIR = join(process.cwd(), "supabase", "migrations");
+  const file = readdirSync(DIR).filter((f) => f.endsWith(".sql")).sort().reverse()
+    .find((f) => readFileSync(join(DIR, f), "utf8").includes("purge-expired-landmark-photos"));
+  const sql = file ? readFileSync(join(DIR, file), "utf8").replace(/\s+/g, " ").toLowerCase() : "";
+
+  it("are deleted every night, and only this cache's", () => {
+    expect(sql).toContain(
+      "delete from public.google_places_cache where cache_type = 'wikimedia_landmark' and expires_at < now()",
+    );
+  });
+
+  it("include the rows stored before, on the same 30 and 14 days", () => {
+    const lifetime = "case when data ? 'none' then interval '14 days' else interval '30 days' end";
+    expect(sql).toContain(`set expires_at = cached_at + ${lifetime}`);
+    expect(sql).toContain(`and cached_at < now() - ${lifetime}`);
   });
 });

@@ -12,6 +12,7 @@
 
 import { NextResponse } from "next/server";
 import { MODEL_OUTAGE_CODE, MODEL_OUTAGE_MESSAGE } from "@/lib/ai/model-outage";
+import { reportServerFailure } from "@/lib/observability/server-failure";
 
 // ============================================================================
 // Types
@@ -71,6 +72,11 @@ export function apiError(
     // A 4xx describes the client's state (signed out, not found, over a
     // limit); only a 5xx is a failure of ours, so only that is an error.
     (status >= 500 ? console.error : console.warn)(`${prefix} Error (${status}):`, message);
+    // A 503 here is a service switched off, or the model outage the AI code
+    // reports itself; any other 5xx is handled, so Sentry never sees it unless told.
+    if (status >= 500 && status !== 503) {
+      reportServerFailure(`${prefix} ${message}`, "error", [prefix, message]);
+    }
   }
 
   const body: Record<string, unknown> = { error: message };

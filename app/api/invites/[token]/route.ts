@@ -363,7 +363,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     // Crew Loop PostHog: server-side accept event. Fire-and-forget — a
     // telemetry failure must never fail the join.
     captureServerEvent(user.id, "invite_accepted", {
-      tripId: result.trip_id,
+      trip_id: result.trip_id,
       role: result.role,
       inviteId: result.invite_id,
     }).catch(() => {});

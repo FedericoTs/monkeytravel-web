@@ -137,6 +137,7 @@ const handlers = {
   onActivityRegenerate: vi.fn(),
   onAddActivity: vi.fn(),
   onPhotoCapture: vi.fn(),
+  onMakeRoom: vi.fn(),
 };
 const dayOptions = [{ dayNumber: 1 }];
 
@@ -188,6 +189,43 @@ afterEach(() => {
   seen.summaries.clear();
   seen.timelines.clear();
   seen.mounts.count = 0;
+});
+
+describe("a stop still on when the next one starts", () => {
+  const timed = (id: string, start: string, duration: number, extra: Partial<Activity> = {}) =>
+    ({ id, name: id, start_time: start, duration_minutes: duration, ...extra }) as unknown as Activity;
+  const oneDay = (activities: Activity[]) => [{ day_number: 1, theme: "Old town", activities }] as unknown as ItineraryDay[];
+  type Overlap = { minutes: number; nextName: string; onMakeRoom: (() => void) | null } | null;
+  const overlapOf = (id: string) => (seen.rows.get(id) as unknown as { overlap: Overlap }).overlap;
+
+  it("is noted for whoever is editing, with a way to make room unless the next one is fixed", () => {
+    const train = timed("train", "12:30", 60, { booking_required: true });
+    show({ ...editing, days: oneDay([timed("museum", "09:00", 240), timed("lunch", "12:00", 60), train]) });
+    expect(overlapOf("museum")).toMatchObject({ minutes: 60, nextName: "lunch" });
+    overlapOf("museum")!.onMakeRoom!();
+    expect(handlers.onMakeRoom).toHaveBeenCalledWith("museum");
+    expect(overlapOf("lunch")).toEqual({ minutes: 30, nextName: "train", onMakeRoom: null });
+    expect(overlapOf("train")).toBeNull();
+  });
+
+  // The preview of a drag can put a card where it overlaps: a note coming and
+  // going would move the days under the pointer, and the drop with them.
+  it("isn't noted while a card is being dragged", () => {
+    moves.dragging = true;
+    try {
+      show({ ...editing, days: oneDay([timed("museum", "09:00", 240), timed("lunch", "12:00", 60)]) });
+      expect(overlapOf("museum")).toBeNull();
+    } finally {
+      moves.dragging = false;
+    }
+  });
+
+  it("isn't noted for whoever is only looking", () => {
+    const activities = [timed("museum", "09:00", 240), timed("lunch", "12:00", 60)];
+    handlers.timelineOf.mockImplementation(() => activities.map((data, index) => ({ type: "activity", data, index })));
+    show({ days: oneDay(activities) });
+    expect(overlapOf("museum")).toBeNull();
+  });
 });
 
 describe("a day's route in Google Maps", () => {
@@ -344,7 +382,8 @@ describe("while editing", () => {
     expect(screen.queryByText("viewing a2")).toBeNull();
     expect(card).toMatchObject({ index: 1, isEditMode: true, availableDays: [1, 2, 3], dayOptions, currentDayIndex: 0 });
     (card.onDelete as () => void)();
-    expect(handlers.onActivityDelete).toHaveBeenCalledWith("a2");
+    // With its name, for the message that says it was removed.
+    expect(handlers.onActivityDelete).toHaveBeenCalledWith("a2", "a2");
     (card.onUpdate as (u: Partial<Activity>) => void)({ name: "Renamed" });
     expect(handlers.onActivityUpdate).toHaveBeenCalledWith("a2", { name: "Renamed" });
     (card.onMoveToDay as (d: number) => void)(2);

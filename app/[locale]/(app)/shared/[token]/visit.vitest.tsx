@@ -123,9 +123,9 @@ vi.mock("@/components/trip/PlanByEmail", () => ({
   default: (p: { source: string; defaultEmail?: string }) => <div data-testid="plan-by-email" data-source={p.source} data-email={p.defaultEmail ?? ""} />,
 }));
 vi.mock("@/components/trip/ParticipantsBar", () => ({
-  default: (p: { source: string; crewAsk: boolean; tripTitle: string; onSaveForLater: () => void }) => (
+  default: (p: { source: string; crewAsk: boolean; tripTitle: string; onSaveForLater?: () => void }) => (
     <div data-testid="participants-bar" data-source={p.source} data-crew={String(p.crewAsk)} data-title={p.tripTitle}>
-      <button onClick={p.onSaveForLater}>save for later from the bar</button>
+      {p.onSaveForLater && <button onClick={p.onSaveForLater}>save for later from the bar</button>}
     </div>
   ),
 }));
@@ -218,6 +218,8 @@ beforeEach(() => {
   state.saveProps = {};
   fetched = [];
   localStorage.clear();
+  // Saving a copy is switched off in production; the tests below that save switch it on.
+  vi.stubEnv("NEXT_PUBLIC_SAVE_COPY_ENABLED", "true");
   Object.defineProperty(window, "location", { configurable: true, value: { ...realLocation, assign } });
   vi.stubGlobal(
     "fetch",
@@ -230,6 +232,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
   vi.restoreAllMocks();
   vi.clearAllMocks();
   Object.defineProperty(window, "location", { configurable: true, value: realLocation });
@@ -592,6 +595,32 @@ describe("the end of the page for the owner", { timeout: 20_000 }, () => {
     await settled();
     fireEvent.click(within(screen.getByTestId("recipient-footer-cta")).getByText("share.participants.saveForLater"));
     expect(screen.getByTestId("save-modal").getAttribute("data-open")).toBe("true");
+  });
+});
+
+describe("with saving a copy switched off", { timeout: 20_000 }, () => {
+  beforeEach(() => {
+    vi.stubEnv("NEXT_PUBLIC_SAVE_COPY_ENABLED", "false");
+  });
+
+  it("a share link offers joining and planning their own, and no copy", async () => {
+    show();
+    await settled();
+    expect(screen.getByTestId("participants-bar")).toBeTruthy();
+    expect(screen.queryByText("save for later from the bar")).toBeNull();
+    const footer = screen.getByTestId("recipient-footer-cta");
+    expect(within(footer).queryByText("share.participants.saveForLater")).toBeNull();
+    expect(within(footer).getByText("share.savedHero.planOwnButton")).toBeTruthy();
+  });
+
+  it("with participants off too, the bottom bar keeps planning their own", async () => {
+    state.participants = false;
+    show();
+    await settled();
+    const bar = screen.getByTestId("trip-bottom-bar");
+    expect(within(bar).queryByText("share.savedHero.saveButton")).toBeNull();
+    expect(within(bar).queryByText("share.savedHero.saveSubtitle")).toBeNull();
+    expect(within(bar).getByText("share.savedHero.planOwnButton")).toBeTruthy();
   });
 });
 

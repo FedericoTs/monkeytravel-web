@@ -7,12 +7,15 @@
 
 // "Add 2 more days", "one more night", "extend the trip", "un día más",
 // "2 giorni in più", "mais um dia", or a length in days. The wizard's date
-// change asks with "set trip_length".
+// change asks with "set trip_length". A day of the trip is where a change
+// goes, not more days: "add dinner on day 3", "l'ultimo giorno".
 const L = "\\p{L}";
+const THAT_DAY =
+  "(?<!(?:first|last|next|same|second|third|final|each|every|that|this|primo|ultimo|secondo|terzo|stesso|ogni|quel|questo|primer|primero|último|segundo|tercer|tercero|mismo|cada|ese|este|primeiro|terceiro|mesmo|esse)\\s+)";
 const MORE_DAYS = new RegExp(
   [
     "trip_length",
-    `(?<![${L}])(?:add|adding|extra|more|another|extend|extending|longer|lengthen|más|otro|otra|añad\\p{L}*|agreg\\p{L}*|extend\\p{L}*|alarg\\p{L}*|più|altr[oi]|aggiung\\p{L}*|allung\\p{L}*|estend\\p{L}*|mais|outr[oa]s?|adicion\\p{L}*|acrescent\\p{L}*|prolong\\p{L}*)(?![${L}])[^.?!\\n]{0,24}?(?<![${L}])(?:day|days|night|nights|día|días|noche|noches|giorno|giorni|notte|notti|dia|dias|noite|noites)(?![${L}])`,
+    `(?<![${L}])(?:add|adding|extra|more|another|extend|extending|longer|lengthen|más|otro|otra|añad\\p{L}*|agreg\\p{L}*|extend\\p{L}*|alarg\\p{L}*|più|altr[oi]|aggiung\\p{L}*|allung\\p{L}*|estend\\p{L}*|mais|outr[oa]s?|adicion\\p{L}*|acrescent\\p{L}*|prolong\\p{L}*)(?![${L}])[^.?!\\n]{0,24}?(?<![${L}])${THAT_DAY}(?:day|days|night|nights|día|días|noche|noches|giorno|giorni|notte|notti|dia|dias|noite|noites)(?![${L}])(?!\\s*\\d)`,
     `(?<![${L}])(?:giorn[oi]|nott[ei])\\s+in\\s+più`,
     `(?<![${L}\\p{N}])\\d{1,2}\\s*(?:days|nights|días|noches|giorni|notti|dias|noites)(?![${L}])`,
   ].join("|"),
@@ -23,14 +26,74 @@ const MORE_DAYS = new RegExp(
 const DAY_TRIP =
   /day[\s-]?trips?|excursi[oó]n(?:es)? de un d[ií]a|gite? di un giorno|excurs(?:ão|ões) de um dia|bate[\s-]?volta/giu;
 
-/** Does the conversation ask for a longer trip? */
-export function asksForMoreDays(text: string): boolean {
-  return MORE_DAYS.test(text.replace(DAY_TRIP, " "));
+/** Does the message ask for a day trip? */
+export function asksForDayTrip(text: string): boolean {
+  return new RegExp(DAY_TRIP.source, "iu").test(text);
+}
+
+// The plan regrouped: "cluster by areas", "group nearby places", "reorganize",
+// "stop jumping around", "agrupa por zonas", "raggruppa", "reorganize por bairro".
+const REGROUP =
+  /(?<![\p{L}])(?:cluster\p{L}*|group\p{L}*|regroup\p{L}*|re-?organi[sz]\p{L}*|organi[sz]\p{L}*|re-?order\p{L}*|re-?arrang\p{L}*|optimi[sz]\p{L}*|jumping\s+around|back\s+and\s+forth|by\s+(?:area|neighbou?rhood|district|zone)s?|agrup\p{L}*|reorganiz\p{L}*|ordena\p{L}*|optimiz\p{L}*|por\s+(?:zonas?|[aá]reas?|barrios?|bairros?|regi[oõ]\p{L}*)|raggrupp\p{L}*|riorganizz\p{L}*|organizz\p{L}*|ottimizz\p{L}*|per\s+zon[ae]|otimiz\p{L}*)(?![\p{L}])/iu;
+
+/** Does the message ask for the plan regrouped or put in a better order? */
+export function asksToRegroup(text: string): boolean {
+  return REGROUP.test(text);
+}
+
+// A day by its number: "day 6", "giorno 6", "día 6", "dia 6".
+const DAY_NUMBER = /(?<![\p{L}])(?:day|giorno|día|dia)\s+(\d{1,2})(?![\p{N}])/giu;
+
+/**
+ * Does the conversation ask for a longer trip? A day named by its number is
+ * one of the trip's, unless the trip doesn't have it yet: "add day 6" to a
+ * trip of `tripDays` 5.
+ */
+export function asksForMoreDays(text: string, tripDays?: number): boolean {
+  const asked = text.replace(DAY_TRIP, " ");
+  if (MORE_DAYS.test(asked)) return true;
+  return tripDays !== undefined && [...asked.matchAll(DAY_NUMBER)].some((m) => Number(m[1]) > tripDays);
+}
+
+// A shorter trip: "shorten it", "remove the last day", "one day less", "we leave a
+// day earlier", "end it on the 5th", "make it 8 days", "un día menos", "togli un
+// giorno", "tira um dia". A count they argue about ("count, it's 8") asks for nothing.
+const DAY_WORD = "(?:day|days|night|nights|día|días|noche|noches|giorno|giorni|notte|notti|dia|dias|noite|noites)";
+const FEWER_DAYS = new RegExp(
+  [
+    "trip_length",
+    `(?<![${L}])(?:shorten\\p{L}*|shorter|acort\\p{L}*|accorci\\p{L}*|encurt\\p{L}*|end|ends|ending|finish\\p{L}*|termin\\p{L}*|acab\\p{L}*|fini\\p{L}*)(?![${L}])`,
+    `(?<![${L}])(?:cut|cutting|remove|removing|drop|dropping|delete|lose|fewer|less|reduce\\p{L}*|skip|quit\\p{L}*|elimin\\p{L}*|borr\\p{L}*|menos|reduc\\p{L}*|togli\\p{L}*|rimuov\\p{L}*|cancell\\p{L}*|meno|riduc\\p{L}*|riduci|tir[ae]\\p{L}*|remov\\p{L}*|exclu\\p{L}*|reduz\\p{L}*)(?![${L}])[^.?!\\n]{0,24}?(?<![${L}])${DAY_WORD}(?![${L}])`,
+    `(?<![${L}])${DAY_WORD}\\s+(?:less|fewer|earlier|sooner|before|menos|antes|in\\s+meno|prima|a\\s+menos)(?![${L}])`,
+    `(?<![${L}\\p{N}])\\d{1,2}(?:\\s*|-)${DAY_WORD}(?![${L}])`,
+  ].join("|"),
+  "iu",
+);
+
+/** Does the message ask for a shorter trip? Saying how long it is doesn't. */
+export function asksForFewerDays(text: string): boolean {
+  return FEWER_DAYS.test(text.replace(DAY_TRIP, " "));
+}
+
+// How long the trip is, in question: "isn't it 8 days?", "count", "how many
+// nights", "cuántos días", "quanti giorni", "quantos dias".
+const COUNT_TALK = new RegExp(
+  [
+    `(?<![${L}])(?:count|counting|counted|cuenta|cuentas|contar|contando|conta|conti|contare|conte|contei)(?![${L}])`,
+    `(?<![${L}])(?:how\\s+many|cu[aá]nt[oa]s|quant[ie]|quant[oa]s)\\s+${DAY_WORD}(?![${L}])`,
+    `(?<![${L}\\p{N}])\\d{1,2}(?:\\s*|-)${DAY_WORD}(?![${L}])`,
+  ].join("|"),
+  "iu",
+);
+
+/** Does the message ask or argue how many days the trip has? */
+export function talksAboutDayCount(message: string): boolean {
+  return COUNT_TALK.test(message);
 }
 
 // A day with nothing planned: "leave day 2 free", "deixe o dia 2 livre".
 const FREE_DAY =
-  /(?<![\p{L}])(?:free|empty|clear|day\s+off|nothing\s+planned|libres?|vac[ií][oa]s?|liber[oiae]|vuot[oiae]|livres?|vazi[oa]s?|folga)(?![\p{L}])/iu;
+  /(?<![\p{L}])(?:free|empty|clear|blank|day\s+off|nothing\s+planned|libres?|vac[ií][oa]s?|en\s+blanco|liber[oiae]|vuot[oiae]|in\s+bianco|livres?|vazi[oa]s?|em\s+branco|folga)(?![\p{L}])/iu;
 
 /** Does the message ask for a day with nothing planned? */
 export function asksForFreeDay(message: string): boolean {
@@ -53,11 +116,58 @@ export function tellsWhereTheyStay(message: string): boolean {
 // A clock time: "23:00", "21h30", "3pm", "2 p.m.", "las 23 horas", "alle 14", "às 9h".
 export const TELLS_TIME = /(?<![\p{L}\p{N}])(?:\d{1,2}[:.h]\d{2}|\d{1,2}\s*[ap]\.?m\.?(?![\p{L}])|(?:las|alle|às|as)\s+\d{1,2}(?![\p{N}]))/iu;
 
-// Asking for something to be added: "add", "include", "agrega", "aggiungi"…
+// Asking for something to be added: "add", "include", "agrega", "aggiungi",
+// and the polite forms many travellers write: "adicione", "coloque", "añada".
 const ADD_ASK =
-  /(?<![\p{L}])(?:add|adding|include|put|insert|fit|squeeze|agrega|agregar|añade|añadir|incluye|incluir|pon|aggiungi|aggiungere|inserisci|includi|metti|adiciona|adicionar|acrescenta|inclui|incluir|coloca)(?![\p{L}])/iu;
+  /(?<![\p{L}])(?:add|adding|include|put|insert|fit|squeeze|agrega|agregar|agregue|añade|añadir|añada|incluye|incluir|incluya|pon|ponga|poner|inserte|aggiungi|aggiungere|aggiunga|inserisci|inserisca|includi|includa|metti|metta|mettere|adiciona|adicionar|adicione|acrescenta|acrescentar|acrescente|inclui|inclua|coloca|coloque|colocar|ponha|insira|encaixe)(?![\p{L}])/iu;
 
 /** Does the traveller's message ask for something to be added? */
 export function asksToAdd(message: string): boolean {
   return ADD_ASK.test(message);
+}
+
+// Everything already planned stays: "não remova nada", "somente adicione",
+// "don't remove anything", "just add", "sin quitar nada", "non togliere niente".
+const KEEP_ALL = new RegExp(
+  [
+    "(?:don['’]?t|do\\s+not|never|without)\\s+(?:remove|removing|take\\s+out|taking\\s+out|delete|deleting|drop|dropping|replace|replacing|change|changing|touch|touching)\\s+(?:anything|any\\s+of)",
+    "(?:only|just)\\s+add",
+    "keep\\s+(?:everything|all\\s+(?:of\\s+)?(?:the|what|my))",
+    "(?:não|nao|nunca|sem)\\s+(?:\\p{L}+\\s+){0,3}?(?:remova|remover|tire|tirar|retire|retirar|exclua|excluir|substitua|substituir|apague|apagar|mexa|mexer)\\s+(?:nada|em\\s+nada|nenhum)",
+    "(?:somente|apenas|só)\\s+(?:adicione|adicionar|acrescente|acrescentar|inclua|incluir|coloque|colocar)",
+    "(?:no|nunca|sin)\\s+(?:\\p{L}+\\s+){0,3}?(?:quites|quitar|elimines|eliminar|borres|borrar|sustituyas|sustituir|cambies|cambiar|toques|tocar)\\s+nada",
+    "solo\\s+(?:añade|añada|añadir|agrega|agregue|agregar|incluye|incluya|incluir)",
+    "(?:non|mai|senza)\\s+(?:\\p{L}+\\s+){0,3}?(?:togliere|togli|rimuovere|rimuovi|eliminare|elimina|cancellare|cancella|sostituire|sostituisci|cambiare|cambia|toccare|tocca)\\s+(?:niente|nulla)",
+    "solo\\s+(?:aggiungi|aggiunga|aggiungere|inserisci|inserisca|inserire)",
+  ]
+    .map((p) => `(?<![\\p{L}])${p}(?![\\p{L}])`)
+    .join("|"),
+  "iu",
+);
+
+/** Do they want every activity already planned kept, whatever is added? */
+export function keepsEverything(text: string): boolean {
+  return KEEP_ALL.test(text);
+}
+
+// A list of places: "izakaya tanuki, o senhor restaurante, …, bar do alemao e
+// lett's road". Three or more short items between commas, the last two joined
+// by "and" in the traveller's language; a leading article is dropped.
+const LIST_ITEM = /^[\p{L}\p{N}'’&.\- ]{2,60}$/u;
+const LIST_AND = /\s+(?:e|and|y|ed|&)\s+/iu;
+const LIST_ARTICLE = /^(?:o|a|os|as|the|el|la|los|las|il|lo|gli|le)\s+/iu;
+// "Add these: …" or "Add Bar Basso, …": the ask before the first place.
+const LIST_LEAD = new RegExp(`^${ADD_ASK.source}(?:\\s+(?:these|estes|estas|estos|questi|queste|also|too|também|también|anche))?\\s+`, "iu");
+
+/** The places a message lists, or [] when it lists none. */
+export function listedPlaces(text: string): string[] {
+  for (const sentence of text.split(/[.!?;:\n]+/)) {
+    const parts = sentence.split(",").map((p) => p.trim()).filter(Boolean);
+    if (parts.length < 2) continue;
+    const last = parts.pop() as string;
+    parts[0] = parts[0].replace(LIST_LEAD, "");
+    const items = [...parts, ...last.split(LIST_AND)].map((p) => p.trim().replace(LIST_ARTICLE, "")).filter(Boolean);
+    if (items.length >= 3 && items.every((p) => LIST_ITEM.test(p) && p.split(/\s+/).length <= 6)) return items;
+  }
+  return [];
 }

@@ -120,24 +120,16 @@ test.describe("Today mode", () => {
       await firstItem.click();
       await expect(page.getByTestId("today-packing-progress")).toContainText(/1\s*\/\s*3/);
 
-      // Phase 3.4 expenses: add one via the day-level "Who paid?"; the summary
-      // then shows the amount split across the cohort (here: owner + this payer).
-      const panel = page.getByTestId("today-expenses");
-      await panel.waitFor({ state: "visible", timeout: 10_000 });
-      await panel.getByTestId("expense-add-open").click();
-      await page.getByTestId("expense-amount").fill("30");
-      await page.getByTestId("expense-save").click();
-      await expect(page.getByTestId("expense-summary")).toBeVisible({ timeout: 15_000 });
-      await expect(page.getByTestId("expense-list")).toContainText(/30/);
+      // Expenses are switched off, as in production: no "Who paid?" on the day.
+      await expect(page.getByTestId("today-expenses")).toHaveCount(0);
+      await expect(page.getByTestId("expense-add-open")).toHaveCount(0);
 
       // Phase 3.5: the merged activity feed reflects the shared actions. It reads
-      // the same rows the chips and expenses wrote (server-merged, newest-first)
-      // and refetches when they change, so the €30 expense row surfaces here too.
+      // the rows the chips wrote (server-merged, newest-first), so the skip shows here.
       const feed = page.getByTestId("today-feed");
       await feed.waitFor({ state: "visible", timeout: 15_000 });
-      await expect(page.getByTestId("today-feed-list")).toContainText(/30/, { timeout: 15_000 });
+      await expect(page.getByTestId("today-feed-list")).toContainText(/skipped/, { timeout: 15_000 });
     } finally {
-      await admin.from("trip_expenses").delete().eq("trip_id", TRIP_ID!);
       await admin.from("trip_today_actions").delete().eq("trip_id", TRIP_ID!);
       await admin
         .from("trips")

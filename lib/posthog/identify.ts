@@ -2,6 +2,7 @@
 
 import type { User } from "@supabase/supabase-js";
 import { hasAnalyticsConsent } from "@/lib/consent/storage";
+import { onPostHogReady } from "./client";
 
 /**
  * User properties for PostHog identification
@@ -33,6 +34,17 @@ export interface PostHogUserProperties {
  * the same module instance.
  */
 const getPosthog = () => import("posthog-js").then((m) => m.default);
+
+/**
+ * A browser with no session that PostHog still knows as a signed-in person
+ * was signed out, by whichever route: its later events start a new visitor
+ * instead of joining that person, and a new sign-up there isn't merged into them.
+ */
+export function forgetSignedOutPerson(): void {
+  onPostHogReady((posthog) => {
+    if (posthog.get_property("$user_state") === "identified") posthog.reset();
+  });
+}
 
 /**
  * Identify a user in PostHog

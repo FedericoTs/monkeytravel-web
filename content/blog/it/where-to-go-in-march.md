@@ -60,7 +60,7 @@ L'[Holi cade il 22 marzo 2027](https://www.drikpanchang.com/hindu-festivals/holi
 
 ## 3. Andalusia — Semana Santa
 
-La Settimana Santa va dal 21 al 27 marzo nel 2027, e quella di Siviglia è uno dei grandi spettacoli d'Europa: processioni notturne, confraternite che portano i *pasos* per strade gremite, la città sveglia fino all'alba. Málaga, Cordova e Granada hanno ciascuna la propria versione.
+La Settimana Santa va dal 21 al 27 marzo nel 2027, e quella di Siviglia è uno dei grandi spettacoli d'Europa: processioni notturne, confraternite che portano i *pasos* per strade gremite, la città sveglia fino all'alba. Málaga, Cordova e Granada hanno ciascuna la propria versione. La nostra [guida a Pasqua 2027](/blog/where-to-go-at-easter) mette a confronto Siviglia, Malaga e Granada, con i ponti di ogni Paese.
 
 **Costi reali:** $75–120 al giorno nelle settimane normali di marzo; la Settimana Santa va molto oltre, con minimi di soggiorno a Siviglia.
 **Il compromesso:** o è il motivo per cui sei venuto o è un problema da evitare — non c'è via di mezzo. Durante la Settimana Santa il centro di Siviglia è impraticabile negli orari di processione e le camere si prenotano con molti mesi di anticipo. Le prime tre settimane di marzo danno la stessa città, mite e davvero tranquilla.

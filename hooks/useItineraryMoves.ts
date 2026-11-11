@@ -7,7 +7,7 @@ import { useToast } from "@/components/ui/Toast";
 import { captureActivityModified } from "@/lib/posthog/events";
 import { hapticSelection } from "@/lib/native/haptics";
 import { applyMove, describeMove, isSameDayTarget, locateActivity } from "@/lib/trip/itinerary-dnd";
-import { findActivityById, moveActivityToDay, recalculateActivityTimes } from "@/lib/utils/activity-id";
+import { findActivityById, fitMovedStop, moveActivityToDay } from "@/lib/utils/activity-id";
 import type { ItineraryDay } from "@/types";
 
 interface ItineraryMovesOptions {
@@ -70,8 +70,9 @@ export function useItineraryMoves({ tripId, itinerary, setItinerary, pushUndo, u
       const targetDayNumber = next[targetDayIndex]?.day_number ?? targetDayIndex + 1;
       const sourceDayNumber = next[sourceDayIndex]?.day_number ?? sourceDayIndex + 1;
       pushUndo(`Move activity to day ${targetDayNumber}`);
-      const withSourceTimes = recalculateActivityTimes(next, sourceDayIndex);
-      setItinerary(recalculateActivityTimes(withSourceTimes, targetDayIndex));
+      // The stop keeps its time from the sheet (it landed in its time order)
+      // or takes the slot it was dropped in; the day it left keeps its times.
+      setItinerary(fitMovedStop(next, targetDayIndex, activityId, method === "menu" ? "keep" : "slot"));
       hapticSelection();
       focusDay(targetDayNumber);
       addToast(t("editActivity.movedToDay", { day: targetDayNumber }), "success", 6000, {
@@ -93,16 +94,23 @@ export function useItineraryMoves({ tripId, itinerary, setItinerary, pushUndo, u
   );
 
   // The sheet path: land in the chronological slot of the chosen day, so a
-  // morning activity stays a morning activity.
+  // morning activity stays a morning activity. It starts from the plan as it
+  // is now: a card that hasn't re-rendered calls the moveToDay it was given at
+  // an earlier render.
+  const latest = useRef(itinerary);
+  useEffect(() => {
+    latest.current = itinerary;
+  }, [itinerary]);
   const moveToDay = useCallback(
     (activityId: string, targetDayIndex: number) => {
-      const location = findActivityById(itinerary, activityId);
+      const current = latest.current;
+      const location = findActivityById(current, activityId);
       if (!location || location.dayIndex === targetDayIndex) return;
-      const moved = moveActivityToDay(itinerary, activityId, targetDayIndex, "auto");
-      if (moved === itinerary) return;
+      const moved = moveActivityToDay(current, activityId, targetDayIndex, "auto");
+      if (moved === current) return;
       commitMove(moved, activityId, location.dayIndex, targetDayIndex, "menu");
     },
-    [itinerary, commitMove],
+    [commitMove],
   );
 
   const onDragStart = useCallback(
@@ -163,7 +171,7 @@ export function useItineraryMoves({ tripId, itinerary, setItinerary, pushUndo, u
       if (from.index === to.index) return; // dropped where it started
 
       pushUndo("Reorder activities");
-      setItinerary(recalculateActivityTimes(settled, move.targetDayIndex));
+      setItinerary(fitMovedStop(settled, move.targetDayIndex, activeId, "slot"));
       hapticSelection();
     },
     [dragPreview, commitMove, pushUndo, setItinerary],

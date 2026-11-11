@@ -22,6 +22,19 @@ function change(result: { current: ReturnType<typeof useHarness> }, ...next: str
 }
 
 describe("useItineraryHistory", () => {
+  // A card that didn't re-render calls the push it was given earlier: the
+  // snapshot must still be the plan as it is, or undo loses what came since.
+  it("records the plan as it is now, from a push kept since an earlier render", () => {
+    const { result } = render();
+    const pushFromEarlier = result.current.history.push;
+    act(() => result.current.setItinerary(plan("a", "b")));
+
+    act(() => pushFromEarlier("move b"));
+    act(() => result.current.setItinerary(plan("b")));
+    act(() => result.current.history.undo());
+    expect(names(result.current.itinerary)).toEqual(["a", "b"]);
+  });
+
   it("undoes a change, and redoes it", () => {
     const { result } = render();
     expect(result.current.history).toMatchObject({ canUndo: false, canRedo: false });

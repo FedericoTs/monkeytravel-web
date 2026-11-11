@@ -66,7 +66,7 @@ Twenty-four teams play 52 matches in Adelaide, Brisbane, Melbourne, Newcastle, P
 
 ### ICC Men's Cricket World Cup, 2 October to 21 November, southern Africa
 
-Fourteen teams play 57 matches at 12 venues in South Africa, Zimbabwe (including Victoria Falls) and Namibia (Windhoek). The tournament opens on 2 October with a three-team Super Series in Namibia; the group stage starts in Cape Town on 7 October with Australia against India, and the final is in Johannesburg on 21 November. The ICC's ticket ballot is open until 23:59 South African time on 21 November 2026, with prices quoted at roughly US$9.50–30 (€8.50–27).
+Fourteen teams play 57 matches at 12 venues in South Africa, Zimbabwe (including Victoria Falls) and Namibia (Windhoek). The tournament opens on 2 October with a three-team Super Series in Namibia; the group stage starts in Cape Town on 7 October with Australia against India, and the final is in Johannesburg on 21 November. The ICC's ticket ballot is open until 23:59 South African time on 21 November 2026, with prices quoted at roughly US$9.50–30 (€8.50–27). Our [Cricket World Cup 2027 guide](/blog/cricket-world-cup-2027) has India's fixtures, visas, flights and two sample trips.
 
 ### European Capitals of Culture: Liepāja and Évora
 
@@ -142,7 +142,7 @@ Lunar New Year (Saturday 6 February) and Carnival Tuesday (the 9th) share one we
 
 ## March 2027 — Blossom, Holi and an early Easter
 
-Easter Sunday is 28 March, so Holy Week and Holi share the last week, and the first three weeks are quiet shoulder season.
+Easter Sunday is 28 March, so Holy Week and Holi share the last week, and the first three weeks are quiet shoulder season. Our [Easter 2027 guide](/blog/where-to-go-at-easter) picks 16 places for Holy Week and the spring escapes around it.
 
 **Japan.** On the Japan Meteorological Agency's 1991–2020 normals, Tokyo's cherry blossom is in full bloom on 31 March and Kyoto's on 4 April, and Yokohama's GREEN×EXPO opens on 19 March with around 600 cherry trees.
 **The trade-off:** bloom week is among Japan's priciest, and a warm February can pull the dates a week earlier.
@@ -441,7 +441,7 @@ Spain's official 2027 list was published in the BOE on 13 October 2026. Eight na
 
 Six regions move the Sunday 15 August holiday to Monday 16 August, Extremadura uses it for Monday 11 October instead, and Catalonia and Valencia keep Easter Monday rather than Maundy Thursday. Every region also adds days of its own, such as 23 April in Aragon and in Castile and León, or 11 September in Catalonia.
 
-**Best bridges:** December is the year's best. One day of leave (Tuesday 7) gives five days off, 4–8 December, and three (7, 9 and 10 December) give nine, 4–12 December. Easter runs five days, 25–29 March, in the Balearics, Navarre, the Basque Country and La Rioja, which keep both Maundy Thursday and Easter Monday. Friday 19 March and Monday 16 August make three-day weekends where they are holidays. Monday 11 October makes a four-day weekend (Extremadura already has it off), and All Saints a three-day one.
+**Best bridges:** December is the best nationwide. One day of leave (Tuesday 7) gives five days off, 4–8 December, and three (7, 9 and 10 December) give nine, 4–12 December. In Galicia, Madrid, Murcia and Navarre, three days of leave (22–24 March) join San José (Friday 19 March) to Easter for ten days off, 19–28 March, or eleven in Navarre, to the 29th; Valencia needs four (22–25 March) for the same eleven. Easter runs five days, 25–29 March, in the Balearics, Navarre, the Basque Country and La Rioja, which keep both Maundy Thursday and Easter Monday. Friday 19 March and Monday 16 August make three-day weekends where they are holidays. Monday 11 October makes a four-day weekend (Extremadura already has it off), and All Saints a three-day one.
 
 ### Italy
 
@@ -504,7 +504,7 @@ The total solar eclipse on 2 August; Santiago de Compostela's Holy Year, peaking
 
 ### When is Easter 2027?
 
-Western Easter Sunday is 28 March, so Holy Week runs 21–27 March and Good Friday, 26 March, is a holiday in the UK, Spain and Brazil. Orthodox Easter is 2 May, which puts Greek Holy Week on 26 April–1 May.
+Western Easter Sunday is 28 March, so Holy Week runs 21–27 March and Good Friday, 26 March, is a holiday in the UK, Spain and Portugal, and on Brazil's 2026 federal list (2027's isn't out yet). Orthodox Easter is 2 May, which puts Greek Holy Week on 26 April–1 May.
 
 ### Where can I see the total solar eclipse on 2 August 2027?
 
@@ -512,7 +512,7 @@ In Spain, from Ceuta, Melilla, almost all of Cádiz province and parts of Málag
 
 ### What are the best long weekends in 2027?
 
-Spain's 4–12 December (nine days off for three days of leave), the UK's 25 December–3 January (ten days for three) and Easter in England, Wales and Northern Ireland (ten days for four). Italy's San Francesco holiday falls on Monday 4 October, Brazil has three Tuesday holidays that invite Monday bridges, and in the US Veterans Day and Thanksgiving both fall on Thursdays.
+Spain's 4–12 December (nine days off for three days of leave), 19–28 March in Galicia, Madrid, Murcia and Navarre (ten days for three), the UK's 25 December–3 January (ten days for three) and Easter in England, Wales and Northern Ireland (ten days for four). Italy's San Francesco holiday falls on Monday 4 October, Brazil has three Tuesday holidays that invite Monday bridges, and in the US Veterans Day and Thanksgiving both fall on Thursdays.
 
 ### When is the Santiago de Compostela Holy Year?
 

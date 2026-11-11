@@ -64,6 +64,7 @@ describe("the models in use", () => {
     "assistant-edits",
     "assistant-chat",
     "anchor-import",
+    "request-reading",
   ];
   // Both have no shutdown date. 3.1 Flash-Lite has one, and 2.5 Flash redirects
   // to 3.5 Flash-Lite with thinking settings it refuses.

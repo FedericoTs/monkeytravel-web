@@ -66,7 +66,7 @@ Veinticuatro selecciones juegan 52 partidos en Adelaida, Brisbane, Melbourne, Ne
 
 ### Copa del Mundo masculina de críquet de la ICC, del 2 de octubre al 21 de noviembre, sur de África
 
-Catorce selecciones juegan 57 partidos en 12 sedes de Sudáfrica, Zimbabue (incluida Victoria Falls) y Namibia (Windhoek). El torneo se inaugura el 2 de octubre con una Super Series a tres bandas en Namibia; la fase de grupos empieza en Ciudad del Cabo el 7 de octubre con Australia contra India, y la final es en Johannesburgo el 21 de noviembre. El sorteo de entradas de la ICC está abierto hasta las 23:59, hora de Sudáfrica, del 21 de noviembre de 2026, con precios de aproximadamente 9,50–30 US$ (8,50–27 €).
+Catorce selecciones juegan 57 partidos en 12 sedes de Sudáfrica, Zimbabue (incluida Victoria Falls) y Namibia (Windhoek). El torneo se inaugura el 2 de octubre con una Super Series a tres bandas en Namibia; la fase de grupos empieza en Ciudad del Cabo el 7 de octubre con Australia contra India, y la final es en Johannesburgo el 21 de noviembre. El sorteo de entradas de la ICC está abierto hasta las 23:59, hora de Sudáfrica, del 21 de noviembre de 2026, con precios de aproximadamente 9,50–30 US$ (8,50–27 €). Nuestra [guía del Mundial de críquet 2027](/blog/cricket-world-cup-2027) trae los partidos de India, los visados, los vuelos y dos viajes de ejemplo.
 
 ### Capitales Europeas de la Cultura: Liepāja y Évora
 
@@ -142,7 +142,7 @@ El Año Nuevo Lunar (sábado 6 de febrero) y el martes de Carnaval (el 9) caen e
 
 ## Marzo de 2027 — Cerezos en flor, Holi y una Semana Santa temprana
 
-El Domingo de Pascua cae el 28 de marzo, así que la Semana Santa y el Holi coinciden en la última semana, y las tres primeras son temporada media tranquila.
+El Domingo de Pascua cae el 28 de marzo, así que la Semana Santa y el Holi coinciden en la última semana, y las tres primeras son temporada media tranquila. Nuestra [guía de Semana Santa 2027](/blog/where-to-go-at-easter) propone 16 destinos, para vivir las procesiones o para escapar de ellas.
 
 **Japón.** Según las normales 1991–2020 de la Agencia Meteorológica de Japón, los cerezos de Tokio alcanzan la plena floración el 31 de marzo y los de Kioto el 4 de abril, y la GREEN×EXPO de Yokohama abre el 19 de marzo con unos 600 cerezos.
 **La contrapartida:** la semana de la floración es de las más caras de Japón, y un febrero templado puede adelantar las fechas una semana.
@@ -441,7 +441,7 @@ El BOE publicó la lista oficial de 2027 el 13 de octubre de 2026. Ocho festivos
 
 Seis comunidades trasladan la Asunción del domingo 15 al lunes 16 de agosto, Extremadura la sustituye por el lunes 11 de octubre, y Cataluña y la Comunitat Valenciana celebran el Lunes de Pascua en lugar del Jueves Santo. Cada comunidad añade además sus propios festivos, como el 23 de abril en Aragón y en Castilla y León o el 11 de septiembre en Cataluña.
 
-**Mejores puentes:** diciembre es el mejor del año. Un día de vacaciones (el martes 7) da cinco días libres, del 4 al 8 de diciembre, y tres (7, 9 y 10 de diciembre) dan nueve, del 4 al 12 de diciembre. La Semana Santa deja cinco días, del 25 al 29 de marzo, en Baleares, Navarra, el País Vasco y La Rioja, que mantienen el Jueves Santo y el Lunes de Pascua. El viernes 19 de marzo y el lunes 16 de agosto dejan fines de semana de tres días donde son festivos. Pidiendo el lunes 11 de octubre se hace un puente de cuatro días (en Extremadura ya es festivo), y Todos los Santos deja uno de tres.
+**Mejores puentes:** diciembre es el mejor en todo el país. Un día de vacaciones (el martes 7) da cinco días libres, del 4 al 8 de diciembre, y tres (7, 9 y 10 de diciembre) dan nueve, del 4 al 12 de diciembre. En Galicia, Madrid, Murcia y Navarra, tres días de vacaciones (del 22 al 24 de marzo) unen San José (viernes 19 de marzo) con la Semana Santa y dan diez días libres, del 19 al 28 de marzo, u once en Navarra, hasta el 29; la Comunitat Valenciana necesita cuatro (del 22 al 25 de marzo) para los mismos once. La Semana Santa deja cinco días, del 25 al 29 de marzo, en Baleares, Navarra, el País Vasco y La Rioja, que mantienen el Jueves Santo y el Lunes de Pascua. El viernes 19 de marzo y el lunes 16 de agosto dejan fines de semana de tres días donde son festivos. Pidiendo el lunes 11 de octubre se hace un puente de cuatro días (en Extremadura ya es festivo), y Todos los Santos deja uno de tres.
 
 ### Italia
 
@@ -504,7 +504,7 @@ El eclipse total de sol del 2 de agosto; el Año Santo Compostelano, con su punt
 
 ### ¿Cuándo es la Semana Santa de 2027?
 
-El Domingo de Pascua occidental es el 28 de marzo, así que la Semana Santa va del 21 al 27 de marzo y el Viernes Santo, 26 de marzo, es festivo en Reino Unido, España y Brasil. La Pascua ortodoxa es el 2 de mayo, lo que sitúa la Semana Santa griega del 26 de abril al 1 de mayo.
+El Domingo de Pascua occidental es el 28 de marzo, así que la Semana Santa va del 21 al 27 de marzo y el Viernes Santo, 26 de marzo, es festivo en Reino Unido, España y Portugal, y figura en la lista federal de Brasil de 2026 (la de 2027 aún no se ha publicado). La Pascua ortodoxa es el 2 de mayo, lo que sitúa la Semana Santa griega del 26 de abril al 1 de mayo.
 
 ### ¿Dónde se puede ver el eclipse total de sol del 2 de agosto de 2027?
 
@@ -512,7 +512,7 @@ En España, desde Ceuta, Melilla, casi toda la provincia de Cádiz y partes de M
 
 ### ¿Cuáles son los mejores puentes de 2027?
 
-El del 4 al 12 de diciembre en España (nueve días libres con tres de vacaciones), el del 25 de diciembre al 3 de enero en Reino Unido (diez días con tres) y la Semana Santa en Inglaterra, Gales e Irlanda del Norte (diez días con cuatro). El festivo de San Francisco en Italia cae el lunes 4 de octubre, Brasil tiene tres festivos en martes que invitan a hacer puente el lunes, y en EE. UU. el Día de los Veteranos y Acción de Gracias caen en jueves.
+El del 4 al 12 de diciembre en España (nueve días libres con tres de vacaciones), el del 19 al 28 de marzo en Galicia, Madrid, Murcia y Navarra (diez días con tres), el del 25 de diciembre al 3 de enero en Reino Unido (diez días con tres) y la Semana Santa en Inglaterra, Gales e Irlanda del Norte (diez días con cuatro). El festivo de San Francisco en Italia cae el lunes 4 de octubre, Brasil tiene tres festivos en martes que invitan a hacer puente el lunes, y en EE. UU. el Día de los Veteranos y Acción de Gracias caen en jueves.
 
 ### ¿Cuándo es el Año Santo Compostelano?
 

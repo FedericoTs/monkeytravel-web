@@ -8,7 +8,7 @@
  * - Request deduplication
  */
 
-import { getApiCost } from "./config";
+import { DEFAULT_TIMEOUT, getApiCost } from "./config";
 import { batchLogger, createLoggingInterceptor, logCacheHit } from "./interceptors/logging";
 import { fetchWithRetry } from "./interceptors/retry";
 import {
@@ -106,6 +106,7 @@ class ApiGateway {
       const response = await withCircuitBreaker(config.apiName, () =>
         fetchWithRetry(url, options, {
           maxRetries: config.maxRetries,
+          timeoutMs: config.timeout ?? DEFAULT_TIMEOUT,
         })
       );
 

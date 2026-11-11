@@ -1,14 +1,13 @@
 import type * as SentrySdk from "@sentry/nextjs";
 
 type Sdk = typeof SentrySdk;
-type Setup = (sentry: Sdk) => Promise<void> | void;
+type Setup = (sentry: Sdk) => void;
 type Breadcrumb = Parameters<Sdk["addBreadcrumb"]>[0];
 type User = Parameters<Sdk["setUser"]>[0];
 type CaptureContext = Parameters<Sdk["captureException"]>[1];
 
 let setup: Setup | null = null;
 let sdk: Promise<Sdk> | null = null;
-let ready: Promise<Sdk> | null = null;
 let loaded: Sdk | null = null;
 const pending: { breadcrumbs: Breadcrumb[]; user?: User } = { breadcrumbs: [] };
 
@@ -29,13 +28,13 @@ export function configureSentry(init: Setup): void {
 
 /**
  * The initialised SDK, fetched on first use (about 150 KB, so only error
- * paths and consented session recording ask for it). Rejects where nothing
- * configured it: the server, development, tests.
+ * paths ask for it). Rejects where nothing configured it: the server,
+ * development, tests.
  */
 export function sentry(): Promise<Sdk> {
   if (!setup) return Promise.reject(new Error("Sentry not configured"));
   sdk ??= import("@sentry/nextjs").then((Sentry) => {
-    ready = Promise.resolve(setup!(Sentry)).then(() => Sentry);
+    setup!(Sentry);
     loaded = Sentry;
     if (pending.user) Sentry.setUser(pending.user);
     for (const breadcrumb of pending.breadcrumbs) Sentry.addBreadcrumb(breadcrumb);
@@ -72,9 +71,4 @@ export function sentryBreadcrumb(breadcrumb: Breadcrumb): void {
 export function sentryUser(user: User): void {
   if (loaded) loaded.setUser(user);
   else pending.user = user;
-}
-
-/** The SDK once `init` has finished everything asynchronous, such as adding the replay recorder. */
-export function sentryReady(): Promise<Sdk> {
-  return sentry().then(() => ready!);
 }

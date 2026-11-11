@@ -281,6 +281,17 @@ function applyDraft(days: ItineraryDay[], revisedDays: ItineraryDay[], trip: Tri
   return { newEndDate, dayNumber: firstChanged, dayCount: updated };
 }
 
+/** The same fixed plan, as stored: still fixed, under its name, at its time. */
+function sameFixedPlan(stored: Activity, revised: Activity | null | undefined): boolean {
+  return (
+    isLockedActivity(revised) &&
+    (!stored.id || revised!.id === stored.id) &&
+    revised!.name === stored.name &&
+    revised!.start_time === stored.start_time &&
+    revised!.duration_minutes === stored.duration_minutes
+  );
+}
+
 /**
  * A refusal when the change would touch a fixed plan. This is what persists, and
  * it can be called directly, so it enforces the rule itself rather than trusting
@@ -308,13 +319,16 @@ function fixedPlanRefusal(change: ApplyChangeRequest, days: ItineraryDay[]): Nex
     return null;
   }
   if (changeType === "apply_draft") {
-    // Only the days being replaced: the assistant's multi-day edits leave a day
-    // with a fixed plan alone, and so may this write.
-    const replacing = new Set((change.days ?? []).map((d) => d?.day_number));
-    const locked = days.filter((d) => replacing.has(d.day_number)).flatMap((d) => lockedActivityNames(d));
+    // A day being replaced keeps each of its fixed plans as stored: the
+    // assistant edits around them (validateEdits), and so may this write.
+    const locked = (change.days ?? []).flatMap((revised) =>
+      (days.find((d) => d.day_number === revised?.day_number)?.activities ?? [])
+        .filter((f) => isLockedActivity(f) && !(revised?.activities ?? []).some((a) => sameFixedPlan(f, a)))
+        .map((f) => f.name?.trim() || "Fixed plan"),
+    );
     if (locked.length > 0) {
       return errors.badRequest(
-        `Days built around fixed plans (${locked.slice(0, 3).join(", ")}) can't be rewritten.`,
+        `Fixed plans (${locked.slice(0, 3).join(", ")}) must stay as they are.`,
         { code: CODES.locked, names: locked }
       );
     }

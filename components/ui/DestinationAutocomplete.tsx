@@ -27,6 +27,7 @@ import { useState, useEffect, useRef, useCallback, useId, KeyboardEvent } from "
 import { useTranslations, useLocale } from "next-intl";
 import { sentryException } from "@/lib/observability/sentry";
 import { useDebounce } from "@/hooks/useDebounce";
+import { DESTINATION_MAX_LENGTH } from "@/lib/trips/request-limits";
 import type { PlacePrediction } from "@/types";
 
 // Create a manual prediction for destinations not in our database
@@ -54,6 +55,11 @@ const FALLBACK_POPULAR: PlacePrediction[] = [
 // Module-level cache for popular destinations from API
 let popularDestinationsCache: PlacePrediction[] | null = null;
 let popularFetchPromise: Promise<PlacePrediction[]> | null = null;
+
+/** A place name for matching typed text: lower case, without accents. */
+function foldPlaceText(text: string): string {
+  return text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+}
 
 /**
  * The list opens itself only while the field has focus, and not after Escape
@@ -253,7 +259,8 @@ export default function DestinationAutocomplete({
   // cleanup aborts the in-flight fetch and flips a cancelled flag that
   // covers the gap between response arrival and abort being observable.
   useEffect(() => {
-    if (debouncedValue.length < 3) return;
+    // Text too long to be a place (a request) isn't searched.
+    if (debouncedValue.length < 3 || debouncedValue.length > DESTINATION_MAX_LENGTH) return;
     const controller = new AbortController();
     let cancelled = false;
 
@@ -370,8 +377,19 @@ export default function DestinationAutocomplete({
     [onChange, onSelect]
   );
 
+  // A request typed here is too long to be a place: the list stays closed,
+  // leaving the room under the field to what can be done with it.
+  const open = isOpen && value.length <= DESTINATION_MAX_LENGTH;
+  // The rows on screen. The popular list answers an empty field; while a typed
+  // place is still being searched it shows only the popular places that match
+  // the text, so a quick tap can't pick a place nobody typed.
+  const typed = foldPlaceText(value.trim());
+  const rows =
+    searchSource === "popular" && typed.length >= 3
+      ? predictions.filter((p) => foldPlaceText(p.fullText).includes(typed))
+      : predictions;
   // The listbox is on screen (the no-results panel is not a listbox).
-  const listShown = isOpen && predictions.length > 0;
+  const listShown = open && rows.length > 0;
   // The results answer what is typed right now: no pending debounce, no
   // search in flight. Only then may Enter pick a row nobody highlighted, or
   // an old "Lis" row could land for "Lisbon".
@@ -380,13 +398,13 @@ export default function DestinationAutocomplete({
   // Keyboard navigation
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (!listShown) {
-      if (e.key === "ArrowDown" && predictions.length > 0) {
+      if (e.key === "ArrowDown" && rows.length > 0) {
         // Down opens a closed list (WAI-ARIA combobox).
         e.preventDefault();
         dismissedRef.current = false;
         setIsOpen(true);
         setHighlightedIndex(0);
-      } else if (e.key === "Enter" && isOpen && resultsAreCurrent && predictions.length === 0) {
+      } else if (e.key === "Enter" && open && resultsAreCurrent && predictions.length === 0) {
         // No match in our list: Enter does what the panel's button does.
         e.preventDefault();
         handleSelect(createManualPrediction(value));
@@ -404,19 +422,19 @@ export default function DestinationAutocomplete({
       case "ArrowDown":
         e.preventDefault();
         setHighlightedIndex((prev) =>
-          prev < predictions.length - 1 ? prev + 1 : 0
+          prev < rows.length - 1 ? prev + 1 : 0
         );
         break;
       case "ArrowUp":
         e.preventDefault();
         setHighlightedIndex((prev) =>
-          prev > 0 ? prev - 1 : predictions.length - 1
+          prev > 0 ? prev - 1 : rows.length - 1
         );
         break;
       case "Enter":
         e.preventDefault();
-        if (highlightedIndex >= 0 && predictions[highlightedIndex]) {
-          handleSelect(predictions[highlightedIndex]);
+        if (highlightedIndex >= 0 && rows[highlightedIndex]) {
+          handleSelect(rows[highlightedIndex]);
         } else if (searchSource === "local" && resultsAreCurrent) {
           // Nothing highlighted: take the top search result, which is what
           // someone who typed "Lisbon" and pressed Enter means. Never the
@@ -572,7 +590,7 @@ export default function DestinationAutocomplete({
       </div>
 
       {/* Dropdown */}
-      {isOpen && predictions.length > 0 && (
+      {listShown && (
         <div
           ref={dropdownRef}
           className="absolute z-50 w-full mt-2 bg-white rounded-xl border border-slate-200
@@ -585,7 +603,7 @@ export default function DestinationAutocomplete({
             aria-label={t("suggestionsLabel")}
             className="max-h-[320px] overflow-y-auto overscroll-contain"
           >
-            {predictions.map((prediction, index) => (
+            {rows.map((prediction, index) => (
               <button
                 key={prediction.placeId}
                 ref={(el) => {
@@ -662,7 +680,7 @@ export default function DestinationAutocomplete({
       )}
 
       {/* No Results State — encouraging CTA to continue with typed destination */}
-      {isOpen && !isLoading && predictions.length === 0 && debouncedValue.length >= 3 && (
+      {open && !isLoading && predictions.length === 0 && debouncedValue.length >= 3 && (
         <div
           ref={dropdownRef}
           className="absolute z-50 w-full mt-2 bg-white rounded-xl border border-slate-200

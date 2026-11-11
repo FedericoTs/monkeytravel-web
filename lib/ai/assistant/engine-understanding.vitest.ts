@@ -5,10 +5,10 @@ import { buildPrompt } from "./edit-prompt";
 import { composeReply } from "./edit-reply";
 import type { DayEdit } from "./edit-validation";
 import { correctionFor } from "./engine";
-import { asksForMoreDays } from "./message-asks";
+import { asksForFewerDays, asksForMoreDays, asksToAdd, keepsEverything, listedPlaces, talksAboutDayCount } from "./message-asks";
 import { keepSavedActivities, takenOut } from "./saved-activities";
 import { outsideTravelTimes, readTravelTimes } from "./travel-times";
-import { asksToRemove, replyLanguage } from "./honesty";
+import { asksToRemove, asksToTakeOut, replyLanguage, statedDayCounts } from "./honesty";
 
 /**
  * The trip assistant should understand what a traveller means and do what
@@ -132,6 +132,98 @@ describe("takenOut", () => {
   });
 });
 
+describe("what must stay", () => {
+  it("is not a request to remove it", () => {
+    // From a real conversation: the drafts kept swapping out this dinner.
+    expect(asksToRemove("coloque em outro dia, não substitua o jantar na Choperia Brahma")).toBe(false);
+    expect(asksToRemove("não remova nada que já esteja planejado, somente adicione")).toBe(false);
+    expect(asksToRemove("Não quero que você remova nada do que já está")).toBe(false);
+    expect(asksToRemove("add a jazz bar but don't replace the dinner")).toBe(false);
+    expect(asksToRemove("añade una cena sin quitar nada")).toBe(false);
+    expect(asksToRemove("aggiungi una cena senza togliere niente")).toBe(false);
+    // A removal asked for is still one, next to something kept.
+    expect(asksToRemove("don't change day 2, but replace the museum with a park")).toBe(true);
+    expect(asksToRemove("a day without museums")).toBe(true);
+    expect(asksToRemove("não quero mais o museu, substitua por um parque")).toBe(true);
+    expect(asksToRemove("No, cambia el museo por un parque")).toBe(true);
+  });
+
+  // From a real conversation: a regroup asked "instead of jumping around".
+  it("nor is how to plan it", () => {
+    expect(asksToRemove("cluster the itinerary by areas to explore instead of jumping around different areas")).toBe(false);
+    expect(asksToRemove("group the days by area instead of going back and forth")).toBe(false);
+    expect(asksToRemove("agrupa los días por zonas en vez de ir de un lado a otro")).toBe(false);
+    expect(asksToRemove("raggruppa per zone invece di andare avanti e indietro")).toBe(false);
+    expect(asksToRemove("agrupe por bairros em vez de ficar indo e voltando")).toBe(false);
+    // A place instead of another is still a swap.
+    expect(asksToRemove("the Orsay instead of the Louvre")).toBe(true);
+    expect(asksToRemove("go to the Orsay instead of going to the Louvre")).toBe(true);
+    expect(asksToRemove("cluster by areas and drop the museums instead of jumping around")).toBe(true);
+  });
+
+  // "Would you like me to replace them with Seoul attractions?" "Yes, replace them."
+  it("goes for good only when they say so, not on a swap", () => {
+    expect(asksToTakeOut("remove the busan sights from the seoul days")).toBe(true);
+    expect(asksToTakeOut("take out all restaurants")).toBe(true);
+    expect(asksToTakeOut("quita los museos")).toBe(true);
+    expect(asksToTakeOut("togli il museo")).toBe(true);
+    expect(asksToTakeOut("yes, replace them with seoul sights")).toBe(false);
+    expect(asksToTakeOut("swap the museum for a park")).toBe(false);
+    expect(asksToTakeOut("the Orsay instead of the Louvre")).toBe(false);
+    expect(asksToTakeOut("why are there busan sights in seoul?")).toBe(false);
+    expect(asksToTakeOut("add a dinner but don't remove anything")).toBe(false);
+    expect(asksToTakeOut("cluster it by areas instead of jumping around")).toBe(false);
+  });
+
+  it("holds for the whole request when they say to keep everything", () => {
+    expect(keepsEverything("vou pedir para você adicionar alguns restaurantes. não remova nada que já esteja planejado")).toBe(true);
+    expect(keepsEverything("somente adicione em dias que ficarem mais apropriados")).toBe(true);
+    expect(keepsEverything("add these bars, don't remove anything")).toBe(true);
+    expect(keepsEverything("just add them where they fit")).toBe(true);
+    expect(keepsEverything("añádelos sin quitar nada")).toBe(true);
+    expect(keepsEverything("non togliere niente, aggiungi solo questi")).toBe(true);
+    expect(keepsEverything("add a museum on day 2")).toBe(false);
+    expect(keepsEverything("remove the museum on day 2")).toBe(false);
+  });
+});
+
+const TEN =
+  "izakaya tanuki, o senhor restaurante, baraquias restaurante, dhoosushi, madalosso restaurante, park do churrasco restaurante, cantina do délio, zefy diner, bar do alemao e lett's road. Eles podem ser opção para almoço ou jantar.";
+
+describe("listedPlaces", () => {
+  it("reads the places of a list, the last two joined by and, without their article", () => {
+    expect(listedPlaces(TEN)).toEqual([
+      "izakaya tanuki",
+      "senhor restaurante",
+      "baraquias restaurante",
+      "dhoosushi",
+      "madalosso restaurante",
+      "park do churrasco restaurante",
+      "cantina do délio",
+      "zefy diner",
+      "bar do alemao",
+      "lett's road",
+    ]);
+    expect(listedPlaces("Add Bar Basso, Nottingham Forest and Camparino in Galleria")).toEqual(["Bar Basso", "Nottingham Forest", "Camparino in Galleria"]);
+  });
+
+  it("finds none in a message without a list", () => {
+    expect(listedPlaces("add a cooking class on day 2")).toEqual([]);
+    expect(listedPlaces("add Madalosso and Zefy Diner")).toEqual([]);
+    expect(listedPlaces("I'd like more time at the beach, less driving, and earlier dinners because we travel with a toddler who sleeps early")).toEqual([]);
+    expect(listedPlaces("We want slow mornings, long lunches by the sea, and no early starts at all please")).toEqual([]);
+  });
+});
+
+describe("asksToAdd", () => {
+  it("hears a polite or formal ask, as Brazilian and Spanish travellers write it", () => {
+    for (const ask of ["adicione um restaurante no primeiro dia", "coloque em outro dia", "acrescente um bar", "inclua o museu", "añada una cena", "agregue un bar", "incluya el museo", "aggiunga una cena", "metta il museo il giorno 2"]) {
+      expect(asksToAdd(ask), ask).toBe(true);
+    }
+    expect(asksToAdd("o que tem para fazer à noite?")).toBe(false);
+  });
+});
+
 describe("a terse claim on a change waiting for Apply", () => {
   const base = { lockedDays: [], lengthRefused: false, locale: "en", currentDays: 2, edits: [edit(2, ["Jameson Distillery Bow St."])] };
 
@@ -180,6 +272,76 @@ describe("replyLanguage", () => {
   });
 });
 
+// "Isn't 28 Nov to 6 Dec 8 days instead of 9?" got "You're totally right!", and
+// "count, it's 8" a trip cut to 8 days. Dates of a 9-day trip, 8 nights.
+const ALGARVE = Array.from({ length: 9 }, (_, i) => ({
+  day_number: i + 1,
+  date: i < 3 ? `2026-11-${28 + i}` : `2026-12-0${i - 2}`,
+  activities: [act(`Algarve ${i + 1}`)],
+})) as unknown as ItineraryDay[];
+
+describe("how long the trip is", () => {
+  it.each([
+    "please make it 8 days, remove the last day",
+    "can we shorten the trip",
+    "drop the last day",
+    "one day less",
+    "I need an 8 day one",
+    "togli l'ultimo giorno",
+    "un día menos",
+    "quita un día",
+    "tira o último dia",
+    "pode encurtar a viagem?",
+    "we leave a day earlier",
+    "let's end the trip on the 5th",
+    "partiamo un giorno prima",
+  ])("hears a shorter trip asked for: %s", (text) => {
+    expect(asksForFewerDays(text)).toBe(true);
+  });
+
+  it.each(["No in this chat here, count, it's 8", "Count em, day by day", "Count", "add a museum on day 2", "make day 3 lighter"])(
+    "hears no shorter trip in: %s",
+    (text) => {
+      expect(asksForFewerDays(text)).toBe(false);
+    },
+  );
+
+  it("knows when the count is in question", () => {
+    for (const m of ["Also kind if confused isn't 28 nov to 6 dec 8 days instead of 9 days?", "Still 9 days?", "Count", "No in this chat here, count, it's 8", "how many nights is it", "quanti giorni sono?", "¿cuántos días son?"]) {
+      expect(talksAboutDayCount(m), m).toBe(true);
+    }
+    for (const m of ["add a museum on day 2", "make day 3 lighter", "we land at 17:15"]) expect(talksAboutDayCount(m), m).toBe(false);
+  });
+
+  it("reads the count a reply gives, and not an offer", () => {
+    expect(statedDayCounts("You're totally right! From November 28 to December 6 is indeed 8 days total.")).toEqual([8, 8]);
+    expect(statedDayCounts("Yes, November 28 to December 6 is 9 days in total (Day 1 through Day 9)!")).toEqual([9, 9]);
+    expect(statedDayCounts("You're right, let's count it as 8 days!")).toEqual([8]);
+    expect(statedDayCounts("It's 9 days and 8 nights.")).toEqual([9]);
+    expect(statedDayCounts("Del 28 de noviembre al 6 de diciembre son 9 días.")).toEqual([9]);
+    expect(statedDayCounts("Dal 28 novembre al 6 dicembre sono 9 giorni.")).toEqual([9]);
+    expect(statedDayCounts("De 28 de novembro a 6 de dezembro são 9 dias.")).toEqual([9]);
+    expect(statedDayCounts("Would you like an 8-day trip instead? I can end it on December 5.")).toEqual([]);
+  });
+
+  it("asks again when a reply cuts days nobody asked to cut, or gives another count", () => {
+    const told = { days: ALGARVE, startDate: "2026-11-28" };
+    const cut = correctionFor({ ...told, message: "No in this chat here, count, it's 8" }, { reply: "I've adjusted your itinerary to 8 days.", edits: [], tripLength: 8 });
+    expect(cut).toContain("The trip is Sat, 28 Nov 2026 to Sun, 6 Dec 2026: 9 days and 8 nights, Day 1 to Day 9.");
+    expect(cut).toContain("Your edits make the trip shorter, which they didn't ask for.");
+    expect(cut).toContain("say kindly that 9 days are 8 nights");
+    const agreed = { reply: "You're totally right! From November 28 to December 6 is indeed 8 days total.", edits: [] };
+    expect(correctionFor({ ...told, message: "isn't 28 nov to 6 dec 8 days instead of 9 days?" }, agreed)).toContain('Your "reply" gives it another number of days.');
+    // Asked for, or agreed to when offered, a shorter trip is a change.
+    expect(correctionFor({ ...told, message: "please make it 8 days, remove the last day" }, { reply: "Your trip now ends on December 5.", edits: [], tripLength: 8 })).toBeNull();
+    const offer = { role: "assistant" as const, text: "Would you like me to remove the last day and shorten your trip to 8 days?" };
+    expect(correctionFor({ ...told, message: "yes", history: [offer] }, { reply: "Done: 8 days, ending December 5.", edits: [], tripLength: 8 })).toBeNull();
+    // The right count, or a count nobody asked about, needs nothing.
+    expect(correctionFor({ ...told, message: "Still 9 days?" }, { reply: "Yes, it's 9 days and 8 nights.", edits: [] })).toBeNull();
+    expect(correctionFor({ ...told, message: "what's the best beach?" }, { reply: "Praia da Marinha. A 2-day stay there is 2 days well spent.", edits: [] })).toBeNull();
+  });
+});
+
 describe("asksForMoreDays", () => {
   it.each([
     "add 2 more days",
@@ -189,6 +351,9 @@ describe("asksForMoreDays", () => {
     "aggiungi 2 giorni in più",
     "mais um dia em Lisboa",
     "make it 9 days",
+    "add another day",
+    "add a day after Rome",
+    "aggiungi un altro giorno a Firenze",
   ])("hears a request for more days: %s", (text) => {
     expect(asksForMoreDays(text)).toBe(true);
   });
@@ -199,6 +364,28 @@ describe("asksForMoreDays", () => {
       expect(asksForMoreDays(text)).toBe(false);
     }
   );
+
+  // A day of the trip, by its number or as the last one, is where the change goes.
+  it.each([
+    "add a gelato stop on day 1",
+    "add dinner to day 3, near the hotel",
+    "aggiungi una cena al giorno 3",
+    "agrega un museo el día 2",
+    "adicione um jantar no dia 4",
+    "add a museum on the last day",
+    "aggiungi un aperitivo l'ultimo giorno",
+    "añade una cena el último día",
+  ])("hears a day of the trip, not more days, in: %s", (text) => {
+    expect(asksForMoreDays(text)).toBe(false);
+  });
+
+  it("hears a day the trip doesn't have yet as more days", () => {
+    expect(asksForMoreDays("add day 6 in Pisa", 5)).toBe(true);
+    expect(asksForMoreDays("aggiungi il giorno 6 a Pisa", 5)).toBe(true);
+    expect(asksForMoreDays("add a gelato stop on day 5", 5)).toBe(false);
+    // Without the trip's length, a day by its number is one of the trip's.
+    expect(asksForMoreDays("add day 6 in Pisa")).toBe(false);
+  });
 });
 
 describe("correctionFor", () => {
@@ -225,6 +412,59 @@ describe("correctionFor", () => {
     expect(correctionFor({ message, days, canAddDays: false }, refused)).toBeNull();
   });
 
+  it("asks again around a fixed plan the reply moved or took out", () => {
+    const fixed = [day(1, ["A"]), { day_number: 2, activities: [act("B"), act("Wedding", "15:00", { locked: true })] } as unknown as ItineraryDay];
+    const moved = { reply: "Here's Day 2, with the wedding later.", edits: [edit(2, ["B", "Wedding"])], lockedDays: [{ dayNumber: 2, names: ["Wedding"] }] };
+    const c = correctionFor({ message: "move the wedding to the evening", days: fixed }, moved);
+    expect(c).toContain("Day 2 has a fixed plan the traveller set: Wedding at 15:00.");
+    expect(c).toContain("they can change it themselves in the plan");
+    expect(correctionFor({ message: "move the wedding to the evening", days: fixed }, { ...moved, lockedDays: [] })).toBeNull();
+  });
+
+  // "Cluster the itinerary by areas" on Busan and Seoul left Busan's sights on Seoul's last day.
+  describe("on a trip through two cities", () => {
+    const at = (name: string, lat: number, lng: number) => act(name, "10:00", { coordinates: { lat, lng } });
+    const cities = [
+      { day_number: 1, city: "Busan", activities: [at("Haeundae Beach", 35.1587, 129.1604), at("Jagalchi Market", 35.0966, 129.0306)] },
+      { day_number: 2, city: "Busan", activities: [at("Taejongdae", 35.0517, 129.0848)] },
+      { day_number: 3, city: "Seoul", activities: [at("Gyeongbokgung Palace", 37.5796, 126.977), at("Bukchon Hanok Village", 37.5826, 126.9831)] },
+      { day_number: 4, city: "Seoul", activities: [at("N Seoul Tower", 37.5512, 126.9882), at("Songdo Cable Car", 35.0758, 129.0166)] },
+    ] as unknown as ItineraryDay[];
+    const gamcheon = at("Gamcheon Culture Village", 35.0975, 129.0106);
+    const onDay = (n: number, activities: DayEdit["activities"]): DayEdit => ({ day_number: n, summary: "", activities });
+
+    it("asks again when a change puts another city's places on a day", () => {
+      const c = correctionFor({ message: "make day 3 calmer", days: cities }, { reply: "Done.", edits: [onDay(3, [cities[2].activities[0], gamcheon])] });
+      expect(c).toBe(
+        "Day 3 is in Seoul, but your edits put places in Busan on it: Gamcheon Culture Village. Each city's places stay on that city's days: move them to days in Busan, each once, or swap them for places in Seoul. Keep every day in its city.",
+      );
+    });
+
+    it("asks a regroup again for a day it leaves holding another city's places, unless it comes later", () => {
+      const regrouped = { reply: "Clustered.", edits: [onDay(1, [...cities[0].activities].reverse()), onDay(2, cities[1].activities)] };
+      const message = "cluster the itinerary by areas to explore instead of jumping around";
+      expect(correctionFor({ message, days: cities }, regrouped)).toContain(
+        "Day 4 is in Seoul, but it holds places in Busan: Songdo Cable Car. Regrouping keeps each city's places on that city's days: in \"edits\" now, return Day 4",
+      );
+      // A later part couldn't move them to Busan's days, so it is asked for now too…
+      expect(correctionFor({ message, days: cities }, { ...regrouped, moreDays: [3, 4] })).toContain("in \"edits\" now, return Day 4");
+      // …unless this reply put them there already.
+      const movedFirst = { reply: "Clustered.", edits: [onDay(1, [...cities[0].activities, cities[3].activities[1]])], moreDays: [3, 4] };
+      expect(correctionFor({ message, days: cities }, movedFirst)).toBeNull();
+      // Any other change leaves that day to them.
+      expect(correctionFor({ message: "make day 1 calmer", days: cities }, regrouped)).toBeNull();
+      // Done in the reply, it's done.
+      const fixed = { reply: "Clustered.", edits: [onDay(1, [...cities[0].activities, cities[3].activities[1]]), onDay(4, [cities[3].activities[0]])] };
+      expect(correctionFor({ message, days: cities }, fixed)).toBeNull();
+    });
+
+    it("takes a place on a day still to come as moved, not copied", () => {
+      const copied = { reply: "Done.", edits: [onDay(1, [...cities[0].activities, act("Taejongdae", "15:00")])] };
+      expect(correctionFor({ message: "add taejongdae to day 1", days: cities }, copied)).toContain("Taejongdae is already on Day 2");
+      expect(correctionFor({ message: "add taejongdae to day 1", days: cities }, { ...copied, moreDays: [2] })).toBeNull();
+    });
+  });
+
   it("sends a change made on another day than the one named back to that day", () => {
     const c = correctionFor({ message: "can we add the Oceanário on day 4", days }, { reply: "Added to day 5.", edits: [edit(5, ["Oceanário"])] });
     expect(c).toContain("Make the change on Day 4");
@@ -238,6 +478,47 @@ describe("correctionFor", () => {
     const full = [day(1, ["A1", "A2", "A3"]), day(2, ["B1", "B2", "B3"])];
     expect(correctionFor({ message: "add Hakone", days: full }, { reply: "Day 2 is Hakone.", edits: [edit(2, ["Hakone ropeway", "Lake Ashi", "Onsen"])] })).toBeNull();
     expect(correctionFor({ message: "replace B with a salsa class", days }, { reply: "Done.", edits: [edit(2, ["Salsa class"])] })).toBeNull();
+  });
+
+  it("keeps everything when they said not to remove anything, however much a day loses", () => {
+    const full = [day(1, ["A1", "A2", "A3"]), day(2, ["B1", "B2", "B3"])];
+    const swapped = { reply: "Dia 2 com os restaurantes.", edits: [edit(2, ["Madalosso", "Bar do Alemão", "Zefy Diner"])] };
+    const told = { role: "user" as const, text: "não remova nada que já esteja planejado, somente adicione" };
+    const c = correctionFor({ message: "izakaya tanuki, madalosso, bar do alemão", days: full, history: [told] }, swapped);
+    expect(c).toContain("keep everything already planned");
+    expect(c).toContain("B1 and B2 and B3");
+    // In the same message, with a polite ask.
+    expect(correctionFor({ message: "adicione estes restaurantes, não remova nada", days: full }, swapped)).toContain("keep everything");
+    // Told nothing of the kind, a whole day given to what they add is how it fits.
+    expect(correctionFor({ message: "add Madalosso, Bar do Alemão and Zefy Diner", days: full }, swapped)).toBeNull();
+    // Asking now for something to go is a change of mind.
+    expect(correctionFor({ message: "tire o B1 e coloque o Madalosso", days: full, history: [told] }, { ...swapped, edits: [edit(2, ["Madalosso", "B2", "B3"])] })).toBeNull();
+  });
+
+  // Live, 11-09: ten restaurants asked for, eight added, and a reply naming all ten.
+  it("sends back a list of places that came back short, naming what's missing", () => {
+    const plan = [day(1, ["A", "Zefy Diner"]), day(2, ["B"]), day(3, ["C"])];
+    const told = { role: "user" as const, text: "quero adicionar alguns restaurantes da minha lista" };
+    const message = "madalosso restaurante, zefy diner, bar do alemao, baraquias restaurante e lett's road.";
+    const short = { reply: "Adicionei todos.", edits: [edit(2, ["B", "Madalosso"]), edit(3, ["C", "Bar do Alemão", "Lett's Road"])] };
+    const c = correctionFor({ message, days: plan, history: [told] }, short);
+    // Zefy Diner was already in the plan; the accent and "Restaurante" don't hide a place.
+    expect(c).toBe(
+      `These places from their list aren't in your edits: baraquias restaurante. Add each one once, on a day where it fits, keeping everything else, or say in "reply" which can't fit and why.`,
+    );
+    // The rest is still to come, on the days a later part brings.
+    expect(correctionFor({ message, days: plan, history: [told] }, { ...short, moreDays: [4] })).toBeNull();
+    // Not asked to add them: a list in a question is just a question.
+    expect(correctionFor({ message: `${message} quais abrem de domingo?`, days: plan, history: [] }, short)).toBeNull();
+    // A list of kinds, which no place's name repeats, isn't held to it.
+    expect(correctionFor({ message: "add museums, parks, markets and viewpoints", days: plan }, { reply: "Done.", edits: [edit(2, ["B", "Museu Paranaense"])] })).toBeNull();
+  });
+
+  it("names the places a list still lacks after the change, whatever the reply says", () => {
+    const base = { lockedDays: [], lengthRefused: false, locale: "pt", currentDays: 3, ownLead: true, edits: [edit(2, ["B", "Madalosso"])] };
+    expect(composeReply({ ...base, reply: "Adicionei todos os restaurantes.", listMissing: ["baraquias restaurante", "senhor restaurante"] })).toBe(
+      "Adicionei todos os restaurantes. (Não entrou nesta alteração: baraquias restaurante, senhor restaurante.)",
+    );
   });
 
   it("sends back edits that changed nothing", () => {
@@ -271,7 +552,13 @@ describe("correctionFor", () => {
   it("refuses a longer trip nobody asked for, but not one they did", () => {
     const longer = { reply: "Added Óbidos as day 6.", edits: [edit(6, ["Óbidos"])], tripLength: 6 };
     expect(correctionFor({ message: "include Cascais and Óbidos", days }, longer)).toContain("Keep the trip at 5 days");
+    // A stop asked for on a day of the trip, with a day added on top.
+    const plusDay = { reply: "Added gelato on day 5, and Óbidos as day 6.", edits: [edit(5, ["E", "Gelato"]), edit(6, ["Óbidos"])], tripLength: 6 };
+    expect(correctionFor({ message: "add a gelato stop on day 5", days }, plusDay)).toContain("Keep the trip at 5 days");
+    expect(correctionFor({ message: "aggiungi un aperitivo l'ultimo giorno", days }, longer)).toContain("Keep the trip at 5 days");
     expect(correctionFor({ message: "add one more day for Óbidos", days }, longer)).toBeNull();
+    // A day the trip doesn't have yet.
+    expect(correctionFor({ message: "add day 6 in Óbidos", days }, longer)).toBeNull();
     expect(
       correctionFor(
         { message: "yes", days, history: [{ role: "assistant", text: "Want me to add 1 more day for Óbidos?" }] },
@@ -280,10 +567,28 @@ describe("correctionFor", () => {
     ).toBeNull();
   });
 
+  // "I am arriving at 6pm on the 28th" on a trip from the 29th: the reply made a
+  // new Day 1 of the arrival, over the 29th's plan, and the new last day never came.
+  it("refuses a longer trip nobody asked for whose new days didn't come back", () => {
+    const arrival = { reply: "Here is an updated Day 1 for your arrival.", edits: [edit(1, ["Airport", "Dinner"])], lengthRefused: true, wantsMore: true };
+    const told = correctionFor({ message: "I am arriving at 6pm on the 28th", days }, arrival);
+    expect(told).toContain("Keep the trip at 5 days");
+    expect(told).toContain("If they arrive before Day 1's date, change no day for it, and in \"reply\" tell them they can change the trip's dates to start that day");
+    // Asked for, it's the longer trip's own rule.
+    expect(correctionFor({ message: "add a day at the start, we arrive on the 28th", days }, arrival)).not.toContain("Keep the trip at");
+    // A shorter trip refused for its fixed plans isn't a longer one.
+    expect(correctionFor({ message: "I am arriving at 6pm on the 28th", days }, { ...arrival, wantsMore: false })).toBeNull();
+  });
+
   it("asks for the change a reply hands over with no edits", () => {
     const empty = (reply: string) => correctionFor({ message: "togliamo il ristorante alla sera", days }, { reply, edits: [] });
     expect(empty("Ecco la proposta per rimuovere Restaurace Mlejnice dal Giorno 2.")).toContain('"edits" is empty');
     expect(empty("Ok, I'll propose adding a Beer Spa on Day 2.")).toContain('"edits" is empty');
+    // Said to be made already, with nothing sent: "I've added…" and an empty "edits".
+    expect(empty("I've added a ryokan stay for the night of the 23rd.")).toContain('"edits" is empty');
+    expect(empty("Ho aggiunto il ryokan alla sera del 23.")).toContain('"edits" is empty');
+    // A currency request is answered by the page, not by edits.
+    expect(correctionFor({ message: "show prices in dollars", days }, { reply: "I've updated the prices to USD.", edits: [] })).toBeNull();
     // With the change attached, the words are true.
     expect(correctionFor({ message: "add a beer spa on day 2", days }, { reply: "Here's the proposal.", edits: [edit(2, ["B", "Beer spa"])] })).toBeNull();
   });
@@ -404,9 +709,61 @@ describe("buildPrompt", () => {
     expect(prompt).toContain("move that activity to another day with room rather than dropping it, and say where it went");
   });
 
+  // "Are you still limiting me to 4 activities a day?": a day capped at five
+  // swapped a dinner for the restaurant asked for, and a list of ten got five.
+  it("lets a day grow when they add to it, and adds every place of a list", () => {
+    expect(prompt).not.toContain("Each edited day: 3-5 activities");
+    expect(prompt).toContain("A day you add to keeps every activity it had, so it may end up with more than 5");
+    expect(prompt).toContain("A list of places to add");
+    expect(prompt).toContain("add every one, each once, on the day and at the time it fits best");
+    expect(prompt).toContain("If one can't fit anywhere, say which in \"reply\"");
+  });
+
+  it("changes nothing for a message that only says what is coming", () => {
+    expect(prompt).toContain("only says what's coming");
+    expect(prompt).toContain("say you're ready, repeat the rule in a few words, and return \"edits\": []");
+  });
+
   it("keeps the trip's length and the saved activities' names", () => {
     expect(prompt).toContain("Keep the number of days unless the traveller asks for more or fewer");
     expect(prompt).toContain("never translate or rename activities");
+  });
+
+  it("gives the trip's length from its dates, and each day its date", () => {
+    const algarve = buildPrompt({ message: "count, it's 8", destination: "Algarve", tripTitle: "Algarve", days: ALGARVE, startDate: "2026-11-28", endDate: "2026-12-06", locale: "en" });
+    expect(algarve).toContain("The trip is Sat, 28 Nov 2026 to Sun, 6 Dec 2026: 9 days and 8 nights, Day 1 to Day 9.");
+    expect(algarve).toContain("Day 1 (Sat, 28 Nov 2026): Algarve 1");
+    expect(algarve).toContain("Day 9 (Sun, 6 Dec 2026): Algarve 9");
+    expect(algarve).toContain("Never agree to another count, however sure they are");
+    expect(algarve).toContain("Insisting on a count isn't asking to change it");
+    expect(buildPrompt({ message: "count, it's 8", destination: "Algarve", tripTitle: "Algarve", days: ALGARVE, locale: "en" })).toContain(
+      "The trip is Sat, 28 Nov 2026 to Sun, 6 Dec 2026: 9 days and 8 nights",
+    );
+    // Days without dates count from the start; with no dates at all, the count alone.
+    const undated = ALGARVE.slice(0, 2).map((d) => ({ ...d, date: "" }));
+    expect(buildPrompt({ message: "hi", destination: "Algarve", tripTitle: "Algarve", days: undated, startDate: "2026-11-28", locale: "en" })).toContain("Day 2 (Sun, 29 Nov 2026): Algarve 2");
+    expect(buildPrompt({ message: "hi", destination: "Algarve", tripTitle: "Algarve", days: undated.slice(0, 1), locale: "en" })).toContain("The trip is 1 day and 0 nights, Day 1 to Day 1.");
+  });
+
+  it("keeps each city's places on its days, and each day in its city", () => {
+    const twoCities = buildPrompt({
+      message: "cluster by areas",
+      destination: "Busan & Seoul",
+      tripTitle: "Korea",
+      days: [{ ...day(1, ["A"]), city: "Busan" }, { ...day(2, ["B"]), city: "Seoul" }] as ItineraryDay[],
+      locale: "en",
+    });
+    expect(twoCities).toContain("Day 1 [Busan]: A");
+    expect(twoCities).toContain("Every change, regrouping or reordering keeps each city's places on that city's days; a place on a day of another city goes back to a day of its own city.");
+    expect(twoCities).toContain("A day changes city only when they ask to change where they stay.");
+  });
+
+  it("shows a fixed plan with its time, to plan the rest of its day around", () => {
+    const fixed = { day_number: 1, activities: [act("Old town walk"), act("Flight to Porto", "17:30", { locked: true })] } as unknown as ItineraryDay;
+    const withFixed = buildPrompt({ message: "add lunch", destination: "Lisbon", tripTitle: "Lisbon", days: [fixed], locale: "en" });
+    expect(withFixed).toContain("Day 1: Old town walk, Flight to Porto [fixed plan, 17:30]");
+    expect(withFixed).toContain("An activity marked [fixed plan] is the traveller's own booking");
+    expect(withFixed).toContain("You can't move, change or remove one: if they ask to, say they can change it themselves in the plan");
   });
 
   it("knows a change asked for again after Undo isn't in the plan", () => {
@@ -422,6 +779,20 @@ describe("buildPrompt", () => {
       ],
     });
     expect(again).toContain("isn't in it was only offered, skipped or undone: if they ask for it, make it");
+  });
+
+  it("knows which part of the plan is a change still waiting to be saved, and how to undo it", () => {
+    expect(prompt).not.toContain("Not saved yet");
+    const waiting = buildPrompt({
+      message: "add the others too",
+      destination: "Curitiba",
+      tripTitle: "Curitiba",
+      days: [day(1, ["A", "Madalosso"])],
+      locale: "pt",
+      unsaved: ["Day 1: adds Madalosso"],
+    });
+    expect(waiting).toContain("Not saved yet: your last reply prepared this change, the traveller hasn't saved it, and the itinerary above already includes it. Saving your reply saves it too.\n- Day 1: adds Madalosso\n");
+    expect(waiting).toContain("If they turn it down, undo it in your edits: take out what it added and put back what it took out.");
   });
 
   it("suggests hotels instead of asking for their names", () => {

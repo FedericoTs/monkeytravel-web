@@ -23,11 +23,10 @@ import { sentry, sentryBreadcrumb, sentryUser } from "@/lib/observability/sentry
 // Type definitions for gtag
 declare global {
   interface Window {
-    gtag?: (
-      command: "config" | "event" | "set",
-      targetId: string,
-      params?: Record<string, unknown>
-    ) => void;
+    gtag?: {
+      (command: "config" | "event" | "set", targetId: string, params?: Record<string, unknown>): void;
+      (command: "set", params: Record<string, unknown>): void;
+    };
     dataLayer?: unknown[];
   }
 }
@@ -39,6 +38,15 @@ function isAnalyticsAvailable(): boolean {
   return typeof window !== "undefined" && typeof window.gtag === "function";
 }
 
+// Set with the signed-in person's id (setUserId) for the rest of the page.
+let signedIn = false;
+
+/** The page's language and whether someone is signed in, on every GA4 event. */
+function eventContext(): Record<string, unknown> {
+  const locale = typeof document === "undefined" ? "" : document.documentElement.lang;
+  return locale ? { locale, signed_in: signedIn } : { signed_in: signedIn };
+}
+
 /**
  * Generic event tracking function
  */
@@ -48,7 +56,7 @@ export function trackEvent(
 ): void {
   // Track in Google Analytics
   if (isAnalyticsAvailable()) {
-    window.gtag!("event", eventName, params);
+    window.gtag!("event", eventName, { ...eventContext(), ...params });
   }
 
   // Also a breadcrumb for Sentry, kept until the SDK is fetched for an error.
@@ -108,13 +116,13 @@ export function trackContentInteraction(params: {
 }
 
 /**
- * Set the GA4 content group dimension for the current pageview.
+ * Set the GA4 content group for the page's hits. A `set`, not a `config`:
+ * a second config would set the tag up again, without the team's
+ * traffic_type (components/analytics/ConsentGatedTags.tsx).
  */
 export function setContentGroup(group: string): void {
   if (isAnalyticsAvailable()) {
-    window.gtag!("config", process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "", {
-      content_group: group,
-    });
+    window.gtag!("set", { content_group: group });
   }
 }
 
@@ -161,9 +169,6 @@ export function trackTripCreated(params: {
     budget_tier: params.budgetTier,
     is_from_template: params.isFromTemplate ?? false,
     ...(params.isFromChatgpt ? { is_from_chatgpt: true } : {}),
-    // GA4 ecommerce-style tracking
-    currency: "USD",
-    value: params.budgetTier === "premium" ? 100 : params.budgetTier === "balanced" ? 50 : 25,
   });
   trackMilestone("trip_created", {
     from: params.isFromChatgpt ? "chatgpt" : params.isFromTemplate ? "template" : "planner",
@@ -442,6 +447,7 @@ export function trackPageView(params: {
  * Call this after successful login
  */
 export function setUserId(userId: string): void {
+  signedIn = true;
   // Set in GA4
   if (isAnalyticsAvailable()) {
     window.gtag!("set", "user_properties", {
@@ -462,18 +468,12 @@ export function setUserId(userId: string): void {
 // ============================================================================
 
 /**
- * Track user returning to the app
- * Call on app load after checking last visit
+ * A signed-in person back after more than 30 minutes away;
+ * components/analytics/SessionTracker.tsx decides when.
  */
-export function trackUserReturn(params: {
-  daysSinceLastVisit: number;
-  totalSessions: number;
-  returnSource?: "direct" | "notification" | "email" | "share";
-}): void {
+export function trackUserReturn(params: { daysSinceLastVisit: number }): void {
   trackEvent("user_return", {
     days_since_last_visit: params.daysSinceLastVisit,
-    total_sessions: params.totalSessions,
-    return_source: params.returnSource || "direct",
     // Bucket for easier analysis
     return_bucket:
       params.daysSinceLastVisit === 0
@@ -504,33 +504,6 @@ export function trackTripViewed(params: {
     trip_status: params.tripStatus,
     days_since_creation: params.daysSinceCreation,
     activities_count: params.activitiesCount,
-  });
-}
-
-/**
- * Track session start with context
- */
-export function trackSessionStart(params: {
-  userId?: string;
-  isNewUser: boolean;
-  hasActiveTrip: boolean;
-  tripsCount: number;
-  daysSinceSignup: number;
-}): void {
-  trackEvent("session_start", {
-    is_new_user: params.isNewUser,
-    has_active_trip: params.hasActiveTrip,
-    trips_count: params.tripsCount,
-    days_since_signup: params.daysSinceSignup,
-    // Lifecycle stage
-    user_stage:
-      params.tripsCount === 0
-        ? "new"
-        : params.tripsCount === 1
-          ? "activated"
-          : params.tripsCount < 5
-            ? "engaged"
-            : "power_user",
   });
 }
 
@@ -639,7 +612,6 @@ export function setUserPropertiesEnhanced(properties: {
   accountAgeDays?: number;
   onboardingCompleted?: boolean;
   hasBetaAccess?: boolean;
-  referralSource?: "organic" | "referral" | "paid";
   userStage?: "new" | "activated" | "engaged" | "power_user";
 }): void {
   if (isAnalyticsAvailable()) {
@@ -649,7 +621,6 @@ export function setUserPropertiesEnhanced(properties: {
       account_age_days: properties.accountAgeDays,
       onboarding_completed: properties.onboardingCompleted,
       has_beta_access: properties.hasBetaAccess,
-      referral_source: properties.referralSource,
       user_stage: properties.userStage,
     });
   }

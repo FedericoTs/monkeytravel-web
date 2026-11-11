@@ -65,15 +65,29 @@ export function sameWord(a: string, b: string): boolean {
 const MEAL_TYPES = new Set(["restaurant", "cafe", "bar", "food", "market"]);
 const isMeal = (a: Activity) => MEAL_TYPES.has(normalizeActivityType(a.type, a.name));
 
+/** A returned activity scoring this much against a saved one is that one. */
+export const SAME_ACTIVITY = 0.6;
+
+/**
+ * How surely a returned activity is a saved one: 2 under the same name, else
+ * the share of the saved name's words it has, when it has no words of its own
+ * and isn't a meal for a sight or a sight for a meal.
+ */
+export function sameActivityScore(saved: Activity, returned: Activity): number {
+  if (saved.name.trim().toLowerCase() === returned.name.trim().toLowerCase()) return 2;
+  const mine = nameTokens(returned.name);
+  const theirs = nameTokens(saved.name);
+  if (!mine.length || isMeal(saved) !== isMeal(returned) || !mine.every((t) => theirs.some((u) => sameWord(t, u)))) return 0;
+  return theirs.filter((u) => mine.some((t) => sameWord(t, u))).length / theirs.length;
+}
+
 export function keepSavedActivities(
   days: ItineraryDay[],
   edits: DayEdit[],
   talk: { reply?: string; message?: string } = {},
 ): DayEdit[] {
   const saved = days.flatMap((d) =>
-    (Array.isArray(d.activities) ? d.activities : [])
-      .filter((a) => typeof a?.name === "string" && a.name.trim())
-      .map((a) => ({ a, tokens: nameTokens(a.name) })),
+    (Array.isArray(d.activities) ? d.activities : []).filter((a) => typeof a?.name === "string" && a.name.trim()),
   );
   const said = nameTokens(`${talk.reply ?? ""} ${talk.message ?? ""}`);
   const asked = nameTokens(talk.message ?? "").filter((t) => t.length >= 5);
@@ -81,15 +95,11 @@ export function keepSavedActivities(
   return edits.map((e) => ({
     ...e,
     activities: e.activities.map((n) => {
-      const mine = nameTokens(n.name);
       let best: { a: Activity; score: number } | null = null;
       for (const s of saved) {
-        if (used.has(s.a)) continue;
-        let score = s.a.name.trim().toLowerCase() === n.name.trim().toLowerCase() ? 2 : 0;
-        if (!score && mine.length && isMeal(s.a) === isMeal(n) && mine.every((t) => s.tokens.some((u) => sameWord(t, u)))) {
-          score = s.tokens.filter((u) => mine.some((t) => sameWord(t, u))).length / s.tokens.length;
-        }
-        if (score >= 0.6 && (!best || score > best.score)) best = { a: s.a, score };
+        if (used.has(s)) continue;
+        const score = sameActivityScore(s, n);
+        if (score >= SAME_ACTIVITY && (!best || score > best.score)) best = { a: s, score };
       }
       if (!best) return n;
       const kept = best.a;

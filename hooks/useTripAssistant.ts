@@ -77,6 +77,30 @@ export function isAffirmative(text: string): boolean {
   ].includes(t);
 }
 
+/**
+ * A plain no to the change on screen ("no", "cancel", "esquece"): the change
+ * goes, and the message isn't built on it. Whole-message only, like
+ * isAffirmative: "no, put it on day 3" builds on the change.
+ */
+export function isRefusal(text: string): boolean {
+  const t = text
+    .trim()
+    .toLowerCase()
+    .replace(/[.!¡¿?,;:]+/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return [
+    // en
+    "no", "nope", "no thanks", "no thank you", "cancel", "cancel it", "never mind", "nevermind", "forget it", "not that",
+    // es
+    "no gracias", "cancela", "cancelar", "olvídalo", "olvidalo", "déjalo", "dejalo", "eso no",
+    // it
+    "no grazie", "annulla", "lascia stare", "lascia perdere", "questo no",
+    // pt
+    "não", "nao", "não obrigado", "não obrigada", "cancela", "cancelar", "esquece", "deixa pra lá", "deixa para lá", "isso não",
+  ].includes(t);
+}
+
 /** An error whose message is written for the traveller; any other shows a generic one. */
 class ShownError extends Error {}
 
@@ -177,8 +201,21 @@ export function useTripAssistant({
   const applyPendingRef = useRef<null | (() => Promise<void>)>(null);
 
   const sendMessage = useCallback(
-    async (content: string) => {
+    async (content: string, opts: { fresh?: boolean } = {}) => {
       if (!content.trim() || isLoading) return;
+
+      // A change waiting on its card goes with the message, so a request that
+      // builds on it ("add the others too") keeps it in the next one instead of
+      // losing it; the server says whether it did. Not for another try or a
+      // plain no, which replace it.
+      const waiting =
+        pendingChange?.type === "apply_draft" && !isApplyingChange && !opts.fresh && !isRefusal(content) ? pendingChange : null;
+      const cancelNote = (): Message => ({
+        role: "assistant",
+        content: t("cancelledMessage"),
+        timestamp: new Date().toISOString(),
+        local: true,
+      });
 
       // A proposal is on screen. What happens next used to be: it is destroyed,
       // silently, with no note in the transcript — triggered by the single most
@@ -200,16 +237,9 @@ export function useTripAssistant({
           await applyPendingRef.current?.();
           return;
         }
-        // Not an agreement: the proposal is going away, so SAY that it has.
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            content: t("cancelledMessage"),
-            timestamp: new Date().toISOString(),
-            local: true,
-          },
-        ]);
+        // Not an agreement, and not carried into the message: the proposal is
+        // going away, so SAY that it has.
+        if (!waiting) setMessages((prev) => [...prev, cancelNote()]);
       }
 
       setPendingChange(null);
@@ -242,6 +272,7 @@ export function useTripAssistant({
             itinerary,
             // So figures in the answer match the prices on the page.
             display: displayCurrencyFor(itinerary, preferences?.preferredCurrency, exchangeRates),
+            ...(waiting ? { waiting: { days: waiting.days, reason: waiting.reason } } : {}),
           }),
         });
 
@@ -283,6 +314,9 @@ export function useTripAssistant({
           });
         }
 
+        // The change that went with the message and didn't come back in this
+        // one has gone: said before the reply, as when it goes right away.
+        const gone = waiting && !data.waitingKept ? [cancelNote()] : [];
         // A prepared change waits on its card for the user's confirm; the
         // route never saves one itself.
         if (data.pendingChange) {
@@ -292,9 +326,9 @@ export function useTripAssistant({
             ...data.message,
             action: { ...data.message.action, applied: false },
           };
-          setMessages((prev) => [...prev, assistantMsg]);
+          setMessages((prev) => [...prev, ...gone, assistantMsg]);
         } else {
-          setMessages((prev) => [...prev, data.message]);
+          setMessages((prev) => [...prev, ...gone, data.message]);
         }
 
         setUsageInfo({
@@ -306,8 +340,10 @@ export function useTripAssistant({
       } catch (err) {
         setError(err instanceof ShownError ? err.message : t("error"));
         setMessages((prev) => prev.slice(0, -1));
-        // Back in the box, so nothing has to be typed again.
+        // Back in the box, so nothing has to be typed again, and the change
+        // that went with it back on its card.
         setInput(content.trim());
+        if (waiting) setPendingChange(waiting);
       } finally {
         setIsLoading(false);
       }
@@ -443,7 +479,7 @@ export function useTripAssistant({
     // Re-send the last user message with a "try different" modifier
     const lastUserMessage = messages.filter((m) => m.role === "user").pop();
     if (lastUserMessage) {
-      sendMessage(t("tryDifferent", { message: lastUserMessage.content }));
+      sendMessage(t("tryDifferent", { message: lastUserMessage.content }), { fresh: true });
     }
   }, [messages, sendMessage, t]);
 

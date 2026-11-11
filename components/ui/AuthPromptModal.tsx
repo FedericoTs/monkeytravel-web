@@ -128,6 +128,7 @@ export default function AuthPromptModal({
   // PostHog Promise resolution. They also let us read the latest email
   // state from the dismiss handler without subscribing to changes.
   const shownTrackedRef = useRef(false);
+  const openedAtRef = useRef(0);
   const emailRef = useRef("");
   useEffect(() => {
     emailRef.current = email;
@@ -141,6 +142,7 @@ export default function AuthPromptModal({
     }
     if (shownTrackedRef.current) return;
     shownTrackedRef.current = true;
+    openedAtRef.current = Date.now();
     captureAuthPromptShown({
       location,
       destination: destination || undefined,
@@ -162,6 +164,10 @@ export default function AuthPromptModal({
         location,
         had_email_entered: emailRef.current.trim().length > 0,
         how,
+      });
+      void trackWizardEvent("auth_modal_closed", {
+        destination: destination || undefined,
+        elapsed_ms: Math.min(Math.max(0, Date.now() - openedAtRef.current), 86_400_000),
       });
     }
     onClose();
@@ -357,6 +363,7 @@ export default function AuthPromptModal({
     setIsNavigating(true);
     setError(null);
     captureAuthMethodSwitched({ location, to: "google", ...(linkSent ? { after_code_sent: true } : {}) });
+    void trackWizardEvent("auth_google_pressed", { destination: destination || undefined });
 
     try {
       await prefs.set("pendingTripGeneration", "true");

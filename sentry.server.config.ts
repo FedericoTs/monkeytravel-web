@@ -11,8 +11,8 @@ import { SENTRY_DATA_COLLECTION } from "@/lib/observability/sentry-data-collecti
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
-  // Environment identification
-  environment: process.env.NODE_ENV,
+  // No environment: on Vercel the SDK uses the deployment's own name
+  // (production, preview), where NODE_ENV says "production" on every one.
 
   // Only report from real deployments.
   //
@@ -28,6 +28,15 @@ Sentry.init({
   // Performance Monitoring
   // Capture 10% of transactions in production
   tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+
+  // One transaction per request rather than streamed spans (the SDK default
+  // since v11): the tracing views and the sampling above are set up for it.
+  traceLifecycle: "static",
+
+  // A message reported by lib/observability/server-failure.ts is sent from
+  // inside its helper, so a stack attached to it names that helper, and Sentry
+  // would title every such issue "send" instead of by its message.
+  attachStacktrace: false,
 
   // Enable debug mode in development
   debug: false,

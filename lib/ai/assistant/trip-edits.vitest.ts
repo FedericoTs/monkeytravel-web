@@ -10,7 +10,7 @@ import type { Activity, ItineraryDay } from "@/types";
 const assistTrip = vi.fn();
 vi.mock("./engine", () => ({ assistTrip: (input: unknown) => assistTrip(input) }));
 
-const { conversationTurns, mergeTripEdits, proposedChange, proposeTripEdits, readDisplayCurrency } = await import("./trip-edits");
+const { conversationTurns, mergeTripEdits, proposedChange, proposeTripEdits, readDisplayCurrency, readWaitingChange, waitingLines } = await import("./trip-edits");
 
 const act = (id: string, name: string, extra: Partial<Activity> = {}): Activity =>
   ({
@@ -146,6 +146,18 @@ describe("mergeTripEdits: the saved trip keeps what it holds", () => {
     expect(out[1].activities[1].id).toBe("a2");
     const ids = out.flatMap((d) => d.activities.map((a) => a.id));
     expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  // The engine puts a day's fixed plan back as stored; the change to save keeps it so.
+  it("keeps a fixed plan whole, as the save expects it", () => {
+    const days = trip();
+    const flight = act("anchor-f1", "Flight to London", { locked: true, anchor_id: "f1", start_time: "18:00", time_slot: "evening", duration_minutes: 120 });
+    days[1].activities.push(flight);
+    const [day2] = mergeTripEdits(days, [
+      { day_number: 2, summary: "", activities: [engineActivity("National Gallery", "10:00", "morning"), engineActivity("Little Museum of Dublin", "14:00", "afternoon"), flight] },
+    ]);
+    expect(day2.activities.map((a) => a.name)).toEqual(["National Gallery", "Little Museum of Dublin", "Flight to London"]);
+    expect(day2.activities[2]).toEqual(flight);
   });
 });
 
@@ -295,6 +307,93 @@ describe("proposeTripEdits", () => {
     assistTrip.mockResolvedValue({ reply: "Which nights would you like?", edits: [], meta });
     const out = await proposeTripEdits(input);
     expect(out).toEqual({ reply: "Which nights would you like?", revisedDays: [], summary: "", meta });
+  });
+});
+
+// A traveller had five restaurants waiting on a card, asked for "the others too",
+// and the next card held only the others: the five were never saved.
+describe("a change still waiting for its button", () => {
+  const meta = { model: "m", costUsd: 0.001, generationTimeMs: 5 };
+  const base = { message: "add the others too", destination: "Dublin", tripTitle: "Dublin", days: trip(), locale: "en", history: [] };
+  // Day 2 as the waiting card would save it: a restaurant in, Grafton Street out.
+  const waitingDay2 = (): ItineraryDay => ({
+    ...trip()[1],
+    activities: [trip()[1].activities[0], act("w1", "The Winding Stair", { start_time: "19:30", time_slot: "evening" })],
+  });
+  const waiting = () => ({ days: [waitingDay2()], reason: "Day 2: The Winding Stair for dinner." });
+  const wigwamOnDay1 = {
+    day_number: 1,
+    summary: "Wigwam late.",
+    activities: [engineActivity("Trinity College", "09:00", "morning"), engineActivity("Temple Bar", "20:00", "evening"), engineActivity("Wigwam", "22:00", "evening")],
+  };
+
+  it("is in the plan the engine reads, with what it does", async () => {
+    assistTrip.mockResolvedValue({ reply: "Wigwam on day 1.", edits: [wigwamOnDay1], meta });
+    await proposeTripEdits({ ...base, waiting: waiting() });
+    const asked = assistTrip.mock.calls[0][0];
+    expect(asked.days[1].activities.map((a: Activity) => a.name)).toEqual(["National Gallery", "The Winding Stair"]);
+    expect(asked.days[0]).toEqual(trip()[0]);
+    expect(asked.unsaved).toEqual(["Day 2: adds The Winding Stair; takes out Grafton Street"]);
+  });
+
+  it("stays in the new change, under what this reply changes, and the reply says so", async () => {
+    assistTrip.mockResolvedValue({ reply: "Wigwam on day 1.", edits: [wigwamOnDay1], meta });
+    const out = await proposeTripEdits({ ...base, waiting: waiting() });
+    expect(out?.revisedDays.map((d) => d.day_number)).toEqual([1, 2]);
+    expect(out?.revisedDays[1]).toEqual(waitingDay2());
+    expect(out?.waitingKept).toBe(true);
+    expect(out?.reply).toBe("Wigwam on day 1. (This also keeps the earlier change, which was not saved yet.)");
+    expect(out?.summary).toBe("Day 2: The Winding Stair for dinner. Day 1: Wigwam late. Leaves out: Grafton Street.");
+  });
+
+  it("is rewritten where this reply changes its day, and the saved activities it puts back keep what they hold", async () => {
+    assistTrip.mockResolvedValue({
+      reply: "Grafton Street is back, and the dinner stays.",
+      edits: [{ day_number: 2, summary: "Both.", activities: [engineActivity("National Gallery", "10:00", "morning"), engineActivity("Grafton Street", "14:00", "afternoon"), engineActivity("The Winding Stair", "19:30", "evening")] }],
+      meta,
+    });
+    const out = await proposeTripEdits({ ...base, message: "keep Grafton Street too", waiting: waiting() });
+    expect(out?.revisedDays.map((d) => d.day_number)).toEqual([2]);
+    const [gallery, grafton, stair] = out!.revisedDays[0].activities;
+    expect([gallery.id, grafton.id, grafton.address]).toEqual(["b1", "b2", "Grafton Street Street 1"]);
+    expect(stair.name).toBe("The Winding Stair");
+    expect(out?.waitingKept).toBe(true);
+    // Its day is this reply's own: no note about an earlier change.
+    expect(out?.reply).toBe("Grafton Street is back, and the dinner stays.");
+  });
+
+  it("stays on its card when the reply only answers", async () => {
+    assistTrip.mockResolvedValue({ reply: "It opens at noon.", edits: [], meta });
+    const out = await proposeTripEdits({ ...base, message: "when does it open?", waiting: waiting() });
+    expect(out?.revisedDays).toEqual([waitingDay2()]);
+    expect(out?.waitingKept).toBe(true);
+    expect(out?.reply).toBe("It opens at noon.");
+  });
+
+  it("goes when the reply puts its day back as it was saved", async () => {
+    assistTrip.mockResolvedValue({
+      reply: "Back as it was.",
+      edits: [{ day_number: 2, summary: "As before.", activities: [engineActivity("National Gallery", "09:00", "morning"), engineActivity("Grafton Street", "14:00", "afternoon")] }],
+      meta,
+    });
+    const out = await proposeTripEdits({ ...base, message: "forget that dinner", waiting: waiting() });
+    expect(out?.revisedDays).toEqual([]);
+    expect(out?.waitingKept).toBeUndefined();
+  });
+
+  it("is read from the request only for days this trip has, with names", () => {
+    expect(readWaitingChange(undefined, 3)).toBeUndefined();
+    expect(readWaitingChange({ days: "x" }, 3)).toBeUndefined();
+    expect(readWaitingChange({ days: [{ day_number: 9, activities: [] }] }, 3)).toBeUndefined();
+    expect(readWaitingChange({ days: [{ day_number: 2, activities: [{ name: 5 }] }] }, 3)).toBeUndefined();
+    const ok = readWaitingChange({ days: [waitingDay2(), { day_number: 0, activities: [] }], reason: "r".repeat(700) }, 3);
+    expect(ok?.days.map((d) => d.day_number)).toEqual([2]);
+    expect(ok?.reason).toHaveLength(600);
+  });
+
+  it("says a day whose activities only move changes times", () => {
+    const moved = { ...trip()[2], activities: [act("c1", "Howth Cliff Walk", { start_time: "11:00" })] };
+    expect(waitingLines(trip(), [moved])).toEqual(["Day 3: changes times"]);
   });
 });
 

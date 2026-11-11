@@ -139,6 +139,34 @@ describe("a model call's retries", () => {
     expect(model.answers).toHaveLength(1);
   });
 
+  it("mends a quote the model left unescaped instead of asking for another plan", async () => {
+    quiet();
+    const plan = {
+      destination: { name: "Rome", country: "Italy" },
+      days: [
+        {
+          day_number: 1,
+          date: "2027-05-10",
+          theme: "Old Rome",
+          activities: [{ name: "Pantheon", type: "attraction", time_slot: "morning", description: 'The "oculus" at noon', coordinates: { lat: 41.8986, lng: 12.4769 } }],
+        },
+      ],
+      trip_summary: { total_estimated_cost: 100, currency: "EUR", highlights: [], packing_suggestions: [] },
+    };
+    model.answers.push(says(JSON.stringify(plan).replace('The \\"oculus\\" at noon', 'The "oculus" at noon')));
+    const trip = await gemini.generateItinerary({
+      destination: "Rome, Italy",
+      startDate: "2027-05-10",
+      endDate: "2027-05-10",
+      budgetTier: "balanced",
+      pace: "moderate",
+      vibes: ["cultural"],
+      interests: [],
+    } as TripCreationParams);
+    expect(trip.days[0].activities[0].description).toBe('The "oculus" at noon');
+    expect(model.names).toHaveLength(1);
+  });
+
   it("names the root cause when a trip cannot be generated, and keeps it as the cause", async () => {
     quiet();
     vi.useFakeTimers();

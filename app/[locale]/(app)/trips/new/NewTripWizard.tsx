@@ -37,7 +37,8 @@ import type { Diet } from "@/lib/trips/diet";
 // Step-1 components (above-the-fold) stay eager.
 import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
 import type { PlacePrediction } from "@/components/ui/DestinationAutocomplete";
-import { isTripSentence, matchesPlace, pencilledDates, readTripSentence } from "@/lib/wizard/trip-sentence";
+import { isTripSentence, looksLikeRequest, matchesPlace, pencilledDates, readTripSentence } from "@/lib/wizard/trip-sentence";
+import { fetchReading, fillOf } from "@/lib/wizard/request-reading";
 import AnchorEditor from "@/components/trip/AnchorEditor";
 import { buildSeasonalContext } from "@/lib/seasonal";
 import { generateWithRecovery } from "@/lib/wizard/generation-recovery";
@@ -128,6 +129,7 @@ function preloadResultViewChunks(): void {
   warm(import("@/components/trip/AnonymousShareButton").then((m) => { warmedShareButton = m.default; }));
 }
 import { useItineraryDraft } from "@/hooks/useItineraryDraft";
+import { useDebounce } from "@/hooks/useDebounce";
 import { useDraftRestore } from "@/hooks/useDraftRestore";
 import { useGeneratedPlan } from "@/hooks/useGeneratedPlan";
 import { useKeptPlan } from "@/hooks/useKeptPlan";
@@ -159,7 +161,7 @@ import {
   type GenerationReport,
 } from "@/lib/wizard/generation-reports";
 import { applyAnswers, applySessionTrip, type DraftTargets } from "@/lib/wizard/apply-draft";
-import { FRESH_ANSWERS, keptPlanOf, sessionTripOf, withUndatedItems, type WizardAnswers } from "@/lib/wizard/answers";
+import { FRESH_ANSWERS, keptPlanOf, sessionTripOf, withNote, withUndatedItems, type WizardAnswers } from "@/lib/wizard/answers";
 import { generationRequest, routeLegs } from "@/lib/wizard/generation-request";
 import {
   classifyGenerationFailure,
@@ -169,7 +171,6 @@ import {
 // Session generation counter + per-session trip stack.
 import { useSessionTripStack } from "@/hooks/useSessionTripStack";
 import { useCurrency } from "@/lib/locale";
-import WizardReplay from "@/components/trip/WizardReplay";
 import { trackDestinationSelected } from "@/lib/analytics";
 import { captureTripWizardStepCompleted } from "@/lib/posthog/events";
 import type { TripIntent } from "@/lib/posthog/events";
@@ -194,7 +195,7 @@ import SameTripPrompt from "@/components/wizard/SameTripPrompt";
 import ResultActionBars from "@/components/wizard/ResultActionBars";
 import ResultItinerary, { MAP_SECTION_ID, ResultOverview } from "@/components/wizard/ResultItinerary";
 import SkyPlan from "@/components/sky/SkyPlan";
-import { assignSky, type SkyAssignment } from "@/lib/experiments/result-sky";
+import { assignSky, syncSkyArm, type SkyAssignment } from "@/lib/experiments/result-sky";
 import PreferencesStep from "@/components/wizard/PreferencesStep";
 import WizardFooter from "@/components/wizard/WizardFooter";
 import DestinationField from "@/components/wizard/DestinationField";
@@ -274,6 +275,9 @@ function capitalizeFreeText(param: string | null | undefined): string {
 
 // Vibes for a one-sentence plan that names none: generation needs at least one.
 const EXPRESS_VIBES: TripVibe[] = ["cultural", "foodie"];
+
+// How long the destination's text stays as typed before it is offered as a request to read.
+const REQUEST_SETTLE_MS = 600;
 
 /**
  * The place a one-sentence plan names, as the destination search knows it
@@ -355,7 +359,7 @@ export default function NewTripPage({
     });
   });
   useEffect(() => {
-    if (skyTest.counted) onPostHogReady((posthog) => posthog.register({ result_variant: skyTest.arm }));
+    onPostHogReady((posthog) => syncSkyArm(posthog, skyTest));
   }, [skyTest]);
   // Snapshot ?auth_event on the FIRST render. AuthEventTracker strips it with
   // history.replaceState as soon as auth resolves, and useSearchParams follows
@@ -527,6 +531,8 @@ export default function NewTripPage({
   );
   const [pace, setPace] = useState<TripPace>("moderate");
   const [selectedVibes, setSelectedVibes] = useState<TripVibe[]>([]);
+  // The vibes are the season's suggestion until the traveller picks one.
+  const [vibesSuggested, setVibesSuggested] = useState(false);
   const [requirements, setRequirements] = useState("");
   // Must-do wishlist: undated wishes ("Great Wall", "eat Peking duck")
   // entered as chips on step 2. Distinct from anchors (date-pinned) and from
@@ -667,6 +673,7 @@ export default function NewTripPage({
     (v: TripVibe[]) => {
       trackFieldInteraction("vibe");
       setSelectedVibes(v);
+      setVibesSuggested(false);
     },
     [trackFieldInteraction]
   );
@@ -1177,6 +1184,67 @@ export default function NewTripPage({
     trackFieldInteraction("express_plan");
     generateWhenSetRef.current = true;
     setExpressBusy(false);
+  };
+
+  // A whole trip typed as a request ("18 days in Vietnam in August, family of
+  // four") rather than a place, read into step 1 on request: the place or the
+  // route, the dates and who's going. The words go to the next step's notes
+  // either way, so a request that can't be read loses nothing. Offered once
+  // the typing pauses: "4 days in R", on the way to "4 days in Rome", is no
+  // request, and the one-sentence card takes over a key later.
+  const settledDestination = useDebounce(destination, REQUEST_SETTLE_MS);
+  const requestLike =
+    step === 1 &&
+    !expressTrip &&
+    !(MULTI_CITY_ENABLED && multiCityMode) &&
+    destination === settledDestination &&
+    looksLikeRequest(destination);
+  const [readingRequest, setReadingRequest] = useState(false);
+  // What a reading filled in, shown while the field still holds it.
+  const [requestFilled, setRequestFilled] = useState<{ destination: string; capped: number | null } | null>(null);
+
+  const handleReadRequest = async (): Promise<"filled" | "kept"> => {
+    const text = destination.trim();
+    setReadingRequest(true);
+    trackFieldInteraction("read_request");
+    const today = localTodayISO();
+    const reading = await fetchReading(text, locale, today);
+    const chosen = startDate && endDate && !flexibleDates ? { start: startDate, end: endDate } : null;
+    const fill = reading ? fillOf(reading, { today, multiCity: MULTI_CITY_ENABLED, chosen }) : null;
+    setRequirements((prev) => withNote(prev, text));
+    // The time, who's going, vibes and budget, for the place filled in or picked next.
+    const keepDetails = (f: NonNullable<typeof fill>) => {
+      if (f.startDate) {
+        setStartDate(f.startDate);
+        setEndDate(f.endDate);
+        setFlexibleDates(!f.datesSaid);
+      }
+      if (f.vibes.length > 0) setSelectedVibes(f.vibes);
+      if (f.intent) setTripIntent(f.intent);
+      if (f.budget) setBudgetTier(f.budget === "luxury" ? "premium" : "budget");
+    };
+    if (!fill?.destination) {
+      setDestination("");
+      if (fill) keepDetails(fill);
+      setReadingRequest(false);
+      return "kept";
+    }
+    let filledAs = fill.destination;
+    if (fill.route) {
+      // The route's mirror sets the destination and the end date from the rows.
+      setMultiCityMode(true);
+      setCityRows(fill.route);
+    } else {
+      const place = await findExpressPlace(fill.destination, locale);
+      filledAs = place ? (place.fullText.length <= DESTINATION_MAX_LENGTH ? place.fullText : place.mainText) : fill.destination;
+      setDestination(filledAs);
+      setDestinationCoords(place?.coordinates ?? null);
+      if (place?.coordinates) coordsPlaceRef.current = filledAs;
+    }
+    keepDetails(fill);
+    setRequestFilled({ destination: filledAs, capped: fill.capped });
+    setReadingRequest(false);
+    return "filled";
   };
 
   // The assistant offered another place for the whole trip and the traveller
@@ -1732,7 +1800,10 @@ export default function NewTripPage({
     if (step === 1 && seasonalContext && selectedVibes.length === 0 && startDate) {
       try {
         const seed = seasonalVibeSeed(seasonalContext, startDate);
-        if (seed.length > 0) setSelectedVibes(seed);
+        if (seed.length > 0) {
+          setSelectedVibes(seed);
+          setVibesSuggested(true);
+        }
       } catch (err) {
         // Non-fatal: if the helper throws, step 2 just
         // starts empty.
@@ -1745,7 +1816,6 @@ export default function NewTripPage({
   // Wizard form
   return (
     <div className="min-h-screen bg-[var(--background)]">
-      <WizardReplay />
       {/* Auth Prompt Modal - for gradual engagement */}
       <AuthPromptModal
         isOpen={showAuthModal}
@@ -1847,7 +1917,22 @@ export default function NewTripPage({
               popularPicks={popularPicks}
               inSeasonMonth={inSeasonMonth}
               handleOneTapStart={handleOneTapStart}
+              onKeepAsNote={() => {
+                setRequirements((prev) => withNote(prev, destination));
+                setDestination("");
+              }}
+              requestLike={requestLike}
+              readingRequest={readingRequest}
+              onReadRequest={handleReadRequest}
             />
+
+            {/* What a request filled in (a route hides the field above, so it sits here). */}
+            {requestFilled && destination === requestFilled.destination && (
+              <p className="text-sm text-[var(--foreground)]" aria-live="polite">
+                {t("wizard.step1.request.filled")}
+                {requestFilled.capped !== null && ` ${t("wizard.step1.request.capped", { max: requestFilled.capped })}`}
+              </p>
+            )}
 
             {/* Multi-city toggle — gated by NEXT_PUBLIC_MULTI_CITY_ENABLED.
                 Sits directly after the destination block in both states, so
@@ -1911,6 +1996,7 @@ export default function NewTripPage({
             destination={destination}
             selectedVibes={selectedVibes}
             handleVibesChange={handleVibesChange}
+            vibesSuggested={vibesSuggested}
             mustDos={mustDos}
             setMustDos={setMustDos}
             mustDoInput={mustDoInput}
@@ -1945,6 +2031,7 @@ export default function NewTripPage({
           setDatesPencilled={setDatesPencilled}
           handleContinue={handleContinue}
           handleGenerate={handleGenerate}
+          readOffered={requestLike}
         />
       </main>
 

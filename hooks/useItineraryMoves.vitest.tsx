@@ -41,7 +41,7 @@ let frames: FrameRequestCallback[] = [];
 function useHarness(undo: () => void) {
   const [itinerary, setItinerary] = useState(PLAN);
   const moves = useItineraryMoves({ tripId: "trip-1", itinerary, setItinerary, pushUndo, undo, focusDay });
-  return { itinerary, moves };
+  return { itinerary, setItinerary, moves };
 }
 const render = (undo: () => void = vi.fn()) =>
   renderHook(({ undo }) => useHarness(undo), { initialProps: { undo } });
@@ -62,6 +62,18 @@ afterEach(() => {
 });
 
 describe("useItineraryMoves: the card's Move to another day sheet", () => {
+  // A card that didn't re-render calls the moveToDay it was given earlier: the
+  // move must start from the plan as it is, or what came since is lost.
+  it("moves within the plan as it is now, from a handler kept since an earlier render", () => {
+    const { result } = render();
+    const moveFromEarlier = result.current.moves.moveToDay;
+    const withCheckIn = PLAN.map((d, i) => (i === 0 ? { ...d, activities: [...d.activities, activity("a3", "21:00")] } : d));
+    act(() => result.current.setItinerary(withCheckIn as unknown as ItineraryDay[]));
+
+    act(() => moveFromEarlier("a1", 1));
+    expect(ids(result.current.itinerary)).toEqual([["a2", "a3"], ["a1", "b1"]]);
+  });
+
   it("lands the activity in the chosen day's time order, with one undo entry, the day in view and an Undo toast", () => {
     const { result } = render();
     act(() => result.current.moves.moveToDay("b1", 0));
@@ -82,6 +94,14 @@ describe("useItineraryMoves: the card's Move to another day sheet", () => {
       from_day_number: 2,
       method: "menu",
     });
+  });
+
+  it("keeps the times the traveller had: the moved stop's own, and every one on both days", () => {
+    const { result } = render();
+    act(() => result.current.moves.moveToDay("a2", 1));
+
+    const times = result.current.itinerary.map((d) => d.activities.map((a) => `${a.start_time} ${a.id}`));
+    expect(times).toEqual([["09:00 a1"], ["10:00 b1", "14:00 a2"]]);
   });
 
   it("counts only the first move as the first modification", () => {

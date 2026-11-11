@@ -1,11 +1,14 @@
 import { describe, it, expect } from "vitest";
-import type { GeneratedItinerary } from "@/types";
+import type { Activity, GeneratedItinerary } from "@/types";
 import {
   joinCities,
   addDaysISO,
   validateLegs,
   mergeCityItineraries,
   MultiCityError,
+  mustDosOfOtherCities,
+  placesInOtherCities,
+  withoutOtherCitiesPlaces,
   type CityLeg,
 } from "./multi-city-core";
 
@@ -199,5 +202,87 @@ describe("mergeCityItineraries", () => {
     expect(() => mergeCityItineraries(legs, [results[0]], "2026-05-10")).toThrow(
       MultiCityError
     );
+  });
+});
+
+// Asked with the whole trip's must-dos, Seoul's plan put Busan's sights on its days.
+describe("withoutOtherCitiesPlaces", () => {
+  const place = (name: string, lat?: number, lng?: number, type = "attraction") =>
+    ({ name, type, time_slot: "morning", start_time: "10:00", duration_minutes: 90, ...(lat !== undefined ? { coordinates: { lat, lng } } : {}) }) as unknown as Activity;
+  const city = (name: string, days: Activity[][]): GeneratedItinerary => ({
+    ...cityResult(name, days.length),
+    days: days.map((activities, i) => ({ day_number: i + 1, date: "2000-01-01", activities })),
+  });
+  const busan = city("Busan", [
+    [place("Gamcheon Culture Village", 35.0975, 129.0106), place("Jagalchi Market", 35.0966, 129.0306), place("Jeju Olle Trail", 33.4996, 126.5312)],
+    [place("Haeundae Beach", 35.1587, 129.1604), place("Gyeongbokgung Palace", 37.5796, 126.977)],
+  ]);
+  const seoul = city("Seoul", [
+    [place("Train to Seoul", 35.1151, 129.0414, "transport"), place("Bukchon Hanok Village", 37.5826, 126.9831), place("Songdo Cable Car", 35.0758, 129.0166)],
+    [place("Gangchon Rail Bike", 37.8178, 127.6248), place("N Seoul Tower", 37.5512, 126.9882), place("Myeongdong street food"), place("Gamcheon Culture Village", 35.0975, 129.0106)],
+  ]);
+  const names = (r: GeneratedItinerary) => r.days.map((d) => d.activities.map((a) => a.name));
+
+  it("leaves each city's places on its own days, and the others out", () => {
+    const { results: kept, dropped } = withoutOtherCitiesPlaces([busan, seoul]);
+    expect(names(kept[0])).toEqual([["Gamcheon Culture Village", "Jagalchi Market", "Jeju Olle Trail"], ["Haeundae Beach"]]);
+    // Far from both, Jeju isn't in Seoul. The train between them, a day trip out of Seoul,
+    // and a place with no point stay too.
+    expect(names(kept[1])).toEqual([["Train to Seoul", "Bukchon Hanok Village"], ["Gangchon Rail Bike", "N Seoul Tower", "Myeongdong street food"]]);
+    expect(dropped).toEqual(["Gyeongbokgung Palace", "Songdo Cable Car", "Gamcheon Culture Village"]);
+    expect(withoutOtherCitiesPlaces([busan, seoul]).strayed).toEqual([0, 1]);
+  });
+
+  it("names the must-dos another city's plan holds, by the words that tell them apart", () => {
+    const mustDos = ["gamcheon culture village", "haedong yonggungsa temple", "gyeongbukgung palace", "busan tower", "jagalchi"];
+    expect(mustDosOfOtherCities(mustDos, [busan, seoul], 1)).toEqual(["gamcheon culture village", "jagalchi"]);
+    // Its own city's plan doesn't count, and a kind of place alone ("tower") isn't one…
+    expect(mustDosOfOtherCities(["n seoul tower", "busan tower"], [busan, seoul], 1)).toEqual([]);
+    // …nor needed: "Haedong Yonggungsa" is the temple.
+    const temple = city("Busan", [[place("Haedong Yonggungsa", 35.1884, 129.2233)]]);
+    expect(mustDosOfOtherCities(["haedong yonggungsa temple"], [temple, seoul], 1)).toEqual(["haedong yonggungsa temple"]);
+    // One word of it is another place.
+    const village = city("Busan", [[place("Haedong Haenyeo Chon", 35.1891, 129.2232)]]);
+    expect(mustDosOfOtherCities(["haedong yonggungsa temple"], [village, seoul], 1)).toEqual([]);
+  });
+
+  // The plan made before: Seoul's last two days held only Busan's must-dos.
+  it("finds a city's own places when most of its plan is another city's", () => {
+    const mostlyBusan = city("Seoul", [
+      [place("Seoul Grand Park", 37.4363, 127.0122), place("Banpo Bridge Rainbow Fountain", 37.5106, 126.9958)],
+      [place("Haedong Yonggungsa Temple", 35.1884, 129.2233), place("Skyline Luge Busan", 35.1964, 129.2148), place("Songdo Cable Car", 35.0758, 129.0166)],
+    ]);
+    const { results: kept, dropped } = withoutOtherCitiesPlaces([busan, mostlyBusan]);
+    expect(names(kept[1])).toEqual([["Seoul Grand Park", "Banpo Bridge Rainbow Fountain"], []]);
+    expect(dropped).toEqual(["Gyeongbokgung Palace", "Haedong Yonggungsa Temple", "Skyline Luge Busan", "Songdo Cable Car"]);
+    // A city with no area of its own keeps its plan as it is.
+    const allBusan = city("Seoul", [[place("Songdo Cable Car", 35.0758, 129.0166)]]);
+    const withoutArea = withoutOtherCitiesPlaces([busan, allBusan]);
+    expect(names(withoutArea.results[1])).toEqual([["Songdo Cable Car"]]);
+    // Nor does it take the other city's area from it.
+    expect(withoutArea.dropped).toEqual([]);
+  });
+
+  it("takes a city's area from most of its places, not its first", () => {
+    const seoulFirst = city("Busan", [[place("Gyeongbokgung Palace", 37.5796, 126.977), place("Gamcheon Culture Village", 35.0975, 129.0106), place("Jagalchi Market", 35.0966, 129.0306)]]);
+    expect(withoutOtherCitiesPlaces([seoulFirst, seoul]).dropped).toEqual(["Gyeongbokgung Palace", "Songdo Cable Car", "Gamcheon Culture Village"]);
+  });
+
+  it("names the city each place out of its own is in", () => {
+    const at = (city: string, lat: number, lng: number) => ({ city, point: { lat, lng } });
+    const away = placesInOtherCities([at("busan", 35.0975, 129.0106), at("busan", 35.1587, 129.1604), at("seoul", 37.5796, 126.977), at("seoul", 35.0758, 129.0166)]);
+    expect([...away]).toEqual([[3, "busan"]]);
+  });
+
+  it("keeps a day trip between cities close together", () => {
+    const kyoto = city("Kyoto", [[place("Fushimi Inari", 34.9671, 135.7727), place("Osaka Castle", 34.6873, 135.5262)]]);
+    const osaka = city("Osaka", [[place("Dotonbori", 34.6687, 135.5013)]]);
+    expect(withoutOtherCitiesPlaces([kyoto, osaka]).dropped).toEqual([]);
+  });
+
+  it("changes nothing on a trip to one place, or with no points", () => {
+    expect(withoutOtherCitiesPlaces([busan]).dropped).toEqual([]);
+    const blank = city("Seoul", [[place("Somewhere")]]);
+    expect(withoutOtherCitiesPlaces([busan, blank]).dropped).toEqual([]);
   });
 });

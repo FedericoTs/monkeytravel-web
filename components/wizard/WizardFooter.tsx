@@ -28,6 +28,7 @@ export default function WizardFooter({
   setDatesPencilled,
   handleContinue,
   handleGenerate,
+  readOffered = false,
 }: {
   footerRef: RefObject<HTMLDivElement | null>;
   step: number;
@@ -48,6 +49,8 @@ export default function WizardFooter({
   setDatesPencilled: (pencilled: boolean) => void;
   handleContinue: () => void;
   handleGenerate: () => Promise<void>;
+  /** Step 1's text is a whole trip, offered to be read: that offer says what to do, so no hint here. */
+  readOffered?: boolean;
 }) {
   const t = useTranslations("trips");
   return (
@@ -59,7 +62,7 @@ export default function WizardFooter({
         Continue button is disabled with no visible reason, so users
         who don't realize what unlocks it just leave. Name the first
         blocker so the path forward is always obvious. */}
-    {step === 1 && !expressTrip && !canProceed() && (
+    {step === 1 && !expressTrip && !readOffered && !canProceed() && (
       <p aria-live="polite" className="mb-2 text-center text-xs font-medium text-slate-500 sm:text-left">
         {footerStateB
           ? t("wizard.step1.hintFlexibleDefault", { days: 5 })

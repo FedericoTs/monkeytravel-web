@@ -13,6 +13,7 @@ import { CalendarDays, Pencil, Sparkles, Trash2 } from "lucide-react";
 import TripActionsMenu, { TripActionsMenuItem } from "./TripActionsMenu";
 import MoveToDaySheet, { type MoveToDayOption } from "./MoveToDaySheet";
 import UnverifiedNote from "./UnverifiedNote";
+import DurationSelect from "./DurationSelect";
 import { normalizeActivityType } from "@/lib/trip/activity-type";
 import { ActivityCardDetails, ActivityKindIcon } from "./ActivityCardParts";
 import { Spinner } from "@/components/ui/Spinner";
@@ -60,6 +61,27 @@ export interface EditableActivityCardProps {
   onRemoveVote?: () => Promise<void>;
 }
 
+/** The editor's fields, from the stop as it is. */
+function editValuesOf(activity: Activity) {
+  return {
+    start_time: activity.start_time,
+    duration_minutes: activity.duration_minutes,
+    name: activity.name,
+    description: activity.description,
+  };
+}
+
+/** A name, a clock time, and a duration from 5 minutes to a day. */
+function canSaveEdit(values: ReturnType<typeof editValuesOf>): boolean {
+  return (
+    values.name.trim() !== "" &&
+    /^([01]\d|2[0-3]):[0-5]\d$/.test(values.start_time ?? "") &&
+    Number.isFinite(values.duration_minutes) &&
+    values.duration_minutes >= 5 &&
+    values.duration_minutes <= 24 * 60
+  );
+}
+
 function EditableActivityCard({
   activity,
   index,
@@ -93,15 +115,10 @@ function EditableActivityCard({
   const price = priceOf(activity, currency);
   const typeLabel = useActivityTypeLabel();
   const [expanded, setExpanded] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showMoveSheet, setShowMoveSheet] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editValues, setEditValues] = useState({
-    start_time: activity.start_time,
-    duration_minutes: activity.duration_minutes,
-    name: activity.name,
-    description: activity.description,
-  });
+  const [editValues, setEditValues] = useState(() => editValuesOf(activity));
+  const canSave = canSaveEdit(editValues);
 
   // Handle photo capture from PlaceGallery
   const handlePhotoCapture = (photoUrl: string) => {
@@ -118,23 +135,29 @@ function EditableActivityCard({
   const kind = normalizeActivityType(activity.type, activity.name);
   const colors = getActivityTypeColors(kind);
 
+  // The editor opens on the stop as it is now: a reorder, a regenerate or an
+  // undo changes it while this card stays mounted.
+  const startEditing = () => {
+    setEditValues(editValuesOf(activity));
+    setIsEditing(true);
+  };
+
+  // Tapping the stop itself opens its editor, as the page's hint says. Its
+  // buttons, links and fields keep their own jobs, and the pencil stays the
+  // way in from a keyboard.
+  const handleCardTap = (e: React.MouseEvent) => {
+    if (!isEditMode || isEditing) return;
+    if ((e.target as HTMLElement).closest("button, a, input, textarea, select, [role='button'], [role='menuitem']")) return;
+    startEditing();
+  };
+
   const handleSaveEdit = () => {
-    onUpdate({
-      start_time: editValues.start_time,
-      duration_minutes: editValues.duration_minutes,
-      name: editValues.name,
-      description: editValues.description,
-    });
+    onUpdate({ ...editValues, name: editValues.name.trim() });
     setIsEditing(false);
   };
 
   const handleCancelEdit = () => {
-    setEditValues({
-      start_time: activity.start_time,
-      duration_minutes: activity.duration_minutes,
-      name: activity.name,
-      description: activity.description,
-    });
+    setEditValues(editValuesOf(activity));
     setIsEditing(false);
   };
 
@@ -186,7 +209,7 @@ function EditableActivityCard({
         <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5" data-testid="activity-actions">
           <button
             type="button"
-            onClick={() => setIsEditing(true)}
+            onClick={startEditing}
             className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-slate-700 shadow-md transition-colors hover:bg-slate-50"
             title={t('editActivity.editActivity')}
             aria-label={t('editActivity.editActivity')}
@@ -201,7 +224,7 @@ function EditableActivityCard({
               {t('editActivity.regenerateWithAI')}
             </TripActionsMenuItem>
             <TripActionsMenuItem
-              onClick={() => setShowDeleteConfirm(true)}
+              onClick={onDelete}
               icon={<Trash2 className="h-4 w-4" aria-hidden="true" />}
               tone="danger"
             >
@@ -225,38 +248,6 @@ function EditableActivityCard({
         }}
       />
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && (
-        <div className="absolute inset-0 bg-white/95 rounded-xl z-20 flex items-center justify-center p-4">
-          <div className="text-center">
-            <div className="w-12 h-12 rounded-full bg-red-100 text-red-500 flex items-center justify-center mx-auto mb-3">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </div>
-            <h4 className="font-semibold text-slate-900 mb-1">{t('editActivity.deleteConfirmTitle')}</h4>
-            <p className="text-sm text-slate-600 mb-4">{t('editActivity.deleteConfirmMessage', { name: activity.name })}</p>
-            <div className="flex items-center justify-center gap-2">
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
-              >
-                {tc('buttons.cancel')}
-              </button>
-              <button
-                onClick={() => {
-                  onDelete();
-                  setShowDeleteConfirm(false);
-                }}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
-              >
-                {tc('buttons.delete')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Image Thumbnail - matches ActivityCard design */}
       {activity.image_url && (
         <div className={`relative h-32 sm:h-40 w-full overflow-hidden ${
@@ -279,10 +270,10 @@ function EditableActivityCard({
       )}
 
       {/* Main Content */}
-      <div className="p-3 sm:p-4">
+      <div className={`p-3 sm:p-4 ${isEditMode && !isEditing ? "cursor-pointer" : ""}`} onClick={handleCardTap}>
         <div className="flex gap-3 sm:gap-4">
           {/* Time Column - hidden on mobile */}
-          <div className="hidden sm:flex flex-shrink-0 text-center w-16 flex-col">
+          <div className={`hidden sm:flex flex-shrink-0 text-center flex-col ${isEditing ? "w-28" : "w-16"}`}>
             {isEditing ? (
               <input
                 aria-label={tc("activity.startTime")}
@@ -297,14 +288,11 @@ function EditableActivityCard({
               </div>
             )}
             {isEditing ? (
-              <input
-                aria-label={tc("addActivity.duration")}
-                type="number"
+              <DurationSelect
+                label={tc("addActivity.duration")}
                 value={editValues.duration_minutes}
-                onChange={(e) => setEditValues({ ...editValues, duration_minutes: parseInt(e.target.value) || 0 })}
+                onChange={(minutes) => setEditValues({ ...editValues, duration_minutes: minutes })}
                 className="w-full text-xs border border-slate-200 rounded px-1 py-1 mt-1"
-                min="15"
-                step="15"
               />
             ) : (
               <div className="text-xs text-slate-500">
@@ -337,16 +325,12 @@ function EditableActivityCard({
                     className="text-sm border border-slate-200 rounded px-2 py-1 w-24"
                   />
                   <span className="text-slate-500">·</span>
-                  <input
-                    aria-label={tc("addActivity.duration")}
-                    type="number"
+                  <DurationSelect
+                    label={tc("addActivity.duration")}
                     value={editValues.duration_minutes}
-                    onChange={(e) => setEditValues({ ...editValues, duration_minutes: parseInt(e.target.value) || 0 })}
-                    className="text-sm border border-slate-200 rounded px-2 py-1 w-16"
-                    min="15"
-                    step="15"
+                    onChange={(minutes) => setEditValues({ ...editValues, duration_minutes: minutes })}
+                    className="text-sm border border-slate-200 rounded px-2 py-1"
                   />
-                  <span className="text-slate-500 text-xs">min</span>
                 </>
               ) : (
                 <>
@@ -375,6 +359,11 @@ function EditableActivityCard({
                     />
                   ) : (
                     <h4 className="font-semibold text-slate-900 text-base sm:text-lg">
+                      {activity.locked && (
+                        <span className="mr-1" title={tc("lockedActivity")} aria-label={tc("lockedActivity")}>
+                          📌
+                        </span>
+                      )}
                       {activity.name}
                     </h4>
                   )}
@@ -442,7 +431,8 @@ function EditableActivityCard({
                 </button>
                 <button
                   onClick={handleSaveEdit}
-                  className="px-3 py-1.5 text-sm font-medium text-white bg-[var(--primary)] hover:bg-[var(--primary)]/90 rounded-lg transition-colors"
+                  disabled={!canSave}
+                  className="px-3 py-1.5 text-sm font-medium text-white bg-[var(--primary)] hover:bg-[var(--primary)]/90 rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {t('detail.saveChanges')}
                 </button>
@@ -557,15 +547,10 @@ export default memo(EditableActivityCard, (prevProps, nextProps) => {
   if (prevProps.dayOptions !== nextProps.dayOptions) return false;
   if (prevProps.currency !== nextProps.currency) return false;
 
-  // Check key activity properties that affect rendering
-  const prev = prevProps.activity;
-  const next = nextProps.activity;
-  if (prev.name !== next.name) return false;
-  if (prev.start_time !== next.start_time) return false;
-  if (prev.duration_minutes !== next.duration_minutes) return false;
-  if (prev.image_url !== next.image_url) return false;
-  if (prev.type !== next.type) return false;
-  if (prev.description !== next.description) return false;
+  // The stop itself. The plan is updated immutably, so a new object is a
+  // changed stop, whatever changed in it (its price, its place, a booking);
+  // an unchanged stop keeps its object.
+  if (prevProps.activity !== nextProps.activity) return false;
 
   // Voting props
   if (prevProps.votingEnabled !== nextProps.votingEnabled) return false;

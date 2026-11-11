@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { Link } from "@/lib/i18n/routing";
 import DestinationAutocomplete, { type PlacePrediction } from "@/components/ui/DestinationAutocomplete";
 import OneTapStarts, { type OneTapPlace } from "@/components/wizard/OneTapStarts";
 import type { TripWizardFieldInteractedEvent } from "@/lib/posthog/events";
@@ -30,6 +32,10 @@ export default function DestinationField({
   popularPicks,
   inSeasonMonth,
   handleOneTapStart,
+  onKeepAsNote,
+  requestLike = false,
+  readingRequest = false,
+  onReadRequest,
 }: {
   multiCityMode: boolean;
   destination: string;
@@ -42,8 +48,26 @@ export default function DestinationField({
   popularPicks: OneTapPlace[];
   inSeasonMonth: number | null;
   handleOneTapStart: (place: OneTapPlace, index: number) => void;
+  /** Moves a request typed here to the next step's notes and empties the field. */
+  onKeepAsNote: () => void;
+  /** The field holds a whole trip described in words, not a place or a list of places. */
+  requestLike?: boolean;
+  /** The request is being read. */
+  readingRequest?: boolean;
+  /**
+   * Fills step 1 in from the request; the words go to the next step's notes as
+   * well, and only there ("kept") when no place could be read from them.
+   */
+  onReadRequest?: () => Promise<"filled" | "kept">;
 }) {
   const t = useTranslations("trips");
+  const [movedNote, setMovedNote] = useState(false);
+  // A request gets one offer to be read, instead of the warnings a place name gets.
+  const offerReading = !expressTrip && requestLike && Boolean(onReadRequest);
+  const keepAsNote = () => {
+    onKeepAsNote();
+    setMovedNote(true);
+  };
   return (
     <div className={multiCityMode ? "hidden" : undefined}>
       <div
@@ -56,6 +80,7 @@ export default function DestinationField({
         value={destination}
         onChange={(v) => {
           trackFieldInteraction("destination_autocomplete");
+          if (v) setMovedNote(false);
           setDestination(v);
         }}
         onSelect={(p) => {
@@ -79,7 +104,7 @@ export default function DestinationField({
           enforces (DESTINATION_ALLOWLIST). Shown the
           moment the input goes invalid instead of letting the user
           fill the whole form and fail at generate. */}
-      {!expressTrip && destination.length >= 2 && !DESTINATION_ALLOWLIST.test(destination) && (
+      {!expressTrip && !offerReading && destination.length >= 2 && !DESTINATION_ALLOWLIST.test(destination) && (
         <p role="alert" className="mt-2 text-xs font-medium text-red-600">
           {t("wizard.step1.destinationInvalidChars")}
         </p>
@@ -90,9 +115,60 @@ export default function DestinationField({
           would pass both the allowlist and the bound, and generate a
           confident itinerary for whatever the first 100 characters
           happened to spell. */}
-      {!expressTrip && destination.length > DESTINATION_MAX_LENGTH && (
-        <p role="alert" className="mt-2 text-xs font-medium text-red-600">
-          {t("wizard.step1.destinationTooLong")}
+      {/* A whole trip in words: read into the fields, or kept for the next step. */}
+      {offerReading && (
+        <div className="mt-3 rounded-2xl border border-[var(--secondary)]/30 bg-[var(--background-warm)] p-4">
+          <p className="text-sm text-[var(--foreground)]">{t("wizard.step1.request.title")}</p>
+          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
+            <button
+              type="button"
+              onClick={async () => {
+                if ((await onReadRequest?.()) === "kept") setMovedNote(true);
+              }}
+              disabled={readingRequest}
+              aria-busy={readingRequest}
+              className="min-h-[44px] shrink-0 rounded-xl bg-[var(--secondary-ink)] px-4 text-sm font-semibold text-white transition-colors hover:bg-[var(--secondary-ink)]/90 disabled:cursor-wait disabled:opacity-70"
+            >
+              {readingRequest ? t("wizard.step1.request.reading") : t("wizard.step1.request.fill")}
+            </button>
+            <button
+              type="button"
+              onClick={keepAsNote}
+              disabled={readingRequest}
+              className="inline-flex min-h-[44px] items-center text-sm font-semibold text-[var(--foreground)] underline underline-offset-4"
+            >
+              {t("wizard.step1.keepAsNote")}
+            </button>
+            <Link href="/where-should-i-go" className="inline-flex min-h-[44px] items-center text-sm font-semibold text-[var(--foreground)] underline underline-offset-4">
+              {t("wizard.step1.findMatch")}
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {!expressTrip && !offerReading && destination.length > DESTINATION_MAX_LENGTH && (
+        <div className="mt-2">
+          <p role="alert" className="text-xs font-medium text-red-600">
+            {t("wizard.step1.destinationTooLong")}
+          </p>
+          {/* The words aren't lost, and someone with no place in mind has the match. */}
+          <div className="mt-1 flex flex-wrap gap-x-5">
+            <button
+              type="button"
+              onClick={keepAsNote}
+              className="inline-flex min-h-[44px] items-center text-sm font-semibold text-[var(--foreground)] underline underline-offset-4"
+            >
+              {t("wizard.step1.keepAsNote")}
+            </button>
+            <Link href="/where-should-i-go" className="inline-flex min-h-[44px] items-center text-sm font-semibold text-[var(--foreground)] underline underline-offset-4">
+              {t("wizard.step1.findMatch")}
+            </Link>
+          </div>
+        </div>
+      )}
+      {movedNote && !destination && (
+        <p className="mt-2 text-sm text-[var(--foreground)]" aria-live="polite">
+          {t("wizard.step1.movedToNotes")}
         </p>
       )}
 

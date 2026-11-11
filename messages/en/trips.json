@@ -60,6 +60,7 @@
       "same": "Your plan moves to these dates. Nothing else changes.",
       "shorter": "Your trip becomes {count, plural, one {# day} other {# days}}: the first days stay, the rest are removed.",
       "longer": "Your trip becomes {count, plural, one {# day} other {# days}}. Your days stay as they are, and the assistant plans the new ones from Day {from}.",
+      "longerEmpty": "Your trip becomes {count, plural, one {# day} other {# days}}. Your days stay as they are, and the new ones from Day {from} start empty, for you or the assistant to plan.",
       "endBeforeStart": "The end date is before the start date.",
       "tooLong": "Trips can be up to {max} days.",
       "pickBoth": "Pick a start and an end date.",
@@ -205,7 +206,17 @@
       "useFlexibleDates": "Use flexible dates",
       "hintFlexibleDefault": "No dates yet? We'll pencil in {days} days about three weeks out — you can change them anytime.",
       "freeReassuranceSignedIn": "Free — your full day-by-day trip, ready to save in one tap",
-      "destinationTooLong": "That looks like a request rather than a place. Put the destination here (max 100 characters) and add the details on the next step."
+      "destinationTooLong": "That looks like a request rather than a place. Put the destination here (max 100 characters) and add the details on the next step.",
+      "keepAsNote": "Move it to the next step",
+      "findMatch": "Not sure where to go? Find my place",
+      "movedToNotes": "Saved for the next step. Now, where are you going?",
+      "request": {
+        "title": "That reads like your whole trip. We can fill in the place and dates from it.",
+        "fill": "Fill in from what I wrote",
+        "reading": "Reading it…",
+        "filled": "Filled in from what you wrote: check the dates, then continue. Your words go to the next step too.",
+        "capped": "Trips can be up to {max} days, so this one has {max}."
+      }
     },
     "express": {
       "title": "Your trip, as we read it",
@@ -586,6 +597,11 @@
     "optimizeRoute": "Optimize Route",
     "optimize": "Optimize",
     "routeOptimized": "Route optimized",
+    "datesChanged": "New dates: {range}.",
+    "datesNotChanged": "Couldn't change the dates. Try again.",
+    "emptyDaysAdded": "New dates: {range}. {count, plural, one {Day {from} is empty: add stops, or ask the assistant to plan it.} other {Days {from}–{to} are empty: add stops, or ask the assistant to plan them.}}",
+    "askAssistant": "Ask the assistant",
+    "planEmptyDays": "{count, plural, one {Plan day {from} for me} other {Plan days {from} to {to} for me}}",
     "routeOptimizedSave": "Route optimized. Save your changes to keep it.",
     "pageTitle": "Trip Details",
     "exitEditing": "Exit",
@@ -605,6 +621,8 @@
     "changesSaved": "Changes saved!",
     "allChangesSaved": "All changes saved",
     "saveFailed": "Couldn't save — tap to retry",
+    "saveFailedNotice": "Your last change wasn't saved.",
+    "retrySave": "Retry",
     "conflictTitle": "This trip was changed somewhere else",
     "conflictBody": "A newer version was saved after you opened this page, by a trip mate or in another tab. Your latest changes are not saved yet.",
     "conflictLoadLatest": "Load latest version",
@@ -655,6 +673,11 @@
     "activityCount": "{count, plural, one {# activity} other {# activities}}",
 
     "movedToDay": "Moved to Day {day}",
+    "removed": "Removed \"{name}\"",
+    "regenerated": "Replaced with \"{name}\"",
+    "madeRoom": "{count, plural, one {The stop after it now starts later} other {# stops after it now start later}}, to make room",
+    "overlap": "Overlaps “{name}” by {duration}",
+    "makeRoom": "Make room",
 
     "dropHere": "Drop here → start of Day {day}",
 
@@ -666,8 +689,6 @@
     "editActivity": "Edit activity",
     "regenerateWithAI": "Regenerate with AI",
     "deleteActivity": "Delete activity",
-    "deleteConfirmTitle": "Delete Activity?",
-    "deleteConfirmMessage": "\"{name}\" will be removed from your itinerary.",
     "regenerating": "Regenerating activity with AI..."
   },
   "addActivity": {

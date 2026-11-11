@@ -33,6 +33,7 @@
  */
 
 import { NextRequest } from "next/server";
+import { waitUntil } from "@vercel/functions";
 import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
@@ -155,22 +156,26 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
       // 'parse_failed' / 'no_booking_found' (Gemini call did happen and
       // incurred cost).
       if (result.error !== "too_short" && result.error !== "model_outage") {
-        // Fire and forget — never let a usage-increment failure break the
-        // user-facing response.
-        void incrementUsage(user.id, "aiAssistantMessages").catch((err) => {
-          console.error(
-            "[parse-confirmation] usage increment failed",
-            err
-          );
-        });
+        // Not awaited — never let a usage-increment failure break the
+        // user-facing response — but in waitUntil, so it outlives it.
+        waitUntil(
+          incrementUsage(user.id, "aiAssistantMessages").catch((err) => {
+            console.error(
+              "[parse-confirmation] usage increment failed",
+              err
+            );
+          })
+        );
       }
       return apiSuccess({ ...result });
     }
 
     // Success — increment the daily counter and return the parsed booking.
-    void incrementUsage(user.id, "aiAssistantMessages").catch((err) => {
-      console.error("[parse-confirmation] usage increment failed", err);
-    });
+    waitUntil(
+      incrementUsage(user.id, "aiAssistantMessages").catch((err) => {
+        console.error("[parse-confirmation] usage increment failed", err);
+      })
+    );
 
     return apiSuccess({ parsed: result });
   } catch (error) {

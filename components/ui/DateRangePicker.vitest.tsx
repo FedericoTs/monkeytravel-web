@@ -84,3 +84,33 @@ describe("the label exists in every language", () => {
     expect(messages.wizard.datePicker.chooseMonth?.trim()).toBeTruthy();
   });
 });
+
+describe("the Weekend preset", () => {
+  function tap(startDate: string, preset = "presetWeekend") {
+    const onStart = vi.fn();
+    const onEnd = vi.fn();
+    render(
+      <DateRangePicker startDate={startDate} endDate="" onStartDateChange={onStart} onEndDateChange={onEnd} minDate="2026-11-01" />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: preset }));
+    return [onStart.mock.calls.at(-1)?.[0], onEnd.mock.calls.at(-1)?.[0]];
+  }
+
+  it.each([
+    ["2026-11-24", "a Tuesday: the coming weekend"],
+    ["2026-11-27", "a Friday: that weekend"],
+    ["2026-11-28", "a Saturday: the weekend it's in"],
+    ["2026-11-29", "a Sunday: the weekend it's in"],
+  ])("from %s (%s) is Friday to Sunday", (start) => {
+    expect(tap(start)).toEqual(["2026-11-27", "2026-11-29"]);
+  });
+
+  it("never starts before the earliest date", () => {
+    // 1 November is a Sunday; its Friday is before the earliest date, so the next weekend.
+    expect(tap("2026-11-01")).toEqual(["2026-11-06", "2026-11-08"]);
+  });
+
+  it("leaves the other lengths starting on the chosen day", () => {
+    expect(tap("2026-11-24", "presetWeek")).toEqual(["2026-11-24", "2026-11-30"]);
+  });
+});

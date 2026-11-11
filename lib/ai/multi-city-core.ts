@@ -14,6 +14,8 @@ import type { GeneratedItinerary, ItineraryDay } from "@/types";
 import { buildTransferActivity, dayWithTransfer } from "./transfer-legs";
 import { flightLink, hotelLinks } from "./booking-links";
 import { addIsoDays } from "@/lib/dates/iso-date";
+import { haversineKm } from "@/lib/map/geo";
+import { isRealPoint } from "@/lib/trip/placeholder-point";
 
 /** Max cities per trip in v1 (caps complexity + generation quality). */
 export const MAX_CITIES = 5;
@@ -94,6 +96,128 @@ export function validateLegs(legs: CityLeg[], expectedTotalNights?: number): voi
       `city nights (${total}) must sum to the trip length (${expectedTotalNights})`
     );
   }
+}
+
+/** Places this close, directly or through others, are in one area. */
+const SAME_AREA_KM = 100;
+
+export type Point = { lat: number; lng: number };
+
+/** The area each point is in, as an index: points chained by SAME_AREA_KM share one. */
+function areasOf(points: Point[]): number[] {
+  const area = points.map((_, i) => i);
+  const root = (i: number): number => (area[i] === i ? i : (area[i] = root(area[i])));
+  for (let i = 0; i < points.length; i++) {
+    for (let j = i + 1; j < points.length; j++) {
+      if (haversineKm(points[i], points[j]) <= SAME_AREA_KM) area[root(i)] = root(j);
+    }
+  }
+  return points.map((_, i) => root(i));
+}
+
+/**
+ * Each city's area: a different one for each, the way that puts the most of the
+ * cities' places at home. A city may have none, and then keeps its plan as it is.
+ */
+function homeAreas(counts: Map<number, number>[]): Map<number, number> {
+  let best = new Map<number, number>();
+  let bestScore = -1;
+  const walk = (city: number, picked: Map<number, number>, score: number) => {
+    if (city === counts.length) {
+      if (score > bestScore) [best, bestScore] = [new Map(picked), score];
+      return;
+    }
+    walk(city + 1, picked, score);
+    for (const [at, n] of counts[city]) {
+      if ([...picked.values()].includes(at)) continue;
+      picked.set(city, at);
+      walk(city + 1, picked, score + n);
+      picked.delete(city);
+    }
+  };
+  walk(0, new Map(), 0);
+  return best;
+}
+
+/**
+ * The places that are in another city's area, each with that city: every place
+ * comes with the city it is planned in. Each city's area is its own (homeAreas),
+ * so a city whose places are mostly another's still finds its own. Cities close
+ * enough to share an area, and a place where no city is, stay where they are.
+ * Pure; unit-tested.
+ */
+export function placesInOtherCities(places: { city: string; point: Point }[]): Map<number, string> {
+  const cities = [...new Set(places.map((p) => p.city))];
+  const area = areasOf(places.map((p) => p.point));
+  const counts = cities.map(() => new Map<number, number>());
+  places.forEach((p, k) => {
+    const c = counts[cities.indexOf(p.city)];
+    c.set(area[k], (c.get(area[k]) ?? 0) + 1);
+  });
+  const home = homeAreas(counts);
+  const cityOf = new Map([...home].map(([c, at]) => [at, cities[c]]));
+  const away = new Map<number, string>();
+  places.forEach((p, k) => {
+    const own = home.get(cities.indexOf(p.city));
+    const other = cityOf.get(area[k]);
+    if (own !== undefined && own !== area[k] && other !== undefined) away.set(k, other);
+  });
+  return away;
+}
+
+/**
+ * Each city's plan without the places it holds in another city's area: every
+ * city is asked with the whole trip's must-dos, and Seoul's days once held
+ * Busan's sights (placesInOtherCities). The travel between cities stays.
+ * Pure; unit-tested.
+ */
+export function withoutOtherCitiesPlaces(results: GeneratedItinerary[]): { results: GeneratedItinerary[]; dropped: string[]; strayed: number[] } {
+  const places = results.flatMap((r, city) =>
+    (r.days ?? []).flatMap((d) =>
+      (d.activities ?? []).filter((a) => a.type !== "transport" && isRealPoint(a.coordinates)).map((a) => ({ city: String(city), a })),
+    ),
+  );
+  const elsewhere = placesInOtherCities(places.map((p) => ({ city: p.city, point: p.a.coordinates as Point })));
+  const away = new Set([...elsewhere.keys()].map((k) => places[k].a));
+  const dropped = places.filter((p) => away.has(p.a)).map((p) => p.a.name);
+  const strayed = [...new Set(places.filter((p) => away.has(p.a)).map((p) => Number(p.city)))];
+  const kept = results.map((r) => ({
+    ...r,
+    days: (r.days ?? []).map((d) => ({ ...d, activities: (d.activities ?? []).filter((a) => !away.has(a)) })),
+  }));
+  return { results: kept, dropped, strayed };
+}
+
+const NOT_DISTINCT = new Set(
+  "the of de la le el los las del di da do dos das and at in a al to on for".split(" ").concat(
+    "temple palace park market museum tower bridge beach castle church cathedral garden gardens village street square".split(" "),
+  ),
+);
+/** The words that tell a place apart: "haedong yonggungsa temple" is "haedong yonggungsa". */
+function distinctWords(name: string): string[] {
+  const words = name
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase()
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter((w) => w.length >= 3);
+  const own = words.filter((w) => !NOT_DISTINCT.has(w));
+  return own.length ? own : words;
+}
+
+/**
+ * The must-dos another city's plan holds: a city asked again is asked without
+ * them, since their city has them. A must-do is held when every word that tells
+ * it apart is in a place's name.
+ */
+export function mustDosOfOtherCities(mustDos: string[], results: GeneratedItinerary[], city: number): string[] {
+  const names = results
+    .flatMap((r, i) => (i === city ? [] : (r.days ?? []).flatMap((d) => (d.activities ?? []).map((a) => a.name))))
+    .map((n) => new Set(distinctWords(n)));
+  return mustDos.filter((m) => {
+    const words = distinctWords(m);
+    return words.length > 0 && names.some((n) => words.every((w) => n.has(w)));
+  });
 }
 
 /**

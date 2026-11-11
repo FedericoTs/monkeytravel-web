@@ -31,6 +31,15 @@ describe("send", () => {
     expect(sync.baseVersion()).toBe(4); // the caller adopts, together with the content
   });
 
+  // New dates and the days moved onto them go in one write: they must never disagree.
+  it("carries the trip's fields that change with the itinerary", async () => {
+    const fetchImpl = vi.fn(() => jsonResponse(200, { trip: { itinerary_version: 5 } }));
+    const sync = createItinerarySync({ tripId: "t1", initialVersion: 4, fetchImpl: fetchImpl as unknown as typeof fetch });
+    await sync.send(JSON.stringify(day("x")), sync.baseVersion(), { start_date: "2026-12-22", end_date: "2026-12-25" });
+    const body = JSON.parse(String((fetchImpl.mock.calls[0] as unknown as [string, RequestInit])[1].body));
+    expect(body).toMatchObject({ start_date: "2026-12-22", end_date: "2026-12-25", baseItineraryVersion: 4, itinerary: day("x") });
+  });
+
   it("omits the base when the page had none (older server)", async () => {
     const fetchImpl = vi.fn(() => jsonResponse(200, { trip: {} }));
     const sync = createItinerarySync({ tripId: "t1", initialVersion: null, fetchImpl: fetchImpl as unknown as typeof fetch });

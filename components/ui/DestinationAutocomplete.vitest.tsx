@@ -76,6 +76,19 @@ const settle = () => act(() => new Promise((r) => setTimeout(r, 0)));
 const searchResults = () => screen.findByRole("option", { name: /^Lisbon\s*Portugal$/ });
 
 describe("destination field (WAI-ARIA combobox)", () => {
+  it("a request too long to be a place isn't searched, and the list closes, leaving the room under the field", async () => {
+    const { input } = renderField();
+    await type(input, "Lis");
+    await searchResults();
+    const searches = () => vi.mocked(fetch).mock.calls.filter(([url]) => !String(url).includes("/popular")).length;
+    const before = searches();
+    const request = "We are a family of four looking for a relaxing holiday with beaches, good food and some culture, not too expensive";
+    fireEvent.change(input, { target: { value: request } });
+    await settle();
+    expect(screen.queryByRole("listbox")).toBeNull();
+    expect(searches()).toBe(before);
+  });
+
   it("the suggestions are a listbox of options the input points at, and not Tab stops", async () => {
     const { input } = renderField();
     await type(input, "Lisba");
@@ -111,6 +124,29 @@ describe("destination field (WAI-ARIA combobox)", () => {
     await searchResults();
     fireEvent.keyDown(input, { key: "Enter" });
     expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ fullText: "Lisbon, Portugal" }));
+  });
+
+  // The popular list stayed under "Lisbon" until the search answered, and a
+  // quick tap on its first row picked Santorini.
+  it("while the search for a typed place runs, shows only the popular places that match it", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        if (url.includes("/api/destinations/popular")) return { json: async () => ({ predictions: POPULAR }) };
+        return new Promise(() => {}); // the search hasn't answered yet
+      })
+    );
+    const { input } = renderField();
+    act(() => input.focus());
+    fireEvent.focus(input);
+    await screen.findByRole("option", { name: /Paris/ });
+    fireEvent.change(input, { target: { value: "Lisbon" } });
+    await settle();
+    expect(screen.queryByRole("option")).toBeNull();
+    expect(screen.queryByRole("listbox")).toBeNull();
+    fireEvent.change(input, { target: { value: "PARÍ" } });
+    await settle();
+    expect(screen.getAllByRole("option").map((o) => o.textContent)).toEqual([expect.stringMatching(/Paris/)]);
   });
 
   it("Enter on the popular list picks nothing: it doesn't answer what was typed", async () => {

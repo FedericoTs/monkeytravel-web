@@ -3,7 +3,7 @@ import { describe, it, expect } from "vitest";
 import type { ItineraryDay } from "@/types";
 import { buildPrompt } from "./edit-prompt";
 import { composeReply } from "./edit-reply";
-import { plainText, validateEdits } from "./edit-validation";
+import { SHORTEST_STOP_MINUTES, plainText, validateEdits } from "./edit-validation";
 import { asksForFreeDay } from "./message-asks";
 
 /**
@@ -25,6 +25,56 @@ const edit = (n: number, names = ["A", "B"], extra: Record<string, unknown> = {}
 });
 
 describe("validateEdits", () => {
+  it("keeps where a new stop is when it's a real point near the trip", () => {
+    const kyoto = [day(1, { activities: [{ ...act("Fushimi Inari-taisha"), coordinates: { lat: 34.967146, lng: 135.772675 } }] as never })];
+    const located = (coordinates: unknown) => ({ ...act("Stop"), coordinates });
+    const out = validateEdits(
+      kyoto,
+      {
+        edits: [
+          {
+            day_number: 1,
+            activities: [
+              located({ lat: 34.994856, lng: 135.78505 }),
+              located({ lat: 48.85837, lng: 2.294481 }),
+              located({ lat: 48.003, lng: 10.004 }),
+              act("Gion"),
+            ],
+          },
+        ],
+        tripLength: null,
+      },
+      "JPY"
+    );
+    expect(out.edits[0].activities.map((a) => a.coordinates)).toEqual([{ lat: 34.994856, lng: 135.78505 }, undefined, undefined, undefined]);
+  });
+
+  it("keeps the short visits asked for, and names a stop set to the shortest a stop can be", () => {
+    // A London walk: "Broadwick Street 5 min, Neal's Yard 10 min, Conduit Court Passage 1 min".
+    const timed = (name: string, duration_minutes: number) => ({ ...act(name), duration_minutes });
+    const out = validateEdits(
+      trip(),
+      {
+        edits: [
+          {
+            day_number: 1,
+            activities: [timed("Broadwick Street", 5), timed("Neal's Yard", 10), timed("Conduit Court Passage", 1), act("Covent Garden")],
+          },
+        ],
+        tripLength: null,
+      },
+      "GBP"
+    );
+    expect(out.edits[0].activities.map((a) => a.duration_minutes)).toEqual([5, 10, SHORTEST_STOP_MINUTES, 90]);
+    expect(SHORTEST_STOP_MINUTES).toBe(5);
+    expect(out.shortest).toEqual(["Conduit Court Passage"]);
+    expect(validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").shortest).toEqual([]);
+    // A day the change doesn't keep (a sixth day of a five-day trip that stays five) names nothing.
+    const sixth = validateEdits(trip(), { edits: [{ day_number: 6, activities: [timed("Conduit Court Passage", 1)] }], tripLength: null }, "GBP");
+    expect(sixth.edits).toEqual([]);
+    expect(sixth.shortest).toEqual([]);
+  });
+
   it("keeps every day of a swap, in day order", () => {
     const out = validateEdits(trip(), { edits: [edit(5), edit(2)], tripLength: null }, "EUR");
     expect(out.edits.map((e) => e.day_number)).toEqual([2, 5]);
@@ -37,6 +87,39 @@ describe("validateEdits", () => {
     expect(refused.tripLength).toBeUndefined();
     expect(refused.lengthRefused).toBe(true);
     expect(refused.edits.map((e) => e.day_number)).toEqual([3]);
+    // Wanting more days is kept either way, so a half-made move can be told apart.
+    expect(refused.wantsMore).toBe(true);
+    expect(validateEdits(trip(), { edits: [edit(6)], tripLength: 6 }, "EUR").wantsMore).toBe(true);
+    expect(validateEdits(trip(), { edits: [edit(3)], tripLength: 5 }, "EUR").wantsMore).toBe(false);
+    expect(validateEdits(trip(), { edits: [], tripLength: 4 }, "EUR").wantsMore).toBe(false);
+  });
+
+  it("says when a reply wants more days than a trip may have, and adds none", () => {
+    const fourteen = Array.from({ length: 14 }, (_, i) => day(i + 1));
+    const over = validateEdits(fourteen, { edits: [edit(15)], tripLength: 15 }, "EUR");
+    expect(over).toMatchObject({ overCap: true, lengthRefused: false });
+    expect(over.tripLength).toBeUndefined();
+    expect(over.edits).toEqual([]);
+    // Up to the cap is fine, and so is a trip through several cities up to its own.
+    expect(validateEdits(fourteen.slice(0, 13), { edits: [edit(14)], tripLength: 14 }, "EUR")).toMatchObject({ tripLength: 14, overCap: false });
+    const cities = fourteen.map((d) => ({ ...d, city: "Dublin" }));
+    expect(validateEdits(cities, { edits: [edit(15)], tripLength: 15 }, "EUR")).toMatchObject({ tripLength: 15, overCap: false });
+    // A trip already past the cap may keep its length.
+    expect(validateEdits(Array.from({ length: 16 }, (_, i) => day(i + 1)), { edits: [edit(3)], tripLength: 16 }, "EUR").overCap).toBe(false);
+  });
+
+  it("says when a reply wants more days than a trip may have, and adds none", () => {
+    const fourteen = Array.from({ length: 14 }, (_, i) => day(i + 1));
+    const over = validateEdits(fourteen, { edits: [edit(15)], tripLength: 15 }, "EUR");
+    expect(over).toMatchObject({ overCap: true, lengthRefused: false });
+    expect(over.tripLength).toBeUndefined();
+    expect(over.edits).toEqual([]);
+    // Up to the cap is fine, and so is a trip through several cities up to its own.
+    expect(validateEdits(fourteen.slice(0, 13), { edits: [edit(14)], tripLength: 14 }, "EUR")).toMatchObject({ tripLength: 14, overCap: false });
+    const cities = fourteen.map((d) => ({ ...d, city: "Dublin" }));
+    expect(validateEdits(cities, { edits: [edit(15)], tripLength: 15 }, "EUR")).toMatchObject({ tripLength: 15, overCap: false });
+    // A trip already past the cap may keep its length.
+    expect(validateEdits(Array.from({ length: 16 }, (_, i) => day(i + 1)), { edits: [edit(3)], tripLength: 16 }, "EUR").overCap).toBe(false);
   });
 
   it("counts a longer trip whose other new days come in the next parts", () => {
@@ -54,11 +137,54 @@ describe("validateEdits", () => {
     expect(out.lengthRefused).toBe(true);
   });
 
-  it("never rewrites a day holding a fixed plan", () => {
-    const locked = [day(1), day(2, { activities: [{ ...act("Flight"), locked: true }] as never }), day(3)];
-    const out = validateEdits(locked, { edits: [edit(2), edit(3)], tripLength: null }, "EUR");
-    expect(out.edits.map((e) => e.day_number)).toEqual([3]);
-    expect(out.lockedDays).toEqual([{ dayNumber: 2, names: ["Flight"] }]);
+  // A day holding a fixed plan was refused whole: "add a museum before my flight" changed nothing.
+  describe("on a day with a fixed plan", () => {
+    const flight = { id: "anchor-f1", anchor_id: "f1", name: "Flight to Lisbon", time_slot: "afternoon", start_time: "15:00", duration_minutes: 120, locked: true };
+    const withFlight = () => [day(1), day(2, { activities: [act("Morning market"), flight] as never }), day(3)];
+    const at = (name: string, start_time: string) => ({ name, start_time });
+    const onDay = (n: number, activities: unknown[], allowEmpty = false) =>
+      validateEdits(withFlight(), { edits: [{ day_number: n, activities }], tripLength: null }, "EUR", allowEmpty);
+    const shown = (out: ReturnType<typeof validateEdits>) => out.edits.map((e) => e.activities.map((a) => `${a.name} ${a.start_time}`));
+
+    it("changes the rest of the day, with the fixed plan as stored", () => {
+      const out = onDay(2, [at("Tile museum", "10:00"), at("Flight to Lisbon", "15:00")]);
+      expect(shown(out)).toEqual([["Tile museum 10:00", "Flight to Lisbon 15:00"]]);
+      expect(out.edits[0].activities[1]).toBe(flight);
+      expect(out.lockedDays).toEqual([]);
+    });
+
+    it("takes a reworded copy for the fixed plan, in its place", () => {
+      const out = onDay(2, [at("Tile museum", "10:00"), at("Lisbon flight", "15:00"), at("Dinner in Alfama", "20:00")]);
+      expect(shown(out)).toEqual([["Tile museum 10:00", "Flight to Lisbon 15:00", "Dinner in Alfama 20:00"]]);
+      expect(out.lockedDays).toEqual([]);
+    });
+
+    it("puts back a fixed plan the reply took out, at its time, and names it", () => {
+      const out = onDay(2, [at("Tile museum", "10:00"), at("Sunset cruise", "18:00")]);
+      expect(shown(out)).toEqual([["Tile museum 10:00", "Flight to Lisbon 15:00", "Sunset cruise 18:00"]]);
+      expect(out.lockedDays).toEqual([{ dayNumber: 2, names: ["Flight to Lisbon"] }]);
+      // A day they want free keeps it too.
+      expect(shown(onDay(2, [], true))).toEqual([["Flight to Lisbon 15:00"]]);
+    });
+
+    it("keeps a fixed plan at its time when the reply moves it", () => {
+      const out = onDay(2, [at("Flight to Lisbon", "09:00"), at("Tile museum", "10:00"), at("Fado dinner", "21:00")]);
+      expect(shown(out)).toEqual([["Tile museum 10:00", "Flight to Lisbon 15:00", "Fado dinner 21:00"]]);
+      expect(out.lockedDays).toEqual([{ dayNumber: 2, names: ["Flight to Lisbon"] }]);
+    });
+
+    it("drops a copy of a fixed plan on another day, and a second copy on its own", () => {
+      const out = onDay(3, [at("Beach", "10:00"), at("Flight to Lisbon", "15:00")]);
+      expect(shown(out)).toEqual([["Beach 10:00"]]);
+      expect(out.lockedDays).toEqual([{ dayNumber: 2, names: ["Flight to Lisbon"] }]);
+      expect(shown(onDay(2, [at("Flight to Lisbon", "15:00"), at("Flight to Lisbon", "15:00")]))).toEqual([["Flight to Lisbon 15:00"]]);
+    });
+
+    it("leaves days without fixed plans as the reply has them", () => {
+      const out = validateEdits(trip(), { edits: [{ day_number: 2, activities: [at("Flight to Lisbon", "09:00")] }], tripLength: null }, "EUR");
+      expect(shown(out)).toEqual([["Flight to Lisbon 09:00"]]);
+      expect(out.lockedDays).toEqual([]);
+    });
   });
 
   it("drops edits outside the trip, with no activities, or with a bad day", () => {
@@ -91,6 +217,11 @@ describe("composeReply", () => {
     expect(text).toMatch(/^I haven't changed your plan/);
   });
 
+  it("a day said to be left blank, with nothing prepared, becomes an honest reply", () => {
+    const text = composeReply({ ...base, reply: "I've left Day 1 blank so you can rest after your night flight.", edits: [] });
+    expect(text).toMatch(/^I haven't changed your plan/);
+  });
+
   it("a promise with nothing prepared becomes an honest reply", () => {
     const text = composeReply({ ...base, reply: "I'll move the Vatican to Day 2 for you.", edits: [] });
     expect(text).toMatch(/^I haven't changed your plan/);
@@ -102,6 +233,17 @@ describe("composeReply", () => {
     // With the change prepared, the same words are true.
     const [d2] = validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").edits;
     expect(composeReply({ ...base, reply: "Here's the proposal for Day 2.", edits: [d2] })).toBe("Here's the proposal for Day 2.");
+  });
+
+  it("names the stops set to the shortest a stop can be, in the reply's language", () => {
+    const [d1] = validateEdits(trip(), { edits: [edit(1)], tripLength: null }, "EUR").edits;
+    expect(composeReply({ ...base, reply: "Here's Day 1 with your short stops.", edits: [d1], shortest: ["Conduit Court Passage"] })).toBe(
+      "Here's Day 1 with your short stops. Conduit Court Passage: set to 5 min, the shortest a stop can be."
+    );
+    expect(composeReply({ ...base, locale: "it", reply: "Ecco il Giorno 1.", edits: [d1], shortest: ["Conduit Court Passage"] })).toContain(
+      "Conduit Court Passage: 5 min"
+    );
+    expect(composeReply({ ...base, reply: "Here's Day 1.", edits: [d1], shortest: [] })).toBe("Here's Day 1.");
   });
 
   it("an answer with nothing prepared stays as it is", () => {
@@ -149,13 +291,88 @@ describe("composeReply", () => {
     expect(text).toBe("Day 5 is gone, and your trip now ends on Day 4.");
   });
 
-  it("a day withheld for a fixed plan is explained", () => {
-    const text = composeReply({ ...base, reply: "I've updated Day 2.", edits: [], lockedDays: [{ dayNumber: 2, names: ["Flight"] }] });
-    expect(text).toMatch(/^Day 2 is built around a fixed plan \(Flight\)/);
+  it("a change only to a fixed plan says it stays, and where to change it", () => {
+    const text = composeReply({ ...base, reply: "I've moved your flight to 18:00.", edits: [], lockedDays: [{ dayNumber: 2, names: ["Flight"] }] });
+    expect(text).toBe("Day 2 has a fixed plan you set (Flight), so I left it as it is: you can change it yourself in the plan. I can change anything else on that day.");
+  });
+
+  it("a change that moved a fixed plan says it stays as set", () => {
+    const [d2] = validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").edits;
+    const text = composeReply({ ...base, reply: "Here's Day 2 with a museum, and the flight later.", edits: [d2], lockedDays: [{ dayNumber: 2, names: ["Flight"] }] });
+    expect(text).toBe("Here's Day 2 with a museum, and the flight later. (The fixed plan on Day 2 stays as you set it: Flight.)");
+    expect(composeReply({ ...base, reply: "Here's Day 2 with a museum.", edits: [d2] })).toBe("Here's Day 2 with a museum.");
+  });
+
+  it("says which places of another city came off a city's days", () => {
+    const [d2] = validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").edits;
+    const off = (n: number, names: string[]) => ({ day: n, city: "Seoul", other: "Busan", activities: names.map(act) as never });
+    expect(composeReply({ ...base, reply: "Here are your days, grouped by area.", edits: [d2], cityKept: [off(7, ["Gamcheon Culture Village"]), off(8, ["Songdo Cable Car"])] })).toBe(
+      "Here are your days, grouped by area. (Busan places stay off Seoul days: Gamcheon Culture Village, Songdo Cable Car.)",
+    );
+    expect(composeReply({ ...base, locale: "pt", reply: "Aqui estão seus dias.", edits: [d2], cityKept: [off(7, ["Gamcheon"])] })).toBe(
+      "Aqui estão seus dias. (Os lugares de Busan ficam fora dos dias de Seoul: Gamcheon.)",
+    );
+  });
+
+  it("says which places of another city went to days of their own city, unless the reply did", () => {
+    const [d2] = validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").edits;
+    const off = (n: number, names: string[]) => ({ day: n, city: "Seoul", other: "Busan", activities: names.map(act) as never });
+    const moved = [off(7, ["Songdo Cable Car"]), off(8, ["Haeundae Sky Capsule"])];
+    expect(composeReply({ ...base, reply: "Fixed: that day is all Seoul now.", edits: [d2], cityMoved: moved })).toBe(
+      "Fixed: that day is all Seoul now. (Moved to Busan days: Songdo Cable Car, Haeundae Sky Capsule.)",
+    );
+    expect(composeReply({ ...base, reply: "Fixed, and the Songdo Cable Car is with the other Busan sights.", edits: [d2], cityMoved: moved })).toBe(
+      "Fixed, and the Songdo Cable Car is with the other Busan sights. (Moved to Busan days: Haeundae Sky Capsule.)",
+    );
+    expect(composeReply({ ...base, locale: "es", reply: "Listo.", edits: [d2], cityMoved: moved })).toBe("Listo. (Pasan a los días de Busan: Songdo Cable Car, Haeundae Sky Capsule.)");
+    expect(composeReply({ ...base, locale: "it", reply: "Fatto.", edits: [d2], cityMoved: [moved[0]] })).toBe("Fatto. (Passa ai giorni di Busan: Songdo Cable Car.)");
+  });
+
+  it("says a place the reply names isn't repeated on a day, as another day keeps it", () => {
+    const [d2] = validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").edits;
+    const notRepeated = ["N Seoul Tower", "Lotte World Tower"];
+    expect(composeReply({ ...base, reply: "That day now has N Seoul Tower and Myeongdong.", edits: [d2], notRepeated })).toBe(
+      "That day now has N Seoul Tower and Myeongdong. (Already on another day, so not repeated: N Seoul Tower.)",
+    );
+    expect(composeReply({ ...base, reply: "Done: new places for that day.", edits: [d2], notRepeated })).toBe("Done: new places for that day.");
+    expect(composeReply({ ...base, locale: "es", reply: "Listo: N Seoul Tower y Lotte World Tower.", edits: [d2], notRepeated })).toBe(
+      "Listo: N Seoul Tower y Lotte World Tower. (Ya están en otros días, así que no se repiten: N Seoul Tower, Lotte World Tower.)",
+    );
+  });
+
+  it("gives the count from the dates when the reply gives another", () => {
+    const span = { from: "2026-11-28", to: "2026-12-06", days: 9 };
+    const agreed = "You're totally right! From November 28 to December 6 is indeed 8 days total.";
+    expect(composeReply({ ...base, currentDays: 9, reply: agreed, edits: [], dayCount: span })).toBe(
+      "November 28 to December 6 is 9 days and 8 nights, so the trip keeps all 9 days. To make it shorter, tell me which day to take out.",
+    );
+    expect(composeReply({ ...base, locale: "es", currentDays: 9, reply: "¡Tienes razón! Son 8 días.", edits: [], dayCount: span })).toBe(
+      "Del 28 de noviembre al 6 de diciembre son 9 días y 8 noches, así que el viaje mantiene sus 9 días. Para acortarlo, dime qué día quitar.",
+    );
+    const [d2] = validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").edits;
+    expect(composeReply({ ...base, currentDays: 9, reply: "Here's Day 2, the beach day of your 8 days.", edits: [d2], dayCount: span })).toBe(
+      "Here's Day 2, the beach day of your 8 days. (November 28 to December 6 is 9 days and 8 nights.)",
+    );
   });
 
   it("answers in the traveller's language", () => {
     expect(composeReply({ ...base, locale: "it", reply: "Ho aggiunto una cena al giorno 7.", edits: [] })).toMatch(/^Non ho modificato il tuo piano/);
+  });
+
+  it("says a trip at its longest gets no more days, and what can be done instead", () => {
+    const promised = "Aqui está um novo dia 15 em Dublin para você acrescentar ao seu roteiro, pronto para salvar.";
+    expect(composeReply({ ...base, locale: "pt", currentDays: 14, reply: promised, edits: [], tripCap: { max: 14, days: 14 } })).toBe(
+      "As viagens podem ter no máximo 14 dias, e esta já tem 14, por isso não acrescentei nenhum dia. Também posso encaixar o que você queria nos dias que já tem, no lugar das partes mais leves, ou você pode planejar os dias extras como uma segunda viagem.",
+    );
+    expect(composeReply({ ...base, currentDays: 12, reply: "Here are 5 new days, ready to save.", edits: [], tripCap: { max: 14, days: 12 } })).toBe(
+      "Trips can be at most 14 days, so this one can take 2 more: ask me for up to 2. I can also fit what you wanted into the days you have, in place of their lightest parts, or you can plan the extra days as a second trip.",
+    );
+    expect(composeReply({ ...base, locale: "it", currentDays: 13, reply: "Ecco 3 giorni in più.", edits: [], tripCap: { max: 14, days: 13 } })).toMatch(
+      /^I viaggi possono durare al massimo 14 giorni, quindi a questo se ne può aggiungere ancora uno: chiedimelo\./,
+    );
+    // A change that stands is the answer, whatever else was asked.
+    const [d2] = validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").edits;
+    expect(composeReply({ ...base, reply: "Here's Day 2 with a market.", edits: [d2], tripCap: { max: 14, days: 5 } })).toBe("Here's Day 2 with a market.");
   });
 
   // Gemini can answer "Ho aggiunto un sesto giorno…" for an edit still
@@ -174,7 +391,11 @@ describe("composeReply", () => {
 
   it("a fixed-plan day is explained in the traveller's language", () => {
     const text = composeReply({ ...base, locale: "es", reply: "He actualizado el día 2.", edits: [], lockedDays: [{ dayNumber: 2, names: ["Vuelo"] }] });
-    expect(text).toMatch(/^El día 2 gira en torno a un plan fijo \(Vuelo\)/);
+    expect(text).toMatch(/^El día 2 tiene un plan fijo que pusiste tú \(Vuelo\)/);
+    const [d2] = validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").edits;
+    expect(composeReply({ ...base, locale: "pt", reply: "Aqui está o dia 2.", edits: [d2], lockedDays: [{ dayNumber: 2, names: ["Voo"] }] })).toBe(
+      "Aqui está o dia 2. (O compromisso fixo do dia 2 fica como você definiu: Voo.)",
+    );
   });
 
   it("an empty reply falls back in the traveller's language", () => {
@@ -250,6 +471,25 @@ describe("buildPrompt", () => {
     const prompt = buildPrompt({ message: "Suggest a great local restaurant to add", destination: "Lisbon", tripTitle: "Lisbon", days: trip(), locale: "en" });
     expect(prompt).toContain("pick the day with the most room where it fits, add it there without removing anything");
     expect(prompt).toContain("Don't ask which day");
+  });
+
+  // "Broadwick Street 5 min, Neal's Yard 10 min" came back at 20 and 30 minutes.
+  it("keeps the length a traveller gives a stop, down to the shortest a stop can be", () => {
+    const prompt = buildPrompt({ message: "Neal's Yard 10 min", destination: "London", tripTitle: "London", days: trip(), locale: "en" });
+    expect(prompt).toContain(`A length the traveller gives a stop ("5 min", "an hour") is its "duration_minutes" exactly, never rounded up`);
+    expect(prompt).toContain(`the shortest a stop can be is ${SHORTEST_STOP_MINUTES} minutes`);
+  });
+
+  // "I am arriving at 6pm on the 28th" on a trip from the 29th: Day 1 was rewritten.
+  it("says the trip can't start before Day 1, with its date, and how to start earlier", () => {
+    const prompt = buildPrompt({ message: "I am arriving at 6pm on the 28th", destination: "Lisbon", tripTitle: "Lisbon", days: trip(), locale: "en" });
+    expect(prompt).toContain("The trip starts on Day 1 (Thu, 11 Nov 2027) and can't start earlier here: if they arrive on an earlier date, change no day for it");
+    expect(prompt).toContain("tell them they can change the trip's dates to start that day, which moves every day's plan with it.");
+  });
+
+  it("asks where each activity is, so a new stop can be put on the map", () => {
+    const prompt = buildPrompt({ message: "add a fado show", destination: "Lisbon", tripTitle: "Lisbon", days: trip(), locale: "en" });
+    expect(prompt).toContain('"coordinates": { "lat": <latitude, 6 decimals>, "lng": <longitude, 6 decimals> }');
   });
 
   it("asks for the plan's words in the trip's language, English when it isn't one of the four", () => {
@@ -411,6 +651,19 @@ describe("composeReply: what a change said and didn't do", () => {
     expect(composeReply({ ...base, reply: "I've added an extra day of beaches.", edits: [d2] })).not.toContain("stays at");
   });
 
+  it("says the trip keeps its length when the reply gives it more days than the change does", () => {
+    // Asked for cities with their dates, not for "more days".
+    const reply = "I've updated your trip to have 16 days, starting in Paris and ending in Budapest.";
+    expect(composeReply({ ...base, reply, edits: [d2] })).toContain("The trip stays at 5 days");
+    // The days it really has, or fewer, need no note.
+    expect(composeReply({ ...base, reply: "Here's Day 2 of your 5-day trip.", edits: [d2] })).not.toContain("stays at");
+    expect(composeReply({ ...base, reply: "Day 2 now opens your 3-day stay in Paris.", edits: [d2] })).not.toContain("stays at");
+    // A change that does make the trip longer.
+    const longer = validateEdits(trip(), { edits: [edit(2), edit(6)], tripLength: 6 }, "EUR");
+    expect(longer.tripLength).toBe(6);
+    expect(composeReply({ ...base, reply: "Your trip now has 6 days.", edits: longer.edits, tripLength: longer.tripLength })).not.toContain("stays at");
+  });
+
   it("drops 'already in EUR' next to an edit, and keeps the change's prices", () => {
     const reply = "I've moved the Alcazaba to Day 2. Lunch there is about 25 EUR. The plan already shows costs in EUR, so no change was needed.";
     expect(composeReply({ ...base, reply, edits: [d2], currency: "EUR" })).toBe(
@@ -426,6 +679,16 @@ describe("a free day", () => {
     expect(asksForFreeDay("lascia libero il giorno 2")).toBe(true);
     expect(asksForFreeDay("quiero el día 4 libre")).toBe(true);
     expect(asksForFreeDay("add a cooking class on day 3")).toBe(false);
+  });
+
+  // "For Day 1 leave it blank, my flight lands at midnight": the model emptied
+  // Day 1, the empty day was dropped, and the reply said it was done.
+  it("is asked for as a blank day too", () => {
+    expect(asksForFreeDay("For Day 1 leave it blank, my flight lands at midnight.")).toBe(true);
+    expect(asksForFreeDay("deja el día 1 en blanco")).toBe(true);
+    expect(asksForFreeDay("lascia il giorno 1 in bianco")).toBe(true);
+    expect(asksForFreeDay("deixe o dia 1 em branco")).toBe(true);
+    expect(asksForFreeDay("fill in the blanks on day 2 with museums")).toBe(false);
   });
 
   it("empties a day only when the traveller asked for one", () => {

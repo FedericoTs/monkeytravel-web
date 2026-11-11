@@ -6,6 +6,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { latestWentAnswers } from "@/lib/feedback/went";
+import { NEED_ANSWERS, latestNeedAnswers } from "@/lib/feedback/need";
+import { getTranslations } from "next-intl/server";
 
 export const metadata = {
   // Root layout appends " | MonkeyTravel" — don't double it.
@@ -68,10 +70,37 @@ export default async function AdminFeedbackPage() {
   const total = totalCount ?? rows.length;
   const truncated = total > rows.length;
 
-  const leads = rows.filter((r) => r.open_to_chat && r.contact_email);
+  // A yes to being written to about what a trip still needs carries no address:
+  // the account's own is the one the reminder went to.
+  const writeBackIds = [
+    ...new Set(
+      rows
+        .filter((r) => r.open_to_chat && !r.contact_email && r.user_id && typeof r.extra?.need === "string")
+        .map((r) => r.user_id as string)
+    ),
+  ];
+  const accountEmails = new Map<string, string>();
+  if (writeBackIds.length > 0) {
+    const { data: accounts } = logReadError("admin feedback: write-back accounts", await admin
+      .from("users")
+      .select("id, email")
+      .in("id", writeBackIds));
+    for (const account of (accounts ?? []) as { id: string; email: string | null }[]) {
+      if (account.email) accountEmails.set(account.id, account.email);
+    }
+  }
+  const contactOf = (r: FeedbackRow): string | null =>
+    r.contact_email ??
+    (r.open_to_chat && r.user_id && typeof r.extra?.need === "string" ? accountEmails.get(r.user_id) ?? null : null);
+
+  const leads = rows.filter((r) => r.open_to_chat && contactOf(r));
   const countBook = (v: string) => rows.filter((r) => r.would_book_through_us === v).length;
   const wentAnswers = [...latestWentAnswers(rows).values()];
   const countWent = (v: string) => wentAnswers.filter((answer) => answer === v).length;
+  // What travellers still need before a trip: each trip's newest answer.
+  const needAnswers = [...latestNeedAnswers(rows).values()];
+  const needLabel = await getTranslations({ locale: "en", namespace: "common.tripReminderEmail.needAsk" });
+  const needNotes = rows.filter((r) => typeof r.extra?.need_note === "string");
   const fmtDate = (s: string) => new Date(s).toISOString().slice(0, 10);
 
   return (
@@ -117,15 +146,47 @@ export default async function AdminFeedbackPage() {
             <ul className="space-y-2">
               {leads.map((l) => (
                 <li key={l.id} className="text-sm">
-                  <a href={`mailto:${l.contact_email}`} className="font-medium text-[var(--primary-ink)] hover:underline">
-                    {l.contact_email}
+                  <a href={`mailto:${contactOf(l)}`} className="font-medium text-[var(--primary-ink)] hover:underline">
+                    {contactOf(l)}
                   </a>
                   {l.uses_for && <span className="text-slate-600"> — &ldquo;{l.uses_for}&rdquo;</span>}
+                  {typeof l.extra?.need === "string" && (
+                    <span className="text-slate-600">
+                      {" "}
+                      — needs: {needLabel(l.extra.need)}
+                      {typeof l.extra.need_note === "string" ? `: “${l.extra.need_note}”` : ""}
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
           </section>
         )}
+
+        <section className="rounded-2xl border border-slate-200 bg-white p-5">
+          <h2 className="text-lg font-bold text-slate-900 mb-1">
+            Still needed before the trip — {needAnswers.length} {needAnswers.length === 1 ? "trip" : "trips"}
+          </h2>
+          <p className="text-sm text-slate-600 mb-4">
+            The reminders before a trip ask &ldquo;{needLabel("question")}&rdquo; until the trip&apos;s owner
+            answers. Each trip counts once, with its newest answer.
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {NEED_ANSWERS.map((need) => (
+              <Stat key={need} label={needLabel(need)} value={needAnswers.filter((answer) => answer === need).length} />
+            ))}
+          </div>
+          {needNotes.length > 0 && (
+            <ul className="mt-4 space-y-2">
+              {needNotes.map((r) => (
+                <li key={r.id} className="text-sm text-slate-800">
+                  <span className="text-slate-500">{fmtDate(r.created_at)}</span>{" "}
+                  <span className="font-medium">{needLabel(String(r.extra?.need))}:</span> &ldquo;{String(r.extra?.need_note)}&rdquo;
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
 
         <section>
           <h2 className="text-lg font-bold text-slate-900 mb-3">
@@ -142,7 +203,7 @@ export default async function AdminFeedbackPage() {
                 <thead className="bg-slate-50 text-left text-xs uppercase text-slate-500">
                   <tr>
                     <th className="px-3 py-2 font-medium">Date</th>
-                    <th className="px-3 py-2 font-medium">Went?</th>
+                    <th className="px-3 py-2 font-medium">About a trip</th>
                     <th className="px-3 py-2 font-medium">Uses it for</th>
                     <th className="px-3 py-2 font-medium">Almost stopped</th>
                     <th className="px-3 py-2 font-medium">Booked at</th>
@@ -155,7 +216,15 @@ export default async function AdminFeedbackPage() {
                     <tr key={r.id} className="align-top">
                       <td className="px-3 py-2 whitespace-nowrap text-slate-500">{fmtDate(r.created_at)}</td>
                       <td className="px-3 py-2 text-slate-800 max-w-xs">
-                        {[r.extra?.went, r.extra?.went_reason, r.extra?.went_note].filter(Boolean).join(" · ") || "—"}
+                        {[
+                          r.extra?.went && `went: ${r.extra.went}`,
+                          r.extra?.went_reason,
+                          r.extra?.went_note,
+                          r.extra?.need && `needs: ${r.extra.need}`,
+                          r.extra?.need_note,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ") || "—"}
                       </td>
                       <td className="px-3 py-2 text-slate-800 max-w-xs">{r.uses_for || "—"}</td>
                       <td className="px-3 py-2 text-slate-800 max-w-xs">{r.almost_stopped || "—"}</td>
@@ -178,9 +247,9 @@ export default async function AdminFeedbackPage() {
                         )}
                       </td>
                       <td className="px-3 py-2">
-                        {r.open_to_chat && r.contact_email ? (
-                          <a href={`mailto:${r.contact_email}`} className="text-[var(--primary-ink)] hover:underline">
-                            {r.contact_email}
+                        {r.open_to_chat && contactOf(r) ? (
+                          <a href={`mailto:${contactOf(r)}`} className="text-[var(--primary-ink)] hover:underline">
+                            {contactOf(r)}
                           </a>
                         ) : (
                           "—"

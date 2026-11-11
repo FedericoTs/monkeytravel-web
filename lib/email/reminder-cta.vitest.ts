@@ -40,10 +40,19 @@ describe("reminderCtaUrl", () => {
     }
   });
 
-  it("keeps the trip page for the other reminders", () => {
-    for (const slot of ["pack_early_14d", "visa_check_7d", "weather_3d"] as const) {
-      for (const locale of ["en", "es", "it", "pt"]) {
-        expect(reminderCtaUrl(slot, opts(locale))).toBe(`${APP}/trips/${TRIP}?slot=${slot}`);
+  // Most people who clicked the earlier reminders weren't signed in, and the
+  // trip page met them with a sign-in form. They open day 1 too now.
+  it("opens trip day 1 without sign-in from the earlier reminders, valid from their send to departure day", () => {
+    const sentDaysBefore = { pack_early_14d: 14, visa_check_7d: 7, weather_3d: 3 } as const;
+    for (const [slot, days] of Object.entries(sentDaysBefore) as Array<[keyof typeof sentDaysBefore, number]>) {
+      const url = new URL(reminderCtaUrl(slot, opts()));
+      expect(`${url.origin}${url.pathname}`).toBe(`${APP}/day/${TRIP}/${START}`);
+      expect(url.searchParams.get("slot")).toBe(slot);
+      const k = url.searchParams.get("k");
+      expect(verifyDayLink(TRIP, START, k, Date.UTC(2026, 9, 15 - days, 7))).toEqual({ ok: true });
+      expect(verifyDayLink(TRIP, START, k, Date.UTC(2026, 9, 15, 23))).toEqual({ ok: true });
+      for (const locale of ["es", "it", "pt"]) {
+        expect(new URL(reminderCtaUrl(slot, opts(locale))).pathname).toBe(`/${locale}/day/${TRIP}/${START}`);
       }
     }
   });

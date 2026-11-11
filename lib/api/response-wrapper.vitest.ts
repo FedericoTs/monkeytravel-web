@@ -1,7 +1,50 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { apiError, errors } from "./response-wrapper";
 
-afterEach(() => vi.restoreAllMocks());
+const { reportServerFailure } = vi.hoisted(() => ({ reportServerFailure: vi.fn() }));
+vi.mock("@/lib/observability/server-failure", () => ({ reportServerFailure }));
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  reportServerFailure.mockReset();
+});
+
+describe("apiError reporting", () => {
+  it("reports a failure of ours (5xx) to Sentry, grouped by category and message", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    errors.internal("Failed to fetch trips", "Explore");
+    expect(reportServerFailure).toHaveBeenCalledOnce();
+    expect(reportServerFailure).toHaveBeenCalledWith("[Explore] Failed to fetch trips", "error", [
+      "[Explore]",
+      "Failed to fetch trips",
+    ]);
+  });
+
+  it("reports an uncategorised 5xx under [API]", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    apiError("Upstream failed", { status: 502 });
+    expect(reportServerFailure).toHaveBeenCalledWith("[API] Upstream failed", "error", ["[API]", "Upstream failed"]);
+  });
+
+  it("doesn't report a client state (4xx)", () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    errors.notFound();
+    errors.rateLimit();
+    expect(reportServerFailure).not.toHaveBeenCalled();
+  });
+
+  it("doesn't report a 503: a switched-off service, or the model outage the AI code reports itself", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    errors.serviceUnavailable("Places API is currently disabled");
+    errors.modelOutage();
+    expect(reportServerFailure).not.toHaveBeenCalled();
+  });
+
+  it("doesn't report when asked to stay silent", () => {
+    apiError("quiet", { status: 500, log: false });
+    expect(reportServerFailure).not.toHaveBeenCalled();
+  });
+});
 
 const spies = () => ({
   error: vi.spyOn(console, "error").mockImplementation(() => {}),
