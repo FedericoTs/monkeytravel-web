@@ -59,7 +59,11 @@ jobs:
           cache: npm
       - run: npm install -g npm@11
       - run: npm ci --no-audit --no-fund
-      - run: npx playwright install --with-deps chromium
+      # The browser's system packages come from Ubuntu's mirrors, which a runner
+      # sometimes can't reach. Then the browser goes on alone: the runner image
+      # already holds what Chrome needs.
+      - name: Browser
+        run: npx playwright install --with-deps chromium || npx playwright install chromium
       # next/font/google downloads the fonts during the build, and a dropped
       # download fails it. Same retries as e2e-public.yml.
       - name: Build
