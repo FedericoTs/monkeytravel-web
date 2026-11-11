@@ -16,7 +16,7 @@
  * lib/email/send.ts; see NOTIFICATION_SETTING_KEY['trip_reminder']).
  */
 
-import { Button, Heading, Section, Text } from "@react-email/components";
+import { Button, Heading, Link, Section, Text } from "@react-email/components";
 import { EmailLayout } from "./_layout";
 import { ContextBlocks, contextBlocksText } from "./_context-blocks";
 import type { ContextBlock } from "../trip-context";
@@ -66,6 +66,12 @@ export interface TripReminderEmailProps {
    * Pre-translated; the cron decides when it applies.
    */
   groupAsk?: { text: string; label: string; url: string };
+  /**
+   * One question under everything else, until the trip's owner answers it:
+   * what they still need for the trip. Each answer is a one-tap link.
+   * Pre-translated; the cron decides when it applies.
+   */
+  needAsk?: { question: string; answers: { label: string; url: string }[] };
 }
 
 /** Slot → emoji. Visual hook, not load-bearing for the message. */
@@ -91,6 +97,7 @@ export default function TripReminderEmail({
   locale = "en",
   contextBlocks,
   groupAsk,
+  needAsk,
 }: TripReminderEmailProps) {
   const preview = `${SLOT_EMOJI[slot]} ${tripReminderSubject({ heading, destination })}`;
 
@@ -125,6 +132,17 @@ export default function TripReminderEmail({
           <Button href={groupAsk.url} style={secondaryButton}>
             {groupAsk.label}
           </Button>
+        </Section>
+      ) : null}
+
+      {needAsk ? (
+        <Section style={needAskBox}>
+          <Text style={needAskQuestion}>{needAsk.question}</Text>
+          {needAsk.answers.map((answer) => (
+            <Link key={answer.url} href={answer.url} style={needAskAnswer}>
+              {answer.label}
+            </Link>
+          ))}
         </Section>
       ) : null}
     </EmailLayout>
@@ -174,6 +192,9 @@ export function tripReminderEmailText(props: TripReminderEmailProps): string {
     "",
     `${props.ctaLabel}: ${props.tripUrl}`,
     ...(props.groupAsk ? ["", props.groupAsk.text, `${props.groupAsk.label}: ${props.groupAsk.url}`] : []),
+    ...(props.needAsk
+      ? ["", props.needAsk.question, ...props.needAsk.answers.map((a) => `${a.label}: ${a.url}`)]
+      : []),
     "",
     "—",
     "MonkeyTravel · AI-powered trip planning",
@@ -199,5 +220,34 @@ const groupAskText: React.CSSProperties = {
   color: "#333333",
   lineHeight: 1.5,
   margin: "0 0 12px",
+};
+
+// The one question comes last and quietest: a pale box, the answers as rows a
+// thumb can hit, dark text so none of them looks like the main button.
+const needAskBox: React.CSSProperties = {
+  backgroundColor: "#F7F5F2",
+  borderRadius: "12px",
+  padding: "16px 20px",
+  margin: "24px 0 8px",
+};
+
+const needAskQuestion: React.CSSProperties = {
+  fontSize: "15px",
+  fontWeight: 600,
+  color: "#2D3436",
+  lineHeight: 1.5,
+  margin: "0 0 4px",
+};
+
+const needAskAnswer: React.CSSProperties = {
+  display: "block",
+  backgroundColor: "#FFFFFF",
+  border: "1px solid #D9CFC4",
+  borderRadius: "10px",
+  padding: "11px 14px",
+  margin: "8px 0 0",
+  fontSize: "15px",
+  color: "#2D3436",
+  textDecoration: "none",
 };
 

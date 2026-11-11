@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createTranslator } from "next-intl";
+import { NEED_ANSWERS } from "@/lib/feedback/need";
 import { readFileSync } from "fs";
 import { join } from "path";
 import {
@@ -184,6 +185,11 @@ describe("next-intl itself resolves the reminder copy", () => {
       expect(ctaT("cta")).not.toContain("tripReminderEmail.");
       // The group ask on the two early slots, read from the same root.
       for (const key of ["groupAsk.text", "groupAsk.cta"]) {
+        expect(ctaT(key), `${locale} ${key}`).not.toContain("tripReminderEmail.");
+        expect(ctaT(key).trim().length, `${locale} ${key}`).toBeGreaterThan(0);
+      }
+      // The one question before the trip, and a label for each of its answers.
+      for (const key of ["question", ...NEED_ANSWERS].map((k) => `needAsk.${k}`)) {
         expect(ctaT(key), `${locale} ${key}`).not.toContain("tripReminderEmail.");
         expect(ctaT(key).trim().length, `${locale} ${key}`).toBeGreaterThan(0);
       }

@@ -103,6 +103,7 @@ jobs:
             tests/e2e/trip-assistant.spec.ts \
             tests/e2e/trip-editing.spec.ts \
             tests/e2e/trip-status.spec.ts \
+            tests/e2e/what-you-need.spec.ts \
             tests/e2e/wizard-signed-in-save.spec.ts
         env:
           BASE_URL: http://localhost:3000

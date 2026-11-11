@@ -5,7 +5,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { NextRequest } from "next/server";
 import { render } from "@react-email/render";
-import { fakeSupabase, type FakeQuery } from "@/tests/fake-supabase";
+import { eqOf, fakeSupabase, type FakeQuery } from "@/tests/fake-supabase";
 import TripReminderEmail, {
   tripReminderEmailText,
   tripReminderSubject,
@@ -24,7 +24,7 @@ import { verifyFeedbackToken } from "@/lib/feedback/token";
 const dispatchEmail = vi.fn();
 vi.mock("@/lib/email/send", () => ({ dispatchEmail: (options: unknown) => dispatchEmail(options) }));
 
-const copy = vi.hoisted(() => ({ missing: false, noSecondAnswer: false }));
+const copy = vi.hoisted(() => ({ missing: false, noSecondAnswer: false, noNeedAsk: false }));
 vi.mock("next-intl/server", async () => {
   const { createTranslator } = await import("next-intl");
   const fs = await import("fs");
@@ -32,6 +32,7 @@ vi.mock("next-intl/server", async () => {
   const common = (locale: string) => {
     const all = JSON.parse(fs.readFileSync(path.join(process.cwd(), "messages", locale, "common.json"), "utf8"));
     if (copy.noSecondAnswer) delete all.tripFollowupEmail.followup_return_3d.ctaNo;
+    if (copy.noNeedAsk) delete all.tripReminderEmail.needAsk.transport;
     return all;
   };
   return {
@@ -69,6 +70,8 @@ let recipient: { email: string | null; preferred_language: string };
 let account: Record<string, unknown>;
 let cameBack: boolean;
 let invites: number;
+/** Answers already given about a trip: to the reminders' one question (need) or the return email's (went). */
+let feedback: { trip: string; need?: string; went?: string }[];
 /** Refuses the queries it names, with this message. */
 let refuse: (q: FakeQuery) => string | null;
 let queries: FakeQuery[];
@@ -171,6 +174,13 @@ function answer(q: FakeQuery) {
       return { data: q.end === "maybeSingle" ? null : cameBack ? [{ id: "view" }] : [], error: null };
     case "trip_invites":
       return { data: null, count: invites, error: null };
+    case "user_feedback": {
+      const needOnly = q.filters.some(
+        ([op, column, value]) => op === "not" && column === "extra->>need" && Array.isArray(value) && value[0] === "is" && value[1] === null
+      );
+      const hits = feedback.filter((f) => f.trip === eqOf(q, "extra->>trip_id") && (!needOnly || f.need !== undefined));
+      return { data: hits.map(() => ({ id: "answer" })), error: null };
+    }
     default:
       return { data: q.end === "list" ? [] : null, error: null };
   }
@@ -207,9 +217,11 @@ beforeEach(() => {
   account = { last_sign_in_at: null };
   cameBack = false;
   invites = 0;
+  feedback = [];
   refuse = () => null;
   copy.missing = false;
   copy.noSecondAnswer = false;
+  copy.noNeedAsk = false;
   vi.stubEnv("CRON_SECRET", CRON_SECRET);
   vi.stubEnv("NEXT_PUBLIC_TRIP_NOTIFICATIONS_ENABLED", "true");
   vi.stubEnv("TRIP_NOTIFICATIONS_SEND_CAP", "");
@@ -793,6 +805,110 @@ describe("asking to add the people coming", () => {
     await run();
     expect(sends()).toHaveLength(1);
     expect(sends()[0].template.props.groupAsk).toBeUndefined();
+  });
+});
+
+describe("asking what they still need before the trip", () => {
+  const ask = () => sends()[0].template.props.needAsk;
+
+  it.each([
+    ["pack_early_14d", 14],
+    ["visa_check_7d", 7],
+    ["weather_3d", 3],
+    ["confirm_1d", 1],
+  ])("%s asks, with a signed one-tap link for each answer", async (slot, days) => {
+    trips = [trip("a", { start_date: daysFromNow(days), end_date: daysFromNow(days + 3) })];
+    rows = [due("row-a", "a", slot)];
+    await run();
+    expect(sends()).toHaveLength(1);
+    const copy = messages("en").tripReminderEmail.needAsk;
+    expect(ask()?.question).toBe(copy.question);
+    expect(ask()?.answers.map((a) => a.label)).toEqual([copy.stay, copy.transport, copy.book, copy.phone, copy.group, copy.set]);
+    const links = ask()!.answers.map((a) => new URL(a.url));
+    expect(links.map((l) => l.searchParams.get("need"))).toEqual(["stay", "transport", "book", "phone", "group", "set"]);
+    for (const link of links) {
+      expect(link.origin + link.pathname).toBe("https://monkeytravel.app/feedback/need");
+      expect(link.searchParams.get("slot")).toBe(slot);
+      expect(verifyFeedbackToken(link.searchParams.get("t")!)).toEqual({ ok: true, userId: OWNER, tripId: "a" });
+    }
+  });
+
+  it("asks in the traveller's language", async () => {
+    recipient = { email: "owner@example.com", preferred_language: "it" };
+    trips = [trip("a")];
+    rows = [due("row-a", "a")];
+    await run();
+    expect(ask()?.question).toBe(messages("it").tripReminderEmail.needAsk.question);
+    expect(new URL(ask()!.answers[0].url).pathname).toBe("/it/feedback/need");
+  });
+
+  it("doesn't ask the morning of: it's too late to help by then", async () => {
+    trips = [trip("a", { start_date: daysFromNow(0), end_date: daysFromNow(3) })];
+    rows = [due("row-a", "a", "morning_of")];
+    await run();
+    expect(sends()).toHaveLength(1);
+    expect(ask()).toBeUndefined();
+  });
+
+  it("doesn't ask again once the trip's owner has answered", async () => {
+    feedback = [{ trip: "a", need: "stay" }];
+    trips = [trip("a")];
+    rows = [due("row-a", "a")];
+    await run();
+    expect(sends()).toHaveLength(1);
+    expect(ask()).toBeUndefined();
+  });
+
+  it("still asks when the answers on record are about something else", async () => {
+    feedback = [
+      { trip: "a", went: "yes" },
+      { trip: "b", need: "book" },
+    ];
+    trips = [trip("a")];
+    rows = [due("row-a", "a")];
+    await run();
+    expect(ask()?.answers).toHaveLength(6);
+  });
+
+  it("a failed read of the answers leaves the question out, and the reminder goes", async () => {
+    refuse = (q) => (q.table === "user_feedback" ? "read failed" : null);
+    trips = [trip("a")];
+    rows = [due("row-a", "a")];
+    await run();
+    expect(sends()).toHaveLength(1);
+    expect(ask()).toBeUndefined();
+    expect(row("row-a").status).toBe("sent");
+  });
+
+  it("links that can't be signed leave the question out, and the reminder goes", async () => {
+    vi.stubEnv("EMAIL_UNSUBSCRIBE_SECRET", "");
+    vi.stubEnv("FEEDBACK_LINK_SECRET", "");
+    trips = [trip("a")];
+    rows = [due("row-a", "a")];
+    await run();
+    expect(sends()).toHaveLength(1);
+    expect(ask()).toBeUndefined();
+  });
+
+  it("an answer with no copy holds the email back, as any unresolved copy does", async () => {
+    copy.noNeedAsk = true;
+    trips = [trip("a")];
+    rows = [due("row-a", "a")];
+    await run();
+    expect(sends()).toEqual([]);
+    expect(row("row-a")).toMatchObject({ status: "failed", skipped_reason: "i18n_load_error" });
+  });
+
+  it.each(["en", "es", "it", "pt"])("in %s, the email with the question passes the check before it goes", async (locale) => {
+    recipient = { email: "owner@example.com", preferred_language: locale };
+    trips = [trip("a", { title: "Lisbon Trip", start_date: daysFromNow(14), end_date: daysFromNow(17) })];
+    rows = [due("row-a", "a", "pack_early_14d")];
+    await run();
+    const [sent] = sends();
+    const props = { ...sent.template.props, locale: sent.locale as TripReminderEmailProps["locale"] };
+    const html = await render(TripReminderEmail(props));
+    expect(html).toContain("/feedback/need?");
+    expect(sent.verify({ html, text: tripReminderEmailText(props), subject: tripReminderSubject(props) })).toEqual({ ok: true });
   });
 });
 

@@ -56,6 +56,43 @@ describe("TripReminder group ask", () => {
   });
 });
 
+describe("TripReminder one question", () => {
+  const needAsk = {
+    question: "One question: what do you still need for this trip?",
+    answers: [
+      { label: "Where to stay", url: "https://monkeytravel.app/feedback/need?t=tok.sig&need=stay&slot=pack_early_14d" },
+      { label: "Nothing, I'm all set", url: "https://monkeytravel.app/feedback/need?t=tok.sig&need=set&slot=pack_early_14d" },
+    ],
+  };
+
+  it("asks under everything else, each answer its own link", async () => {
+    const html = await render(TripReminderEmail({ ...base, groupAsk, needAsk }));
+    expect(html).toContain(needAsk.question);
+    for (const answer of needAsk.answers) expect(html).toContain(href(answer.url));
+    expect(html).toContain("Nothing, I&#x27;m all set");
+    expect(html.indexOf(href(groupAsk.url))).toBeLessThan(html.indexOf(needAsk.question));
+  });
+
+  it("is absent unless the cron passes it", async () => {
+    expect(await render(TripReminderEmail(base))).not.toContain("/feedback/need");
+    expect(tripReminderEmailText(base)).not.toContain("/feedback/need");
+  });
+
+  it("is in the plain-text version too", () => {
+    const text = tripReminderEmailText({ ...base, needAsk });
+    expect(text).toContain(needAsk.question);
+    for (const answer of needAsk.answers) expect(text).toContain(`${answer.label}: ${answer.url}`);
+  });
+
+  it("still passes the send-time check", async () => {
+    const html = await render(TripReminderEmail({ ...base, needAsk }));
+    const defects = blockingDefects(
+      verifyRenderedEmail({ subject: "Two weeks to go — Lisbon", html, destination: "Lisbon", ctaUrl: base.tripUrl, contextBlocks: [], ownStrings: [] })
+    );
+    expect(defects).toEqual([]);
+  });
+});
+
 describe("TripReminder preview line", () => {
   it("names the destination once when the heading already does", async () => {
     const html = await render(TripReminderEmail({ ...base, slot: "weather_3d", heading: "Three days to Lisbon" }));

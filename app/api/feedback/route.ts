@@ -5,6 +5,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { verifyFeedbackToken } from "@/lib/feedback/token";
 import { isWentAnswer, isWentReason } from "@/lib/feedback/went";
+import { isNeedAnswer } from "@/lib/feedback/need";
 import { readJsonBody } from "@/lib/api/json-body";
 
 /**
@@ -113,8 +114,10 @@ export async function POST(request: NextRequest) {
     typeof body.pretrip_content === "string" ? body.pretrip_content : "";
   const pretripContent = WOULD.includes(pretripRaw as never) ? pretripRaw : null;
 
-  // "Did you go?" (lib/feedback/went.ts) is about the trip the signed link names.
+  // "Did you go?" (lib/feedback/went.ts) and "what do you still need?"
+  // (lib/feedback/need.ts) are about the trip the signed link names.
   const went = tokenTripId && isWentAnswer(body.went) ? body.went : null;
+  const need = tokenTripId && isNeedAnswer(body.need) ? body.need : null;
 
   // Only set keys that were actually answered — an `extra` full of nulls makes
   // every later `->>` query ambiguous about "unanswered" vs "answered nothing".
@@ -129,6 +132,12 @@ export async function POST(request: NextRequest) {
     const note = clean(body.went_note, 500);
     if (note) extra.went_note = note;
   }
+  if (need && tokenTripId) {
+    extra.trip_id = tokenTripId;
+    extra.need = need;
+    const note = clean(body.need_note, 500);
+    if (note) extra.need_note = note;
+  }
 
   // Don't persist empty rows — require at least one substantive answer.
   if (
@@ -140,6 +149,7 @@ export async function POST(request: NextRequest) {
     !pretripContent &&
     !mobileApp &&
     !went &&
+    !need &&
     !(openToChat && contactEmail)
   ) {
     return apiSuccess({ saved: false });
@@ -154,7 +164,9 @@ export async function POST(request: NextRequest) {
     last_booked_where: lastBooked,
     would_book_through_us: would,
     open_to_chat: openToChat,
-    contact_email: openToChat ? contactEmail : null,
+    // A yes to writing back about what they need is a yes to the address the
+    // reminder went to, the account's own, so none is copied here.
+    contact_email: openToChat && !need ? contactEmail : null,
     extra,
   });
 
