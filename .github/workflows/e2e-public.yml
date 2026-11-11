@@ -44,10 +44,10 @@ jobs:
       - run: npm install -g npm@11
       - run: npm ci --no-audit --no-fund
       # The browser's system packages come from Ubuntu's mirrors, which a runner
-      # sometimes can't reach. Then the browser goes on alone: the runner image
-      # already holds what Chrome needs.
+      # sometimes can't reach (apt then retries for many minutes: stop it at 150 s).
+      # The browser then goes on alone: the runner image already holds what Chrome needs.
       - name: Browser
-        run: npx playwright install --with-deps chromium || npx playwright install chromium
+        run: timeout 150 npx playwright install --with-deps chromium || npx playwright install chromium
       # next/font/google downloads the fonts during the build, and a dropped
       # download fails it. The build gets two more tries, a while apart and
       # without .next: a retry that reuses it fails again at once.
