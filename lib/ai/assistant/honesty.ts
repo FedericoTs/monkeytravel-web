@@ -309,9 +309,9 @@ export function cityMovedNote(language: string | undefined, city: string, names:
   return note(language, "cityMoved", { city, list: names.join(", "), count: names.length });
 }
 
-/** Appended when the reply names places for a day that doesn't repeat them, as other days keep them. */
-export function notRepeatedNote(language: string | undefined, names: string[]): string {
-  return note(language, "notRepeated", { list: names.join(", "), count: names.length });
+/** Appended when a change leaves places on the day that already has them, rather than adding them again. */
+export function notRepeatedNote(language: string | undefined, dayNumber: number, names: string[]): string {
+  return note(language, "notRepeated", { day: String(dayNumber), list: names.join(", "), count: names.length });
 }
 
 /** Appended when a change would have moved or taken out a fixed plan, which stays as it was. */

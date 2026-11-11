@@ -583,6 +583,105 @@ describe("assistTrip on a change about more days than one reply holds", () => {
       expect(out.reply).not.toContain("Não entrou");
     });
 
+    // A London day sent as a list of stops, Chinatown among them, while Day 4
+    // already had Chinatown: Day 1 came back without it, and the reply still
+    // named it for Day 1.
+    describe("a place of their list the plan already has on another day", () => {
+      const at = (name: string, start_time: string) => ({ name, time_slot: "morning", start_time });
+      const london = [
+        { day_number: 1, date: "2027-12-01", activities: [at("Oxford Street", "10:00")] },
+        { day_number: 2, date: "2027-12-02", activities: [at("Natural History Museum", "10:00")] },
+        { day_number: 3, date: "2027-12-03", activities: [at("Tower of London", "10:00")] },
+        { day_number: 4, date: "2027-12-04", activities: [at("Borough Market", "12:00"), at("Chinatown London", "17:30")] },
+      ] as unknown as ItineraryDay[];
+      const stops = ["Oxford Street", "Broadwick Street", "Neal's Yard", "Covent Garden", "Cecil Court", "Chinatown", "Trafalgar Square"];
+      const told = { ...input, destination: "London, United Kingdom", tripTitle: "London", days: london, message: "Broadwick Street 5 min, Neal's Yard 5 min, Covent Garden, Cecil Court, Chinatown, Trafalgar Square" };
+      const answer = (text: string) => ({ response: { text: () => JSON.stringify({ reply: text, edits: [{ day_number: 1, activities: stops.map((name) => ({ name })) }] }) } });
+
+      it("leaves it where it is and says which day has it", async () => {
+        generateContent.mockResolvedValueOnce(answer("Here is Day 1 with Broadwick Street, Neal's Yard, Covent Garden, Cecil Court, Chinatown and Trafalgar Square."));
+        const out = await run(told);
+        expect(out.edits.map((e) => [e.day_number, e.activities.map((a) => a.name)])).toEqual([[1, stops.filter((s) => s !== "Chinatown")]]);
+        expect(out.reply).toBe(
+          "Here is Day 1 with Broadwick Street, Neal's Yard, Covent Garden, Cecil Court, Chinatown and Trafalgar Square. (Already on Day 4, so not added again: Chinatown London.)",
+        );
+      });
+
+      it("says it when the reply names none of the stops", async () => {
+        generateContent.mockResolvedValueOnce(answer("Here is Day 1 with all your stops."));
+        const out = await run(told);
+        expect(out.reply).toBe("Here is Day 1 with all your stops. (Already on Day 4, so not added again: Chinatown London.)");
+      });
+
+      it("says nothing more when the reply already says where it is", async () => {
+        generateContent.mockResolvedValueOnce(answer("Here is Day 1 with your stops. Chinatown is already on Day 4, so I left it there."));
+        const out = await run(told);
+        expect(out.reply).toContain("Here is Day 1 with your stops. Chinatown is already on Day 4, so I left it there.");
+        expect(out.reply).not.toContain("not added again");
+      });
+
+      it("says it in the traveller's language", async () => {
+        generateContent.mockResolvedValueOnce(answer("Aquí tienes el día 1 con todas tus paradas."));
+        const out = await run({ ...told, locale: "es" });
+        expect(out.reply).toBe("Aquí tienes el día 1 con todas tus paradas. (Ya está en el día 4, así que no se añade otra vez: Chinatown London.)");
+      });
+
+      it("says nothing when the change moves it, taking it off the day that had it", async () => {
+        const moved = { day_number: 4, activities: [{ name: "Borough Market" }, { name: "Sky Garden" }] };
+        generateContent.mockResolvedValueOnce({
+          response: { text: () => JSON.stringify({ reply: "Chinatown moves to Day 1.", edits: [{ day_number: 1, activities: stops.map((name) => ({ name })) }, moved] }) },
+        });
+        const out = await run(told);
+        expect(out.edits.map((e) => [e.day_number, e.activities.map((a) => a.name)])).toEqual([
+          [1, stops],
+          [4, ["Borough Market", "Sky Garden"]],
+        ]);
+        expect(out.reply).toBe("Chinatown moves to Day 1.");
+      });
+      it("says it when the change never put it on the day, and not for a place the day keeps", async () => {
+        const museum = { name: "Science Museum", time_slot: "afternoon", start_time: "15:00" };
+        const days = london.map((d) =>
+          d.day_number === 1 || d.day_number === 2 ? { ...d, activities: [...d.activities, museum] } : d,
+        ) as unknown as ItineraryDay[];
+        const kept = [...stops.filter((s) => s !== "Chinatown"), "Science Museum"];
+        generateContent.mockResolvedValueOnce({
+          response: { text: () => JSON.stringify({ reply: "Here is Day 1 with Chinatown and the rest of your stops.", edits: [{ day_number: 1, activities: kept.map((name) => ({ name })) }] }) },
+        });
+        const out = await run({ ...told, days, message: `${told.message}, Science Museum` });
+        expect(out.reply).toBe("Here is Day 1 with Chinatown and the rest of your stops. (Already on Day 4, so not added again: Chinatown London.)");
+      });
+
+      it("says nothing of a place the change takes off the day that had it", async () => {
+        generateContent.mockResolvedValueOnce({
+          response: {
+            text: () =>
+              JSON.stringify({
+                reply: "Here is Day 1 with all your stops.",
+                edits: [
+                  { day_number: 1, activities: stops.filter((s) => s !== "Chinatown").map((name) => ({ name })) },
+                  { day_number: 4, activities: [{ name: "Borough Market" }, { name: "Sky Garden" }] },
+                ],
+              }),
+          },
+        });
+        const out = await run(told);
+        expect(out.edits.map((e) => e.day_number)).toEqual([1, 4]);
+        expect(out.reply).not.toContain("not added again");
+      });
+
+      it("leaves alone a list of places to take out", async () => {
+        const days = london.map((d) =>
+          d.day_number === 1 ? { ...d, activities: [...d.activities, at("Broadwick Street", "12:00"), at("Neal's Yard", "13:00")] } : d,
+        ) as unknown as ItineraryDay[];
+        generateContent.mockResolvedValueOnce({
+          response: { text: () => JSON.stringify({ reply: "Done: they're out.", edits: [{ day_number: 1, activities: [{ name: "Oxford Street" }, { name: "Liberty London" }] }] }) },
+        });
+        const out = await run({ ...told, days, message: "remove Broadwick Street, Neal's Yard and Chinatown" });
+        expect(out.edits.map((e) => [e.day_number, e.activities.map((a) => a.name)])).toEqual([[1, ["Oxford Street", "Liberty London"]]]);
+        expect(out.reply).not.toContain("not added again");
+      });
+    });
+
     it("doesn't ask for the rest of a list when time is short", async () => {
       const now = vi.spyOn(Date, "now").mockReturnValueOnce(0).mockReturnValue(40_000);
       const list = { ...input, days: fortnight, locale: "pt", message: "adicione: o senhor restaurante, dhoosushi, park do churrasco e baraquias restaurante" };
@@ -1275,7 +1374,7 @@ describe("assistTrip on a day that repeats a place another day keeps", () => {
     expect(generateContent).toHaveBeenCalledTimes(3);
     expect(JSON.stringify(generateContent.mock.calls[2][0])).toContain("CONTINUE: Day 3 of this change repeats places other days keep: Vatican Museums (Day 2). Return Day 3 in");
     expect(named(out)).toEqual(["3: Galleria Borghese, Palazzo Barberini, Villa Borghese"]);
-    expect(out.reply).toBe("Day 3 is all art now, with the Vatican Museums. (Already on another day, so not repeated: Vatican Museums.)");
+    expect(out.reply).toBe("Day 3 is all art now, with the Vatican Museums. (Already on Day 2, so not added again: Vatican Museums.)");
   });
 
   it("takes the copy off the day when the answer still repeats it, unless the day would keep one place", async () => {
