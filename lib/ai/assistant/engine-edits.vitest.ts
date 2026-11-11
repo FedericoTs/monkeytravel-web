@@ -217,6 +217,11 @@ describe("composeReply", () => {
     expect(text).toMatch(/^I haven't changed your plan/);
   });
 
+  it("a day said to be left blank, with nothing prepared, becomes an honest reply", () => {
+    const text = composeReply({ ...base, reply: "I've left Day 1 blank so you can rest after your night flight.", edits: [] });
+    expect(text).toMatch(/^I haven't changed your plan/);
+  });
+
   it("a promise with nothing prepared becomes an honest reply", () => {
     const text = composeReply({ ...base, reply: "I'll move the Vatican to Day 2 for you.", edits: [] });
     expect(text).toMatch(/^I haven't changed your plan/);

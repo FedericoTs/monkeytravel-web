@@ -79,6 +79,11 @@ const CLAIM_PATTERNS: RegExp[] = [
   // "This update integrates Akihabara…", "Day 3, now with a sunset cruise".
   new RegExp(`${start}(?:this|the)\\s+(?:update|change|revision|new\\s+version|updated\\s+plan|revised\\s+plan)\\s+(?:now\\s+)?(?:integrates|incorporates|includes|adds|brings|puts)${end}`, "iu"),
   new RegExp(`${start}(?:day\\s+\\d+|your\\s+(?:trip|itinerary|plan|day)),?\\s+now\\s+with${end}`, "iu"),
+  // A day said to be emptied: "I've left Day 1 blank", "I have kept the first day free".
+  new RegExp(`${start}(?:i|we)(?:['’]ve|\\s+have)?\\s+(?:now\\s+|also\\s+|just\\s+)?(?:left|kept)\\s+(?:day\\s+\\d+|the\\s+[\\p{L}]+\\s+day|that\\s+day)\\s+(?:blank|empty|free|open|clear)${end}`, "iu"),
+  new RegExp(`${start}(?<!no\\s)(?:(?:he|hemos)\\s+dejado|dejé)\\s+(?:el\\s+)?(?:d[ií]a\\s+\\d+|primer\\s+d[ií]a)\\s+(?:libre|vac[ií]o|en\\s+blanco)${end}`, "iu"),
+  new RegExp(`${start}(?<!non\\s)(?:ho|abbiamo)\\s+(?:lasciato|tenuto)\\s+(?:il\\s+)?(?:giorno\\s+\\d+|primo\\s+giorno)\\s+(?:libero|vuoto|in\\s+bianco)${end}`, "iu"),
+  new RegExp(`${start}(?<!não\\s)(?:deixei|deixamos)\\s+(?:o\\s+)?(?:dia\\s+\\d+|primeiro\\s+dia)\\s+(?:livre|vazio|em\\s+branco)${end}`, "iu"),
   // A changed plan handed over as finished: "Here's an updated Day 1".
   new RegExp(`${start}here(?:['’]s|\\s+is|\\s+are)\\s+(?:an?\\s+|the\\s+|your\\s+)?(?:updated|revised|adjusted|modified|reworked)\\s+(?:\\d+-day\\s+)?(?:plan|itinerary|version|schedule|trip|days|day(?:\\s+\\d+)?)${end}`, "iu"),
   // Spanish
