@@ -71,7 +71,10 @@ beforeEach(() => {
   calls.feed.length = 0;
 });
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllEnvs();
+});
 
 describe("today in Google Maps", () => {
   it("offers today's stops as a route", () => {
@@ -92,6 +95,8 @@ describe("today in Google Maps", () => {
 
 describe("Today's routes", () => {
   it("uses the members' routes on the trip page, share link or not", () => {
+    // Expenses read only with their switch on (TodayView.expenses.vitest.tsx).
+    vi.stubEnv("NEXT_PUBLIC_EXPENSE_LEDGER_ENABLED", "true");
     renderToday("/api/trips/trip-1/today");
     expect(calls.actions[0]).toEqual(["/api/trips/trip-1/today", "trip-1", true, refetchExpenses]);
     expect(calls.expenses[0]).toEqual(["/api/trips/trip-1/today", true]);
@@ -104,6 +109,8 @@ describe("Today's routes", () => {
   });
 
   it("is read-only without routes", () => {
+    // Even with expenses on: there is nowhere to read them from.
+    vi.stubEnv("NEXT_PUBLIC_EXPENSE_LEDGER_ENABLED", "true");
     renderToday(undefined);
     expect(calls.actions[0]?.[2]).toBe(false);
     expect(calls.expenses[0]?.[1]).toBe(false);

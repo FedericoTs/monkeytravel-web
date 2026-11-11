@@ -14,6 +14,7 @@ import {
   takesOutNote,
   listMissingNote,
   fixedKeptNote,
+  shortestStopNote,
   cityKeptNote,
   cityMovedNote,
   notRepeatedNote,
@@ -99,6 +100,8 @@ export function composeReply(p: {
   notRepeated?: string[];
   /** The reply wanted more days than a trip may have (max), on a trip of `days`: none were added. */
   tripCap?: { max: number; days: number };
+  /** Stops asked for shorter than a stop can be, set to the shortest. */
+  shortest?: string[];
 }): string {
   const prepared = p.edits.length > 0 || p.tripLength !== undefined;
   // Notes join the reply, in its language: a Spanish message about a plan
@@ -198,6 +201,8 @@ export function composeReply(p: {
   if ((p.listMissing?.length ?? 0) > 0) text = `${text} ${listMissingNote(locale, p.listMissing!)}`;
   // A fixed plan the reply moved or took out is back as the traveller set it.
   for (const d of p.lockedDays) text = `${text} ${fixedKeptNote(locale, d.dayNumber, d.names)}`;
+  // "Conduit Court Passage 1 min" is saved at the shortest a stop can be: say so, not "done".
+  if ((p.shortest?.length ?? 0) > 0) text = `${text} ${shortestStopNote(locale, p.shortest!)}`;
   if (p.dayCount) text = `${text} ${dayCountNote(locale, p.dayCount)}`;
   // Places of another city that came off a city's days.
   const offCity = new Map<string, { other: string; city: string; names: string[] }>();

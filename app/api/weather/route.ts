@@ -261,6 +261,9 @@ export async function GET(request: NextRequest) {
         apiName: "open_meteo",
         endpoint: "/archive",
         costOverride: 0, // Free API
+        // The trip page waits on this: a stalled answer gives up after 8 s, retried once.
+        timeout: 8_000,
+        maxRetries: 1,
         metadata: {
           latitude: parseFloat(latitude),
           longitude: parseFloat(longitude),

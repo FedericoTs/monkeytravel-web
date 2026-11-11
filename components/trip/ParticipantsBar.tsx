@@ -34,7 +34,8 @@ interface ParticipantsBarProps {
   /** Absolute URL to share (falls back to location.href). */
   shareUrl?: string;
   tripTitle: string;
-  onSaveForLater: () => void;
+  /** Saves a copy into the reader's own account; absent while that's switched off. */
+  onSaveForLater?: () => void;
   /** Present only when the viewer may fork (signed in, not the owner). */
   onFork?: () => void;
   className?: string;
@@ -308,49 +309,53 @@ export default function ParticipantsBar({
             {shared === "copied" ? t("share.participants.copied") : t("share.participants.share")}
           </button>
 
-          <div className="relative" ref={menuRef}>
-            <button
-              type="button"
-              onClick={() => setMenuOpen((v) => !v)}
-              aria-haspopup="menu"
-              aria-expanded={menuOpen}
-              className="inline-flex min-h-[40px] items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
-            >
-              {t("share.participants.more")}
-              <span aria-hidden className="text-xs">▾</span>
-            </button>
-            {menuOpen && (
-              <div
-                role="menu"
-                className="absolute right-0 z-20 mt-1 w-48 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl"
+          {(onSaveForLater || onFork) && (
+            <div className="relative" ref={menuRef}>
+              <button
+                type="button"
+                onClick={() => setMenuOpen((v) => !v)}
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                className="inline-flex min-h-[40px] items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
               >
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    onSaveForLater();
-                  }}
-                  className="block w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50"
+                {t("share.participants.more")}
+                <span aria-hidden className="text-xs">▾</span>
+              </button>
+              {menuOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 z-20 mt-1 w-48 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl"
                 >
-                  {t("share.participants.saveForLater")}
-                </button>
-                {onFork && (
-                  <button
-                    type="button"
-                    role="menuitem"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      onFork();
-                    }}
-                    className="block w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50"
-                  >
-                    {t("share.participants.fork")}
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
+                  {onSaveForLater && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        onSaveForLater();
+                      }}
+                      className="block w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50"
+                    >
+                      {t("share.participants.saveForLater")}
+                    </button>
+                  )}
+                  {onFork && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        onFork();
+                      }}
+                      className="block w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50"
+                    >
+                      {t("share.participants.fork")}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

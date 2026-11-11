@@ -55,7 +55,11 @@ export function clockTime(v: unknown): string | null {
   return h ? hm(Number(h[1]), Number(h[2] ?? 0)) : null;
 }
 
-function normalizeActivity(raw: unknown, idx: number, cur: string, known: { lat: number; lng: number }[]): Activity | null {
+/** The shortest a stop can be: a street or a passage on a walk still takes a few minutes. */
+export const SHORTEST_STOP_MINUTES = 5;
+
+/** `raised` collects the names of stops asked for shorter than the shortest a stop can be. */
+function normalizeActivity(raw: unknown, idx: number, cur: string, known: { lat: number; lng: number }[], raised: string[]): Activity | null {
   const a = (raw ?? {}) as Record<string, unknown>;
   const name = typeof a.name === "string" ? a.name.trim() : "";
   if (!name) return null; // no name → unrenderable, drop
@@ -69,12 +73,14 @@ function normalizeActivity(raw: unknown, idx: number, cur: string, known: { lat:
         : "evening";
   const costRaw = (a.estimated_cost ?? {}) as Record<string, unknown>;
   const tier = VALID_TIERS.has(String(costRaw.tier)) ? String(costRaw.tier) : "moderate";
+  const minutes = Math.round(num(a.duration_minutes, 90));
+  if (minutes < SHORTEST_STOP_MINUTES) raised.push(name);
   return {
     time_slot: slot,
     // A real slot-based fallback (never "") so downstream iCal export can't
     // produce a corrupt DTSTART when the model omits start_time.
     start_time: clockTime(a.start_time) ?? (slot === "morning" ? "09:00" : slot === "afternoon" ? "13:00" : "19:00"),
-    duration_minutes: Math.max(15, Math.round(num(a.duration_minutes, 90))),
+    duration_minutes: Math.max(SHORTEST_STOP_MINUTES, minutes),
     name,
     type: normalizeActivityType(a.type, name),
     description: str(a.description, ""),
@@ -147,18 +153,21 @@ export function validateEdits(
   overCap: boolean;
   /** The reply asked for more days, whether they came back or not. */
   wantsMore: boolean;
+  /** Stops asked for shorter than SHORTEST_STOP_MINUTES and set to it, by name. */
+  shortest: string[];
 } {
   const current = days.length;
   const max = maxTripDays(days);
   const known = knownPoints(days);
   const byDay = new Map<number, DayEdit>();
+  const raised: string[] = [];
   for (const r of raw.edits) {
     if (!r || typeof r !== "object") continue;
     const e = r as Record<string, unknown>;
     const dayNumber = Math.round(num(e.day_number, 0));
     if (dayNumber < 1 || dayNumber > max) continue;
     const activities = (Array.isArray(e.activities) ? e.activities : [])
-      .map((x, i) => normalizeActivity(x, i, cur, known))
+      .map((x, i) => normalizeActivity(x, i, cur, known, raised))
       .filter((x): x is Activity => x !== null);
     const emptied = allowEmpty && Array.isArray(e.activities) && e.activities.length === 0;
     if (activities.length === 0 && !emptied) continue;
@@ -200,5 +209,9 @@ export function validateEdits(
   const lockedDays = [...new Set(moved.map((a) => fixedDay.get(a)!))]
     .sort((a, b) => a - b)
     .map((dayNumber) => ({ dayNumber, names: [...new Set(moved.filter((a) => fixedDay.get(a) === dayNumber))].map((a) => a.name?.trim() || "Fixed plan") }));
-  return { edits, tripLength: length !== current ? length : undefined, lockedDays, lengthRefused, overCap, wantsMore: wanted > current };
+  // Stops asked for shorter than a stop can be, among the ones the change keeps.
+  const shortest = [...new Set(raised)].filter((name) =>
+    edits.some((e) => e.activities.some((a) => a.name === name && a.duration_minutes === SHORTEST_STOP_MINUTES)),
+  );
+  return { edits, tripLength: length !== current ? length : undefined, lockedDays, lengthRefused, overCap, wantsMore: wanted > current, shortest };
 }
