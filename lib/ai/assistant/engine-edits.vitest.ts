@@ -3,7 +3,7 @@ import { describe, it, expect } from "vitest";
 import type { ItineraryDay } from "@/types";
 import { buildPrompt } from "./edit-prompt";
 import { composeReply } from "./edit-reply";
-import { plainText, validateEdits } from "./edit-validation";
+import { SHORTEST_STOP_MINUTES, plainText, validateEdits } from "./edit-validation";
 import { asksForFreeDay } from "./message-asks";
 
 /**
@@ -47,6 +47,32 @@ describe("validateEdits", () => {
       "JPY"
     );
     expect(out.edits[0].activities.map((a) => a.coordinates)).toEqual([{ lat: 34.994856, lng: 135.78505 }, undefined, undefined, undefined]);
+  });
+
+  it("keeps the short visits asked for, and names a stop set to the shortest a stop can be", () => {
+    // A London walk: "Broadwick Street 5 min, Neal's Yard 10 min, Conduit Court Passage 1 min".
+    const timed = (name: string, duration_minutes: number) => ({ ...act(name), duration_minutes });
+    const out = validateEdits(
+      trip(),
+      {
+        edits: [
+          {
+            day_number: 1,
+            activities: [timed("Broadwick Street", 5), timed("Neal's Yard", 10), timed("Conduit Court Passage", 1), act("Covent Garden")],
+          },
+        ],
+        tripLength: null,
+      },
+      "GBP"
+    );
+    expect(out.edits[0].activities.map((a) => a.duration_minutes)).toEqual([5, 10, SHORTEST_STOP_MINUTES, 90]);
+    expect(SHORTEST_STOP_MINUTES).toBe(5);
+    expect(out.shortest).toEqual(["Conduit Court Passage"]);
+    expect(validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").shortest).toEqual([]);
+    // A day the change doesn't keep (a sixth day of a five-day trip that stays five) names nothing.
+    const sixth = validateEdits(trip(), { edits: [{ day_number: 6, activities: [timed("Conduit Court Passage", 1)] }], tripLength: null }, "GBP");
+    expect(sixth.edits).toEqual([]);
+    expect(sixth.shortest).toEqual([]);
   });
 
   it("keeps every day of a swap, in day order", () => {
@@ -202,6 +228,17 @@ describe("composeReply", () => {
     // With the change prepared, the same words are true.
     const [d2] = validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").edits;
     expect(composeReply({ ...base, reply: "Here's the proposal for Day 2.", edits: [d2] })).toBe("Here's the proposal for Day 2.");
+  });
+
+  it("names the stops set to the shortest a stop can be, in the reply's language", () => {
+    const [d1] = validateEdits(trip(), { edits: [edit(1)], tripLength: null }, "EUR").edits;
+    expect(composeReply({ ...base, reply: "Here's Day 1 with your short stops.", edits: [d1], shortest: ["Conduit Court Passage"] })).toBe(
+      "Here's Day 1 with your short stops. Conduit Court Passage: set to 5 min, the shortest a stop can be."
+    );
+    expect(composeReply({ ...base, locale: "it", reply: "Ecco il Giorno 1.", edits: [d1], shortest: ["Conduit Court Passage"] })).toContain(
+      "Conduit Court Passage: 5 min"
+    );
+    expect(composeReply({ ...base, reply: "Here's Day 1.", edits: [d1], shortest: [] })).toBe("Here's Day 1.");
   });
 
   it("an answer with nothing prepared stays as it is", () => {
@@ -429,6 +466,13 @@ describe("buildPrompt", () => {
     const prompt = buildPrompt({ message: "Suggest a great local restaurant to add", destination: "Lisbon", tripTitle: "Lisbon", days: trip(), locale: "en" });
     expect(prompt).toContain("pick the day with the most room where it fits, add it there without removing anything");
     expect(prompt).toContain("Don't ask which day");
+  });
+
+  // "Broadwick Street 5 min, Neal's Yard 10 min" came back at 20 and 30 minutes.
+  it("keeps the length a traveller gives a stop, down to the shortest a stop can be", () => {
+    const prompt = buildPrompt({ message: "Neal's Yard 10 min", destination: "London", tripTitle: "London", days: trip(), locale: "en" });
+    expect(prompt).toContain(`A length the traveller gives a stop ("5 min", "an hour") is its "duration_minutes" exactly, never rounded up`);
+    expect(prompt).toContain(`the shortest a stop can be is ${SHORTEST_STOP_MINUTES} minutes`);
   });
 
   // "I am arriving at 6pm on the 28th" on a trip from the 29th: Day 1 was rewritten.

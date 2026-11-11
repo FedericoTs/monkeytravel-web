@@ -34,7 +34,7 @@ describe("ProposeActivitySheet's own stop", () => {
 
     const length = screen.getByLabelText(enCommon.proposeActivity.form.durationLabel) as HTMLSelectElement;
     expect([...length.options].map((o) => o.text)).toEqual([
-      "15 min", "30 min", "45 min", "1 h", "1 h 30 min", "2 h", "2 h 30 min", "3 h", "4 h", "5 h", "6 h", "8 h",
+      "5 min", "10 min", "15 min", "30 min", "45 min", "1 h", "1 h 30 min", "2 h", "2 h 30 min", "3 h", "4 h", "5 h", "6 h", "8 h",
     ]);
     expect(length.selectedOptions[0].text).toBe("1 h 30 min");
 
