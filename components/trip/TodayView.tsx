@@ -98,7 +98,9 @@ export default function TodayView({
   const chipsEnabled = !!apiBase && !!tripId;
   // Phase 3.4 expenses: "Who paid?" on the live trip, split across participants.
   // Refreshed with the chips when the trip's Today broadcast announces a change.
-  const expenses = useTripExpenses(apiBase ?? "", chipsEnabled);
+  // Follows the expense switch, as the trip page's ledger and Settle up do.
+  const expensesOn = chipsEnabled && process.env.NEXT_PUBLIC_EXPENSE_LEDGER_ENABLED === "true";
+  const expenses = useTripExpenses(apiBase ?? "", expensesOn);
   const { actions, busy, error, apply, undo } = useTodayActions(apiBase ?? "", tripId ?? "", chipsEnabled, expenses.refetch);
   // Phase 3.5 activity feed: joins + chip actions + expenses, merged server-side.
   // No channel of its own — refetch when the chip actions or the expenses
@@ -220,10 +222,12 @@ export default function TodayView({
               </>
             )}
             {/* Phase 3.4: "Who paid?" on each activity. */}
-            <ExpenseQuickAdd
-              onAdd={(amt) => expenses.add({ amount: amt, activityId: activity.id ?? null })}
-              busy={expenses.busy}
-            />
+            {expensesOn && (
+              <ExpenseQuickAdd
+                onAdd={(amt) => expenses.add({ amount: amt, activityId: activity.id ?? null })}
+                busy={expenses.busy}
+              />
+            )}
           </div>
         )}
       </div>
@@ -279,7 +283,7 @@ export default function TodayView({
       {chipsEnabled && <TodayFeed events={feedEvents} className="mb-4" />}
 
       {/* Expenses — "Who paid?" split across participants (Phase 3.4). */}
-      {chipsEnabled && (
+      {expensesOn && (
         <TodayExpenses
           expenses={expenses.expenses}
           summary={expenses.summary}
