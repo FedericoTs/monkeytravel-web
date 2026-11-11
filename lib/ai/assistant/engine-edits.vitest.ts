@@ -681,6 +681,16 @@ describe("a free day", () => {
     expect(asksForFreeDay("add a cooking class on day 3")).toBe(false);
   });
 
+  // "For Day 1 leave it blank, my flight lands at midnight": the model emptied
+  // Day 1, the empty day was dropped, and the reply said it was done.
+  it("is asked for as a blank day too", () => {
+    expect(asksForFreeDay("For Day 1 leave it blank, my flight lands at midnight.")).toBe(true);
+    expect(asksForFreeDay("deja el día 1 en blanco")).toBe(true);
+    expect(asksForFreeDay("lascia il giorno 1 in bianco")).toBe(true);
+    expect(asksForFreeDay("deixe o dia 1 em branco")).toBe(true);
+    expect(asksForFreeDay("fill in the blanks on day 2 with museums")).toBe(false);
+  });
+
   it("empties a day only when the traveller asked for one", () => {
     const raw = { edits: [{ day_number: 2, activities: [] }], tripLength: null };
     expect(validateEdits(trip(), raw, "EUR").edits).toEqual([]);

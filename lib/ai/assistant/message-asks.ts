@@ -93,7 +93,7 @@ export function talksAboutDayCount(message: string): boolean {
 
 // A day with nothing planned: "leave day 2 free", "deixe o dia 2 livre".
 const FREE_DAY =
-  /(?<![\p{L}])(?:free|empty|clear|day\s+off|nothing\s+planned|libres?|vac[ií][oa]s?|liber[oiae]|vuot[oiae]|livres?|vazi[oa]s?|folga)(?![\p{L}])/iu;
+  /(?<![\p{L}])(?:free|empty|clear|blank|day\s+off|nothing\s+planned|libres?|vac[ií][oa]s?|en\s+blanco|liber[oiae]|vuot[oiae]|in\s+bianco|livres?|vazi[oa]s?|em\s+branco|folga)(?![\p{L}])/iu;
 
 /** Does the message ask for a day with nothing planned? */
 export function asksForFreeDay(message: string): boolean {

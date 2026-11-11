@@ -160,6 +160,11 @@ const PROPOSAL_PATTERNS: RegExp[] = [
   // days, ready to save:…". With nothing prepared, a promise: "aqui está um novo
   // dia 15 em Dublin, pronto para salvar" came with no change, four times.
   new RegExp(`${start}here(?:['’]s|\\s+is|\\s+are)\\s+(?:a|an|the|your|\\d+)\\s+(?:new|extra|additional)\\s+days?${end}(?!\\s*-?\\s*trips?)`, "iu"),
+  // A day handed over empty: "Here is a blank Day 1 ready to save", "Ecco il giorno 1 libero".
+  new RegExp(`${start}here(?:['’]s|\\s+is)\\s+(?:a|an|the|your)\\s+(?:blank|empty|free|clear)\\s+day(?:\\s+\\d+)?${end}`, "iu"),
+  new RegExp(`${start}aquí\\s+(?:tienes|está|va)\\s+(?:el|un|tu)\\s+día\\s+\\d+\\s+(?:libre|vac[ií]o|en\\s+blanco)${end}`, "iu"),
+  new RegExp(`${start}ecco\\s+(?:il|un|il\\s+tuo)\\s+giorno\\s+\\d+\\s+(?:libero|vuoto|in\\s+bianco)${end}`, "iu"),
+  new RegExp(`${start}aqui\\s+(?:está|vai)\\s+(?:o|um|o\\s+seu|seu)\\s+dia\\s+\\d+\\s+(?:livre|vazio|em\\s+branco)${end}`, "iu"),
   new RegExp(`(?:${SENTENCE_START}|,\\s*)ready\\s+(?:for\\s+you\\s+)?to\\s+(?:save|apply|swap|switch)${end}`, "iu"),
   new RegExp(`${start}aquí\\s+(?:tienes|está|están|va|van)\\s+(?:el|un|tu|los|unos|\\d+)\\s+(?:nuevos?\\s+días?|días?\\s+(?:nuevos?|extras?|adicionales?))${end}`, "iu"),
   new RegExp(`(?:${SENTENCE_START}|,\\s*)list[oa]s?\\s+para\\s+(?:guardar|aplicar|cambiar|intercambiar)${end}`, "iu"),
