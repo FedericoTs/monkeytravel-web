@@ -218,6 +218,12 @@ describe("claimsItineraryChange", () => {
 
 // Live replies sent with no change attached, and how they read in es/pt.
 const handedOver = [
+  // Production, with no change attached: a day that never came back empty.
+  "Here is a blank Day 1 ready to save, since you'll be landing at midnight.",
+  "Here's an empty Day 3, so you can rest.",
+  "Aquí tienes el día 1 libre para descansar.",
+  "Ecco il giorno 1 libero per il tuo arrivo.",
+  "Aqui está o dia 1 livre para você descansar.",
   "Ho ricevuto la tua conferma.\n\nEcco la proposta per rimuovere Restaurace Mlejnice dal Giorno 2. Se sei d'accordo, fammelo sapere.",
   "Ok, I'll propose adding a Beer Spa on Day 2. I'll place it in the afternoon.\n\nHere is the proposed addition:",
   "Got it. I will propose shifting your entire trip to start on October 17th.",
