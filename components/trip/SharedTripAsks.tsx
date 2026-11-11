@@ -20,7 +20,8 @@ interface SharedTripAskProps {
   crewAsk: boolean;
   planOwnHref: string;
   onPlanOwn: (surface: PlanOwnSurface) => void;
-  onSave: () => void;
+  /** Saves a copy into the reader's own account; absent while that's switched off. */
+  onSave?: () => void;
 }
 
 /**
@@ -61,13 +62,15 @@ export function SharedTripTopAsk({
       >
         <ShareRow url={publicUrl} title={tripTitle} />
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={onSave}
-            className="inline-flex min-h-[40px] items-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            {t("share.participants.saveForLater")}
-          </button>
+          {onSave && (
+            <button
+              type="button"
+              onClick={onSave}
+              className="inline-flex min-h-[40px] items-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              {t("share.participants.saveForLater")}
+            </button>
+          )}
           <Link
             href={planOwnHref}
             onClick={() => onPlanOwn("public_top")}
@@ -197,13 +200,15 @@ export function SharedTripEndAsk({
                 ? t("share.savedHero.planOwnButton", { destination })
                 : t("share.savedHero.planOwnButtonGeneric")}
           </Link>
-          <button
-            type="button"
-            onClick={onSave}
-            className="inline-flex min-h-[48px] items-center justify-center rounded-xl border border-slate-300 bg-white px-6 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
-          >
-            {t("share.participants.saveForLater")}
-          </button>
+          {onSave && (
+            <button
+              type="button"
+              onClick={onSave}
+              className="inline-flex min-h-[48px] items-center justify-center rounded-xl border border-slate-300 bg-white px-6 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+            >
+              {t("share.participants.saveForLater")}
+            </button>
+          )}
         </div>
       </section>
     );
@@ -216,13 +221,15 @@ export function SharedTripEndAsk({
     >
       <div className="max-w-2xl mx-auto">
         <div className="flex flex-col sm:flex-row gap-3">
-          <button
-            onClick={onSave}
-            className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-[var(--primary)] to-[var(--primary)]/90 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200"
-          >
-            <Sparkles className="w-5 h-5" />
-            {t("share.savedHero.saveButton")}
-          </button>
+          {onSave && (
+            <button
+              onClick={onSave}
+              className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-[var(--primary)] to-[var(--primary)]/90 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200"
+            >
+              <Sparkles className="w-5 h-5" />
+              {t("share.savedHero.saveButton")}
+            </button>
+          )}
           <Link
             href={planOwnHref}
             onClick={() => onPlanOwn("bottom_bar")}
@@ -231,7 +238,7 @@ export function SharedTripEndAsk({
             {destination ? t("share.savedHero.planOwnButton", { destination }) : t("share.savedHero.planOwnButtonGeneric")}
           </Link>
         </div>
-        <p className="text-center text-xs text-slate-500 mt-2">{t("share.savedHero.saveSubtitle")}</p>
+        {onSave && <p className="text-center text-xs text-slate-500 mt-2">{t("share.savedHero.saveSubtitle")}</p>}
       </div>
     </div>
   );

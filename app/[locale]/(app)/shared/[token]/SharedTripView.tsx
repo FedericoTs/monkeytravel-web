@@ -24,6 +24,7 @@ import TripPackingEssentials from "@/components/trip/TripPackingEssentials";
 import { tripNights } from "@/lib/dates/iso-date";
 import { MapToggle, ViewModeToggle } from "@/components/trip/ViewControls";
 import SaveTripModal from "@/components/ui/SaveTripModal";
+import { saveCopyShown } from "@/lib/trips/save-copy";
 import { useAuth } from "@/components/auth/AuthProvider";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import { AnonymousActivityVoteBar } from "@/components/trip/AnonymousActivityVoteBar";
@@ -162,6 +163,8 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
   const { user: viewer, loading: viewerLoading } = useAuth();
   useSharedTripVisit({ tripId: trip.id, viewSource, referralCode, shareToken, viewer, viewerLoading });
   const { showSaveModal, setShowSaveModal, resumedStartDate } = useSharedTripSave({ shareToken, publicSlug, viewer, viewerLoading });
+  // Saving a copy into the reader's own account, while it's switched on.
+  const onSave = saveCopyShown() ? () => setShowSaveModal(true) : undefined;
   const ownerPending = useOwnerClaim({ shareToken, tripId: trip.id, signedIn: !viewerLoading && !!viewer });
 
   // Votes go through the share link, so the public page shows none.
@@ -292,7 +295,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
           crewAsk={crewAsk}
           planOwnHref={planOwn}
           onPlanOwn={firePlanOwnClicked}
-          onSave={() => setShowSaveModal(true)}
+          onSave={onSave}
           tripId={trip.id}
           tripTitle={trip.title}
           publicUrl={publicPage?.url}
@@ -486,7 +489,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
           crewAsk={crewAsk}
           planOwnHref={planOwn}
           onPlanOwn={firePlanOwnClicked}
-          onSave={() => setShowSaveModal(true)}
+          onSave={onSave}
           ownerPending={ownerPending}
           tripOver={dayState.phase === "past"}
           viewerEmail={viewer?.email}
