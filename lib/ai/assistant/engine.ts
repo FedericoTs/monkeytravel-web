@@ -61,7 +61,7 @@ import {
 } from "./message-asks";
 import { alsoInTheirCity, daysOfCity, keepDayCities, placesAway, withoutPlacesAway, type PlacesAway } from "./city-days";
 import { type TravelTime, readTravelTimes, outsideTravelTimes, minutesOf } from "./travel-times";
-import { composeReply } from "./edit-reply";
+import { composeReply, type PlaceOnDay } from "./edit-reply";
 import { maxTripDays } from "./structural";
 import { askForNames, gluedNames, renamesOf, withNames } from "@/lib/ai/one-script-names";
 import { resolveAiLanguage } from "@/lib/ai/language";
@@ -305,6 +305,29 @@ function withoutRepeats(days: ItineraryDay[], edits: DayEdit[], partDays: Set<nu
     if (left.length >= 2) result.set(e.day_number, { ...e, activities: left });
   }
   return edits.map((e) => result.get(e.day_number) ?? e);
+}
+
+/**
+ * The places of the list in their message that the change puts on none of its
+ * days while a day it leaves as it was has them: "…, Chinatown, …" for Day 1,
+ * with Chinatown already on Day 4. With that day, for the reply to say. Only for
+ * a list most of whose places the change's days hold, so a list of places to
+ * take out is left alone. Pure; unit-tested through assistTrip.
+ */
+function listedElsewhere(input: Pick<AssistInput, "message" | "days">, edits: DayEdit[]): PlaceOnDay[] {
+  const listed = listedPlaces(input.message);
+  const inChange = (p: string) => edits.some((e) => e.activities.some((a) => samePlace(a.name, p)));
+  if (listed.filter(inChange).length < Math.ceil(listed.length / 2)) return [];
+  const asItWas = input.days.filter((d) => !edits.some((e) => e.day_number === d.day_number));
+  return listed
+    .filter((p) => !inChange(p))
+    .flatMap((p) => {
+      for (const d of asItWas) {
+        const name = (d.activities ?? []).map((a) => a?.name ?? "").find((n) => samePlace(n, p));
+        if (name) return [{ name, day: d.day_number }];
+      }
+      return [];
+    });
 }
 
 /** The places listed in the message or the traveller's last messages. */
@@ -886,7 +909,9 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
     if (day && left.length >= 2) edits = edits.map((e) => (e === day ? { ...e, activities: left } : e));
   }
   // The repeats no longer on the day the reply may have named them for.
-  const notRepeated = repeats.filter((r) => !stillRepeated(edits).some((t) => t.name === r.name && t.to === r.to)).map((r) => r.name);
+  const notRepeated = repeats
+    .filter((r) => !stillRepeated(edits).some((t) => t.name === r.name && t.to === r.to))
+    .map((r): PlaceOnDay => ({ name: r.name, day: r.from }));
 
   // A new name with two writing systems in one word ("Nam대mun") gets its
   // usual name, in the reply too (lib/ai/one-script-names.ts).
@@ -946,6 +971,7 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
     // Asked to regroup, they expect places to move.
     cityMoved: regroup ? [] : movedToTheirCity(input.days, edits, misplaced),
     notRepeated,
+    listedHeld: listedElsewhere(input, edits),
     // Only the ones the change still holds, at the shortest.
     shortest: [...new Set(shortest)].filter((name) =>
       edits.some((e) => e.activities.some((a) => a.name === name && a.duration_minutes === SHORTEST_STOP_MINUTES)),
