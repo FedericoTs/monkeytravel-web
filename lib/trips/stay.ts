@@ -19,8 +19,12 @@ export function cleanStayName(raw: unknown): string {
     .trim();
 }
 
-/** Further than this from the destination, a stay belongs to another trip. */
-export const STAY_FAR_KM = 60;
+/**
+ * Further than this from the destination, a stay belongs to another trip. It
+ * reaches past the corners of the stay search box (lib/places/stay-search.ts),
+ * so a place the search suggested is never dropped.
+ */
+export const STAY_FAR_KM = 80;
 
 /**
  * Whether a picked stay is too far from the destination now chosen to be part

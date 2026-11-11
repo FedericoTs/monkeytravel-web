@@ -39,24 +39,28 @@ test.describe("where they're staying, for the plan", () => {
     await isolate(page);
     const { streamed } = await stubGeneration(page);
     const searched: Array<{ input: string; near: { latitude: number; longitude: number } }> = [];
+    // Whichever city "Popular right now" offers first, the hotel is a short walk from its centre.
+    const nearby = ({ latitude, longitude }: { latitude: number; longitude: number }) => ({ lat: latitude + 0.01, lng: longitude + 0.01 });
     await page.route("**/api/places/stay-search", async (route) => {
-      searched.push(route.request().postDataJSON());
+      const asked = route.request().postDataJSON();
+      searched.push(asked);
       await route.fulfill({
-        json: { places: [{ name: "Memmo Alfama", detail: "Travessa das Merceeiras 27, Alfama", lat: 38.7111, lng: -9.1306 }] },
+        json: { places: [{ name: "Riverside Hotel", detail: "Main Street 27", ...nearby(asked.near) }] },
       });
     });
     await pickPopular(page);
 
     await page.getByRole("button", { name: "+ Add where you’re staying" }).click();
     const stayBox = page.getByRole("combobox", { name: "Where are you staying?" });
-    await stayBox.fill("memmo");
-    await page.getByRole("option", { name: /Memmo Alfama/ }).click();
-    await expect(stayBox).toHaveValue("Memmo Alfama");
+    await stayBox.fill("riverside");
+    await page.getByRole("option", { name: /Riverside Hotel/ }).click();
+    await expect(stayBox).toHaveValue("Riverside Hotel");
     expect(typeof searched[0]?.near.latitude).toBe("number");
+    const { lat, lng } = nearby(searched[0].near);
 
     await generate(page);
     await expect.poll(() => streamed.length).toBe(1);
-    expect(streamed[0]).toMatchObject({ stay: "Memmo Alfama", stayCoords: { latitude: 38.7111, longitude: -9.1306 } });
+    expect(streamed[0]).toMatchObject({ stay: "Riverside Hotel", stayCoords: { latitude: lat, longitude: lng } });
   });
 
   test("typed words go on their own, with no place", async ({ page }) => {

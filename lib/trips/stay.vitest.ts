@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { STAY_FAR_KM, STAY_NAME_MAX, cleanStayName, readStay, stayFarFrom } from "./stay";
+import { STAY_BOX_DEGREES } from "@/lib/places/stay-search";
+import { STAY_NAME_MAX, cleanStayName, readStay, stayFarFrom } from "./stay";
 
 /**
  * Where the traveller is staying reaches the plan's prompt as one line of their
@@ -44,13 +45,20 @@ describe("stayFarFrom", () => {
 
   it("lets a picked stay go when the destination is now somewhere else", () => {
     expect(stayFarFrom(alfama, { latitude: 41.1579, longitude: -8.6291 })).toBe(true);
+    // Évora, a city of its own a little over 100 km away.
+    expect(stayFarFrom(alfama, { latitude: 38.5714, longitude: -7.9135 })).toBe(true);
   });
 
   it("keeps one in or near the destination", () => {
     expect(stayFarFrom(alfama, lisbon)).toBe(false);
     // Sintra is about 25 km out: a day trip, still this trip.
     expect(stayFarFrom({ name: "Sintra", coordinates: { lat: 38.8029, lng: -9.3817 } }, lisbon)).toBe(false);
-    expect(STAY_FAR_KM).toBe(60);
+  });
+
+  it("keeps every place the search can suggest, out to the corners of its box", () => {
+    // The box is widest at the equator, where a corner is about 63 km away.
+    const corner = { name: "Edge of town", coordinates: { lat: STAY_BOX_DEGREES, lng: STAY_BOX_DEGREES } };
+    expect(stayFarFrom(corner, { latitude: 0, longitude: 0 })).toBe(false);
   });
 
   it("can't tell for a typed stay or an unplaced destination, so keeps it", () => {
