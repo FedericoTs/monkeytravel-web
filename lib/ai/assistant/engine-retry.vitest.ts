@@ -226,6 +226,31 @@ describe("assistTrip on a change about more days than one reply holds", () => {
     expect(out.reply).toBe("Every day is gluten-free now.");
   });
 
+  it("names a stop a later part set to the shortest a stop can be", async () => {
+    const part = {
+      response: {
+        text: () =>
+          JSON.stringify({
+            reply: "ok",
+            // Day 2 wasn't this part's to change, so its stop is dropped and never named.
+            edits: [2, 7, 8, 9].map((n) => ({
+              day_number: n,
+              summary: `GF day ${n}`,
+              activities: [
+                { name: n === 8 ? "Quick look at the market" : n === 2 ? "A stop nobody asked for" : `GF place ${n}`, start_time: "10:00", duration_minutes: n === 8 || n === 2 ? 2 : 60 },
+              ],
+            })),
+          }),
+      },
+    };
+    generateContent.mockResolvedValueOnce(daysReply([1, 2, 3, 4, 5, 6], [7, 8, 9])).mockResolvedValueOnce(part);
+    const out = await run(long);
+    expect(out.edits.find((e) => e.day_number === 8)?.activities[0].duration_minutes).toBe(5);
+    expect(out.reply).toContain("Quick look at the market: set to 5 min, the shortest a stop can be.");
+    expect(out.reply).not.toContain("A stop nobody asked for");
+    expect(out.edits.find((e) => e.day_number === 2)?.activities[0].name).toBe("GF place 2");
+  });
+
   it("names the days a part didn't bring back", async () => {
     generateContent.mockResolvedValueOnce(daysReply([1, 2, 3, 4, 5, 6], [7, 8, 9])).mockRejectedValueOnce(overloaded());
     const out = await run(long);

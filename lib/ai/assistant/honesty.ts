@@ -21,6 +21,7 @@
 
 import { resolveAiLanguage, type SupportedLanguage } from "@/lib/ai/language";
 import { note } from "./notes";
+import { SHORTEST_STOP_MINUTES } from "./edit-validation";
 import { applyButtonLabel } from "./apply-button";
 import type { StructuredAssistantResponse } from "@/types";
 
@@ -306,6 +307,11 @@ export function notRepeatedNote(language: string | undefined, names: string[]): 
 /** Appended when a change would have moved or taken out a fixed plan, which stays as it was. */
 export function fixedKeptNote(language: string | undefined, dayNumber: number, names: string[]): string {
   return note(language, "fixedKept", { day: String(dayNumber), fixed: names.join(", ") });
+}
+
+/** Appended when stops asked for shorter than a stop can be were set to the shortest. */
+export function shortestStopNote(language: string | undefined, names: string[]): string {
+  return note(language, "shortestStop", { names: names.join(", "), minutes: SHORTEST_STOP_MINUTES });
 }
 
 /** The wizard assistant's fallbacks when the model returned no reply text. */
