@@ -1,5 +1,5 @@
 /** @vitest-environment jsdom */
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import TodayView from "./TodayView";
 import type { TripDayState } from "@/lib/trip/live";
@@ -66,8 +66,16 @@ function renderToday() {
   );
 }
 
+// Today shows the stop under way or next, and the ones after it: at 08:00 in
+// Lisbon both stops are still ahead, whatever time the tests run.
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date("2026-10-01T07:00:00Z"));
+});
+
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
   vi.unstubAllEnvs();
   expenseReads.length = 0;
 });
