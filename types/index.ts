@@ -468,6 +468,14 @@ export interface TripDaylight {
   last: SunClock;
 }
 
+/** Where the traveller is staying: a hotel, an address or an area, as they typed or picked it. */
+export interface TripStay {
+  /** One short line of their words (lib/trips/stay.ts cleanStayName). */
+  name: string;
+  /** Where it is, when it was picked from a list. */
+  coordinates?: { lat: number; lng: number };
+}
+
 export interface TripCreationParams {
   destination: string;
   startDate: string;
@@ -507,6 +515,12 @@ export interface TripCreationParams {
   tripIntent?: "solo" | "group";
   /** Sunrise and sunset at the destination, worked out by the server (lib/ai/daylight.ts). */
   daylight?: TripDaylight;
+  /**
+   * Where the traveller is staying, when they said (lib/trips/stay.ts). Each day
+   * starts near it and ends a short ride from it, so a plan with it neither
+   * comes from the shared cache nor goes into it. Single-city trips only.
+   */
+  stay?: TripStay;
   /**
    * Multi-city wedge (§3.1). When present with >1 leg, /api/ai/generate routes
    * to the per-city parallel generator (lib/ai/multi-city) and merges the
