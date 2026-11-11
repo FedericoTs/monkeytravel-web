@@ -7,6 +7,7 @@
   "notAppliedLead": "Ainda não aplicado: toque em \"Aplicar alteração\" abaixo para atualizar o seu plano.",
   "lockedDay": "O dia {day} tem um compromisso fixo que você definiu ({fixed}), então deixei como está: você mesmo pode mudá-lo no plano. Posso mudar todo o resto desse dia.",
   "fixedKept": "(O compromisso fixo do dia {day} fica como você definiu: {fixed}.)",
+  "shortestStop": "{names}: {minutes} min, o mínimo que uma parada pode durar.",
   "cityKept": "(Os lugares de {other} ficam fora dos dias de {city}: {list}.)",
   "cityMoved": "{count, plural, =1 {(Passa para os dias de {city}: {list}.)} other {(Passam para os dias de {city}: {list}.)}}",
   "notRepeated": "{count, plural, =1 {(Já está em outro dia, então não se repete: {list}.)} other {(Já estão em outros dias, então não se repetem: {list}.)}}",

@@ -15,6 +15,7 @@ import { addDaysISO, MAX_TRIP_DAYS_MULTI, maxTripDays } from "@/lib/ai/assistant
 import type { TripSpan } from "@/lib/ai/assistant/honesty";
 import type { ItineraryDay } from "@/types";
 import { ACTIVITY_TYPES } from "@/lib/trip/activity-type";
+import { SHORTEST_STOP_MINUTES } from "./edit-validation";
 
 // How a reply presents an edit that is still waiting to be saved, per language:
 // the model kept writing "I've added" / "Ho aggiunto" for an unsaved edit, and
@@ -297,7 +298,7 @@ Return STRICT JSON (no markdown) in this EXACT shape:
 
 Rules:
 1. JSON only. "edits" is [] for questions.
-2. A day you plan from scratch has 3-5 activities. A day you add to keeps every activity it had, so it may end up with more than 5: that's fine while its times still work (meals at meal times, time to get between stops). Fewer when the traveller asks to remove things. Real places, costs realistic in ${cur}. Never fill a gap with a placeholder like "free time for lunch". A day they want free has no activities: "activities": []. Keep "description" to a few words.
+2. A day you plan from scratch has 3-5 activities. A day you add to keeps every activity it had, so it may end up with more than 5: that's fine while its times still work (meals at meal times, time to get between stops). Fewer when the traveller asks to remove things. Real places, costs realistic in ${cur}. Never fill a gap with a placeholder like "free time for lunch". A day they want free has no activities: "activities": []. Keep "description" to a few words. A length the traveller gives a stop ("5 min", "an hour") is its "duration_minutes" exactly, never rounded up; the shortest a stop can be is ${SHORTEST_STOP_MINUTES} minutes.
 3. For a change, "reply" is warm and brief and says what changed, one short line per day when several days change, describing exactly the edits you return. Never say you changed a day that is not in "edits". ${
     input.autoApply
       ? `For the wording, ${DONE_WORDING[input.locale ?? "en"] ?? DONE_WORDING.en}`

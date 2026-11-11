@@ -3,7 +3,7 @@
 import { formatDuration } from "@/lib/datetime/duration";
 
 /** The lengths a stop can be given, from a quick look to a day out. */
-const LENGTHS = [15, 30, 45, 60, 90, 120, 150, 180, 240, 300, 360, 480];
+const LENGTHS = [5, 10, 15, 30, 45, 60, 90, 120, 150, 180, 240, 300, 360, 480];
 
 /**
  * A stop's length, picked from a list in hours and minutes, as its card shows
