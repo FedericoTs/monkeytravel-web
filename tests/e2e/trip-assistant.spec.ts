@@ -1,11 +1,11 @@
 /**
- * The trip page's two ways of asking the AI, as the owner: the assistant ("Edit
- * with AI") and the concierge. What would reach the model is answered by the test,
- * so no model runs. Saving a change and undoing it go through the real routes, and
- * the trip's row is read back.
+ * Asking the AI on the trip page, as the owner: the assistant ("Edit with AI"), the
+ * one way to ask with the concierge switched off. What would reach the model is
+ * answered by the test, so no model runs. Saving a change and undoing it go through
+ * the real routes, and the trip's row is read back.
  *
  * Every test gets a trip of its own, a few weeks out, removed afterwards. Needs the
- * fixture owner's session, service credentials and a build with the concierge on:
+ * fixture owner's session and service credentials:
  *   KEY_FLOWS_AUTH_STATE=.auth/owner.json KEY_FLOWS_TRIP_ID=<manifest tripId> \
  *     npx playwright test tests/e2e/trip-assistant.spec.ts --project=chromium
  */
@@ -106,21 +106,6 @@ async function answerTurns(page: Page, ...replies: { status?: number; body: unkn
     asked.push(route.request().postDataJSON());
     const reply = replies[Math.min(asked.length, replies.length) - 1];
     await route.fulfill({ status: reply.status ?? 200, contentType: "application/json", body: JSON.stringify(reply.body) });
-  });
-  return asked;
-}
-
-/** Answers the concierge's questions with these streams in this order, staying on the last; returns what was asked. */
-async function answerConcierge(page: Page, ...streams: unknown[][]) {
-  const asked: Array<{ tripId?: string; question?: string; clientToday?: string; itineraryVersion?: number }> = [];
-  await page.route("**/api/ai/concierge", async (route) => {
-    asked.push(route.request().postDataJSON());
-    const frames = streams[Math.min(asked.length, streams.length) - 1];
-    await route.fulfill({
-      status: 200,
-      contentType: "text/event-stream",
-      body: frames.map((frame) => `data: ${JSON.stringify(frame)}\n\n`).join(""),
-    });
   });
   return asked;
 }
@@ -390,139 +375,9 @@ test.describe("asking the AI on the trip page", () => {
     });
   });
 
-  test.describe("the concierge", () => {
-    const FIELD = "Ask the concierge";
-    const done = { type: "done", isLiveTrip: false, dayNumber: null };
-
-    const replaceTheCathedral = (oldActivity: Activity): PendingChange => ({
-      type: "replace",
-      oldActivity,
-      newActivity: activity("t-d1a1-new", GARDEN, "10:00"),
-      dayNumber: 1,
-      reason: "Quieter in the morning.",
-    });
-
-    async function openConcierge(page: Page): Promise<Locator> {
-      await openTrip(page, tripId);
-      await page.getByRole("button", { name: "Ask concierge" }).click({ timeout: 60_000 });
-      const dialog = page.getByRole("dialog", { name: "Trip concierge" });
-      await expect(dialog).toBeVisible();
-      return dialog;
-    }
-
-    async function askIn(dialog: Locator, question: string) {
-      await expect(dialog.getByLabel(FIELD)).toBeEnabled({ timeout: 30_000 });
-      await dialog.getByLabel(FIELD).fill(question);
-      await dialog.getByRole("button", { name: "Ask", exact: true }).click();
-    }
-
-    test("streams an answer in, and asks with the local date", async ({ page }) => {
-      const asked = await answerConcierge(page, [
-        { type: "chunk", text: "Take the tram " },
-        { type: "chunk", text: "up the hill." },
-        { type: "done", isLiveTrip: true, dayNumber: 1 },
-      ]);
-      const dialog = await openConcierge(page);
-      await askIn(dialog, "How do I get to the cathedral?");
-
-      await expect(dialog.getByText("Take the tram up the hill.")).toBeVisible();
-      await expect(dialog.getByText("How do I get to the cathedral?")).toBeVisible();
-      await expect(dialog.getByText(/Today is in your trip window/)).toBeVisible();
-      await expect(dialog.getByLabel(FIELD)).toHaveValue("");
-      expect(asked).toHaveLength(1);
-      expect(asked[0]).toMatchObject({ tripId, question: "How do I get to the cathedral?", itineraryVersion: 0 });
-      expect(asked[0].clientToday).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-      expect(await storedNames()).toEqual(AS_STORED);
-    });
-
-    test("a proposed change waits for the button, lands on the page, and the next ask knows", async ({ page }) => {
-      const asked = await answerConcierge(
-        page,
-        [{ type: "chunk", text: "The gardens are quieter." }, { type: "proposal", proposal: replaceTheCathedral(storedDays()[0].activities[0]) }, done],
-        [{ type: "chunk", text: "It opens at nine." }, done],
-      );
-      const dialog = await openConcierge(page);
-      await askIn(dialog, "Swap the cathedral for something quieter");
-
-      await expect(dialog.getByText("Not in your trip yet")).toBeVisible();
-      expect(await storedNames()).toEqual(AS_STORED);
-
-      await dialog.getByRole("button", { name: "Save to my trip" }).click();
-      await expect.poll(storedNames, { timeout: 30_000 }).toEqual([GARDEN, LUNCH, BRIDGE]);
-      await expect(page.getByText("Change applied to your trip.")).toBeVisible();
-      await expect(dialog.getByText("Not in your trip yet")).toHaveCount(0);
-      await expect(dayList(page, 1)).toContainText(GARDEN);
-      await expect(dayList(page, 1)).not.toContainText(CATHEDRAL);
-
-      await askIn(dialog, "When does it open?");
-      await expect(dialog.getByText("It opens at nine.")).toBeVisible();
-      expect(asked.map((a) => a.itineraryVersion)).toEqual([0, 1]);
-    });
-
-    test("a proposal can be dismissed or tried again, and neither writes", async ({ page }) => {
-      await answerConcierge(page, [
-        { type: "chunk", text: "The gardens are quieter." },
-        { type: "proposal", proposal: replaceTheCathedral(storedDays()[0].activities[0]) },
-        done,
-      ]);
-      let applies = 0;
-      await page.route("**/api/ai/assistant/apply", (route) => {
-        applies += 1;
-        return route.fallback();
-      });
-      const dialog = await openConcierge(page);
-
-      await askIn(dialog, "Swap the cathedral for something quieter");
-      await dialog.getByRole("button", { name: "Dismiss this change" }).click();
-      await expect(dialog.getByText("Not in your trip yet")).toHaveCount(0);
-      await expect(dialog.getByText("The gardens are quieter.")).toBeVisible();
-
-      await askIn(dialog, "Swap the cathedral for something quieter");
-      await dialog.getByRole("button", { name: "Try something different" }).click();
-      await expect(dialog.getByText("Not in your trip yet")).toHaveCount(0);
-      await expect(dialog.getByLabel(FIELD)).toHaveValue("Propose a different option for that.");
-
-      expect(applies).toBe(0);
-      expect(await storedNames()).toEqual(AS_STORED);
-    });
-
-    test("the daily limit and a failed answer each say so, and keep the question", async ({ page }) => {
-      let asks = 0;
-      await page.route("**/api/ai/concierge", (route) => {
-        asks += 1;
-        if (asks === 1) {
-          return route.fulfill({ status: 403, contentType: "application/json", body: JSON.stringify({ code: "USAGE_LIMIT_REACHED" }) });
-        }
-        return route.fulfill({
-          status: 200,
-          contentType: "text/event-stream",
-          body: `data: ${JSON.stringify({ type: "chunk", text: "Half an ans" })}\n\ndata: ${JSON.stringify({ type: "error" })}\n\n`,
-        });
-      });
-      const dialog = await openConcierge(page);
-
-      await askIn(dialog, "How do I get to the cathedral?");
-      await expect(dialog.getByText("Daily AI limit reached. Try again tomorrow.")).toBeVisible();
-
-      await askIn(dialog, "How do I get to the cathedral?");
-      await expect(dialog.getByText("Couldn't answer right now. Try again in a moment.")).toBeVisible();
-      await expect(dialog.getByText("Half an ans")).toHaveCount(0);
-      await expect(dialog.getByLabel(FIELD)).toHaveValue("How do I get to the cathedral?");
-    });
-
-    test("a proposal for an activity no longer in the trip is refused, and the trip stays", async ({ page }) => {
-      await answerConcierge(page, [
-        { type: "chunk", text: "The gardens are quieter." },
-        { type: "proposal", proposal: replaceTheCathedral(activity("t-gone", "A visit no longer planned", "10:00")) },
-        done,
-      ]);
-      const dialog = await openConcierge(page);
-      await askIn(dialog, "Swap that for something quieter");
-      await dialog.getByRole("button", { name: "Save to my trip" }).click();
-
-      await expect(page.getByText("Your trip has changed since this suggestion. Ask again for a fresh one.")).toBeVisible();
-      await expect(dialog.getByRole("button", { name: "Save to my trip" })).toBeVisible();
-      expect(await storedNames()).toEqual(AS_STORED);
-    });
+  test("the assistant is the one way to ask, with the concierge switched off", async ({ page }) => {
+    await openTrip(page, tripId);
+    await expect(page.getByRole("button", { name: "Edit with AI" })).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByRole("button", { name: /concierge/i })).toHaveCount(0);
   });
 });
