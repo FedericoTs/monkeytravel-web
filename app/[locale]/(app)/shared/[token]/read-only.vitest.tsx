@@ -179,6 +179,8 @@ beforeEach(() => {
   state.lazyProps = [];
   fetched = [];
   funnel = [];
+  // Saving a copy is switched off in production; the tests that save switch it on.
+  vi.stubEnv("NEXT_PUBLIC_SAVE_COPY_ENABLED", "true");
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string, init?: RequestInit) => {
@@ -196,6 +198,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
 });
 
 // Each test renders the whole view: give it room when the suite runs at once.
@@ -222,6 +225,15 @@ describe("the public page's view is read-only", { timeout: 20_000 }, () => {
     state.lazyProps = [];
     renderView({ token: TOKEN });
     expect(exportSurface()).toBe("shared_view");
+  });
+
+  it("offers sharing and planning their own, and no copy, with saving a copy switched off", () => {
+    vi.stubEnv("NEXT_PUBLIC_SAVE_COPY_ENABLED", "false");
+    renderView({});
+    const actions = screen.getByTestId("public-trip-actions");
+    expect(within(actions).getByTestId("share-row")).toBeTruthy();
+    expect(within(actions).queryByText("share.participants.saveForLater")).toBeNull();
+    expect(within(actions).getByText("share.planLikeThis.short")).toBeTruthy();
   });
 
   it("shares the public URL and saves by the slug", () => {
