@@ -181,6 +181,23 @@ describe("SharePromptOnTrip — engagement gate", () => {
     expect(await screen.findByTestId("share-modal")).toBeTruthy();
   });
 
+  it("waits for the next visit when something else opened by itself in this one", async () => {
+    await renderReady({ quietThisVisit: true });
+    act(() => scrollTo(2000));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(30_000);
+    });
+    expect(screen.queryByTestId("share-modal")).toBeNull();
+  });
+
+  it("stays open once it has opened, whatever opens after it", async () => {
+    const utils = await renderReady();
+    act(() => scrollTo(700));
+    expect(await screen.findByTestId("share-modal")).toBeTruthy();
+    utils.rerender(<SharePromptOnTrip {...BASE} quietThisVisit />);
+    expect(screen.getByTestId("share-modal")).toBeTruthy();
+  });
+
   it("has not fired one tick before the dwell elapses", async () => {
     await renderReady();
     await act(async () => {

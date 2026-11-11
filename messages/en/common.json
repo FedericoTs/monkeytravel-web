@@ -90,6 +90,22 @@
     "disclosure": "We use your answers to improve MonkeyTravel. See our",
     "privacyPolicy": "Privacy Policy"
   },
+  "whatYouNeed": {
+    "title": "What you still need",
+    "heading": "What you still need for this trip",
+    "noted": "Noted, thank you.",
+    "noteLabel": "Anything else you need for this trip? (optional)",
+    "writeBack": "You can write back to me about this",
+    "send": "Send",
+    "sending": "Sending...",
+    "error": "We couldn’t save that. Please try again.",
+    "tryAgain": "Try again",
+    "thanksTitle": "Thank you",
+    "thanksBody": "We read every answer. They decide what we build next.",
+    "yourTrips": "See your trips",
+    "disclosure": "We use your answers to improve MonkeyTravel. See our",
+    "privacyPolicy": "Privacy Policy"
+  },
   "navigation": {
     "features": "Features",
     "howItWorks": "How It Works",
@@ -747,7 +763,10 @@
     "showRoute": "Show route",
     "hideRoute": "Hide route",
     "segmentDuration": "{duration} walk",
-    "disclaimerStraightLine": "Straight-line estimate — actual walking time may be longer."
+    "disclaimerStraightLine": "Straight-line estimate — actual walking time may be longer.",
+    "day": "Day {day}",
+    "showOnlyDay": "Show only day {day}",
+    "showAllDays": "Show all days"
   },
   "maintenance": {
     "title": "Under Maintenance",
@@ -980,15 +999,6 @@
       "transport": "Transport",
       "activity": "Activity",
       "other": "Other"
-    },
-    "durations": {
-      "30min": "30 min",
-      "1hr": "1 hour",
-      "2hr": "2 hours",
-      "3hr": "3 hours",
-      "4hr": "4 hours",
-      "halfDay": "Half day",
-      "90min": "1.5 hours"
     }
   },
   "regenerate": {
@@ -1721,13 +1731,6 @@
       "morning": "Morning",
       "afternoon": "Afternoon",
       "evening": "Evening"
-    },
-    "durations": {
-      "30min": "30 min",
-      "1hour": "1 hour",
-      "1_5hours": "1.5 hours",
-      "2hours": "2 hours",
-      "3hours": "3 hours"
     },
     "form": {
       "nameLabel": "Activity Name",
@@ -2666,6 +2669,15 @@
     "morning_of": {
       "heading": "Travel day",
       "body": "Today's the day. Your {destination} plan for today is one tap away — open it whenever you need directions, today's stops, or what's next."
+    },
+    "needAsk": {
+      "question": "One question: what do you still need for this trip?",
+      "stay": "Where to stay",
+      "transport": "Getting between places",
+      "book": "What to book ahead",
+      "phone": "Having it on my phone during the trip",
+      "group": "Getting my group to agree",
+      "set": "Nothing, I’m all set"
     }
   },
   "tripFollowupEmail": {
@@ -2698,6 +2710,7 @@
     "goingFor": "What you're going for",
     "dayOne": "Day one",
     "today": "Today's plan",
+    "tomorrow": "Tomorrow's plan",
     "yourHighlights": "Your highlights",
     "weatherNoRain": "{range} · no rain expected",
     "weatherWithRain": "{range} · rain on {wet} of {days, plural, one {# day} other {# days}}",

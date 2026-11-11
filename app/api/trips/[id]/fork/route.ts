@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { waitUntil } from "@vercel/functions";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { isExploreUgcEnabled } from "@/lib/explore/flag";
@@ -135,23 +136,26 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
     start_date: start,
   });
 
-  // Fire-and-forget enqueue of the 5-slot pre-trip cascade for the
-  // forked trip. Gated by NEXT_PUBLIC_CALENDAR_EXPORT_ENABLED;
-  // failures log + Sentry-capture but never re-throw — a fork
-  // succeeding is more important than its reminder queue.
-  void scheduleTripNotifications({ tripId: created.id, userId: user.id });
+  // Not awaited: enqueue of the 5-slot pre-trip cascade for the forked
+  // trip. Gated by NEXT_PUBLIC_CALENDAR_EXPORT_ENABLED; failures log +
+  // Sentry-capture but never re-throw — a fork succeeding is more
+  // important than its reminder queue. This and the referral below are in
+  // waitUntil: the function can be frozen once the response is sent.
+  waitUntil(scheduleTripNotifications({ tripId: created.id, userId: user.id }));
 
-  // Fire-and-forget referral completion. Fork is a valid "first trip"
-  // path for a referred user (they may land on /explore from a referral
-  // link and convert via fork instead of the wizard) — without this the
-  // referrer never gets credit. Mirrors /api/trips/duplicate.
-  void (async () => {
-    try {
-      await completeReferralIfEligible(supabase, user.id, created.id);
-    } catch (e) {
-      console.error("[fork] referral completion failed", e);
-    }
-  })();
+  // Referral completion. Fork is a valid "first trip" path for a referred
+  // user (they may land on /explore from a referral link and convert via
+  // fork instead of the wizard) — without this the referrer never gets
+  // credit. Mirrors /api/trips/duplicate.
+  waitUntil(
+    (async () => {
+      try {
+        await completeReferralIfEligible(supabase, user.id, created.id);
+      } catch (e) {
+        console.error("[fork] referral completion failed", e);
+      }
+    })()
+  );
 
   return apiSuccess({
     newTripId: created.id,

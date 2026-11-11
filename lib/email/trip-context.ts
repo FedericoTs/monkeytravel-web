@@ -117,13 +117,14 @@ export interface ContextBlock {
   items?: ContextItem[];
 }
 
-/** The six localised headings, from common.emailContext. */
+/** The localised headings, from common.emailContext. */
 export interface ContextLabels {
   weather: string;
   packing: string;
   goingFor: string;
   dayOne: string;
   today: string;
+  tomorrow: string;
   yourHighlights: string;
 }
 
@@ -406,7 +407,9 @@ function compact(blocks: Array<ContextBlock | null>): ContextBlock[] {
  *   visa_check_7d    what you're going for    — motivation, not logistics
  *   weather_3d       the weather note         — the email is literally this
  *   confirm_1d       day one                  — what you land into
- *   morning_of       today's plan             — same day, different framing
+ *   morning_of       today's plan, tomorrow's — same day, different framing;
+ *                                              the day-2 digest is due the same
+ *                                              morning and yields to this email
  *   return_3d        your highlights          — what you just did
  *
  * The later followup slots get nothing. They exist to be short, and a
@@ -463,6 +466,10 @@ export function buildContextBlocks(
     case "morning_of":
       return compact([
         { label: labels.today, items: dayActivities(src.day1, MAX_LIST_ITEMS) },
+        {
+          label: labels.tomorrow,
+          items: dayActivities(Array.isArray(src.itinerary) ? src.itinerary[1] : undefined, MAX_LIST_ITEMS),
+        },
       ]);
 
     case "followup_return_3d":

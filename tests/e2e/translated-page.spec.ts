@@ -1,17 +1,10 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 import { stubGeneration } from "./generation-stub";
 import { translator } from "./browser-translator";
+import { acceptEssentialOnly } from "./consent-banner";
 import { isolate } from "./wizard-draft";
 
 /** A planner the visitor's browser is translating still goes from step to step and makes a plan. */
-
-async function acceptEssentialOnly(page: Page) {
-  const essentialOnly = page.getByRole("button", { name: /essential only/i });
-  await essentialOnly
-    .waitFor({ state: "visible", timeout: 4_000 })
-    .then(() => essentialOnly.click())
-    .catch(() => {});
-}
 
 test.describe("a page the browser translates", () => {
   test("the planner goes on to the next step and to a plan", async ({ page }) => {

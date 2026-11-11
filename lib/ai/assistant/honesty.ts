@@ -21,6 +21,7 @@
 
 import { resolveAiLanguage, type SupportedLanguage } from "@/lib/ai/language";
 import { note } from "./notes";
+import { SHORTEST_STOP_MINUTES } from "./edit-validation";
 import { applyButtonLabel } from "./apply-button";
 import type { StructuredAssistantResponse } from "@/types";
 
@@ -78,6 +79,11 @@ const CLAIM_PATTERNS: RegExp[] = [
   // "This update integrates Akihabara…", "Day 3, now with a sunset cruise".
   new RegExp(`${start}(?:this|the)\\s+(?:update|change|revision|new\\s+version|updated\\s+plan|revised\\s+plan)\\s+(?:now\\s+)?(?:integrates|incorporates|includes|adds|brings|puts)${end}`, "iu"),
   new RegExp(`${start}(?:day\\s+\\d+|your\\s+(?:trip|itinerary|plan|day)),?\\s+now\\s+with${end}`, "iu"),
+  // A day said to be emptied: "I've left Day 1 blank", "I have kept the first day free".
+  new RegExp(`${start}(?:i|we)(?:['’]ve|\\s+have)?\\s+(?:now\\s+|also\\s+|just\\s+)?(?:left|kept)\\s+(?:day\\s+\\d+|the\\s+[\\p{L}]+\\s+day|that\\s+day)\\s+(?:blank|empty|free|open|clear)${end}`, "iu"),
+  new RegExp(`${start}(?<!no\\s)(?:(?:he|hemos)\\s+dejado|dejé)\\s+(?:el\\s+)?(?:d[ií]a\\s+\\d+|primer\\s+d[ií]a)\\s+(?:libre|vac[ií]o|en\\s+blanco)${end}`, "iu"),
+  new RegExp(`${start}(?<!non\\s)(?:ho|abbiamo)\\s+(?:lasciato|tenuto)\\s+(?:il\\s+)?(?:giorno\\s+\\d+|primo\\s+giorno)\\s+(?:libero|vuoto|in\\s+bianco)${end}`, "iu"),
+  new RegExp(`${start}(?<!não\\s)(?:deixei|deixamos)\\s+(?:o\\s+)?(?:dia\\s+\\d+|primeiro\\s+dia)\\s+(?:livre|vazio|em\\s+branco)${end}`, "iu"),
   // A changed plan handed over as finished: "Here's an updated Day 1".
   new RegExp(`${start}here(?:['’]s|\\s+is|\\s+are)\\s+(?:an?\\s+|the\\s+|your\\s+)?(?:updated|revised|adjusted|modified|reworked)\\s+(?:\\d+-day\\s+)?(?:plan|itinerary|version|schedule|trip|days|day(?:\\s+\\d+)?)${end}`, "iu"),
   // Spanish
@@ -101,17 +107,35 @@ const CLAIM_PATTERNS: RegExp[] = [
   new RegExp(`${start}(?:(?:está|están)\\s+ahora\\s+libres?|ahora\\s+(?:está|están|quedan?)\\s+libres?|(?:quedó|quedaron|ha\\s+quedado|han\\s+quedado)\\s+libres?)${end}`, "iu"),
   new RegExp(`${start}(?:(?:è|sono)\\s+ora\\s+liber[oiae]|ora\\s+(?:è|sono)\\s+liber[oiae]|(?:è|sono)\\s+stat[oaie]\\s+liberat[oaie])${end}`, "iu"),
   new RegExp(`${start}(?:(?:está|estão)\\s+agora\\s+livres?|agora\\s+(?:está|estão|fica|ficam)\\s+livres?|(?:ficou|ficaram)\\s+livres?)${end}`, "iu"),
-  // Promises (see EN_PROMISE_VERBS above)
+];
+
+// Promises (see EN_PROMISE_VERBS above)
+const PROMISE_PATTERNS: RegExp[] = [
   new RegExp(`${start}(?:i(?:['’]ll|\\s+will)|let\\s+me|i(?:['’]m|\\s+am)\\s+(?:going|preparing|about)\\s+to)\\s+(?:now\\s+|just\\s+|also\\s+|go\\s+ahead\\s+and\\s+)?${EN_PROMISE_VERBS}${end}`, "iu"),
   new RegExp(`${start}(?<!no\\s)(?:voy\\s+a\\s+(?:lo\\s+|la\\s+|los\\s+|las\\s+)?${ES_INFINITIVES}|${ES_INFINITIVES}é)${end}`, "iu"),
   new RegExp(`${start}(?<!non\\s)(?:${IT_FUTURES}|sto\\s+per\\s+${IT_INFINITIVES})${end}`, "iu"),
   new RegExp(`${start}(?<!não\\s)(?:vou\\s+${PT_INFINITIVES}|${PT_FUTURES})${end}`, "iu"),
 ];
 
-/** Does this reply say the itinerary was (or now is) changed? */
+// A promise that waits for something from the traveller is not a claim: "Once
+// you send me the list, I'll add each one", "assim que você me enviar os nomes".
+const WAITS_FOR_THEM = new RegExp(
+  `${start}(?:${[
+    "(?:once|when|as\\s+soon\\s+as|after|if)\\s+you(?:['’]ve)?\\s+(?:send|sent|tell|told|share|shared|give|given|list|paste|let\\s+me\\s+know|confirm|choose|pick|decide)",
+    "(?:quando|assim\\s+que|logo\\s+que|depois\\s+que|se|caso)\\s+(?:você\\s+)?(?:me\\s+)?(?:enviar|envie|mandar|mande|passar|passe|disser|diga|informar|informe|listar|compartilhar|indicar|escolher|confirmar)",
+    "(?:cuando|en\\s+cuanto|apenas|una\\s+vez\\s+que|si)\\s+(?:me\\s+)?(?:envíes|envías|mandes|mandas|pases|pasas|digas|dices|indiques|indicas|compartas|compartes|confirmes|confirmas|elijas|eliges)",
+    "(?:quando|appena|non\\s+appena|una\\s+volta\\s+che|se)\\s+(?:mi\\s+)?(?:mandi|invii|dici|indichi|scrivi|condividi|confermi|scegli)",
+  ].join("|")})${end}`,
+  "iu"
+);
+
+/** Does this reply say the itinerary was (or now is, or will be) changed? */
 export function claimsItineraryChange(text: string | null | undefined): boolean {
   if (!text) return false;
-  return CLAIM_PATTERNS.some((re) => re.test(text));
+  if (CLAIM_PATTERNS.some((re) => re.test(text))) return true;
+  return text
+    .split(/(?<=[.!?])\s+|\n+/)
+    .some((sentence) => !WAITS_FOR_THEM.test(sentence) && PROMISE_PATTERNS.some((re) => re.test(sentence)));
 }
 
 // Handing over a proposal: "Ecco la proposta per rimuovere…", "Here is the
@@ -131,6 +155,23 @@ const PROPOSAL_PATTERNS: RegExp[] = [
   new RegExp(`${start}aqui\\s+(?:está|vai)\\s+(?:a\\s+minha|a|uma|minha)\\s+proposta${end}`, "iu"),
   new RegExp(`${start}(?:te\\s+)?proponho\\s+(?:a\\s+seguinte|a|esta|uma)\\s+(?:alteração|mudança)${end}`, "iu"),
   new RegExp(`${start}(?<!não\\s)(?:vou\\s+(?:te\\s+)?propor|proporei)${end}`, "iu"),
+  // The words the trip page's prompt gives a prepared change (READY_WORDING):
+  // "Here's a new Day 6 with…", "Ready to swap Days 1 and 2:…", "Here are 7 new
+  // days, ready to save:…". With nothing prepared, a promise: "aqui está um novo
+  // dia 15 em Dublin, pronto para salvar" came with no change, four times.
+  new RegExp(`${start}here(?:['’]s|\\s+is|\\s+are)\\s+(?:a|an|the|your|\\d+)\\s+(?:new|extra|additional)\\s+days?${end}(?!\\s*-?\\s*trips?)`, "iu"),
+  // A day handed over empty: "Here is a blank Day 1 ready to save", "Ecco il giorno 1 libero".
+  new RegExp(`${start}here(?:['’]s|\\s+is)\\s+(?:a|an|the|your)\\s+(?:blank|empty|free|clear)\\s+day(?:\\s+\\d+)?${end}`, "iu"),
+  new RegExp(`${start}aquí\\s+(?:tienes|está|va)\\s+(?:el|un|tu)\\s+día\\s+\\d+\\s+(?:libre|vac[ií]o|en\\s+blanco)${end}`, "iu"),
+  new RegExp(`${start}ecco\\s+(?:il|un|il\\s+tuo)\\s+giorno\\s+\\d+\\s+(?:libero|vuoto|in\\s+bianco)${end}`, "iu"),
+  new RegExp(`${start}aqui\\s+(?:está|vai)\\s+(?:o|um|o\\s+seu|seu)\\s+dia\\s+\\d+\\s+(?:livre|vazio|em\\s+branco)${end}`, "iu"),
+  new RegExp(`(?:${SENTENCE_START}|,\\s*)ready\\s+(?:for\\s+you\\s+)?to\\s+(?:save|apply|swap|switch)${end}`, "iu"),
+  new RegExp(`${start}aquí\\s+(?:tienes|está|están|va|van)\\s+(?:el|un|tu|los|unos|\\d+)\\s+(?:nuevos?\\s+días?|días?\\s+(?:nuevos?|extras?|adicionales?))${end}`, "iu"),
+  new RegExp(`(?:${SENTENCE_START}|,\\s*)list[oa]s?\\s+para\\s+(?:guardar|aplicar|cambiar|intercambiar)${end}`, "iu"),
+  new RegExp(`${start}ecco\\s+(?:il|un|il\\s+tuo|i|dei|\\d+)\\s+(?:nuov[oi]\\s+giorn[oi]|giorn[oi]\\s+(?:nuov[oi]|extra|in\\s+più|aggiuntiv[oi]))${end}`, "iu"),
+  new RegExp(`(?:${SENTENCE_START}|,\\s*)pront[oaie]\\s+(?:da\\s+salvare|da\\s+applicare|a\\s+(?:scambiare|salvare|applicare))${end}`, "iu"),
+  new RegExp(`${start}aqui\\s+(?:está|estão|vai|vão)\\s+(?:o|um|o\\s+seu|seu|os|uns|\\d+)\\s+(?:novos?\\s+dias?|dias?\\s+(?:novos?|extras?|adicionais))${end}`, "iu"),
+  new RegExp(`(?:${SENTENCE_START}|,\\s*)pront[oa]s?\\s+para\\s+(?:salvar|aplicar|guardar|trocar)${end}`, "iu"),
 ];
 
 /** Does this reply say it comes with a proposed change? */
@@ -253,9 +294,34 @@ export function notAppliedLead(language: string | undefined): string {
   return note(language, "notAppliedLead");
 }
 
-/** The wizard assistant's reply when the only day it could change is fixed. */
+/** The assistant's reply when the only change asked was to a fixed plan, which stays as it was. */
 export function lockedDayReply(language: string | undefined, dayNumber: number, names: string[]): string {
   return note(language, "lockedDay", { day: String(dayNumber), fixed: names.join(", ") });
+}
+
+/** Appended when places of another city came off a city's days. */
+export function cityKeptNote(language: string | undefined, other: string, city: string, names: string[]): string {
+  return note(language, "cityKept", { other, city, list: names.join(", ") });
+}
+
+/** Appended when places of another city went from a day of the wrong one to days of their own city. */
+export function cityMovedNote(language: string | undefined, city: string, names: string[]): string {
+  return note(language, "cityMoved", { city, list: names.join(", "), count: names.length });
+}
+
+/** Appended when the reply names places for a day that doesn't repeat them, as other days keep them. */
+export function notRepeatedNote(language: string | undefined, names: string[]): string {
+  return note(language, "notRepeated", { list: names.join(", "), count: names.length });
+}
+
+/** Appended when a change would have moved or taken out a fixed plan, which stays as it was. */
+export function fixedKeptNote(language: string | undefined, dayNumber: number, names: string[]): string {
+  return note(language, "fixedKept", { day: String(dayNumber), fixed: names.join(", ") });
+}
+
+/** Appended when stops asked for shorter than a stop can be were set to the shortest. */
+export function shortestStopNote(language: string | undefined, names: string[]): string {
+  return note(language, "shortestStop", { names: names.join(", "), minutes: SHORTEST_STOP_MINUTES });
 }
 
 /** The wizard assistant's fallbacks when the model returned no reply text. */
@@ -266,6 +332,16 @@ export function wizardFallbackReply(language: string | undefined, prepared: bool
 /** Appended when the reply meant to change the trip's length but couldn't. */
 export function lengthUnchangedNote(language: string | undefined, days: number): string {
   return note(language, "lengthUnchanged", { days });
+}
+
+/** Places of a list they asked to add that the change doesn't hold, named after the reply. */
+export function listMissingNote(language: string | undefined, names: string[]): string {
+  return note(language, "listMissing", { list: names.join(", ") });
+}
+
+/** A new change that also holds the one still waiting for its button. */
+export function waitingKeptNote(language: string | undefined): string {
+  return note(language, "waitingKept");
 }
 
 // "Noted" and "recorded" tell the traveller that their hotel or flight is
@@ -362,6 +438,76 @@ export function claimsLongerTrip(text: string | null | undefined): boolean {
   return !!text && LONGER_TRIP.some((re) => re.test(text));
 }
 
+// The whole trip's length as a reply gives it: "your trip to have 16 days",
+// "a 16-day itinerary", "il viaggio a 16 giorni". A city's share of the days
+// ("Paris gets 4 days", "a 3-day stay") isn't the trip's.
+const TRIP_DAYS: RegExp[] = [
+  /(?<![\p{L}\p{N}])(?:trip|itinerary|plan|journey)\s+(?:now\s+)?(?:to\s+have|has|have|of|is|lasts|spans|covers)\s+(?:now\s+)?(?:a\s+total\s+of\s+)?(\d{1,2})\s+(?:full\s+)?days(?!\p{L})/iu,
+  /(?<![\p{L}\p{N}])(?:extend(?:ed)?|lengthen(?:ed)?|expand(?:ed)?|updated|changed|increased)\s+(?:your\s+|the\s+)?(?:trip|itinerary|plan)\s+to\s+(\d{1,2})\s+days(?!\p{L})/iu,
+  /(?<![\p{L}\p{N}])(\d{1,2})[-\s]day\s+(?:trip|itinerary|plan|journey)(?!\p{L})/iu,
+  /(?<![\p{L}\p{N}])(?:viaggio|itinerario|piano)\s+(?:ora\s+)?(?:di|a|ha|dura)\s+(\d{1,2})\s+giorni(?!\p{L})/iu,
+  /(?<![\p{L}\p{N}])(?:viaje|itinerario|plan)\s+(?:ahora\s+)?(?:de|a|tiene|dura)\s+(\d{1,2})\s+días(?!\p{L})/iu,
+  /(?<![\p{L}\p{N}])(?:viagem|roteiro|itinerário|plano)\s+(?:agora\s+)?(?:de|para|tem|dura)\s+(\d{1,2})\s+dias(?!\p{L})/iu,
+];
+
+/** How many days this reply says the whole trip has, or null when it says none. */
+export function claimedTripDays(text: string | null | undefined): number | null {
+  if (!text) return null;
+  for (const re of TRIP_DAYS) {
+    const m = re.exec(text);
+    if (m) return Number(m[1]);
+  }
+  return null;
+}
+
+// A count of days a reply states: "28 Nov to 6 Dec is indeed 8 days total", "9
+// days in total", "let's count it as 8 days", "son 8 días", "sono 9 giorni",
+// "são 9 dias". An offer ("an 8-day trip instead") states none.
+const STATED_DAYS: RegExp[] = [
+  /(?<![\p{L}])(?:is|are|it['’]s|that['’]s|makes|spans|comes\s+to|count\s+it\s+as|counts\s+as)\s+(?:indeed\s+|actually\s+|exactly\s+|really\s+|in\s+fact\s+|only\s+|just\s+|still\s+)?(\d{1,2})\s+days(?![\p{L}'’])/giu,
+  /(?<![\p{L}\p{N}])(\d{1,2})\s+days\s+(?:in\s+)?total(?![\p{L}])/giu,
+  /(?<![\p{L}])(?:son|es|serían|suman)\s+(?:en\s+realidad\s+|exactamente\s+|realmente\s+|efectivamente\s+|solo\s+)?(\d{1,2})\s+días(?![\p{L}])/giu,
+  /(?<![\p{L}\p{N}])(\d{1,2})\s+días\s+en\s+total(?![\p{L}])/giu,
+  /(?<![\p{L}])(?:sono|è|fanno)\s+(?:in\s+realtà\s+|esattamente\s+|davvero\s+|effettivamente\s+|solo\s+)?(\d{1,2})\s+giorni(?![\p{L}])/giu,
+  /(?<![\p{L}\p{N}])(\d{1,2})\s+giorni\s+in\s+totale(?![\p{L}])/giu,
+  /(?<![\p{L}])(?:são|é|dá|dão|somam)\s+(?:na\s+verdade\s+|exatamente\s+|realmente\s+|mesmo\s+|só\s+|apenas\s+)?(\d{1,2})\s+dias(?![\p{L}])/giu,
+  /(?<![\p{L}\p{N}])(\d{1,2})\s+dias\s+(?:no\s+total|ao\s+todo)(?![\p{L}])/giu,
+];
+
+/** Every count of days the reply states for the trip or its dates. */
+export function statedDayCounts(text: string | null | undefined): number[] {
+  if (!text) return [];
+  return STATED_DAYS.flatMap((re) => [...text.matchAll(re)].map((m) => Number(m[1])));
+}
+
+/** A trip's first and last dates and its number of days, as notes give them. */
+export interface TripSpan {
+  from: string;
+  to: string;
+  days: number;
+}
+
+function spanValues(language: string | undefined, span: TripSpan) {
+  const format = new Intl.DateTimeFormat(resolveAiLanguage(language), { day: "numeric", month: "long", timeZone: "UTC" });
+  const date = (iso: string) => format.format(new Date(`${iso}T00:00:00Z`));
+  return { from: date(span.from), to: date(span.to), days: span.days, nights: Math.max(0, span.days - 1) };
+}
+
+/** The reply when nothing changes and it gave the trip another count, or a shorter trip nobody asked for. */
+export function dayCountReply(language: string | undefined, span: TripSpan): string {
+  return note(language, "dayCount", spanValues(language, span));
+}
+
+/** A reply that wanted more days than a trip may have: none were added, and what can be done instead. */
+export function tripCapReply(language: string | undefined, max: number, days: number): string {
+  return note(language, "tripCap", { max, room: Math.max(0, max - days) });
+}
+
+/** Appended when a change's reply gives the trip another count than its dates. */
+export function dayCountNote(language: string | undefined, span: TripSpan): string {
+  return note(language, "dayCountNote", spanValues(language, span));
+}
+
 /** Appended when a change concerned more days than could be prepared in time. */
 export function daysLeftNote(language: string | undefined, days: number[]): string {
   return note(language, "daysLeft", { list: days.join(", ") });
@@ -424,14 +570,46 @@ export function planCostsReply(
 // Asking for something to go: "remove", "take out", "instead", "quita", "togli"…
 const REMOVAL_ASK = new RegExp(
   `${start}${words(
-    "remove|removing|take\\s+out|delete|drop|skip|cut|get\\s+rid|without|replace|replacing|instead|swap|no\\s+more|quita|quitar|elimina|eliminar|borra|sin|en\\s+vez|en\\s+lugar|sustituye|cambia|togli|togliere|rimuovi|cancella|senza|invece|sostituisci|tira|tirar|remova|exclua|apaga|sem|em\\s+vez|troca|substitua"
+    "remove|removing|take\\s+out|delete|drop|skip|cut|get\\s+rid|without|replace|replacing|instead|swap|no\\s+more|quita|quite|quitar|elimina|elimine|eliminar|borra|borre|sin|en\\s+vez|en\\s+lugar|sustituye|sustituya|cambia|cambie|togli|tolga|togliere|rimuovi|rimuova|cancella|cancelli|senza|invece|sostituisci|sostituisca|tira|tire|tirar|retire|retirar|remova|exclua|apaga|apague|sem|em\\s+vez|troca|troque|substitua"
   )}${end}`,
   "iu"
 );
 
+// Saying what must stay is not asking for it to go: "não substitua o jantar",
+// "don't replace the dinner", "sin quitar nada", "senza togliere niente".
+const KEPT = new RegExp(
+  `${start}${words("don['’]?t|do\\s+not|never|without|não|nao|nunca|sem|no|sin|non|mai|senza")}\\s+(?:[${L}'’]+\\s+){0,3}?${words(
+    "remove|removing|take\\s+out|taking\\s+out|delete|deleting|drop|dropping|cut|cutting|replace|replacing|swap|swapping|skip|skipping|lose|losing|touch|touching|change|changing|quites|quitar|quitando|elimines|eliminar|borres|borrar|sustituyas|sustituir|reemplaces|reemplazar|cambies|cambiar|saques|sacar|toques|tocar|togliere|togli|togliendo|rimuovere|rimuovi|eliminare|elimina|cancellare|cancella|sostituire|sostituisci|cambiare|cambia|toccare|tocca|remova|remover|removendo|retire|retirar|tire|tirar|exclua|excluir|apague|apagar|substitua|substituir|troque|trocar|elimine|mexa|mexer|mude|mudar"
+  )}${end}`,
+  "giu"
+);
+
+// Saying how to plan it is not asking for something to go: "cluster it by areas
+// instead of jumping around", "en vez de ir de un lado a otro".
+const HOW_TO_PLAN = new RegExp(
+  `${start}${words("instead\\s+of|en\\s+vez\\s+de|en\\s+lugar\\s+de|invece\\s+di|em\\s+vez\\s+de|ao\\s+inv[eé]s\\s+de")}\\s+(?:[${L}'’]+\\s+){0,3}?${words(
+    "around|back\\s+and\\s+forth|all\\s+over|from\\s+place\\s+to\\s+place|de\\s+un\\s+lado\\s+(?:a|para)\\s+otro|de\\s+un\\s+sitio\\s+a\\s+otro|avanti\\s+e\\s+indietro|da\\s+una\\s+parte\\s+all['’]altra|qua\\s+e\\s+l[aà]|de\\s+um\\s+lado\\s+(?:pro|pra|para\\s+o)\\s+outro|indo\\s+e\\s+voltando"
+  )}${end}`,
+  "giu"
+);
+
 /** Does the traveller's message ask for something to be taken out or swapped? */
 export function asksToRemove(message: string | null | undefined): boolean {
-  return REMOVAL_ASK.test(message ?? "");
+  return REMOVAL_ASK.test((message ?? "").replace(KEPT, " ").replace(HOW_TO_PLAN, " "));
+}
+
+// Asking for something to go for good: "remove", "take out", "quita", "togli"…
+// A swap ("replace them with Seoul sights", "instead") changes what a day holds.
+const TAKE_OUT = new RegExp(
+  `${start}${words(
+    "remove|removing|take\\s+out|delete|drop|skip|cut|get\\s+rid|no\\s+more|quita|quite|quitar|elimina|elimine|eliminar|borra|borre|togli|tolga|togliere|rimuovi|rimuova|cancella|cancelli|tira|tire|tirar|retire|retirar|remova|exclua|apaga|apague"
+  )}${end}`,
+  "iu"
+);
+
+/** Does the traveller's message ask for something to go for good, not for a swap? */
+export function asksToTakeOut(message: string | null | undefined): boolean {
+  return TAKE_OUT.test((message ?? "").replace(KEPT, " ").replace(HOW_TO_PLAN, " "));
 }
 
 /**

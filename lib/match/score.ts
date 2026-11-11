@@ -48,7 +48,15 @@ const BUDGET_FIT: readonly (readonly number[])[] = [
   [-1, 1, 3],
 ];
 
-const HOME_CONTINENT: Record<Home, string | null> = { e: "europe", a: "asia", m: "americas", f: "africa", o: "oceania", x: null };
+const HOME_CONTINENT: Record<Home, string | null> = {
+  e: "europe",
+  a: "asia",
+  m: "north-america",
+  s: "south-america",
+  f: "africa",
+  o: "oceania",
+  x: null,
+};
 
 /** Places a short flight from a continent they aren't on. */
 const SHORT_HOPS: Readonly<Record<string, readonly string[]>> = {

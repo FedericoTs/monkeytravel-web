@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { GeneratedItinerary } from "@/types";
-import { keptPlanOf, sessionTripOf, tripFormState, withUndatedItems, type WizardAnswers } from "./answers";
+import { keptPlanOf, sessionTripOf, tripFormState, withNote, withUndatedItems, type WizardAnswers } from "./answers";
 import { REQUIREMENTS_MAX } from "@/lib/trips/request-limits";
 
 const itinerary = { days: [{ day_number: 1 }, { day_number: 2 }, { day_number: 3 }] } as unknown as GeneratedItinerary;
@@ -76,5 +76,17 @@ describe("withUndatedItems", () => {
     const merged = withUndatedItems("a".repeat(490), ["b".repeat(40)]);
     expect(merged).toHaveLength(REQUIREMENTS_MAX);
     expect(merged).toBe(`${"a".repeat(490)}. ${"b".repeat(8)}`);
+  });
+});
+
+describe("withNote", () => {
+  it("keeps a trip described in the destination field as a sentence of the requirements", () => {
+    const sentence = "  Somewhere warm in Europe with two kids, near a beach, not too expensive  ";
+    expect(withNote("", sentence)).toBe("Somewhere warm in Europe with two kids, near a beach, not too expensive");
+    expect(withNote("Vegan food please", sentence)).toBe("Vegan food please. Somewhere warm in Europe with two kids, near a beach, not too expensive");
+  });
+
+  it("stops at the requirements limit", () => {
+    expect(withNote("a".repeat(495), "b".repeat(200))).toHaveLength(REQUIREMENTS_MAX);
   });
 });

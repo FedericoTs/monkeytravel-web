@@ -143,8 +143,8 @@ export async function POST(
     // floating write is lost with it.
     after(() => incrementTemplateCopyCount(templateId, "Template Copy"));
 
-    // Complete referral if this is user's first trip (fire and forget)
-    void (async () => {
+    // Complete referral if this is user's first trip, in after() like the count above
+    after(async () => {
       try {
         // Extract destination from template title (e.g., "Rome Trip" -> "Rome")
         const destination = template.title?.replace(/ Trip$/i, "") || "Unknown";
@@ -171,7 +171,7 @@ export async function POST(
       } catch (err) {
         console.error("[Template Copy] Error in referral/tracking:", err);
       }
-    })();
+    });
 
     return apiSuccess({
       success: true,

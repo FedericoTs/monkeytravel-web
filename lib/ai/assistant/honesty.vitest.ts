@@ -5,6 +5,7 @@ import { join } from "node:path";
 import {
   announcedButMissing,
   announcesProposal,
+  claimedTripDays,
   claimsItineraryChange,
   claimsLongerTrip,
   claimsToRemember,
@@ -172,10 +173,57 @@ describe("claimsItineraryChange", () => {
     expect(claimsItineraryChange("")).toBe(false);
     expect(claimsItineraryChange(undefined)).toBe(false);
   });
+
+  // A traveller landing at midnight asked to keep Day 1 empty and read "I've left
+  // Day 1 blank…" with nothing changed.
+  it.each([
+    "I've left Day 1 blank so you can rest after your night flight.",
+    "I have kept Day 1 free for your arrival.",
+    "I've left the first day open.",
+    "He dejado el día 1 libre para que descanses.",
+    "Ho lasciato il giorno 1 libero per il tuo arrivo.",
+    "Deixei o dia 1 livre para você descansar.",
+  ])("catches a day said to be left empty: %s", (text) => {
+    expect(claimsItineraryChange(text)).toBe(true);
+  });
+
+  it.each([
+    "I've left your plan as it is.",
+    "I've left Day 1 as it was.",
+    "Day 1 is free from noon, so the museum fits there.",
+    "Ho lasciato il piano com'era.",
+  ])("leaves what was left as it was alone: %s", (text) => {
+    expect(claimsItineraryChange(text)).toBe(false);
+  });
+
+  // A traveller said "I'll send you the restaurants, don't remove anything" and
+  // was told "I couldn't make that change": the promise waited for their list.
+  it.each([
+    "Claro! Assim que você me enviar os nomes, vou adicionar cada restaurante no dia mais próximo, sem remover nada.",
+    "Perfeito, vou adicionar os restaurantes quando você me passar a lista.",
+    "Sure! Once you send me the list, I'll add each one to the day it fits best.",
+    "I'll add them as soon as you tell me which bars you have in mind.",
+    "¡Claro! En cuanto me pases los nombres, voy a añadir cada uno al mejor día.",
+    "Certo! Appena mi mandi i nomi, aggiungerò ogni ristorante al giorno più adatto.",
+  ])("leaves a promise that waits for the traveller's list alone: %s", (text) => {
+    expect(claimsItineraryChange(text)).toBe(false);
+  });
+
+  it("still catches a promise next to a question, and a claim next to a wait", () => {
+    expect(claimsItineraryChange("Vou adicionar o Madalosso no dia 3. Quer que eu inclua mais algum?")).toBe(true);
+    expect(claimsItineraryChange("Vou adicionar o Madalosso no dia 3. Quando você me passar os outros, adiciono também.")).toBe(true);
+    expect(claimsItineraryChange("I've added the Madalosso to Day 3. Once you send the others, I'll add them too.")).toBe(true);
+  });
 });
 
 // Live replies sent with no change attached, and how they read in es/pt.
 const handedOver = [
+  // Production, with no change attached: a day that never came back empty.
+  "Here is a blank Day 1 ready to save, since you'll be landing at midnight.",
+  "Here's an empty Day 3, so you can rest.",
+  "Aquí tienes el día 1 libre para descansar.",
+  "Ecco il giorno 1 libero per il tuo arrivo.",
+  "Aqui está o dia 1 livre para você descansar.",
   "Ho ricevuto la tua conferma.\n\nEcco la proposta per rimuovere Restaurace Mlejnice dal Giorno 2. Se sei d'accordo, fammelo sapere.",
   "Ok, I'll propose adding a Beer Spa on Day 2. I'll place it in the afternoon.\n\nHere is the proposed addition:",
   "Got it. I will propose shifting your entire trip to start on October 17th.",
@@ -184,6 +232,18 @@ const handedOver = [
   "Here's a proposal to add a pub experience to Day 3.",
   "Aquí tienes la propuesta para quitar la cena del día 2.",
   "Aqui está a proposta para remover o jantar do dia 2.",
+  // A new day handed over with no change: four replies on one trip.
+  "Aqui está o novo Dia 15 em Dublin para completar a sua viagem, pronto para salvar.",
+  "Aqui está um dia extra (Dia 15) pronto para salvar, explorando as belas paisagens costeiras de Howth.",
+  "Aqui está a sugestão para incluir a viagem entre os dias da sua rota de autocaravana, pronta para salvar.",
+  "Here's a new Day 15 in Dublin with Howth and Malahide Castle.",
+  "Here are 7 new days, ready to save: Kyoto, Nara and Osaka.",
+  "Here are 3 new days in the Algarve: beaches, Lagos and Sagres.",
+  "Ready to swap Days 1 and 2: the museum moves to Monday.",
+  "Aquí tienes un nuevo día 6 con una clase de cocina.",
+  "Aquí tienes 7 días nuevos, listos para guardar.",
+  "Ecco un nuovo giorno 6 con un corso di cucina.",
+  "Ecco 7 nuovi giorni, pronti da salvare.",
 ];
 const offers = [
   "Certo, posso rimuovere la cena al Restaurace Mlejnice dal tuo itinerario del Giorno 2.",
@@ -202,6 +262,11 @@ const notOffers = [
   "Il bus 59 è un'ottima alternativa per raggiungere il centro.",
   "Here's the plan for Day 2: the market, then lunch.",
   "Ecco il piano per il giorno 2.",
+  // Saving, or a day trip, is a fine thing to talk about.
+  "Your trip is ready to save: tap Save trip to keep it.",
+  "Sua viagem está pronta para salvar quando quiser.",
+  "Here's an extra day trip idea: Howth, 30 minutes by DART.",
+  "Here's a new day-trip option if you want one: Glendalough.",
 ];
 
 describe("announcesProposal", () => {
@@ -525,6 +590,23 @@ describe("more claims the guard used to miss", () => {
     expect(claimsLongerTrip("Ho aggiunto un giorno in più a Firenze.")).toBe(true);
     expect(claimsLongerTrip("Adicionei mais um dia em Lisboa.")).toBe(true);
     expect(claimsLongerTrip("Day 3 now ends with dinner in Gion.")).toBe(false);
+  });
+
+  it("reads how many days a reply says the whole trip has", () => {
+    expect(claimedTripDays("I've updated your trip to have 16 days, starting in Paris.")).toBe(16);
+    expect(claimedTripDays("Your itinerary now has 16 days.")).toBe(16);
+    expect(claimedTripDays("Here's your 16-day itinerary across six cities.")).toBe(16);
+    expect(claimedTripDays("Ho portato il viaggio a 16 giorni.")).toBe(16);
+    expect(claimedTripDays("Ecco il tuo itinerario di 16 giorni.")).toBe(16);
+    expect(claimedTripDays("He ampliado el viaje a 16 días.")).toBe(16);
+    expect(claimedTripDays("Aquí tienes tu itinerario de 16 días.")).toBe(16);
+    expect(claimedTripDays("Aqui está a sua viagem de 16 dias.")).toBe(16);
+    // Days that aren't the whole trip's.
+    expect(claimedTripDays("Paris gets 4 days, then Berlin.")).toBeNull();
+    expect(claimedTripDays("Day 2 now opens your 3-day stay in Paris.")).toBeNull();
+    expect(claimedTripDays("I've added an extra day of beaches.")).toBeNull();
+    expect(claimedTripDays("Day 16 ends in Budapest.")).toBeNull();
+    expect(claimedTripDays("The first 6 days are in Paris.")).toBeNull();
   });
 });
 

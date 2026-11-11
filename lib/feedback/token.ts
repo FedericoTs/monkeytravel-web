@@ -17,6 +17,7 @@
 
 import { createHmac, timingSafeEqual } from "crypto";
 import type { WentAnswer } from "./went";
+import type { NeedAnswer } from "./need";
 
 const DEFAULT_TTL_DAYS = 30;
 const PURPOSE = "fb" as const;
@@ -153,10 +154,27 @@ export function buildFeedbackUrl(
 }
 
 /**
- * A one-tap answer to the return email's "did you go?". The token names the
- * trip. `slot` records the click, and the token stays out of the path so the
- * page view counts (a path with a dot doesn't, see isPageViewPath).
+ * A one-tap answer to a question an email asks about one trip. The token names
+ * the trip. `slot` records the click against the email it came from, and the
+ * token stays out of the path so the page view counts (a path with a dot
+ * doesn't, see isPageViewPath).
  */
+function tripAnswerUrl(
+  page: "went" | "need",
+  userId: string,
+  tripId: string,
+  answer: Record<string, string>,
+  locale: string,
+  appUrl?: string
+): string {
+  const query = new URLSearchParams({
+    t: signFeedbackToken(userId, DEFAULT_TTL_DAYS, tripId),
+    ...answer,
+  });
+  return `${feedbackRoot(locale, appUrl)}/${page}?${query}`;
+}
+
+/** The return email's "did you go?". */
 export function buildWentUrl(
   userId: string,
   tripId: string,
@@ -164,10 +182,17 @@ export function buildWentUrl(
   locale: string = "en",
   appUrl?: string
 ): string {
-  const query = new URLSearchParams({
-    t: signFeedbackToken(userId, DEFAULT_TTL_DAYS, tripId),
-    answer,
-    slot: "followup_return_3d",
-  });
-  return `${feedbackRoot(locale, appUrl)}/went?${query}`;
+  return tripAnswerUrl("went", userId, tripId, { answer, slot: "followup_return_3d" }, locale, appUrl);
+}
+
+/** A pre-trip reminder's "what do you still need?"; `slot` is that reminder. */
+export function buildNeedUrl(
+  userId: string,
+  tripId: string,
+  need: NeedAnswer,
+  slot: string,
+  locale: string = "en",
+  appUrl?: string
+): string {
+  return tripAnswerUrl("need", userId, tripId, { need, slot }, locale, appUrl);
 }

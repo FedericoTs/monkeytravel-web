@@ -4,16 +4,18 @@
  */
 
 import { DEFAULT_LANGUAGE, isSupportedLanguage, LANGUAGE_NAMES } from "@/lib/ai/language";
-import { lockedActivityNames } from "@/lib/ai/anchors-core";
+import { isLockedActivity, lockedActivityNames } from "@/lib/ai/anchors-core";
 import {
   planCosts,
   planCurrency,
   type DisplayCurrency,
   type PlanCosts,
 } from "@/lib/ai/assistant/plan-costs";
-import { MAX_TRIP_DAYS_MULTI, maxTripDays } from "@/lib/ai/assistant/structural";
+import { addDaysISO, MAX_TRIP_DAYS_MULTI, maxTripDays } from "@/lib/ai/assistant/structural";
+import type { TripSpan } from "@/lib/ai/assistant/honesty";
 import type { ItineraryDay } from "@/types";
 import { ACTIVITY_TYPES } from "@/lib/trip/activity-type";
+import { SHORTEST_STOP_MINUTES } from "./edit-validation";
 
 // How a reply presents an edit that is still waiting to be saved, per language:
 // the model kept writing "I've added" / "Ho aggiunto" for an unsaved edit, and
@@ -77,6 +79,11 @@ export interface AssistInput {
   /** The currency the page shows prices in, when it isn't the plan's own. */
   display?: DisplayCurrency;
   /**
+   * A change the last reply prepared that the traveller hasn't saved yet,
+   * which `days` already include: one line per day it changes.
+   */
+  unsaved?: string[];
+  /**
    * The page can plan the whole trip somewhere else (the wizard): asked for
    * another place, the reply offers places instead of rewriting the days, and
    * the page plans the one picked anew, for the same dates.
@@ -110,9 +117,35 @@ function costLines(costs: PlanCosts | null): string {
   return `Activity costs, as the traveller sees them in ${view.currency}: ${perDay}. Total ~${view.total} ${view.currency}${own}. These count only what the plan lists: hotels, and any travel it doesn't list, cost extra.\n`;
 }
 
+/** A day's date: its own, or counted from the trip's start. */
+function dateOf(day: ItineraryDay | undefined, startDate?: string): string | null {
+  if (!day) return null;
+  return addDaysISO(day.date, 0) ?? addDaysISO(startDate, day.day_number - 1);
+}
+
+/** The trip's first and last dates and its number of days, when its dates are known. */
+export function tripSpan(days: ItineraryDay[], startDate?: string): TripSpan | null {
+  const from = dateOf(days[0], startDate);
+  const to = dateOf(days[days.length - 1], startDate);
+  return from && to ? { from, to, days: days.length } : null;
+}
+
+const PROMPT_DATE = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+const promptDate = (iso: string) => PROMPT_DATE.format(new Date(`${iso}T00:00:00Z`));
+const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
+/** How long the trip is, counted from its dates: what a reply must hold to. */
+export function tripLengthLine(days: ItineraryDay[], startDate?: string): string {
+  const n = days.length;
+  const span = tripSpan(days, startDate);
+  const length = `${count(n, "day", "days")} and ${count(n - 1, "night", "nights")}, Day 1 to Day ${n}`;
+  return span ? `The trip is ${promptDate(span.from)} to ${promptDate(span.to)}: ${length}.` : `The trip is ${length}.`;
+}
+
 // Each price names its currency, and the one the traveller sees when that
 // differs: a bare "(~250)" next to a euro total was quoted back as euros.
-function buildContext(days: ItineraryDay[], display?: DisplayCurrency): string {
+// Each day shows its date, so "count them, day by day" has the dates to count.
+function buildContext(days: ItineraryDay[], display?: DisplayCurrency, startDate?: string): string {
   const cur = planCurrency(days);
   const shown = display && display.currency !== cur && display.rate > 0 ? display : undefined;
   return days
@@ -124,14 +157,16 @@ function buildContext(days: ItineraryDay[], display?: DisplayCurrency): string {
               const cost = a?.estimated_cost?.amount;
               const seen = typeof cost === "number" && shown ? ` ≈ ${Math.round(cost * shown.rate)} ${shown.currency}` : "";
               const costStr = typeof cost === "number" && cost > 0 ? ` (~${cost} ${cur}${seen})` : "";
-              return a && typeof a.name === "string" ? `${a.name}${costStr}` : "";
+              const fixed = isLockedActivity(a) ? ` [fixed plan, ${a.start_time}]` : "";
+              return a && typeof a.name === "string" ? `${a.name}${fixed}${costStr}` : "";
             })
             .filter(Boolean)
             .join(", ")
         : "";
       const label = d.theme || d.title || "";
       const city = d.city ? ` [${d.city}]` : "";
-      return `Day ${d.day_number}${city}${label ? ` — ${label}` : ""}: ${acts}`;
+      const date = dateOf(d, startDate);
+      return `Day ${d.day_number}${date ? ` (${promptDate(date)})` : ""}${city}${label ? ` — ${label}` : ""}: ${acts}`;
     })
     .join("\n");
 }
@@ -163,26 +198,30 @@ export function buildPrompt(input: AssistInput): string {
   const cur = planCurrency(input.days);
   const costs = planCosts(input.days, input.display);
   const shownCur = costs?.shown?.currency ?? input.display?.currency ?? cur;
-  const dayCount = input.days.length;
   const maxDays = maxTripDays(input.days);
-  const dateLine =
-    input.startDate && input.endDate ? `Dates: ${input.startDate} to ${input.endDate} (${dayCount} days)\n` : "";
+  const lengthLine = tripLengthLine(input.days, input.startDate);
+  const firstDay = tripSpan(input.days, input.startDate)?.from;
   const multiCity = input.days.some((d) => d.city);
   const elsewhere = canOfferElsewhere(input);
+  const unsaved = input.unsaved?.length
+    ? `Not saved yet: your last reply prepared this change, the traveller hasn't saved it, and the itinerary above already includes it. Saving your reply saves it too.\n${input.unsaved.map((l) => `- ${l}`).join("\n")}\nIf they turn it down, undo it in your edits: take out what it added and put back what it took out.\n`
+    : "";
   return `You are MonkeyTravel's sharp, friendly travel assistant, helping a traveller with the trip they just generated. You can answer questions AND revise the plan.
 
 Trip: ${input.tripTitle}
 Destination: ${input.destination}
-${dateLine}Currency: ${cur}
+${lengthLine}
+Currency: ${cur}
 Itinerary:
-${buildContext(input.days, input.display)}
-${costLines(costs)}${buildHistory(input.history)}
+${buildContext(input.days, input.display, input.startDate)}
+${costLines(costs)}${unsaved}${buildHistory(input.history)}
 Traveller's new message: "${input.message}"
 
 First work out what the traveller actually wants, the way a good travel agent would:
 - A statement about their trip asks you to fit the plan to it: "we have a car", "my hotel is near X", "we land at 11:00 on day 1", "my wife is vegetarian", "I'm travelling with my 70-year-old mother". Change every day it affects.
 - A limit on distance or time ("close to the wineries", "walkable", "no more than 20 minutes from the hotel") holds for the whole plan, not just the stop it mentions. Check every stop it touches on your first answer, and move the stay or the stops until they fit. Say in "reply" which stop still can't.
 - What they told you about their trip, in this message or earlier in the conversation, still holds unless they changed it: when they arrive and leave, who is travelling, a car, a diet, where they stay. Every day you edit or add must fit it. Their earlier requests were already answered: don't make them again unless asked.
+- The trip's length above is counted from its dates and is always right. Never agree to another count, however sure they are: people often count the nights, or leave out the day they arrive. Say kindly how it's counted, day by day with the dates if they ask. Insisting on a count isn't asking to change it: add or remove days only when they ask for that.
 - A misspelled or partial name means the most likely real place near the destination ("aya sofya" is Hagia Sophia).
 - Ambiguous wording takes the meaning a travel agent would assume ("activities under 18" means suitable for under-18s). Ask one short question only when the readings would lead to very different plans.
 - A short "yes", "ok", "do it" or "continue" answers your previous message: make exactly the change you offered there, or the one it said some days still needed, nothing more. With nothing offered before it, ask what they'd like to change.
@@ -200,20 +239,23 @@ ${
 `
       : ""
   }- A request to CHANGE the plan: return every day that changes, each rewritten in full, in "edits". Change only what was asked: keep every other activity exactly as it is, under its exact name (never translate or rename activities), and leave days that don't need to change alone.
+  - An activity marked [fixed plan] is the traveller's own booking: on every day you return, keep it exactly as it is, under its exact name and at its time, and plan the rest of that day around it. You can't move, change or remove one: if they ask to, say they can change it themselves in the plan, and make the rest of what they asked.
   - A change about the whole trip ("every day", "all the dinners", "cheaper", "less packed", a car, a diet) applies to every day it concerns, not just one.
   - A day the traveller names is the day to change. If that clashes with the day's plan, still make the change there and note the trade-off in "reply".
   - Something already in the plan: say on which day. If they want it on another day or at another time, move it there instead of adding it twice.
   - Moving or swapping activities between days changes BOTH days: return both.
   - Something to add with no day named ("add a cooking class", "suggest a restaurant to add"): pick the day with the most room where it fits, add it there without removing anything, and name that day in "reply". Don't ask which day.
   - Adding never removes an activity unless the day can't fit both. When a change leaves an activity already in the plan without room (what they add, a late arrival, a closure, a long drive), move that activity to another day with room rather than dropping it, and say where it went.
+  - A list of places to add (restaurants, bars, shops, sights): add every one, each once, on the day and at the time it fits best: near that day's other stops, and a restaurant at lunch or dinner, when it's open as far as you know. Spread them over as many days as they need. If one can't fit anywhere, say which in "reply" and why.
+  - A message that only says what's coming ("I'll send you the restaurants") or sets a rule for the requests that follow ("don't remove anything") changes nothing yet: say you're ready, repeat the rule in a few words, and return "edits": [].
   - Asked for alternatives or other things to do: put your best picks into the plan as edits, so they can be applied, say in "reply" what they replace, and name one or two other good options they can ask for instead. If they want to choose first ("I'll let you know"), list the options in "reply" and change nothing yet.
   - Keep the number of days unless the traveller asks for more or fewer. A new place or day trip goes into the existing days, replacing the lightest day or part of one, and "reply" says what it replaces.
   - ${
     input.canAddDays === false
       ? `Only the trip's owner can change how many days it has, and this traveller isn't the owner: keep "trip_length" null and add no days. Asked for more days, say that only the owner can add them, and give your ideas for those days in "reply" instead, one short line each.`
-      : `Adding or removing days when asked, or changing how many nights a city gets: set "trip_length" to the new total number of days (1-${maxDays}) and return every day whose content changes, including each NEW day in full. New days come first, before any existing day you also change. New days in the middle of the trip move the later days along, so those days change too, up to the new last day. Days beyond "trip_length" are removed.`
+      : `Adding or removing days when asked, or changing how many nights a city gets: set "trip_length" to the new total number of days (1-${maxDays}) and return every day whose content changes, including each NEW day in full. New days come first, before any existing day you also change. New days in the middle of the trip move the later days along, so those days change too, up to the new last day. Days beyond "trip_length" are removed. The trip starts on Day 1${firstDay ? ` (${promptDate(firstDay)})` : ""} and can't start earlier here: if they arrive on an earlier date, change no day for it, and in "reply" tell them they can change the trip's dates to start that day, which moves every day's plan with it.`
   }${multiCity ? `
-  - This is a multi-city trip: give each edited day its "city".` : ""}
+  - This is a multi-city trip: each day is in the city shown in [ ] and its places are in that city. Every change, regrouping or reordering keeps each city's places on that city's days; a place on a day of another city goes back to a day of its own city. A day changes city only when they ask to change where they stay. Give each edited day its "city".` : ""}
   - Hotels in the plan: use only hotel names the traveller gives you or that already appear in the itinerary. If they mention hotels you can't see ("the hotels I added"), ask for the names and return "edits": []. When they name where they're staying for certain nights, add a short "Check in at <place>" activity in the evening of the first of those days. The plan doesn't track hotel prices; give a typical range if they ask.
   - At most ${MAX_DAYS_PER_REPLY} days in "edits". When the change concerns more days, new days included, return the first ${MAX_DAYS_PER_REPLY} and list every other day it concerns in "more_days": those are made right after, the same way, so "reply" describes the whole change for every day it concerns, never only "the first ${MAX_DAYS_PER_REPLY} days".
 - Use only real places, where they really are. If something they ask for doesn't exist nearby, say so and offer the closest real alternative. Give prices and travel times you're unsure of as rough ranges.
@@ -245,6 +287,7 @@ Return STRICT JSON (no markdown) in this EXACT shape:
           "type": ${ACTIVITY_TYPES.map((t) => `"${t}"`).join(" | ")},
           "description": "1 short sentence in ${language}",
           "location": "neighbourhood or area",
+          "coordinates": { "lat": <latitude, 6 decimals>, "lng": <longitude, 6 decimals> } (where the place really is),
           "estimated_cost": { "amount": <number in ${cur}>, "currency": "${cur}", "tier": "free" | "budget" | "moderate" | "expensive" },
           "booking_required": false
         }
@@ -255,7 +298,7 @@ Return STRICT JSON (no markdown) in this EXACT shape:
 
 Rules:
 1. JSON only. "edits" is [] for questions.
-2. Each edited day: 3-5 activities (fewer when the traveller asks to remove things, one more when you add to a full day), real places, costs realistic in ${cur}. Never fill a gap with a placeholder like "free time for lunch". A day they want free has no activities: "activities": []. Keep "description" to a few words.
+2. A day you plan from scratch has 3-5 activities. A day you add to keeps every activity it had, so it may end up with more than 5: that's fine while its times still work (meals at meal times, time to get between stops). Fewer when the traveller asks to remove things. Real places, costs realistic in ${cur}. Never fill a gap with a placeholder like "free time for lunch". A day they want free has no activities: "activities": []. Keep "description" to a few words. A length the traveller gives a stop ("5 min", "an hour") is its "duration_minutes" exactly, never rounded up; the shortest a stop can be is ${SHORTEST_STOP_MINUTES} minutes.
 3. For a change, "reply" is warm and brief and says what changed, one short line per day when several days change, describing exactly the edits you return. Never say you changed a day that is not in "edits". ${
     input.autoApply
       ? `For the wording, ${DONE_WORDING[input.locale ?? "en"] ?? DONE_WORDING.en}`

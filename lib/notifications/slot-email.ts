@@ -17,7 +17,7 @@ import {
 import { tripStartCoordinate } from "@/lib/email/trip-coordinates";
 import { verifyRenderedEmail, blockingDefects, summarizeDefects } from "@/lib/email/verify-render";
 import { didNotGoUrl, postTripCtaUrl } from "@/lib/email/followup-cta";
-import { reminderCtaUrl } from "@/lib/email/reminder-cta";
+import { needAnswerUrls, reminderCtaUrl } from "@/lib/email/reminder-cta";
 import { resolveLocale, formatDateRange, formatDayMonth } from "@/lib/email/reminder-locale";
 import {
   type TripEmailRow,
@@ -57,6 +57,13 @@ const CONTEXT_NS = "common.emailContext";
 const GROUP_ASK_SLOTS = new Set<string>(["pack_early_14d", "visa_check_7d"]);
 
 /**
+ * The reminders before the trip that end with its one question, "what do you
+ * still need for this trip?" (lib/feedback/need.ts), until the owner answers
+ * it. Not the morning of: by then it's too late to help.
+ */
+const NEED_ASK_SLOTS = new Set<string>(["pack_early_14d", "visa_check_7d", "weather_3d", "confirm_1d"]);
+
+/**
  * Every enrichment string that legitimately belongs to this trip.
  *
  * The containment check compares each rendered line against these, so a line
@@ -64,9 +71,15 @@ const GROUP_ASK_SLOTS = new Set<string>(["pack_early_14d", "visa_check_7d"]);
  * VALUES rather than a JSON dump of the row — JSON.stringify escapes embedded
  * quotes, so a weather note containing one would never contain itself.
  */
-function ownEnrichmentStrings(trip: TripEmailRow): string[] {
-  const day1 = trip.day1 as { activities?: unknown } | null | undefined;
-  const activities = Array.isArray(day1?.activities) ? day1.activities : [];
+export function ownEnrichmentStrings(trip: TripEmailRow): string[] {
+  // Every day's stops, not day one's only: the travel-day email lists
+  // tomorrow's plan too, and a line from this trip's own days is never a
+  // line from another trip.
+  const days = [trip.day1, ...(Array.isArray(trip.itinerary) ? trip.itinerary : [])];
+  const activities = days.flatMap((day) => {
+    const stops = (day as { activities?: unknown } | null | undefined)?.activities;
+    return Array.isArray(stops) ? stops : [];
+  });
   return [
     typeof trip.weather_note === "string" ? trip.weather_note : "",
     ...(Array.isArray(trip.highlights) ? trip.highlights : []),
@@ -122,8 +135,8 @@ export async function sendSlotEmail(
   const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app";
   const tripUrl = `${APP_URL}/trips/${trip.id}?slot=${row.slot}`;
 
-  // Where the CTA points: reminderCtaUrl (the trip, or day 1 without sign-in
-  // the day before and the morning of departure) and postTripCtaUrl (return →
+  // Where the CTA points: reminderCtaUrl (day 1 without sign-in, or the trip
+  // if the link can't be signed) and postTripCtaUrl (return →
   // the answer "yes, I went", later slots → wizard), shared with the audit script
   // so it vets what ships. `slot`, not `utm_source`: a utm_* param on an internal
   // link overwrites the stored acquisition source.
@@ -178,6 +191,29 @@ export async function sendSlotEmail(
         text: ctaT("groupAsk.text"),
         label: ctaT("groupAsk.cta"),
         url: `${APP_URL}/trips/${trip.id}?slot=${row.slot}&share=invite`,
+      };
+    }
+  }
+
+  // The one question (NEED_ASK_SLOTS), until the trip's owner has answered it.
+  // Optional like the group ask: a failed read, or links that can't be signed,
+  // leave it out and the reminder goes without it.
+  let needAsk: { question: string; answers: { label: string; url: string }[] } | undefined;
+  if (!followup && NEED_ASK_SLOTS.has(row.slot)) {
+    const { data: answered, error } = await svc
+      .from("user_feedback")
+      .select("id")
+      .eq("extra->>trip_id", trip.id)
+      .not("extra->>need", "is", null)
+      .limit(1);
+    const urls =
+      !error && (answered ?? []).length === 0
+        ? needAnswerUrls(row.slot as TripReminderSlot, { appUrl: APP_URL, locale, tripId: trip.id, userId: row.user_id })
+        : null;
+    if (urls) {
+      needAsk = {
+        question: ctaT("needAsk.question"),
+        answers: urls.map(({ need, url }) => ({ label: ctaT(`needAsk.${need}`), url })),
       };
     }
   }
@@ -237,6 +273,7 @@ export async function sendSlotEmail(
         goingFor: ctxT("goingFor"),
         dayOne: ctxT("dayOne"),
         today: ctxT("today"),
+        tomorrow: ctxT("tomorrow"),
         yourHighlights: ctxT("yourHighlights"),
       }
     );
@@ -268,6 +305,12 @@ export async function sendSlotEmail(
     ...(secondCta ? { secondCtaLabel: secondCta.label } : {}),
     ...(finalNote ? { finalNote } : {}),
     ...(groupAsk ? { groupAskText: groupAsk.text, groupAskLabel: groupAsk.label } : {}),
+    ...(needAsk
+      ? {
+          needAskQuestion: needAsk.question,
+          ...Object.fromEntries(needAsk.answers.map((a, i) => [`needAskAnswer${i}`, a.label])),
+        }
+      : {}),
   });
   if (unresolved) {
     // Deliberately a failure, not a degraded send. The row stays visible as
@@ -312,6 +355,7 @@ export async function sendSlotEmail(
           tripUrl: ctaUrl,
           contextBlocks,
           ...(groupAsk ? { groupAsk } : {}),
+          ...(needAsk ? { needAsk } : {}),
         },
       };
 

@@ -65,6 +65,26 @@ describe("a pasted draft", () => {
     ]);
   });
 
+  it("keeps where a new stop is when the model's point is near the trip, and a saved stop's own", async () => {
+    const days = trip();
+    (days[0].activities[0] as { coordinates?: unknown }).coordinates = { lat: 53.343793, lng: -6.254572 };
+    const at = (name: string, coordinates: unknown) => ({ name, type: "attraction", start_time: "10:00", duration_minutes: 60, coordinates });
+    reply = () =>
+      JSON.stringify({
+        revisedDays: [
+          { day_number: 1, activities: [at("Trinity College", { lat: 53.34, lng: -6.25 }), at("Dublin Castle", { lat: 53.342908, lng: -6.267428 })] },
+          { day_number: 3, activities: [at("Howth Cliff Walk", { lat: 48.85837, lng: 2.294481 })] },
+        ],
+        unmappedDayNumbers: [2],
+      });
+    const { action } = await map(days);
+    expect(action?.revisedDays?.map((d) => d.activities.map((a) => a.coordinates))).toEqual([
+      [{ lat: 53.343793, lng: -6.254572 }, { lat: 53.342908, lng: -6.267428 }],
+      [undefined],
+    ]);
+    expect(prompts[0]).toContain('"coordinates": { "lat": <latitude, 6 decimals>, "lng": <longitude, 6 decimals> }');
+  });
+
   it("is mapped onto the trip's own days, in the trip's language", async () => {
     await map(trip(), "it");
     expect(prompts).toHaveLength(1);

@@ -38,6 +38,7 @@ import { useCurrency } from "@/lib/locale";
 import type { TimelineItem } from "@/lib/proposals/timeline";
 import { dayBudgetLabel, showsDayBudget } from "@/lib/trip/day-budget";
 import type { Activity, ItineraryDay } from "@/types";
+import { calculateNextTimeSlot, isFixed, overlapMinutes } from "@/lib/utils/activity-id";
 
 type Proposal = ComponentProps<typeof InlineProposalCard>["proposal"];
 type VotingProps = Pick<
@@ -77,11 +78,13 @@ interface DayContext {
   onOptimizeRoute: (dayNumber: number, activities: Activity[]) => void;
   /** Suggesting an activity to the crew; null for whoever may not. */
   onSuggestActivity: ((dayNumber: number) => void) | null;
-  onActivityDelete: (activityId: string) => void;
+  onActivityDelete: (activityId: string, name: string) => void;
   onActivityUpdate: (activityId: string, updates: Partial<Activity>) => void;
   onActivityRegenerate: (activityId: string, dayIndex: number) => void;
   onAddActivity: (dayIndex: number, activity: Partial<Activity>) => void;
   onPhotoCapture: (activityId: string, photoUrl: string) => void;
+  /** Moves the stops after one that runs into the next. */
+  onMakeRoom: (activityId: string) => void;
 }
 
 /**
@@ -201,6 +204,7 @@ function TripDay({
   onActivityRegenerate,
   onAddActivity,
   onPhotoCapture,
+  onMakeRoom,
 }: DayContext & {
   day: ItineraryDay;
   /** The day's place in the whole trip. */
@@ -214,11 +218,23 @@ function TripDay({
   const { convert, format } = useCurrency();
   const dayTravelData = travelData.get(day.day_number);
 
+  // A stop still on when the next one starts, for whoever is editing: making
+  // room moves the later stops, unless the next one is fixed. Not during a
+  // drag: a note that comes and goes would move the days under the pointer.
+  const overlapOf = (activity: Activity, idx: number) => {
+    const next = day.activities[idx + 1];
+    const minutes = editingActive && !moves.dragging && next ? overlapMinutes(activity, next) : 0;
+    if (minutes === 0 || !next) return null;
+    const id = activity.id;
+    return { minutes, nextName: next.name, onMakeRoom: id && !isFixed(next) ? () => onMakeRoom(id) : null };
+  };
+
   // What every activity's row and card take, editing or viewing.
   const rowProps = (activity: Activity, idx: number) => ({
     crewVotes,
     activityId: activity.id,
     aiUpdated: aiUpdatedActivityId === activity.id,
+    overlap: overlapOf(activity, idx),
     travelTo:
       idx < day.activities.length - 1
         ? {
@@ -299,7 +315,7 @@ function TripDay({
                         <SortableActivityCard
                           {...cardProps(activity, idx)}
                           isEditMode={true}
-                          onDelete={() => onActivityDelete(activity.id!)}
+                          onDelete={() => onActivityDelete(activity.id!, activity.name)}
                           onUpdate={(updates) => onActivityUpdate(activity.id!, updates)}
                           onMoveToDay={(targetDayIdx) => moves.moveToDay(activity.id!, targetDayIdx)}
                           onRegenerate={() => onActivityRegenerate(activity.id!, dayIndex)}
@@ -360,6 +376,7 @@ function TripDay({
                 dayIndex={dayIndex}
                 destination={destination}
                 onAdd={(partialActivity) => onAddActivity(dayIndex, partialActivity)}
+                suggestedTime={calculateNextTimeSlot(day)}
               />
             </div>
           )}

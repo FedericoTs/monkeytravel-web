@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { acceptEssentialOnly } from "./consent-banner";
 import { stubGeneration } from "./generation-stub";
 import { isolate } from "./wizard-draft";
 
@@ -9,9 +10,26 @@ import { isolate } from "./wizard-draft";
  * generation is answered by the test, so no model is called.
  */
 
+async function pickPopular(page: Page) {
+  await page.goto("/trips/new");
+  await acceptEssentialOnly(page);
+  const pick = page.getByRole("group", { name: "Popular right now" }).getByRole("button").first();
+  const place = (await pick.getAttribute("aria-label"))?.match(/^Start a trip to (.+) — /)?.[1];
+  expect(place, "the pick names its place").toBeTruthy();
+  await pick.click();
+  await expect(page.getByRole("combobox").first()).toHaveValue(place!);
+}
+
 async function generate(page: Page) {
-  await page.getByRole("button", { name: /^Continue/ }).click();
-  await page.getByRole("heading", { name: "Set your travel style" }).waitFor();
+  // The footer's own button: a typed place with no match shows a "Continue with …" button too, which picks
+  // the place and stays on step 1. Right after typing, the button can still be busy for a moment (one run
+  // waited on it for the whole test), so it's pressed until step 2 shows. Step 2 has no such button.
+  const travelStyle = page.getByRole("heading", { name: "Set your travel style" });
+  await expect(async () => {
+    if (await travelStyle.isVisible()) return;
+    await page.getByTestId("wizard-continue").click({ timeout: 3_000 });
+    await expect(travelStyle).toBeVisible({ timeout: 3_000 });
+  }).toPass({ timeout: 30_000 });
   const foodie = page.getByText("Foodie Journey", { exact: true }).filter({ visible: true }).first();
   const generateButton = page.getByRole("button", { name: "Generate Itinerary" });
   await expect(async () => {
@@ -25,8 +43,7 @@ test.describe("where the place is, for its daylight", () => {
   test("a picked place sends its coordinates with the plan", async ({ page }) => {
     await isolate(page);
     const { streamed } = await stubGeneration(page);
-    await page.goto("/trips/new");
-    await page.getByRole("group", { name: "Popular right now" }).getByRole("button").first().click();
+    await pickPopular(page);
     await generate(page);
 
     await expect.poll(() => streamed.length).toBe(1);
@@ -38,8 +55,7 @@ test.describe("where the place is, for its daylight", () => {
   test("a name typed over a picked place sends none", async ({ page }) => {
     await isolate(page);
     const { streamed } = await stubGeneration(page);
-    await page.goto("/trips/new");
-    await page.getByRole("group", { name: "Popular right now" }).getByRole("button").first().click();
+    await pickPopular(page);
     const field = page.getByRole("combobox").first();
     await field.fill("Reykjavik, Iceland");
     await field.press("Escape");

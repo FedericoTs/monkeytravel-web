@@ -253,7 +253,8 @@ Rules:
 8. Write "booking_required": true only on an activity that must be booked ahead; leave the field out on every other activity
 9. An activity's "type" says what the place is, and is one of: ${ACTIVITY_TYPES.join(", ")}. Never a travel vibe such as foodie, cultural, urban or romantic
 10. Every price, and the trip total, is in US dollars ("currency": "USD") whatever the destination: the app shows prices in the traveller's own currency
-11. Every full day has lunch, and dinner in the evening, at real named places. They count among the day's activities`;
+11. Every full day has lunch, and dinner in the evening, at real named places. They count among the day's activities
+12. Place every sight, museum, church and market on a day and at a time it is open, using the weekday the request gives for each day: many museums close one day a week (often Monday), churches and cathedrals limit visits around services, and markets often trade only in the morning. Start a stop no earlier than the place opens`;
 
 // Shared chat prefix for BOTH trip-generation call sites (blocking +
 // streaming). Byte-identical history across requests is what makes Gemini's
@@ -294,6 +295,19 @@ function daylightLine({ daylight }: Pick<TripCreationParams, "daylight">): strin
   if (first.polar === "night") return "Daylight: the sun doesn't rise on these dates.";
   const span = (a: string | null, b: string | null) => (b && b !== a ? `${a} to ${b}` : a);
   return `Daylight (local time): sunrise about ${span(first.sunrise, last.sunrise)}, sunset about ${span(first.sunset, last.sunset)}. A stop named for the sunrise or the sunset must be under way at that time; otherwise don't name it after one.`;
+}
+
+const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+/** Each day's weekday, so a place shut on one day of the week stays off that day. */
+function daysLine(startDate: string, duration: number): string {
+  const days: string[] = [];
+  for (let i = 0; i < duration; i++) {
+    const date = addIsoDays(startDate, i);
+    if (!date) return "";
+    days.push(`Day ${i + 1} ${WEEKDAYS[new Date(`${date}T00:00:00Z`).getUTCDay()]} ${date}`);
+  }
+  return days.length ? `Days: ${days.join(", ")}` : "";
 }
 
 function buildUserPrompt(params: TripCreationParams, options?: BuildPromptOptions): string {
@@ -405,6 +419,26 @@ ${knownPlaces.map((p) => `- ${p.name} (${p.type})`).join("\n")}
 
   const travellers = travellersLine(params);
   const daylight = daylightLine(params);
+  const days = daysLine(params.startDate, duration);
+  // One city of a trip through several (lib/ai/multi-city): the must-dos are the
+  // whole trip's, and the other cities have their own days.
+  const otherCities = (params.destinations ?? [])
+    .map((d) => d.city.trim())
+    .filter((c) => c && c.toLowerCase() !== params.destination.trim().toLowerCase());
+  const others = otherCities.length > 1 ? `${otherCities.slice(0, -1).join(", ")} and ${otherCities.at(-1)}` : otherCities[0];
+  const mustDosSection = !params.mustDos?.length
+    ? ""
+    : others
+      ? `
+## Traveller Must-Dos (for the whole trip)
+This plan covers ${params.destination}, one city of a trip that also visits ${others}, which ${otherCities.length > 1 ? "get their" : "gets its"} own days. The traveller listed these by name for the whole trip: include each one that is in or near ${params.destination} as an activity on a sensible day (right area, right time slot, realistic duration), using the real place/dish/experience they named (a misspelled or partial name means the most likely real place). Leave out the ones in or near ${others}: never put a place of ${others} on a day here.
+${params.mustDos.map((m) => `- ${m}`).join("\n")}
+`
+      : `
+## Traveller Must-Dos (explicitly requested — schedule every one)
+The traveller listed these by name. Include EACH as an activity on a sensible day (right area of the city, right time slot, realistic duration). Use the real place/dish/experience they named (a misspelled or partial name means the most likely real place) — never substitute a look-alike. If one is genuinely impossible for these dates or this destination, omit it rather than faking it.
+${params.mustDos.map((m) => `- ${m}`).join("\n")}
+`;
 
   // Language header intentionally at the END (see tail of this template):
   // it is the most cache-hostile token span (varies per locale), and the
@@ -413,7 +447,7 @@ ${knownPlaces.map((p) => `- ${p.name} (${p.type})`).join("\n")}
 
 ## Travel Details
 - Dates: ${params.startDate} to ${params.endDate}
-- Duration: ${duration} days
+${days ? `- ${days}\n` : ""}- Duration: ${duration} days
 - Budget Tier: ${params.budgetTier}
 - Travel Pace: ${params.pace} — ${paceBudgetPromptClause(params.pace)}
 ${travellers ? `- ${travellers}\n` : ""}${daylight ? `- ${daylight}\n` : ""}
@@ -422,13 +456,7 @@ ${travelStyleSection}${vibeSection}${seasonalSection}## Traveler Preferences
 ${params.requirements ? `- Special Requirements: ${params.requirements}` : ""}
 ${
   // A part follows the outline, which already put each must-do on one day.
-  params.mustDos && params.mustDos.length > 0 && !part
-    ? `
-## Traveller Must-Dos (explicitly requested — schedule every one)
-The traveller listed these by name. Include EACH as an activity on a sensible day (right area of the city, right time slot, realistic duration). Use the real place/dish/experience they named — never substitute a look-alike. If one is genuinely impossible for these dates or this destination, omit it rather than faking it.
-${params.mustDos.map((m) => `- ${m}`).join("\n")}
-`
-    : ""
+  part ? "" : mustDosSection
 }${knownSection}${buildProfilePreferencesSection(params.profilePreferences)}${buildSchedulingPreferencesSection(params.profilePreferences)}
 
 ${anchorSection}${partSection}Generate the itinerary now, following the system rules and the Required Output schema exactly.${languageSection}`;

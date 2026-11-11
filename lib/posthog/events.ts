@@ -186,6 +186,7 @@ export interface TripWizardAbandonedEvent {
     | "requirements"
     | "flexible_dates"
     | "express_plan"
+    | "read_request"
     | null;
   /** Did they put something in the destination field by the time they left? */
   had_destination?: boolean;
@@ -208,7 +209,8 @@ export interface TripWizardFieldInteractedEvent {
     | "pace"
     | "requirements"
     | "flexible_dates"
-    | "express_plan";
+    | "express_plan"
+    | "read_request";
   /** First time this field was touched in this step session, or a follow-up? */
   first_touch: boolean;
 }

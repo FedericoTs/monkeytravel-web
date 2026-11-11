@@ -187,6 +187,42 @@ describe("useItinerarySync: server writes", () => {
   });
 });
 
+describe("useItinerarySync: new dates", () => {
+  const moved = (...names: string[]) => [{ ...plan(...names)[0], date: "2027-06-01" }] as unknown as ItineraryDay[];
+
+  it("writes the dates and the days moved onto them together, then shows the stored trip", async () => {
+    const { result, clearHistory } = render();
+    let ok: boolean | undefined;
+    await act(async () => {
+      ok = await result.current.writeTripDates("2027-06-01", "2027-06-01", moved("a"));
+    });
+    expect(ok).toBe(true);
+    expect(patches()).toEqual([{ itinerary: moved("a"), baseItineraryVersion: 1, start_date: "2027-06-01", end_date: "2027-06-01" }]);
+    expect(result.current.editedItinerary).toEqual(moved("a"));
+    expect(result.current.hasChanges).toBe(false);
+    // An undo would bring back the days on their old dates; the hero's dates come from the server.
+    expect(clearHistory).toHaveBeenCalled();
+    expect(refresh).toHaveBeenCalled();
+
+    // The next edit builds on the version the dates were written at.
+    await edit(result, "a", "b");
+    expect(patches()[1].baseItineraryVersion).toBe(2);
+  });
+
+  it("changes nothing when the trip changed elsewhere in the meantime", async () => {
+    fetchMock.mockResolvedValueOnce(conflictReply(5, plan("x")));
+    const { result } = render();
+    let ok: boolean | undefined;
+    await act(async () => {
+      ok = await result.current.writeTripDates("2027-06-01", "2027-06-01", moved("a"));
+    });
+    expect(ok).toBe(false);
+    expect(names(result.current.editedItinerary)).toEqual(["a"]);
+    expect(result.current.editedItinerary[0].date).toBeUndefined();
+    expect(refresh).not.toHaveBeenCalled();
+  });
+});
+
 describe("useItinerarySync: a save and what it is built on", () => {
   it("is never cancelled: a PATCH the server already has would still land under the next one", async () => {
     const { result } = render();

@@ -17,7 +17,9 @@ import {
   type CityLeg,
   addDaysISO,
   mergeCityItineraries,
+  mustDosOfOtherCities,
   validateLegs,
+  withoutOtherCitiesPlaces,
 } from "./multi-city-core";
 
 export type { CityLeg } from "./multi-city-core";
@@ -54,18 +56,36 @@ export async function generateMultiCityItinerary(
 
   // Parallel: wall-clock = slowest single city, not the sum. Each city starts
   // from the places travellers kept there.
-  const results = await Promise.all(
-    perCityParams.map(async (p, i) =>
-      generateItinerary(p, {
-        ...options,
-        knownPlaces: await knownPlacesFor(p, legs[i].nights, options?.language ?? "en"),
-      })
-    )
-  );
+  const generate = async (p: TripCreationParams, i: number) =>
+    generateItinerary(p, {
+      ...options,
+      knownPlaces: await knownPlacesFor(p, legs[i].nights, options?.language ?? "en"),
+    });
+  const results = await Promise.all(perCityParams.map(generate));
 
+  // Each city keeps only its own places: a must-do of another city stays off its
+  // days. A city that planned some anyway is asked once more, without the
+  // must-dos the other cities hold, so its days aren't left short.
+  let inTheirCities = withoutOtherCitiesPlaces(results);
+  if (inTheirCities.dropped.length > 0) {
+    console.warn(`[multi-city] left out places in another city: ${inTheirCities.dropped.join(", ")}`);
+    const mustDos = base.mustDos ?? [];
+    if (mustDos.length > 0) {
+      await Promise.all(
+        inTheirCities.strayed.map(async (i) => {
+          const elsewhere = mustDosOfOtherCities(mustDos, inTheirCities.results, i);
+          results[i] = await generate({ ...perCityParams[i], mustDos: mustDos.filter((m) => !elsewhere.includes(m)) }, i);
+        }),
+      );
+      inTheirCities = withoutOtherCitiesPlaces(results);
+      if (inTheirCities.dropped.length > 0) {
+        console.warn(`[multi-city] asked again, still left out: ${inTheirCities.dropped.join(", ")}`);
+      }
+    }
+  }
   // Transfer-leg labels follow the same language the per-city generations
   // used — it rides on the generation options, not the base params.
-  const merged = mergeCityItineraries(legs, results, tripStartDate, {
+  const merged = mergeCityItineraries(legs, inTheirCities.results, tripStartDate, {
     language: options?.language,
   });
 

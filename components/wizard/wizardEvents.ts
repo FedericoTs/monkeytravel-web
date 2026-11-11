@@ -67,6 +67,11 @@ export const WIZARD_EVENT_STEPS = [
   // simply walked away.
   "otp_code_submitted",
   "otp_code_verified",
+  // The rest of the box, for every visitor (PostHog sees only those who
+  // accepted cookies): Google pressed, and the box closed before an email
+  // went out, with elapsed_ms how long it was open.
+  "auth_google_pressed",
+  "auth_modal_closed",
 ] as const;
 
 export type WizardEventStep = (typeof WIZARD_EVENT_STEPS)[number];

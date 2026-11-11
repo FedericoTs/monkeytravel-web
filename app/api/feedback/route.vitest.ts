@@ -156,3 +156,55 @@ describe("did you go?", () => {
     expect(inserted()).toBeUndefined();
   });
 });
+
+describe("what do you still need?", () => {
+  const link = () => signFeedbackToken(USER, 30, TRIP);
+
+  it("keeps the answer against the trip the link names", async () => {
+    const { json } = await post({ token: link(), need: "stay" });
+    expect(json).toEqual({ saved: true });
+    expect(inserted()).toMatchObject({
+      user_id: USER,
+      source: "email_link",
+      open_to_chat: false,
+      contact_email: null,
+      extra: { trip_id: TRIP, need: "stay" },
+    });
+  });
+
+  it("ignores a trip sent in the body", async () => {
+    await post({ token: link(), need: "book", trip_id: "33333333-3333-4333-8333-333333333333" });
+    expect((inserted()?.extra as Record<string, string>).trip_id).toBe(TRIP);
+  });
+
+  it("keeps a trimmed, bounded note", async () => {
+    await post({ token: link(), need: "transport", need_note: `  ${"x".repeat(600)} ` });
+    expect((inserted()?.extra as Record<string, string>).need_note).toBe("x".repeat(500));
+  });
+
+  it("drops an empty note", async () => {
+    await post({ token: link(), need: "set", need_note: "   " });
+    expect(inserted()?.extra).toEqual({ trip_id: TRIP, need: "set" });
+  });
+
+  it("keeps a yes to writing back, with no address: the account's own is the one to use", async () => {
+    await post({ token: link(), need: "group", open_to_chat: true, contact_email: "someone@example.com" });
+    expect(inserted()).toMatchObject({ open_to_chat: true, contact_email: null, extra: { trip_id: TRIP, need: "group" } });
+  });
+
+  it("keeps nothing for an answer that isn't one", async () => {
+    const { json } = await post({ token: link(), need: "perhaps", need_note: "x" });
+    expect(json).toEqual({ saved: false });
+    expect(inserted()).toBeUndefined();
+  });
+
+  it.each([
+    ["a link that names no trip", () => signFeedbackToken(USER)],
+    ["no link at all", () => undefined],
+  ])("needs a trip: %s keeps nothing", async (_name, token) => {
+    sessionUser = { id: USER };
+    const { json } = await post({ token: token(), need: "stay", need_note: "x" });
+    expect(json).toEqual({ saved: false });
+    expect(inserted()).toBeUndefined();
+  });
+});

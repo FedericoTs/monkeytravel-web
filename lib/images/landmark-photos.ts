@@ -8,12 +8,13 @@ import { logWriteError } from "@/lib/supabase/log-write-error";
 /**
  * Activities' Wikimedia photos (lib/images/wikimedia-landmark.ts), from the
  * shared cache or found and stored once. Keyed by the activity's normalized
- * name and destination, like places_v2_lookup.
+ * name and destination, like places_v2_lookup. The cron job
+ * purge-expired-landmark-photos deletes expired rows every night.
  */
 
 const CACHE_TYPE = "wikimedia_landmark";
-const FOUND_DAYS = 365;
-const NONE_DAYS = 60;
+const FOUND_DAYS = 30;
+const NONE_DAYS = 14;
 const BUILD_TIMEOUT_MS = 8000;
 // Two lookups at a time: Wikidata answers 429 to more from one client.
 const CONCURRENCY = 2;

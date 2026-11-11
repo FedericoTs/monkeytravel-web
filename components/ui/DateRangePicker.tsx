@@ -393,14 +393,14 @@ export default function DateRangePicker({
   // wizard's "I'm flexible" hatch uses (handleFlexibleDates), so the two paths
   // agree. Filtered to the maxDays cap.
   const durationPresets = [
-    { days: 3, label: t("presetWeekend") },
+    { days: 3, label: t("presetWeekend"), weekend: true },
     { days: 5, label: t("presetDaysValue", { days: 5 }) },
     { days: 7, label: t("presetWeek") },
     { days: 10, label: t("presetDaysValue", { days: 10 }) },
     { days: 14, label: t("presetTwoWeeks") },
   ].filter((p) => p.days <= maxDays);
 
-  const applyDuration = (nDays: number) => {
+  const applyDuration = (nDays: number, weekend = false) => {
     const clamped = Math.min(nDays, maxDays);
     // Anchor: keep the user's chosen start if any, else default to ~3 weeks out.
     const anchor =
@@ -411,6 +411,14 @@ export default function DateRangePicker({
         d.setDate(d.getDate() + 21);
         return d;
       })();
+    if (weekend) {
+      // Friday to Sunday: the weekend the anchor is in, or the next one from a
+      // weekday, and never one that starts before the earliest date.
+      const day = anchor.getDay();
+      anchor.setDate(anchor.getDate() + (day === 6 ? -1 : day === 0 ? -2 : 5 - day));
+      const earliest = parseDate(minDate ?? "");
+      if (earliest && anchor < earliest) anchor.setDate(anchor.getDate() + 7);
+    }
     const end = new Date(anchor);
     end.setDate(end.getDate() + clamped - 1);
     onStartDateChange(formatDate(anchor));
@@ -490,7 +498,7 @@ export default function DateRangePicker({
               <button
                 key={preset.days}
                 type="button"
-                onClick={() => applyDuration(preset.days)}
+                onClick={() => applyDuration(preset.days, preset.weekend)}
                 aria-pressed={active}
                 className={`
                   px-3.5 py-1.5 rounded-full text-xs font-medium min-h-[36px]

@@ -90,6 +90,22 @@
     "disclosure": "Usamos tus respuestas para mejorar MonkeyTravel. Consulta nuestra",
     "privacyPolicy": "Política de privacidad"
   },
+  "whatYouNeed": {
+    "title": "Lo que te falta",
+    "heading": "Lo que te falta para este viaje",
+    "noted": "Anotado, gracias.",
+    "noteLabel": "¿Te falta algo más para este viaje? (opcional)",
+    "writeBack": "Pueden escribirme sobre esto",
+    "send": "Enviar",
+    "sending": "Enviando...",
+    "error": "No hemos podido guardarlo. Inténtalo de nuevo.",
+    "tryAgain": "Reintentar",
+    "thanksTitle": "Gracias",
+    "thanksBody": "Leemos todas las respuestas. Ellas deciden lo que construimos después.",
+    "yourTrips": "Ver tus viajes",
+    "disclosure": "Usamos tus respuestas para mejorar MonkeyTravel. Consulta nuestra",
+    "privacyPolicy": "Política de privacidad"
+  },
   "navigation": {
     "features": "Características",
     "howItWorks": "Cómo Funciona",
@@ -747,7 +763,10 @@
     "showRoute": "Mostrar ruta",
     "hideRoute": "Ocultar ruta",
     "segmentDuration": "{duration} a pie",
-    "disclaimerStraightLine": "Estimación en línea recta — el tiempo real a pie puede ser mayor."
+    "disclaimerStraightLine": "Estimación en línea recta — el tiempo real a pie puede ser mayor.",
+    "day": "Día {day}",
+    "showOnlyDay": "Mostrar solo el día {day}",
+    "showAllDays": "Mostrar todos los días"
   },
   "maintenance": {
     "title": "En Mantenimiento",
@@ -980,15 +999,6 @@
       "transport": "Transporte",
       "activity": "Actividad",
       "other": "Otro"
-    },
-    "durations": {
-      "30min": "30 min",
-      "1hr": "1 hora",
-      "2hr": "2 horas",
-      "3hr": "3 horas",
-      "4hr": "4 horas",
-      "halfDay": "Medio día",
-      "90min": "1.5 horas"
     }
   },
   "regenerate": {
@@ -1721,13 +1731,6 @@
       "morning": "Mañana",
       "afternoon": "Tarde",
       "evening": "Noche"
-    },
-    "durations": {
-      "30min": "30 min",
-      "1hour": "1 hora",
-      "1_5hours": "1.5 horas",
-      "2hours": "2 horas",
-      "3hours": "3 horas"
     },
     "form": {
       "nameLabel": "Nombre de Actividad",
@@ -2666,6 +2669,15 @@
     "morning_of": {
       "heading": "Día de viaje",
       "body": "Llegó el día. Tu plan de hoy en {destination} está a un toque — ábrelo cuando necesites direcciones, horarios o saber qué sigue."
+    },
+    "needAsk": {
+      "question": "Una pregunta: ¿qué te falta todavía para este viaje?",
+      "stay": "Dónde alojarme",
+      "transport": "Cómo moverme de un sitio a otro",
+      "book": "Qué reservar con antelación",
+      "phone": "Tenerlo en el móvil durante el viaje",
+      "group": "Poner de acuerdo a mi grupo",
+      "set": "Nada, ya lo tengo todo"
     }
   },
   "tripFollowupEmail": {
@@ -2698,6 +2710,7 @@
     "goingFor": "A lo que vas",
     "dayOne": "Día uno",
     "today": "El plan de hoy",
+    "tomorrow": "El plan de mañana",
     "yourHighlights": "Tus momentos destacados",
     "weatherNoRain": "{range} · sin lluvia prevista",
     "weatherWithRain": "{range} · lluvia {wet} de {days, plural, one {# día} other {# días}}",

@@ -5,15 +5,16 @@
 // tracks the pre-generation wizard funnel; funnel_events tracks what happens
 // to a trip AFTER it exists (share created/visited, votes, plan-own clicks).
 //
-// Every writer here is FIRE-AND-FORGET and swallows all errors — telemetry
-// must never break the share/vote/render path it is attached to. Callers
-// should `void logFunnelEventServer(...)` (do not await).
+// Every writer here swallows all errors — telemetry must never break the
+// share/vote/render path it is attached to. Callers needn't await
+// logFunnelEventServer: it keeps the function alive until its write is done.
 //
 // Writes use the service-role admin client, so they bypass RLS and do not
 // depend on the anon INSERT policy (that policy is only for the client-fired
 // events posted to app/api/funnel-event).
 
 import { cookies } from "next/headers";
+import { waitUntil } from "@vercel/functions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logWriteError } from "@/lib/supabase/log-write-error";
 
@@ -45,23 +46,29 @@ export interface FunnelEventInput {
   metadata?: Record<string, unknown> | null;
 }
 
-/** Generic fire-and-forget funnel_events insert (service-role). */
-export async function logFunnelEventServer(
-  input: FunnelEventInput
-): Promise<void> {
-  try {
-    const supabase = createAdminClient();
-    logWriteError("funnel-events", await supabase.from("funnel_events").insert({
-      event_type: input.event_type,
-      trip_id: input.trip_id ?? null,
-      session_id: input.session_id ?? null,
-      user_id: input.user_id ?? null,
-      anon_id: input.anon_id ?? null,
-      metadata: input.metadata ?? null,
-    }));
-  } catch {
-    // never break the caller
-  }
+/**
+ * Generic funnel_events insert (service-role). In waitUntil, so a caller that
+ * doesn't await it still gets its row: a function can be frozen once its
+ * response is sent, and an unfinished write with it.
+ */
+export function logFunnelEventServer(input: FunnelEventInput): Promise<void> {
+  const write = (async () => {
+    try {
+      const supabase = createAdminClient();
+      logWriteError("funnel-events", await supabase.from("funnel_events").insert({
+        event_type: input.event_type,
+        trip_id: input.trip_id ?? null,
+        session_id: input.session_id ?? null,
+        user_id: input.user_id ?? null,
+        anon_id: input.anon_id ?? null,
+        metadata: input.metadata ?? null,
+      }));
+    } catch {
+      // never break the caller
+    }
+  })();
+  waitUntil(write);
+  return write;
 }
 
 // The crawler / link-unfurler pattern lives with the visit classifier

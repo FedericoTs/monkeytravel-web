@@ -34,6 +34,9 @@ import { generateTripOutline } from "@/lib/ai/trip-outline";
 import { PartsError, writeInParts, writesInParts } from "@/lib/ai/plan-in-parts";
 import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/generation-result";
 import { knownPlacesFor, knownPlacesUsed, type KnownPlace } from "@/lib/ai/known-places";
+import { keepOffClosingDays } from "@/lib/ai/closing-days";
+import { keepMustDos } from "@/lib/ai/must-dos";
+import { keepNamesInOneScript } from "@/lib/ai/one-script-names";
 import { tripSpanDays } from "@/lib/dates/iso-date";
 import { isModelOutOfCredit, MODEL_OUTAGE_MESSAGE } from "@/lib/ai/model-outage";
 
@@ -338,6 +341,22 @@ export async function POST(request: NextRequest) {
         };
         return;
       }
+      // 5a. A must-do the plan holds nowhere gets one short question, and goes
+      //     in where it fits (lib/ai/must-dos.ts).
+      const mustDosIn = await keepMustDos(finalItinerary, params.destination, params.mustDos, userLanguage);
+      finalItinerary = mustDosIn.itinerary;
+      generationCost += mustDosIn.costUsd;
+      // 5a'. A name with two writing systems in one word ("Green波
+      //      Restaurant") gets its usual name (lib/ai/one-script-names.ts).
+      const namesIn = await keepNamesInOneScript(finalItinerary, params.destination, userLanguage);
+      finalItinerary = namesIn.itinerary;
+      generationCost += namesIn.costUsd;
+      // 5b. No stop on a day it's shut: the plan's sights are asked about,
+      //     and its days ordered around their closing days. A cached plan has
+      //     new dates, so it too (lib/ai/closing-days.ts).
+      const openDays = await keepOffClosingDays(finalItinerary, params.destination);
+      finalItinerary = openDays.itinerary;
+      generationCost += openDays.costUsd;
       if (!cacheHit) {
         try {
           // Zero Google at generation: Wikimedia photos and type-relevant stock
@@ -408,6 +427,13 @@ export async function POST(request: NextRequest) {
                 ...(partRetries > 0 ? { part_retries: partRetries } : {}),
                 ...(knownPlaces.length > 0
                   ? { known_places: knownPlaces.length, known_places_used: knownPlacesUsed(sanitized.days, knownPlaces) }
+                  : {}),
+                // Must-dos the plan held nowhere, and how many of them went in.
+                ...(mustDosIn.missing > 0 ? { must_dos: { missing: mustDosIn.missing, added: mustDosIn.added } } : {}),
+                ...(namesIn.glued > 0 ? { names: { glued: namesIn.glued, renamed: namesIn.renamed } } : {}),
+                // Stops on a day they're shut, before and after the days were ordered.
+                ...(openDays.asked > 0
+                  ? { closing_days: { asked: openDays.asked, shut_before: openDays.shutBefore, shut_after: openDays.shutAfter } }
                   : {}),
                 ...(generationId ? { generation_id: generationId } : {}),
               },

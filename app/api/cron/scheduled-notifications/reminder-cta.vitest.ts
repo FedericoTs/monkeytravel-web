@@ -143,9 +143,11 @@ describe("reminder button", () => {
     }
   });
 
-  it("keeps the trip page, and the group ask's link, on the other reminders", async () => {
-    const { sent } = await runReminder("visa_check_7d", 7, "es", { trip_intent: "group" });
-    expect(sent.template.props.tripUrl).toBe(`https://monkeytravel.app/trips/${TRIP}?slot=visa_check_7d`);
+  it("opens trip day 1 from the earlier reminders too, and keeps the group ask on the trip page, where inviting happens", async () => {
+    const { trip, sent } = await runReminder("visa_check_7d", 7, "es", { trip_intent: "group" });
+    const link = new URL(sent.template.props.tripUrl);
+    expect(`${link.origin}${link.pathname}`).toBe(`https://monkeytravel.app/es/day/${TRIP}/${trip.start_date}`);
+    expect(verifyDayLink(TRIP, trip.start_date, link.searchParams.get("k"))).toEqual({ ok: true });
     expect(sent.template.props.groupAsk?.url).toBe(`https://monkeytravel.app/trips/${TRIP}?slot=visa_check_7d&share=invite`);
     expect(await check(sent)).toEqual({ ok: true });
   });

@@ -16,6 +16,33 @@ describe("what every plan is asked for", () => {
   it("describes each stop with why it is worth it", () => {
     expect(spec).toMatch(/"description": "What to do here and why it is worth it, in about 25 words"/);
   });
+
+  it("places every sight on a day and at a time it is open", () => {
+    expect(spec).toMatch(/Place every sight, museum, church and market on a day and at a time it is open/);
+  });
+});
+
+describe("each day's weekday", () => {
+  const trip = (startDate: string, endDate: string): TripCreationParams => ({
+    destination: "Seville, Spain",
+    startDate,
+    endDate,
+    budgetTier: "balanced",
+    pace: "moderate",
+    vibes: [],
+    interests: [],
+  });
+
+  it("names the weekday of every day, so a place shut on Mondays stays off the Monday", () => {
+    expect(buildUserPrompt(trip("2026-11-28", "2026-11-30"))).toContain(
+      "- Days: Day 1 Saturday 2026-11-28, Day 2 Sunday 2026-11-29, Day 3 Monday 2026-11-30",
+    );
+  });
+
+  it("keeps the line with the trip's details", () => {
+    const details = buildUserPrompt(trip("2027-03-25", "2027-03-25")).split("## Travel Details")[1].split("\n\n")[0];
+    expect(details).toContain("- Days: Day 1 Thursday 2027-03-25");
+  });
 });
 
 describe("who's coming", () => {
@@ -86,5 +113,52 @@ describe("daylight", () => {
 
   it("isn't mentioned when the place wasn't known", () => {
     expect(buildUserPrompt(trip())).not.toContain("Daylight");
+  });
+});
+
+// A trip through Busan and Seoul listed ten must-dos for both cities, and each
+// city's plan was told to schedule every one: Busan sights landed on Seoul days.
+describe("must-dos on a trip through several cities", () => {
+  const mustDos = ["gamcheon culture village", "gyeongbokgung palace", "songdo cable car"];
+  const leg = (over: Partial<TripCreationParams> = {}): TripCreationParams => ({
+    destination: "Seoul",
+    startDate: "2026-11-14",
+    endDate: "2026-11-17",
+    budgetTier: "balanced",
+    pace: "moderate",
+    vibes: [],
+    interests: [],
+    mustDos,
+    destinations: [
+      { city: "Busan", nights: 4 },
+      { city: "Seoul", nights: 4 },
+    ],
+    ...over,
+  });
+
+  it("asks each city for only the ones there, leaving the others to their own days", () => {
+    const prompt = buildUserPrompt(leg());
+    expect(prompt).toContain("This plan covers Seoul, one city of a trip that also visits Busan, which gets its own days.");
+    expect(prompt).toContain("include each one that is in or near Seoul");
+    expect(prompt).toContain("Leave out the ones in or near Busan: never put a place of Busan on a day here.");
+    expect(prompt).toContain("- gamcheon culture village");
+    expect(prompt).not.toContain("schedule every one");
+  });
+
+  // "gyeongbukgung palace" was left out of every plan: Gyeongbokgung Palace.
+  it("takes a misspelled must-do for the real place it means", () => {
+    expect(buildUserPrompt(leg())).toContain("(a misspelled or partial name means the most likely real place)");
+    expect(buildUserPrompt(leg({ destinations: undefined }))).toContain("(a misspelled or partial name means the most likely real place)");
+  });
+
+  it("names every other city", () => {
+    const three = leg({ destinations: [{ city: "Busan", nights: 3 }, { city: "Seoul", nights: 3 }, { city: "Gyeongju", nights: 2 }] });
+    expect(buildUserPrompt(three)).toContain("one city of a trip that also visits Busan and Gyeongju, which get their own days.");
+  });
+
+  it("still asks a trip to one place for every one", () => {
+    const single = buildUserPrompt(leg({ destination: "Seoul, South Korea", destinations: undefined }));
+    expect(single).toContain("Traveller Must-Dos (explicitly requested — schedule every one)");
+    expect(single).not.toContain("one city of a trip");
   });
 });

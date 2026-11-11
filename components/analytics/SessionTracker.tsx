@@ -4,26 +4,46 @@ import { useEffect, useRef } from "react";
 import { hasSessionCookie } from "@/lib/supabase/session-cookie";
 import { isNoRow } from "@/lib/supabase/no-row";
 import {
-  trackSessionStart,
   trackUserReturn,
   setUserId,
   setUserPropertiesEnhanced,
 } from "@/lib/analytics";
-import { identifyUser, type PostHogUserProperties } from "@/lib/posthog";
+import { forgetSignedOutPerson, identifyUser, type PostHogUserProperties } from "@/lib/posthog";
 import { safeGet, safeSet } from "@/lib/safe-storage";
 import { isSupportedLanguage } from "@/lib/ai/language";
 import { logWriteError } from "@/lib/supabase/log-write-error";
 
 const SESSION_STORAGE_KEY = "mt_last_visit";
-const SESSION_COUNT_KEY = "mt_session_count";
+// Away longer than this is a return: GA4 ends a session after 30 idle minutes too.
+const RETURN_AFTER_MS = 30 * 60 * 1000;
 
 /**
- * SessionTracker - Tracks user sessions and returns for retention analytics
+ * How long this browser had no page of the site in view, and marks it seen
+ * now. Null on a first visit or when storage is blocked: a browser told to
+ * keep nothing never reads as returning, and safe storage never throws, so
+ * this cannot break the page it runs on.
+ */
+function markSeen(): number | null {
+  const now = Date.now();
+  const last = Number(safeGet(SESSION_STORAGE_KEY));
+  safeSet(SESSION_STORAGE_KEY, String(now));
+  return last > 0 ? now - last : null;
+}
+
+function reportReturn(away: number | null) {
+  if (away !== null && away > RETURN_AFTER_MS) {
+    trackUserReturn({ daysSinceLastVisit: Math.floor(away / (1000 * 60 * 60 * 24)) });
+  }
+}
+
+/**
+ * SessionTracker - Tracks returns and user properties for retention analytics
  *
  * This component should be mounted in the root layout to track:
- * - Session start with user context
- * - User returns (how long since last visit)
+ * - Returns: a signed-in person back after more than 30 minutes away
  * - User properties for GA4 segmentation
+ *
+ * GA4 counts sessions itself, with its own session_start, so this sends none.
  *
  * WHY IT READS THE USER ITSELF: this component lives in app/layout.tsx (root
  * layout, locale-agnostic) while AuthProvider lives in app/[locale]/layout.tsx,
@@ -35,60 +55,32 @@ const SESSION_COUNT_KEY = "mt_session_count";
  */
 export default function SessionTracker() {
   const hasTracked = useRef(false);
+  const signedIn = useRef(false);
 
   useEffect(() => {
     // Only track once per page load
     if (hasTracked.current) return;
     hasTracked.current = true;
+    const awayOnArrival = markSeen();
 
     const trackSession = async () => {
       // Fetch auth user directly — we cannot use useAuth() here, see docblock.
       // Without a session cookie there is nobody to look up, so anonymous
-      // visitors never download the Supabase client for this.
-      const supabase = hasSessionCookie()
-        ? await import("@/lib/supabase/client").then(({ createClient }) => createClient())
-        : null;
-      const user = supabase ? (await supabase.auth.getUser()).data.user : null;
-      // Calculate days since last visit.
-      //
-      // safeGet, not localStorage.getItem: Safari with "block all cookies"
-      // makes the identifier unresolvable, so a bare access throws a
-      // ReferenceError — and because this function is async, that became an
-      // UNHANDLED REJECTION on the login page (Sentry JAVASCRIPT-NEXTJS-28).
-      // Session counting is a nicety; it must never be able to throw on a page
-      // whose job is to log somebody in.
-      const lastVisit = safeGet(SESSION_STORAGE_KEY);
-      const sessionCount = parseInt(safeGet(SESSION_COUNT_KEY) || "0", 10) + 1;
-      const now = Date.now();
-      let daysSinceLastVisit = 0;
-
-      if (lastVisit) {
-        const lastVisitTime = parseInt(lastVisit, 10);
-        daysSinceLastVisit = Math.floor((now - lastVisitTime) / (1000 * 60 * 60 * 24));
-      }
-
-      // Update localStorage. A blocked store simply does not remember, and
-      // the visitor counts as new next time — the correct degradation for a
-      // browser that has been told not to keep anything.
-      safeSet(SESSION_STORAGE_KEY, now.toString());
-      safeSet(SESSION_COUNT_KEY, sessionCount.toString());
-
-      if (!user || !supabase) {
-        // Anonymous session
-        trackSessionStart({
-          isNewUser: sessionCount === 1,
-          hasActiveTrip: false,
-          tripsCount: 0,
-          daysSinceSignup: 0,
-        });
+      // visitors never download the Supabase client for this. A browser
+      // PostHog still knows as a signed-in person has been signed out.
+      if (!hasSessionCookie()) {
+        forgetSignedOutPerson();
         return;
       }
+      const supabase = await import("@/lib/supabase/client").then(({ createClient }) => createClient());
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user) return;
 
       // Set user ID for cross-session tracking
       setUserId(user.id);
 
       // Fetch all user data in parallel for better performance
-      const [userRead, tripsRead, activeTripsRead, betaRead] = await Promise.all([
+      const [userRead, tripsRead, betaRead] = await Promise.all([
         // User profile data
         supabase
           .from("users")
@@ -100,12 +92,6 @@ export default function SessionTracker() {
           .from("trips")
           .select("id", { count: "exact", head: true })
           .eq("user_id", user.id),
-        // Active trips count
-        supabase
-          .from("trips")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", user.id)
-          .eq("status", "active"),
         // Beta access check. maybeSingle, not single: most users have no
         // tester row, and .single() turns that absence into a 406 error on
         // every tracked page load.
@@ -117,7 +103,7 @@ export default function SessionTracker() {
       ]);
       // Properties built from a refused read would overwrite the person's
       // real ones with defaults. The next page load tracks the session.
-      const failed = [userRead, tripsRead, activeTripsRead, betaRead].find((r) => r.error && !isNoRow(r.error));
+      const failed = [userRead, tripsRead, betaRead].find((r) => r.error && !isNoRow(r.error));
       if (failed) {
         console.error("[SessionTracker] read failed:", failed.error?.message);
         return;
@@ -132,10 +118,10 @@ export default function SessionTracker() {
       }
 
       const { count: tripsCount } = tripsRead;
-      const { count: activeTripsCount } = activeTripsRead;
       const { data: betaAccess } = betaRead;
 
       // Calculate account age
+      const now = Date.now();
       const accountCreated = userData?.created_at ? new Date(userData.created_at) : new Date();
       const daysSinceSignup = Math.floor((now - accountCreated.getTime()) / (1000 * 60 * 60 * 24));
 
@@ -149,23 +135,8 @@ export default function SessionTracker() {
             ? "engaged"
             : "power_user";
 
-      // Track user return (if not first visit)
-      if (sessionCount > 1) {
-        trackUserReturn({
-          daysSinceLastVisit,
-          totalSessions: sessionCount,
-          returnSource: "direct", // Could be enhanced with UTM tracking
-        });
-      }
-
-      // Track session start with full context
-      trackSessionStart({
-        userId: user.id,
-        isNewUser: daysSinceSignup === 0,
-        hasActiveTrip: (activeTripsCount || 0) > 0,
-        tripsCount: trips,
-        daysSinceSignup,
-      });
+      signedIn.current = true;
+      reportReturn(awayOnArrival);
 
       // Set user properties for GA4 segmentation
       setUserPropertiesEnhanced({
@@ -174,7 +145,6 @@ export default function SessionTracker() {
         accountAgeDays: daysSinceSignup,
         onboardingCompleted: userData?.onboarding_completed ?? false,
         hasBetaAccess: !!betaAccess,
-        referralSource: "organic", // Could be enhanced with UTM tracking
         userStage,
       });
 
@@ -205,6 +175,24 @@ export default function SessionTracker() {
     }
     // hasTracked.current guards against React-StrictMode double-fire in dev.
     // No external dependencies — getUser() is called inside trackSession.
+  }, []);
+
+  // A page in view keeps the mark fresh: without that, a tab opened after an
+  // hour in another one would read as a return. Coming back to a page after
+  // more than 30 minutes is one.
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      const away = markSeen();
+      if (document.visibilityState === "visible" && signedIn.current) reportReturn(away);
+    };
+    const heartbeat = window.setInterval(() => {
+      if (document.visibilityState === "visible") markSeen();
+    }, 60 * 1000);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      window.clearInterval(heartbeat);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
   }, []);
 
   // This component doesn't render anything

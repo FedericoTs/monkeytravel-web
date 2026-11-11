@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { waitUntil } from "@vercel/functions";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
@@ -160,14 +161,15 @@ export async function POST(request: NextRequest) {
       return errors.internal("Failed to save trip to your account", "Trip Duplicate");
     }
 
-    // Fire-and-forget enqueue of the pre-trip reminder cascade. Gated
-    // by NEXT_PUBLIC_CALENDAR_EXPORT_ENABLED; failures log + Sentry
-    // but never re-throw — the user's duplicate succeeded, the
-    // reminder queue being sick must not surface here.
-    void scheduleTripNotifications({ tripId: newTripId, userId: user.id });
+    // Not awaited: enqueue of the pre-trip reminder cascade. Gated by
+    // NEXT_PUBLIC_CALENDAR_EXPORT_ENABLED; failures log + Sentry but never
+    // re-throw — the user's duplicate succeeded, the reminder queue being
+    // sick must not surface here. This and the referral below are in
+    // waitUntil: the function can be frozen once the response is sent.
+    waitUntil(scheduleTripNotifications({ tripId: newTripId, userId: user.id }));
 
-    // Complete referral if this is user's first trip (fire and forget)
-    void (async () => {
+    // Complete referral if this is user's first trip
+    waitUntil((async () => {
       try {
         // Extract destination from trip title (e.g., "Paris Trip" -> "Paris")
         const destination = sourceTrip.title?.replace(/ Trip$/i, "") || "Unknown";
@@ -234,7 +236,7 @@ export async function POST(request: NextRequest) {
       } catch (err) {
         console.error("[Trip Duplicate] Error in referral/tracking:", err);
       }
-    })();
+    })());
 
     return apiSuccess({
       success: true,

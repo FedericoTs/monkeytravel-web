@@ -60,7 +60,7 @@ O [Holi cai em 22 de março de 2027](https://www.drikpanchang.com/hindu-festival
 
 ## 3. Andaluzia — Semana Santa
 
-A Semana Santa vai de 21 a 27 de março em 2027, e a de Sevilha é um dos grandes espetáculos da Europa: procissões noturnas, irmandades levando os *pasos* por ruas cheias, a cidade acordada até de madrugada. Málaga, Córdoba e Granada têm cada uma a sua versão.
+A Semana Santa vai de 21 a 27 de março em 2027, e a de Sevilha é um dos grandes espetáculos da Europa: procissões noturnas, irmandades levando os *pasos* por ruas cheias, a cidade acordada até de madrugada. Málaga, Córdoba e Granada têm cada uma a sua versão. Nosso [guia da Páscoa 2027](/blog/where-to-go-at-easter) compara Sevilha, Málaga e Granada, com os feriados prolongados de cada país.
 
 **Custos reais:** $75–120/dia em semanas normais de março; a Semana Santa fica muito acima disso, com mínimos de estadia em Sevilha.
 **A contrapartida:** ou é o motivo pelo qual veio ou é um problema a evitar — não há meio-termo. Durante a Semana Santa o centro de Sevilha é intransitável nos horários de procissão e os quartos são reservados com muitos meses de antecedência. As três primeiras semanas de março dão a mesma cidade, amena e verdadeiramente tranquila.

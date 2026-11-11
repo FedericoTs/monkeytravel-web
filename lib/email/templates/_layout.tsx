@@ -124,7 +124,7 @@ export function EmailLayout({
   const t = layoutCopy[locale];
 
   return (
-    <Html>
+    <Html lang={locale}>
       <Head />
       <Preview>{preview}</Preview>
       <Body style={body}>

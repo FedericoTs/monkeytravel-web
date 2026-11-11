@@ -60,6 +60,7 @@
       "same": "Seu plano passa para estas datas. Nada mais muda.",
       "shorter": "A viagem passa a ter {count, plural, one {# dia} other {# dias}}: ficam os primeiros dias e os outros são removidos.",
       "longer": "A viagem passa a ter {count, plural, one {# dia} other {# dias}}. Seus dias ficam como estão e o assistente planeja os novos a partir do dia {from}.",
+      "longerEmpty": "A viagem passa a ter {count, plural, one {# dia} other {# dias}}. Seus dias ficam como estão e os novos, a partir do dia {from}, começam vazios para você ou o assistente planejarem.",
       "endBeforeStart": "A data de fim é anterior à de início.",
       "tooLong": "As viagens podem ter até {max} dias.",
       "pickBoth": "Escolha uma data de início e uma de fim.",
@@ -205,7 +206,17 @@
       "useFlexibleDates": "Usar datas flexíveis",
       "hintFlexibleDefault": "Ainda sem datas? Colocaremos por enquanto {days} dias daqui a cerca de três semanas — você pode mudá-las quando quiser.",
       "freeReassuranceSignedIn": "Grátis — sua viagem dia a dia completa, pronta para salvar com um toque",
-      "destinationTooLong": "Isso parece um pedido em vez de um lugar. Escreva aqui o destino (máx. 100 caracteres) e acrescente os detalhes no passo seguinte."
+      "destinationTooLong": "Isso parece um pedido em vez de um lugar. Escreva aqui o destino (máx. 100 caracteres) e acrescente os detalhes no passo seguinte.",
+      "keepAsNote": "Passar para o passo seguinte",
+      "findMatch": "Não sabe para onde ir? Encontrar meu lugar",
+      "movedToNotes": "Guardado para o passo seguinte. Agora, para onde você vai?",
+      "request": {
+        "title": "Isso parece a descrição da sua viagem inteira. Podemos preencher o lugar e as datas a partir dela.",
+        "fill": "Preencher com o que escrevi",
+        "reading": "Lendo…",
+        "filled": "Preenchido com o que você escreveu: confira as datas e continue. Suas palavras também vão para o passo seguinte.",
+        "capped": "As viagens duram no máximo {max} dias, então esta tem {max}."
+      }
     },
     "express": {
       "title": "Sua viagem, do jeito que entendemos",
@@ -228,7 +239,7 @@
       "daysLabel": "{count} dias",
       "customize": "Personalize orçamento, ritmo e preferências",
       "customizeDefaults": "(padrão: orçamento equilibrado, ritmo moderado)",
-      "generate": "Gerar Roteiro",
+      "generate": "Gerar roteiro",
       "back": "Voltar",
       "mustDos": {
         "title": "Algo que você precisa ver, fazer ou comer?",
@@ -248,7 +259,7 @@
       "subtitle": "Defina seu orçamento, ritmo e requisitos especiais"
     },
     "result": {
-      "tripOverview": "Resumo da Viagem",
+      "tripOverview": "Resumo da viagem",
       "dayByDay": "Dia a dia",
       "bookYourTravel": "Reserve sua viagem",
       "flights": "Voos",
@@ -257,15 +268,15 @@
       "aiVerifiedBody": "Este roteiro foi criado por AI. Clique em \"Mais\" em qualquer atividade para ver as fotos, avaliações e níveis de preço do Google. Recomendamos verificar os horários de funcionamento antes da sua viagem.",
       "notQuiteRight": "Não é bem isso?",
       "viewCards": "Cartões",
-      "viewTimeline": "Linha do Tempo",
-      "hideMap": "Ocultar Mapa",
-      "showMap": "Mostrar Mapa",
+      "viewTimeline": "Linha do tempo",
+      "hideMap": "Ocultar mapa",
+      "showMap": "Mostrar mapa",
       "startOver": "Recomeçar",
-      "regenerate": "Gerar Novamente",
-      "saveTrip": "Salvar Viagem",
+      "regenerate": "Gerar novamente",
+      "saveTrip": "Salvar viagem",
       "saving": "Salvando...",
       "duration": "Duração",
-      "estBudget": "Orçamento Est.",
+      "estBudget": "Orçamento est.",
       "activities": "Atividades",
       "pace": "Ritmo",
       "days": "{count, plural, one {# dia} other {# dias}}",
@@ -283,8 +294,8 @@
         "endOfTrip": "Essa é a viagem toda."
       },
       "dayLabel": "Dia {n}",
-      "packingSuggestions": "Sugestões de Bagagem",
-      "dailyBudget": "Orçamento Est.",
+      "packingSuggestions": "Sugestões de bagagem",
+      "dailyBudget": "Orçamento est.",
       "mobileSaveNudge": "{count, plural, one {# dia} other {# dias}} — só neste navegador até você salvar",
       "saveHeaderNudge": "{count, plural, one {# dia} other {# dias}} — só neste navegador",
       "shareForVotes": "Envie para quem vai",
@@ -392,47 +403,47 @@
       "description": "Atividades ao ar livre, trilhas e experiências cheias de adrenalina"
     },
     "cultural": {
-      "label": "Explorador Cultural",
+      "label": "Explorador cultural",
       "description": "Museus, sítios históricos, tradições locais e maravilhas do passado"
     },
     "foodie": {
-      "label": "Gastronomia & Vinho",
+      "label": "Gastronomia & vinho",
       "description": "Culinária local, tours gastronômicos, mercados e experiências culinárias"
     },
     "wellness": {
-      "label": "Bem-estar & Relaxamento",
+      "label": "Bem-estar & relaxamento",
       "description": "Spas, retiros de ioga, jardins tranquilos e experiências revigorantes"
     },
     "romantic": {
-      "label": "Escapada Romântica",
+      "label": "Escapada romântica",
       "description": "Lugares pitorescos, pôr do sol, jantares íntimos e atividades a dois"
     },
     "urban": {
-      "label": "Explorador Urbano",
+      "label": "Explorador urbano",
       "description": "Vida na cidade, bairros de compras, vida noturna e atrações modernas"
     },
     "nature": {
-      "label": "Amante da Natureza",
+      "label": "Amante da natureza",
       "description": "Parques, jardins, paisagens deslumbrantes e encontros com a fauna"
     },
     "offbeat": {
-      "label": "Fora do Roteiro Comum",
+      "label": "Fora do roteiro comum",
       "description": "Joias escondidas, segredos locais e experiências fora do convencional"
     },
     "time-traveler": {
-      "label": "Viajante do Tempo",
+      "label": "Viajante do tempo",
       "description": "Ruínas antigas, castelos medievais e marcos históricos"
     },
     "photo-hunter": {
-      "label": "Caçador de Fotos",
+      "label": "Caçador de fotos",
       "description": "Lugares dignos de Instagram, mirantes e cenários fotogênicos"
     },
     "local-life": {
-      "label": "Vida Local",
+      "label": "Vida local",
       "description": "Bairros, cafés locais, mercados e experiências autênticas"
     },
     "night-owl": {
-      "label": "Coruja Noturna",
+      "label": "Coruja noturna",
       "description": "Entretenimento noturno, bares, baladas e comida de madrugada"
     }
   },
@@ -470,7 +481,7 @@
     }
   },
   "requirements": {
-    "title": "Requisitos Especiais",
+    "title": "Requisitos especiais",
     "placeholder": "ex.: acessível para cadeira de rodas, restaurantes vegetarianos, ideal para crianças...",
     "hint": "Opcional - conte-nos sobre qualquer necessidade específica"
   },
@@ -486,7 +497,7 @@
     "errorServerBusy": "Nossa AI está demorando mais que o normal agora. Tente novamente em instantes — ou experimente uma viagem mais curta.",
     "errorUnavailable": "Nosso planejador de viagens está fora do ar agora. O problema é nosso, não seu, e suas respostas continuam aqui. Tente novamente um pouco mais tarde.",
     "browseTemplates": "Ou veja viagens prontas",
-    "retry": "Tentar Novamente",
+    "retry": "Tentar novamente",
     "editDetails": "Editar detalhes da viagem",
     "fix": {
       "dates": "Confira as datas: a viagem precisa começar hoje ou depois, e terminar depois de começar.",
@@ -501,9 +512,9 @@
   "result": {
     "title": "Seu Roteiro em {destination}",
     "daysCount": "{count} Dias",
-    "saveTrip": "Salvar Viagem",
+    "saveTrip": "Salvar viagem",
     "startOver": "Recomeçar",
-    "regenerate": "Gerar Novamente",
+    "regenerate": "Gerar novamente",
     "share": "Compartilhar",
     "export": "Exportar",
     "saving": "Salvando…",
@@ -534,7 +545,7 @@
     "todaysActivities": "Atividades de hoje",
     "progressCompleted": "{completed}/{total} concluídas",
     "noActivitiesToday": "Nenhuma atividade planejada para hoje",
-    "dayComplete": "Dia Concluído!",
+    "dayComplete": "Dia concluído!",
     "allActivitiesCompleted": "Você concluiu todas as atividades de hoje",
     "doneBadge": "✓ Feito",
     "skippedBadge": "Pulada",
@@ -545,9 +556,9 @@
     "free": "Grátis",
     "tips": "Dicas",
     "directions": "Como chegar",
-    "moreInfo": "Mais Informações",
+    "moreInfo": "Mais informações",
     "booking": "Reserva",
-    "insiderTips": "Dicas Locais",
+    "insiderTips": "Dicas locais",
     "aiEstimate": "Estimativa de AI"
   },
   "detail": {
@@ -575,36 +586,43 @@
     "regeneratingDay": "Gerando novamente o Dia {number}…",
     "backToTrips": "Voltar para Viagens",
     "cards": "Cartões",
-    "timeline": "Linha do Tempo",
+    "timeline": "Linha do tempo",
     "viewToggle": "Visualização do roteiro",
-    "showMap": "Mostrar Mapa",
-    "hideMap": "Ocultar Mapa",
+    "showMap": "Mostrar mapa",
+    "hideMap": "Ocultar mapa",
     "loadingMap": "Carregando mapa...",
-    "editTrip": "Editar Viagem",
+    "editTrip": "Editar viagem",
     "editing": "Editando",
-    "editingMode": "Modo de Edição",
-    "optimizeRoute": "Otimizar Rota",
+    "editingMode": "Modo de edição",
+    "optimizeRoute": "Otimizar rota",
     "optimize": "Otimizar",
     "routeOptimized": "Rota otimizada",
+    "datesChanged": "Novas datas: {range}.",
+    "datesNotChanged": "Não foi possível alterar as datas. Tente de novo.",
+    "emptyDaysAdded": "Novas datas: {range}. {count, plural, one {O dia {from} está vazio: adicione paradas ou peça ao assistente para planejá-lo.} other {Os dias {from}–{to} estão vazios: adicione paradas ou peça ao assistente para planejá-los.}}",
+    "askAssistant": "Perguntar ao assistente",
+    "planEmptyDays": "{count, plural, one {Planeje o dia {from} para mim} other {Planeje os dias {from} a {to} para mim}}",
     "routeOptimizedSave": "Rota otimizada. Salve as alterações para mantê-la.",
     "pageTitle": "Detalhes da viagem",
     "exitEditing": "Sair",
     "activityRegenerateFailed": "Não foi possível gerar a atividade de novo. Tente novamente.",
     "activityRegenerateLimit": "Você atingiu o limite de gerações deste mês. A atividade não mudou.",
     "saveChangesFailed": "Não foi possível salvar as alterações. Tente novamente.",
-    "estBudget": "Orçamento Est.",
+    "estBudget": "Orçamento est.",
     "noItinerary": "Ainda sem roteiro",
     "noItineraryMessage": "Esta viagem ainda não tem atividades planejadas.",
     "reorderActivities": "Arraste para reordenar, ou solte em outro dia. Use ⋯ para mover com precisão.",
     "unsavedChanges": "Alterações não salvas",
-    "discardChanges": "Descartar Alterações",
-    "saveChanges": "Salvar Alterações",
+    "discardChanges": "Descartar alterações",
+    "saveChanges": "Salvar alterações",
     "doneEditing": "Concluído",
     "cancel": "Cancelar",
     "saving": "Salvando...",
     "changesSaved": "Alterações salvas!",
     "allChangesSaved": "Todas as alterações salvas",
     "saveFailed": "Não foi possível salvar — toque para tentar de novo",
+    "saveFailedNotice": "Sua última alteração não foi salva.",
+    "retrySave": "Tentar de novo",
     "conflictTitle": "Esta viagem foi alterada em outro lugar",
     "conflictBody": "Uma versão mais recente foi salva depois que você abriu esta página, por um companheiro de viagem ou em outra aba. Suas últimas alterações ainda não foram salvas.",
     "conflictLoadLatest": "Carregar a versão mais recente",
@@ -622,7 +640,7 @@
     "aiGenerated": "Roteiro Gerado por AI",
     "aiGeneratedDescription": "Este roteiro foi criado por AI.",
     "clickMoreInfo": "Clique em \"Mais\" em qualquer atividade para ver os detalhes e as fotos do Google.",
-    "editModeActive": "Modo de Edição Ativo",
+    "editModeActive": "Modo de edição ativo",
     "editModeInstructions": "Arraste para reordenar, toque para editar ou use o menu para excluir atividades. Clique no botão verde de confirmação acima quando terminar.",
     "aiAssistant": "Assistente de AI",
     "customizeTrip": "Personalize sua viagem",
@@ -655,6 +673,11 @@
     "activityCount": "{count, plural, one {# atividade} other {# atividades}}",
 
     "movedToDay": "Movida para o dia {day}",
+    "removed": "Removida: \"{name}\"",
+    "regenerated": "Trocada por \"{name}\"",
+    "madeRoom": "{count, plural, one {A parada seguinte agora começa mais tarde} other {As # paradas seguintes agora começam mais tarde}}, para dar espaço",
+    "overlap": "Sobrepõe-se a «{name}» em {duration}",
+    "makeRoom": "Abrir espaço",
 
     "dropHere": "Solte aqui → início do dia {day}",
 
@@ -666,14 +689,12 @@
     "editActivity": "Editar atividade",
     "regenerateWithAI": "Gerar novamente com AI",
     "deleteActivity": "Excluir atividade",
-    "deleteConfirmTitle": "Excluir Atividade?",
-    "deleteConfirmMessage": "\"{name}\" será removida do seu roteiro.",
     "regenerating": "Gerando atividade novamente com AI..."
   },
   "addActivity": {
-    "title": "Adicionar Atividade",
+    "title": "Adicionar atividade",
     "addToDay": "Adicionar Atividade ao Dia {day}",
-    "activityName": "Nome da Atividade",
+    "activityName": "Nome da atividade",
     "activityNamePlaceholder": "ex.: Visitar o mercado local",
     "type": "Tipo",
     "duration": "Duração",
@@ -703,7 +724,7 @@
     "wineBar": "Bar de vinhos",
     "park": "Parque",
     "market": "Mercado",
-    "nightlife": "Vida Noturna",
+    "nightlife": "Vida noturna",
     "spa": "Spa",
     "wellness": "Bem-estar",
     "event": "Evento",
@@ -731,7 +752,7 @@
     "joinWaitlist": "Entre na lista de espera para acesso antecipado"
   },
   "save": {
-    "title": "Salve Sua Viagem",
+    "title": "Salve sua viagem",
     "subtitle": "Crie uma conta para salvar e acessar sua viagem a qualquer momento",
     "saving": "Salvando sua viagem...",
     "success": "Viagem salva com sucesso!",
@@ -740,28 +761,28 @@
   "startOver": {
     "title": "Recomeçar?",
     "message": "Isto descartará seu roteiro atual e começará do zero.",
-    "confirm": "Sim, Recomeçar",
-    "cancel": "Manter Viagem Atual"
+    "confirm": "Sim, recomeçar",
+    "cancel": "Manter viagem atual"
   },
   "template": {
     "loadingMap": "Carregando mapa...",
-    "curatedEscape": "Escapada Selecionada",
+    "curatedEscape": "Escapada selecionada",
     "durationDays": "{count, plural, one {# dia} other {# dias}}",
     "travelersUsed": "{count} viajantes já usaram este roteiro",
     "backToTrips": "Voltar para Viagens",
     "cards": "Cartões",
-    "timeline": "Linha do Tempo",
-    "showMap": "Mostrar Mapa",
-    "hideMap": "Ocultar Mapa",
+    "timeline": "Linha do tempo",
+    "showMap": "Mostrar mapa",
+    "hideMap": "Ocultar mapa",
     "dayFallback": "Dia {number}",
-    "estBudget": "Orçamento Est.",
-    "noItineraryTitle": "Nenhum Roteiro Disponível",
+    "estBudget": "Orçamento est.",
+    "noItineraryTitle": "Nenhum roteiro disponível",
     "noItineraryMessage": "Este modelo ainda não tem atividades.",
     "curatedTitle": "Selecionado por Especialistas em Viagens",
     "curatedDescription": "Este roteiro foi criado com todo o cuidado, reunindo as melhores experiências, restaurantes e joias escondidas. Salve-o na sua conta para personalizar datas, trocar atividades e deixá-lo com a sua cara.",
     "loveThisItinerary": "Curtiu este roteiro?",
     "saveAndSetDates": "Salve-o na sua conta e defina as datas da sua viagem",
-    "saveToMyTrips": "Salvar em Minhas Viagens",
+    "saveToMyTrips": "Salvar em minhas viagens",
     "trustBadges": {
       "freeForever": "Grátis para sempre",
       "fullyEditable": "Totalmente editável",
@@ -769,7 +790,7 @@
     },
     "footer": {
       "tagline": "Planejamento de viagens com AI, simples e rápido",
-      "createOwnTrip": "Crie Sua Própria Viagem"
+      "createOwnTrip": "Crie sua própria viagem"
     },
     "price": {
       "free": "Grátis"
@@ -797,15 +818,15 @@
       "winter": "Inverno"
     },
     "crowd": {
-      "peak": "Alta Temporada",
+      "peak": "Alta temporada",
       "high": "Movimentada",
       "moderate": "Moderada",
-      "low": "Baixa Temporada"
+      "low": "Baixa temporada"
     },
-    "expectedWeather": "Clima Previsto",
-    "liveData": "Dados ao Vivo",
+    "expectedWeather": "Clima previsto",
+    "liveData": "Dados ao vivo",
     "rainyDays": "~{count, plural, one {# dia de chuva previsto} other {# dias de chuva previstos}}",
-    "holidaysAndEvents": "Feriados e Eventos",
+    "holidaysAndEvents": "Feriados e eventos",
     "suggestedVibes": "Climas sugeridos para esta estação",
     "vibesHint": "São sugestões baseadas na estação. Você escolherá seus climas na próxima etapa.",
     "vibeReasons": {
@@ -830,7 +851,7 @@
   "unavailable": {
     "title": "Esta viagem não está aberta para você",
     "body": "Ela pode ter sido excluída ou ainda não foi compartilhada com esta conta. Se alguém te enviou o link, peça para te convidar pelo botão Compartilhar da viagem.",
-    "myTrips": "Minhas Viagens",
+    "myTrips": "Minhas viagens",
     "planTrip": "Planeje sua própria viagem"
   }
 }

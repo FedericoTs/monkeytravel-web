@@ -3,7 +3,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const track = vi.fn();
 vi.mock("@vercel/analytics", () => ({ track: (...args: unknown[]) => track(...args) }));
 
-import { trackItineraryGenerated, trackPlanKept, trackSignup, trackTripCreated, trackTripShared } from "./analytics";
+import {
+  setContentGroup,
+  trackItineraryGenerated,
+  trackPlanKept,
+  trackSignup,
+  trackTripCreated,
+  trackTripShared,
+  trackUserReturn,
+} from "./analytics";
 
 const TRIP = { tripId: "trip-1", destination: "Lisbon", duration: 4, budgetTier: "balanced" } as const;
 
@@ -53,5 +61,61 @@ describe("funnel milestones reach GA4 and Vercel Web Analytics", () => {
     window.gtag = undefined;
     trackSignup("email");
     expect(track).toHaveBeenCalledWith("sign_up", { method: "email" });
+  });
+});
+
+describe("what GA4 is told", () => {
+  const gtag = vi.fn();
+
+  beforeEach(() => {
+    gtag.mockClear();
+    window.gtag = gtag;
+  });
+
+  it("is what a saved trip is, with no money: nobody pays for a trip", () => {
+    trackTripCreated({ ...TRIP, budgetTier: "premium" });
+    expect(gtag).toHaveBeenCalledWith("event", "trip_created", {
+      signed_in: false,
+      trip_id: "trip-1",
+      destination: "Lisbon",
+      duration_days: 4,
+      budget_tier: "premium",
+      is_from_template: false,
+    });
+  });
+
+  it("carries the page's language and whether someone is signed in, on every event", async () => {
+    vi.resetModules();
+    const fresh = await import("./analytics");
+    document.documentElement.lang = "es";
+    try {
+      fresh.trackPlanKept({ days: 4 });
+      fresh.setUserId("user-1");
+      fresh.trackSignup("google");
+      expect(gtag.mock.calls.filter(([command]) => command === "event").map(([, name, params]) => [name, params])).toEqual([
+        ["plan_kept", { locale: "es", signed_in: false, duration_days: 4 }],
+        ["sign_up", { locale: "es", signed_in: true, method: "google" }],
+      ]);
+    } finally {
+      document.documentElement.lang = "";
+    }
+  });
+
+  it.each([
+    [0, "same_day"],
+    [1, "d1"],
+    [3, "d2_7"],
+    [30, "d8_30"],
+    [31, "d30_plus"],
+  ])("is how long a returning person was away (%i days), with no made-up source", (days, bucket) => {
+    trackUserReturn({ daysSinceLastVisit: days });
+    expect(gtag).toHaveBeenCalledWith("event", "user_return", { signed_in: false, days_since_last_visit: days, return_bucket: bucket });
+  });
+
+  it("is a page's content group as a setting, not a second setup of the tag", () => {
+    // A second config call would set the tag up again without the team's traffic_type.
+    setContentGroup("blog");
+    expect(gtag).toHaveBeenCalledOnce();
+    expect(gtag).toHaveBeenCalledWith("set", { content_group: "blog" });
   });
 });

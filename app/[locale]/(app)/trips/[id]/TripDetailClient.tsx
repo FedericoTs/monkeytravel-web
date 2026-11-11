@@ -8,7 +8,7 @@ import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, Collaborato
 import { ROLE_PERMISSIONS } from "@/types";
 import { getTripDestination } from "@/lib/trips/destination";
 import { shownTripStatus } from "@/lib/trips/status";
-import { toLocalISODate } from "@/lib/utils/date-local";
+import { localTodayISO, toLocalISODate } from "@/lib/utils/date-local";
 import { hasCoordinates } from "@/lib/trips/has-coordinates";
 import { withFoundPhotos } from "@/lib/trips/keep-place-photos";
 import { useItineraryCopies } from "@/hooks/useItineraryCopies";
@@ -54,7 +54,11 @@ import {
 import TripPackingEssentials from "@/components/trip/TripPackingEssentials";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import DaySlider from "@/components/ui/DaySlider";
-import { tripNights } from "@/lib/dates/iso-date";
+import { maxTripStartDate, tripNights } from "@/lib/dates/iso-date";
+import { savedTripOnNewDates } from "@/lib/trips/change-dates";
+import { ItineraryWriteBlockedError } from "@/lib/trips/itinerary-sync";
+import { maxTripDays } from "@/lib/ai/assistant/structural";
+import { formatDateRange } from "@/lib/datetime";
 import {
   CountdownHero,
   PreTripChecklist,
@@ -66,19 +70,21 @@ import { useTravelDistances } from "@/hooks/useTravelDistances";
 import {
   deleteActivity,
   updateActivity,
-  addActivity,
 } from "@/lib/utils/activity-id";
-import { firstRealPoint, newActivity } from "@/lib/trips/new-activity";
+import { newActivity } from "@/lib/trips/new-activity";
 import TripDayList from "@/components/trip/TripDayList";
 import { useTranslations, useLocale } from "next-intl";
 import { JourneyRibbon } from "@/components/trips/JourneyRibbon";
 import { buildJourneyStops } from "@/lib/ai/transfer-legs";
 import { useItineraryMoves } from "@/hooks/useItineraryMoves";
+import { useUndoToast } from "@/hooks/useUndoToast";
+import { useStopEdit } from "@/hooks/useStopEdit";
 import { useItineraryHistory } from "@/hooks/useItineraryHistory";
 import { CancelTripDialog, CancelledTripNote, ConfirmTripCard, TripStatusBadge, useTripStatus } from "@/components/trip/TripStatus";
 import { dayOptionsOf } from "@/components/trip/ItineraryDnd";
 
 import { useAssistantFirstVisit } from "@/hooks/useAssistantFirstVisit";
+import { useSaveFailedNotice } from "@/hooks/useSaveFailedNotice";
 import { useTripCover } from "@/hooks/useTripCover";
 import { useItinerarySync } from "@/hooks/useItinerarySync";
 import ItineraryConflictBanner from "@/components/trip/ItineraryConflictBanner";
@@ -104,6 +110,7 @@ const BookingDrawer = dynamic(() => import("@/components/booking/BookingDrawer")
 // PreviewChangeCard and changes the plan only when the user applies it (with
 // undo).
 const AIAssistant = dynamic(() => import("@/components/ai/AIAssistantEnhanced"), { ssr: false });
+const ChangeDatesModal = dynamic(() => import("@/components/trip/ChangeDatesModal"), { ssr: false });
 const OngoingTripView = dynamic(() => import("@/components/trip/OngoingTripView"), { ssr: false });
 const CollaboratorOnboarding = dynamic(() => import("@/components/collaboration/CollaboratorOnboarding"), { ssr: false });
 // Share ask, gated on engagement — self-contained, renders null until it fires.
@@ -273,7 +280,7 @@ export default function TripDetailClient({
   // The assistant on a first visit: it opens by itself, its trigger pulses
   // until it has been opened once, and its docked column is kept from the
   // first paint.
-  const { hasSeenAssistant, assistantDockReserved } = useAssistantFirstVisit({
+  const { hasSeenAssistant, assistantDockReserved, openedItself: assistantOpenedItself } = useAssistantFirstVisit({
     canUseAssistant,
     assistantSeen,
     isAIAssistantOpen,
@@ -337,6 +344,8 @@ export default function TripDetailClient({
     canUndo,
     canRedo,
   } = useItineraryHistory(editedItinerary, setEditedItinerary, forgetFailedSave);
+  // A change the traveller can take back says so, with an Undo.
+  const notifyUndoable = useUndoToast(undo);
 
   // Trip phase detection for Timeline feature.
   // trip.startDate / trip.endDate come from the DB as YYYY-MM-DD strings, and
@@ -404,6 +413,7 @@ export default function TripDetailClient({
     refetchQueued,
     adoptDayWrite,
     adoptStoredItinerary,
+    writeTripDates,
   } = useItinerarySync({
     trip,
     initialItinerary,
@@ -417,6 +427,14 @@ export default function TripDetailClient({
     setRenderEpoch,
     setAiUpdatedActivityId,
   });
+  // Saves again after a failed save: clearing the failed-payload guard and
+  // nudging editedItinerary re-triggers the debounced save effect.
+  const retrySave = () => {
+    lastFailedSaveRef.current = null;
+    setEditedItinerary((prev) => [...prev]);
+  };
+  // A failed save says so on every screen, with a Retry.
+  useSaveFailedNotice(saveStatus, retrySave);
   // A kept trip's stand-in photos become real ones when its owner opens it.
   // The server already stored them; both copies change, so nothing looks edited.
   useKeptTripPhotos({
@@ -463,6 +481,44 @@ export default function TripDetailClient({
 
   // Toast notifications
   const { addToast } = useToast();
+
+  // The owner changes the trip's dates from the hero, as in the planner: the
+  // days move with them, and a longer trip's new days come empty
+  // (lib/trips/change-dates.ts), in one write with the dates.
+  const [showChangeDates, setShowChangeDates] = useState(false);
+  // What the assistant opens with when a button asks it for something.
+  const [assistantPrefill, setAssistantPrefill] = useState<string>();
+  const handleChangeDates = useCallback(
+    async (start: string, end: string) => {
+      setShowChangeDates(false);
+      const next = savedTripOnNewDates(editedItinerary, start, end, maxTripDays(editedItinerary));
+      if (!next) return;
+      try {
+        if (!(await writeTripDates(start, end, next))) {
+          addToast(t("detail.datesNotChanged"), "error");
+          return;
+        }
+      } catch (error) {
+        addToast(error instanceof ItineraryWriteBlockedError ? error.message : t("detail.datesNotChanged"), "error");
+        return;
+      }
+      const range = formatDateRange(start, end, locale);
+      const added = next.length - editedItinerary.length;
+      if (added > 0) {
+        const empty = { count: added, from: editedItinerary.length + 1, to: next.length };
+        addToast(t("detail.emptyDaysAdded", { range, ...empty }), "success", 10000, {
+          label: t("detail.askAssistant"),
+          onClick: () => {
+            setAssistantPrefill(t("detail.planEmptyDays", empty));
+            setIsAIAssistantOpen(true);
+          },
+        });
+      } else {
+        addToast(t("detail.datesChanged", { range }), "success");
+      }
+    },
+    [editedItinerary, writeTripDates, addToast, t, locale]
+  );
 
 
   const {
@@ -630,29 +686,28 @@ export default function TripDetailClient({
       return newItinerary;
     });
     // A solo owner's edits save themselves; edit mode has a Save button.
-    addToast(t(ambientEdit ? "detail.routeOptimized" : "detail.routeOptimizedSave"), "success");
-  }, [pushUndo, addToast, ambientEdit, t, setEditedItinerary]);
+    notifyUndoable(t(ambientEdit ? "detail.routeOptimized" : "detail.routeOptimizedSave"));
+  }, [pushUndo, notifyUndoable, ambientEdit, t, setEditedItinerary]);
 
   // Edit handlers (with undo support). Moves between days come from
   // useItineraryMoves further down, after handleFocusDayCard, which it uses to
   // scroll to the destination day.
 
-  const handleActivityDelete = useCallback((activityId: string) => {
+  // A stop goes at once: the message that says so can take it back.
+  const handleActivityDelete = useCallback((activityId: string, name: string) => {
     pushUndo("Delete activity");
     setEditedItinerary((prev) => deleteActivity(prev, activityId));
-  }, [pushUndo, setEditedItinerary]);
+    notifyUndoable(t("editActivity.removed", { name }));
+  }, [pushUndo, setEditedItinerary, notifyUndoable, t]);
 
-  const handleActivityUpdate = useCallback(
-    (activityId: string, updates: Partial<Activity>) => {
-      pushUndo("Update activity");
-      setEditedItinerary((prev) => updateActivity(prev, activityId, updates));
-    },
-    [pushUndo, setEditedItinerary]
-  );
-
-  // The plan's first real map point, near which an added activity without
-  // coordinates is placed when its day has none either.
-  const destinationCoords = useMemo(() => firstRealPoint(editedItinerary), [editedItinerary]);
+  // A stop's edit from its card, or a stop added: in its time order, with room
+  // made after it, and a message with Undo when other stops moved.
+  const { editStop: handleActivityUpdate, addStop, makeRoom } = useStopEdit({
+    itinerary: editedItinerary,
+    setItinerary: setEditedItinerary,
+    pushUndo,
+    notifyUndoable,
+  });
 
   // Handle adding a new activity to a day
   const handleAddActivity = useCallback(
@@ -660,15 +715,15 @@ export default function TripDetailClient({
       const day = editedItinerary[dayIndex];
       if (!day) return;
 
-      pushUndo("Add activity");
-      const added = newActivity(day, partialActivity, {
-        destination,
-        nearPoint: destinationCoords,
-        currency: trip.budget?.currency || "USD",
-      });
-      setEditedItinerary((prev) => addActivity(prev, dayIndex, added));
+      addStop(
+        dayIndex,
+        newActivity(day, partialActivity, {
+          destination,
+          currency: trip.budget?.currency || "USD",
+        })
+      );
     },
-    [editedItinerary, destination, trip.budget?.currency, pushUndo, destinationCoords, setEditedItinerary]
+    [editedItinerary, destination, trip.budget?.currency, addStop]
   );
 
   // Drag-and-drop (within a day and across days) is useItineraryMoves, below
@@ -706,6 +761,7 @@ export default function TripDetailClient({
     itinerary: editedItinerary,
     setItinerary: setEditedItinerary,
     pushUndo,
+    undo,
     setSaveError,
   });
 
@@ -713,6 +769,7 @@ export default function TripDetailClient({
   const { regeneratingDayNumber, handleDayRegenerate } = useDayRegeneration({
     tripId: trip.id,
     pushUndo,
+    undo,
     runItineraryWrite,
     adoptDayWrite,
     setRenderEpoch,
@@ -837,6 +894,8 @@ export default function TripDetailClient({
         title={trip.title}
         subtitle={trip.description}
         dateRange={dateRange}
+        onEditDates={ambientEdit ? () => setShowChangeDates(true) : undefined}
+        editDatesLabel={t("wizard.changeDates.button")}
         budget={trip.budget?.total ? trip.budget : undefined}
         days={trip.itinerary.length}
         nights={tripNights(trip.startDate, trip.endDate)}
@@ -1070,10 +1129,7 @@ export default function TripDetailClient({
             canUndo={canUndo}
             canRedo={canRedo}
             saveStatus={saveStatus}
-            onRetrySave={() => {
-              lastFailedSaveRef.current = null;
-              setEditedItinerary((prev) => [...prev]);
-            }}
+            onRetrySave={retrySave}
             isEditMode={isEditMode}
             canEdit={canEdit}
             handleEnterEditMode={handleEnterEditMode}
@@ -1244,6 +1300,7 @@ export default function TripDetailClient({
           onSuggestActivity={votingEnabled && canPropose ? handleOpenProposeModal : null}
           onActivityDelete={handleActivityDelete}
           onActivityUpdate={handleActivityUpdate}
+          onMakeRoom={makeRoom}
           onActivityRegenerate={handleActivityRegenerate}
           onAddActivity={handleAddActivity}
           onPhotoCapture={handlePhotoCapture}
@@ -1316,12 +1373,16 @@ export default function TripDetailClient({
           tripTitle={trip.title}
           itinerary={displayItinerary}
           isOpen={isAIAssistantOpen}
-          onClose={() => setIsAIAssistantOpen(false)}
+          onClose={() => {
+            setIsAIAssistantOpen(false);
+            setAssistantPrefill(undefined);
+          }}
           onRefetchTrip={async () => {
             await handleRefetchTrip();
           }}
           onFocusDay={handleFocusDayCard}
           runItineraryWrite={runItineraryWrite}
+          prefill={assistantPrefill}
         />
       )}
 
@@ -1349,6 +1410,22 @@ export default function TripDetailClient({
         totalVoters={voterCount}
         isOwner={userRole === 'owner'}
       />
+
+      {/* The trip's dates, from the hero (owner) */}
+      {ambientEdit && (
+        <ChangeDatesModal
+          isOpen={showChangeDates}
+          onClose={() => setShowChangeDates(false)}
+          startDate={trip.startDate}
+          endDate={trip.endDate}
+          currentDays={editedItinerary.length}
+          maxDays={maxTripDays(editedItinerary)}
+          minDate={localTodayISO()}
+          maxStartDate={maxTripStartDate()}
+          newDaysEmpty
+          onConfirm={(start, end) => void handleChangeDates(start, end)}
+        />
+      )}
 
       {/* Route Optimization Modal */}
       <RouteOptimizationModal
@@ -1384,6 +1461,7 @@ export default function TripDetailClient({
         isAnchored={(trip.meta?.anchors?.length ?? 0) > 0}
         onManageCollaborators={openCrewShareModal}
         paused={dayRegenPrompt !== null || confirmCancelTrip || isBookingDrawerOpen || isPasteBookingOpen}
+        quietThisVisit={assistantOpenedItself}
       />
 
       {/* Mobile Bottom Navigation - hidden during edit mode */}

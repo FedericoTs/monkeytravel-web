@@ -3,6 +3,7 @@
 import { useCallback, useState, type Dispatch, type SetStateAction } from "react";
 import { useTranslations } from "next-intl";
 import { useToast } from "@/components/ui/Toast";
+import { useUndoToast } from "@/hooks/useUndoToast";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { readItineraryVersion } from "@/lib/trips/itinerary-sync";
 import { isModelOutageResponse } from "@/lib/ai/model-outage";
@@ -18,6 +19,7 @@ import type { ItineraryDay } from "@/types";
 export function useDayRegeneration({
   tripId,
   pushUndo,
+  undo,
   runItineraryWrite,
   adoptDayWrite,
   setRenderEpoch,
@@ -25,6 +27,8 @@ export function useDayRegeneration({
 }: {
   tripId: string;
   pushUndo: (action: string) => void;
+  /** Takes back the last change; the message saying the day is new offers it. */
+  undo: () => void;
   /** Runs a server write in the save queue (useItinerarySync). */
   runItineraryWrite: <T>(task: () => Promise<T>, options?: { keepsLocalEdits?: boolean }) => Promise<T>;
   /** Takes a day the server stored, on top of version `from` as `to` (useItinerarySync). */
@@ -35,6 +39,7 @@ export function useDayRegeneration({
   const t = useTranslations("trips");
   const tAssistant = useTranslations("common.ai.assistant");
   const { addToast } = useToast();
+  const notifyUndoable = useUndoToast(undo);
   // Tracks which day_number is currently being replaced.
   const [regeneratingDayNumber, setRegeneratingDayNumber] = useState<number | null>(null);
 
@@ -88,7 +93,7 @@ export function useDayRegeneration({
         }, { keepsLocalEdits: true });
         // Bump the version counter so the day's children re-mount cleanly.
         setRenderEpoch((v) => v + 1);
-        addToast(t('detail.regenerateDay.done', { number: dayNumber }), "success");
+        notifyUndoable(t('detail.regenerateDay.done', { number: dayNumber }));
       } catch (error) {
         console.error("Error regenerating day:", error);
         const { status, modelOutage } = (error ?? {}) as { status?: number; modelOutage?: boolean };
@@ -105,7 +110,7 @@ export function useDayRegeneration({
         setRegeneratingDayNumber(null);
       }
     },
-    [pushUndo, runItineraryWrite, addToast, t, tAssistant, tripId, adoptDayWrite, setSaveError, setRenderEpoch]
+    [pushUndo, runItineraryWrite, addToast, notifyUndoable, t, tAssistant, tripId, adoptDayWrite, setSaveError, setRenderEpoch]
   );
 
   return { regeneratingDayNumber, handleDayRegenerate };

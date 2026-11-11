@@ -23,9 +23,10 @@ export interface AssistantDayEdit {
  * a swap changes two), and optionally a new trip length, which adds days at
  * the end or drops trailing ones.
  *
- * The assistant's activities carry no id, coordinates, address or photo, so
- * they are taken from the existing activities of the edited days with the
- * same name, which keeps a moved activity's id and photo:
+ * The assistant's activities carry no id, address or photo, and coordinates
+ * only for where a new stop is, so these are taken from the existing
+ * activities of the edited days with the same name, which keeps a moved
+ * activity's id, photo and saved location:
  * - each existing activity's id goes to at most one new activity, and every
  *   id stays unique across the trip;
  * - within a same-name group, a new activity is paired with the unused
@@ -139,7 +140,7 @@ export function applyAssistantEdits(
         return {
           ...a,
           id: keeps[i] ?? unique(a.id && !used.has(a.id) ? a.id : fresh),
-          coordinates: a.coordinates ?? donor?.coordinates,
+          coordinates: donor?.coordinates ?? a.coordinates,
           address: a.address ?? donor?.address,
           image_url: a.image_url ?? donor?.image_url,
         };

@@ -1,5 +1,11 @@
-import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+
+vi.mock("next-intl", () => ({
+  // Echoes the key and its values, so a test sees which text and with what.
+  useTranslations: () => (key: string, values?: Record<string, unknown>) => (values ? `${key} ${JSON.stringify(values)}` : key),
+}));
+
 import ActivityRow from "./ActivityRow";
 
 afterEach(cleanup);
@@ -35,5 +41,27 @@ describe("ActivityRow", () => {
     expect(row.children.length).toBe(1);
     expect(row.children[0].className).toContain("ring-2");
     expect(screen.getByTestId("card")).toBeTruthy();
+  });
+
+  it("notes a card still on when the next one starts, by how long, with a way to make room", () => {
+    const onMakeRoom = vi.fn();
+    render(
+      <ActivityRow crewVotes={null} activityId="a1" aiUpdated={false} overlap={{ minutes: 105, nextName: "Lunch", onMakeRoom }} travelTo={{ segment, isLoading: false }}>
+        <div data-testid="card" />
+      </ActivityRow>
+    );
+    expect(screen.getByRole("note").textContent).toContain('editActivity.overlap {"name":"Lunch","duration":"1 h 45 min"}');
+    fireEvent.click(screen.getByRole("button", { name: "editActivity.makeRoom" }));
+    expect(onMakeRoom).toHaveBeenCalledTimes(1);
+  });
+
+  it("offers no way to make room when the next one is fixed", () => {
+    render(
+      <ActivityRow crewVotes={null} activityId="a1" aiUpdated={false} overlap={{ minutes: 30, nextName: "Shinkansen", onMakeRoom: null }} travelTo={null}>
+        <div data-testid="card" />
+      </ActivityRow>
+    );
+    expect(screen.getByRole("note").textContent).toContain("Shinkansen");
+    expect(screen.queryByRole("button")).toBeNull();
   });
 });

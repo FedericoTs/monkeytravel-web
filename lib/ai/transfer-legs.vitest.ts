@@ -218,6 +218,21 @@ describe("transfer modes", () => {
     expect(transfer.transport_mode).toBe("flight");
     expect(transfer.duration_minutes).toBeLessThan(6 * 60);
   });
+
+  // A café the model placed far away was the first point of Seoul's plan: the
+  // train from Busan became a flight, and the arrival day lost its places.
+  it("measures the hop between the middles of the two cities, so one wrong pin can't move it", () => {
+    const busan = [
+      { day_number: 1, date: "2026-11-10", activities: [act("Gamcheon", { lat: 35.0975, lng: 129.0106 }), act("Haeundae", { lat: 35.1587, lng: 129.1604 })] },
+      { day_number: 2, date: "2026-11-11", activities: [act("Café far away", { lat: 13.75, lng: 100.5 }), act("Jagalchi", { lat: 35.0966, lng: 129.0306 })] },
+    ];
+    const seoul = [
+      { day_number: 1, date: "2026-11-12", activities: [act("Café far away", { lat: 13.75, lng: 100.5 }), act("Gyeongbokgung", { lat: 37.5796, lng: 126.977 }), act("Bukchon", { lat: 37.5826, lng: 126.9831 })] },
+    ];
+    const transfer = buildTransferActivity({ fromCity: "Busan", toCity: "Seoul", fromDays: busan, toDays: seoul, currency: "KRW" });
+    expect(transfer).toMatchObject({ transport_mode: "train", name: "Train to Seoul" });
+    expect(transfer.duration_minutes).toBeLessThan(4 * 60);
+  });
 });
 
 describe("dayWithTransfer", () => {

@@ -68,6 +68,21 @@ function sleep(ms: number): Promise<void> {
 /**
  * Execute a fetch with retry logic
  */
+/**
+ * One attempt, given up after `timeoutMs` with no answer. A caller's own
+ * signal is kept as it is, with no limit added.
+ */
+async function attemptFetch(url: string, options: RequestInit, timeoutMs: number | undefined): Promise<Response> {
+  if (!timeoutMs || options.signal) return fetch(url, options);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(new Error(`No answer in ${timeoutMs} ms`)), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export async function fetchWithRetry(
   url: string,
   options: RequestInit,
@@ -78,6 +93,7 @@ export async function fetchWithRetry(
     baseDelay = DEFAULT_RETRY_CONFIG.baseDelay,
     maxDelay = DEFAULT_RETRY_CONFIG.maxDelay,
     retryableStatuses = DEFAULT_RETRY_CONFIG.retryableStatuses,
+    timeoutMs,
   } = config;
 
   let lastError: Error | null = null;
@@ -85,7 +101,7 @@ export async function fetchWithRetry(
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      const response = await fetch(url, options);
+      const response = await attemptFetch(url, options, timeoutMs);
 
       // Success - return response
       if (response.ok) {

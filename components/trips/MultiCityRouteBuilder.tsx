@@ -10,6 +10,7 @@
  */
 import type { ChangeEvent } from "react";
 import { useTranslations } from "next-intl";
+import { ROUTE_STOP_NIGHTS_MAX } from "@/lib/trips/request-limits";
 
 export interface RouteStop {
   city: string;
@@ -65,7 +66,7 @@ export function MultiCityRouteBuilder({
               <input
                 type="number"
                 min={1}
-                max={10}
+                max={ROUTE_STOP_NIGHTS_MAX}
                 value={row.nights}
                 onChange={(e: ChangeEvent<HTMLInputElement>) =>
                   updateRow(i, { nights: Number(e.target.value) })

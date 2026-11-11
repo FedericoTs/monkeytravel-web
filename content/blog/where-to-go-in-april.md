@@ -84,7 +84,7 @@ The tulip was Ottoman long before it was Dutch, and every April Istanbul fills i
 
 ## 7. Marrakech & the Atlas — After Ramadan, Before the Heat
 
-April is the last comfortable month in [Marrakech](/destinations/marrakech) before the furnace: afternoons around 25°C, cool evenings on the rooftops. In 2027 it is also clear of Ramadan, which ends in early March — [Eid al-Fitr is expected on 9 March](https://www.officeholidays.com/countries/morocco/2027) — so restaurants and souks keep normal hours all month. The High Atlas is at its greenest: snow still on Toubkal, wildflowers in the Ourika Valley and around Imlil, 60–90 minutes from the city. Further south, the Sahara at Merzouga is warm rather than punishing.
+April is the last comfortable month in [Marrakech](/destinations/marrakech) before the furnace: afternoons around 25°C, cool evenings on the rooftops. In 2027 it is also clear of Ramadan, which ends in early March — [Eid al-Fitr is expected on 9 or 10 March](https://www.officeholidays.com/countries/morocco/2027) — so restaurants and souks keep normal hours all month. The High Atlas is at its greenest: snow still on Toubkal, wildflowers in the Ourika Valley and around Imlil, 60–90 minutes from the city. Further south, the Sahara at Merzouga is warm rather than punishing.
 
 **Cost reality:** $50–90/day; a riad with a courtyard remains the classic mid-range stay.
 **The trade-off:** April is popular, and European spring-holiday weeks fill the best riads, so book early. By late April a hot *chergui* wind can push the city past 30°C for days, and mountain nights are still cold.

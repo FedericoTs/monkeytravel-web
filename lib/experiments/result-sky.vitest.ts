@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { SKY_TEST_STARTS, assignSky } from "./result-sky";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { SKY_TEST_STARTS, assignSky, syncSkyArm } from "./result-sky";
 
 function memoryStore(initial: Record<string, string> = {}) {
   const data = new Map(Object.entries(initial));
@@ -72,5 +74,41 @@ describe("during the test", () => {
 
   it("ignores anything else in the link", () => {
     expect(assignSky({ asked: "crew_first", store: memoryStore(), now: DURING, random: heads })).toEqual({ arm: "sky", counted: true });
+  });
+});
+
+describe("what a browser's PostHog events carry", () => {
+  /** A browser's PostHog super properties, with whatever was registered before. */
+  function browser(before: Record<string, unknown>) {
+    const props: Record<string, unknown> = { front_door: "wizard", ...before };
+    return {
+      props,
+      register: (more: Record<string, unknown>) => void Object.assign(props, more),
+      unregister: (name: string) => void delete props[name],
+    };
+  }
+
+  it("a counted browser carries its arm, in place of any other", () => {
+    for (const arm of ["sky", "classic"] as const) {
+      const posthog = browser({ result_variant: "control" });
+      syncSkyArm(posthog, { arm, counted: true });
+      expect(posthog.props).toEqual({ front_door: "wizard", result_variant: arm });
+    }
+  });
+
+  it("any other browser carries none, not even one an earlier test or draw left", () => {
+    for (const before of ["crew_first", "sky"]) {
+      const posthog = browser({ result_variant: before });
+      syncSkyArm(posthog, { arm: "sky", counted: false });
+      expect(posthog.props).toEqual({ front_door: "wizard" });
+    }
+  });
+
+  it("is how the planner gives PostHog every browser's assignment", () => {
+    const planner = readFileSync(path.resolve(__dirname, "../../app/[locale]/(app)/trips/new/NewTripWizard.tsx"), "utf8").replace(/\s+/g, " ");
+    expect(planner.match(/useEffect\(\(\) => \{[^{}]*syncSkyArm[^{}]*\}, \[[^\]]*\]\);/g)).toEqual([
+      "useEffect(() => { onPostHogReady((posthog) => syncSkyArm(posthog, skyTest)); }, [skyTest]);",
+    ]);
+    expect(planner.match(/register\(\{ result_variant[^}]*\}/g)).toBeNull();
   });
 });

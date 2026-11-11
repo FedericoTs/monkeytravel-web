@@ -9,12 +9,11 @@ import { fakeSupabase, type FakeQuery } from "@/tests/fake-supabase";
  */
 
 const analytics = vi.hoisted(() => ({
-  trackSessionStart: vi.fn(),
   trackUserReturn: vi.fn(),
   setUserId: vi.fn(),
   setUserPropertiesEnhanced: vi.fn(),
 }));
-const posthog = vi.hoisted(() => ({ identifyUser: vi.fn() }));
+const posthog = vi.hoisted(() => ({ identifyUser: vi.fn(), forgetSignedOutPerson: vi.fn() }));
 let refusing: string | null = null;
 const updates: FakeQuery[] = [];
 
@@ -96,6 +95,7 @@ describe("SessionTracker", () => {
   it("sets the person's properties from what it read", async () => {
     render(<SessionTracker />);
     await vi.waitFor(() => expect(posthog.identifyUser).toHaveBeenCalled());
+    expect(posthog.forgetSignedOutPerson).not.toHaveBeenCalled();
     expect(posthog.identifyUser.mock.calls[0][1]).toMatchObject({
       subscription_tier: "pro",
       preferred_language: "it",
@@ -107,11 +107,12 @@ describe("SessionTracker", () => {
   it.each(["users", "trips", "user_tester_access"])("sends no properties when the %s read is refused", async (table) => {
     const logged = vi.spyOn(console, "error").mockImplementation(() => {});
     refusing = table;
+    localStorage.setItem("mt_last_visit", String(Date.now() - 2 * 24 * 60 * 60 * 1000));
     render(<SessionTracker />);
     await vi.waitFor(() => expect(logged).toHaveBeenCalledWith("[SessionTracker] read failed:", "timeout"));
     expect(posthog.identifyUser).not.toHaveBeenCalled();
     expect(analytics.setUserPropertiesEnhanced).not.toHaveBeenCalled();
-    expect(analytics.trackSessionStart).not.toHaveBeenCalled();
+    expect(analytics.trackUserReturn).not.toHaveBeenCalled();
     logged.mockRestore();
   });
 });

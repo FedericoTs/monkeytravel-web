@@ -2,6 +2,7 @@
 
 import { createContext, useState, useEffect, type ReactNode } from "react";
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { safeGet } from "@/lib/safe-storage";
 import { logReadError } from "@/lib/supabase/log-read-error";
@@ -24,6 +25,9 @@ interface ProfileCompletionProviderProps {
   children: ReactNode;
 }
 
+/** The planner and a trip's own pages are for the trip: the profile is not asked for over them. */
+const onTripPage = (pathname: string | null) => /\/trips\/[^/]+/.test(pathname ?? "");
+
 interface UserProfileData {
   login_count: number;
   profile_completed: boolean;
@@ -45,6 +49,7 @@ export default function ProfileCompletionProvider({
   // the per-session sessionStorage gate and the post-mount DB lookup — only
   // the "who's the current user?" question is delegated to the context.
   const { user, loading: authLoading } = useAuth();
+  const pathname = usePathname();
 
   useEffect(() => {
     // Defer the check until the central AuthProvider has resolved — otherwise
@@ -99,9 +104,11 @@ export default function ProfileCompletionProvider({
       // 1. User has logged in at least 2 times (returning user)
       // 2. Profile is not yet completed
       // 3. Not shown this session yet
+      // 4. Not over the planner or a trip's own pages
       const shouldShow =
         (profile.login_count || 0) >= 2 &&
-        !profile.profile_completed;
+        !profile.profile_completed &&
+        !onTripPage(pathname);
 
       if (shouldShow) {
         // Small delay to let the page render first

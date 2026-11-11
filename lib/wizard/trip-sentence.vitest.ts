@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { VIBES_MAX } from "@/lib/trips/request-limits";
-import { isTripSentence, matchesPlace, pencilledDates, readTripSentence } from "./trip-sentence";
+import { isTripSentence, looksLikeRequest, matchesPlace, pencilledDates, readTripSentence } from "./trip-sentence";
 
 const read = (s: string) => readTripSentence(s);
 
@@ -89,6 +89,91 @@ describe("readTripSentence", () => {
     expect(isTripSentence(read("5 days"))).toBe(false);
     expect(isTripSentence(read("5 days in Lisbon"))).toBe(true);
     expect(isTripSentence(read("Lisbon in March"))).toBe(true);
+  });
+
+  // A longer request leaves words the rules can't read, and they used to be
+  // planned as places: "Bali & with 3 & our friends".
+  it("is no sentence when the words left over can't all be places", () => {
+    for (const request of [
+      "Bali for 8 days with 3 kids and our friends.",
+      "rome 4 days, milan 2 days , turin 2 days ,",
+      "From Durban to Johannesburg then back to Durban after 4 nights",
+      "un itinerario di 12 giorni in Giappone A/R su Tokyo a ottobre, famiglia 3 persone 2+1)",
+      "Recife 6 dias ( saindo de Olinda indo de carro sendo um dia pra ir e um pra voltar )",
+    ]) {
+      expect(isTripSentence(read(request)), request).toBe(false);
+    }
+    expect(isTripSentence(read("Venice San Marco 3 days"))).toBe(true);
+    expect(isTripSentence(read("Paris and London 10 days"))).toBe(true);
+  });
+
+  // "Somewhere warm" asks for a place without naming one: no place to plan.
+  it("is no sentence when the place asked for isn't named", () => {
+    for (const request of [
+      "quero um lugar quente com praia para 6 dias com os filhos",
+      "somewhere warm with the kids in May",
+      "un posto caldo al mare per 4 giorni",
+      "algún sitio con playa 8 días en julio",
+      "a quiet spot by the sea for a week",
+      // Accents aside: "sítio" is "sitio".
+      "um sítio com praia para 5 dias",
+    ]) {
+      expect(isTripSentence(read(request)), request).toBe(false);
+      expect(looksLikeRequest(request), request).toBe(true);
+    }
+    expect(isTripSentence(read("5 days in Lisbon in March"))).toBe(true);
+  });
+
+  // Words around the length ("make me", "un itinerario") would be a second place.
+  it("is a sentence for one place: several are the request reader's", () => {
+    for (const request of [
+      "fammi un itinerario di 10 giorni a Roma",
+      "make me a 5 day itinerary for Paris",
+      "somewhere warm with the kids in April, not too expensive please",
+      "Rome 3 days, Florence",
+      // Not a name the planner takes.
+      "Rome+Florence 5 days",
+    ]) {
+      expect(isTripSentence(read(request)), request).toBe(false);
+    }
+  });
+});
+
+describe("looksLikeRequest", () => {
+  it("is a whole trip in words", () => {
+    for (const request of [
+      "Bali for 8 days with 3 kids and our friends.",
+      "rome 4 days, milan 2 days , turin 2 days ,",
+      "Madrid, Then fast train to Seville and stay in Seville, Cordoba & Granada",
+      "we are planning a trip to vietnam in april and want beaches and street food",
+      "Lyon from 10-13 & Geneva 13-16",
+      "a ".repeat(60),
+    ]) {
+      expect(looksLikeRequest(request), request).toBe(true);
+    }
+  });
+
+  it("is not a place, a place with its region, or a list of places", () => {
+    for (const place of [
+      "Lisbon",
+      "Rio de Janeiro",
+      "Area 51",
+      "Ho Chi Minh City, Phu Quoc, Hanoi, Da Nang & Sapa",
+      "Warsaw, Krakow, Budapest, Vienna & Bad Ischl",
+      "Lake Bled and Ljubljana",
+      "Ho Chi Minh City and Da Nang",
+      "Roma e Firenze",
+      "Rome, Florence, Venice,",
+      "",
+    ]) {
+      expect(looksLikeRequest(place), place).toBe(false);
+    }
+  });
+
+  it("is one when it holds more than a destination may", () => {
+    expect(looksLikeRequest("goa & kerala & pondicherry;")).toBe(true);
+    // A list too long for one destination is read as a route.
+    expect(looksLikeRequest("Ho Chi Minh City, Phu Quoc, Hanoi, Da Nang, Hoi An, Hue, Sapa, Ha Long Bay, Ninh Binh, Mui Ne, Dalat & Can Tho")).toBe(true);
   });
 });
 

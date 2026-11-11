@@ -16,7 +16,8 @@ import { NextRequest } from "next/server";
 const OWNER = "owner-1";
 const TRIP = "trip-1";
 
-const scheduleTripNotifications = vi.fn();
+// Async like the real one, whose promise the route keeps alive past the response.
+const scheduleTripNotifications = vi.fn(async (..._args: unknown[]) => ({ ok: true }));
 vi.mock("@/lib/notifications/scheduling", () => ({
   scheduleTripNotifications: (...a: unknown[]) => scheduleTripNotifications(...a),
 }));

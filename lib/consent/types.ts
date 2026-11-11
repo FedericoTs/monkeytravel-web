@@ -11,7 +11,7 @@
 export type ConsentCategory =
   | "essential" // Always on - required for basic functionality
   | "analytics" // PostHog events, GA4, Vercel Analytics
-  | "sessionRecording" // PostHog replay, Sentry replay
+  | "sessionRecording" // PostHog replay
   | "marketing"; // Future: ads, remarketing
 
 /**
@@ -167,7 +167,7 @@ export const CONSENT_CATEGORIES: ConsentCategoryInfo[] = [
   {
     id: "sessionRecording",
     required: false,
-    services: ["PostHog Session Replay", "Sentry Session Replay"],
+    services: ["PostHog Session Replay"],
     translationKey: "sessionRecording",
   },
   {
