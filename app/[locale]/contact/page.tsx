@@ -33,7 +33,7 @@ export default async function ContactPage({ params }: PageProps) {
       <main className="flex-1">
         <section className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-16">
           <div className="text-center mb-10">
-            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--primary-ink)] mb-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--foreground-muted)] mb-3">
               {t("hero.eyebrow")}
             </p>
             <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 tracking-tight mb-4">
@@ -50,7 +50,7 @@ export default async function ContactPage({ params }: PageProps) {
             {t("directEmail.label")}{" "}
             <a
               href={`mailto:${t("directEmail.address")}`}
-              className="text-[var(--primary-ink)] font-medium hover:underline"
+              className="font-medium text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 hover:decoration-2"
             >
               {t("directEmail.address")}
             </a>
