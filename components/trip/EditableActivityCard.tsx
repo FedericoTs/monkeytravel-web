@@ -358,14 +358,14 @@ function EditableActivityCard({
                       className="font-semibold text-slate-900 text-base sm:text-lg border border-slate-200 rounded px-2 py-1 w-full"
                     />
                   ) : (
-                    <h4 className="font-semibold text-slate-900 text-base sm:text-lg">
+                    <h3 className="font-semibold text-slate-900 text-base sm:text-lg">
                       {activity.locked && (
                         <span className="mr-1" title={tc("lockedActivity")} aria-label={tc("lockedActivity")}>
                           📌
                         </span>
                       )}
                       {activity.name}
-                    </h4>
+                    </h3>
                   )}
                   {!isEditing && (
                     <>
