@@ -208,7 +208,7 @@ export default function BlogGrid({ posts }: BlogGridProps) {
           <p className="text-slate-500 text-lg">{t("filter.noResults")}</p>
           <button
             onClick={handleClearFilters}
-            className="mt-4 text-[var(--primary-ink)] font-medium hover:underline"
+            className="mt-4 text-[var(--foreground)] font-medium underline decoration-[var(--primary)] underline-offset-2 hover:decoration-2"
           >
             {t("filter.clearFilter")}
           </button>
