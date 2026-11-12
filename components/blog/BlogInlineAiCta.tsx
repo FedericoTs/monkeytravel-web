@@ -26,7 +26,7 @@ export default function BlogInlineAiCta({
   checkLabel,
 }: BlogInlineAiCtaProps) {
   return (
-    <aside className="my-10 not-prose rounded-2xl bg-gradient-to-br from-[var(--primary)] via-[var(--primary)] to-[var(--primary-dark)] p-6 sm:p-8 text-white shadow-xl shadow-[var(--primary)]/10 relative overflow-hidden">
+    <div className="my-10 not-prose rounded-2xl bg-gradient-to-br from-[var(--primary)] via-[var(--primary)] to-[var(--primary-dark)] p-6 sm:p-8 text-white shadow-xl shadow-[var(--primary)]/10 relative overflow-hidden">
       {/* decorative grid pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-20 pointer-events-none" />
       {/* glow blob */}
@@ -55,6 +55,6 @@ export default function BlogInlineAiCta({
           {checkLabel}
         </Link>
       )}
-    </aside>
+    </div>
   );
 }

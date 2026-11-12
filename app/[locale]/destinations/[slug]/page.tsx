@@ -127,6 +127,7 @@ export default async function DestinationDetailPage({ params }: PageProps) {
 
   const loc = locale as Locale;
   const t = await getTranslations("destinations");
+  const tA11y = await getTranslations("common.a11y");
   const tBlog = await getTranslations("blog");
   const cityName = destination.name[loc];
   const countryName = destination.country[loc];
@@ -216,7 +217,7 @@ export default async function DestinationDetailPage({ params }: PageProps) {
         {/* Breadcrumbs */}
         <div className="bg-white pt-20 pb-0">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <nav className="flex items-center gap-2 text-sm text-[var(--foreground-muted)] py-3">
+            <nav aria-label={tA11y("breadcrumb")} className="flex items-center gap-2 text-sm text-[var(--foreground-muted)] py-3">
               <Link
                 href="/"
                 className="hover:text-[var(--primary-ink)] transition-colors"

@@ -84,6 +84,7 @@ export default async function DestinationStylePage({ params }: PageProps) {
 
   const loc = locale as Locale;
   const t = await getTranslations("destinations");
+  const tA11y = await getTranslations("common.a11y");
   const tagLabel = t(`tags.${tag}`);
   const localePrefix = locale === routing.defaultLocale ? "" : `/${locale}`;
 
@@ -116,7 +117,7 @@ export default async function DestinationStylePage({ params }: PageProps) {
       <main className="pt-20">
         <section className="py-14 sm:py-16 bg-gradient-to-b from-[var(--primary)]/5 to-white">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <nav className="flex items-center gap-2 text-sm text-[var(--foreground-muted)] mb-6">
+            <nav aria-label={tA11y("breadcrumb")} className="flex items-center gap-2 text-sm text-[var(--foreground-muted)] mb-6">
               <Link href="/" className="hover:text-[var(--primary-ink)] transition-colors">
                 {t("breadcrumbs.home")}
               </Link>
