@@ -178,7 +178,12 @@
   "drag": {
     "title": "Hold and drag to reorder or move to another day",
     "ariaLabel": "Drag handle — hold and drag to reorder or move to another day",
-    "hint": "Drag"
+    "hint": "Drag",
+    "instructions": "To move an activity, press space or enter, then use the arrow keys. Press space or enter again to drop it, or escape to cancel.",
+    "pickedUp": "Picked up {name}: activity {position} of {count} on Day {day}.",
+    "over": "{name}: activity {position} of {count} on Day {day}.",
+    "dropped": "Dropped {name}: activity {position} of {count} on Day {day}.",
+    "cancelled": "Move cancelled. {name} is back as activity {position} of {count} on Day {day}."
   },
   "validation": {
     "required": "This field is required",

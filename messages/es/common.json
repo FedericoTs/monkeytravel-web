@@ -178,7 +178,12 @@
   "drag": {
     "title": "Mantén pulsado y arrastra para reordenar o mover a otro día",
     "ariaLabel": "Tirador: mantén pulsado y arrastra para reordenar o mover a otro día",
-    "hint": "Arrastrar"
+    "hint": "Arrastrar",
+    "instructions": "Para mover una actividad, pulsa espacio o intro y usa las flechas. Vuelve a pulsar espacio o intro para soltarla, o escape para cancelar.",
+    "pickedUp": "Moviendo {name}: actividad {position} de {count} del día {day}.",
+    "over": "{name}: actividad {position} de {count} del día {day}.",
+    "dropped": "Listo: {name} es la actividad {position} de {count} del día {day}.",
+    "cancelled": "Cambio cancelado: {name} vuelve a ser la actividad {position} de {count} del día {day}."
   },
   "validation": {
     "required": "Este campo es obligatorio",

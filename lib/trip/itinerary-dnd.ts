@@ -176,3 +176,46 @@ export function describeMove(
   if (!from || !to) return null;
   return { sourceDayIndex: from.dayIndex, targetDayIndex: to.dayIndex, crossedDays: from.dayIndex !== to.dayIndex };
 }
+
+/** A stop and where it sits: its day and its place among that day's stops. */
+export interface StopPlace {
+  name: string;
+  day: number;
+  position: number;
+  count: number;
+}
+
+/**
+ * Where the dragged stop is, or lands when dropped on `overId`: what a screen
+ * reader says while it moves, worked out as the drop itself is (applyMove).
+ */
+export function stopPlace(itinerary: ItineraryDay[], activeId: string, overId?: string | number | null): StopPlace | null {
+  const settled = overId == null ? itinerary : applyMove(itinerary, activeId, overId);
+  const at = locateActivity(settled, activeId);
+  if (!at) return null;
+  const day = settled[at.dayIndex];
+  return { name: day.activities[at.index].name, day: day.day_number, position: at.index + 1, count: day.activities.length };
+}
+
+type DragEventLike = { active: { id: string | number }; over?: { id: string | number } | null };
+
+/**
+ * What a screen reader says as a stop is picked up, moved, dropped or put back
+ * (dnd-kit's announcements), in the page's words through `say`. `shown` is the
+ * plan as the page shows it while dragging; a cancelled move goes back to
+ * `plan`, as it was.
+ */
+export function dragAnnouncements(
+  say: (key: "pickedUp" | "over" | "dropped" | "cancelled", place: StopPlace) => string,
+  shown: () => ItineraryDay[],
+  plan: () => ItineraryDay[],
+) {
+  const tell = (key: Parameters<typeof say>[0], place: StopPlace | null) => (place ? say(key, place) : undefined);
+  return {
+    onDragStart: ({ active }: DragEventLike) => tell("pickedUp", stopPlace(shown(), String(active.id))),
+    onDragOver: ({ active, over }: DragEventLike) =>
+      over ? tell("over", stopPlace(shown(), String(active.id), over.id)) : undefined,
+    onDragEnd: ({ active, over }: DragEventLike) => tell("dropped", stopPlace(shown(), String(active.id), over?.id)),
+    onDragCancel: ({ active }: DragEventLike) => tell("cancelled", stopPlace(plan(), String(active.id))),
+  };
+}
