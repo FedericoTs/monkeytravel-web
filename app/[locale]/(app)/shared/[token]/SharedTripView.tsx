@@ -530,7 +530,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
             <Link
               href={planOwn}
               onClick={() => firePlanOwnClicked("page_footer")}
-              className="text-sm text-[var(--primary-ink)] hover:underline font-medium"
+              className="text-sm text-[var(--foreground)] underline decoration-[var(--primary)] decoration-2 underline-offset-4 hover:decoration-[var(--primary-dark)] font-semibold"
             >
               {t("share.savedHero.planOwnButtonGeneric")}
             </Link>
