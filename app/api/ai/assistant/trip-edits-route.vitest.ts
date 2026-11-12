@@ -246,6 +246,18 @@ describe("trip-page assistant: free-form edits", () => {
     expect(chatCalls).not.toHaveBeenCalled();
   });
 
+  it("hands a currency request to the page to switch, and says so as it is", async () => {
+    proposeTripEdits.mockResolvedValue({ reply: "Done: prices now show in EUR.", revisedDays: [], summary: "", currency: "EUR", meta });
+    const { json } = await send("show the costs in euros");
+    expect(json.currency).toBe("EUR");
+    expect(json.message.content).toBe("Done: prices now show in EUR.");
+    expect(json.pendingChange).toBeNull();
+    expect(chatCalls).not.toHaveBeenCalled();
+    // Any other turn leaves the page's currency alone.
+    proposeTripEdits.mockResolvedValue({ reply: "Day 2 comes to about 22 USD.", revisedDays: [], summary: "", meta });
+    expect((await send("How much is day 2?")).json.currency).toBeUndefined();
+  });
+
   it("answers a question with the engine, in the currency the page shows", async () => {
     proposeTripEdits.mockResolvedValue({ reply: "Day 2 comes to about 22 USD.", revisedDays: [], summary: "", meta });
     const { json } = await send("How much is day 2?", { display: { currency: "USD", rate: 1.08 } });

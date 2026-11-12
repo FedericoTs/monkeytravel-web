@@ -31,6 +31,27 @@ describe("currencyRequested", () => {
     expect(currencyRequested("GBP")).toBe("GBP");
   });
 
+  it("answers a question about the currency instead of switching it", () => {
+    expect(currencyRequested("Los precios son en pesos mexicanos?")).toBeNull();
+    expect(currencyRequested("Are the prices in euros?")).toBeNull();
+    expect(currencyRequested("I prezzi sono in euro?")).toBeNull();
+    expect(currencyRequested("Os preços estão em reais?")).toBeNull();
+    expect(currencyRequested("Is the budget in US dollars? 🤔")).toBeNull();
+  });
+
+  it("still switches on a request asked as a question, or with no verb", () => {
+    expect(currencyRequested("Can you show the prices in euros?")).toBe("EUR");
+    expect(currencyRequested("¿Puedes poner los precios en pesos mexicanos?")).toBe("MXN");
+    expect(currencyRequested("Potresti mettere i prezzi in euro?")).toBe("EUR");
+    expect(currencyRequested("Pode mostrar os preços em reais?")).toBe("BRL");
+    expect(currencyRequested("Is it possible to see the prices in euros?")).toBe("EUR");
+    expect(currencyRequested("euros?")).toBe("EUR");
+    expect(currencyRequested("exiba os custos em euros")).toBe("EUR");
+    expect(currencyRequested("exiba em euros")).toBe("EUR");
+    // Not a question: no question mark.
+    expect(currencyRequested("Day 2 is great. In euros, not dollars")).toBe("EUR");
+  });
+
   it("leaves amounts and places alone", () => {
     expect(currencyRequested("In Rome we want to see the Colosseum")).toBeNull();
     expect(currencyRequested("We land in Lisbon at 10")).toBeNull();
