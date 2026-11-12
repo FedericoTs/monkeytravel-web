@@ -234,7 +234,7 @@ export default async function PassportPage({ params }: PageProps) {
             <h2 className="font-semibold text-slate-800">{t("sources.heading")}</h2>
             <p className="mt-2 max-w-3xl">{t("sources.body", { date: visaDataAsOfLabel(locale) })}</p>
             <p className="mt-2">
-              <Link href="/tools/visa-checker" className="text-[var(--primary-ink)] underline">
+              <Link href="/tools/visa-checker" className="text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 hover:decoration-2">
                 {t("sources.checkerLink")}
               </Link>
             </p>
