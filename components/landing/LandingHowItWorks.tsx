@@ -13,7 +13,7 @@ export default async function LandingHowItWorks({ namespace, steps }: { namespac
     <section id="how-it-works" className="py-24 bg-[var(--background-alt)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--primary)]/5 text-[var(--primary-ink)] text-sm font-semibold mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--primary)]/5 text-[var(--foreground)] text-sm font-semibold mb-6">
             {t("howItWorks.title")}
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)] mb-6 tracking-tight">
