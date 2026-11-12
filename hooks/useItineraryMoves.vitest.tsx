@@ -154,6 +154,18 @@ describe("useItineraryMoves: dragging", () => {
     expect(captured.mock.calls[0][0]).toMatchObject({ method: "drag", day_number: 1, from_day_number: 2 });
   });
 
+  it("lands a card moved with the keyboard on drop, with no preview step while it moves", () => {
+    const byKeys = <T,>(event: T) => ({ ...event, activatorEvent: new KeyboardEvent("keydown", { code: "Space" }) });
+    const { result } = render();
+    act(() => result.current.moves.onDragStart(byKeys(start("b1"))));
+    act(() => result.current.moves.onDragOver(byKeys(over("b1", "day-drop:1"))));
+    expect(ids(result.current.moves.preview!)).toEqual(ids(PLAN));
+
+    act(() => result.current.moves.onDragEnd(byKeys(end("b1", "day-drop:1"))));
+    expect(ids(result.current.itinerary)).toEqual([["a1", "a2", "b1"], []]);
+    expect(pushUndo.mock.calls).toEqual([["Move activity to day 1"]]);
+  });
+
   it("holds the preview for a frame after a cross-day step", () => {
     const { result } = render();
     act(() => result.current.moves.onDragStart(start("b1")));

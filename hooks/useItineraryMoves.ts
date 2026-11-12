@@ -129,6 +129,11 @@ export function useItineraryMoves({ tripId, itinerary, setItinerary, pushUndo, u
   // dnd-kit's sortable strategy already animates the reorder; the final
   // order is committed once, on drop.
   const onDragOver = useCallback((event: DragOverEvent) => {
+    // A card moved with the keyboard goes where the arrow keys put it and lands
+    // on drop. Previewed live, each step into another day reshuffled the cards
+    // it is measured against, and the next step followed by itself, down to the
+    // end of the trip.
+    if (event.activatorEvent instanceof KeyboardEvent) return;
     const { active, over } = event;
     const prev = dragPreviewRef.current;
     if (!over || !prev || crossDayHoldRef.current) return;
