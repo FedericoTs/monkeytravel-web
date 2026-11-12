@@ -237,7 +237,7 @@ test.describe("wizard: planning a trip", () => {
 });
 
 test.describe("wizard: with the planner out of service", () => {
-  test("says so, offers ready-made trips, and a later try still plans the trip", async ({ page }) => {
+  test("says so, offers a later try, and that try still plans the trip", async ({ page }) => {
     await isolate(page);
     await stubPlannerOutage(page);
 
@@ -251,7 +251,8 @@ test.describe("wizard: with the planner out of service", () => {
     const place = await askForPick(page, page.getByRole("group", { name: "Popular right now" }).getByRole("button").nth(0), "Lunch at the market");
     await expect(page.getByText(/Our trip planner is down right now/)).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText("temporarily unavailable")).toHaveCount(0);
-    await expect(page.getByRole("link", { name: "Or browse ready-made trips" })).toHaveAttribute("href", /\/templates$/);
+    // Templates are hidden, so the retry is the one way on.
+    await expect(page.getByRole("link", { name: "Or browse ready-made trips" })).toHaveCount(0);
 
     // The planner is back: the answers are still there, and the try works.
     await stubGeneration(page);
