@@ -325,10 +325,14 @@
     "linkCopied": "Link copiado!",
     "shareTrip": "Compartilhar Viagem"
   },
+  "tripTotal": {
+    "perPerson": "por pessoa",
+    "hint": "O que custam as atividades e refeições do plano, por pessoa. Não inclui hospedagem nem a viagem até lá."
+  },
   "shared": {
     "sharedTrip": "Viagem Compartilhada",
     "backpackerRoute": "Roteiro mochileiro",
-    "estBudget": "Orçamento Est.",
+    "estBudget": "Est. por pessoa",
     "noItinerary": "Ainda sem roteiro",
     "noItineraryDesc": "Esta viagem ainda não tem atividades planejadas.",
     "footerTagline": "Planejar viagens com IA, de um jeito simples",

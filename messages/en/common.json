@@ -325,10 +325,14 @@
     "linkCopied": "Link copied!",
     "shareTrip": "Share Trip"
   },
+  "tripTotal": {
+    "perPerson": "per person",
+    "hint": "What the plan's activities and meals cost, per person. Stays and getting there aren't included."
+  },
   "shared": {
     "sharedTrip": "Shared Trip",
     "backpackerRoute": "Backpacker route",
-    "estBudget": "Est. Budget",
+    "estBudget": "Est. per person",
     "noItinerary": "No Itinerary Yet",
     "noItineraryDesc": "This trip doesn't have any activities planned yet.",
     "footerTagline": "AI-powered travel planning made simple",

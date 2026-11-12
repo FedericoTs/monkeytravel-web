@@ -22,6 +22,8 @@ const state = vi.hoisted(() => ({
   prefsSet: [] as Array<[string, string]>,
   // Props given to the view's lazily loaded components (rendered as nothing).
   lazyProps: [] as Array<Record<string, unknown>>,
+  // Props given to the hero.
+  hero: null as Record<string, unknown> | null,
 }));
 
 vi.mock("next-intl", () => ({ useTranslations: () => (key: string) => key, useLocale: () => "en" }));
@@ -76,7 +78,12 @@ vi.mock("@/lib/locale", () => ({
     preferredCurrency: "EUR",
   }),
 }));
-vi.mock("@/components/DestinationHero", () => ({ default: ({ children }: { children?: ReactNode }) => <div>{children}</div> }));
+vi.mock("@/components/DestinationHero", () => ({
+  default: (props: { children?: ReactNode }) => {
+    state.hero = props;
+    return <div>{props.children}</div>;
+  },
+}));
 vi.mock("@/components/ErrorBoundary", () => ({ default: ({ children }: { children?: ReactNode }) => <>{children}</> }));
 vi.mock("@/components/ActivityCard", () => ({ default: () => <div data-testid="activity-card" /> }));
 vi.mock("@/components/trip/BackpackerHostelCta", () => ({ default: () => null }));
@@ -295,6 +302,35 @@ describe("the page's header", { timeout: 20_000 }, () => {
   it.each([["a share link", "tok-1"], ["the public page", undefined]])("holds the trip's hero on %s", (_page, token) => {
     renderView({ token });
     expect(within(screen.getByRole("banner")).getByText("shared.sharedTrip")).toBeTruthy();
+  });
+
+  // The estimate saved with the plan never moves after a change; the plan's own
+  // stops do, and they are what the assistant quotes.
+  it("totals the plan's stops, per person, not the estimate saved with it", () => {
+    const priced = {
+      ...trip,
+      budget: { total: 10224, currency: "EUR" },
+      itinerary: [
+        {
+          day_number: 1,
+          date: "2026-10-10",
+          theme: "Alfama",
+          activities: [
+            { id: "a1", name: "Tram 28", type: "attraction", start_time: "09:00", duration_minutes: 60, description: "", location: "Alfama", estimated_cost: { amount: 3, currency: "EUR" } },
+            { id: "a2", name: "Fado dinner", type: "restaurant", start_time: "20:00", duration_minutes: 120, description: "", location: "Alfama", estimated_cost: { amount: 50, currency: "EUR" } },
+          ],
+        },
+      ] as never,
+    } as unknown as typeof trip;
+    renderView({ shown: priced });
+    expect(state.hero?.budget).toEqual({ total: 53, currency: "EUR" });
+    expect(state.hero?.budgetNote).toBe("tripTotal.perPerson");
+    expect(state.hero?.budgetHint).toBe("tripTotal.hint");
+  });
+
+  it("shows no total for a plan that prices nothing", () => {
+    renderView({ shown: { ...trip, budget: { total: 900, currency: "EUR" } } as unknown as typeof trip });
+    expect(state.hero?.budget).toBeUndefined();
   });
 });
 

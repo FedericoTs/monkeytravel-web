@@ -90,6 +90,7 @@ import { useSaveFailedNotice } from "@/hooks/useSaveFailedNotice";
 import { useTripCover } from "@/hooks/useTripCover";
 import { useItinerarySync } from "@/hooks/useItinerarySync";
 import ItineraryConflictBanner from "@/components/trip/ItineraryConflictBanner";
+import { planCosts } from "@/lib/ai/assistant/plan-costs";
 
 // Dynamic import for TripMap to avoid SSR issues with Google Maps
 const TripMap = dynamic(() => import("@/components/TripMap"), {
@@ -847,6 +848,9 @@ export default function TripDetailClient({
   // a fresh array each render (e.g. new ids from ensureActivityIds) changes
   // itineraryHash, makes useTravelDistances refetch, and loops re-rendering.
   const displayItinerary = editingActive ? editedItinerary : savedItinerary;
+  // What the plan's own stops cost, per person, kept with every change: the
+  // figure the assistant quotes. The estimate saved with the plan never moves.
+  const planTotal = useMemo(() => planCosts(displayItinerary), [displayItinerary]);
 
   // Fetch travel distances between activities
   // Uses local Haversine calculation - NO external API calls!
@@ -901,7 +905,9 @@ export default function TripDetailClient({
           dateRange={dateRange}
           onEditDates={ambientEdit ? () => setShowChangeDates(true) : undefined}
           editDatesLabel={t("wizard.changeDates.button")}
-          budget={trip.budget?.total ? trip.budget : undefined}
+          budget={planTotal ? { total: planTotal.total, currency: planTotal.currency } : undefined}
+          budgetNote={tCommon("tripTotal.perPerson")}
+          budgetHint={tCommon("tripTotal.hint")}
           days={trip.itinerary.length}
           nights={tripNights(trip.startDate, trip.endDate)}
           activitiesCount={displayItinerary.reduce((acc, day) => acc + day.activities.length, 0)}
