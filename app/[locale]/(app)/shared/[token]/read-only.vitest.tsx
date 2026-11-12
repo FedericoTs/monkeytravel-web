@@ -290,6 +290,14 @@ describe("the share link keeps the group's controls", { timeout: 20_000 }, () =>
   });
 });
 
+describe("the page's header", { timeout: 20_000 }, () => {
+  // The hero (title, dates, badges) is a landmark a screen reader can jump to.
+  it.each([["a share link", "tok-1"], ["the public page", undefined]])("holds the trip's hero on %s", (_page, token) => {
+    renderView({ token });
+    expect(within(screen.getByRole("banner")).getByText("shared.sharedTrip")).toBeTruthy();
+  });
+});
+
 describe("what the end of the page asks", { timeout: 20_000 }, () => {
   const linkFor = (text: string, scope: HTMLElement) => within(scope).getByText(text).closest("a")?.getAttribute("href");
   const tramDay = (n: number) => ({ ...(trip.itinerary as unknown as Record<string, unknown>[])[0], day_number: n });

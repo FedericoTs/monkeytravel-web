@@ -239,38 +239,41 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
-      {/* Hero with Cover Image - Enhanced with weather and stats */}
-      <DestinationHero
-        destination={destination}
-        title={trip.title}
-        subtitle={trip.description}
-        dateRange={dateRange}
-        budget={trip.budget?.total ? trip.budget : undefined}
-        days={trip.itinerary.length}
-        nights={nights}
-        activitiesCount={activitiesCount}
-        weatherNote={trip.meta?.weather_note}
-        highlights={trip.meta?.highlights}
-        tags={trip.tags}
-        showBackButton={true}
-        onBack={() => window.history.back()}
-        coverImageUrl={coverImageUrl}
-        disableApiCalls={true}
-      >
-        {/* Shared + Backpacker badge stack — top-right of hero. Trips
-            generated in Backpacker Mode get a "Backpacker route" pill. */}
-        <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
-          <span className="px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-purple-100 text-purple-700">
-            {t('shared.sharedTrip')}
-          </span>
-          {trip.meta?.travel_style === "backpacker" && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-emerald-500 text-white">
-              <span aria-hidden>🎒</span>
-              {t('shared.backpackerRoute')}
+      {/* Hero with Cover Image - Enhanced with weather and stats. The page's header
+          landmark: the trip's title, dates and badges. */}
+      <header>
+        <DestinationHero
+          destination={destination}
+          title={trip.title}
+          subtitle={trip.description}
+          dateRange={dateRange}
+          budget={trip.budget?.total ? trip.budget : undefined}
+          days={trip.itinerary.length}
+          nights={nights}
+          activitiesCount={activitiesCount}
+          weatherNote={trip.meta?.weather_note}
+          highlights={trip.meta?.highlights}
+          tags={trip.tags}
+          showBackButton={true}
+          onBack={() => window.history.back()}
+          coverImageUrl={coverImageUrl}
+          disableApiCalls={true}
+        >
+          {/* Shared + Backpacker badge stack — top-right of hero. Trips
+              generated in Backpacker Mode get a "Backpacker route" pill. */}
+          <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
+            <span className="px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-purple-100 text-purple-700">
+              {t('shared.sharedTrip')}
             </span>
-          )}
-        </div>
-      </DestinationHero>
+            {trip.meta?.travel_style === "backpacker" && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-emerald-500 text-white">
+                <span aria-hidden>🎒</span>
+                {t('shared.backpackerRoute')}
+              </span>
+            )}
+          </div>
+        </DestinationHero>
+      </header>
 
       <main className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
         {editorHref && (
