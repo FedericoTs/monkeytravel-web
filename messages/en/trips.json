@@ -608,7 +608,7 @@
     "activityRegenerateFailed": "Failed to regenerate activity. Please try again.",
     "activityRegenerateLimit": "You've reached this month's regeneration limit. The activity is unchanged.",
     "saveChangesFailed": "Failed to save changes. Please try again.",
-    "estBudget": "Est. Budget",
+    "estBudget": "Est. per person",
     "noItinerary": "No Itinerary Yet",
     "noItineraryMessage": "This trip doesn't have any activities planned yet.",
     "reorderActivities": "Drag to reorder — or drop onto another day. Use ⋯ to move precisely.",

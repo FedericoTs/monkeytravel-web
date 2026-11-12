@@ -608,7 +608,7 @@
     "activityRegenerateFailed": "Non è stato possibile rigenerare l'attività. Riprova.",
     "activityRegenerateLimit": "Hai raggiunto il limite di rigenerazioni di questo mese. L'attività non è cambiata.",
     "saveChangesFailed": "Non è stato possibile salvare le modifiche. Riprova.",
-    "estBudget": "Budget stimato",
+    "estBudget": "Stima a persona",
     "noItinerary": "Ancora nessun itinerario",
     "noItineraryMessage": "Questo viaggio non ha ancora attività pianificate.",
     "reorderActivities": "Trascina per riordinare, o rilascia su un altro giorno. Usa ⋯ per spostare con precisione.",

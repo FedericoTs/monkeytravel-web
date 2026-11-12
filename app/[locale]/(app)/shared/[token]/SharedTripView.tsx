@@ -16,6 +16,7 @@ import TodayPacking from "@/components/trip/TodayPacking";
 import { useLiveTripState } from "@/lib/trip/useLiveTripState";
 import { computeTripDayState, type TripDayState } from "@/lib/trip/live";
 import { dayBudgetLabel } from "@/lib/trip/day-budget";
+import { planCosts } from "@/lib/ai/assistant/plan-costs";
 import ReadOnlyItinerary from "@/components/trip/ReadOnlyItinerary";
 import AiDisclaimer from "@/components/trip/AiDisclaimer";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
@@ -236,6 +237,8 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
     () => displayItinerary.reduce((acc, day) => acc + day.activities.length, 0),
     [displayItinerary]
   );
+  // What the plan's own stops cost, per person, as the trip page shows it.
+  const planTotal = useMemo(() => planCosts(displayItinerary), [displayItinerary]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
@@ -247,7 +250,9 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
           title={trip.title}
           subtitle={trip.description}
           dateRange={dateRange}
-          budget={trip.budget?.total ? trip.budget : undefined}
+          budget={planTotal ? { total: planTotal.total, currency: planTotal.currency } : undefined}
+          budgetNote={t("tripTotal.perPerson")}
+          budgetHint={t("tripTotal.hint")}
           days={trip.itinerary.length}
           nights={nights}
           activitiesCount={activitiesCount}
