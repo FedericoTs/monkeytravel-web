@@ -1,0 +1,133 @@
+/**
+ * "Book ahead" on the owner's upcoming trip: the stops the plan says need a
+ * booking, by date, with a link to book from, and a "Booked" tick the trip keeps
+ * through a reload.
+ *
+ * Every test gets a trip of its own, removed afterwards. Needs the fixture
+ * owner's session and service credentials:
+ *   KEY_FLOWS_AUTH_STATE=.auth/owner.json KEY_FLOWS_TRIP_ID=<manifest tripId> \
+ *     npx playwright test tests/e2e/book-ahead.spec.ts --project=chromium
+ */
+import { test, expect, type Page } from "@playwright/test";
+import { randomUUID } from "node:crypto";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { envVar } from "./env";
+
+const SUPA_URL = envVar("NEXT_PUBLIC_SUPABASE_URL");
+const SERVICE_KEY = envVar("SUPABASE_SERVICE_ROLE_KEY");
+const FIXTURE_TRIP_ID = process.env.KEY_FLOWS_TRIP_ID;
+const AUTH_STATE = process.env.KEY_FLOWS_AUTH_STATE;
+
+function iso(offsetDays: number): string {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() + offsetDays);
+  return d.toISOString().slice(0, 10);
+}
+
+async function openTrip(page: Page, tripId: string) {
+  // The share prompt and the assistant's first open are timed overlays.
+  await page.addInitScript((id) => {
+    localStorage.setItem(`share_prompt_dismissed:${id}`, "1");
+    localStorage.setItem("mt_ai_assistant_seen", String(Date.now()));
+  }, tripId);
+  await page.goto(`/en/trips/${tripId}`, { waitUntil: "domcontentloaded", timeout: 120_000 });
+  const essentialOnly = page.getByRole("button", { name: /essential only/i });
+  await essentialOnly
+    .waitFor({ state: "visible", timeout: 4_000 })
+    .then(() => essentialOnly.click())
+    .catch(() => {});
+}
+
+const stop = (id: string, name: string, start_time: string, extra: Record<string, unknown> = {}) => ({
+  id,
+  name,
+  start_time,
+  duration_minutes: 90,
+  type: "landmark",
+  location: "Barcelona",
+  booking_required: false,
+  ...extra,
+});
+
+test.describe("Book ahead on an upcoming trip", () => {
+  test.skip(
+    !SUPA_URL || !SERVICE_KEY || !FIXTURE_TRIP_ID || !AUTH_STATE,
+    "set SUPABASE_SERVICE_ROLE_KEY, KEY_FLOWS_TRIP_ID and KEY_FLOWS_AUTH_STATE",
+  );
+  test.use({ storageState: AUTH_STATE });
+  test.describe.configure({ timeout: 150_000 });
+
+  let admin: SupabaseClient;
+  let ownerId: string;
+  let tripId: string;
+
+  test.beforeAll(async () => {
+    admin = createClient(SUPA_URL, SERVICE_KEY, { auth: { persistSession: false } });
+    const { data, error } = await admin.from("trips").select("user_id").eq("id", FIXTURE_TRIP_ID!).single();
+    if (error) throw error;
+    ownerId = data.user_id as string;
+  });
+
+  test.beforeEach(async () => {
+    tripId = randomUUID();
+    const { error } = await admin.from("trips").insert({
+      id: tripId,
+      user_id: ownerId,
+      title: "E2E book ahead (safe to delete)",
+      description: "Automated E2E fixture. Safe to delete.",
+      start_date: iso(40),
+      end_date: iso(41),
+      status: "planning",
+      visibility: "private",
+      itinerary: [
+        {
+          day_number: 1,
+          date: iso(40),
+          title: "Gaudí",
+          activities: [
+            stop("ba-d1a1", "Breakfast at the market", "08:30"),
+            stop("ba-d1a2", "Sagrada Família", "11:00", { booking_required: true, official_website: "https://sagradafamilia.org" }),
+          ],
+        },
+        {
+          day_number: 2,
+          date: iso(41),
+          title: "Evening",
+          activities: [stop("ba-d2a1", "Flamenco show", "21:00", { booking_required: true })],
+        },
+      ],
+      trip_meta: { destination: "Barcelona", e2e_fixture: true },
+    });
+    if (error) throw error;
+  });
+
+  test.afterEach(async () => {
+    if (tripId) await admin.from("trips").delete().eq("id", tripId);
+  });
+
+  test("lists what needs booking with a link, and keeps a tick through a reload", async ({ page }) => {
+    await openTrip(page, tripId);
+    const list = page.getByTestId("book-ahead");
+    await expect(list).toBeVisible({ timeout: 60_000 });
+    await expect(list.getByText("0 of 2 booked")).toBeVisible();
+    const boxes = list.getByRole("checkbox");
+    await expect(boxes).toHaveCount(2);
+    await expect(boxes.nth(0)).toHaveAccessibleName("Booked: Sagrada Família");
+    await expect(boxes.nth(1)).toHaveAccessibleName("Booked: Flamenco show");
+    await expect(list.getByRole("link", { name: "Book online" })).toHaveAttribute("href", "https://sagradafamilia.org");
+    await expect(list.getByText("Breakfast at the market")).toHaveCount(0);
+
+    await list.getByRole("checkbox", { name: "Booked: Flamenco show" }).check();
+    await expect(list.getByText("1 of 2 booked")).toBeVisible();
+    await expect
+      .poll(async () => {
+        const { data } = await admin.from("trips").select("trip_meta").eq("id", tripId).single();
+        return (data?.trip_meta as { booked_ids?: string[] } | null)?.booked_ids;
+      }, { timeout: 20_000 })
+      .toEqual(["ba-d2a1"]);
+
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await expect(page.getByTestId("book-ahead").getByText("1 of 2 booked")).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByRole("checkbox", { name: "Booked: Flamenco show" })).toBeChecked();
+  });
+});

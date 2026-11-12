@@ -1706,6 +1706,15 @@
       "other": "Altro"
     }
   },
+  "bookAhead": {
+    "title": "Da prenotare",
+    "intro": "Queste tappe vanno prenotate. Segna ognuna quando è fatto.",
+    "progress": "{booked} su {total} prenotate",
+    "day": "Giorno {day}",
+    "bookOnline": "Prenota online",
+    "markBooked": "Prenotato: {name}",
+    "saveFailed": "Non è stato salvato. Riprova."
+  },
   "proposeActivity": {
     "title": "Proponi Attività",
     "titleReplacement": "Proponi Sostituzione",

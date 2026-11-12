@@ -1706,6 +1706,15 @@
       "other": "Other"
     }
   },
+  "bookAhead": {
+    "title": "Book ahead",
+    "intro": "These stops need a booking. Tick each one once it's done.",
+    "progress": "{booked} of {total} booked",
+    "day": "Day {day}",
+    "bookOnline": "Book online",
+    "markBooked": "Booked: {name}",
+    "saveFailed": "That didn't save. Try again."
+  },
   "proposeActivity": {
     "title": "Propose Activity",
     "titleReplacement": "Propose Replacement",
