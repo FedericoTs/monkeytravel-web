@@ -90,7 +90,8 @@ import { useSaveFailedNotice } from "@/hooks/useSaveFailedNotice";
 import { useTripCover } from "@/hooks/useTripCover";
 import { useItinerarySync } from "@/hooks/useItinerarySync";
 import ItineraryConflictBanner from "@/components/trip/ItineraryConflictBanner";
-import { planCosts } from "@/lib/ai/assistant/plan-costs";
+import { inPlanCurrency, planCosts } from "@/lib/ai/assistant/plan-costs";
+import { useCurrency } from "@/lib/locale";
 
 // Dynamic import for TripMap to avoid SSR issues with Google Maps
 const TripMap = dynamic(() => import("@/components/TripMap"), {
@@ -850,7 +851,12 @@ export default function TripDetailClient({
   const displayItinerary = editingActive ? editedItinerary : savedItinerary;
   // What the plan's own stops cost, per person, kept with every change: the
   // figure the assistant quotes. The estimate saved with the plan never moves.
-  const planTotal = useMemo(() => planCosts(displayItinerary), [displayItinerary]);
+  // Each stop is in the plan's currency first, at the page's rates.
+  const { exchangeRates } = useCurrency();
+  const planTotal = useMemo(() => {
+    const days = inPlanCurrency(displayItinerary, exchangeRates, trip.budget?.currency || "USD");
+    return days ? planCosts(days) : null;
+  }, [displayItinerary, exchangeRates, trip.budget?.currency]);
 
   // Fetch travel distances between activities
   // Uses local Haversine calculation - NO external API calls!
