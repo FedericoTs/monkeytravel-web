@@ -39,6 +39,7 @@ import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
 import type { PlacePrediction } from "@/components/ui/DestinationAutocomplete";
 import { isTripSentence, looksLikeRequest, matchesPlace, pencilledDates, readTripSentence } from "@/lib/wizard/trip-sentence";
 import { fetchReading, fillOf } from "@/lib/wizard/request-reading";
+import { planCosts } from "@/lib/ai/assistant/plan-costs";
 import AnchorEditor from "@/components/trip/AnchorEditor";
 import { buildSeasonalContext } from "@/lib/seasonal";
 import { generateWithRecovery } from "@/lib/wizard/generation-recovery";
@@ -378,6 +379,7 @@ export default function NewTripPage({
   const isFreshSignup = isFirstRunAuthEvent(authEventAtMount);
   const mastheadVariant = pickMastheadVariant({ authEventAtMount, prefillAtMount });
   const t = useTranslations("trips");
+  const tTotal = useTranslations("common.tripTotal");
   const AssistantPanelView = warmedAssistantPanel ?? AnonAssistantPanel;
   const ShareButtonView = warmedShareButton ?? AnonymousShareButton;
   const RegenerateButtonView = warmedRegenerateButton ?? RegenerateButton;
@@ -1477,6 +1479,10 @@ export default function NewTripPage({
     // from the merged transfer legs) for the Journey ribbon. Empty on
     // single-city trips.
     const mcStops = buildJourneyStops(generatedItinerary.days, locale);
+    // What the plan's own stops cost, per person, kept with every change: the
+    // figure the assistant quotes. The model's own estimate never moves.
+    const planTotal = planCosts(generatedItinerary.days);
+    const totalCost = planTotal ? `${convertCurrency(planTotal.total, planTotal.currency).formatted} ${tTotal("perPerson")}` : "";
 
     // Calculate total activities for modal
     const totalActivities = generatedItinerary.days.reduce((acc, day) => acc + day.activities.length, 0);
@@ -1589,10 +1595,9 @@ export default function NewTripPage({
           dateRange={formatDateRange(startDate, endDate, locale)}
           onEditDates={planningExtraDays || mcStops.length > 1 ? undefined : () => setShowChangeDates(true)}
           editDatesLabel={t("wizard.changeDates.button")}
-          budget={{
-            total: generatedItinerary.trip_summary.total_estimated_cost,
-            currency: generatedItinerary.trip_summary.currency,
-          }}
+          budget={planTotal ? { total: planTotal.total, currency: planTotal.currency } : undefined}
+          budgetNote={tTotal("perPerson")}
+          budgetHint={tTotal("hint")}
           days={generatedItinerary.days.length}
           tags={generatedItinerary.destination.best_for}
           showBackButton={false}
@@ -1624,12 +1629,7 @@ export default function NewTripPage({
 
         <ResultActionBars
           generatedItinerary={generatedItinerary}
-          totalCost={
-            convertCurrency(
-              generatedItinerary.trip_summary.total_estimated_cost,
-              generatedItinerary.trip_summary.currency
-            ).formatted
-          }
+          totalCost={totalCost}
           tripTitle={tripTitle}
           startDate={startDate}
           endDate={endDate}
@@ -1661,9 +1661,7 @@ export default function NewTripPage({
             <SkyPlan
               itinerary={generatedItinerary}
               dateRange={formatDateRange(startDate, endDate, locale)}
-              totalCost={
-                convertCurrency(generatedItinerary.trip_summary.total_estimated_cost, generatedItinerary.trip_summary.currency).formatted
-              }
+              totalCost={totalCost}
               onEditDates={planningExtraDays ? undefined : () => setShowChangeDates(true)}
               editDatesLabel={t("wizard.changeDates.button")}
               pace={pace}

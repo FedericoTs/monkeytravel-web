@@ -174,8 +174,12 @@ export default function SkyPlan({
             ) : (
               dateRange
             )}
-            {", "}
-            {t("wizard.result.sky.about", { cost: totalCost })}
+            {totalCost && (
+              <>
+                {", "}
+                {t("wizard.result.sky.about", { cost: totalCost })}
+              </>
+            )}
           </p>
           <nav aria-label={t("wizard.result.sky.days")} className="mt-6 flex flex-wrap gap-2">
             {itinerary.days.map((day) => (

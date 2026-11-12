@@ -24,14 +24,28 @@ const itinerary = {
 } as unknown as GeneratedItinerary;
 
 describe("the result view's stats", () => {
-  it("shows the trip's length, budget in the visitor's currency, activity count and pace", () => {
-    const { container } = render(<ResultStats itinerary={itinerary} pace="relaxed" />);
+  const priced = {
+    ...itinerary,
+    days: [
+      { day_number: 1, activities: [activity({ estimated_cost: { amount: 22, currency: "EUR" } as Activity["estimated_cost"] }), activity({ name: "Lunch", estimated_cost: { amount: 18, currency: "EUR" } as Activity["estimated_cost"] })] },
+      { day_number: 2, activities: [activity({ name: "Orsay", estimated_cost: { amount: 16, currency: "EUR" } as Activity["estimated_cost"] })] },
+    ],
+  } as unknown as GeneratedItinerary;
+
+  it("shows the trip's length, its stops' cost per person in the visitor's currency, activity count and pace", () => {
+    const { container } = render(<ResultStats itinerary={priced} pace="relaxed" />);
     expect([...container.querySelectorAll(".text-xl")].map((v) => v.textContent)).toEqual([
       'wizard.result.days {"count":2}',
-      "EUR 900",
+      "EUR 56",
       "3",
       "pace:relaxed",
     ]);
+  });
+
+  // The estimate the model wrote never moves after a change; with no stop priced there's no total to show.
+  it("shows no total for a plan that prices nothing, whatever the model estimated", () => {
+    const { container } = render(<ResultStats itinerary={itinerary} pace="relaxed" />);
+    expect([...container.querySelectorAll(".text-xl")].map((v) => v.textContent)).toEqual(['wizard.result.days {"count":2}', "3", "pace:relaxed"]);
   });
 });
 

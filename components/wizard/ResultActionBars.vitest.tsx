@@ -131,6 +131,14 @@ describe("ResultActionBars", () => {
     expect(on.save).toHaveBeenCalledTimes(1);
   });
 
+  it("shows no total chip when the plan prices nothing", () => {
+    const { header } = bars({ totalCost: "" });
+    expect(header.queryByText("€900")).toBeNull();
+    // The days chip stays, alone, with no empty chip beside it.
+    const days = header.getByText("wizard.result.days");
+    expect(days.parentElement?.children).toHaveLength(1);
+  });
+
   it("puts a kept plan's link where the not-saved pill was, and says it is kept", () => {
     const { header, bar } = bars({ keptPlan: { token: "T".repeat(22), expiresAt: "2099-01-01T00:00:00.000Z" } });
     expect(header.getByRole("button", { name: "wizard.kept.copyLink" })).toBeTruthy();
