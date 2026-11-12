@@ -194,7 +194,7 @@ export default function PreTripChecklist({
                   onClick={() => setShowAddForm(true)}
                   className="
                     flex items-center gap-2
-                    text-sm text-[var(--primary-ink)] font-medium
+                    text-sm text-[var(--foreground)] font-medium
                     hover:underline
                   "
                 >
