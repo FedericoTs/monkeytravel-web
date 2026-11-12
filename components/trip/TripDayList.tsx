@@ -157,6 +157,10 @@ export default function TripDayList({
     // day boundary snaps back). Inert when nothing is sortable (view
     // mode / read-only), so it wraps unconditionally.
     <DndContext
+      // A fixed id names the screen reader's instructions. Left to dnd-kit, it is
+      // a running count that differs between the server's page and the browser's,
+      // so every handle's aria-describedby pointed at nothing.
+      id="trip-days-drag-help"
       sensors={sensors}
       collisionDetection={collisionDetection}
       measuring={dndMeasuring}

@@ -616,6 +616,15 @@ describe("the drag", () => {
   const spoken = () => seen.drag!.accessibility as Spoken;
   const words = (key: string, place: object) => `common.drag.${key} ${JSON.stringify(place)}`;
 
+  it("names its instructions the same way on every render, so the handles on the server's page point at them", () => {
+    const instructionsId = () => screen.getByText("common.drag.instructions").id;
+    const first = show(editing);
+    const id = instructionsId();
+    first.unmount();
+    show(editing);
+    expect(instructionsId()).toBe(id);
+  });
+
   it("tells a screen reader how to move a stop, in the page's words", () => {
     show(editing);
     expect(spoken().screenReaderInstructions.draggable).toBe("common.drag.instructions");
