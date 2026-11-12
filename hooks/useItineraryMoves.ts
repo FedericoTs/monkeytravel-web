@@ -115,6 +115,12 @@ export function useItineraryMoves({ tripId, itinerary, setItinerary, pushUndo, u
 
   const onDragStart = useCallback(
     (event: DragStartEvent) => {
+      // Picked up with the keyboard, the page stops where it is. Focusing a handle
+      // scrolls smoothly, and a card picked up mid-scroll is carried along with
+      // it: its place is held still on screen while the plan slides under it.
+      if (event.activatorEvent instanceof KeyboardEvent) {
+        window.scrollTo({ top: window.scrollY, left: window.scrollX, behavior: "instant" });
+      }
       dragStartRef.current = itinerary;
       dragPreviewRef.current = itinerary;
       setDragPreview(itinerary);
