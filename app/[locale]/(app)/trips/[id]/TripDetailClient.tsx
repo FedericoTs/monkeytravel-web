@@ -64,6 +64,8 @@ import {
   PreTripChecklist,
 } from "@/components/timeline";
 import { useChecklist } from "@/hooks/useChecklist";
+import BookAheadList from "@/components/trip/BookAheadList";
+import { readBookedIds } from "@/lib/trips/book-ahead";
 import { useToast } from "@/components/ui/Toast";
 import { trackTripViewed } from "@/lib/analytics";
 import { useTravelDistances } from "@/hooks/useTravelDistances";
@@ -1035,6 +1037,10 @@ export default function TripDetailClient({
                 onDelete={checklist.deleteItem}
                 isLoading={checklist.isLoading}
               />
+            )}
+            {/* The stops the plan says need a booking, with a Booked tick. */}
+            {isOwner && (
+              <BookAheadList tripId={trip.id} itinerary={editedItinerary} initialBooked={readBookedIds(trip.meta)} />
             )}
           </div>
         )}

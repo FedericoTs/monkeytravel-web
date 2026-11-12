@@ -1706,6 +1706,15 @@
       "other": "Otros"
     }
   },
+  "bookAhead": {
+    "title": "Reserva con antelación",
+    "intro": "Estas paradas necesitan reserva. Marca cada una cuando la tengas.",
+    "progress": "{booked} de {total} reservadas",
+    "day": "Día {day}",
+    "bookOnline": "Reservar online",
+    "markBooked": "Reservado: {name}",
+    "saveFailed": "No se ha guardado. Inténtalo de nuevo."
+  },
   "proposeActivity": {
     "title": "Proponer Actividad",
     "titleReplacement": "Proponer Reemplazo",
