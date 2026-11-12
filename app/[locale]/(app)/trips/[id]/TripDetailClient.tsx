@@ -925,7 +925,7 @@ export default function TripDetailClient({
           <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
             <TripStatusBadge status={shownStatus} />
             {trip.meta?.travel_style === "backpacker" && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-emerald-500 text-white">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-emerald-700 text-white">
                 <span aria-hidden>🎒</span>
                 {tCommon("shared.backpackerRoute")}
               </span>
