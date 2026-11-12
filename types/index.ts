@@ -295,6 +295,7 @@ export interface TripMeta {
   destination_best_for?: string[]; // Tags like "Culture", "Food", "Architecture"
   packing_suggestions?: string[];  // Suggested packing items
   packing_checked?: string[];      // Items user has marked as packed
+  booked_ids?: string[];           // Stops the owner ticked as booked in "Book ahead"
   // Cached travel distances to avoid API calls on repeat visits
   travel_distances?: CachedDayTravelData[];
   travel_distances_hash?: string;  // Hash of itinerary used to validate cache

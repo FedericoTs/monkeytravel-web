@@ -10,7 +10,7 @@
   "shortestStop": "{names}: {minutes} min, lo mínimo que puede durar una parada.",
   "cityKept": "(Los lugares de {other} no van en los días de {city}: {list}.)",
   "cityMoved": "{count, plural, =1 {(Pasa a los días de {city}: {list}.)} other {(Pasan a los días de {city}: {list}.)}}",
-  "notRepeated": "{count, plural, =1 {(Ya está en otro día, así que no se repite: {list}.)} other {(Ya están en otros días, así que no se repiten: {list}.)}}",
+  "notRepeated": "{count, plural, =1 {(Ya está en el día {day}, así que no se añade otra vez: {list}.)} other {(Ya están en el día {day}, así que no se añaden otra vez: {list}.)}}",
   "wizardFallbackPrepared": "Aquí tienes el cambio.",
   "wizardFallbackIdle": "Aquí estoy para ayudarte: pregúntame lo que quieras sobre tu viaje.",
   "lengthUnchanged": "(El viaje sigue teniendo {days, plural, =1 {# día} other {# días}}: no he podido preparar los días nuevos. Pídemelo otra vez, un día cada vez.)",

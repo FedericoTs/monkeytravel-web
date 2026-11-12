@@ -6,7 +6,7 @@ import { composeReply } from "./edit-reply";
 import type { DayEdit } from "./edit-validation";
 import { correctionFor } from "./engine";
 import { asksForFewerDays, asksForMoreDays, asksToAdd, keepsEverything, listedPlaces, talksAboutDayCount } from "./message-asks";
-import { keepSavedActivities, takenOut } from "./saved-activities";
+import { keepSavedActivities, ownWords, takenOut } from "./saved-activities";
 import { outsideTravelTimes, readTravelTimes } from "./travel-times";
 import { asksToRemove, asksToTakeOut, replyLanguage, statedDayCounts } from "./honesty";
 
@@ -129,6 +129,49 @@ describe("takenOut", () => {
     expect(asksToRemove("take out all restaurants")).toBe(true);
     expect(asksToRemove("quita todos los restaurantes")).toBe(true);
     expect(asksToRemove("add a Jameson whiskey distillery tour")).toBe(false);
+  });
+
+  // A live London change dropped Oxford Street, and the note didn't name it:
+  // "Street" was in Broadwick Street, which the reply named.
+  it("counts a place as named only by its own words, not ones many places share or the trip's place", () => {
+    const base = {
+      lockedDays: [],
+      lengthRefused: false,
+      locale: "en",
+      currentDays: 4,
+      autoApplied: true,
+      destination: "London, United Kingdom",
+      edits: [edit(1, ["Broadwick Street", "Neal's Yard"])],
+    };
+    expect(composeReply({ ...base, reply: "Here's Day 1 with Broadwick Street and Neal's Yard.", takenOut: ["Oxford Street"] })).toBe(
+      "Here's Day 1 with Broadwick Street and Neal's Yard. (This change takes out: Oxford Street.)",
+    );
+    expect(composeReply({ ...base, reply: "It's a West End walk now, with the Science Museum later.", takenOut: ["British Museum"] })).toContain(
+      "(This change takes out: British Museum.)",
+    );
+    expect(composeReply({ ...base, reply: "It's your London walk now.", takenOut: ["Chinatown London"] })).toContain("(This change takes out: Chinatown London.)");
+    // A name of shared words only is named in full.
+    expect(composeReply({ ...base, reply: "It ends at Tower Bridge.", takenOut: ["Tower of London"] })).toContain("(This change takes out: Tower of London.)");
+    expect(composeReply({ ...base, reply: "I swapped the Tower of London for a river cruise.", takenOut: ["Tower of London"] })).toBe(
+      "I swapped the Tower of London for a river cruise.",
+    );
+    // Its own words still count, said loosely.
+    expect(composeReply({ ...base, reply: "I swapped the History Museum for a pub lunch.", takenOut: ["Natural History Museum"] })).toBe(
+      "I swapped the History Museum for a pub lunch.",
+    );
+    // Without the trip's place, its words are a name's own like any other.
+    expect(composeReply({ ...base, destination: undefined, reply: "It's your London walk now.", takenOut: ["Chinatown London"] })).toBe("It's your London walk now.");
+  });
+
+  it("finds a name's own words in every language", () => {
+    expect(ownWords("Museo del Prado")).toEqual(["prado"]);
+    expect(ownWords("Piazza Navona")).toEqual(["navona"]);
+    expect(ownWords("Rua Augusta", "Lisbon, Portugal")).toEqual(["augusta"]);
+    expect(ownWords("Mercado de San Miguel", "Madrid, Spain")).toEqual(["miguel"]);
+    expect(ownWords("Chinatown London", "London, United Kingdom")).toEqual(["chinatown"]);
+    // The trip's place in another language is the same place.
+    expect(ownWords("Mercado de Lisboa", "Lisbon, Portugal")).toEqual([]);
+    expect(ownWords("Tower of London", "London, United Kingdom")).toEqual([]);
   });
 });
 
