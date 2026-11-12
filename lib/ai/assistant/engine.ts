@@ -126,7 +126,7 @@ function readOutcome(input: AssistInput, obj: Record<string, unknown>, cur: stri
     canOfferElsewhere(input) && edits.length === 0 && checked.tripLength === undefined
       ? readElsewhere(obj.elsewhere, input.destination)
       : [];
-  return { ...checked, edits, reply, moreDays, travelTimes: withPlanDeparture(readTravelTimes(obj.travel_times, length), input.days), elsewhere };
+  return { ...checked, edits, reply, moreDays, travelTimes: readTravelTimes(obj.travel_times, length), elsewhere };
 }
 
 /**
@@ -497,7 +497,7 @@ export function correctionFor(
   // The days this reply changes, and every day when the message gives a time:
   // that is when the plan must first be fitted to it.
   const timed = TELLS_TIME.test(input.message) ? withEdits(input.days, o.edits) : o.edits;
-  const outside = outsideTravelTimes(timed, o.travelTimes ?? [])[0];
+  const outside = outsideTravelTimes(timed, withPlanDeparture(o.travelTimes ?? [], input.days))[0];
   if (outside) {
     const late = outside.from !== null && minutesOf(outside.from) >= 22 * 60;
     const when = [
@@ -941,7 +941,7 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   }
   // Rarely, a changed day still doesn't fit an arrival or a departure after
   // the correction: the reply says so rather than leave it for the airport.
-  const outsideTimes = outsideTravelTimes(edits, outcome.travelTimes);
+  const outsideTimes = outsideTravelTimes(edits, withPlanDeparture(outcome.travelTimes, input.days));
   // A list that still came back short says what's missing, whatever the reply claims.
   const listMissing = daysLeft.length === 0 ? missingFromList(input, edits) : [];
 
