@@ -94,7 +94,7 @@ export default function TripCard({ trip, variant = "grid" }: TripCardProps) {
             </div>
           )}
           {trip.travelStyle === "backpacker" && (
-            <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500 text-white text-xs font-bold shadow-md">
+            <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-700 text-white text-xs font-bold shadow-md">
               <span aria-hidden>🎒</span>
               {t("backpackerBadge")}
             </div>

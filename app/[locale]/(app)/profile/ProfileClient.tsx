@@ -768,7 +768,7 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
                         }}
                         className={`px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-all ${
                           isSelected
-                            ? "border-emerald-500 bg-emerald-500 text-white"
+                            ? "border-emerald-700 bg-emerald-700 text-white"
                             : "border-slate-200 text-slate-600 hover:border-emerald-500 hover:text-emerald-600"
                         }`}
                       >

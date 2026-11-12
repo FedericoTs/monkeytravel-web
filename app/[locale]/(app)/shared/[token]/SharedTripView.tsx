@@ -266,7 +266,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
               {t('shared.sharedTrip')}
             </span>
             {trip.meta?.travel_style === "backpacker" && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-emerald-500 text-white">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-emerald-700 text-white">
                 <span aria-hidden>🎒</span>
                 {t('shared.backpackerRoute')}
               </span>
