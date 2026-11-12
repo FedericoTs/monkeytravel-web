@@ -266,6 +266,14 @@ test.describe("Move an activity between days", () => {
     await expect(page.locator(`[id="${describedBy}"]`)).toHaveText(/press space or enter, then use the arrow keys/i);
 
     const live = page.locator('[id^="DndLiveRegion"]');
+    // The page scrolls smoothly: the stop is picked up once it has stopped.
+    await handle.scrollIntoViewIfNeeded();
+    await page.waitForFunction(
+      () => new Promise<boolean>((done) => {
+        const y = window.scrollY;
+        setTimeout(() => done(window.scrollY === y), 300);
+      }),
+    );
     await handle.focus();
     await page.keyboard.press("Space");
     await expect(live).toContainText("Castelo de São Jorge: activity ");
