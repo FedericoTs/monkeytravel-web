@@ -5,8 +5,10 @@ import type { Activity, GeneratedItinerary } from "@/types";
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string, values?: Record<string, unknown>) => (values ? `${key} ${JSON.stringify(values)}` : key),
 }));
+// The page's exchange rates, null until they load.
+const fx = vi.hoisted(() => ({ rates: null as { base: string; rates: Record<string, number> } | null }));
 vi.mock("@/lib/locale", () => ({
-  useCurrency: () => ({ convert: (amount: number, currency: string) => ({ formatted: `${currency} ${amount}` }) }),
+  useCurrency: () => ({ convert: (amount: number, currency: string) => ({ formatted: `${currency} ${amount}` }), exchangeRates: fx.rates }),
 }));
 vi.mock("@/lib/i18n/pace", () => ({ usePaceLabel: () => (pace: unknown) => `pace:${String(pace)}` }));
 
@@ -40,6 +42,30 @@ describe("the result view's stats", () => {
       "3",
       "pace:relaxed",
     ]);
+  });
+
+  // A stop priced in another currency counts at the page's rates, never as its bare number.
+  describe("for a plan whose stops are priced in two currencies", () => {
+    const twoCurrencies = {
+      ...itinerary,
+      days: [
+        { day_number: 1, activities: [activity({ estimated_cost: { amount: 22, currency: "EUR" } as Activity["estimated_cost"] }), activity({ name: "Afternoon tea", estimated_cost: { amount: 10, currency: "GBP" } as Activity["estimated_cost"] })] },
+      ],
+    } as unknown as GeneratedItinerary;
+
+    it("adds each stop at the page's rates", () => {
+      // 10 pounds are 12.50 euros at 0.8 pounds to the euro: 34.50 in all.
+      fx.rates = { base: "EUR", rates: { GBP: 0.8 } };
+      const { container } = render(<ResultStats itinerary={twoCurrencies} pace="relaxed" />);
+      expect([...container.querySelectorAll(".text-xl")].map((v) => v.textContent)).toEqual(['wizard.result.days {"count":1}', "EUR 35", "2", "pace:relaxed"]);
+      fx.rates = null;
+    });
+
+    it("shows no total until the rates load, rather than a wrong one", () => {
+      fx.rates = null;
+      const { container } = render(<ResultStats itinerary={twoCurrencies} pace="relaxed" />);
+      expect([...container.querySelectorAll(".text-xl")].map((v) => v.textContent)).toEqual(['wizard.result.days {"count":1}', "2", "pace:relaxed"]);
+    });
   });
 
   // The estimate the model wrote never moves after a change; with no stop priced there's no total to show.

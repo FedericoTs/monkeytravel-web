@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { usePaceLabel } from "@/lib/i18n/pace";
 import { useCurrency } from "@/lib/locale";
-import { planCosts } from "@/lib/ai/assistant/plan-costs";
+import { inPlanCurrency, planCosts } from "@/lib/ai/assistant/plan-costs";
 import type { BookingLink, GeneratedItinerary } from "@/types";
 
 // Sections of the wizard's result view that only render the generated
@@ -23,9 +23,11 @@ function Stat({ label, children }: { label: string; children: ReactNode }) {
 export function ResultStats({ itinerary, pace }: { itinerary: GeneratedItinerary; pace: string }) {
   const t = useTranslations("trips");
   const paceLabel = usePaceLabel();
-  const { convert } = useCurrency();
-  // The plan's own stops, per person, as the trip page shows them.
-  const total = planCosts(itinerary.days);
+  const { convert, exchangeRates } = useCurrency();
+  // The plan's own stops, per person, as the trip page shows them: each in
+  // the plan's currency first, at the page's rates.
+  const sameCurrency = inPlanCurrency(itinerary.days, exchangeRates, itinerary.trip_summary.currency || "USD");
+  const total = sameCurrency ? planCosts(sameCurrency) : null;
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
       <Stat label={t("wizard.result.duration")}>{t("wizard.result.days", { count: itinerary.days.length })}</Stat>

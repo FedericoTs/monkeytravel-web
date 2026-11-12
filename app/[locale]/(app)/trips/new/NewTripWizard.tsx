@@ -43,7 +43,7 @@ import AnchorEditor from "@/components/trip/AnchorEditor";
 import { buildSeasonalContext } from "@/lib/seasonal";
 import { generateWithRecovery } from "@/lib/wizard/generation-recovery";
 import { attemptGeneration } from "@/lib/wizard/generation-attempt";
-import { planCosts } from "@/lib/ai/assistant/plan-costs";
+import { inPlanCurrency, planCosts } from "@/lib/ai/assistant/plan-costs";
 import { JourneyRibbon } from "@/components/trips/JourneyRibbon";
 import { buildJourneyStops } from "@/lib/ai/transfer-legs";
 
@@ -570,7 +570,7 @@ export default function NewTripPage({
   } = useSessionTripStack();
 
   // Currency conversion hook - converts prices to user's preferred currency
-  const { convert: convertCurrency } = useCurrency();
+  const { convert: convertCurrency, exchangeRates } = useCurrency();
 
   // 2-step wizard: Destination+Dates -> Vibes+Preferences.
   const TOTAL_STEPS = 2;
@@ -1481,7 +1481,9 @@ export default function NewTripPage({
     const mcStops = buildJourneyStops(generatedItinerary.days, locale);
     // What the plan's own stops cost, per person, kept with every change: the
     // figure the assistant quotes. The model's own estimate never moves.
-    const planTotal = planCosts(generatedItinerary.days);
+    // Each stop is in the plan's currency first, at the page's rates.
+    const sameCurrency = inPlanCurrency(generatedItinerary.days, exchangeRates, generatedItinerary.trip_summary.currency || "USD");
+    const planTotal = sameCurrency ? planCosts(sameCurrency) : null;
     const totalCost = planTotal ? `${convertCurrency(planTotal.total, planTotal.currency).formatted} ${tTotal("perPerson")}` : "";
 
     // Calculate total activities for modal

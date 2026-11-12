@@ -15,7 +15,9 @@ const SKY = readFileSync(join(__dirname, "../../../../../components/sky/SkyPlan.
 
 describe("the planner's totals", () => {
   it("add up the plan's stops, per person", () => {
-    expect(SRC).toContain("const planTotal = planCosts(generatedItinerary.days);");
+    expect(SRC).toContain("const { convert: convertCurrency, exchangeRates } = useCurrency();");
+    expect(SRC).toContain('const sameCurrency = inPlanCurrency(generatedItinerary.days, exchangeRates, generatedItinerary.trip_summary.currency || "USD");');
+    expect(SRC).toContain("const planTotal = sameCurrency ? planCosts(sameCurrency) : null;");
     expect(SRC).toContain('const totalCost = planTotal ? `${convertCurrency(planTotal.total, planTotal.currency).formatted} ${tTotal("perPerson")}` : "";');
   });
 
