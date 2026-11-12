@@ -257,6 +257,31 @@ test.describe("Move an activity between days", () => {
     await expect(page.getByText(/moved to day 3/i)).toBeVisible();
   });
 
+  test("a screen reader hears the stop's name and place as it is picked up and put back", async ({ page, isMobile }) => {
+    test.skip(isMobile, "a keyboard on a computer");
+    await openTrip(page, tripId);
+    const handle = cardIn(page, 1, "m-d1a1").getByTestId("drag-handle");
+    const describedBy = await handle.getAttribute("aria-describedby");
+    expect(describedBy, "the handle points at its instructions").toBeTruthy();
+    await expect(page.locator(`[id="${describedBy}"]`)).toHaveText(/press space or enter, then use the arrow keys/i);
+
+    const live = page.locator('[id^="DndLiveRegion"]');
+    // The page scrolls smoothly: the stop is picked up once it has stopped.
+    await handle.scrollIntoViewIfNeeded();
+    await page.waitForFunction(
+      () => new Promise<boolean>((done) => {
+        const y = window.scrollY;
+        setTimeout(() => done(window.scrollY === y), 300);
+      }),
+    );
+    await handle.focus();
+    await page.keyboard.press("Space");
+    await expect(live).toContainText("Castelo de São Jorge: activity ");
+    await page.keyboard.press("Escape");
+    await expect(live).toHaveText("Move cancelled. Castelo de São Jorge is back as activity 1 of 2 on Day 1.");
+    expect(await dayOrder(page, 1)).toEqual(["activity-card-m-d1a1", "activity-card-m-d1a2"]);
+  });
+
   // The day slider shows one day; the editors still act on that day.
   test.describe("with one day selected in the day slider", () => {
     test("Add activity adds to that day", async ({ page }) => {
