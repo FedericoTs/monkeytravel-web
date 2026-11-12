@@ -23,7 +23,7 @@ export default function BlogContentClient({ toc, tocLabel = "Table of Contents" 
   if (h2Items.length <= 2) return null;
 
   return (
-    <nav className="my-8 rounded-xl border border-slate-200 bg-slate-50 overflow-hidden lg:hidden">
+    <nav aria-label={tocLabel} className="my-8 rounded-xl border border-slate-200 bg-slate-50 overflow-hidden lg:hidden">
       <button
         onClick={() => setTocOpen(!tocOpen)}
         className="flex items-center justify-between w-full px-5 py-4 text-left font-semibold text-slate-800 hover:bg-slate-100 transition-colors"

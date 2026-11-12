@@ -77,6 +77,7 @@ export default async function PackingListPage({
   // already applied to the visa-checker sibling. getTranslations("breadcrumbs")
   // finds no namespace and throws MISSING_MESSAGE on every SSR render.
   const tBreadcrumbs = await getTranslations("common.breadcrumbs");
+  const tA11y = await getTranslations("common.a11y");
 
   const localePrefix = locale === "en" ? "" : `/${locale}`;
   const breadcrumbSchema = generateBreadcrumbSchema([
@@ -94,7 +95,7 @@ export default async function PackingListPage({
       <script {...jsonLdScriptProps(breadcrumbSchema)} />
       <Navbar />
       <main className="flex-1 max-w-3xl mx-auto px-4 py-8 sm:py-12 w-full">
-        <nav className="text-sm text-slate-500 mb-4" aria-label="Breadcrumb">
+        <nav className="text-sm text-slate-500 mb-4" aria-label={tA11y("breadcrumb")}>
           <Link href="/" className="hover:text-slate-700">
             {tBreadcrumbs("home")}
           </Link>

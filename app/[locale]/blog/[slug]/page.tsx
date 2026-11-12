@@ -335,7 +335,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
           <div className="absolute inset-0 flex flex-col justify-end">
             <div className="max-w-3xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8 sm:pb-10">
               {/* Breadcrumb */}
-              <nav className="flex items-center gap-2 text-sm text-white/60 mb-4">
+              <nav aria-label={tCommon("a11y.breadcrumb")} className="flex items-center gap-2 text-sm text-white/60 mb-4">
                 <Link
                   href="/"
                   className="hover:text-white transition-colors"
