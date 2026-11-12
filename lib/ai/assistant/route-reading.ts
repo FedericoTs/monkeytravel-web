@@ -31,7 +31,7 @@ export function routeOfferReply(language: string | undefined, route: RouteStop[]
   return note(language, "routeOffer", { route: stops });
 }
 
-/** The plan day by day: "Day 3 (2027-03-12): Lisboa". */
+/** The plan day by day: each day with its date and city. */
 export function planDays(days: ItineraryDay[], startDate?: string): string[] {
   return days.map((d, i) => {
     const date = d.date || (startDate ? addIsoDays(startDate, i) : null);

@@ -11,7 +11,7 @@ vi.mock("@/lib/ai/gemini-cost", () => ({ geminiCostUsd: () => 0.0004, recordGemi
 
 const { askForRoute, planDays, routeOfferReply, routeQuestion, stopsOfDays } = await import("./route-reading");
 
-// Lisbon days 1-7, Porto 8-14, from 2027-03-10.
+// Lisbon days 1-7, Porto 8-14, from the trip's first date.
 const trip = Array.from({ length: 14 }, (_, i) => ({
   day_number: i + 1,
   date: `2027-03-${String(10 + i).padStart(2, "0")}`,
