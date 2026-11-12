@@ -60,7 +60,7 @@ import {
   asksForDayTrip,
 } from "./message-asks";
 import { alsoInTheirCity, daysOfCity, keepDayCities, placesAway, withoutPlacesAway, type PlacesAway } from "./city-days";
-import { type TravelTime, readTravelTimes, outsideTravelTimes, minutesOf } from "./travel-times";
+import { type TravelTime, readTravelTimes, outsideTravelTimes, minutesOf, keepDepartureTime, withPlanDeparture } from "./travel-times";
 import { composeReply, type PlaceOnDay } from "./edit-reply";
 import { maxTripDays } from "./structural";
 import { askForNames, gluedNames, renamesOf, withNames } from "@/lib/ai/one-script-names";
@@ -111,7 +111,11 @@ function readOutcome(input: AssistInput, obj: Record<string, unknown>, cur: stri
     asksForFreeDay(input.message),
   );
   const told = [input.message, ...(input.history ?? []).slice(-4).filter((t) => t.role === "user").map((t) => t.text)].join("\n");
-  const edits = keepDayCities(input.days, keepSavedActivities(input.days, checked.edits, { reply, message: input.message }), told);
+  const edits = keepDepartureTime(
+    input.days,
+    keepDayCities(input.days, keepSavedActivities(input.days, checked.edits, { reply, message: input.message }), told),
+    input.message,
+  );
   // The other days the change concerns, past what one reply holds.
   const length = checked.tripLength ?? input.days.length;
   const done = new Set(edits.map((e) => e.day_number));
@@ -122,7 +126,7 @@ function readOutcome(input: AssistInput, obj: Record<string, unknown>, cur: stri
     canOfferElsewhere(input) && edits.length === 0 && checked.tripLength === undefined
       ? readElsewhere(obj.elsewhere, input.destination)
       : [];
-  return { ...checked, edits, reply, moreDays, travelTimes: readTravelTimes(obj.travel_times, length), elsewhere };
+  return { ...checked, edits, reply, moreDays, travelTimes: withPlanDeparture(readTravelTimes(obj.travel_times, length), input.days), elsewhere };
 }
 
 /**
