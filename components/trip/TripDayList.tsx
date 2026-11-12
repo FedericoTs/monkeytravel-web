@@ -30,6 +30,7 @@ import {
   type dayOptionsOf,
 } from "@/components/trip/ItineraryDnd";
 import SortableActivityCard from "@/components/trip/SortableActivityCard";
+import { dragAnnouncements } from "@/lib/trip/itinerary-dnd";
 import { NoItinerary, RegeneratingDayOverlay, ReorderHint } from "@/components/trip/TripNotices";
 import type { FocusedDay } from "@/hooks/useDayFocus";
 import type { useItineraryMoves } from "@/hooks/useItineraryMoves";
@@ -111,6 +112,24 @@ export default function TripDayList({
   // a header would land somewhere else. ~15 rects per move is negligible.
   const dndMeasuring = useMemo(() => ({ droppable: { strategy: MeasuringStrategy.Always } }), []);
 
+  // What a screen reader hears while a stop moves: its name, its day and its
+  // place in that day, in the page's language (dnd-kit's own words are
+  // English, with internal ids). Worked out from the plan as the page shows it;
+  // a cancelled move goes back to the plan as it was.
+  const tDrag = useTranslations("common.drag");
+  const shownPlan = moves.preview ?? days;
+  const dndAccessibility = useMemo(
+    () => ({
+      announcements: dragAnnouncements(
+        (key, place) => tDrag(key, { ...place }),
+        () => shownPlan,
+        () => days,
+      ),
+      screenReaderInstructions: { draggable: tDrag("instructions") },
+    }),
+    [tDrag, shownPlan, days],
+  );
+
   // Drag-and-drop sensors for reordering activities
   // Optimized for premium iOS-like touch experience
   const sensors = useSensors(
@@ -138,9 +157,14 @@ export default function TripDayList({
     // day boundary snaps back). Inert when nothing is sortable (view
     // mode / read-only), so it wraps unconditionally.
     <DndContext
+      // A fixed id names the screen reader's instructions. Left to dnd-kit, it is
+      // a running count that differs between the server's page and the browser's,
+      // so every handle's aria-describedby pointed at nothing.
+      id="trip-days-drag-help"
       sensors={sensors}
       collisionDetection={collisionDetection}
       measuring={dndMeasuring}
+      accessibility={dndAccessibility}
       onDragStart={moves.onDragStart}
       onDragOver={moves.onDragOver}
       onDragEnd={moves.onDragEnd}
