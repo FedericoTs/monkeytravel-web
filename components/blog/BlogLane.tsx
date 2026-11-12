@@ -41,10 +41,10 @@ export default function BlogLane({ title, description, posts, viewAllHref, viewA
         {viewAllHref && viewAllLabel && (
           <Link
             href={viewAllHref}
-            className="hidden sm:inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold text-[var(--primary-ink)] hover:gap-2.5 transition-all"
+            className="hidden sm:inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold text-[var(--foreground)] hover:gap-2.5 transition-all"
           >
             {viewAllLabel}
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <svg className="w-4 h-4 text-[var(--primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
             </svg>
           </Link>
