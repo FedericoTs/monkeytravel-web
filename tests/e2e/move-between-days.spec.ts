@@ -117,6 +117,12 @@ async function atRest(page: Page) {
   );
 }
 
+/**
+ * A person's pause after picking a stop up with the keyboard: dnd-kit starts listening for
+ * keys a tick after the drag starts, and a key pressed within that tick is lost.
+ */
+const keyPause = (page: Page) => page.waitForTimeout(300);
+
 const cardIn = (page: Page, dayNumber: number, activityId: string) =>
   page.getByTestId(`day-drop-list-${dayNumber}`).getByTestId(`activity-card-${activityId}`);
 
@@ -281,6 +287,7 @@ test.describe("Move an activity between days", () => {
     await handle.focus();
     await page.keyboard.press("Space");
     await expect(live).toContainText("Castelo de São Jorge: activity ");
+    await keyPause(page);
     await page.keyboard.press("Escape");
     await expect(live).toHaveText("Move cancelled. Castelo de São Jorge is back as activity 1 of 2 on Day 1.");
     expect(await dayOrder(page, 1)).toEqual(["activity-card-m-d1a1", "activity-card-m-d1a2"]);
@@ -312,6 +319,7 @@ test.describe("Move an activity between days", () => {
     await handle.focus();
     await page.keyboard.press("Space");
     await expect(live).toContainText("Time Out Market lunch: activity 2 of 2 on Day 1.");
+    await keyPause(page);
     await page.keyboard.press("ArrowDown");
     await expect(live).toContainText("on Day 2.");
     await page.keyboard.press("Space");
