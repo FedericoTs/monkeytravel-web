@@ -107,6 +107,16 @@ async function persist(page: Page, tripId: string) {
   expect(res.ok(), `PATCH /api/trips returned ${res.status()}`).toBeTruthy();
 }
 
+/** Waits until the page has stopped scrolling: it scrolls smoothly, to a focused handle too. */
+async function atRest(page: Page) {
+  await page.waitForFunction(
+    () => new Promise<boolean>((done) => {
+      const y = window.scrollY;
+      setTimeout(() => done(window.scrollY === y), 300);
+    }),
+  );
+}
+
 const cardIn = (page: Page, dayNumber: number, activityId: string) =>
   page.getByTestId(`day-drop-list-${dayNumber}`).getByTestId(`activity-card-${activityId}`);
 
@@ -266,20 +276,49 @@ test.describe("Move an activity between days", () => {
     await expect(page.locator(`[id="${describedBy}"]`)).toHaveText(/press space or enter, then use the arrow keys/i);
 
     const live = page.locator('[id^="DndLiveRegion"]');
-    // The page scrolls smoothly: the stop is picked up once it has stopped.
     await handle.scrollIntoViewIfNeeded();
-    await page.waitForFunction(
-      () => new Promise<boolean>((done) => {
-        const y = window.scrollY;
-        setTimeout(() => done(window.scrollY === y), 300);
-      }),
-    );
+    await atRest(page);
     await handle.focus();
     await page.keyboard.press("Space");
     await expect(live).toContainText("Castelo de São Jorge: activity ");
     await page.keyboard.press("Escape");
     await expect(live).toHaveText("Move cancelled. Castelo de São Jorge is back as activity 1 of 2 on Day 1.");
     expect(await dayOrder(page, 1)).toEqual(["activity-card-m-d1a1", "activity-card-m-d1a2"]);
+  });
+
+  test("a stop picked up with the keyboard stays on its day until the keys move it", async ({ page, isMobile }) => {
+    test.skip(isMobile, "a keyboard on a computer");
+    await openTrip(page, tripId);
+    const live = page.locator('[id^="DndLiveRegion"]');
+    // Picked up at once, while the page may still be scrolling to the handle.
+    await cardIn(page, 1, "m-d1a1").getByTestId("drag-handle").focus();
+    await page.keyboard.press("Space");
+    await expect(live).toContainText("Castelo de São Jorge: activity ");
+    await page.waitForTimeout(1500);
+    await expect(live).toContainText("on Day 1.");
+    expect(await dayOrder(page, 1)).toEqual(["activity-card-m-d1a1", "activity-card-m-d1a2"]);
+    expect(await dayOrder(page, 3)).toEqual(["activity-card-m-d3a1"]);
+    await page.keyboard.press("Escape");
+    await expect(live).toHaveText("Move cancelled. Castelo de São Jorge is back as activity 1 of 2 on Day 1.");
+  });
+
+  test("the arrow keys take a stop to the next day, and space drops it there", async ({ page, isMobile }) => {
+    test.skip(isMobile, "a keyboard on a computer");
+    await openTrip(page, tripId);
+    const handle = cardIn(page, 1, "m-d1a2").getByTestId("drag-handle");
+    const live = page.locator('[id^="DndLiveRegion"]');
+    await handle.scrollIntoViewIfNeeded();
+    await atRest(page);
+    await handle.focus();
+    await page.keyboard.press("Space");
+    await expect(live).toContainText("Time Out Market lunch: activity 2 of 2 on Day 1.");
+    await page.keyboard.press("ArrowDown");
+    await expect(live).toContainText("on Day 2.");
+    await page.keyboard.press("Space");
+    await persist(page, tripId);
+    await expect(live).toContainText("Dropped Time Out Market lunch: activity ");
+    await expect(cardIn(page, 2, "m-d1a2")).toBeVisible();
+    await expect(cardIn(page, 1, "m-d1a2")).toHaveCount(0);
   });
 
   // The day slider shows one day; the editors still act on that day.
