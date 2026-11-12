@@ -17,7 +17,15 @@ const hero = SRC.slice(at, SRC.indexOf("/>", SRC.indexOf("onBack=", at)));
 
 describe("the trip page's total", () => {
   it("adds up the plan as it stands, with every change", () => {
-    expect(SRC).toMatch(/const planTotal = useMemo\(\(\) => planCosts\(displayItinerary\), \[displayItinerary\]\);/);
+    expect(SRC).toMatch(/const planTotal = useMemo\(\(\) => \{\s*const days = inPlanCurrency\(displayItinerary, /);
+    expect(SRC).toMatch(/return days \? planCosts\(days\) : null;\s*\}, \[displayItinerary, exchangeRates, trip\.budget\?\.currency\]\);/);
+  });
+
+  // A plan can price some stops in another currency: each is converted at the
+  // page's rates before adding, with no total until the rates load.
+  it("converts each stop at the page's rates, its unnamed estimates in the trip's currency", () => {
+    expect(SRC).toMatch(/const \{ exchangeRates \} = useCurrency\(\);/);
+    expect(SRC).toMatch(/inPlanCurrency\(displayItinerary, exchangeRates, trip\.budget\?\.currency \|\| "USD"\)/);
   });
 
   it("shows that total in the header, per person, and never the estimate saved with the plan", () => {

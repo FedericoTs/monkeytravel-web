@@ -16,7 +16,7 @@ import TodayPacking from "@/components/trip/TodayPacking";
 import { useLiveTripState } from "@/lib/trip/useLiveTripState";
 import { computeTripDayState, type TripDayState } from "@/lib/trip/live";
 import { dayBudgetLabel } from "@/lib/trip/day-budget";
-import { planCosts } from "@/lib/ai/assistant/plan-costs";
+import { inPlanCurrency, planCosts } from "@/lib/ai/assistant/plan-costs";
 import ReadOnlyItinerary from "@/components/trip/ReadOnlyItinerary";
 import AiDisclaimer from "@/components/trip/AiDisclaimer";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
@@ -176,7 +176,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
   });
 
   // Currency conversion hook - converts to user's preferred currency
-  const { convert: convertCurrency, format: formatCurrency } = useCurrency();
+  const { convert: convertCurrency, format: formatCurrency, exchangeRates } = useCurrency();
 
   const formatDayBudget = (day: ItineraryDay): string =>
     dayBudgetLabel(day, { convert: convertCurrency, format: formatCurrency }, t('activity.free'), trip.budget?.currency || "USD");
@@ -237,8 +237,12 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
     () => displayItinerary.reduce((acc, day) => acc + day.activities.length, 0),
     [displayItinerary]
   );
-  // What the plan's own stops cost, per person, as the trip page shows it.
-  const planTotal = useMemo(() => planCosts(displayItinerary), [displayItinerary]);
+  // What the plan's own stops cost, per person, as the trip page shows it:
+  // each stop in the plan's currency first, at the page's rates.
+  const planTotal = useMemo(() => {
+    const days = inPlanCurrency(displayItinerary, exchangeRates, trip.budget?.currency || "USD");
+    return days ? planCosts(days) : null;
+  }, [displayItinerary, exchangeRates, trip.budget?.currency]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
