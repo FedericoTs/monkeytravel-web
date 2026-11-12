@@ -34,10 +34,13 @@ import { planCosts, planCurrency } from "@/lib/ai/assistant/plan-costs";
 import { dayMentioned } from "@/lib/ai/assistant/day-target";
 import { currencyRequested } from "@/lib/ai/assistant/currency-request";
 import { readElsewhere, type TripPlace } from "@/lib/ai/assistant/elsewhere";
+import { planRoute, readRoute, type RouteStop } from "@/lib/ai/assistant/route";
+import { askForRoute, routeOfferReply } from "@/lib/ai/assistant/route-reading";
 import type { ItineraryDay } from "@/types";
 import {
   type AssistInput,
   canOfferElsewhere,
+  canOfferRoute,
   buildPrompt,
   MAX_DAYS_PER_REPLY,
   tripLengthLine,
@@ -88,6 +91,8 @@ export interface AssistResult {
   currency?: string;
   /** Places offered for the whole trip, when the traveller asked to go somewhere else. */
   elsewhere?: TripPlace[];
+  /** A new route offered for the whole trip, when the traveller told one. */
+  route?: RouteStop[];
   meta: { model: string; costUsd: number; generationTimeMs: number };
 }
 
@@ -97,6 +102,8 @@ type Outcome = ReturnType<typeof validateEdits> & {
   travelTimes: TravelTime[];
   /** Places offered for the whole trip; only with no change prepared. */
   elsewhere: TripPlace[];
+  /** A new route offered for the whole trip; only with no change prepared. */
+  route: RouteStop[];
 };
 
 /** The model's JSON, as the reply and checked edits this engine works with. */
@@ -122,7 +129,11 @@ function readOutcome(input: AssistInput, obj: Record<string, unknown>, cur: stri
     canOfferElsewhere(input) && edits.length === 0 && checked.tripLength === undefined
       ? readElsewhere(obj.elsewhere, input.destination)
       : [];
-  return { ...checked, edits, reply, moreDays, travelTimes: readTravelTimes(obj.travel_times, length), elsewhere };
+  const route =
+    canOfferRoute(input) && edits.length === 0 && checked.tripLength === undefined && elsewhere.length === 0
+      ? readRoute(obj.route, input.days.length, planRoute(input.days))
+      : [];
+  return { ...checked, edits, reply, moreDays, travelTimes: readTravelTimes(obj.travel_times, length), elsewhere, route };
 }
 
 /**
@@ -660,8 +671,26 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   // named, a longer trip nobody asked for, an answer announced and not given)
   // gets one more try with the rule spelled out, while there's time for one.
   // The first reply stands when the second fails or is no better.
+  // A trip through several cities told a new route: read by a question of its
+  // own (route-reading.ts), asked beside the edit. A route either reads is
+  // offered as a whole, for the page to plan anew, and no day moves for it.
+  const routeRead =
+    canOfferRoute(input) && input.days.some((d) => d.city)
+      ? askForRoute({ message: input.message, days: input.days, startDate: input.startDate, locale: input.locale })
+      : null;
   const prompt = buildPrompt(input);
   let outcome = readOutcome(input, await ask(prompt), cur);
+  const told = routeRead ? await routeRead : { route: [], costUsd: 0 };
+  costUsd += told.costUsd;
+  const route = told.route.length > 0 ? told.route : outcome.route;
+  if (route.length > 0) {
+    return {
+      reply: routeOfferReply(input.locale, route),
+      edits: [],
+      route,
+      meta: { model: modelId, costUsd, generationTimeMs: Date.now() - startedAt },
+    };
+  }
   const correction = correctionFor(input, outcome);
   if (correction && Date.now() - startedAt < CORRECTION_DEADLINE_MS) {
     try {

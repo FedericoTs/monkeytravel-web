@@ -32,5 +32,7 @@
   "tripCap": "{room, plural, =0 {Trips can be at most {max} days, and this one already has {max}, so I haven't added a day.} =1 {Trips can be at most {max} days, so this one can take one more day: ask me for one.} other {Trips can be at most {max} days, so this one can take # more: ask me for up to #.}} I can also fit what you wanted into the days you have, in place of their lightest parts, or you can plan the extra days as a second trip.",
   "missingAnswer": "I couldn't put that answer together. Ask me one thing at a time, like what to do on day 2.",
   "currencySwitched": "Done: prices now show in {code}.",
-  "elsewhereNote": "Pick a place below and I'll plan it for the same dates."
+  "elsewhereNote": "Pick a place below and I'll plan it for the same dates.",
+  "routeStop": "{name} ({days, plural, =1 {# day} other {# days}})",
+  "routeOffer": "Your new route: {route}. Tap the button below and I'll plan the whole trip that way, for the same dates."
 }

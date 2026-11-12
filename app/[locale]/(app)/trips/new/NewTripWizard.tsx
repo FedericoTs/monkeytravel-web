@@ -39,6 +39,7 @@ import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
 import type { PlacePrediction } from "@/components/ui/DestinationAutocomplete";
 import { isTripSentence, looksLikeRequest, matchesPlace, pencilledDates, readTripSentence } from "@/lib/wizard/trip-sentence";
 import { fetchReading, fillOf } from "@/lib/wizard/request-reading";
+import { routeRows, type RouteStop } from "@/lib/ai/assistant/route";
 import AnchorEditor from "@/components/trip/AnchorEditor";
 import { buildSeasonalContext } from "@/lib/seasonal";
 import { generateWithRecovery } from "@/lib/wizard/generation-recovery";
@@ -1257,6 +1258,15 @@ export default function NewTripPage({
     generateWhenSetRef.current = true;
   };
 
+  // The assistant offered a new route for the whole trip and the traveller
+  // took it: planned anew along it, for the same dates and style. The plan on
+  // screen stays in the session tray.
+  const handlePlanRoute = (route: RouteStop[]) => {
+    setMultiCityMode(true);
+    setCityRows(routeRows(route));
+    generateWhenSetRef.current = true;
+  };
+
   // Generates once the fields set above have landed in state (the place name
   // always replaces what was there, so this runs after every such request).
   useEffect(() => {
@@ -1697,6 +1707,7 @@ export default function NewTripPage({
               onApplyEdits={applyEdits}
               onUndoEdits={undoEdits}
               onPlanElsewhere={handlePlanElsewhere}
+              onPlanRoute={MULTI_CITY_ENABLED ? handlePlanRoute : undefined}
               asked={assistantAsked}
               // Post-edit save bridge. Only offered while the
               // trip is unsaved AND the manual save arm owns persistence —
