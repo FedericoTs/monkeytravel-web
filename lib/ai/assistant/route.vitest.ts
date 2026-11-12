@@ -23,7 +23,7 @@ describe("readRoute: a route the page can plan", () => {
   });
 
   it("refuses one stop, more than a trip may have, or the same place twice running", () => {
-    expect(readRoute([stop("Lisboa", 14)], 14, current)).toEqual([]);
+    expect(readRoute([stop("Lisboa", 7)], 7, current)).toEqual([]);
     expect(readRoute(Array.from({ length: 6 }, (_, i) => stop(`City ${String.fromCharCode(65 + i)}`, 2)), 12, current)).toEqual([]);
     expect(readRoute([stop("Lisboa", 4), stop("lisboa", 4), stop("Porto", 6)], 14, current)).toEqual([]);
   });
