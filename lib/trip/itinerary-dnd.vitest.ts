@@ -5,10 +5,12 @@ import {
   dayDropId,
   dayHeaderId,
   describeMove,
+  dragAnnouncements,
   isSameDayTarget,
   locateActivity,
   parseDropId,
   resolveTarget,
+  stopPlace,
 } from "./itinerary-dnd";
 
 const act = (id: string, start = "09:00"): Activity =>
@@ -130,5 +132,47 @@ describe("describeMove", () => {
       crossedDays: true,
     });
     expect(describeMove(before, before, "ghost")).toBeNull();
+  });
+});
+
+describe("stopPlace: where a dragged stop is, or lands", () => {
+  it("names the stop, its day and its place in that day", () => {
+    expect(stopPlace(base(), "a2")).toEqual({ name: "a2", day: 1, position: 2, count: 3 });
+    expect(stopPlace(base(), "nope")).toBeNull();
+  });
+
+  it("says where a drop on a stop, a day or a day's header puts it, as the drop does", () => {
+    expect(stopPlace(base(), "a3", "a1")).toEqual({ name: "a3", day: 1, position: 1, count: 3 });
+    expect(stopPlace(base(), "a1", "b2")).toEqual({ name: "a1", day: 2, position: 2, count: 3 });
+    expect(stopPlace(base(), "a1", dayDropId(2))).toEqual({ name: "a1", day: 2, position: 3, count: 3 });
+    expect(stopPlace(base(), "b2", dayHeaderId(1))).toEqual({ name: "b2", day: 1, position: 1, count: 4 });
+    expect(stopPlace(base(), "a2", dayDropId(3))).toEqual({ name: "a2", day: 3, position: 1, count: 1 });
+  });
+});
+
+describe("dragAnnouncements", () => {
+  const say = (key: string, p: { name: string; day: number; position: number; count: number }) =>
+    `${key}: ${p.name} ${p.position}/${p.count} day ${p.day}`;
+
+  it("says the stop and its place when picked up, moved and dropped, from the plan as shown", () => {
+    // While dragging, the page shows a1 already moved to day 2.
+    const shown = applyMove(base(), "a1", dayDropId(2));
+    const tell = dragAnnouncements(say, () => shown, () => base());
+    expect(tell.onDragStart({ active: { id: "a1" } })).toBe("pickedUp: a1 3/3 day 2");
+    expect(tell.onDragOver({ active: { id: "a1" }, over: { id: "b1" } })).toBe("over: a1 1/3 day 2");
+    expect(tell.onDragEnd({ active: { id: "a1" }, over: { id: dayHeaderId(1) } })).toBe("dropped: a1 1/3 day 1");
+    expect(tell.onDragEnd({ active: { id: "a1" }, over: null })).toBe("dropped: a1 3/3 day 2");
+  });
+
+  it("says a cancelled move put the stop back where it was", () => {
+    const shown = applyMove(base(), "a1", dayDropId(2));
+    const tell = dragAnnouncements(say, () => shown, () => base());
+    expect(tell.onDragCancel({ active: { id: "a1" } })).toBe("cancelled: a1 1/3 day 1");
+  });
+
+  it("says nothing over no target, or for a stop it can't find", () => {
+    const tell = dragAnnouncements(say, () => base(), () => base());
+    expect(tell.onDragOver({ active: { id: "a1" }, over: null })).toBeUndefined();
+    expect(tell.onDragStart({ active: { id: "gone" } })).toBeUndefined();
   });
 });

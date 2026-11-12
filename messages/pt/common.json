@@ -178,7 +178,12 @@
   "drag": {
     "title": "Segure e arraste para reordenar ou mover para outro dia",
     "ariaLabel": "Alça: segure e arraste para reordenar ou mover para outro dia",
-    "hint": "Arrastar"
+    "hint": "Arrastar",
+    "instructions": "Para mover uma atividade, pressione espaço ou enter e use as setas. Pressione espaço ou enter de novo para soltá-la, ou esc para cancelar.",
+    "pickedUp": "Movendo {name}: atividade {position} de {count} do dia {day}.",
+    "over": "{name}: atividade {position} de {count} do dia {day}.",
+    "dropped": "Pronto: {name} é a atividade {position} de {count} do dia {day}.",
+    "cancelled": "Mudança cancelada: {name} volta a ser a atividade {position} de {count} do dia {day}."
   },
   "validation": {
     "required": "Este campo é obrigatório",
