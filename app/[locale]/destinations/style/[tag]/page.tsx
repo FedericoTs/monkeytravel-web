@@ -128,7 +128,7 @@ export default async function DestinationStylePage({ params }: PageProps) {
               <span className="text-[var(--foreground)] font-medium">{tagLabel}</span>
             </nav>
 
-            <p className="text-sm font-semibold uppercase tracking-wider text-[var(--primary-ink)] mb-2">
+            <p className="text-sm font-semibold uppercase tracking-wider text-[var(--foreground-muted)] mb-2">
               {t("style.eyebrow")}
             </p>
             <h1 className="text-4xl sm:text-5xl font-bold text-[var(--foreground)] mb-4 tracking-tight">
