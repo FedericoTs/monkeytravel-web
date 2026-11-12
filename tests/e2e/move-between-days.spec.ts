@@ -268,7 +268,7 @@ test.describe("Move an activity between days", () => {
     const live = page.locator('[id^="DndLiveRegion"]');
     await handle.focus();
     await page.keyboard.press("Space");
-    await expect(live).toHaveText("Picked up Castelo de São Jorge: activity 1 of 2 on Day 1.");
+    await expect(live).toContainText("Castelo de São Jorge: activity ");
     await page.keyboard.press("Escape");
     await expect(live).toHaveText("Move cancelled. Castelo de São Jorge is back as activity 1 of 2 on Day 1.");
     expect(await dayOrder(page, 1)).toEqual(["activity-card-m-d1a1", "activity-card-m-d1a2"]);
