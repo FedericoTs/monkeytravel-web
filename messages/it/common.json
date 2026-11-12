@@ -178,7 +178,12 @@
   "drag": {
     "title": "Tieni premuto e trascina per riordinare o spostare in un altro giorno",
     "ariaLabel": "Maniglia: tieni premuto e trascina per riordinare o spostare in un altro giorno",
-    "hint": "Trascina"
+    "hint": "Trascina",
+    "instructions": "Per spostare un'attività, premi spazio o invio e usa le frecce. Premi di nuovo spazio o invio per lasciarla, o esc per annullare.",
+    "pickedUp": "Stai spostando {name}: attività {position} di {count} del giorno {day}.",
+    "over": "{name}: attività {position} di {count} del giorno {day}.",
+    "dropped": "Fatto: {name} è l'attività {position} di {count} del giorno {day}.",
+    "cancelled": "Spostamento annullato: {name} torna attività {position} di {count} del giorno {day}."
   },
   "validation": {
     "required": "Questo campo è obbligatorio",
