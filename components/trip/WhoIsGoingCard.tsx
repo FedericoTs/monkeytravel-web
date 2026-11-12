@@ -124,7 +124,7 @@ export default function WhoIsGoingCard({ tripId, onShare, className = "" }: WhoI
         <h2 className="text-base font-bold text-slate-900">
           {t("share.participants.whoIsGoing")}
           <span
-            className={`ml-2 rounded-full bg-[var(--primary)]/10 px-2 py-0.5 text-xs font-semibold text-[var(--primary-ink)] ${rows === null ? "invisible" : ""}`}
+            className={`ml-2 rounded-full bg-[var(--primary)]/10 px-2 py-0.5 text-xs font-semibold text-[var(--foreground)] ${rows === null ? "invisible" : ""}`}
             aria-hidden={rows === null || undefined}
           >
             {t("share.participants.going", { count })}

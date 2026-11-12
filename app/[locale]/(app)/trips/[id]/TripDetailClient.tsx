@@ -890,45 +890,49 @@ export default function TripDetailClient({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
-      {/* Hero with Cover Image - Enhanced with weather and stats */}
-      <DestinationHero
-        destination={destination}
-        title={trip.title}
-        subtitle={trip.description}
-        dateRange={dateRange}
-        onEditDates={ambientEdit ? () => setShowChangeDates(true) : undefined}
-        editDatesLabel={t("wizard.changeDates.button")}
-        budget={trip.budget?.total ? trip.budget : undefined}
-        days={trip.itinerary.length}
-        nights={tripNights(trip.startDate, trip.endDate)}
-        activitiesCount={displayItinerary.reduce((acc, day) => acc + day.activities.length, 0)}
-        weatherNote={trip.meta?.weather_note}
-        highlights={trip.meta?.highlights}
-        tags={trip.tags}
-        showBackButton={true}
-        onBack={() => window.history.back()}
-        coverImageUrl={coverImageUrl}
-        // When the trip has a persisted cover URL, skip the Places API
-        // entirely. Without one, allow ONE fetch + persist it via the
-        // callback below (owner only) so later visits read straight from
-        // the DB. Disabling the API unconditionally would leave trips with
-        // no stored cover on the gradient fallback forever.
-        disableApiCalls={!!coverImageUrl}
-        onCoverImageFetched={handleCoverImageFetched}
-      >
-        {/* Status Badge + Backpacker badge stack — top-right of hero.
-            The Backpacker badge renders for trips generated in Backpacker
-            Mode: a visible cue of what backpacker mode looks like. */}
-        <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
-          <TripStatusBadge status={shownStatus} />
-          {trip.meta?.travel_style === "backpacker" && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-emerald-500 text-white">
-              <span aria-hidden>🎒</span>
-              {tCommon("shared.backpackerRoute")}
-            </span>
-          )}
-        </div>
-      </DestinationHero>
+      {/* Hero with Cover Image - Enhanced with weather and stats. The page's header
+          landmark: the trip's title, dates and status, outside <main> but not
+          outside every landmark. */}
+      <header>
+        <DestinationHero
+          destination={destination}
+          title={trip.title}
+          subtitle={trip.description}
+          dateRange={dateRange}
+          onEditDates={ambientEdit ? () => setShowChangeDates(true) : undefined}
+          editDatesLabel={t("wizard.changeDates.button")}
+          budget={trip.budget?.total ? trip.budget : undefined}
+          days={trip.itinerary.length}
+          nights={tripNights(trip.startDate, trip.endDate)}
+          activitiesCount={displayItinerary.reduce((acc, day) => acc + day.activities.length, 0)}
+          weatherNote={trip.meta?.weather_note}
+          highlights={trip.meta?.highlights}
+          tags={trip.tags}
+          showBackButton={true}
+          onBack={() => window.history.back()}
+          coverImageUrl={coverImageUrl}
+          // When the trip has a persisted cover URL, skip the Places API
+          // entirely. Without one, allow ONE fetch + persist it via the
+          // callback below (owner only) so later visits read straight from
+          // the DB. Disabling the API unconditionally would leave trips with
+          // no stored cover on the gradient fallback forever.
+          disableApiCalls={!!coverImageUrl}
+          onCoverImageFetched={handleCoverImageFetched}
+        >
+          {/* Status Badge + Backpacker badge stack — top-right of hero.
+              The Backpacker badge renders for trips generated in Backpacker
+              Mode: a visible cue of what backpacker mode looks like. */}
+          <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
+            <TripStatusBadge status={shownStatus} />
+            {trip.meta?.travel_style === "backpacker" && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-emerald-500 text-white">
+                <span aria-hidden>🎒</span>
+                {tCommon("shared.backpackerRoute")}
+              </span>
+            )}
+          </div>
+        </DestinationHero>
+      </header>
 
       {/*
         On lg+ the assistant is a 420px panel docked to the right. Make room
