@@ -65,7 +65,20 @@ describe("who's coming", () => {
     expect(buildUserPrompt(trip({ tripIntent: "group" }))).toContain("- Travellers: friends travelling together.");
   });
 
-  it.each(["solo", "group"] as const)("asks for %s to show in the choices rather than in every tip", (tripIntent) => {
+  it("plans for two when a couple is going, without assuming romance", () => {
+    const prompt = buildUserPrompt(trip({ tripIntent: "couple" }));
+    expect(prompt).toContain("- Travellers: two people travelling together.");
+    expect(prompt).toContain("Don't assume it's a romantic trip unless the vibes say so.");
+  });
+
+  it("plans for children when a family is going, with no bars or late nights", () => {
+    const prompt = buildUserPrompt(trip({ tripIntent: "family" }));
+    expect(prompt).toContain("- Travellers: a family with children.");
+    expect(prompt).toContain("Use any ages under Special Requirements.");
+    expect(prompt).toContain("Don't plan bars or late nights as stops.");
+  });
+
+  it.each(["solo", "couple", "family", "group"] as const)("asks for %s to show in the choices rather than in every tip", (tripIntent) => {
     expect(buildUserPrompt(trip({ tripIntent }))).toContain("Show this in what you choose, and mention it only where it helps.");
   });
 

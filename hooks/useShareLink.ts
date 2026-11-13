@@ -10,6 +10,7 @@ import { shareFile } from "@/lib/native/share";
 import { captureTripCardShared } from "@/lib/posthog/events";
 import { tripCardPath } from "@/lib/seo/og-image";
 import { defaultShareFraming, framedShareUrl, shareTokenFromUrl, type ShareFraming } from "@/lib/trips/crew-share";
+import type { ChosenTripIntent } from "@/lib/wizard/answers";
 
 /**
  * The share window's link tab: which link the owner hands out, copying and sending
@@ -28,7 +29,7 @@ export function useShareLink({
   tripId: string;
   tripTitle: string;
   shareUrl: string;
-  tripIntent?: "solo" | "group" | null;
+  tripIntent?: ChosenTripIntent | null;
   isInTrending: boolean;
   onTrendingChange?: (isTrending: boolean) => void;
   onRequestPublish?: () => void;

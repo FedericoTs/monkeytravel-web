@@ -25,8 +25,17 @@ export function withNote(requirements: string, note: string): string {
 }
 
 /** The answers to "Who's coming?" the wizard offers. "unspecified" is no answer, so it isn't one. */
-export const CHOSEN_TRIP_INTENTS = ["solo", "group"] as const;
+export const CHOSEN_TRIP_INTENTS = ["solo", "couple", "family", "group"] as const;
 export type ChosenTripIntent = (typeof CHOSEN_TRIP_INTENTS)[number];
+
+/**
+ * Whether a trip's people are shared with as a group: the share link opens on
+ * the vote, and the reminder emails ask to add the people coming. Friends and
+ * a family are; one person isn't, and a couple gets the plain link.
+ */
+export function sharesAsGroup(intent: unknown): boolean {
+  return intent === "group" || intent === "family";
+}
 
 /**
  * Whether a value is an answer to "Who's coming?". Every place a plan carries

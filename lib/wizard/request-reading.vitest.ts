@@ -79,7 +79,7 @@ describe("fillOf", () => {
       startDate: "2026-12-01",
       endDate: "2026-12-05",
       datesSaid: false,
-      intent: "group",
+      intent: "family",
     });
     expect(fill({ month: 7 })).toMatchObject({ destination: "", startDate: "2027-07-15", endDate: "2027-07-19" });
     // No time said: the dates stay as they are.
@@ -94,7 +94,7 @@ describe("fillOf", () => {
       endDate: "2027-08-24",
       datesSaid: false,
       capped: null,
-      intent: "group",
+      intent: "family",
       vibes: [],
       budget: null,
     });
@@ -102,11 +102,13 @@ describe("fillOf", () => {
     expect(fill({ places: [{ name: "Natal", days: null }] })).toMatchObject({ startDate: "2026-12-01", endDate: "2026-12-05" });
   });
 
-  it("goes solo or as a group as the wizard does; a couple sets neither", () => {
+  it("answers Who's coming? as the wizard offers it: friends are the group", () => {
     const natal = { places: [{ name: "Natal", days: null }] };
     expect(fill({ ...natal, who: "solo" })?.intent).toBe("solo");
     expect(fill({ ...natal, who: "friends" })?.intent).toBe("group");
-    expect(fill({ ...natal, who: "couple" })?.intent).toBeNull();
+    expect(fill({ ...natal, who: "couple" })?.intent).toBe("couple");
+    expect(fill({ ...natal, who: "family" })?.intent).toBe("family");
+    expect(fill({ ...natal })?.intent).toBeNull();
   });
 
   it("keeps the most days a trip may have, and says so", () => {

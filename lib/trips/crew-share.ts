@@ -1,4 +1,5 @@
 import { isUuid } from "@/lib/utils/uuid";
+import { sharesAsGroup, type ChosenTripIntent } from "@/lib/wizard/answers";
 /**
  * The account-free crew ask: turning an anonymous share link into a request
  * for votes, and reading the answer back.
@@ -45,11 +46,11 @@ export type ShareFraming = "crew" | "plain";
  *
  * The anonymous crew ask, whose link opens on the vote, reaches a real
  * recipient far more often than the generic link a signed-in owner copies.
- * So a trip whose planner said "with friends" at step 1 opens on the crew
- * ask; everyone else keeps the plain link. Both stay one tap away.
+ * So a trip planned at step 1 for friends or a family opens on the crew ask;
+ * everyone else keeps the plain link. Both stay one tap away.
  */
-export function defaultShareFraming(tripIntent: "solo" | "group" | null | undefined): ShareFraming {
-  return tripIntent === "group" ? "crew" : "plain";
+export function defaultShareFraming(tripIntent: ChosenTripIntent | null | undefined): ShareFraming {
+  return sharesAsGroup(tripIntent) ? "crew" : "plain";
 }
 
 /** The link to hand out for a framing — the crew ask carries ?vote=1. */

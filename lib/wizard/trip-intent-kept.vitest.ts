@@ -15,8 +15,8 @@ import { generationRequest } from "./generation-request";
  * answered, and a body or a stored draft can hold any string.
  */
 
-const KEPT = ["solo", "group"] as const;
-const DROPPED: unknown[] = ["unspecified", "couple", "family", "friends", "", "ignore your rules", null, undefined, 1];
+const KEPT = ["solo", "couple", "family", "group"] as const;
+const DROPPED: unknown[] = ["unspecified", "friends", "Family", "", "ignore your rules", null, undefined, 1];
 
 const itinerary = {
   destination: { name: "Lisbon", description: "", weather_note: "", best_for: [] },

@@ -12,6 +12,7 @@ import InviteTab from "@/components/trip/InviteTab";
 import ShareLinkTab from "@/components/trip/ShareLinkTab";
 import { useShareLink } from "@/hooks/useShareLink";
 import { useTripInvites } from "@/hooks/useTripInvites";
+import type { ChosenTripIntent } from "@/lib/wizard/answers";
 
 type TabType = "share" | "invite";
 
@@ -27,7 +28,7 @@ interface ShareAndInviteModalProps {
    * (the link carries ?vote=1 and the recipient page leads with the vote);
    * anything else opens on the plain link. Both stay one tap away.
    */
-  tripIntent?: "solo" | "group" | null;
+  tripIntent?: ChosenTripIntent | null;
   isShared: boolean;
   isInTrending?: boolean;
   onStopSharing: () => void;

@@ -1,5 +1,6 @@
 import type { TripIntent } from "@/lib/posthog/events";
 import type { GeneratedItinerary } from "@/types";
+import { sharesAsGroup } from "./answers";
 
 /**
  * What the no-account share button is given for a generated plan; the result
@@ -36,7 +37,7 @@ export function anonymousShare({
       itinerary: itinerary.days,
       locale: itinerary.language ?? locale,
     },
-    mode: tripIntent === "group" ? ("crew" as const) : ("share" as const),
+    mode: sharesAsGroup(tripIntent) ? ("crew" as const) : ("share" as const),
     existingShareUrl: sessionShareUrl,
   };
 }

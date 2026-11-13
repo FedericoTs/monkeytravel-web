@@ -214,6 +214,7 @@ import { newTripTitle } from "@/lib/trips/title";
 import AiDisclaimer from "@/components/trip/AiDisclaimer";
 import { useTravelDistances } from "@/hooks/useTravelDistances";
 import { useMultiCityRoute } from "@/hooks/useMultiCityRoute";
+import { isChosenTripIntent } from "@/lib/wizard/answers";
 
 // Upper bound for the wizard start date (see lib/dates/iso-date.ts).
 const MAX_TRIP_START_DATE = maxTripStartDate();
@@ -401,14 +402,14 @@ export default function NewTripPage({
   // The plan as it streams in, for GenerationProgress (hooks/useGenerationProgress.ts).
   const streamed = useGenerationProgress();
 
-  // Solo vs group intent. Captured as PostHog `trip_intent_selected`,
+  // Who's coming. Captured as PostHog `trip_intent_selected`,
   // forwarded as group_size / trip_intent on later events and saved with the
   // trip, so collab demand is measurable. Group intent also shows an invite
-  // hint in step 1 and puts the anonymous share button in crew mode.
+  // hint in step 1; group and family put the anonymous share button in crew mode.
   // "unspecified" = user clicked Continue without touching the toggle.
   const [tripIntent, setTripIntent] = useState<TripIntent>(() => {
     const who = searchParams?.get("who");
-    return who === "solo" || who === "group" ? who : "unspecified";
+    return isChosenTripIntent(who) ? who : "unspecified";
   });
 
   // Auth state comes from the single AuthProvider, not a local getUser()

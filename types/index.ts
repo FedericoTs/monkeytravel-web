@@ -1,4 +1,5 @@
 import type { SupportedLanguage } from "@/lib/ai/language";
+import type { ChosenTripIntent } from "@/lib/wizard/answers";
 // Bananas currency system types
 export * from './bananas';
 
@@ -269,7 +270,7 @@ export interface TripMeta {
    * picked, so `undefined` means unanswered rather than "solo" — the two are
    * different and the share prompt branches on that distinction.
    */
-  trip_intent?: "solo" | "group";
+  trip_intent?: ChosenTripIntent;
   /**
    * Language the itinerary text is written in (Live Trip plan, Phase 1.3).
    * Stamped from the generation language at creation; every route that
@@ -505,7 +506,7 @@ export interface TripCreationParams {
    * The answer to "Who's coming?". It shapes the plan (lib/ai/trip-prompt.ts),
    * so a plan with it neither comes from the shared cache nor goes into it.
    */
-  tripIntent?: "solo" | "group";
+  tripIntent?: ChosenTripIntent;
   /** Sunrise and sunset at the destination, worked out by the server (lib/ai/daylight.ts). */
   daylight?: TripDaylight;
   /**

@@ -24,7 +24,7 @@ import type { PencilledDates } from "@/lib/trips/pencilled-dates";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { logWriteError } from "@/lib/supabase/log-write-error";
 import { tripSpanDays } from "@/lib/dates/iso-date";
-import { isChosenTripIntent } from "@/lib/wizard/answers";
+import { isChosenTripIntent, type ChosenTripIntent } from "@/lib/wizard/answers";
 
 export interface TripFormState {
   destination: string;
@@ -80,7 +80,7 @@ export interface TripFormState {
    * "unspecified" is not persisted (the key stays absent), so a row carrying
    * trip_intent means the user actively chose.
    */
-  tripIntent?: "solo" | "group" | "unspecified";
+  tripIntent?: ChosenTripIntent | "unspecified";
   /**
    * The dates were pencilled in for the traveller ("flexible dates", a plan
    * from one sentence) rather than chosen. Written as trip_meta.dates_pencilled
