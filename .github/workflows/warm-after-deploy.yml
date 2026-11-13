@@ -1,0 +1,61 @@
+name: Warm up after a deploy
+
+# The servers of a new deployment have never run, and each page and each API
+# has its own: whoever asks first waits for it to start. After each successful
+# production deploy this job asks first, once per address below, so that a
+# visitor does not.
+#
+# Only GETs, and nothing they answer matters. A page a signed-out visitor
+# cannot open answers with a redirect or "not found", an API that takes only
+# POST answers 405, and a missing id or token is refused: each of those comes
+# from a server that has started, which is all this is for. The user agent
+# marks the visits as our own tooling (lib/analytics/bot-detection.ts).
+
+on:
+  deployment_status:
+
+permissions: {}
+
+jobs:
+  warm:
+    if: github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ask each address once
+        run: |
+          # The site's address moves to the new deployment a moment after the
+          # deployment reports success.
+          sleep 30
+          xargs -P 8 -I{} curl -s -o /dev/null -m 40 -A "monkeytravel-warmup/1 (+internal)" -w "%{http_code} %{time_starttransfer}s {}\n" "https://monkeytravel.app{}" <<'ADDRESSES' || true
+          /trips/new
+          /explore
+          /trip/warm-up
+          /trips/00000000-0000-4000-8000-000000000000
+          /shared/00000000-0000-4000-8000-000000000000
+          /creator/warm-up
+          /auth/login
+          /profile
+          /api/explore/trips
+          /api/admin/config
+          /api/destinations/popular
+          /api/wizard/planning-stats
+          /api/places/photo
+          /api/img/proxy/warm-up
+          /api/images/wikimedia/warm-up
+          /api/trips/00000000-0000-4000-8000-000000000000
+          /api/trips/00000000-0000-4000-8000-000000000000/participants
+          /api/trips/00000000-0000-4000-8000-000000000000/checklist
+          /api/trips/00000000-0000-4000-8000-000000000000/view
+          /api/trips/00000000-0000-4000-8000-000000000000/travel-cache
+          /api/ai/generate/stream
+          /api/ai/generate
+          /api/ai/assistant-anon
+          /api/consent-event
+          /api/page-view
+          /api/page-engaged
+          /api/wizard-event
+          /api/destinations/search
+          /api/activities/search
+          /api/plans
+          ADDRESSES
