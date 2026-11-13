@@ -26,6 +26,11 @@ const MIN_WIDTH = 1000;
 const SQUARE = 1;
 // The item's own image, then its panoramic, night, aerial and interior views.
 const IMAGE_PROPERTIES = ["P18", "P4291", "P3451", "P8592", "P5775"];
+// Where those are all taller than wide or too small: the photo the place's
+// Wikipedia articles lead with, in these wikis' order.
+const LEAD_WIKIS = ["en", "de", "fr", "es", "it", "pt"];
+// Two places in one name, in the plans' languages: "Roman Forum and Palatine Hill".
+const JOINED = /\s+(?:and|y|e|ed|et|und)\s+/i;
 const LANGUAGES = "en|mul|fr|es|it|pt|de|ca|nl|ja|el|hu|cs|pl|tr|id|ko|zh";
 // Instances of these are not sights: stops and stations, airports, hotels, companies.
 const NOT_A_SIGHT = new Set(["Q953806", "Q2175765", "Q928830", "Q55488", "Q1248784", "Q644371", "Q27686", "Q783794", "Q4830453", "Q6881511", "Q891723"]);
@@ -120,7 +125,11 @@ export function nameVariants(names: string[], meal = false): string[] {
     const bare = bareName(name);
     // A part that is only kinds of place ("Restaurant") names nothing.
     const parts = bare.split(/\s+[|–—-]\s+|\s*\|\s*|\s*&\s*|[()]/).filter((p) => nameTokens(p).some((t) => !isKind(t)));
-    for (const n of [name, bare, ...(meal ? parts.slice(0, 1) : parts)]) {
+    // Two sights joined by "and" are each a way to name the place. Not a
+    // meal's ("Salt and Pepper" is one restaurant), and not a name of two
+    // words ("Fortnum and Mason" is one shop).
+    const joined = !meal && nameTokens(bare).length >= 3 ? bare.split(JOINED).filter((p) => nameTokens(p).some((t) => !isKind(t))) : [];
+    for (const n of [name, bare, ...(meal ? parts.slice(0, 1) : parts), ...(joined.length > 1 ? joined : [])]) {
       const v = n.trim();
       if (v && !out.includes(v) && nameTokens(v).some((t) => !isKind(t))) out.push(v);
     }
@@ -240,12 +249,35 @@ async function searchItems(text: string, q: LandmarkQuery, signal: AbortSignal):
   return (d.query?.search ?? []).map((s) => s.title);
 }
 
-async function entities(ids: string[], props: string, signal: AbortSignal): Promise<Record<string, Labelled & { claims?: Record<string, Snak[]> }>> {
+type Entity = Labelled & { claims?: Record<string, Snak[]>; sitelinks?: Record<string, { title?: string }> };
+
+async function entities(ids: string[], props: string, signal: AbortSignal): Promise<Record<string, Entity>> {
   if (!ids.length) return {};
   const d = (await wiki(WIKIDATA_API, { action: "wbgetentities", ids: ids.join("|"), props, languages: LANGUAGES }, signal)) as {
-    entities?: Record<string, Labelled & { claims?: Record<string, Snak[]> }>;
+    entities?: Record<string, Entity>;
   };
   return d.entities ?? {};
+}
+
+/** The lead photos of the item's Wikipedia articles, in LEAD_WIKIS order; an article that can't be read is skipped. */
+async function leadPhotoNames(sitelinks: Record<string, { title?: string }>, signal: AbortSignal): Promise<string[]> {
+  const names = await Promise.all(
+    LEAD_WIKIS.map(async (lang) => {
+      const title = sitelinks[`${lang}wiki`]?.title;
+      if (!title) return null;
+      try {
+        const d = (await wiki(
+          `https://${lang}.wikipedia.org/w/api.php`,
+          { action: "query", prop: "pageimages", piprop: "name", pilicense: "free", titles: title },
+          signal,
+        )) as { query?: { pages?: { pageimage?: string }[] } };
+        return d.query?.pages?.[0]?.pageimage ?? null;
+      } catch {
+        return null;
+      }
+    }),
+  );
+  return [...new Set(names.filter((n): n is string => !!n))];
 }
 
 /** The Commons photo of the place the activity names, or null when Wikidata has no usable one. */
@@ -271,7 +303,8 @@ export async function findLandmarkPhoto(q: LandmarkQuery, signal: AbortSignal): 
   // The best-named item near the activity that is a sight; nothing else is the place.
   for (const { id, score } of ranked.slice(0, 2)) {
     if (score < ranked[0].score) break;
-    const claims = (await entities([id], "claims", signal))[id]?.claims ?? {};
+    const entity = (await entities([id], "claims|sitelinks", signal))[id];
+    const claims = entity?.claims ?? {};
     const at = claims.P625?.[0]?.mainsnak?.datavalue?.value as { latitude?: number; longitude?: number } | undefined;
     if (typeof at?.latitude !== "number" || typeof at.longitude !== "number") continue;
     if (distanceM(q.lat, q.lng, at.latitude, at.longitude) > RADIUS_M) continue;
@@ -285,7 +318,12 @@ export async function findLandmarkPhoto(q: LandmarkQuery, signal: AbortSignal): 
       (n): n is string => typeof n === "string",
     );
     const files = await commonsFiles([...new Set(names)].slice(0, 8), signal);
-    return files.find((f) => isUsableView(f, MIN_WIDTH, SQUARE)) ?? null;
+    const own = files.find((f) => isUsableView(f, MIN_WIDTH, SQUARE));
+    if (own) return own;
+    // Its own photos are all taller than wide or too small (a square's long
+    // panorama, a museum's entrance): the photo its Wikipedia articles lead with.
+    const leads = await commonsFiles(await leadPhotoNames(entity?.sitelinks ?? {}, signal), signal);
+    return leads.find((f) => isUsableView(f, MIN_WIDTH, SQUARE)) ?? null;
   }
   return null;
 }
