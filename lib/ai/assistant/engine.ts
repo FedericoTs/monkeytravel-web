@@ -64,7 +64,7 @@ import {
   asksForEveryDay,
 } from "./message-asks";
 import { alsoInTheirCity, daysOfCity, keepDayCities, placesAway, withoutPlacesAway, type PlacesAway } from "./city-days";
-import { type TravelTime, readTravelTimes, outsideTravelTimes, minutesOf } from "./travel-times";
+import { type TravelTime, readTravelTimes, outsideTravelTimes, minutesOf, keepDepartureTime, withPlanDeparture } from "./travel-times";
 import { composeReply, type PlaceOnDay } from "./edit-reply";
 import { maxTripDays } from "./structural";
 import { askForNames, gluedNames, renamesOf, withNames } from "@/lib/ai/one-script-names";
@@ -119,7 +119,11 @@ function readOutcome(input: AssistInput, obj: Record<string, unknown>, cur: stri
     asksForFreeDay(input.message),
   );
   const told = [input.message, ...(input.history ?? []).slice(-4).filter((t) => t.role === "user").map((t) => t.text)].join("\n");
-  const edits = keepDayCities(input.days, keepSavedActivities(input.days, checked.edits, { reply, message: input.message }), told);
+  const edits = keepDepartureTime(
+    input.days,
+    keepDayCities(input.days, keepSavedActivities(input.days, checked.edits, { reply, message: input.message }), told),
+    input.message,
+  );
   // The other days the change concerns, past what one reply holds.
   const length = checked.tripLength ?? input.days.length;
   const done = new Set(edits.map((e) => e.day_number));
@@ -505,7 +509,7 @@ export function correctionFor(
   // The days this reply changes, and every day when the message gives a time:
   // that is when the plan must first be fitted to it.
   const timed = TELLS_TIME.test(input.message) ? withEdits(input.days, o.edits) : o.edits;
-  const outside = outsideTravelTimes(timed, o.travelTimes ?? [])[0];
+  const outside = outsideTravelTimes(timed, withPlanDeparture(o.travelTimes ?? [], input.days))[0];
   if (outside) {
     const late = outside.from !== null && minutesOf(outside.from) >= 22 * 60;
     const when = [
@@ -975,7 +979,7 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   }
   // Rarely, a changed day still doesn't fit an arrival or a departure after
   // the correction: the reply says so rather than leave it for the airport.
-  const outsideTimes = outsideTravelTimes(edits, outcome.travelTimes);
+  const outsideTimes = outsideTravelTimes(edits, withPlanDeparture(outcome.travelTimes, input.days));
   // A list that still came back short says what's missing, whatever the reply claims.
   const listMissing = daysLeft.length === 0 ? missingFromList(input, edits) : [];
 
