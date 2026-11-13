@@ -13,7 +13,7 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { GeneratedItinerary, TripAnchor, TripVibe, BudgetTier, TripPace } from "@/types";
+import type { GeneratedItinerary, TripAnchor, TripStay, TripVibe, BudgetTier, TripPace } from "@/types";
 import { splitCities } from "@/lib/ai/multi-city-core";
 import { isSupportedLanguage, resolveAiLanguage } from "@/lib/ai/language";
 import { isValidTimeZone } from "@/lib/trip/live";
@@ -24,6 +24,7 @@ import type { PencilledDates } from "@/lib/trips/pencilled-dates";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { logWriteError } from "@/lib/supabase/log-write-error";
 import { tripSpanDays } from "@/lib/dates/iso-date";
+import { isChosenTripIntent } from "@/lib/wizard/answers";
 
 export interface TripFormState {
   destination: string;
@@ -86,6 +87,8 @@ export interface TripFormState {
    * (lib/trips/pencilled-dates.ts): the trip's emails wait until its dates change.
    */
   flexibleDates?: boolean;
+  /** Where they're staying, when they said; written as trip_meta.stay. */
+  stay?: TripStay | null;
 }
 
 /**
@@ -206,12 +209,14 @@ function buildTripRow(
     // Only written when the user actually picked, so `trip_intent is not null`
     // reads as "answered" and the untouched-default case stays distinguishable
     // from a deliberate choice.
-    ...(formState.tripIntent === "solo" || formState.tripIntent === "group"
+    ...(isChosenTripIntent(formState.tripIntent)
       ? { trip_intent: formState.tripIntent }
       : {}),
     ...(formState.flexibleDates
       ? { dates_pencilled: { start: formState.startDate, end: formState.endDate } satisfies PencilledDates }
       : {}),
+    // Where they're staying, when they said: the plan was made around it.
+    ...(formState.stay ? { stay: formState.stay } : {}),
   };
 
   return {

@@ -2,6 +2,7 @@ import type { RouteStop } from "@/components/trips/MultiCityRouteBuilder";
 import type { Diet } from "@/lib/trips/diet";
 import type { SeasonalContext, TripCreationParams } from "@/types";
 import type { WizardAnswers } from "./answers";
+import { isChosenTripIntent } from "./answers";
 
 /** A route's filled rows (a city and at least one night), as the legs the server plans one by one. */
 export function routeLegs(rows: RouteStop[]): RouteStop[] {
@@ -9,7 +10,15 @@ export function routeLegs(rows: RouteStop[]): RouteStop[] {
 }
 
 export interface GenerationRequest {
-  body: TripCreationParams & { locale: string; dietary?: Diet[]; fresh?: true; destinationCoords?: { latitude: number; longitude: number } };
+  body: Omit<TripCreationParams, "stay"> & {
+    locale: string;
+    dietary?: Diet[];
+    fresh?: true;
+    destinationCoords?: { latitude: number; longitude: number };
+    /** Where they're staying, in their words; the server reads it with lib/trips/stay.ts. */
+    stay?: string;
+    stayCoords?: { latitude: number; longitude: number };
+  };
   /** Multi-city and anchored trips come back as one merged JSON body, not a stream. */
   stream: boolean;
   /** More than one leg: /api/ai/generate fans the trip out per city. */
@@ -38,10 +47,11 @@ export function generationRequest(
     coordinates?: { latitude: number; longitude: number } | null;
   }
 ): GenerationRequest {
-  const { destination, startDate, endDate, budgetTier, pace, vibes, mustDos, travelStyle, tripIntent, anchors, dietary } = answers;
+  const { destination, startDate, endDate, budgetTier, pace, vibes, mustDos, travelStyle, tripIntent, anchors, dietary, stay } = answers;
   const isMultiCity = extra.legs.length > 1;
   const isAnchored = !isMultiCity && anchors.length > 0;
-  const params: TripCreationParams = {
+  // The stay travels as its words and its place (below), which the server reads back.
+  const params: Omit<TripCreationParams, "stay"> = {
     destination,
     startDate,
     endDate,
@@ -53,7 +63,7 @@ export function generationRequest(
     requirements: extra.requirements || undefined,
     ...(mustDos.length > 0 ? { mustDos } : {}),
     travelStyle,
-    ...(tripIntent === "solo" || tripIntent === "group" ? { tripIntent } : {}),
+    ...(isChosenTripIntent(tripIntent) ? { tripIntent } : {}),
     ...(isMultiCity ? { destinations: extra.legs } : {}),
     ...(isAnchored ? { anchors } : {}),
   };
@@ -65,6 +75,11 @@ export function generationRequest(
       ...(extra.fresh ? { fresh: true as const } : {}),
       ...(!isMultiCity && extra.coordinates
         ? { destinationCoords: { latitude: extra.coordinates.latitude, longitude: extra.coordinates.longitude } }
+        : {}),
+      // A stay is in one city, so a trip through several leaves it out.
+      ...(!isMultiCity && stay ? { stay: stay.name } : {}),
+      ...(!isMultiCity && stay?.coordinates
+        ? { stayCoords: { latitude: stay.coordinates.lat, longitude: stay.coordinates.lng } }
         : {}),
     },
     stream: !isMultiCity && !isAnchored,

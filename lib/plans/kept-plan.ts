@@ -8,10 +8,12 @@
  * sizes the wizard allows, and only https links.
  */
 
-import { BUDGET_TIERS, TRIP_PACES, TRIP_VIBES, type BudgetTier, type GeneratedItinerary, type TripPace, type TripVibe } from "@/types";
+import { BUDGET_TIERS, TRIP_PACES, TRIP_VIBES, type BudgetTier, type GeneratedItinerary, type TripPace, type TripStay, type TripVibe } from "@/types";
 import { isIsoDate } from "@/lib/trips/anonymous-share";
 import { MAX_TRIP_DAYS_MULTI, MUST_DOS_MAX, MUST_DO_MAX_LENGTH, VIBES_MAX } from "@/lib/trips/request-limits";
 import { dietsFrom, type Diet } from "@/lib/trips/diet";
+import { readStay } from "@/lib/trips/stay";
+import { isChosenTripIntent } from "@/lib/wizard/answers";
 
 
 export interface KeptPlan {
@@ -27,6 +29,7 @@ export interface KeptPlan {
   flexibleDates?: boolean;
   mustDos?: string[];
   dietary?: Diet[];
+  stay?: TripStay;
 }
 
 function oneOf<T extends string>(options: readonly T[], v: unknown): T | undefined {
@@ -120,6 +123,7 @@ export function parseKeptPlan(input: unknown): KeptPlan | null {
     : undefined;
   const mustDos = strings(input.mustDos, MUST_DOS_MAX, MUST_DO_MAX_LENGTH);
   const dietary = dietsFrom(input.dietary);
+  const stay = readStay(input.stay);
   return {
     destination,
     startDate,
@@ -129,9 +133,10 @@ export function parseKeptPlan(input: unknown): KeptPlan | null {
     ...(vibes ? { vibes } : {}),
     ...(budgetTier ? { budgetTier } : {}),
     ...(input.travelStyle === "backpacker" || input.travelStyle === "classic" ? { travelStyle: input.travelStyle } : {}),
-    ...(input.tripIntent === "solo" || input.tripIntent === "group" ? { tripIntent: input.tripIntent } : {}),
+    ...(isChosenTripIntent(input.tripIntent) ? { tripIntent: input.tripIntent } : {}),
     ...(input.flexibleDates === true ? { flexibleDates: true } : {}),
     ...(mustDos?.length ? { mustDos } : {}),
     ...(dietary.length ? { dietary } : {}),
+    ...(stay ? { stay } : {}),
   };
 }

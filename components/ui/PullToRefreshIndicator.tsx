@@ -63,7 +63,7 @@ export function PullToRefreshIndicator({
       <div className="mt-2 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center border border-slate-200">
         {isRefreshing ? (
           // Spinner while the callback runs.
-          <Spinner className="w-5 h-5 text-[var(--primary-ink)]" />
+          <Spinner className="w-5 h-5 text-[var(--primary)]" />
         ) : (
           // Arrow rotates as the user pulls — visual "release to
           // refresh" affordance Apple's HIG calls out as the

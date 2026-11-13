@@ -338,14 +338,14 @@ export default async function BlogDetailPage({ params }: PageProps) {
               <nav aria-label={tCommon("a11y.breadcrumb")} className="flex items-center gap-2 text-sm text-white/60 mb-4">
                 <Link
                   href="/"
-                  className="hover:text-white transition-colors"
+                  className="inline-flex items-center justify-center hover:text-white transition-colors"
                 >
                   {t("breadcrumbs.home")}
                 </Link>
                 <span className="text-white/55">/</span>
                 <Link
                   href="/blog"
-                  className="hover:text-white transition-colors"
+                  className="inline-flex items-center justify-center hover:text-white transition-colors"
                 >
                   {t("breadcrumbs.blog")}
                 </Link>

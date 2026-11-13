@@ -15,6 +15,7 @@ const read = (file: string) => readFileSync(join(__dirname, "..", file), "utf-8"
 // navigations needs a name, or a screen reader lists several "navigation" alike.
 const NAMED_NAVS = [
   "app/[locale]/(app)/explore/page.tsx",
+  "app/[locale]/about/authors/[slug]/page.tsx",
   "app/[locale]/blog/page.tsx",
   "app/[locale]/blog/tag/[tag]/page.tsx",
   "app/[locale]/blog/[slug]/page.tsx",
@@ -38,6 +39,14 @@ describe("navigations on the public pages", () => {
 
   it("names breadcrumbs in the page's language, not in English everywhere", () => {
     for (const file of NAMED_NAVS) expect(read(file)).not.toMatch(/aria-label="Breadcrumb"/);
+  });
+
+  // "Home" is "Inicio" in Spanish and "Início" in Portuguese.
+  it("says Home in the page's language on an author's page", () => {
+    const src = read("app/[locale]/about/authors/[slug]/page.tsx");
+    expect(src).not.toMatch(/>\s*Home\s*</);
+    expect(src).not.toMatch(/name: "Home"/);
+    expect(src.match(/tCrumbs\("home"\)/g)).toHaveLength(2);
   });
 });
 

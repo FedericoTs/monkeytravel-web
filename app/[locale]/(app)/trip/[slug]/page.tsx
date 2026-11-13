@@ -78,9 +78,9 @@ interface PublicAuthor {
 
 /**
  * Request-scoped cache for the trip lookup. `generateMetadata` and the page
- * render both need the same row + author; React's `cache()` memoizes by the
- * slug argument for the lifetime of a single request so we issue one pair of
- * queries, not two. Mirrors the /shared page's `getSharedTrip` pattern.
+ * render both need the same row; React's `cache()` memoizes by the slug
+ * argument for the lifetime of a single request so we issue one query, not
+ * two. Mirrors the /shared page's `getSharedTrip` pattern.
  */
 const getPublicTrip = cache(async (slug: string) => {
   const supabase = createAdminClient();
@@ -101,46 +101,46 @@ const getPublicTrip = cache(async (slug: string) => {
   if (trip.is_hidden === true) return null;
   if (!trip.public_slug) return null;
 
-  // Resolve the author separately (allowlist columns only). A missing/failed
-  // author lookup must NOT 404 the trip — the page still renders, just
-  // without the author byline + Person node.
-  let author: PublicAuthor | null = null;
-  if (trip.user_id) {
-    const { data: userRow } = logReadError("public trip: author", await supabase
-      .from("users")
-      .select(AUTHOR_COLS)
-      .eq("id", trip.user_id)
-      .maybeSingle());
-
-    if (userRow) {
-      const priv = (userRow.privacy_settings ?? {}) as Record<string, unknown>;
-      const isPrivate = String(priv.privateProfile ?? "") === "true";
-      author = {
-        username: (userRow.username as string | null) ?? null,
-        displayName: (userRow.display_name as string | null) ?? null,
-        avatarUrl: (userRow.avatar_url as string | null) ?? null,
-        isPublic: !isPrivate,
-      };
-    }
-  }
-
-  return { trip, author };
+  return trip;
 });
+
+/**
+ * The trip's author, by allowlisted columns only. Its own read, so the page
+ * asks for it alongside the photos and the metadata never waits for it. A
+ * missing or failed lookup must NOT 404 the trip: the page still renders,
+ * just without the author byline + Person node.
+ */
+async function getPublicAuthor(userId: string | null): Promise<PublicAuthor | null> {
+  if (!userId) return null;
+  const { data: userRow } = logReadError("public trip: author", await createAdminClient()
+    .from("users")
+    .select(AUTHOR_COLS)
+    .eq("id", userId)
+    .maybeSingle());
+  if (!userRow) return null;
+  const priv = (userRow.privacy_settings ?? {}) as Record<string, unknown>;
+  const isPrivate = String(priv.privateProfile ?? "") === "true";
+  return {
+    username: (userRow.username as string | null) ?? null,
+    displayName: (userRow.display_name as string | null) ?? null,
+    avatarUrl: (userRow.avatar_url as string | null) ?? null,
+    isPublic: !isPrivate,
+  };
+}
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale, slug } = await params;
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "common.publicTrip" });
 
-  const result = await getPublicTrip(slug);
-  if (!result) {
+  const trip = await getPublicTrip(slug);
+  if (!trip) {
     return {
       title: t("notFoundTitle"),
       robots: { index: false, follow: false },
     };
   }
 
-  const { trip } = result;
   const destination = getTripDestination(trip);
   const rawItinerary = (trip.itinerary as ItineraryDay[]) || [];
 
@@ -195,22 +195,21 @@ export default async function PublicTripPage({ params }: PageProps) {
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "common.publicTrip" });
 
-  const result = await getPublicTrip(slug);
-  if (!result) {
+  const trip = await getPublicTrip(slug);
+  if (!trip) {
     notFound();
   }
 
-  const { trip, author } = result;
-
   // Read-time itinerary photo refresh (same as /shared) — replaces stale
   // baked-in activity image URLs with the canonical ones from places_v2, and
-  // stand-ins with Wikimedia photos found since — and
-  // the viewer lookup need only the trip, so they run together. getUser() is
-  // a local no-op for anonymous visitors, the common case on this page.
+  // stand-ins with Wikimedia photos found since — the viewer lookup and the
+  // author need only the trip, so they run together. getUser() is a local
+  // no-op for anonymous visitors, the common case on this page.
   const rawItinerary = (trip.itinerary as ItineraryDay[]) || [];
-  const [itinerary, viewerUserId] = await Promise.all([
+  const [itinerary, viewerUserId, author] = await Promise.all([
     refreshTripItinerary(rawItinerary, getTripDestination(trip)),
     signedInUserId(),
+    getPublicAuthor(trip.user_id as string | null),
   ]);
 
   const tripMeta = (trip.trip_meta as TripMeta) || {};

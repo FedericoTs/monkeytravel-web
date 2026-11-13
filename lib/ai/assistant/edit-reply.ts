@@ -180,8 +180,10 @@ export function composeReply(p: {
       : [];
   const left = p.daysLeft ?? [];
   const notAdded = p.lengthRefused ? [] : (p.notAdded ?? []);
+  // A number past the trip's last day is no day of it to ask for.
+  const lastDay = Math.max(p.currentDays, p.tripLength ?? 0);
   const uncovered = daysMentioned(text).filter(
-    (n) => !covered.includes(n) && !removed.includes(n) && !left.includes(n) && !notAdded.includes(n),
+    (n) => n <= lastDay && !covered.includes(n) && !removed.includes(n) && !left.includes(n) && !notAdded.includes(n),
   );
   if (uncovered.length > 0 && covered.length > 0) text = `${text} ${uncoveredDaysNote(locale, covered, uncovered)}`;
   if (left.length > 0) text = `${text} ${daysLeftNote(locale, left)}`;

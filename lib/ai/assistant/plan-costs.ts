@@ -20,6 +20,55 @@ export function planCurrency(days: ItineraryDay[]): string {
   return "USD";
 }
 
+/** Exchange rates as the page loads them: units of each currency for one unit of `base`. */
+export interface RateTable {
+  base: string;
+  rates: Record<string, number>;
+}
+
+/** How many units of `currency` one unit of the table's base buys, if the table knows it. */
+function perBase(rates: RateTable, currency: string): number | undefined {
+  const rate = currency === rates.base ? 1 : rates.rates?.[currency];
+  return typeof rate === "number" && Number.isFinite(rate) && rate > 0 ? rate : undefined;
+}
+
+/**
+ * The days with every priced stop in the plan's own currency, so planCosts adds
+ * like with like: a plan can price a few stops in another currency, and adding
+ * the bare numbers counts rand as dollars. An estimate that names no currency
+ * is in `unnamed`, as the stop rows read it. Null when a stop's currency can't
+ * be converted (no rates yet, or one they don't have): no total beats a wrong one.
+ */
+export function inPlanCurrency(
+  days: ItineraryDay[],
+  rates: RateTable | null | undefined,
+  unnamed: string = planCurrency(days)
+): ItineraryDay[] | null {
+  const to = planCurrency(days);
+  let unconvertible = false;
+  const converted = days.map((d) => {
+    if (!Array.isArray(d.activities)) return d;
+    let changed = false;
+    const activities = d.activities.map((a) => {
+      const cost = a?.estimated_cost;
+      const n = cost?.amount;
+      if (!cost || typeof n !== "number" || !Number.isFinite(n) || n <= 0) return a;
+      const from = cost.currency || unnamed;
+      if (from === to) return a;
+      const fromRate = rates ? perBase(rates, from) : undefined;
+      const toRate = rates ? perBase(rates, to) : undefined;
+      if (!fromRate || !toRate) {
+        unconvertible = true;
+        return a;
+      }
+      changed = true;
+      return { ...a, estimated_cost: { ...cost, amount: (n / fromRate) * toRate, currency: to } };
+    });
+    return changed ? { ...d, activities } : d;
+  });
+  return unconvertible ? null : converted;
+}
+
 /** The currency the traveller sees prices in, and one unit of the plan's currency in it. */
 export interface DisplayCurrency {
   currency: string;
@@ -69,15 +118,14 @@ export function planCosts(days: ItineraryDay[], display?: DisplayCurrency): Plan
 export function displayCurrencyFor(
   days: ItineraryDay[],
   preferred: string | undefined,
-  rates: { base: string; rates: Record<string, number> } | null | undefined
+  rates: RateTable | null | undefined
 ): DisplayCurrency | undefined {
   if (!preferred) return undefined;
   const from = planCurrency(days);
   if (preferred === from) return { currency: preferred, rate: 1 };
   if (!rates) return undefined;
-  const perBase = (c: string) => (c === rates.base ? 1 : rates.rates?.[c]);
-  const fromRate = perBase(from);
-  const toRate = perBase(preferred);
+  const fromRate = perBase(rates, from);
+  const toRate = perBase(rates, preferred);
   if (!fromRate || !toRate) return undefined;
   return { currency: preferred, rate: toRate / fromRate };
 }

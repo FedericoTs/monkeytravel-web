@@ -1,6 +1,6 @@
 /** @vitest-environment node */
 import { describe, expect, it, vi } from "vitest";
-import { isUsablePhoto, pickImages, plainArtist, searchQueries, travelSectionImages, type CommonsFile, commonsPhotoId, commonsPhotoUrl, servedPhotoUrls, destinationPhotoUrls } from "./wikimedia";
+import { isUsablePhoto, isUsableView, pickImages, plainArtist, searchQueries, travelSectionImages, type CommonsFile, commonsPhotoId, commonsPhotoUrl, servedPhotoUrls, destinationPhotoUrls } from "./wikimedia";
 
 /**
  * Which Commons photos may become a destination's cover or gallery: a free
@@ -32,6 +32,13 @@ describe("isUsablePhoto", () => {
     expect(isUsablePhoto(file("Lisboa837.png", { mime: "image/png" }))).toBe(false);
     expect(isUsablePhoto(file("Poster.jpg", { license: "Fair use" }))).toBe(false);
     expect(isUsablePhoto(file("Logo.jpg", { restrictions: "trademarked" }))).toBe(false);
+  });
+
+  it("takes a square photo only when asked to, and a portrait never", () => {
+    const square = file("Riesenrad.jpg", { width: 2560, height: 2560 });
+    expect(isUsablePhoto(square, 1000)).toBe(false);
+    expect(isUsableView(square, 1000, 1)).toBe(true);
+    expect(isUsableView(file("Gallery.jpg", { width: 1200, height: 1600 }), 1000, 1)).toBe(false);
   });
 
   it("needs an author it can name under an attribution licence, not under public domain", () => {

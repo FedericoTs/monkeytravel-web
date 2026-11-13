@@ -117,7 +117,7 @@ export default function RegenerateButton({
       <div className="relative flex items-center gap-2.5">
         <div className={`
           w-8 h-8 rounded-lg flex items-center justify-center
-          bg-[var(--primary)]/10 text-[var(--primary-ink)]
+          bg-[var(--primary)]/10 text-[var(--primary)]
           group-hover:bg-[var(--primary)] group-hover:text-white
           transition-colors duration-200
         `}>

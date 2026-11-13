@@ -56,7 +56,7 @@ async function isolate(page: Page) {
   await page.route("**/*", (route) => {
     const req = route.request();
     const url = new URL(req.url());
-    if (/(googletagmanager|google-analytics|posthog|buildhop)\.|^maps\.googleapis\.com$/.test(url.host)) {
+    if (/(googletagmanager|google-analytics|posthog)\.|^maps\.googleapis\.com$/.test(url.host)) {
       return route.abort();
     }
     if (/^\/api\/(wizard-event|consent-event|page-engaged|page-view|session)/.test(url.pathname)) {
@@ -180,9 +180,11 @@ test.describe("wizard: a signed-in planner's unsaved plan", () => {
 
     await viewTrip.click();
     await page.waitForURL(new RegExp(`/trips/${saved[0].id}`), { timeout: 60_000 });
+    // The one in the plan: a stop that needs booking is also named in the
+    // book-ahead list, which waits closed behind its chip.
     for (const day of draft.generatedItinerary.days) {
       for (const activity of day.activities) {
-        await expect(page.getByText(activity.name, { exact: true }).first()).toBeVisible({ timeout: 30_000 });
+        await expect(page.getByText(activity.name, { exact: true }).filter({ visible: true }).first()).toBeVisible({ timeout: 30_000 });
       }
     }
   });
