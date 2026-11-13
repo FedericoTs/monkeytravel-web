@@ -19,7 +19,7 @@ vi.mock("@/lib/posthog/events", () => ({
 
 import ShareAfterSaveModal from "./ShareAfterSaveModal";
 
-function renderPrompt(tripIntent: "group" | "solo" | "unspecified") {
+function renderPrompt(tripIntent: "group" | "family" | "couple" | "solo" | "unspecified") {
   render(
     <NextIntlClientProvider locale="en" messages={{ common: enCommon }}>
       <ShareAfterSaveModal
@@ -43,6 +43,18 @@ describe("first-day share prompt", () => {
     expect(screen.getByText("Who's planning this with you?")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Or send one view-only link to the group" })).toBeTruthy();
     expect(screen.queryByText(enCommon.share.intent.group.cta)).toBeNull();
+  });
+
+  it("asks a family who is planning too", () => {
+    renderPrompt("family");
+    expect(screen.getByTestId("coplanner-invites")).toBeTruthy();
+    expect(screen.queryByText(enCommon.share.intent.unknown.cta)).toBeNull();
+  });
+
+  it("asks a couple to send it to whoever is coming, with no crew pitch", () => {
+    renderPrompt("couple");
+    expect(screen.queryByTestId("coplanner-invites")).toBeNull();
+    expect(screen.getByText(enCommon.share.intent.unknown.headline)).toBeTruthy();
   });
 
   it("keeps the earlier prompt for a solo trip", () => {

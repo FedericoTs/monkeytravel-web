@@ -365,7 +365,7 @@ export default function InviteAcceptClient({
           {/* Auth Actions */}
           {isCheckingAuth ? (
             <div className="flex items-center justify-center py-8">
-              <Spinner className="w-8 h-8 text-[var(--primary-ink)]" />
+              <Spinner className="w-8 h-8 text-[var(--primary)]" />
             </div>
           ) : user ? (
             // Already signed in - show join button
@@ -410,7 +410,7 @@ export default function InviteAcceptClient({
               </p>
               <button
                 onClick={() => setMagicLinkSent(false)}
-                className="text-sm text-[var(--primary-ink)] hover:underline"
+                className="text-sm text-[var(--foreground)] underline underline-offset-2"
               >
                 {t("useDifferentEmail")}
               </button>
@@ -479,7 +479,7 @@ export default function InviteAcceptClient({
                 {t("alreadyHaveAccount")}{" "}
                 <Link
                   href={`/auth/login?redirect=${encodeURIComponent(`/invite/${invite.token}`)}`}
-                  className="text-[var(--primary-ink)] hover:underline font-medium"
+                  className="text-[var(--foreground)] underline underline-offset-2 font-medium"
                 >
                   {t("signIn")}
                 </Link>

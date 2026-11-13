@@ -89,6 +89,21 @@ export interface AssistInput {
    * the page plans the one picked anew, for the same dates.
    */
   canPlanElsewhere?: boolean;
+  /**
+   * The page can plan a trip through several cities (the wizard, with
+   * multi-city on): told a new route, the reply offers it instead of moving days
+   * between cities, and the page plans the trip anew along it, for the same dates.
+   */
+  canPlanRoute?: boolean;
+}
+
+/**
+ * Whether a reply may offer a new route for the whole trip (route.ts): on a
+ * page that can plan one, for a trip with no fixed plans, which a plan made
+ * anew could not keep.
+ */
+export function canOfferRoute(input: AssistInput): boolean {
+  return input.canPlanRoute === true && input.days.every((d) => lockedActivityNames(d).length === 0);
 }
 
 /**
@@ -203,6 +218,7 @@ export function buildPrompt(input: AssistInput): string {
   const firstDay = tripSpan(input.days, input.startDate)?.from;
   const multiCity = input.days.some((d) => d.city);
   const elsewhere = canOfferElsewhere(input);
+  const route = canOfferRoute(input);
   const unsaved = input.unsaved?.length
     ? `Not saved yet: your last reply prepared this change, the traveller hasn't saved it, and the itinerary above already includes it. Saving your reply saves it too.\n${input.unsaved.map((l) => `- ${l}`).join("\n")}\nIf they turn it down, undo it in your edits: take out what it added and put back what it took out.\n`
     : "";
@@ -238,6 +254,11 @@ ${
       ? `- The WHOLE trip somewhere else ("give me Málaga", "I don't want to visit Mysore", "do Porto instead", "suggest other destinations"): never rewrite the days for another place. Put the place they name in "elsewhere", or 2-3 good places when they name none, and return "edits": []. In "reply", one short line per place says why it fits, as an offer: the page plans the one they pick, for the same dates. A day trip or a stop on the way from ${input.destination} is not this: edit the days for it.
 `
       : ""
+  }${
+    route
+      ? `- The trip's ROUTE told anew: the cities in another order, a city added or dropped, days moved to another city, or a return to one ("we go back to Lisbon on the 27th", "Lisbon, then Porto, then Lisbon again", "the last 3 days back in Lisbon", "we fly home from Lisbon", "add 2 days in Sintra"). Never move days between cities for it. Put every stop of the whole trip, in order, in "route", each with its days: they add up to the trip's ${input.days.length} days, and a day they travel counts for the city they arrive in. Return "edits": []. In "reply", one short line gives the stops with their days and says the page can plan the trip that way, for the same dates.
+`
+      : ""
   }- A request to CHANGE the plan: return every day that changes, each rewritten in full, in "edits". Change only what was asked: keep every other activity exactly as it is, under its exact name (never translate or rename activities), and leave days that don't need to change alone.
   - An activity marked [fixed plan] is the traveller's own booking: on every day you return, keep it exactly as it is, under its exact name and at its time, and plan the rest of that day around it. You can't move, change or remove one: if they ask to, say they can change it themselves in the plan, and make the rest of what they asked.
   - A change about the whole trip ("every day", "all the dinners", "cheaper", "less packed", a car, a diet) applies to every day it concerns, not just one.
@@ -255,7 +276,7 @@ ${
       ? `Only the trip's owner can change how many days it has, and this traveller isn't the owner: keep "trip_length" null and add no days. Asked for more days, say that only the owner can add them, and give your ideas for those days in "reply" instead, one short line each.`
       : `Adding or removing days when asked, or changing how many nights a city gets: set "trip_length" to the new total number of days (1-${maxDays}) and return every day whose content changes, including each NEW day in full. New days come first, before any existing day you also change. New days in the middle of the trip move the later days along, so those days change too, up to the new last day. Days beyond "trip_length" are removed. The trip starts on Day 1${firstDay ? ` (${promptDate(firstDay)})` : ""} and can't start earlier here: if they arrive on an earlier date, change no day for it, and in "reply" tell them they can change the trip's dates to start that day, which moves every day's plan with it.`
   }${multiCity ? `
-  - This is a multi-city trip: each day is in the city shown in [ ] and its places are in that city. Every change, regrouping or reordering keeps each city's places on that city's days; a place on a day of another city goes back to a day of its own city. A day changes city only when they ask to change where they stay. Give each edited day its "city".` : ""}
+  - This is a multi-city trip: each day is in the city shown in [ ] and its places are in that city. Every change, regrouping or reordering keeps each city's places on that city's days; a place on a day of another city goes back to a day of its own city. ${route ? `Every day keeps its city: a change of where they stay (days moved to another city, a city added or dropped, a return to one) is a new route, and goes in "route" with "edits": []` : "A day changes city only when they ask to change where they stay"}. Give each edited day its "city".` : ""}
   - Hotels in the plan: use only hotel names the traveller gives you or that already appear in the itinerary. If they mention hotels you can't see ("the hotels I added"), ask for the names and return "edits": []. When they name where they're staying for certain nights, add a short "Check in at <place>" activity in the evening of the first of those days. The plan doesn't track hotel prices; give a typical range if they ask.
   - At most ${MAX_DAYS_PER_REPLY} days in "edits". When the change concerns more days, new days included, return the first ${MAX_DAYS_PER_REPLY} and list every other day it concerns in "more_days": those are made right after, the same way, so "reply" describes the whole change for every day it concerns, never only "the first ${MAX_DAYS_PER_REPLY} days".
 - Use only real places, where they really are. If something they ask for doesn't exist nearby, say so and offer the closest real alternative. Give prices and travel times you're unsure of as rough ranges.
@@ -268,6 +289,11 @@ Return STRICT JSON (no markdown) in this EXACT shape:
     elsewhere
       ? `
   "elsewhere": [] OR [{ "name": "city or area", "country": "its country" }] (only for the whole trip somewhere else),`
+      : ""
+  }${
+    route
+      ? `
+  "route": [] OR [{ "name": "city", "country": "its country", "days": <days there> }] (only for the trip's route told anew, every stop in order),`
       : ""
   }
   "more_days": [] OR [the other day numbers this change concerns, past the ${MAX_DAYS_PER_REPLY} in "edits"],

@@ -16,6 +16,7 @@ import { useTranslations } from "next-intl";
 import { trackSharePromptShown, trackSharePromptAction } from "@/lib/analytics";
 import { forgetShareStatus } from "@/lib/trips/share-status";
 import CoPlannerInvites from "@/components/trip/CoPlannerInvites";
+import { sharesAsGroup, type ChosenTripIntent } from "@/lib/wizard/answers";
 import {
   captureSharePromptShown,
   captureSharePromptAction,
@@ -56,7 +57,7 @@ interface ShareAfterSaveModalProps {
    * someone who explicitly said they travel alone is the same mistake in
    * reverse, so `solo` gets a plain keep-the-link framing.
    */
-  tripIntent?: "solo" | "group" | "unspecified";
+  tripIntent?: ChosenTripIntent | "unspecified";
 }
 
 const COLLABORATION_BENEFITS = [
@@ -153,10 +154,10 @@ export default function ShareAfterSaveModal({
     }
   }, [isOpen]);
 
-  // Copy branch. "unspecified" gets a neutral middle rather than the group
-  // pitch — we only earn the crew framing when the user actually said so.
+  // Copy branch. Friends and a family get the group pitch; a couple and
+  // "unspecified" get the neutral middle, which asks for whoever's coming.
   const intentKey: "group" | "solo" | "unknown" =
-    tripIntent === "group" ? "group" : tripIntent === "solo" ? "solo" : "unknown";
+    sharesAsGroup(tripIntent) ? "group" : tripIntent === "solo" ? "solo" : "unknown";
 
   // Track prompt shown (only once)
   useEffect(() => {
@@ -474,7 +475,7 @@ export default function ShareAfterSaveModal({
                         className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl"
                       >
                         <div className="p-2 bg-[var(--primary)]/10 rounded-lg">
-                          <benefit.icon className="w-4 h-4 text-[var(--primary-ink)]" />
+                          <benefit.icon className="w-4 h-4 text-[var(--primary)]" />
                         </div>
                         <div>
                           <p className="font-medium text-slate-900 text-sm">
@@ -570,11 +571,11 @@ export default function ShareAfterSaveModal({
                       type="checkbox"
                       checked={publishChecked}
                       onChange={(e) => setPublishChecked(e.target.checked)}
-                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 text-[var(--primary-ink)] focus:ring-[var(--primary)]"
+                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]"
                     />
                     <span className="min-w-0">
                       <span className="flex items-center gap-1.5 font-medium text-slate-900 text-sm">
-                        <Globe className="w-4 h-4 text-[var(--primary-ink)]" aria-hidden="true" />
+                        <Globe className="w-4 h-4 text-[var(--primary)]" aria-hidden="true" />
                         {ts("afterSave.publishOptIn")}
                       </span>
                       <span className="block text-xs text-slate-500 mt-0.5">
@@ -594,7 +595,7 @@ export default function ShareAfterSaveModal({
                 {shareUrl && (
                   <button
                     onClick={onInvite}
-                    className="w-full py-2 px-4 text-sm font-medium text-[var(--primary-ink)] hover:underline"
+                    className="w-full py-2 px-4 text-sm font-medium text-[var(--foreground)] underline underline-offset-2"
                   >
                     {ts("afterSave.manageCollaborators")}
                   </button>

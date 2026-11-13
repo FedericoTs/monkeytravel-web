@@ -88,8 +88,13 @@ describe("shareTokenFromUrl — the hostname trap", () => {
 });
 
 describe("defaultShareFraming", () => {
-  it("opens on the crew ask for a trip planned with friends", () => {
+  it("opens on the crew ask for a trip planned with friends or a family", () => {
     expect(defaultShareFraming("group")).toBe("crew");
+    expect(defaultShareFraming("family")).toBe("crew");
+  });
+
+  it("keeps the plain link for a couple", () => {
+    expect(defaultShareFraming("couple")).toBe("plain");
   });
 
   it("keeps the plain link for solo trips and for an unanswered intent", () => {

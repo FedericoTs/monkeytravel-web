@@ -1486,6 +1486,48 @@ describe("assistTrip naming what a change takes out", () => {
   });
 });
 
+describe("assistTrip on a change asked for every day", () => {
+  const fortnight = Array.from({ length: 14 }, (_, i) => ({
+    day_number: i + 1,
+    date: `2027-12-${String(i + 1).padStart(2, "0")}`,
+    activities: [{ name: `Sight ${String.fromCharCode(65 + i)}`, time_slot: "morning", start_time: "09:00" }],
+  })) as unknown as ItineraryDay[];
+  const withDinner = (n: number) => ({
+    day_number: n,
+    summary: "Dinner.",
+    activities: [{ name: `Sight ${String.fromCharCode(64 + n)}`, start_time: "09:00" }, { name: `Restaurante ${n}`, start_time: "19:30" }],
+  });
+  const reply = (edits: unknown[]) => ({ response: { text: () => JSON.stringify({ reply: "Os restaurantes.", more_days: [], edits }) } });
+  const promptOf = (req: unknown) => (req as { contents: { parts: { text: string }[] }[] }).contents[0].parts[0].text;
+  // A part returns the days its prompt asks for, each with a dinner.
+  const part = async (req: unknown) => {
+    const asked = /Now return Days ([\d, ]+) in "edits"/.exec(promptOf(req));
+    return reply(asked ? asked[1].split(",").map((s) => withDinner(Number(s.trim()))) : []);
+  };
+  const parts = () => generateContent.mock.calls.map(([req]) => promptOf(req)).filter((p) => p.includes("CONTINUE:"));
+
+  it("covers every day when the reply changes one and names no other", async () => {
+    generateContent.mockResolvedValueOnce(reply([withDinner(1)])).mockImplementation(part);
+    const out = await run({ ...input, days: fortnight, locale: "pt", message: "Sugira restaurantes para todos os dias no almoço e jantar." });
+    expect(out.edits.map((e) => e.day_number)).toEqual(Array.from({ length: 14 }, (_, i) => i + 1));
+    expect(parts().length).toBeGreaterThan(0);
+  });
+
+  it("keeps a change asked for one day to that day", async () => {
+    generateContent.mockResolvedValueOnce(reply([withDinner(1)])).mockImplementation(part);
+    const out = await run({ ...input, days: fortnight, locale: "pt", message: "Sugira um restaurante para o jantar do dia 1." });
+    expect(out.edits.map((e) => e.day_number)).toEqual([1]);
+    expect(parts()).toEqual([]);
+  });
+
+  it("asks for no day when the reply changes none", async () => {
+    generateContent.mockResolvedValueOnce(reply([])).mockImplementation(part);
+    const out = await run({ ...input, days: fortnight, locale: "pt", message: "Fez isso para todos os dias?" });
+    expect(out.edits).toEqual([]);
+    expect(parts()).toEqual([]);
+  });
+});
+
 describe("isModelOverloaded", () => {
   it("is true only for 429, 500 and 503", () => {
     expect([429, 500, 503].map((status) => mod.isModelOverloaded({ status }))).toEqual([true, true, true]);

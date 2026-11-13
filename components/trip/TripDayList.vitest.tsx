@@ -286,6 +286,30 @@ describe("with a day picked, edits go to that day's place in the trip", () => {
   });
 });
 
+describe("what goes under the first day", () => {
+  const note = <p>edits save themselves</p>;
+  const follows = (a: Node, b: Node) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+
+  it("sits between the first day and the second, once", () => {
+    show({ afterFirstDay: note });
+    const line = screen.getByText("edits save themselves");
+    expect(screen.getAllByText("edits save themselves")).toHaveLength(1);
+    expect(dayBox(1).contains(line)).toBe(false);
+    expect(follows(dayBox(1), line)).toBe(true);
+    expect(follows(line, dayBox(2))).toBe(true);
+  });
+
+  it("follows the day the slider picked", () => {
+    show({ selectedDay: 3, afterFirstDay: note });
+    expect(follows(dayBox(3), screen.getByText("edits save themselves"))).toBe(true);
+  });
+
+  it("waits for a plan", () => {
+    show({ days: [], afterFirstDay: note });
+    expect(screen.queryByText("edits save themselves")).toBeNull();
+  });
+});
+
 describe("the reorder hint", () => {
   it("shows once, on the first day shown, even when that isn't Day 1", () => {
     show({ ...editing, selectedDay: 2 });
@@ -300,6 +324,13 @@ describe("the reorder hint", () => {
 
   it("doesn't show while viewing", () => {
     show();
+    expect(screen.queryByText("reorder hint")).toBeNull();
+  });
+
+  // The page tells them in one line under its controls; a second box above the
+  // first stop said it again and pushed the plan down.
+  it("doesn't show to an owner who edits in place, without an edit mode", () => {
+    show({ editingActive: true, isEditMode: false });
     expect(screen.queryByText("reorder hint")).toBeNull();
   });
 });

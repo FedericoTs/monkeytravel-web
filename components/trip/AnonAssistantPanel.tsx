@@ -21,6 +21,7 @@ import { capture } from "@/lib/posthog/events";
 import { useLocale as useLocalePrefs } from "@/lib/locale";
 import { displayCurrencyFor } from "@/lib/ai/assistant/plan-costs";
 import { placeLabel, type TripPlace } from "@/lib/ai/assistant/elsewhere";
+import { routeLabel, type RouteStop } from "@/lib/ai/assistant/route";
 import { isModelOutageResponse } from "@/lib/ai/model-outage";
 import type { Activity, ItineraryDay } from "@/types";
 
@@ -57,6 +58,12 @@ interface AnonAssistantPanelProps {
    */
   onPlanElsewhere?: (place: string) => void;
   /**
+   * Plan the whole trip anew along a route the assistant offered (Lisboa,
+   * then Porto, then Lisboa again), for the same dates. Without it, an offered
+   * route shows no button.
+   */
+  onPlanRoute?: (route: RouteStop[]) => void;
+  /**
    * Save Sprint T5: when provided, an applied edit renders a save bridge
    * ("these edits live only in this draft → save to keep them") that invokes
    * the parent's save flow. The parent passes undefined once the trip is
@@ -87,6 +94,8 @@ interface Msg {
   tripLength?: number;
   /** Places offered for the whole trip instead. */
   elsewhere?: TripPlace[];
+  /** A new route offered for the whole trip. */
+  route?: RouteStop[];
   editState?: "pending" | "applied" | "discarded";
   /** From onApplyEdits, for Undo. */
   undoId?: string;
@@ -104,6 +113,7 @@ export default function AnonAssistantPanel({
   onApplyEdits,
   onUndoEdits,
   onPlanElsewhere,
+  onPlanRoute,
   onRequestSave,
   shareSlot,
   asked,
@@ -219,6 +229,10 @@ export default function AnonAssistantPanel({
         (p: unknown): p is TripPlace =>
           !!p && typeof (p as TripPlace).name === "string" && typeof (p as TripPlace).country === "string",
       );
+      const route: RouteStop[] = (Array.isArray(payload.route) ? payload.route : []).filter(
+        (s: unknown): s is RouteStop =>
+          !!s && typeof (s as RouteStop).name === "string" && typeof (s as RouteStop).country === "string" && typeof (s as RouteStop).days === "number",
+      );
       // Prices follow the viewer's currency, so a currency request is applied here.
       if (typeof payload.currency === "string" && payload.currency) {
         setPreferredCurrency(payload.currency);
@@ -237,6 +251,7 @@ export default function AnonAssistantPanel({
             edits: changes ? edits : undefined,
             tripLength,
             ...(elsewhere.length > 0 ? { elsewhere } : {}),
+            ...(route.length > 0 ? { route } : {}),
             editState: changes ? (applyNow ? "applied" : "pending") : undefined,
             undoId,
           },
@@ -381,6 +396,22 @@ export default function AnonAssistantPanel({
                       {t("assistant.planElsewhere", { place: p.name })}
                     </button>
                   ))}
+                </div>
+              )}
+
+              {/* A new route for the whole trip: the button plans it anew, for the same dates. */}
+              {m.route && m.route.length > 0 && onPlanRoute && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      capture("anon_assistant_plan_route", { destination, route: routeLabel(m.route!), stops: m.route!.length });
+                      onPlanRoute(m.route!);
+                    }}
+                    className="rounded-lg bg-slate-900 px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
+                  >
+                    {t("assistant.planRoute", { route: routeLabel(m.route) })}
+                  </button>
                 </div>
               )}
 

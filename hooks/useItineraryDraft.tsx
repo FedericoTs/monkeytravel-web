@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import type { GeneratedItinerary, TripAnchor } from "@/types";
+import type { GeneratedItinerary, TripAnchor, TripStay } from "@/types";
 import { safeGet, safeRemove } from "@/lib/safe-storage";
+import type { ChosenTripIntent } from "@/lib/wizard/answers";
 
 const DRAFT_KEY = "monkeytravel-itinerary-draft";
 // 7 days, not 24 hours: most signed-out planners who come back on a later day
@@ -47,9 +48,11 @@ export interface ItineraryDraft {
    * ones whose trips actually get saved — biasing the solo-vs-group read
    * toward "unspecified" precisely where the evidence matters.
    */
-  tripIntent?: "solo" | "group" | "unspecified";
+  tripIntent?: ChosenTripIntent | "unspecified";
   /** Dates pencilled in rather than chosen; must survive the signup redirect like the rest. */
   flexibleDates?: boolean;
+  /** Where they're staying, when they said (read back through lib/trips/stay.ts readStay). */
+  stay?: TripStay | null;
   savedAt: number;
   userId?: string;
 }

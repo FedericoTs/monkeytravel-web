@@ -32,5 +32,7 @@
   "tripCap": "{room, plural, =0 {I viaggi possono durare al massimo {max} giorni, e questo ne ha già {max}, quindi non ho aggiunto giorni.} =1 {I viaggi possono durare al massimo {max} giorni, quindi a questo se ne può aggiungere ancora uno: chiedimelo.} other {I viaggi possono durare al massimo {max} giorni, quindi a questo se ne possono aggiungere ancora #: chiedimene fino a #.}} Posso anche inserire quello che volevi nei giorni che hai già, al posto delle parti più leggere, oppure puoi pianificare i giorni in più come un secondo viaggio.",
   "missingAnswer": "Non sono riuscito a preparare questa risposta. Chiedimi una cosa alla volta, per esempio cosa fare il giorno 2.",
   "currencySwitched": "Fatto: ora i prezzi sono mostrati in {code}.",
-  "elsewhereNote": "Scegli un luogo qui sotto e lo pianifico per le stesse date."
+  "elsewhereNote": "Scegli un luogo qui sotto e lo pianifico per le stesse date.",
+  "routeStop": "{name} ({days, plural, =1 {# giorno} other {# giorni}})",
+  "routeOffer": "Il tuo nuovo percorso: {route}. Tocca il pulsante qui sotto e pianifico tutto il viaggio così, nelle stesse date."
 }

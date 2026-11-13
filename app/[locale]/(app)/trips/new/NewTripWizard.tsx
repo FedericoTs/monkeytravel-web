@@ -32,14 +32,17 @@ export interface PrefilledTripShape {
   mustDos: string[];
 }
 import { useAuth } from "@/components/auth/AuthProvider";
-import type { GeneratedItinerary, TripAnchor, TripVibe, SeasonalContext, BudgetTier, TripPace } from "@/types";
+import type { GeneratedItinerary, TripAnchor, TripStay, TripVibe, SeasonalContext, BudgetTier, TripPace } from "@/types";
 import type { Diet } from "@/lib/trips/diet";
 // Step-1 components (above-the-fold) stay eager.
 import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
 import type { PlacePrediction } from "@/components/ui/DestinationAutocomplete";
 import { isTripSentence, looksLikeRequest, matchesPlace, pencilledDates, readTripSentence } from "@/lib/wizard/trip-sentence";
 import { fetchReading, fillOf } from "@/lib/wizard/request-reading";
+import { routeRows, type RouteStop } from "@/lib/ai/assistant/route";
 import AnchorEditor from "@/components/trip/AnchorEditor";
+import StayField from "@/components/wizard/StayField";
+import { stayFarFrom } from "@/lib/trips/stay";
 import { buildSeasonalContext } from "@/lib/seasonal";
 import { generateWithRecovery } from "@/lib/wizard/generation-recovery";
 import { attemptGeneration } from "@/lib/wizard/generation-attempt";
@@ -214,6 +217,7 @@ import { newTripTitle } from "@/lib/trips/title";
 import AiDisclaimer from "@/components/trip/AiDisclaimer";
 import { useTravelDistances } from "@/hooks/useTravelDistances";
 import { useMultiCityRoute } from "@/hooks/useMultiCityRoute";
+import { isChosenTripIntent } from "@/lib/wizard/answers";
 
 // Upper bound for the wizard start date (see lib/dates/iso-date.ts).
 const MAX_TRIP_START_DATE = maxTripStartDate();
@@ -401,14 +405,14 @@ export default function NewTripPage({
   // The plan as it streams in, for GenerationProgress (hooks/useGenerationProgress.ts).
   const streamed = useGenerationProgress();
 
-  // Solo vs group intent. Captured as PostHog `trip_intent_selected`,
+  // Who's coming. Captured as PostHog `trip_intent_selected`,
   // forwarded as group_size / trip_intent on later events and saved with the
   // trip, so collab demand is measurable. Group intent also shows an invite
-  // hint in step 1 and puts the anonymous share button in crew mode.
+  // hint in step 1; group and family put the anonymous share button in crew mode.
   // "unspecified" = user clicked Continue without touching the toggle.
   const [tripIntent, setTripIntent] = useState<TripIntent>(() => {
     const who = searchParams?.get("who");
-    return who === "solo" || who === "group" ? who : "unspecified";
+    return isChosenTripIntent(who) ? who : "unspecified";
   });
 
   // Auth state comes from the single AuthProvider, not a local getUser()
@@ -486,6 +490,11 @@ export default function NewTripPage({
   // whether the current dates were auto-filled as a flexible default so we can
   // surface an editable "flexible dates" note.
   const [flexibleDates, setFlexibleDates] = useState(false);
+  // Where they're staying, when they said (components/wizard/StayField.tsx).
+  const [stay, setStay] = useState<TripStay | null>(null);
+  // A stay belongs to its destination: one far from the destination now chosen
+  // isn't this trip's, so the field and the plan leave it out.
+  const tripStay = stayFarFrom(stay, destinationCoords) ? null : stay;
   // Dates a one-tap pick pencilled in (see the one-tap starts below).
   const [datesPencilled, setDatesPencilled] = useState(false);
   // Multi-city: a route of city+nights rows, only surfaced in step 1 when
@@ -733,6 +742,7 @@ export default function NewTripPage({
       setAnchors,
       setTripIntent,
       setFlexibleDates,
+      setStay,
       setGeneratedItinerary: (plan: GeneratedItinerary) => {
         forgetPlan();
         setGeneratedItinerary(plan);
@@ -783,8 +793,9 @@ export default function NewTripPage({
       dietary,
       tripIntent,
       flexibleDates,
+      stay: tripStay,
     }),
-    [destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, anchors, mustDos, dietary, tripIntent, flexibleDates]
+    [destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, anchors, mustDos, dietary, tripIntent, flexibleDates, tripStay]
   );
 
   // Keep a draft of the itinerary until the trip is saved, then none.
@@ -1257,6 +1268,15 @@ export default function NewTripPage({
     generateWhenSetRef.current = true;
   };
 
+  // The assistant offered a new route for the whole trip and the traveller
+  // took it: planned anew along it, for the same dates and style. The plan on
+  // screen stays in the session tray.
+  const handlePlanRoute = (route: RouteStop[]) => {
+    setMultiCityMode(true);
+    setCityRows(routeRows(route));
+    generateWhenSetRef.current = true;
+  };
+
   // Generates once the fields set above have landed in state (the place name
   // always replaces what was there, so this runs after every such request).
   useEffect(() => {
@@ -1697,6 +1717,7 @@ export default function NewTripPage({
               onApplyEdits={applyEdits}
               onUndoEdits={undoEdits}
               onPlanElsewhere={handlePlanElsewhere}
+              onPlanRoute={MULTI_CITY_ENABLED ? handlePlanRoute : undefined}
               asked={assistantAsked}
               // Post-edit save bridge. Only offered while the
               // trip is unsaved AND the manual save arm owns persistence —
@@ -1962,6 +1983,12 @@ export default function NewTripPage({
               effectiveMaxTripDays={effectiveMaxTripDays}
               handleFlexibleDates={handleFlexibleDates}
             />
+
+            {/* Where they're staying: one small link until opened. A stay is in
+                one city, so a trip through several has none. */}
+            {!(MULTI_CITY_ENABLED && multiCityMode) && (
+              <StayField stay={tripStay} onChange={setStay} near={destinationCoords} />
+            )}
 
             {/* Anchored trips: "I have fixed plans" — collapsed by default
                 to a single small text link (step-1→2 conversion is the fragile

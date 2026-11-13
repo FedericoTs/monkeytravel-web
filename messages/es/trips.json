@@ -18,6 +18,7 @@
     "apply": "Aplicar cambio",
     "discard": "Mantener original",
     "planElsewhere": "Planificar {place} para estas fechas",
+    "planRoute": "Planificar {route} para estas fechas",
     "applied": "Aplicado",
     "updatedDay": "Día {number} actualizado",
     "updatedDays": "Días {days} actualizados",
@@ -165,6 +166,8 @@
       "popularDestinations": "Destinos populares",
       "whosComing": "¿Quién viene?",
       "justMe": "Solo yo",
+      "couple": "Pareja",
+      "family": "Familia",
       "withFriends": "Con amigos",
       "withFriendsHint": "Podrás invitar a tus amigos a votar cuando hayamos generado el viaje.",
       "destinationLabel": "Destino",
@@ -216,6 +219,14 @@
         "reading": "Leyéndolo…",
         "filled": "Rellenado con lo que escribiste: revisa las fechas y continúa. Tus palabras también pasan al paso siguiente.",
         "capped": "Los viajes duran como máximo {max} días, así que este tiene {max}."
+      },
+      "stay": {
+        "add": "+ Añade dónde te alojas",
+        "label": "¿Dónde te alojas?",
+        "optional": "(opcional)",
+        "placeholder": "Hotel, dirección o zona",
+        "clear": "Borrar dónde te alojas",
+        "hint": "Cada día empezará y terminará cerca."
       }
     },
     "express": {
@@ -633,7 +644,7 @@
     "conflictPill": "Sin guardar: hay una versión más reciente",
     "writeBlockedConflict": "Primero elige qué versión conservar: este viaje se modificó en otro lugar.",
     "writeBlockedUnsaved": "Tus últimos cambios aún no están guardados. Vuelve a intentarlo cuando se hayan guardado.",
-    "ambientEditHint": "Arrastra para reordenar, toca una tarjeta para editarla — tus cambios se guardan solos.",
+    "ambientEditHint": "Arrastra para reordenar o mover a otro día, toca una tarjeta para editarla — tus cambios se guardan solos.",
     "undo": "Deshacer",
     "redo": "Rehacer",
     "tripUpdated": "Tu viaje ha sido actualizado exitosamente.",

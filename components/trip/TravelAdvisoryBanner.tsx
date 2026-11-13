@@ -1,91 +1,37 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { AlertTriangle, ExternalLink, Info, ShieldAlert } from "lucide-react";
 import { openExternal } from "@/lib/native/external-link";
+import type { TravelAdvisory } from "@/lib/advisories/fcdo";
 
 /**
- * Per-trip advisory banner.
- *
- * Fetches the FCDO travel advisory for the trip's destination country
- * once on mount, then renders a color-coded callout. Hides itself entirely
- * when:
- *   - The country isn't tracked by the source (FCDO unknown slug)
- *   - The fetch errors
- *   - Level is "low" (no alerts) — the banner only shows when there's
- *     something the traveler needs to read
- *
- * Why client-fetched instead of pre-rendered? Two reasons:
- *   - Keeps the trip-page payload small and the LCP fast — the advisory
- *     is informational, not blocking content.
- *   - Lets the Vercel CDN serve the /api/advisories response shared
- *     across all viewers of a popular destination, instead of bundling
- *     it into the per-user trip page render.
- *
- * Privacy: the country name is the only thing we send to the API route.
- * No trip id, no user id, no PII.
+ * The UK's travel advice for the trip's country (FCDO, read through
+ * /api/advisories by useTravelAdvisory): what it advises, in its own terms,
+ * and the way to the full advice. It is the card of the trip page's "Travel
+ * advice" chip, or, for advice that covers the whole country, a card above the
+ * plan (`urgent`), the one place it is an alert.
  */
-interface TravelAdvisoryBannerProps {
-  /** Destination country name as stored on the trip. */
-  country: string;
-  /** Optional className for layout integration. */
-  className?: string;
-}
-
-interface AdvisoryShape {
-  source: "fcdo";
-  sourceCountry: "GB";
-  countryName: string;
-  level: "low" | "advisory" | "high" | "extreme";
-  summary: string;
-  url: string;
-  updatedAt: string;
-}
-
 export default function TravelAdvisoryBanner({
-  country,
+  advisory,
+  urgent = false,
   className = "",
-}: TravelAdvisoryBannerProps) {
+}: {
+  advisory: TravelAdvisory;
+  urgent?: boolean;
+  className?: string;
+}) {
   const t = useTranslations("common.advisory");
   const locale = useLocale();
-  const [advisory, setAdvisory] = useState<AdvisoryShape | null>(null);
-  const [loaded, setLoaded] = useState(false);
 
-  useEffect(() => {
-    const ctrl = new AbortController();
-    const cleaned = country.trim();
-    if (!cleaned) return;
-    fetch(`/api/advisories/${encodeURIComponent(cleaned)}`, {
-      signal: ctrl.signal,
-    })
-      .then((r) => (r.ok ? r.json() : { advisory: null }))
-      .then((data: { advisory: AdvisoryShape | null }) => {
-        setAdvisory(data.advisory);
-        setLoaded(true);
-      })
-      .catch((err) => {
-        // AbortError is expected on cleanup — swallow it.
-        if (err instanceof Error && err.name !== "AbortError") {
-          console.warn("[TravelAdvisoryBanner] fetch failed", err.message);
-        }
-        setLoaded(true);
-      });
-    return () => ctrl.abort();
-  }, [country]);
-
-  // Hide entirely when:
-  //   - Still loading (don't flash empty banner)
-  //   - No advisory available
-  //   - level === "low" (no actionable warning — banner would be noise)
-  if (!loaded || !advisory || advisory.level === "low") return null;
+  if (advisory.level === "low") return null;
 
   const config = LEVEL_CONFIG[advisory.level];
   const Icon = config.icon;
 
   return (
     <div
-      role="alert"
+      role={urgent ? "alert" : undefined}
       className={`flex items-start gap-3 rounded-xl border ${config.border} ${config.bg} p-4 ${className}`}
     >
       <Icon
@@ -95,7 +41,7 @@ export default function TravelAdvisoryBanner({
       <div className="flex-1 min-w-0">
         <div className="flex items-center flex-wrap gap-2 mb-1">
           <h3 className={`text-sm font-semibold ${config.title}`}>
-            {t(`level.${advisory.level}`)}
+            {t(`advice.${advisory.advice ?? "other"}`)}
           </h3>
           <span
             className={`text-xs ${config.subtitle}`}
@@ -128,7 +74,7 @@ export default function TravelAdvisoryBanner({
 }
 
 const LEVEL_CONFIG: Record<
-  Exclude<AdvisoryShape["level"], "low">,
+  Exclude<TravelAdvisory["level"], "low">,
   {
     icon: typeof Info;
     iconColor: string;

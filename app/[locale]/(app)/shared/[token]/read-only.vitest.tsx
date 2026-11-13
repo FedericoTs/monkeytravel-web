@@ -24,6 +24,10 @@ const state = vi.hoisted(() => ({
   lazyProps: [] as Array<Record<string, unknown>>,
   // Props given to the hero.
   hero: null as Record<string, unknown> | null,
+  // Props given to the phone tab bar.
+  tabBar: null as Record<string, unknown> | null,
+  // The page's exchange rates, null until they load.
+  rates: null as { base: string; rates: Record<string, number> } | null,
 }));
 
 vi.mock("next-intl", () => ({ useTranslations: () => (key: string) => key, useLocale: () => "en" }));
@@ -76,6 +80,7 @@ vi.mock("@/lib/locale", () => ({
     convert: (value: number, currency: string) => ({ value, currency, formatted: `${value} ${currency}` }),
     format: (value: number, currency: string) => `${value} ${currency}`,
     preferredCurrency: "EUR",
+    exchangeRates: state.rates,
   }),
 }));
 vi.mock("@/components/DestinationHero", () => ({
@@ -92,7 +97,12 @@ vi.mock("@/components/trip/TripPackingEssentials", () => ({ default: () => null 
 vi.mock("@/components/ui/DaySlider", () => ({ default: () => null }));
 vi.mock("@/components/trip/TravelConnector", () => ({ default: () => null }));
 vi.mock("@/components/trip/DaySummary", () => ({ default: () => null }));
-vi.mock("@/components/ui/MobileBottomNav", () => ({ default: () => null }));
+vi.mock("@/components/ui/MobileBottomNav", () => ({
+  default: (props: Record<string, unknown>) => {
+    state.tabBar = props;
+    return null;
+  },
+}));
 vi.mock("@/components/trip/WhoIsGoingCard", () => ({ default: () => <div data-testid="who-is-going" /> }));
 vi.mock("@/components/trip/ParticipantsBar", () => ({
   default: ({ shareToken }: { shareToken: string }) => <div data-testid="participants-bar" data-token={shareToken} />,
@@ -326,6 +336,44 @@ describe("the page's header", { timeout: 20_000 }, () => {
     expect(state.hero?.budget).toEqual({ total: 53, currency: "EUR" });
     expect(state.hero?.budgetNote).toBe("tripTotal.perPerson");
     expect(state.hero?.budgetHint).toBe("tripTotal.hint");
+  });
+
+  describe("a plan whose stops are priced in two currencies", () => {
+    const twoCurrencies = {
+      ...trip,
+      budget: { total: 900, currency: "USD" },
+      itinerary: [
+        {
+          day_number: 1,
+          date: "2026-10-10",
+          theme: "Cape Town",
+          activities: [
+            { id: "a1", name: "Table Mountain cableway", type: "attraction", start_time: "09:00", duration_minutes: 120, description: "", location: "Cape Town", estimated_cost: { amount: 30, currency: "USD" } },
+            { id: "a2", name: "Gold Restaurant", type: "restaurant", start_time: "19:00", duration_minutes: 120, description: "", location: "Cape Town", estimated_cost: { amount: 400, currency: "ZAR" } },
+          ],
+        },
+      ] as never,
+    } as unknown as typeof trip;
+
+    it("totals each stop converted at the page's rates, never the bare numbers added", () => {
+      state.rates = { base: "EUR", rates: { USD: 1.2, ZAR: 20 } };
+      renderView({ shown: twoCurrencies });
+      // 400 rand is 20 euros, which is 24 dollars: 54 dollars, not 430.
+      expect(state.hero?.budget).toEqual({ total: 54, currency: "USD" });
+      state.rates = null;
+    });
+
+    it("shows no total until the rates load, rather than a wrong one", () => {
+      state.rates = null;
+      renderView({ shown: twoCurrencies });
+      expect(state.hero?.budget).toBeUndefined();
+    });
+  });
+
+  // The trip is someone else's, whoever looks at it.
+  it.each([["a share link", "tok-1"], ["the public page", undefined]])("lights no tab of the phone tab bar on %s", (_page, token) => {
+    renderView({ token });
+    expect(state.tabBar?.activePage).toBe("shared-trip");
   });
 
   it("shows no total for a plan that prices nothing", () => {

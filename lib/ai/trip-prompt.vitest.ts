@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildStaticChatHistory, buildUserPrompt, daylightLine } from "./trip-prompt";
+import { buildStaticChatHistory, buildUserPrompt, daylightLine, stayLine } from "./trip-prompt";
 import type { TripCreationParams } from "@/types";
 
 /**
@@ -65,7 +65,20 @@ describe("who's coming", () => {
     expect(buildUserPrompt(trip({ tripIntent: "group" }))).toContain("- Travellers: friends travelling together.");
   });
 
-  it.each(["solo", "group"] as const)("asks for %s to show in the choices rather than in every tip", (tripIntent) => {
+  it("plans for two when a couple is going, without assuming romance", () => {
+    const prompt = buildUserPrompt(trip({ tripIntent: "couple" }));
+    expect(prompt).toContain("- Travellers: two people travelling together.");
+    expect(prompt).toContain("Don't assume it's a romantic trip unless the vibes say so.");
+  });
+
+  it("plans for children when a family is going, with no bars or late nights", () => {
+    const prompt = buildUserPrompt(trip({ tripIntent: "family" }));
+    expect(prompt).toContain("- Travellers: a family with children.");
+    expect(prompt).toContain("Use any ages under Special Requirements.");
+    expect(prompt).toContain("Don't plan bars or late nights as stops.");
+  });
+
+  it.each(["solo", "couple", "family", "group"] as const)("asks for %s to show in the choices rather than in every tip", (tripIntent) => {
     expect(buildUserPrompt(trip({ tripIntent }))).toContain("Show this in what you choose, and mention it only where it helps.");
   });
 
@@ -77,6 +90,38 @@ describe("who's coming", () => {
     const prompt = buildUserPrompt(trip({ tripIntent: "solo" }));
     expect(prompt.indexOf("Travellers:")).toBeGreaterThan(prompt.indexOf("Travel Pace:"));
     expect(prompt.indexOf("Travellers:")).toBeLessThan(prompt.indexOf("Traveler Preferences"));
+  });
+});
+
+describe("where they're staying", () => {
+  const trip = (over: Partial<TripCreationParams> = {}): TripCreationParams => ({
+    destination: "Lisbon, Portugal",
+    startDate: "2027-05-10",
+    endDate: "2027-05-12",
+    budgetTier: "balanced",
+    pace: "moderate",
+    vibes: [],
+    interests: [],
+    ...over,
+  });
+
+  it("asks for each day to start and end near it, with where it is when that's known", () => {
+    const prompt = buildUserPrompt(trip({ stay: { name: "Memmo Alfama", coordinates: { lat: 38.71108, lng: -9.13061 } } }));
+    expect(prompt).toContain(
+      "- Staying at: Memmo Alfama (38.7111, -9.1306). Start each day near it and end each day a short ride from it: each day's first and last stops are close to it. The stay itself is never a stop."
+    );
+    expect(prompt.indexOf("Staying at")).toBeLessThan(prompt.indexOf("Traveler Preferences"));
+  });
+
+  it("names the place alone when where it is isn't known", () => {
+    expect(stayLine({ stay: { name: "Alfama" } })).toBe(
+      "Staying at: Alfama. Start each day near it and end each day a short ride from it: each day's first and last stops are close to it. The stay itself is never a stop."
+    );
+  });
+
+  it("says nothing when they didn't say", () => {
+    expect(stayLine({})).toBe("");
+    expect(buildUserPrompt(trip())).not.toContain("Staying at");
   });
 });
 

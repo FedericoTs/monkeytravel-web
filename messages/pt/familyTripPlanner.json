@@ -33,7 +33,7 @@
     "items": {
       "kidFriendly": {
         "title": "Atividades Para Crianças",
-        "description": "Diga que está viajando com crianças e o plano prioriza parques, museus interativos e outras coisas de que elas gostam. É AI, então confira cada parada."
+        "description": "Escolha Família em Quem vai? no passo 1 e o plano prioriza parques, museus interativos, lugares informais para comer e outras coisas de que as crianças gostam. É AI, então confira cada parada."
       },
       "ageAppropriate": {
         "title": "Sugestões Adequadas à Idade",
@@ -62,7 +62,7 @@
     "steps": {
       "step1": {
         "title": "Informe os Detalhes da Família",
-        "description": "Conte para a gente seu destino e as datas da viagem. Adicione em Requisitos Especiais as idades das crianças e o que sua família curte. Amantes de praia? Fãs de história? Fãs de parques temáticos? É só dizer."
+        "description": "Conte para a gente seu destino e as datas da viagem, e escolha Família em Quem vai?. Adicione em Requisitos Especiais as idades das crianças e o que sua família curte. Amantes de praia? Fãs de história? Fãs de parques temáticos? É só dizer."
       },
       "step2": {
         "title": "A AI Cria o Seu Roteiro Familiar",

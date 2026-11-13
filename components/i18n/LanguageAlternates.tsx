@@ -61,7 +61,7 @@ export default async function LanguageAlternates({ locale, hrefFor, className }:
               lang={l}
               hrefLang={l}
               rel="alternate"
-              className="font-medium text-[var(--foreground)] underline-offset-2 hover:underline"
+              className="inline-flex items-center justify-center font-medium text-[var(--foreground)] underline-offset-2 hover:underline"
             >
               {NATIVE_NAME[l] ?? l}
             </a>
