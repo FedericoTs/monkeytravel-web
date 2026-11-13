@@ -12,7 +12,7 @@ const PLACEMENT = {
     shape: "px-6 py-2.5 rounded-xl font-medium flex items-center gap-2",
     icon: "w-4 h-4",
     savedHover: "hover:bg-emerald-600",
-    saveHover: "hover:bg-[var(--secondary-ink)]/90",
+    saveHover: "hover:bg-[var(--primary)]/90",
   },
   bar: {
     shape: "flex-1 py-3 rounded-xl font-semibold flex items-center justify-center gap-2",
@@ -23,7 +23,8 @@ const PLACEMENT = {
 } as const;
 
 /**
- * The result view's main action. With auto-save on it follows that save:
+ * The result view's main action, in the planner's one main-button colour:
+ * coral with a white label, as Continue and Generate are. With auto-save on it follows that save:
  * View trip once the trip is stored, Saving while it is, Retry when it
  * failed. Otherwise (auto-save off, or nothing stored yet, as for a signed-out
  * planner) it is the manual Save.
@@ -62,7 +63,7 @@ export default function WizardSaveButton({
       <button
         type="button"
         disabled
-        className={cn(shape, "bg-[var(--secondary-ink)] text-white opacity-60 shadow-lg shadow-[var(--secondary)]/25")}
+        className={cn(shape, "bg-[var(--primary)] text-white opacity-60 shadow-lg shadow-[var(--primary)]/25")}
       >
         <Spinner className={icon} />
         {t("result.saving")}
@@ -85,7 +86,7 @@ export default function WizardSaveButton({
       type="button"
       onClick={() => onSave()}
       disabled={saving}
-      className={cn(shape, "bg-[var(--secondary-ink)] text-white", saveHover, "transition-colors disabled:opacity-50 shadow-lg shadow-[var(--secondary)]/25")}
+      className={cn(shape, "bg-[var(--primary)] text-white", saveHover, "transition-colors disabled:opacity-50 shadow-lg shadow-[var(--primary)]/25")}
     >
       {saving ? (
         <>

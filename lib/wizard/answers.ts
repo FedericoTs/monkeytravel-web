@@ -3,7 +3,7 @@ import type { KeptPlan } from "@/lib/plans/kept-plan";
 import type { TripIntent } from "@/lib/posthog/events";
 import type { Diet } from "@/lib/trips/diet";
 import type { TripFormState } from "@/lib/trips/persistTrip";
-import type { GeneratedItinerary, TripAnchor, TripVibe, BudgetTier, TripPace } from "@/types";
+import type { GeneratedItinerary, TripAnchor, TripStay, TripVibe, BudgetTier, TripPace } from "@/types";
 import { REQUIREMENTS_MAX } from "@/lib/trips/request-limits";
 
 /**
@@ -55,6 +55,8 @@ export interface WizardAnswers {
   dietary: Diet[];
   tripIntent: TripIntent;
   flexibleDates: boolean;
+  /** Where they're staying, when they said: the plan starts and ends each day near it. */
+  stay: TripStay | null;
 }
 
 /** A fresh wizard's answers, which Start Over puts back. */
@@ -71,6 +73,7 @@ export const FRESH_ANSWERS: WizardAnswers = {
   dietary: [],
   tripIntent: "unspecified",
   flexibleDates: false,
+  stay: null,
 };
 
 /** The form fields a saved trip is written from (lib/trips/persistTrip.ts). */
@@ -83,7 +86,7 @@ export function tripFormState(
 
 /** A signed-out planner's kept plan: every answer but the anchors, which it does not hold. */
 export function keptPlanOf(answers: WizardAnswers, itinerary: GeneratedItinerary): KeptPlan {
-  const { destination, startDate, endDate, pace, vibes, budgetTier, travelStyle, tripIntent, flexibleDates, mustDos, dietary } =
+  const { destination, startDate, endDate, pace, vibes, budgetTier, travelStyle, tripIntent, flexibleDates, mustDos, dietary, stay } =
     answers;
   return {
     destination,
@@ -98,6 +101,7 @@ export function keptPlanOf(answers: WizardAnswers, itinerary: GeneratedItinerary
     ...(flexibleDates ? { flexibleDates: true } : {}),
     ...(mustDos.length > 0 ? { mustDos } : {}),
     ...(dietary.length > 0 ? { dietary } : {}),
+    ...(stay ? { stay } : {}),
   };
 }
 

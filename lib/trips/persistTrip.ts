@@ -13,7 +13,7 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { GeneratedItinerary, TripAnchor, TripVibe, BudgetTier, TripPace } from "@/types";
+import type { GeneratedItinerary, TripAnchor, TripStay, TripVibe, BudgetTier, TripPace } from "@/types";
 import { splitCities } from "@/lib/ai/multi-city-core";
 import { isSupportedLanguage, resolveAiLanguage } from "@/lib/ai/language";
 import { isValidTimeZone } from "@/lib/trip/live";
@@ -87,6 +87,8 @@ export interface TripFormState {
    * (lib/trips/pencilled-dates.ts): the trip's emails wait until its dates change.
    */
   flexibleDates?: boolean;
+  /** Where they're staying, when they said; written as trip_meta.stay. */
+  stay?: TripStay | null;
 }
 
 /**
@@ -213,6 +215,8 @@ function buildTripRow(
     ...(formState.flexibleDates
       ? { dates_pencilled: { start: formState.startDate, end: formState.endDate } satisfies PencilledDates }
       : {}),
+    // Where they're staying, when they said: the plan was made around it.
+    ...(formState.stay ? { stay: formState.stay } : {}),
   };
 
   return {

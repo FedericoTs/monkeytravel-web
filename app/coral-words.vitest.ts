@@ -10,7 +10,7 @@ import { readFileSync } from "node:fs";
  * when a change removes some. A hover or focus colour doesn't count, nor does
  * `--primary` on an icon.
  */
-const CEILING = 111;
+const CEILING = 82;
 
 const CORAL_WORDS = /(?:^|[\s"'`{])(?:(?:sm|md|lg|xl|2xl):)?text-\[var\(--primary-ink\)\]/g;
 const SCREEN = /^(app|components)\/.*\.tsx$/;
@@ -44,6 +44,22 @@ const MOVED = [
   "components/ui/PullToRefreshIndicator.tsx",
   "components/profile/ProfileCompletionModal.tsx",
   "components/creator/CreatorProfile.tsx",
+  "components/trip/GenerationProgress.tsx",
+  "components/trip/AnchorEditor.tsx",
+  "components/wizard/TripDatesField.tsx",
+  "components/wizard/PreferencesStep.tsx",
+  "components/ui/SaveTripModal.tsx",
+  "components/TripMap.tsx",
+  "components/wizard/TripOptions.tsx",
+  "components/wizard/ReturningUserBanner.tsx",
+  "components/trip/VibeSelector.tsx",
+  "components/ui/DateRangePicker.tsx",
+  "components/ui/ActivityDetailSheet.tsx",
+  "components/trip/RegenerateButton.tsx",
+  "components/trip/AnonymousShareButton.tsx",
+  "components/ui/Toast.tsx",
+  "components/trip/ShareAfterSaveModal.tsx",
+  "components/trip/ValuePropositionBanner.tsx",
 ];
 
 const count = (file: string) => (readFileSync(file, "utf8").match(CORAL_WORDS) ?? []).length;
