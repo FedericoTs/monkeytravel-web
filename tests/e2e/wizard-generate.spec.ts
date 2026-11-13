@@ -285,4 +285,21 @@ test.describe("wizard: planning a trip on a phone", () => {
     await page.getByRole("button", { name: "Start Fresh" }).click();
     await expect(page.getByRole("group", { name: "Popular right now" })).toBeVisible();
   });
+
+  test("Share is in sight above the bottom bar, without opening More", async ({ page }) => {
+    await isolate(page);
+    await stubGeneration(page);
+
+    await page.goto("/trips/new");
+    const essentialOnly = page.getByRole("button", { name: /essential only/i });
+    await essentialOnly
+      .waitFor({ state: "visible", timeout: 4_000 })
+      .then(() => essentialOnly.click())
+      .catch(() => {});
+
+    const picks = page.getByRole("group", { name: "Popular right now" }).getByRole("button");
+    await planPick(page, picks.nth(0), "Lunch at the market");
+    await expect(page.getByRole("button", { name: "Share this trip" })).toBeInViewport();
+    await expect(page.locator('button[aria-controls="result-more"]')).toHaveAttribute("aria-expanded", "false");
+  });
 });
