@@ -131,7 +131,7 @@ export default async function AuthorPage({ params }: PageProps) {
               </div>
 
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold uppercase tracking-wider text-[var(--primary-ink)] mb-2">
+                <p className="text-sm font-semibold uppercase tracking-wider text-[var(--foreground-muted)] mb-2">
                   {author.title}
                 </p>
                 <h1 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-3 tracking-tight">

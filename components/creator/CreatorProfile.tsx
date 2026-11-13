@@ -165,7 +165,7 @@ export default async function CreatorProfile({
                     </svg>
                     {trip.saveCount}
                   </span>
-                  <span className="ml-auto text-[var(--primary-ink)] font-medium group-hover:underline">
+                  <span className="ml-auto font-medium text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 group-hover:decoration-2">
                     {t("viewAction")}
                   </span>
                 </div>
