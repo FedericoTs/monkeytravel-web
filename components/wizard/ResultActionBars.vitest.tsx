@@ -120,11 +120,13 @@ describe("ResultActionBars", () => {
     expect(header.getByText("wizard.result.notSavedPill")).toBeTruthy();
     expect(bar.getByText("wizard.result.notSavedPill")).toBeTruthy();
     expect(header.getByText("wizard.result.saveHeaderNudge")).toBeTruthy();
-    openMore(bar);
+    // On a phone Share is in sight, above the bar's row: not behind More, and not twice.
     expect(bar.getByRole("button", { name: "share" })).toBeTruthy();
+    openMore(bar);
+    expect(bar.getAllByRole("button", { name: "share" })).toHaveLength(1);
     expect(bar.getByText("wizard.result.mobileSaveNudge")).toBeTruthy();
-    // Both carry the page's share.
-    expect(shared.every((given) => JSON.stringify(given) === JSON.stringify(share))).toBe(true);
+    // Both carry the page's share (the bar's with its own spacing).
+    expect(shared.every((given) => JSON.stringify({ ...given, className: undefined }) === JSON.stringify(share))).toBe(true);
     expect(header.getByText("€900")).toBeTruthy();
 
     fireEvent.click(header.getByRole("button", { name: "wizard.result.saveTrip" }));
@@ -153,7 +155,6 @@ describe("ResultActionBars", () => {
     let { header, bar } = bars({ isAuthenticated: true });
     expect(header.queryByRole("button", { name: "share" })).toBeNull();
     fireEvent.click(header.getByRole("button", { name: crew }));
-    openMore(bar);
     fireEvent.click(bar.getByRole("button", { name: crew }));
     expect(on.save).toHaveBeenCalledTimes(2);
     expect(push).not.toHaveBeenCalled();
@@ -197,16 +198,30 @@ describe("ResultActionBars", () => {
   describe("the phone bar", () => {
     const buttonNames = (bar: ReturnType<typeof bars>["bar"]) => bar.getAllByRole("button").map((b) => b.textContent);
 
-    it("is one row: More, the plan's state and Save, with everything else behind More", () => {
+    it("shows Share above one row of More, the plan's state and Save, with the rest behind More", () => {
       const { bar } = bars();
-      expect(buttonNames(bar)).toEqual(["more", "wizard.result.saveTrip"]);
+      expect(buttonNames(bar)).toEqual(["share", "more", "wizard.result.saveTrip"]);
       expect(bar.getByText("wizard.result.notSavedPill")).toBeTruthy();
       expect(bar.queryByText("wizard.result.mobileSaveNudge")).toBeNull();
     });
 
     it("gives a kept plan's link the same place in that row", () => {
       const { bar } = bars({ keptPlan: { token: "T".repeat(22), expiresAt: "2099-01-01T00:00:00.000Z" } });
-      expect(buttonNames(bar)).toEqual(["more", "wizard.kept.copyLink", "wizard.result.saveTrip"]);
+      expect(buttonNames(bar)).toEqual(["share", "more", "wizard.kept.copyLink", "wizard.result.saveTrip"]);
+    });
+
+    it("shows a signed-in planner the crew ask in Share's place", () => {
+      const { bar } = bars({ isAuthenticated: true });
+      expect(buttonNames(bar)).toEqual([crew, "more", "wizard.result.saveTrip"]);
+    });
+
+    it("drops the share row once the trip is saved, or while it saves itself", () => {
+      expect(buttonNames(bars({ isAuthenticated: true, savedTripId: "t1", isUnsaved: false }).bar)).not.toContain(crew);
+      cleanup();
+      const autoSave = { savedTripId: "t2", status: "saved" as const, retry: vi.fn() };
+      expect(buttonNames(bars({ isAuthenticated: true, autoSave, autoSaving: true, isUnsaved: false }).bar)).not.toContain(crew);
+      cleanup();
+      expect(buttonNames(bars({ savedTripId: "t3", isUnsaved: false }).bar)).not.toContain("share");
     });
 
     it("says More is open, and keeps Save in reach while it is", () => {

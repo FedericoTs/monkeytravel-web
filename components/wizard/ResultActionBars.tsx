@@ -72,8 +72,9 @@ function CrewIcon() {
 /**
  * The result view's actions: the sticky header on wider screens, the bottom
  * bar on phones. Both carry Start Over, Regenerate, the save state and Save,
- * and the way to share the plan before or after saving it. The phone bar is one
- * row, so the plan keeps the screen: the state and Save, with the rest behind More.
+ * and the way to share the plan before or after saving it. The phone bar keeps
+ * the plan's screen: Share in sight above one row with the state and Save, the
+ * rest behind More.
  */
 export default function ResultActionBars({
   generatedItinerary,
@@ -303,28 +304,6 @@ export default function ResultActionBars({
                 {t("wizard.kept.emailAction")}
               </button>
             )}
-            {/* Ask your crew to vote, before saving (the peak share-intent
-                moment). A SIGNED-OUT planner gets the share button: the
-                onSave() route would put them straight into the auth wall the
-                anonymous share exists to remove. isAuthenticated is tri-state,
-                so only an explicit `false` swaps: `null` means still resolving
-                and must not flash a share button at someone who turns out to
-                be signed in. */}
-            {!savedTripId && !autoSaving && (isAuthenticated === false ? (
-              <ShareButton {...share} />
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  setMoreOpen(false);
-                  onSave();
-                }}
-                className="w-full min-h-[44px] flex items-center justify-center gap-2 rounded-xl font-semibold border border-[var(--secondary)] text-[var(--secondary-ink)] hover:bg-[var(--secondary)]/5 transition-colors"
-              >
-                <CrewIcon />
-                {t("wizard.result.shareForVotes")}
-              </button>
-            ))}
             <RegenerateButton
               onRegenerate={() => {
                 setMoreOpen(false);
@@ -349,6 +328,28 @@ export default function ResultActionBars({
             </button>
           </div>
         )}
+        {/* Share, in sight above the row: the share before saving is how a
+            plan reaches the people going. A SIGNED-OUT planner gets the share
+            button: the onSave() route would put them straight into the auth
+            wall the anonymous share exists to remove. isAuthenticated is
+            tri-state, so only an explicit `false` swaps: `null` means still
+            resolving and must not flash a share button at someone who turns
+            out to be signed in. */}
+        {!savedTripId && !autoSaving && (isAuthenticated === false ? (
+          <ShareButton {...share} className="mb-2" />
+        ) : (
+          <button
+            type="button"
+            onClick={() => {
+              setMoreOpen(false);
+              onSave();
+            }}
+            className="mb-2 w-full min-h-[44px] flex items-center justify-center gap-2 rounded-xl font-semibold border border-[var(--secondary)] text-[var(--secondary-ink)] hover:bg-[var(--secondary)]/5 transition-colors"
+          >
+            <CrewIcon />
+            {t("wizard.result.shareForVotes")}
+          </button>
+        ))}
         <div className="flex items-center gap-2">
           <button
             type="button"
