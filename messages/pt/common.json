@@ -1856,7 +1856,8 @@
       "undoActions": {
         "addedDay": "Dia {number} adicionado",
         "updatedDays": "{count, plural, one {# dia atualizado} other {# dias atualizados}}"
-      }
+      },
+      "changeDatesTo": "Mudar as datas para {range}"
     },
     "cards": {
       "addToTrip": "Adicionar à viagem",

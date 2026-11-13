@@ -1,8 +1,9 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type { ItineraryDay } from "@/types";
+import { formatDateRange } from "@/lib/datetime";
 import { useTripAssistant, type Message } from "@/hooks/useTripAssistant";
 import AssistantCards from "./AssistantCards";
 import StagedLoadingIndicator from "./StagedLoadingIndicator";
@@ -32,6 +33,8 @@ interface AIAssistantEnhancedProps {
    * or changes it first.
    */
   prefill?: string;
+  /** Opens the trip's Change dates with the dates a reply carries; without it, no offer is shown. */
+  onChangeDates?: (start: string, end: string) => void;
 }
 
 // Quick action IDs - labels come from translations
@@ -128,9 +131,11 @@ export default function AIAssistantEnhanced({
   onFocusDay,
   runItineraryWrite,
   prefill,
+  onChangeDates,
 }: AIAssistantEnhancedProps) {
   const t = useTranslations("common.ai.assistant");
   const tCommon = useTranslations("common");
+  const locale = useLocale();
   // Build quick actions from translations
   const QUICK_ACTIONS = QUICK_ACTION_IDS.map((action) => ({
     id: action.id,
@@ -325,6 +330,24 @@ export default function AIAssistantEnhanced({
                         )}
                       </div>
                     )}
+
+                    {/* New trip dates the reply read from the ask: only Change dates
+                        sets them, so it is offered here, under the latest reply. */}
+                    {message.role === "assistant" &&
+                      message.changeDates &&
+                      onChangeDates &&
+                      messages.map((m) => m.role).lastIndexOf("assistant") === index && (
+                        <button
+                          type="button"
+                          onClick={() => onChangeDates(message.changeDates!.start, message.changeDates!.end)}
+                          className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-[var(--foreground)] shadow-sm hover:bg-slate-50"
+                        >
+                          <svg className="h-4 w-4 flex-shrink-0 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          {t("changeDatesTo", { range: formatDateRange(message.changeDates.start, message.changeDates.end, locale) })}
+                        </button>
+                      )}
 
                     {/* Cards for assistant messages */}
                     {message.role === "assistant" && message.cards && message.cards.length > 0 && (

@@ -13,6 +13,7 @@ const usedEvents = vi.hoisted(() => vi.fn(async () => {}));
 vi.mock("next-intl", () => ({
   // Echoes the key and its values, so a test sees which text and with what.
   useTranslations: () => (key: string, values?: Record<string, unknown>) => (values ? `${key} ${JSON.stringify(values)}` : key),
+  useLocale: () => "en",
 }));
 vi.mock("@/lib/locale", () => ({ useLocale: () => ({ preferences: { preferredCurrency: "EUR" }, exchangeRates: {} }) }));
 vi.mock("@/lib/analytics", () => ({ trackAIAssistantMessage: vi.fn() }));
