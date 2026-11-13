@@ -1078,15 +1078,16 @@ export default function TripDetailClient({
         while the chat is open.
       */}
       <main
-        className={`max-w-6xl mx-auto px-4 py-6 sm:py-8 transition-[margin] duration-300 ease-out ${
+        className={`max-w-6xl mx-auto px-4 pt-4 pb-6 sm:py-8 transition-[margin] duration-300 ease-out ${
           isAIAssistantOpen || assistantDockReserved ? "lg:mr-[420px]" : ""
         }`}
         // Reserved, not open: globals.css drops the column when <html> says
         // this browser has already met the assistant.
         data-assistant-dock={assistantDockReserved && !isAIAssistantOpen ? "reserved" : undefined}
       >
-        {/* The plan comes first: what sits beside it is a row of chips. */}
-        <TripStrip label={tCommon("tripStrip.label")} items={stripItems} className="mb-6" />
+        {/* The plan comes first: what sits beside it is a row of chips. On a phone the gaps
+            above the days are a little tighter, so the first stop clears the tab bar. */}
+        <TripStrip label={tCommon("tripStrip.label")} items={stripItems} className="mb-4 sm:mb-6" />
         {/* Backpacker Mode — Hostelworld CTA. Renders only when the
             trip was generated as backpacker (trip_meta.travel_style).
             Placed near the top of the page, because that's the surface
@@ -1328,7 +1329,7 @@ export default function TripDetailClient({
           days={displayItinerary}
           selectedDay={selectedDay}
           onSelectDay={setSelectedDay}
-          className="mb-6"
+          className="mb-4 sm:mb-6"
         />
 
         <PlacesCheckedNote note={placesJustChecked ?? placesToEatNote(trip.meta)} className="mb-4" />
