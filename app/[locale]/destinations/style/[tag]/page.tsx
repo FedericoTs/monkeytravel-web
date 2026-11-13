@@ -118,11 +118,11 @@ export default async function DestinationStylePage({ params }: PageProps) {
         <section className="py-14 sm:py-16 bg-gradient-to-b from-[var(--primary)]/5 to-white">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav aria-label={tA11y("breadcrumb")} className="flex items-center gap-2 text-sm text-[var(--foreground-muted)] mb-6">
-              <Link href="/" className="hover:text-[var(--primary-ink)] transition-colors">
+              <Link href="/" className="inline-flex items-center justify-center hover:text-[var(--primary-ink)] transition-colors">
                 {t("breadcrumbs.home")}
               </Link>
               <span>/</span>
-              <Link href="/destinations" className="hover:text-[var(--primary-ink)] transition-colors">
+              <Link href="/destinations" className="inline-flex items-center justify-center hover:text-[var(--primary-ink)] transition-colors">
                 {t("breadcrumbs.destinations")}
               </Link>
               <span>/</span>

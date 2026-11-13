@@ -69,3 +69,40 @@ describe("step 1's footer", () => {
     }
   });
 });
+
+describe("the footer's main button", () => {
+  /** The main button at `step`, for a traveller who can go on. */
+  function mainButton(step: 1 | 2): HTMLButtonElement {
+    const { container } = render(
+      <NextIntlClientProvider locale="en" messages={{ trips: TRIPS.en }} onError={() => {}}>
+        <WizardFooter
+          footerRef={createRef()}
+          step={step}
+          setStep={vi.fn()}
+          totalSteps={2}
+          expressTrip={false}
+          canProceed={() => true}
+          footerStateB={false}
+          step1Block={null}
+          effectiveMaxTripDays={14}
+          isAuthenticated={false}
+          handleExpressPlan={vi.fn(async () => {})}
+          expressBusy={false}
+          handleFlexibleDates={vi.fn()}
+          setDatesPencilled={vi.fn()}
+          handleContinue={vi.fn()}
+          handleGenerate={vi.fn(async () => {})}
+        />
+      </NextIntlClientProvider>
+    );
+    const label = step === 1 ? TRIPS.en.wizard.step1.continue : TRIPS.en.wizard.step2.generate;
+    return [...container.querySelectorAll("button")].find((b) => b.textContent?.includes(label))!;
+  }
+
+  it.each([1, 2] as const)("is coral with a white label on step %i", (step) => {
+    const button = mainButton(step);
+    expect(button.className).toContain("bg-[var(--primary)]");
+    expect(button.className).toContain("text-white");
+    expect(button.className).not.toContain("var(--accent)");
+  });
+});

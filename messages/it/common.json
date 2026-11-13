@@ -325,10 +325,14 @@
     "linkCopied": "Link copiato!",
     "shareTrip": "Condividi Viaggio"
   },
+  "tripTotal": {
+    "perPerson": "a persona",
+    "hint": "Quanto costano attività e pasti del piano, a persona. Alloggio e viaggio fin lì esclusi."
+  },
   "shared": {
     "sharedTrip": "Viaggio Condiviso",
     "backpackerRoute": "Itinerario zaino in spalla",
-    "estBudget": "Budget Stimato",
+    "estBudget": "Stima a persona",
     "noItinerary": "Ancora nessun itinerario",
     "noItineraryDesc": "Questo viaggio non ha ancora attività in programma.",
     "footerTagline": "Organizzare viaggi con l'IA, in modo semplice",
@@ -1711,6 +1715,9 @@
       "other": "Altro"
     }
   },
+  "tripStrip": {
+    "label": "Preparativi"
+  },
   "bookAhead": {
     "title": "Da prenotare",
     "intro": "Queste tappe vanno prenotate. Segna ognuna quando è fatto.",
@@ -2602,10 +2609,14 @@
     }
   },
   "advisory": {
-    "level": {
-      "advisory": "Avviso di viaggio",
-      "high": "Evita viaggi non essenziali",
-      "extreme": "Evita ogni viaggio"
+    "chip": "Avvisi di viaggio",
+    "someAreas": "alcune zone",
+    "advice": {
+      "all_whole": "Il Regno Unito sconsiglia ogni viaggio in questo Paese",
+      "essential_whole": "Il Regno Unito sconsiglia i viaggi non essenziali in questo Paese",
+      "all_parts": "Il Regno Unito sconsiglia ogni viaggio in alcune zone",
+      "essential_parts": "Il Regno Unito sconsiglia i viaggi non essenziali in alcune zone",
+      "other": "Avvisi di viaggio del Regno Unito"
     },
     "sourceLabel": "Fonte: {source}",
     "readFullAdvisory": "Leggi l'avviso completo",

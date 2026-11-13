@@ -74,7 +74,9 @@ jobs:
           tests/e2e/where-should-i-go.spec.ts
           tests/e2e/result-sky.spec.ts
           tests/e2e/daylight-request.spec.ts
+          tests/e2e/stay-request.spec.ts
           tests/e2e/read-request.spec.ts
+          tests/e2e/whos-coming.spec.ts
           tests/e2e/tools-packing-list.spec.ts
           tests/e2e/tools-check-plan.spec.ts
           tests/e2e/mobile-webview.spec.ts

@@ -68,17 +68,22 @@ export async function generateTripPDF(trip: TripForExport): Promise<Blob> {
     rates = null;
   }
 
-  const formatDayBudget = (day: ItineraryDay): string => {
-    const total = day.activities.reduce((acc, activity) => {
+  const sumCosts = (activities: ItineraryDay["activities"]): number =>
+    activities.reduce((acc, activity) => {
       const amount = activity.estimated_cost?.amount;
       const currency = activity.estimated_cost?.currency;
       if (!amount || !currency) return acc;
       if (!rates) return acc + amount; // graceful degrade
       return acc + convertCurrency(amount, currency as CurrencyCode, targetCurrency, rates);
     }, 0);
+  const formatDayBudget = (day: ItineraryDay): string => {
+    const total = sumCosts(day.activities);
     if (total === 0) return "Free";
-    return formatCurrencyValue(total, targetCurrency);
+    return `${formatCurrencyValue(total, targetCurrency)} per person`;
   };
+  // The plan's own stops, per person, as the trip page and the assistant count
+  // them; the estimate saved with the plan never moves after a change.
+  const planTotal = sumCosts(trip.itinerary.flatMap((day) => day.activities));
 
   // ==================== COVER PAGE ====================
 
@@ -122,8 +127,8 @@ export async function generateTripPDF(trip: TripForExport): Promise<Blob> {
   doc.text(`${trip.itinerary.length} days`, margin + 5, yPosition + 18);
   doc.text(`${totalActivities} activities`, margin + 45, yPosition + 18);
 
-  if (trip.budget) {
-    doc.text(`${trip.budget.currency} ${trip.budget.total} estimated`, margin + 90, yPosition + 18);
+  if (planTotal > 0) {
+    doc.text(`${formatCurrencyValue(planTotal, targetCurrency)} per person`, margin + 90, yPosition + 18);
   }
 
   if (trip.description) {

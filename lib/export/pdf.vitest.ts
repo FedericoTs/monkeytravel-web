@@ -44,4 +44,11 @@ describe("generateTripPDF", () => {
     const pdf = await generateTripPDF(trip({ name: "Tram 28" }));
     expect(pdf.size).toBeGreaterThan(0);
   });
+
+  it("gives the plan's own stops as the total, per person, not the estimate saved with it", async () => {
+    const priced = { ...trip({ name: "Fado dinner", estimated_cost: { amount: 50, currency: "EUR" } }), budget: { total: 10224, currency: "EUR" } };
+    const text = await (await generateTripPDF(priced as TripForExport)).text();
+    expect(text).toContain("65 EUR per person");
+    expect(text).not.toContain("10224");
+  });
 });

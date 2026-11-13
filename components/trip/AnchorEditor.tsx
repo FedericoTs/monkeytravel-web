@@ -267,7 +267,7 @@ export default function AnchorEditor({
             // confuses; low opens ⇒ the CTA isn't findable. Different fixes.
             void captureAnchorPanelOpened({ existing_count: anchors.length });
           }}
-          className="flex items-center gap-1.5 text-xs font-medium text-[var(--primary-ink)] underline-offset-2 hover:underline"
+          className="flex items-center gap-1.5 text-xs font-medium text-[var(--foreground)] underline underline-offset-2"
         >
           <span aria-hidden="true">📌</span>
           {t("wizard.anchors.cta")}
@@ -307,7 +307,7 @@ export default function AnchorEditor({
                 setPasteOpen(true);
                 setImportSummary(null);
               }}
-              className="mt-2 flex items-center gap-1.5 text-xs font-medium text-[var(--primary-ink)] underline-offset-2 hover:underline"
+              className="mt-2 flex items-center gap-1.5 text-xs font-medium text-[var(--foreground)] underline underline-offset-2"
             >
               <span aria-hidden="true">📋</span>
               {t("wizard.anchors.import.cta")}
@@ -509,7 +509,7 @@ export default function AnchorEditor({
                 type="button"
                 onClick={addAnchor}
                 disabled={!draft.title.trim()}
-                className="w-full min-h-[44px] rounded-lg border border-[var(--primary)] py-2 text-sm font-medium text-[var(--primary-ink)] transition-colors hover:bg-[var(--primary)] hover:text-white disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-300 disabled:hover:bg-transparent"
+                className="w-full min-h-[44px] rounded-lg border border-[var(--primary)] py-2 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--primary)] hover:text-white disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-300 disabled:hover:bg-transparent"
               >
                 {t("wizard.anchors.add")}
               </button>

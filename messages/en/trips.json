@@ -166,6 +166,8 @@
       "popularDestinations": "Popular destinations",
       "whosComing": "Who's coming?",
       "justMe": "Just me",
+      "couple": "Couple",
+      "family": "Family",
       "withFriends": "With friends",
       "withFriendsHint": "You'll be able to invite friends to vote after we generate the trip.",
       "destinationLabel": "Destination",
@@ -217,6 +219,14 @@
         "reading": "Reading it…",
         "filled": "Filled in from what you wrote: check the dates, then continue. Your words go to the next step too.",
         "capped": "Trips can be up to {max} days, so this one has {max}."
+      },
+      "stay": {
+        "add": "+ Add where you’re staying",
+        "label": "Where are you staying?",
+        "optional": "(optional)",
+        "placeholder": "Hotel, address or area",
+        "clear": "Clear where you’re staying",
+        "hint": "Each day will start and end near it."
       }
     },
     "express": {
@@ -609,7 +619,7 @@
     "activityRegenerateFailed": "Failed to regenerate activity. Please try again.",
     "activityRegenerateLimit": "You've reached this month's regeneration limit. The activity is unchanged.",
     "saveChangesFailed": "Failed to save changes. Please try again.",
-    "estBudget": "Est. Budget",
+    "estBudget": "Est. per person",
     "noItinerary": "No Itinerary Yet",
     "noItineraryMessage": "This trip doesn't have any activities planned yet.",
     "reorderActivities": "Drag to reorder — or drop onto another day. Use ⋯ to move precisely.",
@@ -634,7 +644,7 @@
     "conflictPill": "Not saved: newer version",
     "writeBlockedConflict": "Choose which version to keep first: this trip was changed somewhere else.",
     "writeBlockedUnsaved": "Your latest changes aren't saved yet. Try again once they're saved.",
-    "ambientEditHint": "Drag to reorder, tap a card to edit — your changes save automatically.",
+    "ambientEditHint": "Drag to reorder or move to another day, tap a card to edit — your changes save automatically.",
     "undo": "Undo",
     "redo": "Redo",
     "tripUpdated": "Your trip has been updated successfully.",

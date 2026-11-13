@@ -5,7 +5,7 @@ import type { GeneratedItinerary, TripCreationParams } from "@/types";
  * the JSON and the streaming generation routes.
  */
 export interface CachePolicy {
-  /** Must-dos, a diet or who's coming: a tailored plan is neither answered from the shared pool nor added to it. */
+  /** Must-dos, a diet, who's coming or where they're staying: a tailored plan is neither answered from the shared pool nor added to it. */
   tailored: boolean;
   /** "Try Different Version": the plan on screen must not come back. */
   fresh: boolean;
@@ -15,7 +15,9 @@ export interface CachePolicy {
 
 export function cachePolicy(params: TripCreationParams, fresh: boolean, totalDays: number): CachePolicy {
   return {
-    tailored: Boolean(params.mustDos?.length || params.profilePreferences?.dietaryPreferences?.length || params.tripIntent),
+    tailored: Boolean(
+      params.mustDos?.length || params.profilePreferences?.dietaryPreferences?.length || params.tripIntent || params.stay
+    ),
     fresh,
     totalDays,
   };

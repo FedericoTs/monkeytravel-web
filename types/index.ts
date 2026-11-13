@@ -1,4 +1,5 @@
 import type { SupportedLanguage } from "@/lib/ai/language";
+import type { ChosenTripIntent } from "@/lib/wizard/answers";
 // Bananas currency system types
 export * from './bananas';
 
@@ -269,7 +270,7 @@ export interface TripMeta {
    * picked, so `undefined` means unanswered rather than "solo" — the two are
    * different and the share prompt branches on that distinction.
    */
-  trip_intent?: "solo" | "group";
+  trip_intent?: ChosenTripIntent;
   /**
    * Language the itinerary text is written in (Live Trip plan, Phase 1.3).
    * Stamped from the generation language at creation; every route that
@@ -469,6 +470,14 @@ export interface TripDaylight {
   last: SunClock;
 }
 
+/** Where the traveller is staying: a hotel, an address or an area, as they typed or picked it. */
+export interface TripStay {
+  /** One short line of their words (lib/trips/stay.ts cleanStayName). */
+  name: string;
+  /** Where it is, when it was picked from a list. */
+  coordinates?: { lat: number; lng: number };
+}
+
 export interface TripCreationParams {
   destination: string;
   startDate: string;
@@ -505,9 +514,15 @@ export interface TripCreationParams {
    * The answer to "Who's coming?". It shapes the plan (lib/ai/trip-prompt.ts),
    * so a plan with it neither comes from the shared cache nor goes into it.
    */
-  tripIntent?: "solo" | "group";
+  tripIntent?: ChosenTripIntent;
   /** Sunrise and sunset at the destination, worked out by the server (lib/ai/daylight.ts). */
   daylight?: TripDaylight;
+  /**
+   * Where the traveller is staying, when they said (lib/trips/stay.ts). Each day
+   * starts near it and ends a short ride from it, so a plan with it neither
+   * comes from the shared cache nor goes into it. Single-city trips only.
+   */
+  stay?: TripStay;
   /**
    * Multi-city wedge (§3.1). When present with >1 leg, /api/ai/generate routes
    * to the per-city parallel generator (lib/ai/multi-city) and merges the

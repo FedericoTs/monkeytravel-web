@@ -191,7 +191,7 @@ export default function TripCard({ trip, variant = "grid" }: TripCardProps) {
           </span>
           )}
           {!isCompact && (
-            <span className="ml-auto text-[var(--primary-ink)] font-medium group-hover:underline">
+            <span className="ml-auto font-medium text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 group-hover:decoration-2">
               {t("viewAction")}
             </span>
           )}
