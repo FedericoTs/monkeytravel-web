@@ -15,6 +15,10 @@ import { logWriteError } from "@/lib/supabase/log-write-error";
 const CACHE_TYPE = "wikimedia_landmark";
 const FOUND_DAYS = 30;
 const NONE_DAYS = 14;
+// A "none" carries the matcher's version. One from an older matcher is looked
+// up again: this one also names each of "A and B" and takes a place's
+// Wikipedia photo when its own are all taller than wide.
+const NONE_VERSION = 2;
 const BUILD_TIMEOUT_MS = 8000;
 // Two lookups at a time: Wikidata answers 429 to more from one client.
 const CONCURRENCY = 2;
@@ -45,8 +49,10 @@ export async function cachedLandmarkPhotos(keys: string[]): Promise<Map<string, 
   if (error) return found;
   for (const row of data ?? []) {
     const key = byHash.get(row.place_id as string);
-    const url = (row.data as { url?: unknown } | null)?.url;
-    if (key) found.set(key, typeof url === "string" ? url : null);
+    const cached = row.data as { url?: unknown; v?: unknown } | null;
+    if (!key) continue;
+    if (typeof cached?.url === "string") found.set(key, cached.url);
+    else if (Number(cached?.v ?? 0) >= NONE_VERSION) found.set(key, null);
   }
   return found;
 }
@@ -65,7 +71,7 @@ async function buildOne(lookup: LandmarkLookup & LandmarkQuery): Promise<string 
       {
         place_id: hash,
         cache_type: CACHE_TYPE,
-        data: url ? { url } : { none: true },
+        data: url ? { url } : { none: true, v: NONE_VERSION },
         request_hash: hash,
         cached_at: new Date(now).toISOString(),
         expires_at: new Date(now + (url ? FOUND_DAYS : NONE_DAYS) * 86_400_000).toISOString(),

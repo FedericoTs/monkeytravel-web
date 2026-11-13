@@ -9,13 +9,29 @@ import type { CommonsFile } from "./wikimedia";
  * none, so anything uncertain finds nothing.
  */
 
-type Item = { labels: string[]; aliases?: string[]; at?: [number, number]; kinds?: string[]; people?: number; images?: Record<string, string[]> };
+type Item = {
+  labels: string[];
+  aliases?: string[];
+  at?: [number, number];
+  kinds?: string[];
+  people?: number;
+  images?: Record<string, string[]>;
+  /** Its Wikipedia articles' titles, by site ("enwiki"). */
+  wikis?: Record<string, string>;
+};
 let items: Record<string, Item>;
+/** The lead photo of each Wikipedia article, by "<lang>:<title>". */
+let leads: Record<string, string>;
 let found: Record<string, string[]>;
 const searches: string[] = [];
 let files: CommonsFile[];
 
-const wiki = vi.fn(async (_base: string, params: Record<string, string | number>) => {
+const wiki = vi.fn(async (base: string, params: Record<string, string | number>) => {
+  if (params.prop === "pageimages") {
+    const lang = new URL(base).hostname.split(".")[0];
+    const pageimage = leads[`${lang}:${params.titles}`];
+    return { query: { pages: [{ title: String(params.titles), ...(pageimage ? { pageimage } : {}) }] } };
+  }
   if (params.list === "search") {
     const text = String(params.srsearch);
     searches.push(text);
@@ -27,8 +43,9 @@ const wiki = vi.fn(async (_base: string, params: Record<string, string | number>
     const item = items[id];
     if (!item) continue;
     entities[id] =
-      params.props === "claims"
+      String(params.props).includes("claims")
         ? {
+            sitelinks: Object.fromEntries(Object.entries(item.wikis ?? {}).map(([site, title]) => [site, { title }])),
             claims: {
               ...(item.at ? { P625: [{ mainsnak: { datavalue: { value: { latitude: item.at[0], longitude: item.at[1] } } } }] } : {}),
               P31: (item.kinds ?? []).map((k) => ({ mainsnak: { datavalue: { value: { id: k } } } })),
@@ -71,6 +88,7 @@ const match = (a: string, b: string) => nameMatch(nameTokens(a), nameTokens(b));
 
 beforeEach(() => {
   items = {};
+  leads = {};
   found = {};
   files = [];
   searches.length = 0;
@@ -118,6 +136,17 @@ describe("nameVariants", () => {
     ]) {
       expect(bareName(name), name).toBe(place);
     }
+  });
+
+  it("names each of two sights joined by 'and', in the plans' languages", () => {
+    expect(nameVariants(["Roman Forum and Palatine Hill"])).toEqual(expect.arrayContaining(["Roman Forum", "Palatine Hill"]));
+    expect(nameVariants(["Visita al Pantheon e Piazza Navona"])).toEqual(expect.arrayContaining(["Pantheon", "Piazza Navona"]));
+    expect(nameVariants(["Sagrada Família y Park Güell"])).toEqual(expect.arrayContaining(["Sagrada Família", "Park Güell"]));
+  });
+
+  it("keeps a name of two words and a meal's name whole: one shop, one restaurant", () => {
+    expect(nameVariants(["Fortnum and Mason"])).toEqual(["Fortnum and Mason"]);
+    expect(nameVariants(["Dinner at Salt and Pepper Grill"], true)).toEqual(["Dinner at Salt and Pepper Grill", "Salt and Pepper Grill"]);
   });
 
   it("drops a part that only says what kind of place it is", () => {
@@ -233,6 +262,38 @@ describe("findLandmarkPhoto", () => {
     expect((await findLandmarkPhoto(q, signal))?.name).toBe("Wheel.jpg");
     files = [photo("Wheel.jpg", { width: 1200, height: 1600 })];
     expect(await findLandmarkPhoto(q, signal)).toBeNull();
+  });
+
+  it("takes the photo its Wikipedia articles lead with when its own are all taller than wide", async () => {
+    found["Piazza Navona"] = ["Q5"];
+    items.Q5 = { labels: ["Piazza Navona"], at: [41.8992, 12.4731], images: { P18: ["Navona tall.jpg"] }, wikis: { enwiki: "Piazza Navona", itwiki: "Piazza Navona" } };
+    leads["it:Piazza Navona"] = "Navona tall.jpg";
+    leads["en:Piazza Navona"] = "Navona wide.jpg";
+    files = [photo("Navona tall.jpg", { width: 816, height: 1280 }), photo("Navona wide.jpg")];
+    const q = { names: ["Piazza Navona"], lat: 41.8992, lng: 12.4731 };
+    expect((await findLandmarkPhoto(q, signal))?.name).toBe("Navona wide.jpg");
+
+    // Nor any of its articles' lead photos: nothing.
+    files = [photo("Navona tall.jpg", { width: 816, height: 1280 }), photo("Navona wide.jpg", { width: 1600, height: 2400 })];
+    expect(await findLandmarkPhoto(q, signal)).toBeNull();
+  });
+
+  it("asks Wikipedia nothing when its own photo will do", async () => {
+    found["Pantheon"] = ["Q8"];
+    items.Q8 = { labels: ["Pantheon"], at: [41.8986, 12.4769], images: { P18: ["Pantheon.jpg"] }, wikis: { enwiki: "Pantheon, Rome" } };
+    leads["en:Pantheon, Rome"] = "Pantheon lead.jpg";
+    files = [photo("Pantheon.jpg"), photo("Pantheon lead.jpg")];
+    expect((await findLandmarkPhoto({ names: ["Pantheon"], lat: 41.8986, lng: 12.4769 }, signal))?.name).toBe("Pantheon.jpg");
+    expect(wiki.mock.calls.some(([base]) => base.includes("wikipedia.org"))).toBe(false);
+  });
+
+  it("finds a sight named with another one: either is the place", async () => {
+    found["Roman OR Forum OR Palatine OR Hill"] = ["Q6", "Q7"];
+    items.Q6 = { labels: ["Palatine Hill"], at: [41.8894, 12.4875], images: { P18: ["Palatine.jpg"] } };
+    items.Q7 = { labels: ["Roman Forum"], at: [41.8925, 12.4853], images: { P18: ["Forum.jpg"] } };
+    files = [photo("Palatine.jpg"), photo("Forum.jpg")];
+    const result = await findLandmarkPhoto({ names: ["Roman Forum and Palatine Hill"], lat: 41.8925, lng: 12.4853 }, signal);
+    expect(["Palatine.jpg", "Forum.jpg"]).toContain(result?.name);
   });
 
   it("finds nothing when the place named alike is far away, or is a station", async () => {
