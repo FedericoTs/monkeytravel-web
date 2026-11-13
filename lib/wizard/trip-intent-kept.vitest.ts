@@ -41,6 +41,7 @@ function draftTargets() {
     setMustDos: vi.fn(),
     setDietary: vi.fn(),
     setTripIntent: vi.fn(),
+    setStay: vi.fn(),
     setFlexibleDates: vi.fn(),
     setGeneratedItinerary: vi.fn(),
     registerRestore: vi.fn(),
