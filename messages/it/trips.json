@@ -18,6 +18,7 @@
     "apply": "Applica modifica",
     "discard": "Mantieni originale",
     "planElsewhere": "Pianifica {place} per queste date",
+    "planRoute": "Pianifica {route} per queste date",
     "applied": "Applicato",
     "updatedDay": "Giorno {number} aggiornato",
     "updatedDays": "Giorni {days} aggiornati",
