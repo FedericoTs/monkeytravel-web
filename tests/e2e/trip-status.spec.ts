@@ -102,12 +102,15 @@ test.describe("trip status", () => {
 
   test("the owner confirms a planning trip", async ({ page }) => {
     await openTrip(page, tripId);
-    await expect(page.getByText("Ready to confirm your trip?")).toBeVisible({ timeout: 60_000 });
+    // Confirming waits behind its chip; the card's own button follows it in the page.
+    await page.getByTestId("trip-strip-confirm").click({ timeout: 60_000 });
+    await expect(page.getByText("Ready to confirm your trip?")).toBeVisible();
 
-    await page.getByRole("button", { name: "Confirm Trip", exact: true }).click();
+    await page.getByRole("button", { name: "Confirm Trip", exact: true }).last().click();
     await expect(page.getByText("Trip confirmed")).toBeVisible({ timeout: 20_000 });
     await expect.poll(statusInDb, { timeout: 20_000 }).toBe("confirmed");
     await expect(page.getByText("Ready to confirm your trip?")).toHaveCount(0);
+    await expect(page.getByTestId("trip-strip-confirm")).toHaveCount(0);
   });
 
   test("a trip that is over says so, and is not offered for confirming", async ({ page }) => {
@@ -116,7 +119,7 @@ test.describe("trip status", () => {
 
     await openTrip(page, tripId);
     await expect(page.getByText("Memories", { exact: true })).toBeVisible({ timeout: 60_000 });
-    await expect(page.getByText("Ready to confirm your trip?")).toHaveCount(0);
+    await expect(page.getByTestId("trip-strip-confirm")).toHaveCount(0);
     expect(await statusInDb()).toBe("planning");
   });
 

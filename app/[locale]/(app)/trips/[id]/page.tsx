@@ -1,5 +1,6 @@
 import { createClientWithViewer } from "@/lib/supabase/server";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { isPhoneRequest } from "@/lib/device/phone-request";
 import { ASSISTANT_SEEN_COOKIE } from "@/lib/trip/assistant-seen";
 import { redirect, notFound } from "next/navigation";
 import { isExploreUgcEnabled } from "@/lib/explore/flag";
@@ -148,6 +149,8 @@ export default async function TripDetailPage({
     publicNameOrNull((viewerProfile as { display_name?: string | null } | null)?.display_name, user.email) ?? undefined;
 
   const assistantSeen = (await cookies()).has(ASSISTANT_SEEN_COOKIE);
+  // The plan first: on a phone the map waits behind its button.
+  const onPhone = isPhoneRequest(await headers());
 
   // The owner's first open of a kept trip looks up its places to eat.
   const placesToEatDue =
@@ -191,6 +194,7 @@ export default async function TripDetailPage({
       userRole={userRole}
       collaboratorCount={totalVoters}
       assistantSeen={assistantSeen}
+      mapOpenAtFirst={!onPhone}
       engagementSlot={
         <TripEngagementSection
           tripId={trip.id}

@@ -95,6 +95,21 @@ describe("WhoIsGoingCard", () => {
     expect(screen.getByText("share.participants.going:3")).toBeTruthy();
   });
 
+  // The trip page keeps the card behind a chip, which shows this count.
+  it("tells its count once the group is read, and again when it changes", async () => {
+    serve({ count: 4, participants: group }, { count: 3, participants: group.filter((p) => p.id !== "row-g") });
+    const told: number[] = [];
+    const onCount = (count: number) => {
+      told.push(count);
+    };
+    render(<WhoIsGoingCard tripId="trip-1" onCount={onCount} />);
+    await screen.findByText("Bo");
+    expect(told).toEqual([4]);
+    fireEvent.click(rowOf("Bo").querySelector("button") as HTMLElement);
+    await waitFor(() => expect(screen.queryByText("Bo")).toBeNull());
+    expect(told).toEqual([4, 3]);
+  });
+
   it("asks the owner to send the link while they are alone", async () => {
     serve({ count: 1, participants: [group[0]] });
     render(<WhoIsGoingCard tripId="trip-1" />);
