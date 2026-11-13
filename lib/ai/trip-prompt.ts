@@ -253,7 +253,7 @@ Rules:
 7. EVERY activity MUST have PRECISE coordinates (lat/lng with 6 decimal places, e.g., 48.858370, 2.294481) - use the EXACT location of each place, not approximate city center. This is critical for accurate map display
 8. Write "booking_required": true only on an activity that must be booked ahead; leave the field out on every other activity
 9. An activity's "type" says what the place is, and is one of: ${ACTIVITY_TYPES.join(", ")}. Never a travel vibe such as foodie, cultural, urban or romantic
-10. Every price, and the trip total, is in US dollars ("currency": "USD") whatever the destination: the app shows prices in the traveller's own currency
+10. Every price is per person, and every price and the trip total is in US dollars ("currency": "USD") whatever the destination: the app shows prices in the traveller's own currency
 11. Every full day has lunch, and dinner in the evening, at real named places. They count among the day's activities
 12. Place every sight, museum, church and market on a day and at a time it is open, using the weekday the request gives for each day: many museums close one day a week (often Monday), churches and cathedrals limit visits around services, and markets often trade only in the morning. Start a stop no earlier than the place opens`;
 

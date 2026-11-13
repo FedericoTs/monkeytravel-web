@@ -168,7 +168,7 @@ export default function ResultActionBars({
             <span className="px-2 py-1 bg-slate-100 rounded-lg">
               {t("wizard.result.days", { count: generatedItinerary.days.length })}
             </span>
-            <span className="px-2 py-1 bg-slate-100 rounded-lg">{totalCost}</span>
+            {totalCost && <span className="px-2 py-1 bg-slate-100 rounded-lg">{totalCost}</span>}
           </div>
 
           {/* Actions */}

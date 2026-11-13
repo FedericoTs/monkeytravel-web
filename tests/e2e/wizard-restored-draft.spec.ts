@@ -111,7 +111,7 @@ test.describe("wizard: a restored draft", () => {
 
     await page.getByRole("button", { name: "Restore Trip" }).click();
     await expect(page.getByRole("heading", { level: 1, name: "Paris, France" })).toBeVisible({ timeout: 30_000 });
-    for (const words of [/^3 days$/, /^\$[\d,]+$/]) {
+    for (const words of [/^3 days$/, /^\$[\d,]+ per person$/]) {
       const chip = page.locator("span.bg-slate-100:visible", { hasText: words }).first();
       await expect(chip).toBeVisible();
       await expect.poll(() => contrastOf(chip), { message: `the plan bar's ${words}` }).toBeGreaterThanOrEqual(4.5);

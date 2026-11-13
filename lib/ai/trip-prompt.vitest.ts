@@ -9,6 +9,10 @@ import type { TripCreationParams } from "@/types";
 describe("what every plan is asked for", () => {
   const spec = buildStaticChatHistory("system")[0].parts[0].text;
 
+  it("prices every stop per person, as the pages and the assistant read them", () => {
+    expect(spec).toContain("Every price is per person");
+  });
+
   it("has lunch and dinner on every full day, at real places", () => {
     expect(spec).toMatch(/every full day has lunch, and dinner in the evening, at real named places/i);
   });
