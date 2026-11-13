@@ -151,11 +151,22 @@ test.describe("Book ahead on an upcoming trip", () => {
     await expect(nudge).toBeVisible({ timeout: 30_000 });
     const lastStop = page.getByText("Flamenco show", { exact: true }).filter({ visible: true }).first();
     expect((await nudge.boundingBox())!.y, "the nudge sits under the last stop").toBeGreaterThan((await lastStop.boundingBox())!.y);
+    // Measured once the page has settled: its fonts in and nothing more on the wire.
+    await page.evaluate(() => document.fonts.ready);
+    await page.waitForLoadState("networkidle");
     const box = await firstStop.boundingBox();
     expect(box, "the first stop has a place on the page").not.toBeNull();
     const tabBar = await page.getByTestId("mobile-bottom-nav").boundingBox();
     expect(tabBar, "the tab bar has a place on the page").not.toBeNull();
-    expect(box!.y + box!.height, "the first stop's name ends well above the tab bar of the first screen").toBeLessThan(tabBar!.y - 40);
+    // What stands between the header and the days, named in the message if the stop is too low.
+    const above = await page.evaluate(() =>
+      [...document.querySelectorAll("main > *")]
+        .map((el) => ({ name: el.getAttribute("data-testid") ?? el.tagName.toLowerCase(), box: el.getBoundingClientRect() }))
+        .filter(({ box }) => box.height > 0 && box.top < 900)
+        .map(({ name, box }) => name + " " + Math.round(box.top) + "-" + Math.round(box.bottom))
+        .join(", "),
+    );
+    expect(box!.y + box!.height, "the first stop's name ends well above the tab bar of the first screen (" + above + ")").toBeLessThan(tabBar!.y - 40);
     // The line on editing in place waits under the first day.
     const editLine = page.getByText("your changes save automatically", { exact: false });
     await expect(editLine).toBeVisible();
