@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 // next/image import removed — the author avatar renders as initials (no headshots yet).
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing, Link } from "@/lib/i18n/routing";
 import { getAllAuthors, getAuthorBySlug } from "@/lib/blog/authors";
 import { getAllFrontmatter } from "@/lib/blog/api";
@@ -67,6 +67,8 @@ export default async function AuthorPage({ params }: PageProps) {
 
   const author = getAuthorBySlug(slug);
   if (!author) notFound();
+  const tCrumbs = await getTranslations({ locale, namespace: "common.breadcrumbs" });
+  const tA11y = await getTranslations({ locale, namespace: "common.a11y" });
 
   const localePrefix = locale === routing.defaultLocale ? "" : `/${locale}`;
   const url = `${SITE_URL}${localePrefix}/about/authors/${slug}`;
@@ -89,7 +91,7 @@ export default async function AuthorPage({ params }: PageProps) {
   });
 
   const breadcrumbSchema = generateBreadcrumbSchema([
-    { name: "Home", url: `${SITE_URL}${localePrefix}` },
+    { name: tCrumbs("home"), url: `${SITE_URL}${localePrefix}` },
     { name: "Blog", url: `${SITE_URL}${localePrefix}/blog` },
     { name: author.name, url },
   ]);
@@ -105,10 +107,10 @@ export default async function AuthorPage({ params }: PageProps) {
         {/* Header */}
         <section className="py-16 bg-gradient-to-b from-[var(--primary)]/5 to-white">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <nav className="flex items-center gap-2 text-sm text-[var(--foreground-muted)] mb-8">
-              <Link href="/" className="hover:text-[var(--primary-ink)] transition-colors">Home</Link>
+            <nav aria-label={tA11y("breadcrumb")} className="flex items-center gap-2 text-sm text-[var(--foreground-muted)] mb-8">
+              <Link href="/" className="inline-flex items-center justify-center hover:text-[var(--primary-ink)] transition-colors">{tCrumbs("home")}</Link>
               <span>/</span>
-              <Link href="/blog" className="hover:text-[var(--primary-ink)] transition-colors">Blog</Link>
+              <Link href="/blog" className="inline-flex items-center justify-center hover:text-[var(--primary-ink)] transition-colors">Blog</Link>
               <span>/</span>
               <span className="text-[var(--foreground)] font-medium">{author.name}</span>
             </nav>
