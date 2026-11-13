@@ -10,7 +10,7 @@ import { readFileSync } from "node:fs";
  * when a change removes some. A hover or focus colour doesn't count, nor does
  * `--primary` on an icon.
  */
-const CEILING = 82;
+const CEILING = 81;
 
 const CORAL_WORDS = /(?:^|[\s"'`{])(?:(?:sm|md|lg|xl|2xl):)?text-\[var\(--primary-ink\)\]/g;
 const SCREEN = /^(app|components)\/.*\.tsx$/;
@@ -18,6 +18,7 @@ const TEST = /\.(vitest|spec)\.tsx$/;
 
 // Screens already moved: none of their words may go back to coral.
 const MOVED = [
+  "components/ActivityCard.tsx",
   "components/explore/TripCard.tsx",
   "components/ui/MobileBottomNav.tsx",
   "app/[locale]/blog/tag/[tag]/page.tsx",
