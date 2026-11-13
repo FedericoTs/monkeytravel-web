@@ -104,10 +104,11 @@ describe("WhoIsGoingCard", () => {
     };
     render(<WhoIsGoingCard tripId="trip-1" onCount={onCount} />);
     await screen.findByText("Bo");
-    expect(told).toEqual([4]);
+    await waitFor(() => expect(told).toEqual([4]));
     fireEvent.click(rowOf("Bo").querySelector("button") as HTMLElement);
-    await waitFor(() => expect(screen.queryByText("Bo")).toBeNull());
-    expect(told).toEqual([4, 3]);
+    // The count is told in an effect, a beat after the row has gone.
+    await waitFor(() => expect(told).toEqual([4, 3]));
+    expect(screen.queryByText("Bo")).toBeNull();
   });
 
   it("asks the owner to send the link while they are alone", async () => {
