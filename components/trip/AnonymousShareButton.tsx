@@ -264,7 +264,7 @@ export default function AnonymousShareButton({
             href={effectiveUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--primary-ink)] hover:underline"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--foreground)] underline underline-offset-2"
           >
             <span aria-hidden>🗳️</span>
             {t("wizard.result.shareCrewVotes", { count: voteCount })}

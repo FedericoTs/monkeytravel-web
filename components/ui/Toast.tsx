@@ -170,7 +170,7 @@ function ToastItem({
             toast.action?.onClick();
             handleRemove();
           }}
-          className="min-h-11 shrink-0 rounded-lg px-3 text-sm font-semibold text-[var(--primary-ink)] hover:bg-white/70 transition-colors"
+          className="min-h-11 shrink-0 rounded-lg px-3 text-sm font-semibold text-[var(--foreground)] hover:bg-white/70 transition-colors"
         >
           {toast.action.label}
         </button>
