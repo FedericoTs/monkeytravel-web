@@ -57,12 +57,12 @@ export default function MobileBottomNav({ activePage }: MobileBottomNavProps) {
           <Link
             href="/"
             className={`flex flex-col items-center gap-1 px-3 py-2 ${
-              isActive("home") ? "text-[var(--primary-ink)]" : "text-slate-500"
+              isActive("home") ? "text-[var(--foreground)]" : "text-slate-500"
             }`}
             aria-label={t("home")}
             aria-current={isActive("home") ? "page" : undefined}
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <svg className={`w-6 h-6 ${isActive("home") ? "text-[var(--primary)]" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
             <span className={`text-xs ${isActive("home") ? "font-medium" : ""}`}>{t("home")}</span>
@@ -74,12 +74,12 @@ export default function MobileBottomNav({ activePage }: MobileBottomNavProps) {
             href="/trips"
             rel="nofollow"
             className={`flex flex-col items-center gap-1 px-3 py-2 ${
-              isActive("trips") || isActive("trip-detail") ? "text-[var(--primary-ink)]" : "text-slate-500"
+              isActive("trips") || isActive("trip-detail") ? "text-[var(--foreground)]" : "text-slate-500"
             }`}
             aria-label={t("myTrips")}
             aria-current={isActive("trips") || isActive("trip-detail") ? "page" : undefined}
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <svg className={`w-6 h-6 ${isActive("trips") || isActive("trip-detail") ? "text-[var(--primary)]" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
             <span className={`text-xs ${isActive("trips") || isActive("trip-detail") ? "font-medium" : ""}`}>{t("myTrips")}</span>
@@ -90,7 +90,7 @@ export default function MobileBottomNav({ activePage }: MobileBottomNavProps) {
           <Link
             href="/trips/new"
             className={`flex flex-col items-center gap-1 px-3 py-2 ${
-              isActive("new") ? "text-[var(--primary-ink)]" : "text-slate-500"
+              isActive("new") ? "text-[var(--foreground)]" : "text-slate-500"
             }`}
             aria-label={t("new")}
             aria-current={isActive("new") ? "page" : undefined}
@@ -114,12 +114,12 @@ export default function MobileBottomNav({ activePage }: MobileBottomNavProps) {
           <Link
             href="/explore"
             className={`flex flex-col items-center gap-1 px-3 py-2 ${
-              isActive("explore") ? "text-[var(--primary-ink)]" : "text-slate-500"
+              isActive("explore") ? "text-[var(--foreground)]" : "text-slate-500"
             }`}
             aria-label={t("explore")}
             aria-current={isActive("explore") ? "page" : undefined}
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <svg className={`w-6 h-6 ${isActive("explore") ? "text-[var(--primary)]" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <circle cx="12" cy="12" r="9" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 8l-2 6-6 2 2-6 6-2z" />
             </svg>
@@ -130,12 +130,12 @@ export default function MobileBottomNav({ activePage }: MobileBottomNavProps) {
           <Link
             href="/profile"
             className={`flex flex-col items-center gap-1 px-3 py-2 ${
-              isActive("profile") ? "text-[var(--primary-ink)]" : "text-slate-500"
+              isActive("profile") ? "text-[var(--foreground)]" : "text-slate-500"
             }`}
             aria-label={t("profile")}
             aria-current={isActive("profile") ? "page" : undefined}
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <svg className={`w-6 h-6 ${isActive("profile") ? "text-[var(--primary)]" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
             <span className={`text-xs ${isActive("profile") ? "font-medium" : ""}`}>{t("profile")}</span>

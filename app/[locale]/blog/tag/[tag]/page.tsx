@@ -172,7 +172,7 @@ export default async function BlogTagPage({ params }: PageProps) {
               <span className="text-[var(--foreground)] font-medium">{display}</span>
             </nav>
 
-            <p className="text-sm font-semibold uppercase tracking-wider text-[var(--primary-ink)] mb-2">
+            <p className="text-sm font-semibold uppercase tracking-wider text-[var(--foreground-muted)] mb-2">
               {t("tag.eyebrow")}
             </p>
             <h1 className="text-4xl sm:text-5xl font-bold text-[var(--foreground)] mb-4 tracking-tight">
