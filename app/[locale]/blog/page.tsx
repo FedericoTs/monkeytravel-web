@@ -150,7 +150,7 @@ export default async function BlogIndexPage({ params }: PageProps) {
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Breadcrumb */}
             <nav aria-label={tA11y("breadcrumb")} className="flex items-center gap-2 text-sm text-slate-500 mb-4">
-              <Link href="/" className="hover:text-[var(--primary-ink)] transition-colors">
+              <Link href="/" className="inline-flex items-center justify-center hover:text-[var(--primary-ink)] transition-colors">
                 {t("breadcrumbs.home")}
               </Link>
               <span className="text-slate-300">/</span>
