@@ -32,7 +32,7 @@ export interface PrefilledTripShape {
   mustDos: string[];
 }
 import { useAuth } from "@/components/auth/AuthProvider";
-import type { GeneratedItinerary, TripAnchor, TripVibe, SeasonalContext, BudgetTier, TripPace } from "@/types";
+import type { GeneratedItinerary, TripAnchor, TripStay, TripVibe, SeasonalContext, BudgetTier, TripPace } from "@/types";
 import type { Diet } from "@/lib/trips/diet";
 // Step-1 components (above-the-fold) stay eager.
 import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
@@ -40,6 +40,8 @@ import type { PlacePrediction } from "@/components/ui/DestinationAutocomplete";
 import { isTripSentence, looksLikeRequest, matchesPlace, pencilledDates, readTripSentence } from "@/lib/wizard/trip-sentence";
 import { fetchReading, fillOf } from "@/lib/wizard/request-reading";
 import AnchorEditor from "@/components/trip/AnchorEditor";
+import StayField from "@/components/wizard/StayField";
+import { stayFarFrom } from "@/lib/trips/stay";
 import { buildSeasonalContext } from "@/lib/seasonal";
 import { generateWithRecovery } from "@/lib/wizard/generation-recovery";
 import { attemptGeneration } from "@/lib/wizard/generation-attempt";
@@ -486,6 +488,11 @@ export default function NewTripPage({
   // whether the current dates were auto-filled as a flexible default so we can
   // surface an editable "flexible dates" note.
   const [flexibleDates, setFlexibleDates] = useState(false);
+  // Where they're staying, when they said (components/wizard/StayField.tsx).
+  const [stay, setStay] = useState<TripStay | null>(null);
+  // A stay belongs to its destination: one far from the destination now chosen
+  // isn't this trip's, so the field and the plan leave it out.
+  const tripStay = stayFarFrom(stay, destinationCoords) ? null : stay;
   // Dates a one-tap pick pencilled in (see the one-tap starts below).
   const [datesPencilled, setDatesPencilled] = useState(false);
   // Multi-city: a route of city+nights rows, only surfaced in step 1 when
@@ -733,6 +740,7 @@ export default function NewTripPage({
       setAnchors,
       setTripIntent,
       setFlexibleDates,
+      setStay,
       setGeneratedItinerary: (plan: GeneratedItinerary) => {
         forgetPlan();
         setGeneratedItinerary(plan);
@@ -783,8 +791,9 @@ export default function NewTripPage({
       dietary,
       tripIntent,
       flexibleDates,
+      stay: tripStay,
     }),
-    [destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, anchors, mustDos, dietary, tripIntent, flexibleDates]
+    [destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, anchors, mustDos, dietary, tripIntent, flexibleDates, tripStay]
   );
 
   // Keep a draft of the itinerary until the trip is saved, then none.
@@ -1962,6 +1971,12 @@ export default function NewTripPage({
               effectiveMaxTripDays={effectiveMaxTripDays}
               handleFlexibleDates={handleFlexibleDates}
             />
+
+            {/* Where they're staying: one small link until opened. A stay is in
+                one city, so a trip through several has none. */}
+            {!(MULTI_CITY_ENABLED && multiCityMode) && (
+              <StayField stay={tripStay} onChange={setStay} near={destinationCoords} />
+            )}
 
             {/* Anchored trips: "I have fixed plans" — collapsed by default
                 to a single small text link (step-1→2 conversion is the fragile
