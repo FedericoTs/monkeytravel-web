@@ -302,6 +302,13 @@ describe("the reorder hint", () => {
     show();
     expect(screen.queryByText("reorder hint")).toBeNull();
   });
+
+  // The page tells them in one line under its controls; a second box above the
+  // first stop said it again and pushed the plan down.
+  it("doesn't show to an owner who edits in place, without an edit mode", () => {
+    show({ editingActive: true, isEditMode: false });
+    expect(screen.queryByText("reorder hint")).toBeNull();
+  });
 });
 
 describe("a day the assistant points at", () => {

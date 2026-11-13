@@ -633,7 +633,7 @@
     "conflictPill": "Not saved: newer version",
     "writeBlockedConflict": "Choose which version to keep first: this trip was changed somewhere else.",
     "writeBlockedUnsaved": "Your latest changes aren't saved yet. Try again once they're saved.",
-    "ambientEditHint": "Drag to reorder, tap a card to edit — your changes save automatically.",
+    "ambientEditHint": "Drag to reorder or move to another day, tap a card to edit — your changes save automatically.",
     "undo": "Undo",
     "redo": "Redo",
     "tripUpdated": "Your trip has been updated successfully.",

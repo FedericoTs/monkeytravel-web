@@ -45,10 +45,12 @@ async function loadGroup(tripId: string): Promise<Group> {
 interface WhoIsGoingCardProps {
   tripId: string;
   onShare?: () => void;
+  /** Told the group's size once it is read, and again when it changes. */
+  onCount?: (count: number) => void;
   className?: string;
 }
 
-export default function WhoIsGoingCard({ tripId, onShare, className = "" }: WhoIsGoingCardProps) {
+export default function WhoIsGoingCard({ tripId, onShare, onCount, className = "" }: WhoIsGoingCardProps) {
   // Messages are namespaced by file; share.participants.* lives in common.json.
   const t = useTranslations("common");
   const locale = useLocale();
@@ -65,6 +67,10 @@ export default function WhoIsGoingCard({ tripId, onShare, className = "" }: WhoI
       alive = false;
     };
   }, [tripId]);
+
+  useEffect(() => {
+    if (group) onCount?.(group.count);
+  }, [group, onCount]);
 
   // A collaborator who is removed stays in the list under their role, so the
   // list is read again rather than guessed.

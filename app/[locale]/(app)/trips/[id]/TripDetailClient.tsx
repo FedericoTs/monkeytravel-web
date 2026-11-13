@@ -65,7 +65,8 @@ import {
 } from "@/components/timeline";
 import { useChecklist } from "@/hooks/useChecklist";
 import BookAheadList from "@/components/trip/BookAheadList";
-import { readBookedIds } from "@/lib/trips/book-ahead";
+import TripStrip, { type TripStripItem } from "@/components/trip/TripStrip";
+import { bookAheadStops, readBookedIds } from "@/lib/trips/book-ahead";
 import { useToast } from "@/components/ui/Toast";
 import { trackTripViewed } from "@/lib/analytics";
 import { useTravelDistances } from "@/hooks/useTravelDistances";
@@ -219,6 +220,8 @@ interface TripDetailClientProps {
   liveState?: TripDayState;
   /** Server-read: this browser has opened the assistant before (lib/trip/assistant-seen). */
   assistantSeen?: boolean;
+  /** Server-read: the map starts open. On a phone it starts closed, leaving the first screen to the plan. */
+  mapOpenAtFirst?: boolean;
 }
 
 export default function TripDetailClient({
@@ -232,6 +235,7 @@ export default function TripDetailClient({
   engagementSlot,
   liveState,
   assistantSeen = false,
+  mapOpenAtFirst = true,
 }: TripDetailClientProps) {
   const t = useTranslations('trips');
   // A live trip opens on Today, for the owner too.
@@ -254,7 +258,7 @@ export default function TripDetailClient({
   const shouldAutoOpenShareModal = shareParam === "invite";
 
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
-  const [showMap, setShowMap] = useState(true);
+  const [showMap, setShowMap] = useState(mapOpenAtFirst);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
   const isOwner = userRole === "owner";
@@ -263,6 +267,9 @@ export default function TripDetailClient({
   const canUseAssistant = ROLE_PERMISSIONS[userRole]?.canEdit ?? false;
   // The owner sees who said they're going.
   const participantsEnabled = isLiveTripParticipantsEnabled();
+  // The counts the strip's chips show, told by their cards.
+  const [goingCount, setGoingCount] = useState<number | null>(null);
+  const [bookedCount, setBookedCount] = useState<number | null>(null);
   // The hero's cover: the stored one, else one the hero looks up, which the
   // owner's visit stores on the trip.
   const { coverImageUrl, handleCoverImageFetched } = useTripCover({
@@ -873,6 +880,105 @@ export default function TripDetailClient({
 
   // A live trip opens on Today, in either phase. The active phase used to show
   // only OngoingTripView, so its crew chips, feed and Who paid? never appeared here.
+  // What sits beside the plan, as the chips of the row under the header
+  // (TripStrip). Each card tells its chip the count it shows.
+  const stripItems: TripStripItem[] = [];
+  const stopsToBook = bookAheadStops(editedItinerary).length;
+  if (isOwner && participantsEnabled && !isEditMode) {
+    stripItems.push({
+      id: "who",
+      label: tCommon("share.participants.whoIsGoing"),
+      detail: goingCount === null ? null : tCommon("share.participants.going", { count: goingCount }),
+      // The share ask is "send it to the people coming", not "get votes".
+      content: <WhoIsGoingCard tripId={trip.id} onShare={openCrewShareModal} onCount={setGoingCount} />,
+      keepMounted: true,
+    });
+  }
+  // Owner only: confirming or cancelling is the trip's lifecycle, and PATCH
+  // /status admits only the owner, so a collaborator's click would be a
+  // silent 404.
+  if (shownStatus === "planning" && isOwner) {
+    stripItems.push({
+      id: "confirm",
+      label: tCommon("trips.confirmTrip"),
+      content: (
+        <ConfirmTripCard
+          updating={isUpdatingStatus}
+          onConfirm={() => handleStatusUpdate("confirmed")}
+          onCancel={() => setConfirmCancelTrip(true)}
+        />
+      ),
+    });
+  }
+  if (isPreTripPhase) {
+    const ticked = checklist.items.filter((i) => i.is_checked).length;
+    stripItems.push({
+      id: "ready",
+      label: tCommon("checklist.title"),
+      detail:
+        isOwner && checklist.items.length > 0
+          ? tCommon("checklist.progress", { completed: ticked, total: checklist.items.length })
+          : null,
+      content: (
+        <div className="space-y-4">
+          {/* coverImageUrl is passed deliberately: CountdownHero renders a
+              full-bleed photo when it has one and a flat gradient when it
+              does not.
+
+              weatherForecast is NOT passed. The component wants
+              {temp, condition, icon}, but /api/weather returns HISTORICAL
+              weather (the same dates in a past year), not a forecast, and
+              labelling it as the forecast would mislead on the surface
+              people are most likely to screenshot. Needs a real forecast
+              source. */}
+          <CountdownHero
+            destination={destination}
+            startDate={tripStartDate}
+            tripDays={tripDaysCount}
+            activitiesCount={totalActivities}
+            coverImageUrl={coverImageUrl ?? undefined}
+          />
+          {isOwner && (
+            <PreTripChecklist
+              items={checklist.items}
+              onToggle={checklist.toggleItem}
+              onAdd={checklist.addItem}
+              onDelete={checklist.deleteItem}
+              isLoading={checklist.isLoading}
+            />
+          )}
+        </div>
+      ),
+    });
+  }
+  // The stops the plan says need a booking, with a Booked tick.
+  if (isPreTripPhase && isOwner && stopsToBook > 0) {
+    stripItems.push({
+      id: "book",
+      label: tCommon("bookAhead.title"),
+      detail: bookedCount === null ? null : tCommon("bookAhead.progress", { booked: bookedCount, total: stopsToBook }),
+      content: (
+        <BookAheadList
+          tripId={trip.id}
+          itinerary={editedItinerary}
+          initialBooked={readBookedIds(trip.meta)}
+          onProgress={setBookedCount}
+        />
+      ),
+      keepMounted: true,
+    });
+  }
+  // The owner's /explore counts and the publish switch, rendered by the server
+  // page. Kept mounted: its buttons hold what the viewer pressed.
+  if (engagementSlot) {
+    stripItems.push({
+      id: "explore",
+      label: tCommon("bottomNav.explore"),
+      content: <div className="flex flex-wrap items-center gap-3">{engagementSlot}</div>,
+      keepMounted: true,
+    });
+  }
+
   const todayView = showToday ? (
     <TodayView
       itinerary={displayItinerary}
@@ -961,17 +1067,12 @@ export default function TripDetailClient({
         // this browser has already met the assistant.
         data-assistant-dock={assistantDockReserved && !isAIAssistantOpen ? "reserved" : undefined}
       >
-        {/* Who said they're going — count, names, join times, remove.
-            The share ask is "send it to the people coming", not "get
-            votes". */}
-        {isOwner && participantsEnabled && !isEditMode && (
-          <WhoIsGoingCard tripId={trip.id} onShare={openCrewShareModal} className="mb-6" />
-        )}
+        {/* The plan comes first: what sits beside it is a row of chips. */}
+        <TripStrip label={tCommon("tripStrip.label")} items={stripItems} className="mb-6" />
         {/* Backpacker Mode — Hostelworld CTA. Renders only when the
             trip was generated as backpacker (trip_meta.travel_style).
-            Placed above the engagement bar, near the top of the page,
-            because that's the surface we want CTR on for the
-            Hostelworld partnership signal. */}
+            Placed near the top of the page, because that's the surface
+            we want CTR on for the Hostelworld partnership signal. */}
         {trip.meta?.travel_style === "backpacker" && (
           <BackpackerHostelCta
             tripId={trip.id}
@@ -982,26 +1083,6 @@ export default function TripDetailClient({
           />
         )}
 
-        {/* Owner-side /explore engagement bar + Publish-to-Explore
-            toggle. Null when the explore flag is off. Sits near the top
-            of <main> so the owner sees their counts + publish state
-            immediately on page load. */}
-        {engagementSlot && (
-          <div className="mb-6 flex items-center gap-3">
-            {engagementSlot}
-          </div>
-        )}
-
-        {/* Planning Phase - Confirm Trip Action. Owner only: confirming or
-            cancelling is the trip's lifecycle, and PATCH /status admits only
-            the owner, so a collaborator's click would be a silent 404. */}
-        {shownStatus === "planning" && isOwner && (
-          <ConfirmTripCard
-            updating={isUpdatingStatus}
-            onConfirm={() => handleStatusUpdate("confirmed")}
-            onCancel={() => setConfirmCancelTrip(true)}
-          />
-        )}
 
         {/* A cancelled trip can be restored to planning. */}
         {currentStatus === "cancelled" && isOwner && (
@@ -1024,42 +1105,6 @@ export default function TripDetailClient({
               nothing when the Concierge env-flag is off. */}
           <ConciergeHistory tripId={trip.id} />
         </div>
-
-        {/* Pre-Trip Phase - Countdown Hero and Checklist */}
-        {isPreTripPhase && (
-          <div className="space-y-4 mb-6">
-            {/* coverImageUrl is passed deliberately: CountdownHero renders a
-                full-bleed photo when it has one and a flat gradient when it
-                does not.
-
-                weatherForecast is NOT passed. The component wants
-                {temp, condition, icon}, but /api/weather returns HISTORICAL
-                weather (the same dates in a past year), not a forecast, and
-                labelling it as the forecast would mislead on the surface
-                people are most likely to screenshot. Needs a real forecast
-                source. */}
-            <CountdownHero
-              destination={destination}
-              startDate={tripStartDate}
-              tripDays={tripDaysCount}
-              activitiesCount={totalActivities}
-              coverImageUrl={coverImageUrl ?? undefined}
-            />
-            {isOwner && (
-              <PreTripChecklist
-                items={checklist.items}
-                onToggle={checklist.toggleItem}
-                onAdd={checklist.addItem}
-                onDelete={checklist.deleteItem}
-                isLoading={checklist.isLoading}
-              />
-            )}
-            {/* The stops the plan says need a booking, with a Booked tick. */}
-            {isOwner && (
-              <BookAheadList tripId={trip.id} itinerary={editedItinerary} initialBooked={readBookedIds(trip.meta)} />
-            )}
-          </div>
-        )}
 
         {/* Active Trip Phase - Today, else the Ongoing Trip View */}
         {isActiveTripPhase && (todayView ?? (

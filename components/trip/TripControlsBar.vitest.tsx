@@ -53,6 +53,8 @@ describe("TripControlsBar", () => {
   it("leads back to the trips and keeps the editing controls last", () => {
     bar();
     expect(screen.getByRole("link").getAttribute("href")).toBe("/trips");
+    // From the sm width up: a phone has the tab bar for it, and no room above the plan.
+    expect(screen.getByRole("link").parentElement?.className).toContain("hidden sm:flex");
     expect(screen.getByTestId("edit-controls")).toBeTruthy();
   });
 

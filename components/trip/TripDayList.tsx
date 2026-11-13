@@ -326,8 +326,9 @@ function TripDay({
           {editingActive ? (
             /* Edit Mode with Drag-and-Drop */
             <>
-              {/* Edit mode reorder hint - only on the first day shown */}
-              {firstShown && <ReorderHint />}
+              {/* Edit mode reorder hint - only on the first day shown. An owner
+                  who edits in place reads it in the page's own line instead. */}
+              {firstShown && isEditMode && <ReorderHint />}
               <DayDropList dayNumber={day.day_number} dragging={moves.dragging} isEmpty={day.activities.length === 0}>
                 <SortableContext
                   items={day.activities.map((a) => a.id || `activity-${day.activities.indexOf(a)}`)}

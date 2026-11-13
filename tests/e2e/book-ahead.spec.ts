@@ -107,8 +107,13 @@ test.describe("Book ahead on an upcoming trip", () => {
 
   test("lists what needs booking with a link, and keeps a tick through a reload", async ({ page }) => {
     await openTrip(page, tripId);
+    // The plan comes first: the list waits behind its chip, which carries the count.
+    const chip = page.getByTestId("trip-strip-book");
+    await expect(chip).toContainText("0 of 2 booked", { timeout: 60_000 });
     const list = page.getByTestId("book-ahead");
-    await expect(list).toBeVisible({ timeout: 60_000 });
+    await expect(list).toBeHidden();
+    await chip.click();
+    await expect(list).toBeVisible();
     await expect(list.getByText("0 of 2 booked")).toBeVisible();
     const boxes = list.getByRole("checkbox");
     await expect(boxes).toHaveCount(2);
@@ -119,6 +124,7 @@ test.describe("Book ahead on an upcoming trip", () => {
 
     await list.getByRole("checkbox", { name: "Booked: Flamenco show" }).check();
     await expect(list.getByText("1 of 2 booked")).toBeVisible();
+    await expect(chip).toContainText("1 of 2 booked");
     await expect
       .poll(async () => {
         const { data } = await admin.from("trips").select("trip_meta").eq("id", tripId).single();
@@ -127,7 +133,19 @@ test.describe("Book ahead on an upcoming trip", () => {
       .toEqual(["ba-d2a1"]);
 
     await page.reload({ waitUntil: "domcontentloaded" });
-    await expect(page.getByTestId("book-ahead").getByText("1 of 2 booked")).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByTestId("trip-strip-book")).toContainText("1 of 2 booked", { timeout: 60_000 });
+    await page.getByTestId("trip-strip-book").click();
     await expect(page.getByRole("checkbox", { name: "Booked: Flamenco show" })).toBeChecked();
+
+    // The plan comes first: on a phone the first stop is on the first screen, under the row of chips
+    // and above the tab bar. As cards, what the chips hold used to fill two screens before it.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.reload({ waitUntil: "domcontentloaded" });
+    const firstStop = page.getByText("Breakfast at the market", { exact: true }).first();
+    await expect(firstStop).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByTestId("trip-strip")).toBeVisible();
+    const box = await firstStop.boundingBox();
+    expect(box, "the first stop has a place on the page").not.toBeNull();
+    expect(box!.y + box!.height, "the first stop's name ends above the tab bar of the first screen").toBeLessThan(844 - 80);
   });
 });

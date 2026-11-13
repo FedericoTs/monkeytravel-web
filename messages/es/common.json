@@ -1715,6 +1715,9 @@
       "other": "Otros"
     }
   },
+  "tripStrip": {
+    "label": "Preparativos"
+  },
   "bookAhead": {
     "title": "Reserva con antelación",
     "intro": "Estas paradas necesitan reserva. Marca cada una cuando la tengas.",
