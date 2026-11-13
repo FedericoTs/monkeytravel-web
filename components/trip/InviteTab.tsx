@@ -66,7 +66,7 @@ export default function InviteTab({
         <>
           {/* Context hint */}
           <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg border border-blue-100">
-            <UserPlus className="w-4 h-4 text-[var(--primary-ink)] flex-shrink-0" />
+            <UserPlus className="w-4 h-4 text-[var(--primary)] flex-shrink-0" />
             <p className="text-xs text-blue-700">
               <span className="font-medium">{ts("invite.collaborateLabel")}:</span> {ts("invite.collaborateHint")}
             </p>

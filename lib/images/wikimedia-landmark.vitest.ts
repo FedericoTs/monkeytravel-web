@@ -53,7 +53,7 @@ vi.mock("@/lib/images/wikimedia", async (importOriginal) => ({
   servedPhotoUrls: (...a: Parameters<typeof servedPhotoUrls>) => servedPhotoUrls(...a),
 }));
 
-const { buildLandmarkPhoto, findLandmarkPhoto, itemMatch, nameMatch, namesAgree, nameTokens, nameVariants, placeName } = await import("./wikimedia-landmark");
+const { bareName, buildLandmarkPhoto, findLandmarkPhoto, itemMatch, nameMatch, namesAgree, nameTokens, nameVariants, placeName } = await import("./wikimedia-landmark");
 
 const photo = (name: string, extra: Partial<CommonsFile> = {}): CommonsFile => ({
   name,
@@ -90,6 +90,34 @@ describe("nameVariants", () => {
     expect(nameVariants(["Lunch at Katz's Delicatessen"])).toContain("Katz's Delicatessen");
     expect(nameVariants(["La Pedrera - Casa Milà"])).toEqual(expect.arrayContaining(["La Pedrera", "Casa Milà"]));
     expect(nameVariants(["Kinkaku-ji (Golden Pavilion)"])).toEqual(expect.arrayContaining(["Kinkaku-ji", "Golden Pavilion"]));
+  });
+
+  it("keeps the whole name of a place that starts like a small word", () => {
+    for (const [name, place] of [
+      ["Visit Tokyo Tower", "Tokyo Tower"],
+      ["Visit Atlantis Books", "Atlantis Books"],
+      ["Explore Inverness Castle", "Inverness Castle"],
+      ["Visit Theatre Royal", "Theatre Royal"],
+      ["Tour Ofuna Kannon", "Ofuna Kannon"],
+      ["Explore Ontario Place", "Ontario Place"],
+    ]) {
+      expect(bareName(name), name).toBe(place);
+    }
+    expect(bareName("Walk along the Seine")).toBe("the Seine");
+  });
+
+  it("names the place without what the activity does there, in the plans' other languages", () => {
+    for (const [name, place] of [
+      ["Visita al Colosseo", "Colosseo"],
+      ["Passeggiata sul Lago di Caldonazzo", "Lago di Caldonazzo"],
+      ["Esplorazione del borgo di Baselga di Piné", "borgo di Baselga di Piné"],
+      ["Paseo por el Retiro", "el Retiro"],
+      ["Passeio pelo Bairro Alto", "Bairro Alto"],
+      ["Visita ao MoMA (Museum of Modern Art)", "MoMA (Museum of Modern Art)"],
+      ["Sunset from Gianicolo Hill", "Gianicolo Hill"],
+    ]) {
+      expect(bareName(name), name).toBe(place);
+    }
   });
 
   it("drops a part that only says what kind of place it is", () => {
@@ -173,6 +201,11 @@ describe("nameMatch", () => {
     expect(namesAgree("Lunch in the Latin Quarter", "Cathédrale Notre-Dame de Paris")).toBe(false);
   });
 
+  it("reads a label's part before a comma as the place's name, the rest says where it is", () => {
+    expect(itemMatch(["Riverside Market"], { labels: { en: { value: "Riverside Market, Christchurch" } } })).toBeGreaterThan(0);
+    expect(itemMatch(["Christchurch"], { labels: { en: { value: "Riverside Market, Christchurch" } } })).toBe(0);
+  });
+
   it("ranks a label above an alias with the same words", () => {
     const variants = ["Asakusa"];
     expect(itemMatch(variants, { labels: { en: { value: "Asakusa" } } })).toBeGreaterThan(
@@ -190,6 +223,16 @@ describe("findLandmarkPhoto", () => {
     const result = await findLandmarkPhoto({ names: ["Eiffel Tower"], lat: PARIS[0], lng: PARIS[1] }, signal);
     expect(result?.name).toBe("Tower at night.jpg");
     expect(searches[0]).toBe("Eiffel Tower haswbstatement:P18 nearcoord:1500m,48.85840,2.29450");
+  });
+
+  it("takes a square view of the place, but not one taller than wide", async () => {
+    found["Wiener Riesenrad"] = ["Q9"];
+    items.Q9 = { labels: ["Wiener Riesenrad"], at: [48.2166, 16.3958], images: { P18: ["Wheel.jpg"] } };
+    const q = { names: ["Wiener Riesenrad"], lat: 48.2166, lng: 16.3958 };
+    files = [photo("Wheel.jpg", { width: 2560, height: 2560 })];
+    expect((await findLandmarkPhoto(q, signal))?.name).toBe("Wheel.jpg");
+    files = [photo("Wheel.jpg", { width: 1200, height: 1600 })];
+    expect(await findLandmarkPhoto(q, signal)).toBeNull();
   });
 
   it("finds nothing when the place named alike is far away, or is a station", async () => {

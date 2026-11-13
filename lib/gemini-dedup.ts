@@ -76,6 +76,8 @@ export interface ItineraryDedupParams {
   requirements?: string;
   travelStyle?: string;
   tripIntent?: string;
+  /** Where they're staying: two trips with different stays are different plans. */
+  stay?: { name: string; coordinates?: { lat: number; lng: number } };
   profile?: object;
   /**
    * Anchored-trip segment brief (F1). Two anchored generations over the same
@@ -123,6 +125,7 @@ export function getItineraryDedupKey(params: ItineraryDedupParams): string {
     requirements: params.requirements,
     style: params.travelStyle,
     intent: params.tripIntent,
+    stay: params.stay,
     profile: params.profile,
     anchor: params.anchorBrief || "",
   })}`;

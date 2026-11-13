@@ -64,7 +64,7 @@ export function CrewVotePill({ votes, activityId }: { votes: CrewVotes | null; a
 export function CrewVotesSummary({ votes, onShare }: { votes: CrewVotes; onShare: () => void }) {
   const t = useTranslations("trips");
   return (
-    <div className="mb-6 p-4 bg-gradient-to-r from-violet-50 to-blue-50 border border-violet-200 rounded-xl">
+    <div className="my-6 p-4 bg-gradient-to-r from-violet-50 to-blue-50 border border-violet-200 rounded-xl">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-slate-900">
@@ -97,7 +97,7 @@ export function CrewShareNudge({ tripId, onShare }: { tripId: string; onShare: (
   const [dismissed, dismiss] = useStoredFlag(`crewCtaDismissed:${tripId}`, "1");
   if (dismissed !== false) return null;
   return (
-    <div className="relative mb-6 p-4 bg-gradient-to-r from-violet-50 to-blue-50 border border-violet-200 rounded-xl">
+    <div className="relative my-6 p-4 bg-gradient-to-r from-violet-50 to-blue-50 border border-violet-200 rounded-xl">
       <button
         type="button"
         onClick={dismiss}

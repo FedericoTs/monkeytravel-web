@@ -57,10 +57,15 @@ const sameName = (a: string, b: string) => a.replace(/_/g, " ").toLowerCase() ==
  * can name.
  */
 export function isUsablePhoto(f: CommonsFile, minWidth = 1280): boolean {
+  return isUsableView(f, minWidth, 1.2);
+}
+
+/** A usable photo at least `minRatio` times as wide as it is tall: a square one crops well into a card. */
+export function isUsableView(f: CommonsFile, minWidth: number, minRatio: number): boolean {
   return (
     f.mime === "image/jpeg" &&
     f.width >= minWidth &&
-    f.width / f.height >= 1.2 &&
+    f.width / f.height >= minRatio &&
     FREE_LICENSE.test(f.license.trim()) &&
     (f.artist !== "" || !/^cc by/i.test(f.license.trim())) &&
     !/trademark/i.test(f.restrictions) &&

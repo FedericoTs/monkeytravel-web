@@ -96,6 +96,14 @@ describe("generateTripOutline", () => {
     expect(prompts[2]).not.toContain("Travellers:");
   });
 
+  it("outlines the days around where they're staying, when they said", async () => {
+    answer = JSON.stringify({ days: [day(1, ["a"]), day(2, ["b"]), day(3, ["c"])] });
+    await generateTripOutline({ ...params, stay: { name: "Memmo Alfama", coordinates: { lat: 38.7111, lng: -9.1306 } } }, 3);
+    expect(prompts[0]).toContain("Staying at: Memmo Alfama (38.7111, -9.1306).");
+    await generateTripOutline(params, 3);
+    expect(prompts[1]).not.toContain("Staying at");
+  });
+
   it("keeps every place to eat to the trip's diet", async () => {
     answer = JSON.stringify({ days: [day(1, ["a"]), day(2, ["b"]), day(3, ["c"])] });
     await generateTripOutline({ ...params, profilePreferences: { dietaryPreferences: ["vegan", "gluten-free"] } }, 3);

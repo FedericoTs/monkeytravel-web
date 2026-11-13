@@ -107,8 +107,13 @@ test.describe("Book ahead on an upcoming trip", () => {
 
   test("lists what needs booking with a link, and keeps a tick through a reload", async ({ page }) => {
     await openTrip(page, tripId);
+    // The plan comes first: the list waits behind its chip, which carries the count.
+    const chip = page.getByTestId("trip-strip-book");
+    await expect(chip).toContainText("0 of 2 booked", { timeout: 60_000 });
     const list = page.getByTestId("book-ahead");
-    await expect(list).toBeVisible({ timeout: 60_000 });
+    await expect(list).toBeHidden();
+    await chip.click();
+    await expect(list).toBeVisible();
     await expect(list.getByText("0 of 2 booked")).toBeVisible();
     const boxes = list.getByRole("checkbox");
     await expect(boxes).toHaveCount(2);
@@ -119,6 +124,7 @@ test.describe("Book ahead on an upcoming trip", () => {
 
     await list.getByRole("checkbox", { name: "Booked: Flamenco show" }).check();
     await expect(list.getByText("1 of 2 booked")).toBeVisible();
+    await expect(chip).toContainText("1 of 2 booked");
     await expect
       .poll(async () => {
         const { data } = await admin.from("trips").select("trip_meta").eq("id", tripId).single();
@@ -127,7 +133,59 @@ test.describe("Book ahead on an upcoming trip", () => {
       .toEqual(["ba-d2a1"]);
 
     await page.reload({ waitUntil: "domcontentloaded" });
-    await expect(page.getByTestId("book-ahead").getByText("1 of 2 booked")).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByTestId("trip-strip-book")).toContainText("1 of 2 booked", { timeout: 60_000 });
+    await page.getByTestId("trip-strip-book").click();
     await expect(page.getByRole("checkbox", { name: "Booked: Flamenco show" })).toBeChecked();
+
+    // The plan comes first: on a phone the first stop is on the first screen, under the row of chips
+    // and above the tab bar. As cards, what the chips hold used to fill two screens before it.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.reload({ waitUntil: "domcontentloaded" });
+    const firstStop = page.getByText("Breakfast at the market", { exact: true }).first();
+    await expect(firstStop).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByTestId("trip-strip")).toBeVisible();
+    // Once it has drawn, the page asks whether the trip was sent to anyone. For one that was not,
+    // the answer brings a nudge to send it: the first screen is measured only after the nudge has
+    // arrived, and the nudge sits under the days.
+    const nudge = page.getByText("Going with friends?", { exact: false });
+    await expect(nudge).toBeVisible({ timeout: 30_000 });
+    const lastStop = page.getByText("Flamenco show", { exact: true }).filter({ visible: true }).first();
+    expect((await nudge.boundingBox())!.y, "the nudge sits under the last stop").toBeGreaterThan((await lastStop.boundingBox())!.y);
+    // Measured once the page has settled: its fonts in and nothing more on the wire.
+    await page.evaluate(() => document.fonts.ready);
+    await page.waitForLoadState("networkidle");
+    // A reload keeps the scroll position, and a page scrolled down shows the stop higher than a
+    // first visit does: the page goes back to its top before it is measured.
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    const box = await firstStop.boundingBox();
+    expect(box, "the first stop has a place on the page").not.toBeNull();
+    const tabBar = await page.getByTestId("mobile-bottom-nav").boundingBox();
+    expect(tabBar, "the tab bar has a place on the page").not.toBeNull();
+    // What stands between the header and the days, named in the message if the stop is too low.
+    const above = await page.evaluate(() =>
+      [...document.querySelectorAll("main > *")]
+        .map((el) => ({ name: el.getAttribute("data-testid") ?? el.tagName.toLowerCase(), box: el.getBoundingClientRect() }))
+        .filter(({ box }) => box.height > 0 && box.top < 900)
+        .map(({ name, box }) => name + " " + Math.round(box.top) + "-" + Math.round(box.bottom))
+        .join(", "),
+    );
+    expect(box!.y + box!.height, "the first stop's name ends well above the tab bar of the first screen (" + above + ")").toBeLessThan(tabBar!.y - 40);
+    // The line on editing in place waits under the first day.
+    const editLine = page.getByText("your changes save automatically", { exact: false });
+    await expect(editLine).toBeVisible();
+    expect((await editLine.boundingBox())!.y, "the editing line sits under the first stop").toBeGreaterThan(box!.y);
+
+    // Nothing floats on that first screen: the floating assistant button waits until the bar's own
+    // assistant button has scrolled away, and leaves again when that one is back.
+    const floating = page.getByTitle("AI Trip Assistant");
+    const inBar = page.getByRole("button", { name: "Edit with AI" });
+    await expect(inBar).toBeInViewport();
+    await expect(floating).toBeHidden();
+    await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }));
+    await expect(inBar).not.toBeInViewport();
+    await expect(floating).toBeVisible();
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    await expect(inBar).toBeInViewport();
+    await expect(floating).toBeHidden();
   });
 });

@@ -17,7 +17,6 @@ import {
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
 import { HERO_DOODLE_ENABLED } from "@/components/marketing/doodle";
-import BuildHopFeedbackWidget from "@/components/BuildHopFeedbackWidget";
 import { ConsentGatedTags } from "@/components/analytics/ConsentGatedTags";
 import PageViewBeacon from "@/components/analytics/PageViewBeacon";
 import AuthEventTracker from "@/components/analytics/AuthEventTracker";
@@ -272,8 +271,6 @@ export default async function LocaleLayout({
             until the visitor has actually agreed to that category. See the
             component for the measurement and for why Sentry is not gated. */}
         <ConsentGatedTags />
-        {/* BuildHop feedback widget — see components/BuildHopFeedbackWidget.tsx */}
-        <BuildHopFeedbackWidget />
       </body>
     </html>
   );

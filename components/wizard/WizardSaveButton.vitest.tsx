@@ -65,3 +65,20 @@ describe("WizardSaveButton", () => {
     expect(screen.getByRole("button").className).not.toContain("flex-1");
   });
 });
+
+describe("WizardSaveButton's colour", () => {
+  it.each(["header", "bar"] as const)("saves in the planner's one main-button colour, in the %s", (placement) => {
+    render(<WizardSaveButton placement={placement} autoSave={null} onSave={vi.fn()} saving={false} />);
+    const button = screen.getByRole("button", { name: "wizard.result.saveTrip" });
+    expect(button.className).toContain("bg-[var(--primary)]");
+    expect(button.className).toContain("text-white");
+    expect(button.className).not.toContain("secondary");
+  });
+
+  it("keeps that colour while it saves", () => {
+    render(<WizardSaveButton placement="bar" autoSave={autoSave({ status: "saving" })} onSave={vi.fn()} saving={false} />);
+    const button = screen.getByRole("button", { name: "result.saving" });
+    expect(button.className).toContain("bg-[var(--primary)]");
+    expect(button.className).not.toContain("secondary");
+  });
+});
