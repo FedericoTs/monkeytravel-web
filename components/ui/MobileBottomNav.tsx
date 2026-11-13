@@ -17,7 +17,10 @@ interface MobileBottomNavProps {
     | "explore"
     | "profile"
     | "trip-detail"
-    | "saved";
+    // Pages outside the five tabs, which light none: the saved list, and a
+    // trip someone shared or published (it isn't the visitor's own).
+    | "saved"
+    | "shared-trip";
   tripId?: string; // For trip detail page context
 }
 
@@ -30,14 +33,11 @@ export default function MobileBottomNav({ activePage }: MobileBottomNavProps) {
   useCssVarHeight(navRef, "--mt-nav-h");
 
   const t = useTranslations("common.bottomNav");
-  // /saved is reachable from the bottom nav (via Profile) and the Navbar,
-  // but it isn't one of the 5 primary tabs. Render the nav with NO
-  // active tab so we don't mislead the user into thinking Profile is
-  // the current page (the prior bug — Profile got aria-current + primary
-  // color on /saved). When activePage='saved', isActive() returns false
-  // for every tab.
-  const isActive = (page: string) =>
-    activePage !== "saved" && activePage === page;
+  // A tab is lit only on its own page. /saved (reached through Profile) and
+  // a shared trip are no tab's page, so the bar lights none there rather than
+  // the nearest one: Profile lit on /saved, or My trips on someone else's
+  // trip, tells the visitor they are somewhere they are not.
+  const isActive = (page: string) => activePage === page;
 
   return (
     <>
