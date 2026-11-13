@@ -15,6 +15,7 @@ const read = (file: string) => readFileSync(join(__dirname, "..", file), "utf-8"
 const CENTRED = /\binline-flex items-center\b/;
 
 const BREADCRUMB_ROWS = [
+  "app/[locale]/about/authors/[slug]/page.tsx",
   "app/[locale]/blog/page.tsx",
   "app/[locale]/blog/tag/[tag]/page.tsx",
   "app/[locale]/blog/[slug]/page.tsx",
