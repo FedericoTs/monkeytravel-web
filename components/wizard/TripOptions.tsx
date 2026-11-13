@@ -82,7 +82,7 @@ export default function TripOptions({
               // barely visible).
               className={`relative flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all ${
                 isSelected
-                  ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary-ink)]"
+                  ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--foreground)]"
                   : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
               }`}
               aria-pressed={isSelected}
