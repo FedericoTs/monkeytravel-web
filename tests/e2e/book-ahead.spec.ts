@@ -144,6 +144,13 @@ test.describe("Book ahead on an upcoming trip", () => {
     const firstStop = page.getByText("Breakfast at the market", { exact: true }).first();
     await expect(firstStop).toBeVisible({ timeout: 60_000 });
     await expect(page.getByTestId("trip-strip")).toBeVisible();
+    // Once it has drawn, the page asks whether the trip was sent to anyone. For one that was not,
+    // the answer brings a nudge to send it: the first screen is measured only after the nudge has
+    // arrived, and the nudge sits under the days.
+    const nudge = page.getByText("Going with friends?", { exact: false });
+    await expect(nudge).toBeVisible({ timeout: 30_000 });
+    const lastStop = page.getByText("Flamenco show", { exact: true }).filter({ visible: true }).first();
+    expect((await nudge.boundingBox())!.y, "the nudge sits under the last stop").toBeGreaterThan((await lastStop.boundingBox())!.y);
     const box = await firstStop.boundingBox();
     expect(box, "the first stop has a place on the page").not.toBeNull();
     expect(box!.y + box!.height, "the first stop's name ends above the tab bar of the first screen").toBeLessThan(844 - 80);

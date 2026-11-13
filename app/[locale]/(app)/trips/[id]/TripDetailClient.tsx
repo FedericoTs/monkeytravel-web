@@ -1316,17 +1316,6 @@ export default function TripDetailClient({
           className="mb-8"
         />
 
-        {/* Crew Loop: the crew's votes once the share link has some, or for a
-            trip never shared, a nudge to send it. Hidden during edit mode
-            (ShareButton unmounts there, so the buttons would have nothing to
-            open). */}
-        {!isEditMode && isOwner && crewVotes !== null && crewVotes.total > 0 && (
-          <CrewVotesSummary votes={crewVotes} onShare={openCrewShareModal} />
-        )}
-        {!isEditMode && isOwner && crewSharingEnabled === false && trip.itinerary.length >= 2 && (
-          <CrewShareNudge tripId={trip.id} onShare={openCrewShareModal} />
-        )}
-
         {todayView}
 
         {!showToday && (
@@ -1378,6 +1367,19 @@ export default function TripDetailClient({
           onPhotoCapture={handlePhotoCapture}
         />
         </>
+        )}
+
+        {/* Crew Loop: the crew's votes once the share link has some, or for a
+            trip never shared, a nudge to send it. Both come from a read made
+            after the page has drawn, so they sit under the days: above them
+            they pushed the plan down a moment after it had appeared. Hidden
+            during edit mode (ShareButton unmounts there, so the buttons would
+            have nothing to open). */}
+        {!isEditMode && isOwner && crewVotes !== null && crewVotes.total > 0 && (
+          <CrewVotesSummary votes={crewVotes} onShare={openCrewShareModal} />
+        )}
+        {!isEditMode && isOwner && crewSharingEnabled === false && trip.itinerary.length >= 2 && (
+          <CrewShareNudge tripId={trip.id} onShare={openCrewShareModal} />
         )}
 
         {/* Journey Essentials - Premium Packing List */}
