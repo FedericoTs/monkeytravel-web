@@ -218,6 +218,14 @@
         "reading": "Lo sto leggendo…",
         "filled": "Compilato da quello che hai scritto: controlla le date e continua. Le tue parole passano anche al passaggio successivo.",
         "capped": "I viaggi durano al massimo {max} giorni, quindi questo ne ha {max}."
+      },
+      "stay": {
+        "add": "+ Aggiungi dove alloggi",
+        "label": "Dove alloggi?",
+        "optional": "(facoltativo)",
+        "placeholder": "Hotel, indirizzo o zona",
+        "clear": "Cancella dove alloggi",
+        "hint": "Ogni giorno partirà e finirà lì vicino."
       }
     },
     "express": {

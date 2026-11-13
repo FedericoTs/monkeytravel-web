@@ -300,6 +300,13 @@ function daylightLine({ daylight }: Pick<TripCreationParams, "daylight">): strin
   return `Daylight (local time): sunrise about ${span(first.sunrise, last.sunrise)}, sunset about ${span(first.sunset, last.sunset)}. A stop named for the sunrise or the sunset must be under way at that time; otherwise don't name it after one.`;
 }
 
+/** Where they're staying, so each day starts near it and ends a short ride from it. */
+function stayLine({ stay }: Pick<TripCreationParams, "stay">): string {
+  if (!stay) return "";
+  const at = stay.coordinates ? ` (${stay.coordinates.lat.toFixed(4)}, ${stay.coordinates.lng.toFixed(4)})` : "";
+  return `Staying at: ${stay.name}${at}. Start each day near it and end each day a short ride from it: each day's first and last stops are close to it. The stay itself is never a stop.`;
+}
+
 const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 /** Each day's weekday, so a place shut on one day of the week stays off that day. */
@@ -422,6 +429,7 @@ ${knownPlaces.map((p) => `- ${p.name} (${p.type})`).join("\n")}
 
   const travellers = travellersLine(params);
   const daylight = daylightLine(params);
+  const stay = stayLine(params);
   const days = daysLine(params.startDate, duration);
   // One city of a trip through several (lib/ai/multi-city): the must-dos are the
   // whole trip's, and the other cities have their own days.
@@ -453,7 +461,7 @@ ${params.mustDos.map((m) => `- ${m}`).join("\n")}
 ${days ? `- ${days}\n` : ""}- Duration: ${duration} days
 - Budget Tier: ${params.budgetTier}
 - Travel Pace: ${params.pace} — ${paceBudgetPromptClause(params.pace)}
-${travellers ? `- ${travellers}\n` : ""}${daylight ? `- ${daylight}\n` : ""}
+${travellers ? `- ${travellers}\n` : ""}${daylight ? `- ${daylight}\n` : ""}${stay ? `- ${stay}\n` : ""}
 ${travelStyleSection}${vibeSection}${seasonalSection}## Traveler Preferences
 - Interests: ${params.interests.length > 0 ? params.interests.join(", ") : "general sightseeing"}
 ${params.requirements ? `- Special Requirements: ${params.requirements}` : ""}
@@ -465,5 +473,5 @@ ${
 ${anchorSection}${partSection}Generate the itinerary now, following the system rules and the Required Output schema exactly.${languageSection}`;
 }
 
-export { buildProfilePreferencesSection, buildSchedulingPreferencesSection, buildUserPrompt, daylightLine, travellersLine };
+export { buildProfilePreferencesSection, buildSchedulingPreferencesSection, buildUserPrompt, daylightLine, stayLine, travellersLine };
 export type { BuildPromptOptions };

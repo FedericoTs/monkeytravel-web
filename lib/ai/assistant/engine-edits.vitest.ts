@@ -246,6 +246,28 @@ describe("composeReply", () => {
     expect(composeReply({ ...base, reply: "Here's Day 1.", edits: [d1], shortest: [] })).toBe("Here's Day 1.");
   });
 
+  it("asks for a day the reply names that the change leaves out", () => {
+    const [d1] = validateEdits(trip(), { edits: [edit(1)], tripLength: null }, "EUR").edits;
+    expect(composeReply({ ...base, reply: "Here's Day 1, and Day 3 gets the museum.", edits: [d1] })).toBe(
+      "Here's Day 1, and Day 3 gets the museum. (This change covers Day 1 only. Ask me for Day 3 if you want that changed too.)"
+    );
+  });
+
+  it("asks for no day the trip doesn't have", () => {
+    const [d1] = validateEdits(trip(), { edits: [edit(1)], tripLength: null }, "EUR").edits;
+    const reply = "Here's Day 1 with a later start. Day 9 would be after your flight home.";
+    expect(composeReply({ ...base, reply, edits: [d1] })).toBe(reply);
+  });
+
+  it("reads the traveller's dates as dates, not as days to ask for", () => {
+    // A 14-day Lisbon and Porto trip, told its route with dates.
+    const [d1] = validateEdits(trip(), { edits: [edit(1)], tripLength: null }, "EUR").edits;
+    const reply =
+      "Chegada a Lisboa no dia 10/03 às 23:00. Partida para o Porto no dia 13/03 às 09:00. " +
+      "Retorno a Lisboa no dia 18/03 às 15:00 e partida para casa no dia 24/03 às 23:00. Atualizei os horários.";
+    expect(composeReply({ ...base, locale: "pt", currentDays: 14, reply, edits: [d1], autoApplied: true })).toBe(reply);
+  });
+
   it("an answer with nothing prepared stays as it is", () => {
     const reply = "Tromsø's aurora season runs from September to March.";
     expect(composeReply({ ...base, reply, edits: [] })).toBe(reply);

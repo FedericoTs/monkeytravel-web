@@ -10,6 +10,7 @@ import { loadUserContext } from "@/lib/ai/user-context";
 import { requestLocale, type SupportedLanguage } from "@/lib/ai/language";
 import { withTripDiet } from "@/lib/trips/diet";
 import { daylightFor, readCoordinates } from "@/lib/ai/daylight";
+import { cleanStayName } from "@/lib/trips/stay";
 import type { TripCreationParams, UserProfilePreferences } from "@/types";
 import { isChosenTripIntent } from "@/lib/wizard/answers";
 
@@ -146,8 +147,22 @@ export function tripParamsFromBody(
     travelStyle: body.travelStyle === "backpacker" ? "backpacker" : "classic",
     ...(isChosenTripIntent(body.tripIntent) ? { tripIntent: body.tripIntent } : {}),
     ...withDaylight(body),
+    ...withStay(body),
     profilePreferences,
   };
+}
+
+/**
+ * Where they're staying, as one bounded line of their words, and where it is
+ * when it was picked from a list. A trip through several cities leaves it
+ * out: the stay is in one of them.
+ */
+function withStay(body: Record<string, unknown>): Pick<TripCreationParams, "stay"> {
+  const name = cleanStayName(body.stay);
+  const severalCities = Array.isArray(body.destinations) && body.destinations.length > 1;
+  if (!name || severalCities) return {};
+  const coordinates = readCoordinates(body.stayCoords);
+  return { stay: { name, ...(coordinates ? { coordinates } : {}) } };
 }
 
 /** The sun at the destination, when the planner sent where it is. */

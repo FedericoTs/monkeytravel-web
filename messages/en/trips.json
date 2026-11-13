@@ -218,6 +218,14 @@
         "reading": "Reading it…",
         "filled": "Filled in from what you wrote: check the dates, then continue. Your words go to the next step too.",
         "capped": "Trips can be up to {max} days, so this one has {max}."
+      },
+      "stay": {
+        "add": "+ Add where you’re staying",
+        "label": "Where are you staying?",
+        "optional": "(optional)",
+        "placeholder": "Hotel, address or area",
+        "clear": "Clear where you’re staying",
+        "hint": "Each day will start and end near it."
       }
     },
     "express": {

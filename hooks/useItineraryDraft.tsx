@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import type { GeneratedItinerary, TripAnchor } from "@/types";
+import type { GeneratedItinerary, TripAnchor, TripStay } from "@/types";
 import { safeGet, safeRemove } from "@/lib/safe-storage";
 import type { ChosenTripIntent } from "@/lib/wizard/answers";
 
@@ -51,6 +51,8 @@ export interface ItineraryDraft {
   tripIntent?: ChosenTripIntent | "unspecified";
   /** Dates pencilled in rather than chosen; must survive the signup redirect like the rest. */
   flexibleDates?: boolean;
+  /** Where they're staying, when they said (read back through lib/trips/stay.ts readStay). */
+  stay?: TripStay | null;
   savedAt: number;
   userId?: string;
 }
