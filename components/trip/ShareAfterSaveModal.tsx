@@ -16,6 +16,7 @@ import { useTranslations } from "next-intl";
 import { trackSharePromptShown, trackSharePromptAction } from "@/lib/analytics";
 import { forgetShareStatus } from "@/lib/trips/share-status";
 import CoPlannerInvites from "@/components/trip/CoPlannerInvites";
+import { sharesAsGroup, type ChosenTripIntent } from "@/lib/wizard/answers";
 import {
   captureSharePromptShown,
   captureSharePromptAction,
@@ -56,7 +57,7 @@ interface ShareAfterSaveModalProps {
    * someone who explicitly said they travel alone is the same mistake in
    * reverse, so `solo` gets a plain keep-the-link framing.
    */
-  tripIntent?: "solo" | "group" | "unspecified";
+  tripIntent?: ChosenTripIntent | "unspecified";
 }
 
 const COLLABORATION_BENEFITS = [
@@ -153,10 +154,10 @@ export default function ShareAfterSaveModal({
     }
   }, [isOpen]);
 
-  // Copy branch. "unspecified" gets a neutral middle rather than the group
-  // pitch — we only earn the crew framing when the user actually said so.
+  // Copy branch. Friends and a family get the group pitch; a couple and
+  // "unspecified" get the neutral middle, which asks for whoever's coming.
   const intentKey: "group" | "solo" | "unknown" =
-    tripIntent === "group" ? "group" : tripIntent === "solo" ? "solo" : "unknown";
+    sharesAsGroup(tripIntent) ? "group" : tripIntent === "solo" ? "solo" : "unknown";
 
   // Track prompt shown (only once)
   useEffect(() => {

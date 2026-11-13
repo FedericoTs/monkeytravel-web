@@ -5,6 +5,7 @@ import type { KnownPlace } from "@/lib/ai/known-places";
 import { paceBudgetPromptClause } from "@/lib/trip/pace";
 import { ACTIVITY_TYPES } from "@/lib/trip/activity-type";
 import { addIsoDays, tripSpanDays } from "@/lib/dates/iso-date";
+import type { ChosenTripIntent } from "@/lib/wizard/answers";
 
 /**
  * The prompt a trip is generated with: the shared chat prefix every
@@ -279,8 +280,10 @@ export function buildStaticChatHistory(systemPrompt: string) {
 }
 
 /** Who's coming, from step 1. Only ever these fixed words, never the request's text. */
-const TRAVELLERS = {
+const TRAVELLERS: Record<ChosenTripIntent, string> = {
   solo: "one person travelling alone. Favour places that suit one: counter seats and casual spots over long set menus, group walking tours, lively central areas in the evening. Never assume a partner or a group. Show this in what you choose, and mention it only where it helps.",
+  couple: "two people travelling together. Favour places that suit two: tables for two, walks and views, evenings out. Don't assume it's a romantic trip unless the vibes say so. Show this in what you choose, and mention it only where it helps.",
+  family: "a family with children. Favour what children enjoy: parks, hands-on museums, casual restaurants, shorter days with a rest after lunch, short distances between stops. Use any ages under Special Requirements. Don't plan bars or late nights as stops. Show this in what you choose, and mention it only where it helps.",
   group: "friends travelling together. Favour places that suit a group: tables for several, shared dishes, activities that are fun together. Say when a group should book ahead. Show this in what you choose, and mention it only where it helps.",
 };
 
