@@ -169,7 +169,7 @@ test.describe("Book ahead on an upcoming trip", () => {
         .map(({ name, box }) => name + " " + Math.round(box.top) + "-" + Math.round(box.bottom))
         .join(", "),
     );
-    expect(box!.y + box!.height, "the first stop's name ends above the tab bar of the first screen (" + above + ")").toBeLessThan(tabBar!.y);
+    expect(box!.y + box!.height, "the first stop's name ends well above the tab bar of the first screen (" + above + ")").toBeLessThan(tabBar!.y - 40);
     // The line on editing in place waits under the first day.
     const editLine = page.getByText("your changes save automatically", { exact: false });
     await expect(editLine).toBeVisible();
