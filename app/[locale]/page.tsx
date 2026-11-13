@@ -2,6 +2,7 @@ import Navbar from '@/components/Navbar';
 import PhoneMockup from '@/components/PhoneMockup';
 import Footer from '@/components/Footer';
 import CuratedEscapes from '@/components/templates/CuratedEscapes';
+import { templatesShown } from '@/lib/templates/shown';
 import { Link } from '@/lib/i18n/routing';
 import { generateFAQSchema, jsonLdScriptProps } from '@/lib/seo/structured-data';
 import HeroTripInput from '@/components/home/HeroTripInput';
@@ -672,11 +673,13 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         {/* ================================================================
             8. CURATED ESCAPES - Template Trips Showcase
             ================================================================ */}
-        <section className="py-16 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <CuratedEscapes />
-          </div>
-        </section>
+        {templatesShown() && (
+          <section className="py-16 bg-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <CuratedEscapes />
+            </div>
+          </section>
+        )}
 
         {/* ================================================================
             9. WHAT YOU WON'T FIND HERE (Anti-Features)

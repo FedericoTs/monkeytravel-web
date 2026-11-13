@@ -3,11 +3,12 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/lib/i18n/routing";
 import { failureWording, type ValidationFix } from "@/lib/wizard/generation-failure";
+import { templatesShown } from "@/lib/templates/shown";
 
 /**
  * Why the plan couldn't be made, in words the traveller can act on, and the
  * way on: the detail a refused request names, or another try. With the planner
- * out of service, ready-made trips too, which don't need it.
+ * out of service, ready-made trips too when templates show, which don't need it.
  */
 export default function GenerationErrorNotice({
   error,
@@ -51,7 +52,7 @@ export default function GenerationErrorNotice({
             )}
             {errorFix ? t("generation.editDetails") : t("generation.retry")}
           </button>
-          {wording === "errorUnavailable" && (
+          {wording === "errorUnavailable" && templatesShown() && (
             <Link href="/templates" className="ml-3 text-sm font-medium text-red-700 underline underline-offset-2 hover:text-red-800">
               {t("generation.browseTemplates")}
             </Link>

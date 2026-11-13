@@ -14,6 +14,7 @@ import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import { PullToRefreshIndicator } from "@/components/ui/PullToRefreshIndicator";
 import { hapticLight } from "@/lib/native/haptics";
 import CuratedEscapes from "@/components/templates/CuratedEscapesClient";
+import { templatesShown } from "@/lib/templates/shown";
 import BlogTipsSection, { type BlogTip } from "@/components/blog/BlogTipsSection";
 import ReferralModal from "@/components/referral/ReferralModal";
 import { referralsShown } from "@/lib/referral/shown";
@@ -541,7 +542,7 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
         {activeTrips.length === 0 && sharedSection}
 
         {/* For new users: Show templates first for inspiration */}
-        {activeTrips.length === 0 && archivedTrips.length === 0 && <CuratedEscapes />}
+        {templatesShown() && activeTrips.length === 0 && archivedTrips.length === 0 && <CuratedEscapes />}
 
         {/* Page Header with Search */}
         <div className="flex flex-col gap-4 mb-6 sm:mb-8">
@@ -907,7 +908,7 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
         {blogTips.length > 0 && <BlogTipsSection tips={blogTips} />}
 
         {/* For users WITH trips: Show templates at the bottom for inspiration */}
-        {activeTrips.length > 0 && <CuratedEscapes />}
+        {templatesShown() && activeTrips.length > 0 && <CuratedEscapes />}
       </main>
 
       {/* Referral Modal */}
