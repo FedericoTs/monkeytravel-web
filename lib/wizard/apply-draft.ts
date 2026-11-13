@@ -6,6 +6,7 @@ import { dietsFrom, type Diet } from "@/lib/trips/diet";
 import { readStay } from "@/lib/trips/stay";
 import type { GeneratedItinerary, TripAnchor, TripStay, TripVibe, BudgetTier, TripPace } from "@/types";
 import { FRESH_ANSWERS, type WizardAnswers } from "./answers";
+import { isChosenTripIntent } from "./answers";
 
 /** Where a restored draft goes: the wizard's fields, and the session tray. */
 export interface DraftTargets {
@@ -64,7 +65,7 @@ export function applyDraft(draft: ItineraryDraft, to: DraftTargets): void {
   to.setDietary(dietsFrom(draft.dietary));
   if (draft.travelStyle === "backpacker") to.setTravelStyle("backpacker");
   if (draft.anchors && draft.anchors.length > 0) to.setAnchors(draft.anchors);
-  if (draft.tripIntent === "solo" || draft.tripIntent === "group") to.setTripIntent(draft.tripIntent);
+  if (isChosenTripIntent(draft.tripIntent)) to.setTripIntent(draft.tripIntent);
   if (draft.flexibleDates) to.setFlexibleDates(true);
   const stay = readStay(draft.stay);
   if (stay) to.setStay(stay);
@@ -83,7 +84,7 @@ export function applyDraft(draft: ItineraryDraft, to: DraftTargets): void {
       ...(draft.anchors && draft.anchors.length > 0 ? { anchors: draft.anchors } : {}),
       ...(Array.isArray(draft.mustDos) ? { mustDos: draft.mustDos } : {}),
       dietary: dietsFrom(draft.dietary),
-      ...(draft.tripIntent === "solo" || draft.tripIntent === "group" ? { tripIntent: draft.tripIntent } : {}),
+      ...(isChosenTripIntent(draft.tripIntent) ? { tripIntent: draft.tripIntent } : {}),
       ...(draft.flexibleDates ? { flexibleDates: true } : {}),
       ...(stay ? { stay } : {}),
     });

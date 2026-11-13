@@ -24,6 +24,19 @@ export function withNote(requirements: string, note: string): string {
   return withUndatedItems(requirements, [note.trim()]);
 }
 
+/** The answers to "Who's coming?" the wizard offers. "unspecified" is no answer, so it isn't one. */
+export const CHOSEN_TRIP_INTENTS = ["solo", "group"] as const;
+export type ChosenTripIntent = (typeof CHOSEN_TRIP_INTENTS)[number];
+
+/**
+ * Whether a value is an answer to "Who's coming?". Every place a plan carries
+ * the answer keeps it only then: "unspecified", and any string from a request
+ * body or a stored draft, stay out of the plan and the model's prompt.
+ */
+export function isChosenTripIntent(value: unknown): value is ChosenTripIntent {
+  return (CHOSEN_TRIP_INTENTS as readonly unknown[]).includes(value);
+}
+
 /**
  * The wizard's answers that travel with a plan. A draft, the saved trip and
  * the session tray keep them all, and a kept plan all but the anchors, each
@@ -84,7 +97,7 @@ export function keptPlanOf(answers: WizardAnswers, itinerary: GeneratedItinerary
     vibes,
     budgetTier,
     travelStyle,
-    ...(tripIntent === "solo" || tripIntent === "group" ? { tripIntent } : {}),
+    ...(isChosenTripIntent(tripIntent) ? { tripIntent } : {}),
     ...(flexibleDates ? { flexibleDates: true } : {}),
     ...(mustDos.length > 0 ? { mustDos } : {}),
     ...(dietary.length > 0 ? { dietary } : {}),

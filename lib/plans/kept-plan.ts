@@ -13,6 +13,7 @@ import { isIsoDate } from "@/lib/trips/anonymous-share";
 import { MAX_TRIP_DAYS_MULTI, MUST_DOS_MAX, MUST_DO_MAX_LENGTH, VIBES_MAX } from "@/lib/trips/request-limits";
 import { dietsFrom, type Diet } from "@/lib/trips/diet";
 import { readStay } from "@/lib/trips/stay";
+import { isChosenTripIntent } from "@/lib/wizard/answers";
 
 
 export interface KeptPlan {
@@ -132,7 +133,7 @@ export function parseKeptPlan(input: unknown): KeptPlan | null {
     ...(vibes ? { vibes } : {}),
     ...(budgetTier ? { budgetTier } : {}),
     ...(input.travelStyle === "backpacker" || input.travelStyle === "classic" ? { travelStyle: input.travelStyle } : {}),
-    ...(input.tripIntent === "solo" || input.tripIntent === "group" ? { tripIntent: input.tripIntent } : {}),
+    ...(isChosenTripIntent(input.tripIntent) ? { tripIntent: input.tripIntent } : {}),
     ...(input.flexibleDates === true ? { flexibleDates: true } : {}),
     ...(mustDos?.length ? { mustDos } : {}),
     ...(dietary.length ? { dietary } : {}),

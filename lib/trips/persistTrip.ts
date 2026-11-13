@@ -24,6 +24,7 @@ import type { PencilledDates } from "@/lib/trips/pencilled-dates";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { logWriteError } from "@/lib/supabase/log-write-error";
 import { tripSpanDays } from "@/lib/dates/iso-date";
+import { isChosenTripIntent } from "@/lib/wizard/answers";
 
 export interface TripFormState {
   destination: string;
@@ -208,7 +209,7 @@ function buildTripRow(
     // Only written when the user actually picked, so `trip_intent is not null`
     // reads as "answered" and the untouched-default case stays distinguishable
     // from a deliberate choice.
-    ...(formState.tripIntent === "solo" || formState.tripIntent === "group"
+    ...(isChosenTripIntent(formState.tripIntent)
       ? { trip_intent: formState.tripIntent }
       : {}),
     ...(formState.flexibleDates

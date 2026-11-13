@@ -12,6 +12,7 @@ import { withTripDiet } from "@/lib/trips/diet";
 import { daylightFor, readCoordinates } from "@/lib/ai/daylight";
 import { cleanStayName } from "@/lib/trips/stay";
 import type { TripCreationParams, UserProfilePreferences } from "@/types";
+import { isChosenTripIntent } from "@/lib/wizard/answers";
 
 // Anti-abuse: cap ANONYMOUS generations per IP/day (defense-in-depth on top of
 // the per-cookie limit, which a bot can reset by clearing cookies). Authenticated
@@ -144,7 +145,7 @@ export function tripParamsFromBody(
       : {}),
     // Whitelisted, so untrusted strings can't flow into the AI system prompt.
     travelStyle: body.travelStyle === "backpacker" ? "backpacker" : "classic",
-    ...(body.tripIntent === "solo" || body.tripIntent === "group" ? { tripIntent: body.tripIntent } : {}),
+    ...(isChosenTripIntent(body.tripIntent) ? { tripIntent: body.tripIntent } : {}),
     ...withDaylight(body),
     ...withStay(body),
     profilePreferences,
