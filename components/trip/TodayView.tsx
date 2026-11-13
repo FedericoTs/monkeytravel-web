@@ -242,7 +242,7 @@ export default function TodayView({
       <div className="flex flex-wrap items-baseline justify-between gap-2 mb-1">
         <h2 className="text-xl font-bold text-slate-900">
           {t("today.title")}
-          <span className="ml-2 text-sm font-medium text-[var(--primary-ink)]">{t("today.dayOf", { day: dayNumber, total: dayState.totalDays })}</span>
+          <span className="ml-2 text-sm font-medium text-[var(--foreground-muted)]">{t("today.dayOf", { day: dayNumber, total: dayState.totalDays })}</span>
         </h2>
         <button type="button" onClick={onViewFullItinerary} data-testid="today-view-full" className="text-sm font-medium text-slate-600 hover:text-slate-900 underline-offset-2 hover:underline">
           {t("today.viewFull")}
@@ -274,7 +274,7 @@ export default function TodayView({
           <button type="button" onClick={() => toggle("done")} disabled={busy} data-testid="chip-done" className={chipClass(false)}>
             {t("today.chips.done")}
           </button>
-          {shiftMinutes > 0 && <span className="text-xs font-medium text-[var(--primary-ink)]">{t("today.chips.shiftedBy", { minutes: shiftMinutes })}</span>}
+          {shiftMinutes > 0 && <span className="text-xs font-medium text-[var(--foreground)]">{t("today.chips.shiftedBy", { minutes: shiftMinutes })}</span>}
         </div>
       )}
       {error && <p className="mb-3 text-xs text-red-600" role="alert">{t(`today.errors.${error}`)}</p>}
@@ -312,7 +312,7 @@ export default function TodayView({
         <>
           {highlight && (
             <div className="mb-5">
-              <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-[var(--primary-ink)]">{currentIndex >= 0 ? t("today.now") : t("today.next")}</p>
+              <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-[var(--foreground)]">{currentIndex >= 0 ? t("today.now") : t("today.next")}</p>
               <div data-testid="today-highlight" className="ring-2 ring-[var(--primary)]/30 rounded-xl">
                 {renderActivity(highlight, highlightIndex, true)}
               </div>

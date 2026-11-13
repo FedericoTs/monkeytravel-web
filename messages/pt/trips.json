@@ -165,6 +165,8 @@
       "popularDestinations": "Destinos populares",
       "whosComing": "Quem vai?",
       "justMe": "Só eu",
+      "couple": "Casal",
+      "family": "Família",
       "withFriends": "Com amigos",
       "withFriendsHint": "Você poderá convidar seus amigos para votar depois que gerarmos a viagem.",
       "destinationLabel": "Destino",
@@ -216,6 +218,14 @@
         "reading": "Lendo…",
         "filled": "Preenchido com o que você escreveu: confira as datas e continue. Suas palavras também vão para o passo seguinte.",
         "capped": "As viagens duram no máximo {max} dias, então esta tem {max}."
+      },
+      "stay": {
+        "add": "+ Adicionar onde você vai ficar",
+        "label": "Onde você vai ficar?",
+        "optional": "(opcional)",
+        "placeholder": "Hotel, endereço ou bairro",
+        "clear": "Limpar onde você vai ficar",
+        "hint": "Cada dia vai começar e terminar perto daí."
       }
     },
     "express": {
@@ -633,7 +643,7 @@
     "conflictPill": "Não salvo: há uma versão mais recente",
     "writeBlockedConflict": "Primeiro escolha qual versão manter: esta viagem foi alterada em outro lugar.",
     "writeBlockedUnsaved": "Suas últimas alterações ainda não foram salvas. Tente de novo quando estiverem salvas.",
-    "ambientEditHint": "Arraste para reordenar, toque em um cartão para editar — suas alterações são salvas automaticamente.",
+    "ambientEditHint": "Arraste para reordenar ou mover para outro dia, toque em um cartão para editar — suas alterações são salvas automaticamente.",
     "undo": "Desfazer",
     "redo": "Refazer",
     "tripUpdated": "Sua viagem foi atualizada com sucesso.",

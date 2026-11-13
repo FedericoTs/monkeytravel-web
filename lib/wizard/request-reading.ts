@@ -10,6 +10,7 @@ import {
   VIBES_MAX,
 } from "@/lib/trips/request-limits";
 import { pencilledDates } from "@/lib/wizard/trip-sentence";
+import type { ChosenTripIntent } from "./answers";
 
 /**
  * A request typed into the destination box ("18 days in Vietnam in August,
@@ -89,7 +90,7 @@ export interface RequestFill {
   datesSaid: boolean;
   /** The request asked for more days than a trip may have: the trip has this many. */
   capped: number | null;
-  intent: "solo" | "group" | null;
+  intent: ChosenTripIntent | null;
   vibes: TripVibe[];
   budget: "budget" | "luxury" | null;
 }
@@ -162,7 +163,7 @@ export function fillOf(
     endDate: dated ? endDate : "",
     datesSaid: dates !== null || reading.startDate !== null,
     capped: asked > cap ? cap : null,
-    intent: reading.who === "solo" ? "solo" : reading.who === "family" || reading.who === "friends" ? "group" : null,
+    intent: reading.who === "friends" ? "group" : reading.who,
     vibes: reading.vibes,
     budget: reading.budget,
   };

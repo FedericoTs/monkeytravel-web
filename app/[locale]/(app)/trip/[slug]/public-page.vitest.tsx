@@ -49,6 +49,10 @@ const ROW = {
 const selects: Record<string, string[]> = {};
 /** Whether the database refuses the trips read. */
 let tripsRefused = false;
+const AUTHOR = { data: { username: "traveller", display_name: "Traveller", avatar_url: null, bio: null, privacy_settings: {} }, error: null };
+/** The author read, so a test can hold its answer back. */
+let authorRead: () => Promise<unknown>;
+const refreshTripItinerary = vi.fn(async (days: unknown) => days);
 
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({
@@ -65,14 +69,14 @@ vi.mock("@/lib/supabase/admin", () => ({
             ? tripsRefused
               ? { data: null, error: { code: "57014", message: "canceling statement due to statement timeout" } }
               : { data: { ...ROW }, error: null }
-            : { data: { username: "traveller", display_name: "Traveller", avatar_url: null, bio: null, privacy_settings: {} }, error: null },
+            : authorRead(),
       };
       return q;
     },
   }),
 }));
 vi.mock("@/lib/supabase/server", () => ({ signedInUserId: async () => null }));
-vi.mock("@/lib/places/refreshItineraryPhotos", () => ({ refreshTripItinerary: async (days: unknown) => days }));
+vi.mock("@/lib/places/refreshItineraryPhotos", () => ({ refreshTripItinerary: (days: unknown) => refreshTripItinerary(days) }));
 vi.mock("next-intl/server", () => ({
   setRequestLocale: () => {},
   getTranslations: async () => (key: string, values?: Record<string, unknown>) => (values ? `${key} ${JSON.stringify(values)}` : key),
@@ -108,6 +112,43 @@ function findView(node: unknown): Record<string, unknown> | null {
 beforeEach(() => {
   for (const key of Object.keys(selects)) delete selects[key];
   tripsRefused = false;
+  authorRead = async () => AUTHOR;
+  refreshTripItinerary.mockClear();
+});
+
+// One database read used to wait for the one before it: the trip, its author,
+// then the photos. Only the trip has to come first.
+describe("the public trip page's reads", () => {
+  it("names the page from the trip alone, without reading its author", async () => {
+    const metadata = await generateMetadata({ params });
+    expect(metadata.title).toBeTruthy();
+    expect(selects.users).toBeUndefined();
+  });
+
+  it("refreshes the photos while the author is being read, and still names the author", async () => {
+    let answerAuthor: (answer: unknown) => void = () => {};
+    authorRead = () => new Promise((resolve) => (answerAuthor = resolve));
+    const page = PublicTripPage({ params });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(selects.users).toHaveLength(1);
+    expect(refreshTripItinerary).toHaveBeenCalledTimes(1);
+    answerAuthor(AUTHOR);
+    expect(strings(await page).join(" ")).toContain("/creator/traveller");
+  });
+
+  it("names no author whose profile is private", async () => {
+    authorRead = async () => ({ data: { ...AUTHOR.data, privacy_settings: { privateProfile: true } }, error: null });
+    const tree = await PublicTripPage({ params });
+    expect(findView(tree)).toBeTruthy();
+    expect(strings(tree).join(" ")).not.toContain("/creator/");
+  });
+
+  it("shows the trip without a byline when its author can't be read", async () => {
+    authorRead = async () => ({ data: null, error: { code: "57014", message: "canceling statement due to statement timeout" } });
+    const tree = await PublicTripPage({ params });
+    expect(findView(tree)).toBeTruthy();
+    expect(strings(tree).join(" ")).not.toContain("/creator/");
+  });
 });
 
 describe("the public trip page holds no share token", () => {

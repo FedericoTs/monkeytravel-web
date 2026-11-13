@@ -164,7 +164,7 @@ export default function ResultActionBars({
           </button>
 
           {/* Trip Summary */}
-          <div className="flex items-center gap-2 text-sm text-slate-500">
+          <div className="flex items-center gap-2 text-sm text-slate-600">
             <span className="px-2 py-1 bg-slate-100 rounded-lg">
               {t("wizard.result.days", { count: generatedItinerary.days.length })}
             </span>

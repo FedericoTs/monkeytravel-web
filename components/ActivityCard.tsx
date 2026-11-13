@@ -14,6 +14,7 @@ import { PhotoCredit } from "./ui/PhotoCredit";
 import { useSavedTrips } from "@/lib/stats/useSavedTrips";
 import { normalizeActivityType } from "@/lib/trip/activity-type";
 import { activityDomId } from "@/lib/trip/activity-dom-id";
+import { isPlacePhoto } from "@/lib/trips/keep-place-photos";
 import { useIsPhone } from "@/hooks/useMediaQuery";
 import { ActivityCardDetails, ActivityKindIcon } from "@/components/trip/ActivityCardParts";
 import { formatDuration } from "@/lib/datetime/duration";
@@ -94,7 +95,7 @@ function ActivityCard({
         <div className="relative h-32 sm:h-40 w-full overflow-hidden rounded-t-xl">
           <img
             src={proxyImageUrl(activity.image_url) || activity.image_url}
-            alt={activity.name}
+            alt={isPlacePhoto(activity.image_url) ? activity.name : ""}
             className="w-full h-full object-cover"
             loading="lazy"
           />
@@ -157,9 +158,9 @@ function ActivityCard({
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h4 className="font-semibold text-slate-900 text-base sm:text-lg">
+                  <h3 className="font-semibold text-slate-900 text-base sm:text-lg">
                     {activity.name}
-                  </h4>
+                  </h3>
                   <span
                     className={`hidden sm:inline text-xs px-2 py-0.5 rounded-full ${colors.bg} ${colors.text} ${colors.border} border`}
                   >
@@ -235,7 +236,7 @@ function ActivityCard({
                 <button
                   type="button"
                   onClick={() => void openExternal(activity.official_website!)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 text-[var(--primary-ink)] text-xs font-medium rounded-lg transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 text-[var(--foreground)] text-xs font-medium rounded-lg transition-colors"
                 >
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />

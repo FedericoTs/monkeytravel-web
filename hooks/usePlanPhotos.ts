@@ -1,12 +1,19 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
-import type { GeneratedItinerary } from "@/types";
+import type { Activity, GeneratedItinerary } from "@/types";
+import { activityDomId } from "@/lib/trip/activity-dom-id";
 import { isPlacePhoto, withFoundPhotos } from "@/lib/trips/keep-place-photos";
 
 // When to ask for the photos found since the plan was shown.
 const ASK_AFTER_MS = [5_000, 20_000];
 const MAX_NAMES = 80;
+
+/** Below the screen, or not on the page: a photo added there moves nothing being read. */
+function belowScreen(activity: Activity): boolean {
+  const box = document.getElementById(activityDomId(activity))?.getBoundingClientRect();
+  return !box || box.top > window.innerHeight;
+}
 
 /**
  * A plan shows stock images where no free photo was known yet, and its places
@@ -45,10 +52,11 @@ export function usePlanPhotos(opts: {
           body: JSON.stringify({ destination, names: standIns.map((a) => a.name) }),
         });
         const body = res.ok ? ((await res.json()) as { photos?: unknown[] }) : null;
+        // A stand-in is swapped where it is; a stop showing no photo gets one only below the screen.
         const photos: Record<string, string> = {};
         standIns.forEach((a, i) => {
           const url = body?.photos?.[i];
-          if (isPlacePhoto(url)) photos[a.id!] = url;
+          if (isPlacePhoto(url) && (a.image_url || belowScreen(a))) photos[a.id!] = url;
         });
         if (cancelled || Object.keys(photos).length === 0) return;
         latest.current.onPlan((prev) => (prev ? { ...prev, days: withFoundPhotos(prev.days, photos) } : prev));

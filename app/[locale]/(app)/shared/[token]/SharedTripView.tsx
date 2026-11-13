@@ -357,7 +357,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
             type="button"
             onClick={() => setTodayMode(true)}
             data-testid="back-to-today"
-            className="mb-4 inline-flex items-center gap-1.5 rounded-lg bg-[var(--primary)]/10 px-3 py-2 text-sm font-medium text-[var(--primary-ink)] hover:bg-[var(--primary)]/15"
+            className="mb-4 inline-flex items-center gap-1.5 rounded-lg bg-[var(--primary)]/10 px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--primary)]/15"
           >
             <span aria-hidden>←</span> {t("today.backToToday")}
           </button>
@@ -551,7 +551,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
       </footer>
 
       {/* Mobile Bottom Navigation */}
-      <MobileBottomNav activePage="trips" />
+      <MobileBottomNav activePage="shared-trip" />
     </div>
   );
 }

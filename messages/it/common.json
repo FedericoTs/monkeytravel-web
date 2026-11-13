@@ -1715,6 +1715,9 @@
       "other": "Altro"
     }
   },
+  "tripStrip": {
+    "label": "Preparativi"
+  },
   "bookAhead": {
     "title": "Da prenotare",
     "intro": "Queste tappe vanno prenotate. Segna ognuna quando è fatto.",
@@ -2606,10 +2609,14 @@
     }
   },
   "advisory": {
-    "level": {
-      "advisory": "Avviso di viaggio",
-      "high": "Evita viaggi non essenziali",
-      "extreme": "Evita ogni viaggio"
+    "chip": "Avvisi di viaggio",
+    "someAreas": "alcune zone",
+    "advice": {
+      "all_whole": "Il Regno Unito sconsiglia ogni viaggio in questo Paese",
+      "essential_whole": "Il Regno Unito sconsiglia i viaggi non essenziali in questo Paese",
+      "all_parts": "Il Regno Unito sconsiglia ogni viaggio in alcune zone",
+      "essential_parts": "Il Regno Unito sconsiglia i viaggi non essenziali in alcune zone",
+      "other": "Avvisi di viaggio del Regno Unito"
     },
     "sourceLabel": "Fonte: {source}",
     "readFullAdvisory": "Leggi l'avviso completo",

@@ -24,6 +24,8 @@ const state = vi.hoisted(() => ({
   lazyProps: [] as Array<Record<string, unknown>>,
   // Props given to the hero.
   hero: null as Record<string, unknown> | null,
+  // Props given to the phone tab bar.
+  tabBar: null as Record<string, unknown> | null,
   // The page's exchange rates, null until they load.
   rates: null as { base: string; rates: Record<string, number> } | null,
 }));
@@ -95,7 +97,12 @@ vi.mock("@/components/trip/TripPackingEssentials", () => ({ default: () => null 
 vi.mock("@/components/ui/DaySlider", () => ({ default: () => null }));
 vi.mock("@/components/trip/TravelConnector", () => ({ default: () => null }));
 vi.mock("@/components/trip/DaySummary", () => ({ default: () => null }));
-vi.mock("@/components/ui/MobileBottomNav", () => ({ default: () => null }));
+vi.mock("@/components/ui/MobileBottomNav", () => ({
+  default: (props: Record<string, unknown>) => {
+    state.tabBar = props;
+    return null;
+  },
+}));
 vi.mock("@/components/trip/WhoIsGoingCard", () => ({ default: () => <div data-testid="who-is-going" /> }));
 vi.mock("@/components/trip/ParticipantsBar", () => ({
   default: ({ shareToken }: { shareToken: string }) => <div data-testid="participants-bar" data-token={shareToken} />,
@@ -361,6 +368,12 @@ describe("the page's header", { timeout: 20_000 }, () => {
       renderView({ shown: twoCurrencies });
       expect(state.hero?.budget).toBeUndefined();
     });
+  });
+
+  // The trip is someone else's, whoever looks at it.
+  it.each([["a share link", "tok-1"], ["the public page", undefined]])("lights no tab of the phone tab bar on %s", (_page, token) => {
+    renderView({ token });
+    expect(state.tabBar?.activePage).toBe("shared-trip");
   });
 
   it("shows no total for a plan that prices nothing", () => {

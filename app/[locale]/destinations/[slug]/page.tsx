@@ -220,14 +220,14 @@ export default async function DestinationDetailPage({ params }: PageProps) {
             <nav aria-label={tA11y("breadcrumb")} className="flex items-center gap-2 text-sm text-[var(--foreground-muted)] py-3">
               <Link
                 href="/"
-                className="hover:text-[var(--primary-ink)] transition-colors"
+                className="inline-flex items-center justify-center hover:text-[var(--primary-ink)] transition-colors"
               >
                 {t("breadcrumbs.home")}
               </Link>
               <span>/</span>
               <Link
                 href="/destinations"
-                className="hover:text-[var(--primary-ink)] transition-colors"
+                className="inline-flex items-center justify-center hover:text-[var(--primary-ink)] transition-colors"
               >
                 {t("breadcrumbs.destinations")}
               </Link>

@@ -99,7 +99,7 @@ const ESCALATION_THRESHOLD_MS = 30000;
 // Animated icons for each phase
 function PhaseIcon({ phase, isActive }: { phase: string; isActive: boolean }) {
   const baseClass = `w-6 h-6 transition-all duration-500 ${
-    isActive ? "text-[var(--primary-ink)] scale-110" : "text-slate-300"
+    isActive ? "text-[var(--primary)] scale-110" : "text-slate-300"
   }`;
 
   switch (phase) {
@@ -391,7 +391,7 @@ export default function GenerationProgress({
           <div className="flex justify-center mb-3">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[var(--primary)]/10 to-[var(--accent)]/10 rounded-full border border-[var(--primary)]/20">
               <span className="w-2 h-2 bg-[var(--primary)] rounded-full animate-pulse" />
-              <span className="text-sm font-medium text-[var(--primary-ink)]">
+              <span className="text-sm font-medium text-[var(--foreground)]">
                 {destination}
               </span>
             </div>
@@ -455,7 +455,7 @@ export default function GenerationProgress({
                 </h2>
                 <p className="text-slate-600">
                   {t(`phases.${phase.descriptionKey}`)}{" "}
-                  <span className="font-semibold text-[var(--primary-ink)]">{destination}</span>
+                  <span className="font-semibold text-[var(--foreground)]">{destination}</span>
                 </p>
               </div>
             ))}
@@ -471,7 +471,7 @@ export default function GenerationProgress({
             <span className="text-slate-500">
               {t("elapsed", { seconds: formatTime(elapsedTime) })}
             </span>
-            <span className="font-semibold text-[var(--primary-ink)]">
+            <span className="font-semibold text-[var(--foreground)]">
               {Math.round(progress)}%
             </span>
           </div>

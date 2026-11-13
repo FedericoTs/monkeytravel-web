@@ -1,6 +1,7 @@
 "use client";
 
 import type { BudgetTier } from "@/types";
+import type { ChosenTripIntent } from "@/lib/wizard/answers";
 
 /**
  * Type-safe PostHog event definitions
@@ -216,11 +217,11 @@ export interface TripWizardFieldInteractedEvent {
 }
 
 /**
- * Who the trip is planned for: the solo/group toggle on wizard step 1,
+ * Who the trip is planned for: the "Who's coming?" answer on wizard step 1,
  * "unspecified" until the user picks. Saved trips keep it in
  * trip_meta.trip_intent, which shapes the share prompt.
  */
-export type TripIntent = "solo" | "group" | "unspecified";
+export type TripIntent = ChosenTripIntent | "unspecified";
 
 export interface TripIntentSelectedEvent {
   intent: TripIntent;
@@ -504,7 +505,8 @@ export async function captureTripIntentSelected(event: TripIntentSelectedEvent) 
  */
 export async function captureSharePromptVariantShown(event: {
   trip_id: string;
-  intent: "solo" | "group" | "unspecified";
+  /** The answer itself; lib/wizard/answers.ts sharesAsGroup says which branch it got. */
+  intent: TripIntent;
   surface: "trip_detail" | "post_save";
 }) {
   const ph = await getPosthog();

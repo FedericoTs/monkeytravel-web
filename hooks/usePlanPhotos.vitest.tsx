@@ -82,6 +82,32 @@ describe("usePlanPhotos", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("gives a stop showing no photo its photo only below the screen, so nothing being read moves", async () => {
+    fetchMock.mockImplementation(async () => ({ ok: true, json: async () => ({ photos: [WIKI, WIKI, WIKI, WIKI, WIKI] }) }));
+    const place = (id: string, top: number) => {
+      const element = document.createElement("div");
+      element.id = `activity-${id}`;
+      element.getBoundingClientRect = () => ({ top, bottom: top + 120 }) as DOMRect;
+      document.body.appendChild(element);
+    };
+    place("a1", 200);
+    place("a2", -500);
+    place("a3", window.innerHeight + 300);
+    place("a4", 300);
+    const { current } = show(planWith([
+      { id: "a1", name: "Charles Bridge" },
+      { id: "a2", name: "Old Town Square" },
+      { id: "a3", name: "Vyšehrad" },
+      { id: "a4", name: "Lokál", image_url: STOCK },
+      // Not on the page (a closed day): adding its photo moves nothing.
+      { id: "a5", name: "Petřín" },
+    ]));
+    await flush(5_000);
+    // On screen and above stay as they are; below gets its photo; a stand-in on screen is swapped where it is.
+    expect(current()!.days[0].activities.map((a) => a.image_url)).toEqual([undefined, undefined, WIKI, WIKI, WIKI]);
+    document.body.innerHTML = "";
+  });
+
   it("does not start again when only the photos change, and stops for a plan that is gone", async () => {
     const first = planWith([{ id: "a1", name: "Charles Bridge", image_url: STOCK }]);
     const { rerender, unmount } = show(first);

@@ -12,6 +12,8 @@
 import type { ReactElement } from "react";
 import { dayColor } from "@/lib/map/day-colors";
 import { routeSketch, sketchDataUri, sketchSvg, type Sketch } from "@/lib/og/route-sketch";
+import { inPlanCurrency, planCosts } from "@/lib/ai/assistant/plan-costs";
+import type { ItineraryDay } from "@/types";
 
 export type CardFormat = "og" | "square" | "story";
 export type CardLocale = "en" | "es" | "it" | "pt";
@@ -44,6 +46,7 @@ const COPY = {
     activities: (n: number) => `${n} activities`,
     more: (n: number) => `+${n} more days`,
     tagline: "Planned on MonkeyTravel",
+    perPerson: "per person",
   },
   es: {
     day: (n: number) => `Día ${n}`,
@@ -54,6 +57,7 @@ const COPY = {
     activities: (n: number) => `${n} actividades`,
     more: (n: number) => `+${n} días más`,
     tagline: "Planificado en MonkeyTravel",
+    perPerson: "por persona",
   },
   it: {
     day: (n: number) => `Giorno ${n}`,
@@ -64,6 +68,7 @@ const COPY = {
     activities: (n: number) => `${n} attività`,
     more: (n: number) => `+${n} altri giorni`,
     tagline: "Pianificato su MonkeyTravel",
+    perPerson: "a persona",
   },
   pt: {
     day: (n: number) => `Dia ${n}`,
@@ -74,8 +79,29 @@ const COPY = {
     activities: (n: number) => `${n} atividades`,
     more: (n: number) => `+${n} dias a mais`,
     tagline: "Planejado no MonkeyTravel",
+    perPerson: "por pessoa",
   },
 } as const;
+
+const NUMBER_LOCALE: Record<CardLocale, string> = { en: "en-US", es: "es-ES", it: "it-IT", pt: "pt-BR" };
+
+/**
+ * The trip's price as its page shows it: the plan's stops added up, per
+ * person (planCosts), never the estimate saved with the plan, which a change
+ * doesn't move. In the plan's own currency, as there is no viewer at unfurl
+ * time to convert for, and so without exchange rates: a plan priced in
+ * several currencies gets no figure rather than a wrong one.
+ */
+export function cardBudget(itinerary: unknown, tripCurrency: string | undefined, locale: CardLocale): string | null {
+  const days = (Array.isArray(itinerary) ? itinerary : []).filter(
+    (d): d is ItineraryDay => !!d && typeof d === "object"
+  );
+  const sameCurrency = inPlanCurrency(days, null, tripCurrency || "USD");
+  const costs = sameCurrency ? planCosts(sameCurrency) : null;
+  if (!costs) return null;
+  const amount = new Intl.NumberFormat(NUMBER_LOCALE[locale], { maximumFractionDigits: 0 }).format(costs.total);
+  return `${amount} ${costs.currency} ${COPY[locale].perPerson}`;
+}
 
 // Brand tokens (app/globals.css). Coral stays decorative: chips and pills,
 // never small text on paper.

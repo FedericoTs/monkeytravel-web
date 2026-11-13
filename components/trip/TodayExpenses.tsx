@@ -70,7 +70,7 @@ export default function TodayExpenses({ expenses, summary, busy, error, onAdd, o
           {net > 0 ? (
             <span className="text-sm font-semibold text-emerald-700">{t("today.expenses.youAreOwed", { amount: money(net) })}</span>
           ) : net < 0 ? (
-            <span className="text-sm font-semibold text-[var(--primary-ink)]">{t("today.expenses.youOwe", { amount: money(-net) })}</span>
+            <span className="text-sm font-semibold text-[var(--foreground)]">{t("today.expenses.youOwe", { amount: money(-net) })}</span>
           ) : (
             <span className="text-sm text-slate-500">{t("today.expenses.settledUp")}</span>
           )}

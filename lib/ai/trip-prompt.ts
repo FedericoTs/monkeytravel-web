@@ -5,6 +5,7 @@ import type { KnownPlace } from "@/lib/ai/known-places";
 import { paceBudgetPromptClause } from "@/lib/trip/pace";
 import { ACTIVITY_TYPES } from "@/lib/trip/activity-type";
 import { addIsoDays, tripSpanDays } from "@/lib/dates/iso-date";
+import type { ChosenTripIntent } from "@/lib/wizard/answers";
 
 /**
  * The prompt a trip is generated with: the shared chat prefix every
@@ -279,8 +280,10 @@ export function buildStaticChatHistory(systemPrompt: string) {
 }
 
 /** Who's coming, from step 1. Only ever these fixed words, never the request's text. */
-const TRAVELLERS = {
+const TRAVELLERS: Record<ChosenTripIntent, string> = {
   solo: "one person travelling alone. Favour places that suit one: counter seats and casual spots over long set menus, group walking tours, lively central areas in the evening. Never assume a partner or a group. Show this in what you choose, and mention it only where it helps.",
+  couple: "two people travelling together. Favour places that suit two: tables for two, walks and views, evenings out. Don't assume it's a romantic trip unless the vibes say so. Show this in what you choose, and mention it only where it helps.",
+  family: "a family with children. Favour what children enjoy: parks, hands-on museums, casual restaurants, shorter days with a rest after lunch, short distances between stops. Use any ages under Special Requirements. Don't plan bars or late nights as stops. Show this in what you choose, and mention it only where it helps.",
   group: "friends travelling together. Favour places that suit a group: tables for several, shared dishes, activities that are fun together. Say when a group should book ahead. Show this in what you choose, and mention it only where it helps.",
 };
 
@@ -295,6 +298,13 @@ function daylightLine({ daylight }: Pick<TripCreationParams, "daylight">): strin
   if (first.polar === "night") return "Daylight: the sun doesn't rise on these dates.";
   const span = (a: string | null, b: string | null) => (b && b !== a ? `${a} to ${b}` : a);
   return `Daylight (local time): sunrise about ${span(first.sunrise, last.sunrise)}, sunset about ${span(first.sunset, last.sunset)}. A stop named for the sunrise or the sunset must be under way at that time; otherwise don't name it after one.`;
+}
+
+/** Where they're staying, so each day starts near it and ends a short ride from it. */
+function stayLine({ stay }: Pick<TripCreationParams, "stay">): string {
+  if (!stay) return "";
+  const at = stay.coordinates ? ` (${stay.coordinates.lat.toFixed(4)}, ${stay.coordinates.lng.toFixed(4)})` : "";
+  return `Staying at: ${stay.name}${at}. Start each day near it and end each day a short ride from it: each day's first and last stops are close to it. The stay itself is never a stop.`;
 }
 
 const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -419,6 +429,7 @@ ${knownPlaces.map((p) => `- ${p.name} (${p.type})`).join("\n")}
 
   const travellers = travellersLine(params);
   const daylight = daylightLine(params);
+  const stay = stayLine(params);
   const days = daysLine(params.startDate, duration);
   // One city of a trip through several (lib/ai/multi-city): the must-dos are the
   // whole trip's, and the other cities have their own days.
@@ -450,7 +461,7 @@ ${params.mustDos.map((m) => `- ${m}`).join("\n")}
 ${days ? `- ${days}\n` : ""}- Duration: ${duration} days
 - Budget Tier: ${params.budgetTier}
 - Travel Pace: ${params.pace} — ${paceBudgetPromptClause(params.pace)}
-${travellers ? `- ${travellers}\n` : ""}${daylight ? `- ${daylight}\n` : ""}
+${travellers ? `- ${travellers}\n` : ""}${daylight ? `- ${daylight}\n` : ""}${stay ? `- ${stay}\n` : ""}
 ${travelStyleSection}${vibeSection}${seasonalSection}## Traveler Preferences
 - Interests: ${params.interests.length > 0 ? params.interests.join(", ") : "general sightseeing"}
 ${params.requirements ? `- Special Requirements: ${params.requirements}` : ""}
@@ -462,5 +473,5 @@ ${
 ${anchorSection}${partSection}Generate the itinerary now, following the system rules and the Required Output schema exactly.${languageSection}`;
 }
 
-export { buildProfilePreferencesSection, buildSchedulingPreferencesSection, buildUserPrompt, daylightLine, travellersLine };
+export { buildProfilePreferencesSection, buildSchedulingPreferencesSection, buildUserPrompt, daylightLine, stayLine, travellersLine };
 export type { BuildPromptOptions };

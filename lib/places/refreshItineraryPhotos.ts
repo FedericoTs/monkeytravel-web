@@ -207,30 +207,51 @@ export async function refreshTripItinerary(
   itinerary: ItineraryDay[] | undefined | null,
   destination?: string
 ): Promise<ItineraryDay[]> {
-  const refreshed = (await refreshItineraryPhotos(itinerary ?? [])) as unknown as ItineraryDay[];
-  return destination ? withLandmarkPhotos(refreshed, destination) : refreshed;
+  const days = itinerary ?? [];
+  // Which stops show a stand-in is known before the place photos are
+  // refreshed: a refreshed photo is still a place photo, and a picture the
+  // refresh blanks never was one. So neither read waits for the other.
+  const standIns = destination ? standInKeys(days, destination) : new Map<string, string>();
+  const [refreshed, found] = await Promise.all([
+    refreshItineraryPhotos(days).then((shown) => shown as unknown as ItineraryDay[]),
+    foundLandmarkPhotos(standIns),
+  ]);
+  return withLandmarkPhotos(refreshed, standIns, found);
 }
 
 /**
- * Stand-in images replaced by the Wikimedia photos found for those places
- * since the plan was made (lib/images/landmark-photos.ts), keyed the way the
- * plan was: by name and destination. For this read only; the stored trip is
- * not changed, and a cache error leaves the stand-ins.
+ * The stops that show a stand-in or no picture, by name, with the key their
+ * found photo is stored under: name and destination, as the plan was keyed.
  */
-async function withLandmarkPhotos(days: ItineraryDay[], destination: string): Promise<ItineraryDay[]> {
+function standInKeys(days: ItineraryDay[], destination: string): Map<string, string> {
   const keys = new Map<string, string>();
   for (const day of days) {
     for (const a of day.activities ?? []) {
       if (a.name && !isPlacePhoto(a.image_url)) keys.set(a.name, normalizeActivityKey(a.name, destination));
     }
   }
-  if (keys.size === 0) return days;
-  let found: Map<string, string | null>;
+  return keys;
+}
+
+/**
+ * The Wikimedia photos found for those places since the plan was made
+ * (lib/images/landmark-photos.ts). None when nothing shows a stand-in, or when
+ * the cache can't be read.
+ */
+async function foundLandmarkPhotos(keys: Map<string, string>): Promise<Map<string, string | null>> {
+  if (keys.size === 0) return new Map();
   try {
-    found = await cachedLandmarkPhotos([...new Set(keys.values())]);
+    return await cachedLandmarkPhotos([...new Set(keys.values())]);
   } catch {
-    return days;
+    return new Map();
   }
+}
+
+/**
+ * Stand-in images replaced by the photos found for them. For this read only;
+ * the stored trip is not changed, and a real photo is never replaced.
+ */
+function withLandmarkPhotos(days: ItineraryDay[], keys: Map<string, string>, found: Map<string, string | null>): ItineraryDay[] {
   if (![...found.values()].some(Boolean)) return days;
   return days.map((day) => ({
     ...day,
