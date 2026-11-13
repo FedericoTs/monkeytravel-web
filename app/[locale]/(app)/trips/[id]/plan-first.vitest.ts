@@ -25,6 +25,14 @@ describe("the saved trip page, plan first", () => {
     expect(strip).toBeLessThan(main.indexOf("<TripDayList"));
   });
 
+  it("shows the UK's travel advice as the row's first chip, above the plan only for the whole country", () => {
+    expect(items).toMatch(/if \(!isActiveTripPhase && advisory && !advisoryCoversCountry\) \{\s*stripItems\.push\(\{\s*id: "advice"/);
+    expect(items.indexOf('id: "advice"')).toBeLessThan(items.indexOf('id: "who"'));
+    expect(main).toContain("{advisory && advisoryCoversCountry && <TravelAdvisoryBanner advisory={advisory} urgent");
+    expect(main).not.toContain("<TravelAdvisoryBanner country=");
+    expect(SRC).toContain("const advisoryCoversCountry = coversWholeCountry(advisory);");
+  });
+
   it.each(CARDS)("keeps %s out of the page's flow, as a chip's card", (card) => {
     expect(main).not.toContain(card);
     expect(items).toContain(card);

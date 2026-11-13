@@ -2609,10 +2609,14 @@
     }
   },
   "advisory": {
-    "level": {
-      "advisory": "Aviso de viaje",
-      "high": "Evita viajes no esenciales",
-      "extreme": "Evita todos los viajes"
+    "chip": "Avisos de viaje",
+    "someAreas": "algunas zonas",
+    "advice": {
+      "all_whole": "El Reino Unido desaconseja todos los viajes a este país",
+      "essential_whole": "El Reino Unido desaconseja los viajes no esenciales a este país",
+      "all_parts": "El Reino Unido desaconseja todos los viajes a algunas zonas",
+      "essential_parts": "El Reino Unido desaconseja los viajes no esenciales a algunas zonas",
+      "other": "Avisos de viaje del Reino Unido"
     },
     "sourceLabel": "Fuente: {source}",
     "readFullAdvisory": "Leer aviso completo",

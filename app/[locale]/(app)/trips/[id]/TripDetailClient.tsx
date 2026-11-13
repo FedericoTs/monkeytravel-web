@@ -18,6 +18,7 @@ import { PlacesCheckedNote } from "@/components/trip/PlacesCheckedNote";
 import { placesToEatNote } from "@/lib/places/kept-trip";
 import { useEditShortcuts } from "@/hooks/useEditShortcuts";
 import { useDayFocus } from "@/hooks/useDayFocus";
+import { coversWholeCountry, useTravelAdvisory } from "@/hooks/useTravelAdvisory";
 import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
 import WhoIsGoingCard from "@/components/trip/WhoIsGoingCard";
 import TodayView from "@/components/trip/TodayView";
@@ -140,10 +141,8 @@ const PasteBookingModal = dynamic(() => import("@/components/trip/PasteBookingMo
   ssr: false,
 });
 
-// Travel advisory banner — async-fetches the FCDO data on mount. No reason
-// to ship the component JS in the initial chunk; it self-hides when there
-// is no advisory anyway, so a brief tick-after-hydrate is invisible to the
-// user.
+// The UK's travel advice card, loaded only once there is advice to show:
+// useTravelAdvisory asks for it after the page has drawn.
 const TravelAdvisoryBanner = dynamic(
   () => import("@/components/trip/TravelAdvisoryBanner"),
   { ssr: false }
@@ -478,6 +477,10 @@ export default function TripDetailClient({
   // Prefer trip_meta.destination (canonical) over stripping the title, which
   // fails for non-English or renamed trips (see lib/trips/destination.ts).
   const destination = getTripDestination(trip);
+  // The UK's travel advice for the trip's country, once the page has drawn. Advice
+  // that covers the whole country goes above the plan; any other is a chip.
+  const advisory = useTravelAdvisory(destination);
+  const advisoryCoversCountry = coversWholeCountry(advisory);
 
   // Multi-city route stops for the Journey ribbon, as in the wizard and the
   // ongoing view. The ribbon renders only with two or more stops.
@@ -888,6 +891,17 @@ export default function TripDetailClient({
   // (TripStrip). Each card tells its chip the count it shows.
   const stripItems: TripStripItem[] = [];
   const stopsToBook = bookAheadStops(editedItinerary).length;
+  // First in the row, where it is seen; as a chip, its late arrival moves only
+  // the other chips, never the plan.
+  if (!isActiveTripPhase && advisory && !advisoryCoversCountry) {
+    stripItems.push({
+      id: "advice",
+      label: tCommon("advisory.chip"),
+      detail:
+        advisory.advice === "all_parts" || advisory.advice === "essential_parts" ? tCommon("advisory.someAreas") : null,
+      content: <TravelAdvisoryBanner advisory={advisory} />,
+    });
+  }
   if (isOwner && participantsEnabled && !isEditMode) {
     stripItems.push({
       id: "who",
@@ -1163,10 +1177,10 @@ export default function TripDetailClient({
         {/* Planning/Confirmed Phase - Full Itinerary View */}
         {!isActiveTripPhase && (
           <>
-        {/* Travel advisory banner — sourced from UK FCDO.
-            Hides itself entirely when the destination has no active alert,
-            so it never adds visual noise to safe-destination trips. */}
-        <TravelAdvisoryBanner country={destination} className="mb-4" />
+        {/* The UK's advice against travel to the whole country stays above the
+            plan, though it arrives after the page has drawn: it changes whether
+            to go. Other advice is a chip in the row. */}
+        {advisory && advisoryCoversCountry && <TravelAdvisoryBanner advisory={advisory} urgent className="mb-4" />}
 
         {/* Multi-city Journey ribbon with transit labels ("TRENO · 4h") */}
         {journeyStops.length > 1 && (
