@@ -1904,3 +1904,25 @@ nav[data-monkey-nav].monkey-nav-scrolled {
     margin-right: auto;
   }
 }
+
+/* The bar that follows a tap to another page (components/NavigationCue.tsx):
+   it runs most of the way while the page is asked for, and stands still for
+   those who ask for less motion. */
+@keyframes navigation-cue {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(0.85);
+  }
+}
+.navigation-cue {
+  transform-origin: left;
+  animation: navigation-cue 2.5s cubic-bezier(0.1, 0.6, 0.3, 1) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .navigation-cue {
+    animation: none;
+    transform: scaleX(0.85);
+  }
+}
