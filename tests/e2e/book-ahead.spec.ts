@@ -147,5 +147,18 @@ test.describe("Book ahead on an upcoming trip", () => {
     const box = await firstStop.boundingBox();
     expect(box, "the first stop has a place on the page").not.toBeNull();
     expect(box!.y + box!.height, "the first stop's name ends above the tab bar of the first screen").toBeLessThan(844 - 80);
+
+    // Nothing floats on that first screen: the floating assistant button waits until the bar's own
+    // assistant button has scrolled away, and leaves again when that one is back.
+    const floating = page.getByTitle("AI Trip Assistant");
+    const inBar = page.getByRole("button", { name: "Edit with AI" });
+    await expect(inBar).toBeInViewport();
+    await expect(floating).toBeHidden();
+    await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }));
+    await expect(inBar).not.toBeInViewport();
+    await expect(floating).toBeVisible();
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    await expect(inBar).toBeInViewport();
+    await expect(floating).toBeHidden();
   });
 });

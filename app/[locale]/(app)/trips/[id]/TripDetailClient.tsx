@@ -87,6 +87,7 @@ import { CancelTripDialog, CancelledTripNote, ConfirmTripCard, TripStatusBadge, 
 import { dayOptionsOf } from "@/components/trip/ItineraryDnd";
 
 import { useAssistantFirstVisit } from "@/hooks/useAssistantFirstVisit";
+import { useOffScreen } from "@/hooks/useOffScreen";
 import { useSaveFailedNotice } from "@/hooks/useSaveFailedNotice";
 import { useTripCover } from "@/hooks/useTripCover";
 import { useItinerarySync } from "@/hooks/useItinerarySync";
@@ -297,6 +298,9 @@ export default function TripDetailClient({
     isAIAssistantOpen,
     setIsAIAssistantOpen,
   });
+  // On a phone the floating assistant button waits for the controls bar's own
+  // one to scroll away, instead of sitting on the plan beside it.
+  const { ref: assistantBarButton, offScreen: assistantBarButtonAway } = useOffScreen<HTMLButtonElement>();
 
   // Edit mode state
   const [isEditMode, setIsEditMode] = useState(false);
@@ -1182,6 +1186,7 @@ export default function TripDetailClient({
           shouldAutoOpenShareModal={shouldAutoOpenShareModal}
           canUseAssistant={canUseAssistant}
           onOpenAssistant={() => setIsAIAssistantOpen(true)}
+          assistantButtonRef={assistantBarButton}
           displayItinerary={displayItinerary}
           emailParseEnabled={emailParseEnabled}
           onPasteBooking={() => setIsPasteBookingOpen(true)}
@@ -1413,6 +1418,7 @@ export default function TripDetailClient({
         <TripAssistantButton
           isEditMode={isEditMode}
           hasSeenAssistant={hasSeenAssistant}
+          barButtonInView={!isActiveTripPhase && !isEditMode && !assistantBarButtonAway}
           onOpen={() => setIsAIAssistantOpen(true)}
         />
       )}
