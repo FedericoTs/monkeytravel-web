@@ -36,6 +36,9 @@ export interface Message {
   local?: boolean;
   // "Not saved yet: tap …", from the server beside the reply (showsPendingNote).
   pendingNote?: string;
+  // The trip dates the traveller asked for, which only Change dates can set:
+  // the panel offers it under the reply.
+  changeDates?: { start: string; end: string };
 }
 
 /**

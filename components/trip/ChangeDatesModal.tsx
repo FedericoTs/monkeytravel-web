@@ -23,6 +23,9 @@ interface ChangeDatesModalProps {
   /** Latest start the wizard accepts. */
   maxStartDate: string;
   onConfirm: (start: string, end: string) => void;
+  /** Dates the form starts from instead of the trip's own: the ones the traveller asked the assistant for. */
+  initialStart?: string;
+  initialEnd?: string;
   /** The new days of a longer trip come empty (a saved trip), not planned by the assistant. */
   newDaysEmpty?: boolean;
 }
@@ -49,10 +52,12 @@ function DatesForm({
   maxStartDate,
   onConfirm,
   newDaysEmpty,
+  initialStart,
+  initialEnd,
 }: ChangeDatesModalProps) {
   const t = useTranslations("trips.wizard.changeDates");
-  const [start, setStart] = useState(startDate);
-  const [end, setEnd] = useState(endDate);
+  const [start, setStart] = useState(initialStart ?? startDate);
+  const [end, setEnd] = useState(initialEnd ?? endDate);
 
   const change = planDateChange(currentDays, start, end, maxDays);
   const unchanged = start === startDate && end === endDate;

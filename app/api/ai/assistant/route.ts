@@ -31,6 +31,7 @@ import { prepareDraftChange } from "@/lib/ai/assistant/draft-change";
 import { chatPrompt, turnContext, type TripContext } from "@/lib/ai/assistant/chat-prompt";
 import { askChatModel } from "@/lib/ai/assistant/chat-model";
 import { appendTurn, assistantMessage, listThreads, openThread, readThread, userMessage } from "@/lib/ai/assistant/thread";
+import { askedTripDates, offerTripDates } from "@/lib/ai/assistant/trip-dates";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -189,7 +190,15 @@ export async function POST(request: NextRequest) {
       chat: engineReply === null ? { model: chatModel, usage: chatUsage } : null,
     });
 
-    const reply = assistantMessage(parsedResponse, honesty);
+    // New dates for the whole trip: only Change dates moves a trip, so the
+    // owner's reply offers it on them (lib/ai/assistant/trip-dates.ts).
+    const tripSpan =
+      typeof trip.start_date === "string" && typeof trip.end_date === "string"
+        ? { start: trip.start_date, end: trip.end_date }
+        : null;
+    const previousAsk = conversation.messages.filter((m) => m.role === "user").at(-1)?.content;
+    const askedDates = assistantRole === "owner" && tripSpan ? askedTripDates(message, previousAsk, tripSpan) : null;
+    const reply = offerTripDates(assistantMessage(parsedResponse, honesty), askedDates, tripSpan, userLanguage);
     await appendTurn(supabase, conversation, [userMessage(message), reply]);
 
     // The change waiting for the user's confirm.

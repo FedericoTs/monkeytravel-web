@@ -504,6 +504,8 @@ export default function TripDetailClient({
   // days move with them, and a longer trip's new days come empty
   // (lib/trips/change-dates.ts), in one write with the dates.
   const [showChangeDates, setShowChangeDates] = useState(false);
+  // Dates the traveller asked the assistant for: Change dates opens on them.
+  const [askedDates, setAskedDates] = useState<{ start: string; end: string } | null>(null);
   // What the assistant opens with when a button asks it for something.
   const [assistantPrefill, setAssistantPrefill] = useState<string>();
   const handleChangeDates = useCallback(
@@ -1474,6 +1476,14 @@ export default function TripDetailClient({
           onFocusDay={handleFocusDayCard}
           runItineraryWrite={runItineraryWrite}
           prefill={assistantPrefill}
+          onChangeDates={
+            ambientEdit
+              ? (start, end) => {
+                  setAskedDates({ start, end });
+                  setShowChangeDates(true);
+                }
+              : undefined
+          }
         />
       )}
 
@@ -1506,15 +1516,23 @@ export default function TripDetailClient({
       {ambientEdit && (
         <ChangeDatesModal
           isOpen={showChangeDates}
-          onClose={() => setShowChangeDates(false)}
+          onClose={() => {
+            setShowChangeDates(false);
+            setAskedDates(null);
+          }}
           startDate={trip.startDate}
           endDate={trip.endDate}
+          initialStart={askedDates?.start}
+          initialEnd={askedDates?.end}
           currentDays={editedItinerary.length}
           maxDays={maxTripDays(editedItinerary)}
           minDate={localTodayISO()}
           maxStartDate={maxTripStartDate()}
           newDaysEmpty
-          onConfirm={(start, end) => void handleChangeDates(start, end)}
+          onConfirm={(start, end) => {
+            setAskedDates(null);
+            void handleChangeDates(start, end);
+          }}
         />
       )}
 

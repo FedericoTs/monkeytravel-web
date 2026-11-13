@@ -373,6 +373,30 @@ test.describe("asking the AI on the trip page", () => {
       await expect(page.getByText("The tram is the easy way up.")).toBeVisible();
       expect(await storedNames()).toEqual(AS_STORED);
     });
+
+    test("new dates for the whole trip get Change dates on them, which moves the trip", async ({ page }) => {
+      const reply = answered("Noted: you arrive a day later and fly home a day later.");
+      await answerTurns(page, { body: { ...reply, message: { ...reply.message, changeDates: { start: iso(41), end: iso(42) } } } });
+      await send(await openAssistant(page), "We now arrive a day later and fly home a day later");
+
+      // Only Change dates moves a trip: the reply offers it, on the asked dates.
+      const offer = page.getByRole("button", { name: /^Change dates to / });
+      await expect(offer).toBeVisible();
+      expect((await storedRow()).end_date).toBe(iso(41));
+      await offer.click();
+      const dialog = page.getByRole("dialog").filter({ hasText: "Change your dates" });
+      await expect(dialog.getByLabel("Start")).toHaveValue(iso(41));
+      await expect(dialog.getByLabel("End")).toHaveValue(iso(42));
+
+      await dialog.getByRole("button", { name: "Change dates" }).click();
+      const dates = async () => {
+        const { data, error } = await admin.from("trips").select("start_date, end_date").eq("id", tripId).single();
+        if (error) throw error;
+        return [data.start_date, data.end_date];
+      };
+      await expect.poll(dates, { timeout: 30_000 }).toEqual([iso(41), iso(42)]);
+      expect(await storedNames()).toEqual(AS_STORED);
+    });
   });
 
   test("the assistant is the one way to ask, with the concierge switched off", async ({ page }) => {
