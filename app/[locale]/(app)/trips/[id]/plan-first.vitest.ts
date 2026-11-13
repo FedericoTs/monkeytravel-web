@@ -65,6 +65,18 @@ describe("the saved trip page, plan first", () => {
     expect(items).toContain("onProgress={setBookedCount}");
   });
 
+  // The page asks for the crew's votes after it has drawn. What that read
+  // brings (the votes, or a nudge to send the trip) arrived above the days and
+  // pushed the first stop down a moment after the visitor had seen it.
+  it("keeps what arrives late about the crew under the days", () => {
+    const days = main.indexOf("<TripDayList");
+    expect(days).toBeGreaterThan(-1);
+    for (const late of ["<CrewVotesSummary", "<CrewShareNudge"]) {
+      expect(main.indexOf(late)).toBeGreaterThan(days);
+      expect(main.indexOf(late)).toBeLessThan(main.indexOf("<TripPackingEssentials"));
+    }
+  });
+
   // The floating assistant button sat on the first stop of a phone's first
   // screen. The bar has its own assistant button there, so the floating one
   // waits until that has scrolled away. The bar is drawn outside a trip under

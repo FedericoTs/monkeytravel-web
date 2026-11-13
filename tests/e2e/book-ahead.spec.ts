@@ -140,10 +140,18 @@ test.describe("Book ahead on an upcoming trip", () => {
     // The plan comes first: on a phone the first stop is on the first screen, under the row of chips
     // and above the tab bar. As cards, what the chips hold used to fill two screens before it.
     await page.setViewportSize({ width: 390, height: 844 });
+    // The page asks for the crew's votes once it has drawn. For a trip nobody was sent, that read
+    // brings a nudge to send it: measured only after it has arrived, under the days.
+    const crewRead = page.waitForResponse((res) => res.url().includes(`/api/trips/${tripId}/crew-votes`), { timeout: 60_000 });
     await page.reload({ waitUntil: "domcontentloaded" });
     const firstStop = page.getByText("Breakfast at the market", { exact: true }).first();
     await expect(firstStop).toBeVisible({ timeout: 60_000 });
     await expect(page.getByTestId("trip-strip")).toBeVisible();
+    await crewRead;
+    const nudge = page.getByText("Going with friends?", { exact: false });
+    await expect(nudge).toBeVisible();
+    const lastStop = page.getByText("Flamenco show", { exact: true }).filter({ visible: true }).first();
+    expect((await nudge.boundingBox())!.y, "the nudge sits under the last stop").toBeGreaterThan((await lastStop.boundingBox())!.y);
     const box = await firstStop.boundingBox();
     expect(box, "the first stop has a place on the page").not.toBeNull();
     expect(box!.y + box!.height, "the first stop's name ends above the tab bar of the first screen").toBeLessThan(844 - 80);
