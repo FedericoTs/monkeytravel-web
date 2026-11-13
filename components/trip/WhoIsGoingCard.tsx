@@ -151,7 +151,7 @@ export default function WhoIsGoingCard({ tripId, onShare, onCount, className = "
         <ul className={`mt-3 divide-y divide-slate-100 ${rows === null ? "invisible" : ""}`} aria-hidden={rows === null || undefined}>
           {shown.map((p) => (
             <li key={p.id} className="flex items-center gap-3 py-2" data-testid="who-is-going-row">
-              <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--primary)]/15 text-[11px] font-bold text-[var(--primary-ink)]">
+              <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--primary)]/15 text-[11px] font-bold text-[var(--foreground)]">
                 {initialsOf(p.display_name)}
               </span>
               <div className="min-w-0 flex-1">
