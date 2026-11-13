@@ -69,24 +69,26 @@ describe("the dates a traveller gives for the whole trip", () => {
 describe("new dates for the trip, in an ask about them", () => {
   const span = { start: "2026-11-28", end: "2026-12-06" };
 
-  it.each([
-    ["28 nov we arrive at 10 pm and go back 8 dec our flight is 6pm", undefined, "2026-12-08", "en"],
-    ["llegamos el 28 nov y volvemos el 8 dic", undefined, "2026-12-08", "es"],
-    ["arriviamo il 28 nov, ripartiamo l'8 dic", undefined, "2026-12-08", "it"],
-    ["chegamos dia 28/11 e voltamos dia 8/12", undefined, "2026-12-08", "pt"],
-    ["we stay until 3 dec now", undefined, "2026-12-03", "three days shorter"],
-    ["28 nov - 10 dec", "can you change our dates?", "2026-12-10", "the ask before says what they are"],
-  ])("reads %s", (message, previous, end) => {
+  type Ask = { message: string; previous?: string; why: string };
+
+  it.each<Ask & { end: string }>([
+    { message: "28 nov we arrive at 10 pm and go back 8 dec our flight is 6pm", end: "2026-12-08", why: "en" },
+    { message: "llegamos el 28 nov y volvemos el 8 dic", end: "2026-12-08", why: "es" },
+    { message: "arriviamo il 28 nov, ripartiamo l'8 dic", end: "2026-12-08", why: "it" },
+    { message: "chegamos dia 28/11 e voltamos dia 8/12", end: "2026-12-08", why: "pt" },
+    { message: "we stay until 3 dec now", end: "2026-12-03", why: "three days shorter" },
+    { message: "28 nov - 10 dec", previous: "can you change our dates?", end: "2026-12-10", why: "the ask before says what they are" },
+  ])("reads $message ($why)", ({ message, previous, end }) => {
     expect(askedTripDates(message, previous, span)).toEqual({ start: "2026-11-28", end });
   });
 
-  it.each([
-    ["the Louvre on 28 nov and the Orsay on 8 dec", undefined, "no word about the dates"],
-    ["we land on 28 nov, so the Louvre on 30 nov", undefined, "some days of the trip"],
-    ["we stay until 2 dec now", undefined, "four days shorter: some of its days"],
-    ["we arrive 28 nov and fly home 6 dec", undefined, "the trip's own dates"],
-    ["28 nov - 10 dec", "add a museum", "no word in this ask or the one before"],
-  ])("reads nothing from %s (%s)", (message, previous) => {
+  it.each<Ask>([
+    { message: "the Louvre on 28 nov and the Orsay on 8 dec", why: "no word about the dates" },
+    { message: "we land on 28 nov, so the Louvre on 30 nov", why: "some days of the trip" },
+    { message: "we stay until 2 dec now", why: "four days shorter: some of its days" },
+    { message: "we arrive 28 nov and fly home 6 dec", why: "the trip's own dates" },
+    { message: "28 nov - 10 dec", previous: "add a museum", why: "no word in this ask or the one before" },
+  ])("reads nothing from $message ($why)", ({ message, previous }) => {
     expect(askedTripDates(message, previous, span)).toBeNull();
   });
 });
