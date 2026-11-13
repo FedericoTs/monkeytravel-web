@@ -136,9 +136,9 @@ async function generate(days: number, extra: { dietary?: string[]; type?: string
   const complete = JSON.parse(events[events.length - 1].split("\ndata: ")[1]);
   return {
     eventTypes: events.map((event) => event.split("\n")[0].replace("event: ", "")),
-    images: complete.itinerary.days.flatMap((day: { activities: Array<{ image_url: string }> }) =>
+    images: complete.itinerary.days.flatMap((day: { activities: Array<{ image_url?: string }> }) =>
       day.activities.map((activity) => activity.image_url)
-    ) as string[],
+    ) as Array<string | undefined>,
     afterModel: db.log.slice(modelDone).map((q) => (q.op === "rpc" ? `rpc ${q.table}` : `${q.op} ${q.table}`)),
   };
 }
@@ -152,9 +152,10 @@ describe("the end of a streamed generation", () => {
     for (const [trip, days] of [[short, 3], [long, 14]] as const) {
       expect(trip.eventTypes).toEqual(["metadata", ...Array(days).fill("day"), "complete"]);
       // Every other sight has a Google photo cached, and none is used: the
-      // planner's preview shows free photos only (stock here: no Wikimedia one).
-      expect(trip.images.filter((url) => url.startsWith("/api/places/photo"))).toEqual([]);
-      expect(trip.images.every((url) => url.startsWith("https://images.pexels.com/"))).toBe(true);
+      // planner's preview shows free photos only, and a sight without one
+      // (no Wikimedia photo here) shows none rather than another place.
+      expect(trip.images.filter((url) => url?.startsWith("/api/places/photo"))).toEqual([]);
+      expect(trip.images.every((url) => url === undefined)).toBe(true);
     }
     const expected = [
       "select places_v2_lookup", // names and coordinates of places Google found before

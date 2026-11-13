@@ -1,6 +1,7 @@
 /** @vitest-environment node */
 import { describe, expect, it } from "vitest";
 import {
+  cardBudget,
   cardFormat,
   cardLocale,
   clip,
@@ -162,6 +163,32 @@ function flatten(node: unknown): string[] {
   return out.concat(flatten(el.props?.children));
 }
 const textOf = (node: unknown) => flatten(node).join("\n");
+
+describe("cardBudget", () => {
+  const plan = (stops: Array<[number, string]>) => [
+    { day_number: 1, activities: stops.map(([amount, currency]) => ({ name: "Stop", estimated_cost: { amount, currency } })) },
+  ];
+
+  it("is the plan's stops added up, per person, in the plan's currency and the card's language", () => {
+    const stops = plan([[1234.4, "USD"], [345, "USD"]]);
+    expect(cardBudget(stops, "USD", "en")).toBe("1,579 USD per person");
+    expect(cardBudget(stops, "USD", "es")).toBe("1579 USD por persona");
+    expect(cardBudget(stops, "USD", "it")).toBe("1579 USD a persona");
+    expect(cardBudget(plan([[12345, "USD"]]), "USD", "it")).toBe("12.345 USD a persona");
+    expect(cardBudget(stops, "USD", "pt")).toBe("1.579 USD por pessoa");
+    expect(cardBudget(plan([[2500, "JPY"], [1800, "JPY"]]), "JPY", "en")).toBe("4,300 JPY per person");
+  });
+
+  it("names no figure for stops priced in several currencies, having no rates to add them with", () => {
+    expect(cardBudget(plan([[30, "USD"], [400, "ZAR"]]), "USD", "en")).toBeNull();
+  });
+
+  it("names none for a plan that prices nothing, or isn't a plan", () => {
+    expect(cardBudget(plan([[0, "USD"]]), "USD", "en")).toBeNull();
+    expect(cardBudget([{ day_number: 1 }, null, "x"], "USD", "en")).toBeNull();
+    expect(cardBudget(null, undefined, "en")).toBeNull();
+  });
+});
 
 describe("renderTripCard", () => {
   it.each(["og", "square", "story"] as const)("builds the %s card with the destination, the days and the brand", (format) => {

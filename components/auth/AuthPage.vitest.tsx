@@ -16,10 +16,17 @@ import { AuthField, AuthPage, AuthPageLoading, AuthStatusIcon, AuthSubmitButton 
 describe("the sign-in page frame", () => {
   it("puts the logo, linking home, above the card", () => {
     render(<AuthPage>Form</AuthPage>);
-    const home = screen.getByRole("link", { name: /MonkeyTravel/ });
+    // Named once: the logo beside the name is decoration, not a second "MonkeyTravel".
+    const home = screen.getByRole("link", { name: "MonkeyTravel" });
     expect(home.getAttribute("href")).toBe("/");
-    expect(screen.getByRole("img", { name: "MonkeyTravel" })).toBeTruthy();
+    expect(home.querySelector("img")?.getAttribute("alt")).toBe("");
     expect(screen.getByText("Form").className).toBe("bg-white rounded-2xl shadow-xl p-8 border border-slate-200");
+  });
+
+  it("makes the card the page's main area, where a screen reader can jump to it", () => {
+    render(<AuthPage>Form</AuthPage>);
+    expect(screen.getByRole("main").contains(screen.getByText("Form"))).toBe(true);
+    expect(screen.getByRole("banner").contains(screen.getByRole("link", { name: "MonkeyTravel" }))).toBe(true);
   });
 
   it("centers a result card's text", () => {

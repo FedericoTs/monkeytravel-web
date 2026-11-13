@@ -16,6 +16,7 @@ import TodayPacking from "@/components/trip/TodayPacking";
 import { useLiveTripState } from "@/lib/trip/useLiveTripState";
 import { computeTripDayState, type TripDayState } from "@/lib/trip/live";
 import { dayBudgetLabel } from "@/lib/trip/day-budget";
+import { inPlanCurrency, planCosts } from "@/lib/ai/assistant/plan-costs";
 import ReadOnlyItinerary from "@/components/trip/ReadOnlyItinerary";
 import AiDisclaimer from "@/components/trip/AiDisclaimer";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
@@ -175,7 +176,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
   });
 
   // Currency conversion hook - converts to user's preferred currency
-  const { convert: convertCurrency, format: formatCurrency } = useCurrency();
+  const { convert: convertCurrency, format: formatCurrency, exchangeRates } = useCurrency();
 
   const formatDayBudget = (day: ItineraryDay): string =>
     dayBudgetLabel(day, { convert: convertCurrency, format: formatCurrency }, t('activity.free'), trip.budget?.currency || "USD");
@@ -236,41 +237,52 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
     () => displayItinerary.reduce((acc, day) => acc + day.activities.length, 0),
     [displayItinerary]
   );
+  // What the plan's own stops cost, per person, as the trip page shows it:
+  // each stop in the plan's currency first, at the page's rates.
+  const planTotal = useMemo(() => {
+    const days = inPlanCurrency(displayItinerary, exchangeRates, trip.budget?.currency || "USD");
+    return days ? planCosts(days) : null;
+  }, [displayItinerary, exchangeRates, trip.budget?.currency]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
-      {/* Hero with Cover Image - Enhanced with weather and stats */}
-      <DestinationHero
-        destination={destination}
-        title={trip.title}
-        subtitle={trip.description}
-        dateRange={dateRange}
-        budget={trip.budget?.total ? trip.budget : undefined}
-        days={trip.itinerary.length}
-        nights={nights}
-        activitiesCount={activitiesCount}
-        weatherNote={trip.meta?.weather_note}
-        highlights={trip.meta?.highlights}
-        tags={trip.tags}
-        showBackButton={true}
-        onBack={() => window.history.back()}
-        coverImageUrl={coverImageUrl}
-        disableApiCalls={true}
-      >
-        {/* Shared + Backpacker badge stack — top-right of hero. Trips
-            generated in Backpacker Mode get a "Backpacker route" pill. */}
-        <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
-          <span className="px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-purple-100 text-purple-700">
-            {t('shared.sharedTrip')}
-          </span>
-          {trip.meta?.travel_style === "backpacker" && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-emerald-500 text-white">
-              <span aria-hidden>🎒</span>
-              {t('shared.backpackerRoute')}
+      {/* Hero with Cover Image - Enhanced with weather and stats. The page's header
+          landmark: the trip's title, dates and badges. */}
+      <header>
+        <DestinationHero
+          destination={destination}
+          title={trip.title}
+          subtitle={trip.description}
+          dateRange={dateRange}
+          budget={planTotal ? { total: planTotal.total, currency: planTotal.currency } : undefined}
+          budgetNote={t("tripTotal.perPerson")}
+          budgetHint={t("tripTotal.hint")}
+          days={trip.itinerary.length}
+          nights={nights}
+          activitiesCount={activitiesCount}
+          weatherNote={trip.meta?.weather_note}
+          highlights={trip.meta?.highlights}
+          tags={trip.tags}
+          showBackButton={true}
+          onBack={() => window.history.back()}
+          coverImageUrl={coverImageUrl}
+          disableApiCalls={true}
+        >
+          {/* Shared + Backpacker badge stack — top-right of hero. Trips
+              generated in Backpacker Mode get a "Backpacker route" pill. */}
+          <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
+            <span className="px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-purple-100 text-purple-700">
+              {t('shared.sharedTrip')}
             </span>
-          )}
-        </div>
-      </DestinationHero>
+            {trip.meta?.travel_style === "backpacker" && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-emerald-700 text-white">
+                <span aria-hidden>🎒</span>
+                {t('shared.backpackerRoute')}
+              </span>
+            )}
+          </div>
+        </DestinationHero>
+      </header>
 
       <main className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
         {editorHref && (
@@ -345,7 +357,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
             type="button"
             onClick={() => setTodayMode(true)}
             data-testid="back-to-today"
-            className="mb-4 inline-flex items-center gap-1.5 rounded-lg bg-[var(--primary)]/10 px-3 py-2 text-sm font-medium text-[var(--primary-ink)] hover:bg-[var(--primary)]/15"
+            className="mb-4 inline-flex items-center gap-1.5 rounded-lg bg-[var(--primary)]/10 px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--primary)]/15"
           >
             <span aria-hidden>←</span> {t("today.backToToday")}
           </button>
@@ -539,7 +551,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
       </footer>
 
       {/* Mobile Bottom Navigation */}
-      <MobileBottomNav activePage="trips" />
+      <MobileBottomNav activePage="shared-trip" />
     </div>
   );
 }

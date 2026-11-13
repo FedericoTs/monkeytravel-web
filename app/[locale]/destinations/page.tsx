@@ -62,6 +62,7 @@ export default async function DestinationsIndexPage({ params }: PageProps) {
 
   const loc = locale as Locale;
   const t = await getTranslations("destinations");
+  const tA11y = await getTranslations("common.a11y");
   const tMatch = await getTranslations("match");
 
   const localePrefix = locale === routing.defaultLocale ? "" : `/${locale}`;
@@ -140,8 +141,8 @@ export default async function DestinationsIndexPage({ params }: PageProps) {
           />
 
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 lg:py-24">
-            <nav className="flex items-center gap-2 text-sm text-slate-600 mb-6">
-              <Link href="/" className="hover:text-[var(--primary-ink)] transition-colors">
+            <nav aria-label={tA11y("breadcrumb")} className="flex items-center gap-2 text-sm text-slate-600 mb-6">
+              <Link href="/" className="inline-flex items-center justify-center hover:text-[var(--primary-ink)] transition-colors">
                 {t("breadcrumbs.home")}
               </Link>
               <span className="text-slate-500">/</span>

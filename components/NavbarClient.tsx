@@ -143,14 +143,14 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
                 natural sibling. */}
             <Link
               href="/saved"
-              className="px-3 py-2 rounded-full text-sm font-medium text-[var(--foreground-muted)] hover:text-[var(--primary-ink)] hover:bg-[var(--primary)]/5 transition-colors"
+              className="px-3 py-2 rounded-full text-sm font-medium text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[var(--primary)]/5 transition-colors"
               title={t('navigation.saved')}
             >
               {t('navigation.saved')}
             </Link>
             <Link
               href="/profile"
-              className="p-2 rounded-full text-[var(--foreground-muted)] hover:text-[var(--primary-ink)] hover:bg-[var(--primary)]/5 transition-colors"
+              className="p-2 rounded-full text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[var(--primary)]/5 transition-colors"
               title={t('navigation.profile')}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -162,7 +162,7 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
           <>
             <Link
               href="/auth/login"
-              className="px-4 py-2 rounded-full text-sm font-medium text-[var(--primary-ink)] hover:bg-[var(--primary)]/5 transition-colors"
+              className="px-4 py-2 rounded-full text-sm font-medium text-[var(--foreground)] hover:bg-[var(--primary)]/5 transition-colors"
             >
               {t('navigation.signIn')}
             </Link>
@@ -201,7 +201,7 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="px-4 py-3 rounded-xl font-medium text-[var(--foreground-muted)] hover:text-[var(--primary-ink)] hover:bg-[var(--primary)]/5 transition-colors"
+                  className="px-4 py-3 rounded-xl font-medium text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[var(--primary)]/5 transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {link.label}
@@ -268,7 +268,7 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
                 <>
                   <Link
                     href="/auth/login"
-                    className="px-4 py-3 rounded-xl font-medium text-[var(--primary-ink)] hover:bg-[var(--primary)]/5 transition-colors"
+                    className="px-4 py-3 rounded-xl font-medium text-[var(--foreground)] hover:bg-[var(--primary)]/5 transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {t('navigation.signIn')}

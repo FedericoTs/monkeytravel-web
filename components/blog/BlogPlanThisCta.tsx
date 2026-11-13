@@ -43,7 +43,7 @@ export default function BlogPlanThisCta({
           </div>
           <div className="p-5 md:p-6 flex flex-col justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--primary-ink)] mb-1.5">
+              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--foreground-muted)] mb-1.5">
                 {destination.name[locale]} · {destination.country[locale]}
               </p>
               <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-1.5 leading-tight group-hover:text-[var(--primary-ink)] transition-colors">
@@ -51,9 +51,9 @@ export default function BlogPlanThisCta({
               </h3>
               <p className="text-sm text-slate-600 leading-relaxed">{description}</p>
             </div>
-            <div className="flex items-center gap-1.5 text-[var(--primary-ink)] font-semibold text-sm group-hover:gap-2.5 transition-all">
+            <div className="flex items-center gap-1.5 text-[var(--foreground)] font-semibold text-sm group-hover:gap-2.5 transition-all">
               <span>{ctaLabel}</span>
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <svg className="w-4 h-4 text-[var(--primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
               </svg>
             </div>

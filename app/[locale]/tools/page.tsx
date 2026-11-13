@@ -81,6 +81,7 @@ export default async function ToolsLandingPage({
   const tCheckPlan = await getTranslations("tools.checkPlan");
   const tPassport = await getTranslations("passport");
   const tMatch = await getTranslations("match");
+  const tA11y = await getTranslations("common.a11y");
 
   const tools = [
     {
@@ -134,7 +135,7 @@ export default async function ToolsLandingPage({
     },
   ];
 
-  // Visible breadcrumb nav already renders below (aria-label="Breadcrumb");
+  // Visible breadcrumb nav already renders below (named in the page's language);
   // this is the machine-readable twin. No FAQPage here on purpose — the page
   // has no visible FAQ, and FAQ markup without matching content is a violation.
   const schemaPrefix = locale === "en" ? "" : `/${locale}`;
@@ -157,7 +158,7 @@ export default async function ToolsLandingPage({
       />
       <Navbar />
       <main className="flex-1 max-w-5xl mx-auto px-4 py-12 sm:py-16 w-full">
-        <nav className="text-sm text-slate-500 mb-6" aria-label="Breadcrumb">
+        <nav className="text-sm text-slate-500 mb-6" aria-label={tA11y("breadcrumb")}>
           <Link href="/" className="hover:text-slate-700">
             Home
           </Link>
@@ -186,7 +187,7 @@ export default async function ToolsLandingPage({
                 </h2>
                 <p className="text-slate-600 text-sm mb-4">{tool.description}</p>
                 {tool.live ? (
-                  <span className="inline-flex items-center gap-1 text-sm font-medium text-[var(--primary-ink)]">
+                  <span className="inline-flex items-center gap-1 text-sm font-medium text-[var(--foreground)]">
                     {locale === "it" ? "Provalo →" : locale === "es" ? "Pruébalo →" : "Try it →"}
                   </span>
                 ) : (

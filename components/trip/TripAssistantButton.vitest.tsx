@@ -32,4 +32,20 @@ describe("TripAssistantButton", () => {
     fireEvent.click(screen.getByTitle("detail.aiTripAssistant"));
     expect(onOpen).toHaveBeenCalledTimes(1);
   });
+
+  // On a phone the floating button sat on the first stop while the bar's own
+  // assistant button was a thumb away.
+  it("leaves a phone's screen to the bar's own button while that one is in view", () => {
+    render(<TripAssistantButton isEditMode={false} hasSeenAssistant barButtonInView onOpen={vi.fn()} />);
+    expect(screen.getByTitle("detail.aiTripAssistant").className).toContain("max-sm:hidden");
+    cleanup();
+
+    render(<TripAssistantButton isEditMode={false} hasSeenAssistant onOpen={vi.fn()} />);
+    expect(screen.getByTitle("detail.aiTripAssistant").className).not.toContain("hidden");
+    cleanup();
+
+    // In edit mode the bar has no assistant button: the compact one stays.
+    render(<TripAssistantButton isEditMode hasSeenAssistant barButtonInView onOpen={vi.fn()} />);
+    expect(screen.getByTitle("detail.aiTripAssistant").className).not.toContain("hidden");
+  });
 });

@@ -146,7 +146,7 @@ function ForgotPasswordForm() {
       <div className="mt-6 text-center">
         <Link
           href="/auth/login"
-          className="text-[var(--primary-ink)] font-medium hover:underline"
+          className="font-medium text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 hover:decoration-2"
         >
           {t("backToLogin")}
         </Link>

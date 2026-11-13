@@ -40,7 +40,7 @@ export default function BlogSidebar({
   }
 
   return (
-    <aside className="hidden lg:block">
+    <div className="hidden lg:block">
       <div className="sticky top-24 flex flex-col gap-6">
         {tree.length > 0 && (
           <nav aria-label={tocLabel} className="text-sm">
@@ -96,6 +96,6 @@ export default function BlogSidebar({
           </div>
         </div>
       </div>
-    </aside>
+    </div>
   );
 }

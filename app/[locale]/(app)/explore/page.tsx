@@ -137,6 +137,7 @@ export default async function ExplorePage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "common.share.explore" });
+  const tA11y = await getTranslations({ locale, namespace: "common.a11y" });
 
   const sp = await searchParams;
   const filters = parseFilters(sp);
@@ -167,7 +168,7 @@ export default async function ExplorePage({
     return q ? `/explore?${q}` : "/explore";
   };
 
-  // Visible breadcrumb nav already renders below (aria-label="Breadcrumb");
+  // Visible breadcrumb nav already renders below (named in the page's language);
   // this is the machine-readable twin. No FAQPage here on purpose — the page
   // has no visible FAQ, and FAQ markup without matching content is a violation.
   const schemaPrefix = locale === "en" ? "" : `/${locale}`;
@@ -207,7 +208,7 @@ export default async function ExplorePage({
         smaller, tighter margins; same copy, same structure. Target <= 240px
         with the first row of cards visible at 1280x800.
       */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-orange-50 via-rose-50 to-amber-50">
+      <header className="relative overflow-hidden bg-gradient-to-br from-orange-50 via-rose-50 to-amber-50">
         {/* Decorative blurred gradient blobs. Pointer-events-none so
             they never intercept clicks. aria-hidden because they're
             purely visual flourish. */}
@@ -289,10 +290,10 @@ export default async function ExplorePage({
             </ul>
           </div>
         </div>
-      </section>
+      </header>
 
       <main className="flex-1 max-w-7xl mx-auto px-4 py-8 sm:py-10 w-full">
-        <nav className="text-sm text-slate-500 mb-4" aria-label="Breadcrumb">
+        <nav className="text-sm text-slate-500 mb-4" aria-label={tA11y("breadcrumb")}>
           <Link href="/" className="hover:text-slate-700">
             {t("breadcrumbHome")}
           </Link>
@@ -320,13 +321,13 @@ export default async function ExplorePage({
         {feed !== null && (
           <>
             <div className="mt-6 mb-5 flex items-center justify-between">
-              <p className="text-sm text-slate-500">
+              <h2 className="text-sm text-slate-500">
                 {total === 0
                   ? t("noResults")
                   : total === 1
                     ? t("tripCountSingular", { count: total })
                     : t("tripCountPlural", { count: total })}
-              </p>
+              </h2>
               {totalPages > 1 && (
                 <p className="text-sm text-slate-500">
                   {t("pageOfPages", { current: currentPage, total: totalPages })}

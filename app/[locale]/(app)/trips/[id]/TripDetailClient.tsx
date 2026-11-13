@@ -18,6 +18,7 @@ import { PlacesCheckedNote } from "@/components/trip/PlacesCheckedNote";
 import { placesToEatNote } from "@/lib/places/kept-trip";
 import { useEditShortcuts } from "@/hooks/useEditShortcuts";
 import { useDayFocus } from "@/hooks/useDayFocus";
+import { coversWholeCountry, useTravelAdvisory } from "@/hooks/useTravelAdvisory";
 import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
 import WhoIsGoingCard from "@/components/trip/WhoIsGoingCard";
 import TodayView from "@/components/trip/TodayView";
@@ -65,7 +66,8 @@ import {
 } from "@/components/timeline";
 import { useChecklist } from "@/hooks/useChecklist";
 import BookAheadList from "@/components/trip/BookAheadList";
-import { readBookedIds } from "@/lib/trips/book-ahead";
+import TripStrip, { type TripStripItem } from "@/components/trip/TripStrip";
+import { bookAheadStops, readBookedIds } from "@/lib/trips/book-ahead";
 import { useToast } from "@/components/ui/Toast";
 import { trackTripViewed } from "@/lib/analytics";
 import { useTravelDistances } from "@/hooks/useTravelDistances";
@@ -86,10 +88,13 @@ import { CancelTripDialog, CancelledTripNote, ConfirmTripCard, TripStatusBadge, 
 import { dayOptionsOf } from "@/components/trip/ItineraryDnd";
 
 import { useAssistantFirstVisit } from "@/hooks/useAssistantFirstVisit";
+import { useOffScreen } from "@/hooks/useOffScreen";
 import { useSaveFailedNotice } from "@/hooks/useSaveFailedNotice";
 import { useTripCover } from "@/hooks/useTripCover";
 import { useItinerarySync } from "@/hooks/useItinerarySync";
 import ItineraryConflictBanner from "@/components/trip/ItineraryConflictBanner";
+import { inPlanCurrency, planCosts } from "@/lib/ai/assistant/plan-costs";
+import { useCurrency } from "@/lib/locale";
 
 // Dynamic import for TripMap to avoid SSR issues with Google Maps
 const TripMap = dynamic(() => import("@/components/TripMap"), {
@@ -136,10 +141,8 @@ const PasteBookingModal = dynamic(() => import("@/components/trip/PasteBookingMo
   ssr: false,
 });
 
-// Travel advisory banner — async-fetches the FCDO data on mount. No reason
-// to ship the component JS in the initial chunk; it self-hides when there
-// is no advisory anyway, so a brief tick-after-hydrate is invisible to the
-// user.
+// The UK's travel advice card, loaded only once there is advice to show:
+// useTravelAdvisory asks for it after the page has drawn.
 const TravelAdvisoryBanner = dynamic(
   () => import("@/components/trip/TravelAdvisoryBanner"),
   { ssr: false }
@@ -217,6 +220,8 @@ interface TripDetailClientProps {
   liveState?: TripDayState;
   /** Server-read: this browser has opened the assistant before (lib/trip/assistant-seen). */
   assistantSeen?: boolean;
+  /** Server-read: the map starts open. On a phone it starts closed, leaving the first screen to the plan. */
+  mapOpenAtFirst?: boolean;
 }
 
 export default function TripDetailClient({
@@ -230,6 +235,7 @@ export default function TripDetailClient({
   engagementSlot,
   liveState,
   assistantSeen = false,
+  mapOpenAtFirst = true,
 }: TripDetailClientProps) {
   const t = useTranslations('trips');
   // A live trip opens on Today, for the owner too.
@@ -252,7 +258,7 @@ export default function TripDetailClient({
   const shouldAutoOpenShareModal = shareParam === "invite";
 
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
-  const [showMap, setShowMap] = useState(true);
+  const [showMap, setShowMap] = useState(mapOpenAtFirst);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
   const isOwner = userRole === "owner";
@@ -261,6 +267,9 @@ export default function TripDetailClient({
   const canUseAssistant = ROLE_PERMISSIONS[userRole]?.canEdit ?? false;
   // The owner sees who said they're going.
   const participantsEnabled = isLiveTripParticipantsEnabled();
+  // The counts the strip's chips show, told by their cards.
+  const [goingCount, setGoingCount] = useState<number | null>(null);
+  const [bookedCount, setBookedCount] = useState<number | null>(null);
   // The hero's cover: the stored one, else one the hero looks up, which the
   // owner's visit stores on the trip.
   const { coverImageUrl, handleCoverImageFetched } = useTripCover({
@@ -288,6 +297,9 @@ export default function TripDetailClient({
     isAIAssistantOpen,
     setIsAIAssistantOpen,
   });
+  // On a phone the floating assistant button waits for the controls bar's own
+  // one to scroll away, instead of sitting on the plan beside it.
+  const { ref: assistantBarButton, offScreen: assistantBarButtonAway } = useOffScreen<HTMLButtonElement>();
 
   // Edit mode state
   const [isEditMode, setIsEditMode] = useState(false);
@@ -465,6 +477,10 @@ export default function TripDetailClient({
   // Prefer trip_meta.destination (canonical) over stripping the title, which
   // fails for non-English or renamed trips (see lib/trips/destination.ts).
   const destination = getTripDestination(trip);
+  // The UK's travel advice for the trip's country, once the page has drawn. Advice
+  // that covers the whole country goes above the plan; any other is a chip.
+  const advisory = useTravelAdvisory(destination);
+  const advisoryCoversCountry = coversWholeCountry(advisory);
 
   // Multi-city route stops for the Journey ribbon, as in the wizard and the
   // ongoing view. The ribbon renders only with two or more stops.
@@ -847,6 +863,14 @@ export default function TripDetailClient({
   // a fresh array each render (e.g. new ids from ensureActivityIds) changes
   // itineraryHash, makes useTravelDistances refetch, and loops re-rendering.
   const displayItinerary = editingActive ? editedItinerary : savedItinerary;
+  // What the plan's own stops cost, per person, kept with every change: the
+  // figure the assistant quotes. The estimate saved with the plan never moves.
+  // Each stop is in the plan's currency first, at the page's rates.
+  const { exchangeRates } = useCurrency();
+  const planTotal = useMemo(() => {
+    const days = inPlanCurrency(displayItinerary, exchangeRates, trip.budget?.currency || "USD");
+    return days ? planCosts(days) : null;
+  }, [displayItinerary, exchangeRates, trip.budget?.currency]);
 
   // Fetch travel distances between activities
   // Uses local Haversine calculation - NO external API calls!
@@ -863,6 +887,116 @@ export default function TripDetailClient({
 
   // A live trip opens on Today, in either phase. The active phase used to show
   // only OngoingTripView, so its crew chips, feed and Who paid? never appeared here.
+  // What sits beside the plan, as the chips of the row under the header
+  // (TripStrip). Each card tells its chip the count it shows.
+  const stripItems: TripStripItem[] = [];
+  const stopsToBook = bookAheadStops(editedItinerary).length;
+  // First in the row, where it is seen; as a chip, its late arrival moves only
+  // the other chips, never the plan.
+  if (!isActiveTripPhase && advisory && !advisoryCoversCountry) {
+    stripItems.push({
+      id: "advice",
+      label: tCommon("advisory.chip"),
+      detail:
+        advisory.advice === "all_parts" || advisory.advice === "essential_parts" ? tCommon("advisory.someAreas") : null,
+      content: <TravelAdvisoryBanner advisory={advisory} />,
+    });
+  }
+  if (isOwner && participantsEnabled && !isEditMode) {
+    stripItems.push({
+      id: "who",
+      label: tCommon("share.participants.whoIsGoing"),
+      detail: goingCount === null ? null : tCommon("share.participants.going", { count: goingCount }),
+      // The share ask is "send it to the people coming", not "get votes".
+      content: <WhoIsGoingCard tripId={trip.id} onShare={openCrewShareModal} onCount={setGoingCount} />,
+      keepMounted: true,
+    });
+  }
+  // Owner only: confirming or cancelling is the trip's lifecycle, and PATCH
+  // /status admits only the owner, so a collaborator's click would be a
+  // silent 404.
+  if (shownStatus === "planning" && isOwner) {
+    stripItems.push({
+      id: "confirm",
+      label: tCommon("trips.confirmTrip"),
+      content: (
+        <ConfirmTripCard
+          updating={isUpdatingStatus}
+          onConfirm={() => handleStatusUpdate("confirmed")}
+          onCancel={() => setConfirmCancelTrip(true)}
+        />
+      ),
+    });
+  }
+  if (isPreTripPhase) {
+    const ticked = checklist.items.filter((i) => i.is_checked).length;
+    stripItems.push({
+      id: "ready",
+      label: tCommon("checklist.title"),
+      detail:
+        isOwner && checklist.items.length > 0
+          ? tCommon("checklist.progress", { completed: ticked, total: checklist.items.length })
+          : null,
+      content: (
+        <div className="space-y-4">
+          {/* coverImageUrl is passed deliberately: CountdownHero renders a
+              full-bleed photo when it has one and a flat gradient when it
+              does not.
+
+              weatherForecast is NOT passed. The component wants
+              {temp, condition, icon}, but /api/weather returns HISTORICAL
+              weather (the same dates in a past year), not a forecast, and
+              labelling it as the forecast would mislead on the surface
+              people are most likely to screenshot. Needs a real forecast
+              source. */}
+          <CountdownHero
+            destination={destination}
+            startDate={tripStartDate}
+            tripDays={tripDaysCount}
+            activitiesCount={totalActivities}
+            coverImageUrl={coverImageUrl ?? undefined}
+          />
+          {isOwner && (
+            <PreTripChecklist
+              items={checklist.items}
+              onToggle={checklist.toggleItem}
+              onAdd={checklist.addItem}
+              onDelete={checklist.deleteItem}
+              isLoading={checklist.isLoading}
+            />
+          )}
+        </div>
+      ),
+    });
+  }
+  // The stops the plan says need a booking, with a Booked tick.
+  if (isPreTripPhase && isOwner && stopsToBook > 0) {
+    stripItems.push({
+      id: "book",
+      label: tCommon("bookAhead.title"),
+      detail: bookedCount === null ? null : tCommon("bookAhead.progress", { booked: bookedCount, total: stopsToBook }),
+      content: (
+        <BookAheadList
+          tripId={trip.id}
+          itinerary={editedItinerary}
+          initialBooked={readBookedIds(trip.meta)}
+          onProgress={setBookedCount}
+        />
+      ),
+      keepMounted: true,
+    });
+  }
+  // The owner's /explore counts and the publish switch, rendered by the server
+  // page. Kept mounted: its buttons hold what the viewer pressed.
+  if (engagementSlot) {
+    stripItems.push({
+      id: "explore",
+      label: tCommon("bottomNav.explore"),
+      content: <div className="flex flex-wrap items-center gap-3">{engagementSlot}</div>,
+      keepMounted: true,
+    });
+  }
+
   const todayView = showToday ? (
     <TodayView
       itinerary={displayItinerary}
@@ -882,7 +1016,7 @@ export default function TripDetailClient({
         type="button"
         onClick={() => setTodayMode(true)}
         data-testid="back-to-today"
-        className="mb-4 inline-flex items-center gap-1.5 rounded-lg bg-[var(--primary)]/10 px-3 py-2 text-sm font-medium text-[var(--primary-ink)] hover:bg-[var(--primary)]/15"
+        className="mb-4 inline-flex items-center gap-1.5 rounded-lg bg-[var(--primary)]/10 px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--primary)]/15"
       >
         <span aria-hidden>←</span> {tCommon("today.backToToday")}
       </button>
@@ -901,7 +1035,9 @@ export default function TripDetailClient({
           dateRange={dateRange}
           onEditDates={ambientEdit ? () => setShowChangeDates(true) : undefined}
           editDatesLabel={t("wizard.changeDates.button")}
-          budget={trip.budget?.total ? trip.budget : undefined}
+          budget={planTotal ? { total: planTotal.total, currency: planTotal.currency } : undefined}
+          budgetNote={tCommon("tripTotal.perPerson")}
+          budgetHint={tCommon("tripTotal.hint")}
           days={trip.itinerary.length}
           nights={tripNights(trip.startDate, trip.endDate)}
           activitiesCount={displayItinerary.reduce((acc, day) => acc + day.activities.length, 0)}
@@ -925,7 +1061,7 @@ export default function TripDetailClient({
           <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
             <TripStatusBadge status={shownStatus} />
             {trip.meta?.travel_style === "backpacker" && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-emerald-500 text-white">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-emerald-700 text-white">
                 <span aria-hidden>🎒</span>
                 {tCommon("shared.backpackerRoute")}
               </span>
@@ -942,24 +1078,20 @@ export default function TripDetailClient({
         while the chat is open.
       */}
       <main
-        className={`max-w-6xl mx-auto px-4 py-6 sm:py-8 transition-[margin] duration-300 ease-out ${
+        className={`max-w-6xl mx-auto px-4 pt-4 pb-6 sm:py-8 transition-[margin] duration-300 ease-out ${
           isAIAssistantOpen || assistantDockReserved ? "lg:mr-[420px]" : ""
         }`}
         // Reserved, not open: globals.css drops the column when <html> says
         // this browser has already met the assistant.
         data-assistant-dock={assistantDockReserved && !isAIAssistantOpen ? "reserved" : undefined}
       >
-        {/* Who said they're going — count, names, join times, remove.
-            The share ask is "send it to the people coming", not "get
-            votes". */}
-        {isOwner && participantsEnabled && !isEditMode && (
-          <WhoIsGoingCard tripId={trip.id} onShare={openCrewShareModal} className="mb-6" />
-        )}
+        {/* The plan comes first: what sits beside it is a row of chips. On a phone the gaps
+            above the days are a little tighter, so the first stop clears the tab bar. */}
+        <TripStrip label={tCommon("tripStrip.label")} items={stripItems} className="mb-4 sm:mb-6" />
         {/* Backpacker Mode — Hostelworld CTA. Renders only when the
             trip was generated as backpacker (trip_meta.travel_style).
-            Placed above the engagement bar, near the top of the page,
-            because that's the surface we want CTR on for the
-            Hostelworld partnership signal. */}
+            Placed near the top of the page, because that's the surface
+            we want CTR on for the Hostelworld partnership signal. */}
         {trip.meta?.travel_style === "backpacker" && (
           <BackpackerHostelCta
             tripId={trip.id}
@@ -970,26 +1102,6 @@ export default function TripDetailClient({
           />
         )}
 
-        {/* Owner-side /explore engagement bar + Publish-to-Explore
-            toggle. Null when the explore flag is off. Sits near the top
-            of <main> so the owner sees their counts + publish state
-            immediately on page load. */}
-        {engagementSlot && (
-          <div className="mb-6 flex items-center gap-3">
-            {engagementSlot}
-          </div>
-        )}
-
-        {/* Planning Phase - Confirm Trip Action. Owner only: confirming or
-            cancelling is the trip's lifecycle, and PATCH /status admits only
-            the owner, so a collaborator's click would be a silent 404. */}
-        {shownStatus === "planning" && isOwner && (
-          <ConfirmTripCard
-            updating={isUpdatingStatus}
-            onConfirm={() => handleStatusUpdate("confirmed")}
-            onCancel={() => setConfirmCancelTrip(true)}
-          />
-        )}
 
         {/* A cancelled trip can be restored to planning. */}
         {currentStatus === "cancelled" && isOwner && (
@@ -1012,42 +1124,6 @@ export default function TripDetailClient({
               nothing when the Concierge env-flag is off. */}
           <ConciergeHistory tripId={trip.id} />
         </div>
-
-        {/* Pre-Trip Phase - Countdown Hero and Checklist */}
-        {isPreTripPhase && (
-          <div className="space-y-4 mb-6">
-            {/* coverImageUrl is passed deliberately: CountdownHero renders a
-                full-bleed photo when it has one and a flat gradient when it
-                does not.
-
-                weatherForecast is NOT passed. The component wants
-                {temp, condition, icon}, but /api/weather returns HISTORICAL
-                weather (the same dates in a past year), not a forecast, and
-                labelling it as the forecast would mislead on the surface
-                people are most likely to screenshot. Needs a real forecast
-                source. */}
-            <CountdownHero
-              destination={destination}
-              startDate={tripStartDate}
-              tripDays={tripDaysCount}
-              activitiesCount={totalActivities}
-              coverImageUrl={coverImageUrl ?? undefined}
-            />
-            {isOwner && (
-              <PreTripChecklist
-                items={checklist.items}
-                onToggle={checklist.toggleItem}
-                onAdd={checklist.addItem}
-                onDelete={checklist.deleteItem}
-                isLoading={checklist.isLoading}
-              />
-            )}
-            {/* The stops the plan says need a booking, with a Booked tick. */}
-            {isOwner && (
-              <BookAheadList tripId={trip.id} itinerary={editedItinerary} initialBooked={readBookedIds(trip.meta)} />
-            )}
-          </div>
-        )}
 
         {/* Active Trip Phase - Today, else the Ongoing Trip View */}
         {isActiveTripPhase && (todayView ?? (
@@ -1102,10 +1178,10 @@ export default function TripDetailClient({
         {/* Planning/Confirmed Phase - Full Itinerary View */}
         {!isActiveTripPhase && (
           <>
-        {/* Travel advisory banner — sourced from UK FCDO.
-            Hides itself entirely when the destination has no active alert,
-            so it never adds visual noise to safe-destination trips. */}
-        <TravelAdvisoryBanner country={destination} className="mb-4" />
+        {/* The UK's advice against travel to the whole country stays above the
+            plan, though it arrives after the page has drawn: it changes whether
+            to go. Other advice is a chip in the row. */}
+        {advisory && advisoryCoversCountry && <TravelAdvisoryBanner advisory={advisory} urgent className="mb-4" />}
 
         {/* Multi-city Journey ribbon with transit labels ("TRENO · 4h") */}
         {journeyStops.length > 1 && (
@@ -1125,6 +1201,7 @@ export default function TripDetailClient({
           shouldAutoOpenShareModal={shouldAutoOpenShareModal}
           canUseAssistant={canUseAssistant}
           onOpenAssistant={() => setIsAIAssistantOpen(true)}
+          assistantButtonRef={assistantBarButton}
           displayItinerary={displayItinerary}
           emailParseEnabled={emailParseEnabled}
           onPasteBooking={() => setIsPasteBookingOpen(true)}
@@ -1150,18 +1227,6 @@ export default function TripDetailClient({
             hasChanges={hasChanges}
           />
         </TripControlsBar>
-
-        {/* Ambient-edit hint — one subtle line telling solo owners the plan
-            is directly editable and saves itself, so the manual editor is
-            discoverable. */}
-        {ambientEdit && displayItinerary.length > 0 && (
-          <p className="-mt-2 mb-6 flex items-center gap-1.5 text-xs text-slate-500">
-            <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-            </svg>
-            {t('detail.ambientEditHint')}
-          </p>
-        )}
 
         {/* Post-Confirmation Banner - eSIM, Flight Compensation */}
         {BOOKINGS_ENABLED && (
@@ -1254,17 +1319,6 @@ export default function TripDetailClient({
           className="mb-8"
         />
 
-        {/* Crew Loop: the crew's votes once the share link has some, or for a
-            trip never shared, a nudge to send it. Hidden during edit mode
-            (ShareButton unmounts there, so the buttons would have nothing to
-            open). */}
-        {!isEditMode && isOwner && crewVotes !== null && crewVotes.total > 0 && (
-          <CrewVotesSummary votes={crewVotes} onShare={openCrewShareModal} />
-        )}
-        {!isEditMode && isOwner && crewSharingEnabled === false && trip.itinerary.length >= 2 && (
-          <CrewShareNudge tripId={trip.id} onShare={openCrewShareModal} />
-        )}
-
         {todayView}
 
         {!showToday && (
@@ -1275,7 +1329,7 @@ export default function TripDetailClient({
           days={displayItinerary}
           selectedDay={selectedDay}
           onSelectDay={setSelectedDay}
-          className="mb-6"
+          className="mb-4 sm:mb-6"
         />
 
         <PlacesCheckedNote note={placesJustChecked ?? placesToEatNote(trip.meta)} className="mb-4" />
@@ -1314,8 +1368,34 @@ export default function TripDetailClient({
           onActivityRegenerate={handleActivityRegenerate}
           onAddActivity={handleAddActivity}
           onPhotoCapture={handlePhotoCapture}
+          // One subtle line telling solo owners the plan is directly editable and saves itself,
+          // so the manual editor is discoverable. Under the first day, it leaves the first
+          // stop on a phone's first screen.
+          afterFirstDay={
+            ambientEdit ? (
+              <p className="flex items-center gap-1.5 text-xs text-slate-500">
+                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                </svg>
+                {t("detail.ambientEditHint")}
+              </p>
+            ) : null
+          }
         />
         </>
+        )}
+
+        {/* Crew Loop: the crew's votes once the share link has some, or for a
+            trip never shared, a nudge to send it. Both come from a read made
+            after the page has drawn, so they sit under the days: above them
+            they pushed the plan down a moment after it had appeared. Hidden
+            during edit mode (ShareButton unmounts there, so the buttons would
+            have nothing to open). */}
+        {!isEditMode && isOwner && crewVotes !== null && crewVotes.total > 0 && (
+          <CrewVotesSummary votes={crewVotes} onShare={openCrewShareModal} />
+        )}
+        {!isEditMode && isOwner && crewSharingEnabled === false && trip.itinerary.length >= 2 && (
+          <CrewShareNudge tripId={trip.id} onShare={openCrewShareModal} />
         )}
 
         {/* Journey Essentials - Premium Packing List */}
@@ -1356,6 +1436,7 @@ export default function TripDetailClient({
         <TripAssistantButton
           isEditMode={isEditMode}
           hasSeenAssistant={hasSeenAssistant}
+          barButtonInView={!isActiveTripPhase && !isEditMode && !assistantBarButtonAway}
           onOpen={() => setIsAIAssistantOpen(true)}
         />
       )}

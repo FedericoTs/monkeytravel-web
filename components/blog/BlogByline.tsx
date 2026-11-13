@@ -76,7 +76,7 @@ export default function BlogByline({
             {updatedDate && updatedLabel && (
               <>
                 <span className="mx-1.5 text-slate-300">·</span>
-                <span className="text-[var(--primary-ink)] font-medium">{updatedLabel}</span>
+                <span className="text-[var(--foreground)] font-medium">{updatedLabel}</span>
               </>
             )}
           </p>
@@ -106,7 +106,7 @@ export default function BlogByline({
           {updatedDate && updatedLabel && (
             <>
               <span className="mx-1.5 text-slate-300">·</span>
-              <span className="text-[var(--primary-ink)] font-medium">{updatedLabel}</span>
+              <span className="text-[var(--foreground)] font-medium">{updatedLabel}</span>
             </>
           )}
         </p>

@@ -32,7 +32,7 @@ export default async function LandingComparison({
           {/* Header */}
           <div className="grid grid-cols-3 border-b border-gray-200 bg-[var(--background-alt)] text-sm font-semibold">
             <div className="p-4 text-[var(--foreground-muted)]" />
-            <div className="border-l border-gray-200 p-4 text-center text-[var(--primary-ink)]">
+            <div className="border-l border-gray-200 p-4 text-center text-[var(--foreground)]">
               MonkeyTravel
             </div>
             <div className="border-l border-gray-200 p-4 text-center text-[var(--foreground-muted)]">

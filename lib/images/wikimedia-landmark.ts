@@ -1,4 +1,4 @@
-import { commonsFiles, isUsablePhoto, servedPhotoUrls, wiki, WIKIDATA_API, type CommonsFile } from "@/lib/images/wikimedia";
+import { commonsFiles, isUsableView, servedPhotoUrls, wiki, WIKIDATA_API, type CommonsFile } from "@/lib/images/wikimedia";
 
 /**
  * An activity's photo from Wikimedia Commons, when Wikidata knows the place: an
@@ -22,6 +22,8 @@ const RADIUS_M = 1500;
 export const LANDMARK_WIDTHS = [500, 960];
 // Wider than the largest stored width, so Commons scales every copy down.
 const MIN_WIDTH = 1000;
+// A square view crops well into a card; one taller than wide doesn't.
+const SQUARE = 1;
 // The item's own image, then its panoramic, night, aerial and interior views.
 const IMAGE_PROPERTIES = ["P18", "P4291", "P3451", "P8592", "P5775"];
 const LANGUAGES = "en|mul|fr|es|it|pt|de|ca|nl|ja|el|hu|cs|pl|tr|id|ko|zh";
@@ -32,9 +34,10 @@ const STOP = new Set(
   "the of and a an at in on to by de du des la le les l d el los las il lo gli di da do dos das del della delle dei al y e et und der die das van von"
     .split(" "),
 );
-// What an activity name says besides the place: "Lunch at Katz's Delicatessen".
+// What an activity name says besides the place, in the plans' languages: "Lunch at Katz's Delicatessen",
+// "Visita al Colosseo", "Paseo por el Retiro". The word after the verb must be whole: "Visit Tokyo Tower" keeps "Tokyo".
 const ACTIVITY_WORDS =
-  /^((romantic|farewell|welcome|quick|late|early|relaxing|guided|self-guided)\s+)*(visit|explore|discover|see|walk|stroll|wander|hike|tour|lunch|dinner|breakfast|brunch|drinks|coffee|picnic|sunset|sunrise|evening|morning|afternoon|day trip|shopping)\s+(at|to|in|on|around|through|along|of|the)?\s*/i;
+  /^((romantic|farewell|welcome|quick|late|early|relaxing|guided|self-guided)\s+)*(visit|explore|discover|see|walk|stroll|wander|hike|tour|lunch|dinner|breakfast|brunch|drinks|coffee|picnic|sunset|sunrise|evening|morning|afternoon|day trip|shopping|visita|passeggiata|esplorazione|escursione|giro|tramonto|pranzo|cena|colazione|aperitivo|paseo|recorrido|excursi[oó]n|caminata|atardecer|almuerzo|desayuno|passeio|caminhada|excurs[aã]o|almo[cç]o|jantar|p[oô]r do sol)\s+((at|to|in|on|around|through|along|of|the|from|over|a|al|alla|allo|ai|ad|ao|aos|à|às|nel|nella|nello|nei|sul|sulla|sullo|sui|del|della|dello|dei|di|da|dal|dalla|lungo|per|en|por|de|el|la|los|las|em|no|na|nos|nas|pelo|pela|do|dos|das)\s+)?/i;
 
 // Words for a kind of place, in the languages place names come in, folded to
 // one word per kind so "Museu Picasso" and "Picasso Museum" agree.
@@ -205,9 +208,13 @@ interface Snak {
   mainsnak?: { datavalue?: { value?: unknown } };
 }
 
-/** An item's best match among the activity's names; a label beats an alias. */
+/**
+ * An item's best match among the activity's names; a label beats an alias. A
+ * label's part after a comma says where it is ("Riverside Market, Christchurch"),
+ * so its first part counts too.
+ */
 export function itemMatch(variants: string[], item: Labelled): number {
-  const labels = Object.values(item.labels ?? {}).map((l) => l.value);
+  const labels = Object.values(item.labels ?? {}).flatMap((l) => (l.value.includes(",") ? [l.value, l.value.split(",")[0]] : [l.value]));
   const aliases = Object.values(item.aliases ?? {}).flat().map((a) => a.value);
   let best = 0;
   for (const v of variants.map(nameTokens)) {
@@ -278,7 +285,7 @@ export async function findLandmarkPhoto(q: LandmarkQuery, signal: AbortSignal): 
       (n): n is string => typeof n === "string",
     );
     const files = await commonsFiles([...new Set(names)].slice(0, 8), signal);
-    return files.find((f) => isUsablePhoto(f, MIN_WIDTH)) ?? null;
+    return files.find((f) => isUsableView(f, MIN_WIDTH, SQUARE)) ?? null;
   }
   return null;
 }

@@ -14,6 +14,7 @@ import { PhotoCredit } from "./ui/PhotoCredit";
 import { useSavedTrips } from "@/lib/stats/useSavedTrips";
 import { normalizeActivityType } from "@/lib/trip/activity-type";
 import { activityDomId } from "@/lib/trip/activity-dom-id";
+import { isPlacePhoto } from "@/lib/trips/keep-place-photos";
 import { useIsPhone } from "@/hooks/useMediaQuery";
 import { ActivityCardDetails, ActivityKindIcon } from "@/components/trip/ActivityCardParts";
 import { formatDuration } from "@/lib/datetime/duration";
@@ -94,7 +95,7 @@ function ActivityCard({
         <div className="relative h-32 sm:h-40 w-full overflow-hidden rounded-t-xl">
           <img
             src={proxyImageUrl(activity.image_url) || activity.image_url}
-            alt={activity.name}
+            alt={isPlacePhoto(activity.image_url) ? activity.name : ""}
             className="w-full h-full object-cover"
             loading="lazy"
           />
