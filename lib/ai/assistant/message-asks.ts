@@ -41,6 +41,16 @@ export function asksToRegroup(text: string): boolean {
   return REGROUP.test(text);
 }
 
+// "every day", "each day", "all the days", "todos los días", "cada día",
+// "tutti i giorni", "ogni giorno", "todos os dias", "todo dia".
+const EVERY_DAY =
+  /(?<![\p{L}])(?:every\s*day|each\s+day|all\s+(?:(?:the|my|our|of\s+the)\s+)?days|tod[oa]s\s+(?:los\s+|os\s+)?d[ií]as|tod[oa]\s+d[ií]a|cada\s+d[ií]a|tutti\s+i\s+giorni|ogni\s+giorno)(?![\p{L}])/iu;
+
+/** Does the message ask for something on every day of the trip? */
+export function asksForEveryDay(text: string): boolean {
+  return EVERY_DAY.test(text);
+}
+
 // A day by its number: "day 6", "giorno 6", "día 6", "dia 6".
 const DAY_NUMBER = /(?<![\p{L}])(?:day|giorno|día|dia)\s+(\d{1,2})(?![\p{N}])/giu;
 

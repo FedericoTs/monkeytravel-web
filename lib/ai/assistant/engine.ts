@@ -58,6 +58,7 @@ import {
   talksAboutDayCount,
   asksToRegroup,
   asksForDayTrip,
+  asksForEveryDay,
 } from "./message-asks";
 import { alsoInTheirCity, daysOfCity, keepDayCities, placesAway, withoutPlacesAway, type PlacesAway } from "./city-days";
 import { type TravelTime, readTravelTimes, outsideTravelTimes, minutesOf } from "./travel-times";
@@ -713,6 +714,14 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   // in the next part, which gives them places of their own.
   if (asksToRegroup(input.message)) {
     daysLeft = [...new Set([...daysLeft, ...twinsOf(input.days, edits, daysLeft).map((t) => t.from)])].sort((a, b) => a - b);
+  }
+  // Asked for every day ("restaurants for every day"), the change covers every
+  // day: the days a reply neither changed nor named for later are asked for in
+  // parts too, and those that don't come back in time are named in the reply.
+  if (edits.length > 0 && asksForEveryDay(input.message)) {
+    const covered = new Set([...edits.map((e) => e.day_number), ...daysLeft]);
+    const rest = input.days.map((d) => d.day_number).filter((n) => !covered.has(n));
+    if (rest.length > 0) daysLeft = [...daysLeft, ...rest].sort((a, b) => a - b);
   }
   // A change of what the days hold (places added or taken out): a part's day
   // that only moved times isn't part of it. A change of times keeps those.
