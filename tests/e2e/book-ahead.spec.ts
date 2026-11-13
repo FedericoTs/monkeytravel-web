@@ -166,6 +166,24 @@ test.describe("Book ahead on an upcoming trip", () => {
         .map(({ name, box }) => name + " " + Math.round(box.top) + "-" + Math.round(box.bottom))
         .join(", "),
     );
+    const day1 = await page.evaluate(() => {
+      const rows: string[] = [];
+      const walk = (el: Element, depth: number) => {
+        for (const c of Array.from(el.children)) {
+          const r = c.getBoundingClientRect();
+          if (r.height === 0) continue;
+          rows.push(" ".repeat(depth * 2) + c.tagName.toLowerCase() + "." + String(c.className).split(" ").slice(0, 4).join(".") + " " + Math.round(r.top) + "-" + Math.round(r.bottom) + " " + ((c as HTMLElement).innerText || "").replace(/\s+/g, " ").slice(0, 70));
+          if (depth < 5 && r.top < 900) walk(c, depth + 1);
+        }
+      };
+      const d = document.getElementById("trip-day-1");
+      if (d) walk(d, 0);
+      return rows.slice(0, 80).join("\n");
+    });
+    console.log("DIAG day1\n" + day1);
+    console.log("DIAG hits " + JSON.stringify(await page.evaluate(() => Array.from(document.querySelectorAll("body *")).filter((e) => e.children.length === 0 && (e.textContent || "").trim() === "Breakfast at the market").map((e) => e.tagName + " " + Math.round(e.getBoundingClientRect().top) + "-" + Math.round(e.getBoundingClientRect().bottom)))));
+    console.log("DIAG api " + JSON.stringify(await page.evaluate(() => performance.getEntriesByType("resource").map((e) => e.name.replace(location.origin, "")).filter((n) => n.startsWith("/api/")))));
+    console.log("DIAG box " + JSON.stringify(box) + " tabBar " + JSON.stringify(tabBar) + " viewport " + JSON.stringify(page.viewportSize()));
     expect(box!.y + box!.height, "the first stop's name ends well above the tab bar of the first screen (" + above + ")").toBeLessThan(tabBar!.y - 40);
     // The line on editing in place waits under the first day.
     const editLine = page.getByText("your changes save automatically", { exact: false });
