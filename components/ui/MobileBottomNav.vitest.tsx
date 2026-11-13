@@ -49,4 +49,14 @@ describe("the phone tab bar", () => {
     render(<MobileBottomNav activePage="saved" />);
     expect(screen.getByTestId("mobile-bottom-nav").querySelectorAll("[aria-current]")).toHaveLength(0);
   });
+
+  // A shared or published trip is someone else's: "My trips" lit there told a
+  // visitor with no account they were among their own trips.
+  it("lights no tab on a trip someone shared", () => {
+    render(<MobileBottomNav activePage="shared-trip" />);
+    const bar = screen.getByTestId("mobile-bottom-nav");
+    expect(bar.querySelectorAll("[aria-current]")).toHaveLength(0);
+    expect(tab("myTrips").className).toContain("text-slate-500");
+    expect(bar.innerHTML).not.toContain("text-[var(--primary)]");
+  });
 });

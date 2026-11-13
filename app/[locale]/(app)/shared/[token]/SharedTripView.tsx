@@ -551,7 +551,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
       </footer>
 
       {/* Mobile Bottom Navigation */}
-      <MobileBottomNav activePage="trips" />
+      <MobileBottomNav activePage="shared-trip" />
     </div>
   );
 }
