@@ -1213,18 +1213,6 @@ export default function TripDetailClient({
           />
         </TripControlsBar>
 
-        {/* Ambient-edit hint — one subtle line telling solo owners the plan
-            is directly editable and saves itself, so the manual editor is
-            discoverable. */}
-        {ambientEdit && displayItinerary.length > 0 && (
-          <p className="-mt-2 mb-6 flex items-center gap-1.5 text-xs text-slate-500">
-            <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-            </svg>
-            {t('detail.ambientEditHint')}
-          </p>
-        )}
-
         {/* Post-Confirmation Banner - eSIM, Flight Compensation */}
         {BOOKINGS_ENABLED && (
           <PostConfirmationBanner
@@ -1365,6 +1353,19 @@ export default function TripDetailClient({
           onActivityRegenerate={handleActivityRegenerate}
           onAddActivity={handleAddActivity}
           onPhotoCapture={handlePhotoCapture}
+          // One subtle line telling solo owners the plan is directly editable and saves itself,
+          // so the manual editor is discoverable. Under the first day, it leaves the first
+          // stop on a phone's first screen.
+          afterFirstDay={
+            ambientEdit ? (
+              <p className="flex items-center gap-1.5 text-xs text-slate-500">
+                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                </svg>
+                {t("detail.ambientEditHint")}
+              </p>
+            ) : null
+          }
         />
         </>
         )}

@@ -153,7 +153,13 @@ test.describe("Book ahead on an upcoming trip", () => {
     expect((await nudge.boundingBox())!.y, "the nudge sits under the last stop").toBeGreaterThan((await lastStop.boundingBox())!.y);
     const box = await firstStop.boundingBox();
     expect(box, "the first stop has a place on the page").not.toBeNull();
-    expect(box!.y + box!.height, "the first stop's name ends above the tab bar of the first screen").toBeLessThan(844 - 80);
+    const tabBar = await page.getByTestId("mobile-bottom-nav").boundingBox();
+    expect(tabBar, "the tab bar has a place on the page").not.toBeNull();
+    expect(box!.y + box!.height, "the first stop's name ends well above the tab bar of the first screen").toBeLessThan(tabBar!.y - 40);
+    // The line on editing in place waits under the first day.
+    const editLine = page.getByText("your changes save automatically", { exact: false });
+    await expect(editLine).toBeVisible();
+    expect((await editLine.boundingBox())!.y, "the editing line sits under the first stop").toBeGreaterThan(box!.y);
 
     // Nothing floats on that first screen: the floating assistant button waits until the bar's own
     // assistant button has scrolled away, and leaves again when that one is back.
