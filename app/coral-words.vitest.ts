@@ -10,7 +10,7 @@ import { readFileSync } from "node:fs";
  * when a change removes some. A hover or focus colour doesn't count, nor does
  * `--primary` on an icon.
  */
-const CEILING = 125;
+const CEILING = 111;
 
 const CORAL_WORDS = /(?:^|[\s"'`{])(?:(?:sm|md|lg|xl|2xl):)?text-\[var\(--primary-ink\)\]/g;
 const SCREEN = /^(app|components)\/.*\.tsx$/;
@@ -37,6 +37,13 @@ const MOVED = [
   "app/[locale]/(app)/shared/[token]/SharedTripView.tsx",
   "components/trip/ParticipantsBar.tsx",
   "components/trip/WhoIsGoingCard.tsx",
+  "app/[locale]/(app)/profile/ProfileClient.tsx",
+  "app/[locale]/(app)/invite/[token]/InviteAcceptClient.tsx",
+  "components/onboarding/DietaryStep.tsx",
+  "components/onboarding/AccessibilityStep.tsx",
+  "components/ui/PullToRefreshIndicator.tsx",
+  "components/profile/ProfileCompletionModal.tsx",
+  "components/creator/CreatorProfile.tsx",
 ];
 
 const count = (file: string) => (readFileSync(file, "utf8").match(CORAL_WORDS) ?? []).length;

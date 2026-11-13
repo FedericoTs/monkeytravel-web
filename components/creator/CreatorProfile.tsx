@@ -75,7 +75,7 @@ export default async function CreatorProfile({
               }
             />
           ) : (
-            <span className="absolute inset-0 flex items-center justify-center text-2xl font-bold text-[var(--primary-ink)]">
+            <span className="absolute inset-0 flex items-center justify-center text-2xl font-bold text-[var(--foreground)]">
               {name.charAt(0).toUpperCase()}
             </span>
           )}
