@@ -1881,19 +1881,6 @@ nav[data-monkey-nav].monkey-nav-scrolled {
   }
 }
 
-/* Phone widths: hide the BuildHop feedback launcher everywhere.
-   The launcher (components/BuildHopFeedbackWidget.tsx) is a closed-shadow
-   host, position:fixed bottom-right at z-index 2147483000 — on phones it sat
-   on Continue in the wizard, on page content and on the consent bar. The
-   widget is not loaded below 640px; this covers a window narrowed after load.
-   Outer-document rules beat the shadow's :host styles, and !important makes
-   that unconditional. */
-@media (max-width: 639px) {
-  [data-buildhop-feedback-widget] {
-    display: none !important;
-  }
-}
-
 /* Trip page: a first visit reserves the docked assistant's column on <main> for
    the panel that opens by itself. A browser that has already met the assistant
    (marked on <html> before paint by the layout's script) keeps the centred
