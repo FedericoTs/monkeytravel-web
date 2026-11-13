@@ -25,6 +25,14 @@ describe("the saved trip page, plan first", () => {
     expect(strip).toBeLessThan(main.indexOf("<TripDayList"));
   });
 
+  it("shows the UK's travel advice as the row's first chip, above the plan only for the whole country", () => {
+    expect(items).toMatch(/if \(!isActiveTripPhase && advisory && !advisoryCoversCountry\) \{\s*stripItems\.push\(\{\s*id: "advice"/);
+    expect(items.indexOf('id: "advice"')).toBeLessThan(items.indexOf('id: "who"'));
+    expect(main).toContain("{advisory && advisoryCoversCountry && <TravelAdvisoryBanner advisory={advisory} urgent");
+    expect(main).not.toContain("<TravelAdvisoryBanner country=");
+    expect(SRC).toContain("const advisoryCoversCountry = coversWholeCountry(advisory);");
+  });
+
   it("tells a solo owner about editing in place under the first day, not above the plan", () => {
     const list = main.indexOf("<TripDayList");
     expect(main.slice(0, list)).not.toContain("detail.ambientEditHint");

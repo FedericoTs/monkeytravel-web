@@ -1,78 +1,61 @@
 /** @vitest-environment jsdom */
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import type { TravelAdvisory } from "@/lib/advisories/fcdo";
 import TravelAdvisoryBanner from "./TravelAdvisoryBanner";
 
 vi.mock("next-intl", () => ({ useTranslations: () => (key: string) => key, useLocale: () => "en" }));
+const opened = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/native/external-link", () => ({ openExternal: opened }));
 
-const advisory = (level: string) => ({
-  advisory: {
-    source: "fcdo",
-    sourceCountry: "GB",
-    countryName: "Atlantis",
-    level,
-    summary: "Read the advice before you go.",
-    url: "https://example.com/advice",
-    updatedAt: "2026-10-01T00:00:00Z",
-  },
+const advisory = (over: Partial<TravelAdvisory> = {}): TravelAdvisory => ({
+  source: "fcdo",
+  sourceCountry: "GB",
+  countryName: "Atlantis",
+  level: "high",
+  advice: "all_parts",
+  summary: "Read the advice before you go.",
+  url: "https://example.com/advice",
+  updatedAt: "2026-10-01T00:00:00Z",
+  ...over,
 });
-const send = vi.fn<(url: string, init?: RequestInit) => Promise<Response>>();
-const settled = () => act(async () => {});
 
-beforeEach(() => {
-  send.mockReset();
-  vi.stubGlobal("fetch", send);
-});
 afterEach(() => {
   cleanup();
-  vi.unstubAllGlobals();
-  vi.restoreAllMocks();
+  opened.mockReset();
 });
 
-describe("the travel advisory", () => {
-  it("asks for nothing without a country, and shows nothing", async () => {
-    const { container } = render(<TravelAdvisoryBanner country="   " />);
-    await settled();
-    expect(send).not.toHaveBeenCalled();
-    expect(container.innerHTML).toBe("");
+describe("the UK's travel advice card", () => {
+  it.each(["all_whole", "essential_whole", "all_parts", "essential_parts", "other"] as const)(
+    "heads %s advice with the UK's own terms",
+    (advice) => {
+      render(<TravelAdvisoryBanner advisory={advisory({ advice })} />);
+      expect(screen.getByRole("heading").textContent).toBe(`advice.${advice}`);
+      expect(screen.getByText("Read the advice before you go.")).toBeTruthy();
+    }
+  );
+
+  it("heads advice without the UK's terms as general advice", () => {
+    render(<TravelAdvisoryBanner advisory={advisory({ advice: null })} />);
+    expect(screen.getByRole("heading").textContent).toBe("advice.other");
   });
 
-  it("shows an advisory for the country, with its words", async () => {
-    send.mockImplementation(async () => new Response(JSON.stringify(advisory("high"))));
-    render(<TravelAdvisoryBanner country=" New Atlantis " />);
-    expect(send.mock.calls[0][0]).toBe("/api/advisories/New%20Atlantis");
-    await screen.findByText("Read the advice before you go.");
-    expect(screen.getByText("level.high")).toBeTruthy();
-  });
-
-  it("shows nothing while it asks, at the lowest level, or with no advisory", async () => {
-    send.mockImplementation(async () => new Response(JSON.stringify(advisory("low"))));
-    const { container, unmount } = render(<TravelAdvisoryBanner country="Atlantis" />);
-    expect(container.innerHTML).toBe("");
-    await settled();
-    expect(container.innerHTML).toBe("");
+  it("is an alert only above the plan", () => {
+    const { unmount } = render(<TravelAdvisoryBanner advisory={advisory()} />);
+    expect(screen.queryByRole("alert")).toBeNull();
     unmount();
-
-    send.mockImplementation(async () => new Response(JSON.stringify({ advisory: null })));
-    const second = render(<TravelAdvisoryBanner country="Atlantis" />);
-    await settled();
-    expect(second.container.innerHTML).toBe("");
+    render(<TravelAdvisoryBanner advisory={advisory({ advice: "all_whole", level: "extreme" })} urgent />);
+    expect(screen.getByRole("alert")).toBeTruthy();
   });
 
-  it("shows nothing when the route refuses or can't be reached", async () => {
-    vi.spyOn(console, "warn").mockImplementation(() => {});
-    send.mockImplementation(async () => new Response("{}", { status: 500 }));
-    const { container, unmount } = render(<TravelAdvisoryBanner country="Atlantis" />);
-    await settled();
-    expect(container.innerHTML).toBe("");
-    unmount();
+  it("opens the full advice", () => {
+    render(<TravelAdvisoryBanner advisory={advisory()} />);
+    fireEvent.click(screen.getByRole("button", { name: /readFullAdvisory/ }));
+    expect(opened).toHaveBeenCalledWith("https://example.com/advice");
+  });
 
-    send.mockImplementation(async () => {
-      throw new Error("offline");
-    });
-    const second = render(<TravelAdvisoryBanner country="Atlantis" />);
-    await settled();
-    expect(second.container.innerHTML).toBe("");
-    expect(console.warn).toHaveBeenCalled();
+  it("shows nothing at the lowest level", () => {
+    const { container } = render(<TravelAdvisoryBanner advisory={advisory({ level: "low", advice: null })} />);
+    expect(container.innerHTML).toBe("");
   });
 });

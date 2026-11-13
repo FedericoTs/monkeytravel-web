@@ -2609,10 +2609,14 @@
     }
   },
   "advisory": {
-    "level": {
-      "advisory": "Travel advisory",
-      "high": "Avoid all but essential travel",
-      "extreme": "Avoid all travel"
+    "chip": "Travel advice",
+    "someAreas": "some areas",
+    "advice": {
+      "all_whole": "The UK advises against all travel to this country",
+      "essential_whole": "The UK advises against all but essential travel to this country",
+      "all_parts": "The UK advises against all travel to some areas",
+      "essential_parts": "The UK advises against all but essential travel to some areas",
+      "other": "UK travel advice"
     },
     "sourceLabel": "Source: {source}",
     "readFullAdvisory": "Read full advisory",
