@@ -64,4 +64,16 @@ describe("the saved trip page, plan first", () => {
     expect(items).toContain("onCount={setGoingCount}");
     expect(items).toContain("onProgress={setBookedCount}");
   });
+
+  // The floating assistant button sat on the first stop of a phone's first
+  // screen. The bar has its own assistant button there, so the floating one
+  // waits until that has scrolled away. The bar is drawn outside a trip under
+  // way and its button outside edit mode: elsewhere the floating one stays.
+  it("keeps the floating assistant button off a phone's screen while the bar's own is in view", () => {
+    expect(SRC).toContain("const { ref: assistantBarButton, offScreen: assistantBarButtonAway } = useOffScreen<HTMLButtonElement>();");
+    const bar = main.slice(main.indexOf("<TripControlsBar"), main.indexOf("</TripControlsBar>"));
+    expect(bar).toContain("assistantButtonRef={assistantBarButton}");
+    const floating = SRC.slice(SRC.indexOf("<TripAssistantButton"));
+    expect(floating.slice(0, floating.indexOf("/>"))).toContain("barButtonInView={!isActiveTripPhase && !isEditMode && !assistantBarButtonAway}");
+  });
 });

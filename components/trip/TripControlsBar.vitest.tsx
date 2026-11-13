@@ -105,4 +105,10 @@ describe("TripControlsBar", () => {
     expect(screen.queryByRole("button", { name: /trips:detail\.more/ })).toBeNull();
     expect(screen.getByTestId("edit-controls")).toBeTruthy();
   });
+
+  it("hands its Edit with AI button to the page, which watches whether it is on screen", () => {
+    const watch = vi.fn();
+    bar({ assistantButtonRef: watch });
+    expect(watch).toHaveBeenCalledWith(screen.getByTitle("trips:detail.editWithAi"));
+  });
 });
