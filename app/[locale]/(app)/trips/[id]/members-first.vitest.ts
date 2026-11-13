@@ -35,8 +35,15 @@ vi.mock("next/navigation", () => ({
 vi.mock("./TripDetailClient", () => ({ default: () => null }));
 vi.mock("@/components/explore/TripEngagementSection", () => ({ default: () => null }));
 vi.mock("@/lib/places/refreshItineraryPhotos", () => ({ refreshTripItinerary: async (x: unknown) => x }));
-vi.mock("@/lib/explore/flag", () => ({ isExploreUgcEnabled: () => false }));
-vi.mock("next/headers", () => ({ cookies: async () => ({ has: () => false }) }));
+// Whether /explore is switched on.
+const flags = vi.hoisted(() => ({ explore: false }));
+vi.mock("@/lib/explore/flag", () => ({ isExploreUgcEnabled: () => flags.explore }));
+// What the visitor's browser says of itself.
+const request = vi.hoisted(() => ({ headers: {} as Record<string, string> }));
+vi.mock("next/headers", () => ({
+  cookies: async () => ({ has: () => false }),
+  headers: async () => ({ get: (name: string) => request.headers[name.toLowerCase()] ?? null }),
+}));
 // What the service role reads of the invites sent for this trip, and what it asked for.
 const invites = vi.hoisted(() => ({
   rows: [] as Array<Record<string, unknown>>,
@@ -76,6 +83,8 @@ type World = {
 let world: World;
 let lastByline: string | undefined;
 let lastPlacesToEatDue: boolean | undefined;
+let lastMapOpen: boolean | undefined;
+let lastExploreBar: unknown;
 // Held open to see what the page sends while the auth server is still answering.
 let authAnswered: Promise<void>;
 const sent: string[] = [];
@@ -178,10 +187,12 @@ async function visit(locale = "en") {
   const { default: TripDetailPage } = await import("./page");
   try {
     const el = (await TripDetailPage({ params: Promise.resolve({ id: TRIP, locale }) })) as {
-      props: { userRole: string; ownerDisplayName?: string; trip: { placesToEatDue?: boolean } };
+      props: { userRole: string; ownerDisplayName?: string; mapOpenAtFirst?: boolean; engagementSlot?: unknown; trip: { placesToEatDue?: boolean } };
     };
+    lastExploreBar = el.props.engagementSlot;
     lastByline = el.props.ownerDisplayName;
     lastPlacesToEatDue = el.props.trip.placesToEatDue;
+    lastMapOpen = el.props.mapOpenAtFirst;
     return { editor: el.props.userRole };
   } catch (e) {
     if (e instanceof Redirect) return { redirect: e.url };
@@ -191,9 +202,46 @@ async function visit(locale = "en") {
 }
 
 beforeEach(() => {
+  request.headers = {};
+  flags.explore = false;
   world = { user: null, collaborators: {}, shareToken: TOKEN, visibility: "private" };
   authAnswered = Promise.resolve();
   sent.length = 0;
+});
+
+// The page makes a chip of the explore bar: it gets one only when the bar would draw something.
+describe("the explore bar", () => {
+  it("is sent to the owner when /explore is on, and to nobody when it is off", async () => {
+    world.user = OWNER;
+    await visit();
+    expect(lastExploreBar).toBeUndefined();
+    flags.explore = true;
+    await visit();
+    expect(lastExploreBar).toBeTruthy();
+  });
+});
+
+// The plan comes first: a phone's first screen has no room for a map above it.
+describe("the map's first state", () => {
+  it("is closed for a phone, by its client hint or its user agent", async () => {
+    world.user = OWNER;
+    request.headers = { "sec-ch-ua-mobile": "?1" };
+    await visit();
+    expect(lastMapOpen).toBe(false);
+    request.headers = { "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1" };
+    await visit();
+    expect(lastMapOpen).toBe(false);
+  });
+
+  it("is open for a computer, and for a request that says nothing of itself", async () => {
+    world.user = OWNER;
+    request.headers = { "sec-ch-ua-mobile": "?0", "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/129.0.0.0 Safari/537.36" };
+    await visit();
+    expect(lastMapOpen).toBe(true);
+    request.headers = {};
+    await visit();
+    expect(lastMapOpen).toBe(true);
+  });
 });
 
 describe("the auth server's check runs alongside the trip read", () => {

@@ -73,6 +73,8 @@ describe("requests at the same moment", () => {
     ["the requirements", { requirements: "step-free" }, {}],
     ["the style", { travelStyle: "backpacker" }, { travelStyle: "classic" }],
     ["the interests", { interests: ["art"] }, { interests: ["food"] }],
+    ["where they're staying", { stay: { name: "Trastevere" } }, { stay: { name: "Termini" } }],
+    ["where they're staying, against no answer", { stay: { name: "Trastevere" } }, {}],
   ])("are two calls when %s differ", async (_, one, other) => {
     expect(await callsFor(trip(one), trip(other))).toBe(2);
   });
