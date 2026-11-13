@@ -2,6 +2,7 @@ import type { RouteStop } from "@/components/trips/MultiCityRouteBuilder";
 import type { Diet } from "@/lib/trips/diet";
 import type { SeasonalContext, TripCreationParams } from "@/types";
 import type { WizardAnswers } from "./answers";
+import { isChosenTripIntent } from "./answers";
 
 /** A route's filled rows (a city and at least one night), as the legs the server plans one by one. */
 export function routeLegs(rows: RouteStop[]): RouteStop[] {
@@ -53,7 +54,7 @@ export function generationRequest(
     requirements: extra.requirements || undefined,
     ...(mustDos.length > 0 ? { mustDos } : {}),
     travelStyle,
-    ...(tripIntent === "solo" || tripIntent === "group" ? { tripIntent } : {}),
+    ...(isChosenTripIntent(tripIntent) ? { tripIntent } : {}),
     ...(isMultiCity ? { destinations: extra.legs } : {}),
     ...(isAnchored ? { anchors } : {}),
   };
