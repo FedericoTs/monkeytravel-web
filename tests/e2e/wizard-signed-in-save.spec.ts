@@ -180,9 +180,11 @@ test.describe("wizard: a signed-in planner's unsaved plan", () => {
 
     await viewTrip.click();
     await page.waitForURL(new RegExp(`/trips/${saved[0].id}`), { timeout: 60_000 });
+    // The one in the plan: a stop that needs booking is also named in the
+    // book-ahead list, which waits closed behind its chip.
     for (const day of draft.generatedItinerary.days) {
       for (const activity of day.activities) {
-        await expect(page.getByText(activity.name, { exact: true }).first()).toBeVisible({ timeout: 30_000 });
+        await expect(page.getByText(activity.name, { exact: true }).filter({ visible: true }).first()).toBeVisible({ timeout: 30_000 });
       }
     }
   });

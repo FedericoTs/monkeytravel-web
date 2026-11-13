@@ -152,8 +152,10 @@ test.describe("trip status", () => {
 
   test("cancelling asks first, and a cancelled trip can be restored", async ({ page }) => {
     await openTrip(page, tripId);
+    // Cancelling sits in the card behind the Confirm chip.
+    await page.getByTestId("trip-strip-confirm").click({ timeout: 60_000 });
     const cancelTrip = page.getByRole("button", { name: "Cancel Trip", exact: true });
-    await expect(cancelTrip).toBeVisible({ timeout: 60_000 });
+    await expect(cancelTrip).toBeVisible();
 
     // Keeping the trip closes the question and changes nothing.
     await cancelTrip.click();
