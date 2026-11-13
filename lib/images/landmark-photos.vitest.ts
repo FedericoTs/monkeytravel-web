@@ -54,7 +54,7 @@ describe("landmarkPhotos", () => {
   it("answers from the cache, a place without a photo included, without looking anything up", async () => {
     rows = [
       { place_id: hash("colosseum|rome"), data: { url: url("a") } },
-      { place_id: hash("trattoria da enzo|rome"), data: { none: true, v: 2 } },
+      { place_id: hash("trattoria da enzo|rome"), data: { none: true, v: 3 } },
     ];
     const photos = await landmarkPhotos([lookup("colosseum|rome"), lookup("trattoria da enzo|rome")], { waitMs: 5000, maxNew: 12 });
     expect([...photos]).toEqual([["colosseum|rome", url("a")]]);
@@ -68,16 +68,19 @@ describe("landmarkPhotos", () => {
     expect(upserts.map((r) => [r.data, days(r)])).toEqual(
       expect.arrayContaining([
         [{ url: url("b") }, 30],
-        [{ none: true, v: 2 }, 14],
+        [{ none: true, v: 3 }, 14],
       ]),
     );
   });
 
   it("looks a place up again when its 'none' came from an older matcher", async () => {
-    rows = [{ place_id: hash("piazza navona|rome"), data: { none: true } }];
+    rows = [
+      { place_id: hash("piazza navona|rome"), data: { none: true } },
+      { place_id: hash("ponte vecchio|florence"), data: { none: true, v: 2 } },
+    ];
     build.mockResolvedValue(url("c"));
-    const photos = await landmarkPhotos([lookup("piazza navona|rome")], { waitMs: 5000, maxNew: 12 });
-    expect(build).toHaveBeenCalledTimes(1);
+    const photos = await landmarkPhotos([lookup("piazza navona|rome"), lookup("ponte vecchio|florence")], { waitMs: 5000, maxNew: 12 });
+    expect(build).toHaveBeenCalledTimes(2);
     expect(photos.get("piazza navona|rome")).toBe(url("c"));
   });
 
