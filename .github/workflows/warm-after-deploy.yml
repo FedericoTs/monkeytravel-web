@@ -59,3 +59,14 @@ jobs:
           /api/activities/search
           /api/plans
           ADDRESSES
+      # The refusals above start a server but draw nothing. A published trip
+      # makes its page draw a whole trip once, which is the slow part of that
+      # page's first load. Taken from the public list, so it is always a trip
+      # that is published today.
+      - name: Draw one published trip
+        run: |
+          slug=$(curl -s -m 40 -A "monkeytravel-warmup/1 (+internal)" "https://monkeytravel.app/api/explore/trips" | jq -r '.trips[0].publicSlug // empty' || true)
+          case "$slug" in
+            "" | *[!a-z0-9-]*) echo "no published trip to draw" ;;
+            *) curl -s -o /dev/null -m 40 -A "monkeytravel-warmup/1 (+internal)" -w "%{http_code} %{time_starttransfer}s /trip/$slug\n" "https://monkeytravel.app/trip/$slug" || true ;;
+          esac
