@@ -42,7 +42,7 @@ const STOP = new Set(
 // What an activity name says besides the place, in the plans' languages: "Lunch at Katz's Delicatessen",
 // "Visita al Colosseo", "Paseo por el Retiro". The word after the verb must be whole: "Visit Tokyo Tower" keeps "Tokyo".
 const ACTIVITY_WORDS =
-  /^((romantic|farewell|welcome|quick|late|early|relaxing|guided|self-guided)\s+)*(visit|explore|discover|see|walk|stroll|wander|hike|tour|lunch|dinner|breakfast|brunch|drinks|coffee|picnic|sunset|sunrise|evening|morning|afternoon|day trip|shopping|visita|passeggiata|esplorazione|escursione|giro|tramonto|pranzo|cena|colazione|aperitivo|paseo|recorrido|excursi[oó]n|caminata|atardecer|almuerzo|desayuno|passeio|caminhada|excurs[aã]o|almo[cç]o|jantar|p[oô]r do sol)\s+((at|to|in|on|around|through|along|of|the|from|over|a|al|alla|allo|ai|ad|ao|aos|à|às|nel|nella|nello|nei|sul|sulla|sullo|sui|del|della|dello|dei|di|da|dal|dalla|lungo|per|en|por|de|el|la|los|las|em|no|na|nos|nas|pelo|pela|do|dos|das)\s+)?/i;
+  /^((romantic|farewell|welcome|quick|late|early|relaxing|guided|self-guided)\s+)*(visit|explore|discover|see|walk|stroll|wander|hike|tour|lunch|dinner|breakfast|brunch|drinks|coffee|picnic|sunset|sunrise|evening|morning|afternoon|day trip|shopping|visita|passeggiata|esplorazione|escursione|giro|tramonto|pranzo|cena|colazione|aperitivo|paseo|recorrido|excursi[oó]n|caminata|atardecer|almuerzo|desayuno|passeio|caminhada|excurs[aã]o|almo[cç]o|jantar|p[oô]r do sol)\s+((at|to|in|on|around|through|along|across|up|into|inside|under|past|of|the|from|over|a|al|alla|allo|ai|ad|ao|aos|à|às|nel|nella|nello|nei|sul|sulla|sullo|sui|del|della|dello|dei|di|da|dal|dalla|lungo|per|en|por|de|el|la|los|las|em|no|na|nos|nas|pelo|pela|do|dos|das)\s+)?/i;
 
 // Words for a kind of place, in the languages place names come in, folded to
 // one word per kind so "Museu Picasso" and "Picasso Museum" agree.
@@ -233,7 +233,7 @@ export function itemMatch(variants: string[], item: Labelled): number {
   return best;
 }
 
-async function searchItems(text: string, q: LandmarkQuery, signal: AbortSignal): Promise<string[]> {
+async function searchItems(text: string, q: LandmarkQuery, signal: AbortSignal, near: boolean): Promise<string[]> {
   const d = (await wiki(
     WIKIDATA_API,
     {
@@ -242,7 +242,7 @@ async function searchItems(text: string, q: LandmarkQuery, signal: AbortSignal):
       srnamespace: 0,
       srlimit: 20,
       // The radius must be whole metres: a decimal one silently drops the filter.
-      srsearch: `${text} haswbstatement:P18 nearcoord:${RADIUS_M}m,${q.lat.toFixed(5)},${q.lng.toFixed(5)}`,
+      srsearch: near ? `${text} haswbstatement:P18 nearcoord:${RADIUS_M}m,${q.lat.toFixed(5)},${q.lng.toFixed(5)}` : `${text} haswbstatement:P18`,
     },
     signal,
   )) as { query?: { search?: { title: string }[] } };
@@ -286,22 +286,30 @@ export async function findLandmarkPhoto(q: LandmarkQuery, signal: AbortSignal): 
   if (!variants.length) return null;
   // All of the name's words first; any of them when that finds nothing named alike.
   let ranked: { id: string; score: number }[] = [];
-  for (const any of [false, true]) {
+  // Then, for a sight, all of its words anywhere: Wikidata's map search leaves
+  // some places out (Ponte Vecchio), and an item's own coordinates still decide
+  // below, among more of the places that share the name.
+  let tries = 2;
+  for (const pass of q.meal ? (["all", "any"] as const) : (["all", "any", "anywhere"] as const)) {
+    const any = pass === "any";
     const ids = new Set<string>();
     for (const v of variants.slice(0, 2)) {
       const words = v.replace(/[^\p{L}\p{N}]+/gu, " ").trim().split(" ").filter((w) => w.length > 1 && !STOP.has(w.toLowerCase()));
       if (!words.length || (any && words.length < 2)) continue;
-      for (const id of await searchItems(words.join(any ? " OR " : " "), q, signal)) ids.add(id);
+      for (const id of await searchItems(words.join(any ? " OR " : " "), q, signal, pass !== "anywhere")) ids.add(id);
     }
     const items = await entities([...ids].slice(0, 20), "labels|aliases", signal);
     ranked = Object.entries(items)
       .map(([id, item]) => ({ id, score: itemMatch(variants, item) }))
       .filter((r) => r.score > 0)
       .sort((x, y) => y.score - x.score);
-    if (ranked.length) break;
+    if (ranked.length) {
+      tries = pass === "anywhere" ? 5 : 2;
+      break;
+    }
   }
   // The best-named item near the activity that is a sight; nothing else is the place.
-  for (const { id, score } of ranked.slice(0, 2)) {
+  for (const { id, score } of ranked.slice(0, tries)) {
     if (score < ranked[0].score) break;
     const entity = (await entities([id], "claims|sitelinks", signal))[id];
     const claims = entity?.claims ?? {};
