@@ -33,6 +33,14 @@ describe("the saved trip page, plan first", () => {
     expect(SRC).toContain("const advisoryCoversCountry = coversWholeCountry(advisory);");
   });
 
+  it("tells a solo owner about editing in place under the first day, not above the plan", () => {
+    const list = main.indexOf("<TripDayList");
+    expect(main.slice(0, list)).not.toContain("detail.ambientEditHint");
+    const passed = main.slice(list, main.indexOf("\n        />", list));
+    expect(passed).toMatch(/afterFirstDay=\{\s*ambientEdit \?/);
+    expect(passed).toContain('t("detail.ambientEditHint")');
+  });
+
   it.each(CARDS)("keeps %s out of the page's flow, as a chip's card", (card) => {
     expect(main).not.toContain(card);
     expect(items).toContain(card);

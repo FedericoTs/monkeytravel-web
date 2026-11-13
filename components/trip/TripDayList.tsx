@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, type ComponentProps } from "react";
+import { Fragment, useMemo, type ComponentProps, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import {
   DndContext,
@@ -96,11 +96,14 @@ interface DayContext {
 export default function TripDayList({
   days,
   selectedDay,
+  afterFirstDay,
   ...context
 }: DayContext & {
   days: ItineraryDay[];
   /** The day the slider picked; null shows them all. */
   selectedDay: number | null;
+  /** Shown under the first day on screen: above the plan, it would push the first stop down. */
+  afterFirstDay?: ReactNode;
 }) {
   const { moves, renderEpoch } = context;
   const collisionDetection = useMemo(() => makeItineraryCollisionDetection(), []);
@@ -177,13 +180,10 @@ export default function TripDayList({
           .map((day, dayIndex) => ({ day, dayIndex }))
           .filter(({ day }) => selectedDay === null || day.day_number === selectedDay)
           .map(({ day, dayIndex }, shownIndex) => (
-            <TripDay
-              key={`day-${day.day_number}-v${renderEpoch}`}
-              day={day}
-              dayIndex={dayIndex}
-              firstShown={shownIndex === 0}
-              {...context}
-            />
+            <Fragment key={`day-${day.day_number}-v${renderEpoch}`}>
+              <TripDay day={day} dayIndex={dayIndex} firstShown={shownIndex === 0} {...context} />
+              {shownIndex === 0 && afterFirstDay}
+            </Fragment>
           ))}
       </div>
       {/* The card that follows the pointer; the source card stays as a faded placeholder. */}
@@ -327,7 +327,7 @@ function TripDay({
             /* Edit Mode with Drag-and-Drop */
             <>
               {/* Edit mode reorder hint - only on the first day shown. An owner
-                  who edits in place reads it in the page's own line instead. */}
+                  who edits in place reads the page's own line under that day. */}
               {firstShown && isEditMode && <ReorderHint />}
               <DayDropList dayNumber={day.day_number} dragging={moves.dragging} isEmpty={day.activities.length === 0}>
                 <SortableContext
