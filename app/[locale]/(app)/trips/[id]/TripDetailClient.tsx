@@ -998,7 +998,7 @@ export default function TripDetailClient({
         type="button"
         onClick={() => setTodayMode(true)}
         data-testid="back-to-today"
-        className="mb-4 inline-flex items-center gap-1.5 rounded-lg bg-[var(--primary)]/10 px-3 py-2 text-sm font-medium text-[var(--primary-ink)] hover:bg-[var(--primary)]/15"
+        className="mb-4 inline-flex items-center gap-1.5 rounded-lg bg-[var(--primary)]/10 px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--primary)]/15"
       >
         <span aria-hidden>←</span> {tCommon("today.backToToday")}
       </button>

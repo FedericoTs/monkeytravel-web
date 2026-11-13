@@ -102,14 +102,14 @@ function ShareTabButtons({
           "w-8 h-8 rounded-full flex items-center justify-center relative",
           activeTab === "invite" ? "bg-[var(--primary)]" : "bg-blue-100"
         )}>
-          <UserPlus className={cn("w-4 h-4", activeTab === "invite" ? "text-white" : "text-[var(--primary-ink)]")} />
+          <UserPlus className={cn("w-4 h-4", activeTab === "invite" ? "text-white" : "text-[var(--primary)]")} />
           {memberCount > 1 && (
             <span className="absolute -top-1 -right-1 w-4 h-4 text-[10px] font-bold bg-amber-400 text-amber-900 rounded-full flex items-center justify-center">
               {memberCount - 1}
             </span>
           )}
         </div>
-        <span className={cn("text-sm font-medium", activeTab === "invite" ? "text-[var(--primary-ink)]" : "text-slate-600")}>
+        <span className={cn("text-sm font-medium", activeTab === "invite" ? "text-[var(--foreground)]" : "text-slate-600")}>
           {ts("invite.inviteToCollaborate")}
         </span>
         <span className="text-xs text-slate-500">{ts("invite.editVoteSuggest")}</span>
@@ -245,7 +245,7 @@ export default function ShareAndInviteModal({
           <div className="border-b border-slate-200">
             <div className="flex items-center gap-4 px-6 pt-6 pb-4">
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
-                <Share2 className="w-6 h-6 text-[var(--primary-ink)]" />
+                <Share2 className="w-6 h-6 text-[var(--primary)]" />
               </div>
               <div className="flex-1">
                 <h3 id="share-and-invite-title" className="text-lg font-semibold text-slate-900">{ts("titleWithInvite")}</h3>
