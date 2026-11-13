@@ -35,7 +35,9 @@ vi.mock("next/navigation", () => ({
 vi.mock("./TripDetailClient", () => ({ default: () => null }));
 vi.mock("@/components/explore/TripEngagementSection", () => ({ default: () => null }));
 vi.mock("@/lib/places/refreshItineraryPhotos", () => ({ refreshTripItinerary: async (x: unknown) => x }));
-vi.mock("@/lib/explore/flag", () => ({ isExploreUgcEnabled: () => false }));
+// Whether /explore is switched on.
+const flags = vi.hoisted(() => ({ explore: false }));
+vi.mock("@/lib/explore/flag", () => ({ isExploreUgcEnabled: () => flags.explore }));
 // What the visitor's browser says of itself.
 const request = vi.hoisted(() => ({ headers: {} as Record<string, string> }));
 vi.mock("next/headers", () => ({
@@ -82,6 +84,7 @@ let world: World;
 let lastByline: string | undefined;
 let lastPlacesToEatDue: boolean | undefined;
 let lastMapOpen: boolean | undefined;
+let lastExploreBar: unknown;
 // Held open to see what the page sends while the auth server is still answering.
 let authAnswered: Promise<void>;
 const sent: string[] = [];
@@ -184,8 +187,9 @@ async function visit(locale = "en") {
   const { default: TripDetailPage } = await import("./page");
   try {
     const el = (await TripDetailPage({ params: Promise.resolve({ id: TRIP, locale }) })) as {
-      props: { userRole: string; ownerDisplayName?: string; mapOpenAtFirst?: boolean; trip: { placesToEatDue?: boolean } };
+      props: { userRole: string; ownerDisplayName?: string; mapOpenAtFirst?: boolean; engagementSlot?: unknown; trip: { placesToEatDue?: boolean } };
     };
+    lastExploreBar = el.props.engagementSlot;
     lastByline = el.props.ownerDisplayName;
     lastPlacesToEatDue = el.props.trip.placesToEatDue;
     lastMapOpen = el.props.mapOpenAtFirst;
@@ -199,9 +203,22 @@ async function visit(locale = "en") {
 
 beforeEach(() => {
   request.headers = {};
+  flags.explore = false;
   world = { user: null, collaborators: {}, shareToken: TOKEN, visibility: "private" };
   authAnswered = Promise.resolve();
   sent.length = 0;
+});
+
+// The page makes a chip of the explore bar: it gets one only when the bar would draw something.
+describe("the explore bar", () => {
+  it("is sent to the owner when /explore is on, and to nobody when it is off", async () => {
+    world.user = OWNER;
+    await visit();
+    expect(lastExploreBar).toBeUndefined();
+    flags.explore = true;
+    await visit();
+    expect(lastExploreBar).toBeTruthy();
+  });
 });
 
 // The plan comes first: a phone's first screen has no room for a map above it.

@@ -968,6 +968,16 @@ export default function TripDetailClient({
       keepMounted: true,
     });
   }
+  // The owner's /explore counts and the publish switch, rendered by the server
+  // page. Kept mounted: its buttons hold what the viewer pressed.
+  if (engagementSlot) {
+    stripItems.push({
+      id: "explore",
+      label: tCommon("bottomNav.explore"),
+      content: <div className="flex flex-wrap items-center gap-3">{engagementSlot}</div>,
+      keepMounted: true,
+    });
+  }
 
   const todayView = showToday ? (
     <TodayView
@@ -1061,9 +1071,8 @@ export default function TripDetailClient({
         <TripStrip label={tCommon("tripStrip.label")} items={stripItems} className="mb-6" />
         {/* Backpacker Mode — Hostelworld CTA. Renders only when the
             trip was generated as backpacker (trip_meta.travel_style).
-            Placed above the engagement bar, near the top of the page,
-            because that's the surface we want CTR on for the
-            Hostelworld partnership signal. */}
+            Placed near the top of the page, because that's the surface
+            we want CTR on for the Hostelworld partnership signal. */}
         {trip.meta?.travel_style === "backpacker" && (
           <BackpackerHostelCta
             tripId={trip.id}
@@ -1074,15 +1083,6 @@ export default function TripDetailClient({
           />
         )}
 
-        {/* Owner-side /explore engagement bar + Publish-to-Explore
-            toggle. Null when the explore flag is off. Sits near the top
-            of <main> so the owner sees their counts + publish state
-            immediately on page load. */}
-        {engagementSlot && (
-          <div className="mb-6 flex items-center gap-3">
-            {engagementSlot}
-          </div>
-        )}
 
         {/* A cancelled trip can be restored to planning. */}
         {currentStatus === "cancelled" && isOwner && (

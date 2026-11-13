@@ -195,18 +195,22 @@ export default async function TripDetailPage({
       collaboratorCount={totalVoters}
       assistantSeen={assistantSeen}
       mapOpenAtFirst={!onPhone}
+      // Only when the bar draws something (its own conditions): the page makes a
+      // chip of it, and a chip that opens on nothing is worse than none.
       engagementSlot={
-        <TripEngagementSection
-          tripId={trip.id}
-          viewerId={user.id}
-          likeCount={trip.like_count ?? 0}
-          saveCount={trip.save_count ?? 0}
-          forkCount={trip.fork_count ?? 0}
-          isPublic={isPublic}
-          isOwner={isOwnerView}
-          showPublishToggle={isOwnerView}
-          ownerDisplayName={ownerName}
-        />
+        isExploreUgcEnabled() && (isPublic || isOwnerView) ? (
+          <TripEngagementSection
+            tripId={trip.id}
+            viewerId={user.id}
+            likeCount={trip.like_count ?? 0}
+            saveCount={trip.save_count ?? 0}
+            forkCount={trip.fork_count ?? 0}
+            isPublic={isPublic}
+            isOwner={isOwnerView}
+            showPublishToggle={isOwnerView}
+            ownerDisplayName={ownerName}
+          />
+        ) : undefined
       }
     />
   );

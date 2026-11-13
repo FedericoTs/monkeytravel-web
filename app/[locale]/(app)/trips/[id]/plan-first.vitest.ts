@@ -48,11 +48,19 @@ describe("the saved trip page, plan first", () => {
     expect(page).toContain("mapOpenAtFirst={!onPhone}");
   });
 
-  it("keeps the group's card and the book-ahead list alive while closed: they hold a count and ticks", () => {
+  // On the live site the owner's /explore bar was one more row above the plan.
+  it("makes a chip of the explore bar when the server page sends one", () => {
+    expect(main).not.toContain("{engagementSlot");
+    expect(items).toMatch(/if \(engagementSlot\) \{\s*stripItems\.push\(\{\s*id: "explore"/);
+    const page = readFileSync(join(__dirname, "page.tsx"), "utf8").replace(/\r\n/g, "\n");
+    expect(page).toMatch(/engagementSlot=\{\s*isExploreUgcEnabled\(\) && \(isPublic \|\| isOwnerView\) \? \(/);
+  });
+
+  it("keeps the group's card, the book-ahead list and the explore bar alive while closed: they hold counts, ticks and presses", () => {
     const kept = [...items.matchAll(/id: "(\w+)"[\s\S]*?(?=stripItems\.push|$)/g)]
       .filter((m) => m[0].includes("keepMounted: true"))
       .map((m) => m[1]);
-    expect(kept).toEqual(["who", "book"]);
+    expect(kept).toEqual(["who", "book", "explore"]);
     expect(items).toContain("onCount={setGoingCount}");
     expect(items).toContain("onProgress={setBookedCount}");
   });
