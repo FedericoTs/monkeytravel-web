@@ -13,7 +13,7 @@ export function RegeneratingDayOverlay({ dayNumber }: { dayNumber: number }) {
                     bg-white/70 backdrop-blur-sm rounded-2xl pointer-events-auto"
          aria-live="polite">
       <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white shadow border border-slate-200">
-        <RefreshCw className="w-4 h-4 animate-spin text-[var(--primary-ink)]" />
+        <RefreshCw className="w-4 h-4 animate-spin text-[var(--primary)]" />
         <span className="text-sm font-medium text-slate-700">
           {t("detail.regeneratingDay", { number: dayNumber })}
         </span>

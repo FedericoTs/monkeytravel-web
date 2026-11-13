@@ -91,7 +91,7 @@ export function RoleSelector({
                 <span className="font-semibold text-gray-900">{t(`${role}.label`)}</span>
                 {isSelected && (
                   <svg
-                    className="w-5 h-5 text-[var(--primary-ink)] ml-auto"
+                    className="w-5 h-5 text-[var(--primary)] ml-auto"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
