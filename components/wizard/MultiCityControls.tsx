@@ -75,7 +75,7 @@ export function MultiCityToggle({
         <div className="text-sm font-medium text-slate-800">
           {t("wizard.multiCity.toggleTitle")}
         </div>
-        <div className="text-xs text-slate-500">
+        <div className="text-xs text-slate-600">
           {t("wizard.multiCity.toggleDescription")}
         </div>
       </div>

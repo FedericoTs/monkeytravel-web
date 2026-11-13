@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import draft from "./fixtures/wizard-draft-paris.json";
+import { contrastOf } from "./contrast";
 import itCommon from "../../messages/it/common.json";
 import itTrips from "../../messages/it/trips.json";
 
@@ -99,5 +100,21 @@ test.describe("wizard: a restored draft", () => {
       draft.generatedItinerary.booking_links.flights[0].url
     );
     await expect(page.getByText(draft.generatedItinerary.trip_summary.packing_suggestions[0])).toBeVisible();
+  });
+
+  test("the planner's small grey words read at 4.5 to 1: the multi-city note, and the plan bar's days and cost", async ({ page }) => {
+    await page.goto("/trips/new");
+    const note = page.getByText("One trip across several cities, stitched into a single itinerary.");
+    await expect(note).toBeVisible({ timeout: 30_000 });
+    // Polled: the step fades in, and words half faded in read lighter than they are.
+    await expect.poll(() => contrastOf(note), { message: "the multi-city note" }).toBeGreaterThanOrEqual(4.5);
+
+    await page.getByRole("button", { name: "Restore Trip" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Paris, France" })).toBeVisible({ timeout: 30_000 });
+    for (const words of [/^3 days$/, /^\$[\d,]+$/]) {
+      const chip = page.locator("span.bg-slate-100:visible", { hasText: words }).first();
+      await expect(chip).toBeVisible();
+      await expect.poll(() => contrastOf(chip), { message: `the plan bar's ${words}` }).toBeGreaterThanOrEqual(4.5);
+    }
   });
 });
