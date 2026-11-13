@@ -16,9 +16,10 @@ const CACHE_TYPE = "wikimedia_landmark";
 const FOUND_DAYS = 30;
 const NONE_DAYS = 14;
 // A "none" carries the matcher's version. One from an older matcher is looked
-// up again: this one also names each of "A and B" and takes a place's
-// Wikipedia photo when its own are all taller than wide.
-const NONE_VERSION = 2;
+// up again: this one also names each of "A and B", takes a place's Wikipedia
+// photo when its own are all taller than wide, and searches a sight's name off
+// the map when Wikidata's map search leaves it out.
+const NONE_VERSION = 3;
 const BUILD_TIMEOUT_MS = 8000;
 // Two lookups at a time: Wikidata answers 429 to more from one client.
 const CONCURRENCY = 2;
