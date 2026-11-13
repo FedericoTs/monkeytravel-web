@@ -177,14 +177,12 @@ export interface TripEditProposal {
   summary: string;
   /** The change that was waiting for its button is part of this one. */
   waitingKept?: true;
+  /** The currency the traveller asked to see prices in: the page switches to it. */
+  currency?: string;
   meta: { model: string; costUsd: number; generationTimeMs: number };
 }
 
-/**
- * Ask the engine. Null when the reply is not for this page: a request to see
- * prices in another currency is answered by the wizard switching currency,
- * which the trip page does not do.
- */
+/** Ask the engine. */
 export async function proposeTripEdits(input: {
   message: string;
   destination: string;
@@ -219,8 +217,6 @@ export async function proposeTripEdits(input: {
     autoApply: false,
     ownLead: true,
   });
-  if (result.currency) return null;
-
   // The owner's longer trip gets its new days ("aggiungi altri 7 giorni" used
   // to answer that the trip stays at 7 days). A shorter trip is made by moving
   // the dates, so that one keeps its length. Edits to the existing days stand.
@@ -271,6 +267,7 @@ export async function proposeTripEdits(input: {
       ? `${summary} ${LEAVES_OUT[input.locale] ?? LEAVES_OUT.en}: ${removed.join(", ")}.`.trim()
       : summary,
     ...(waitingKept ? { waitingKept: true as const } : {}),
+    ...(result.currency ? { currency: result.currency } : {}),
     meta: result.meta,
   };
 }

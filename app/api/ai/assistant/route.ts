@@ -205,6 +205,8 @@ export async function POST(request: NextRequest) {
       pendingChange,
       // The change that was waiting for its button is in this one: the page keeps it.
       ...(tripEdits?.waitingKept && pendingChange?.type === "apply_draft" ? { waitingKept: true } : {}),
+      // Prices follow the viewer's currency: the page switches to the one asked for.
+      ...(tripEdits?.currency ? { currency: tripEdits.currency } : {}),
       usage: {
         ...spent,
         tier: usageCheck.tier,
