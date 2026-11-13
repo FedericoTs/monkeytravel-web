@@ -67,8 +67,9 @@ export default function TripControlsBar({
   const tCommon = useTranslations("common");
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-6">
-      {/* Left side - Back button */}
-      <div className="flex items-center gap-2">
+      {/* Left side - Back button. Not on a phone: the tab bar leads to the
+          trips there, and the row it took sat between the header and the plan. */}
+      <div className="hidden sm:flex items-center gap-2">
         <Link
           href="/trips"
           className="flex items-center gap-1 sm:gap-2 text-slate-600 hover:text-slate-900 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors"

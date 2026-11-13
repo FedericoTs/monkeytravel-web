@@ -84,6 +84,9 @@ test.describe("recipient → participant", () => {
     await page.addInitScript(() => localStorage.setItem("mt_ai_assistant_seen", String(Date.now())));
     await page.goto(`/trips/${TRIP_ID}`);
     await declineConsent(page);
+    // The group waits behind its chip, which carries the count.
+    await expect(page.getByTestId("trip-strip-who")).toContainText(/\d+ going/);
+    await page.getByTestId("trip-strip-who").click();
     const card = page.getByTestId("who-is-going");
     await expect(card).toBeVisible();
     const row = card.getByTestId("who-is-going-row").filter({ hasText: name });

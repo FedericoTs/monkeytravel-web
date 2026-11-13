@@ -1715,6 +1715,9 @@
       "other": "Other"
     }
   },
+  "tripStrip": {
+    "label": "Getting ready"
+  },
   "bookAhead": {
     "title": "Book ahead",
     "intro": "These stops need a booking. Tick each one once it's done.",

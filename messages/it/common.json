@@ -1715,6 +1715,9 @@
       "other": "Altro"
     }
   },
+  "tripStrip": {
+    "label": "Preparativi"
+  },
   "bookAhead": {
     "title": "Da prenotare",
     "intro": "Queste tappe vanno prenotate. Segna ognuna quando è fatto.",

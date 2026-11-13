@@ -633,7 +633,7 @@
     "conflictPill": "Sin guardar: hay una versión más reciente",
     "writeBlockedConflict": "Primero elige qué versión conservar: este viaje se modificó en otro lugar.",
     "writeBlockedUnsaved": "Tus últimos cambios aún no están guardados. Vuelve a intentarlo cuando se hayan guardado.",
-    "ambientEditHint": "Arrastra para reordenar, toca una tarjeta para editarla — tus cambios se guardan solos.",
+    "ambientEditHint": "Arrastra para reordenar o mover a otro día, toca una tarjeta para editarla — tus cambios se guardan solos.",
     "undo": "Deshacer",
     "redo": "Rehacer",
     "tripUpdated": "Tu viaje ha sido actualizado exitosamente.",
