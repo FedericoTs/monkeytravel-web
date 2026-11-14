@@ -78,8 +78,9 @@ const assistUserLimiter = createRateLimiter("assistant-signed-in", 150, 24 * 60 
 const assistUserBurstLimiter = createRateLimiter("assistant-signed-in-burst", 12, 60 * 1000);
 
 const BodySchema = z.object({
-  // People paste a whole day's plan ("day 3 - Route Quito → Cotopaxi…").
-  message: z.string().trim().min(3).max(1500),
+  // People paste a whole day's plan ("day 3 - Route Quito → Cotopaxi…"), and answer
+  // the assistant's questions in a word: "sì", "ok", "2".
+  message: z.string().trim().min(1).max(1500),
   destination: z.string().trim().min(1).max(120),
   tripTitle: z.string().trim().min(1).max(160),
   days: z.array(z.unknown()).min(1).max(MAX_TRIP_DAYS_MULTI),
