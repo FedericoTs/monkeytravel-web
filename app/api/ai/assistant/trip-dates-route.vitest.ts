@@ -27,10 +27,6 @@ vi.mock("@/lib/ai/genai-compat", async (importOriginal) => ({
 vi.mock("@/lib/ai/cache-metrics", () => ({ logCacheMetrics: vi.fn() }));
 vi.mock("@/lib/ai/regenerate-day", () => ({ regenerateSingleDay: vi.fn() }));
 vi.mock("@/lib/trip/coordinate-fallback", () => ({ validateAndFixCoordinates: (days: unknown) => days }));
-vi.mock("@/lib/activity-bank", () => ({
-  populateActivityBank: vi.fn(async () => {}),
-  isActivityBankPopulated: vi.fn(async () => true),
-}));
 vi.mock("@/lib/api-gateway", () => ({ checkApiAccess: async () => ({ allowed: true }), logApiCall: vi.fn(async () => {}) }));
 vi.mock("@/lib/usage-limits", () => ({
   checkUsageLimit: async () => ({ allowed: true, used: 1, remaining: 9, limit: 10, tier: "free", resetAt: "2026-10-17T00:00:00Z" }),

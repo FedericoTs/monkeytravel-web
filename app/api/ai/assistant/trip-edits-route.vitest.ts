@@ -36,10 +36,6 @@ vi.mock("@/lib/ai/genai-compat", async (importOriginal) => ({
 vi.mock("@/lib/ai/cache-metrics", () => ({ logCacheMetrics: vi.fn() }));
 vi.mock("@/lib/ai/regenerate-day", () => ({ regenerateSingleDay: vi.fn() }));
 vi.mock("@/lib/trip/coordinate-fallback", () => ({ validateAndFixCoordinates: (days: unknown) => days }));
-vi.mock("@/lib/activity-bank", () => ({
-  populateActivityBank: vi.fn(async () => {}),
-  isActivityBankPopulated: vi.fn(async () => true),
-}));
 const logApiCall = vi.fn(async (_row: unknown) => {});
 vi.mock("@/lib/api-gateway", () => ({
   checkApiAccess: async () => ({ allowed: true }),

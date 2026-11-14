@@ -41,7 +41,6 @@ vi.mock("@/lib/api/rate-limit", () => ({
   createRateLimiter: () => ({ check: async () => ({ allowed: true, remaining: 1 }) }),
 }));
 vi.mock("@/lib/images/activity", () => ({ fetchActivityImages: async () => {} }));
-vi.mock("@/lib/activity-bank", () => ({ isActivityBankPopulated: async () => true, populateActivityBank: async () => ({}) }));
 vi.mock("@/lib/ai/observability", () => ({ recordAiOutcome: async () => {} }));
 vi.mock("@/lib/trips/request-validation", () => ({ validateTripParams: () => ({ valid: true }) }));
 vi.mock("@/lib/ai/known-places", () => ({ knownPlacesFor: async () => [] }));

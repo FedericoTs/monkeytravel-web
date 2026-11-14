@@ -1,6 +1,5 @@
 import { deriveTimezoneFromItinerary } from "@/lib/trip/timezone";
 import { NextRequest } from "next/server";
-import { waitUntil } from "@vercel/functions";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { recordAnonymousGeneration, refundAnonymousGeneration } from "@/lib/anonymous/rate-limit";
 import { generateItinerary } from "@/lib/gemini";
@@ -12,11 +11,9 @@ import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import { isAdmin } from "@/lib/admin";
 import { blockedCall, logApiCall } from "@/lib/api-gateway";
 import { incrementUsage } from "@/lib/usage-limits";
-import { isActivityBankPopulated, populateActivityBank } from "@/lib/activity-bank";
 import { fetchActivityImages } from "@/lib/images/activity";
 import { sanitizeItinerary } from "@/lib/utils/sanitize";
 import type { TripCreationParams, GeneratedItinerary } from "@/types";
-import type { Coordinates } from "@/lib/utils/geo";
 import { cacheItinerary, adjustItineraryDates } from "@/lib/ai/cache";
 import { cachePolicy, mayCachePlan, servableCachedPlan } from "@/lib/ai/cache-policy";
 import { generationQuotaReached, readGenerationPreflight } from "@/lib/ai/generation-preflight";
@@ -33,7 +30,6 @@ import { keepOffClosingDays } from "@/lib/ai/closing-days";
 import { keepMustDos } from "@/lib/ai/must-dos";
 import { keepNamesInOneScript } from "@/lib/ai/one-script-names";
 import { inPlanCurrency } from "@/lib/ai/plan-currency";
-import { isRealPoint } from "@/lib/trip/placeholder-point";
 import type { TripAnchor } from "@/types";
 import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/generation-result";
 import { tripSpanDays } from "@/lib/dates/iso-date";
@@ -207,31 +203,6 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
           params.travelStyle ?? "classic",
         );
       }
-
-      // Populate activity bank in background for future activity additions
-      // Use waitUntil to ensure background work completes on Vercel serverless
-      // Try to get coordinates from the first activity that has them
-      const firstActivityWithCoords = itinerary.days
-        ?.flatMap(d => d.activities || [])
-        ?.find(a => isRealPoint(a.coordinates));
-      const destinationCoords: Coordinates | undefined = firstActivityWithCoords?.coordinates;
-
-      // waitUntil keeps the function alive until the promise resolves
-      // This ensures the activity bank population completes after response is sent
-      waitUntil(
-        (async () => {
-          try {
-            const populated = await isActivityBankPopulated(params.destination);
-            if (!populated) {
-              console.log(`[AI Generate] Populating activity bank for ${params.destination} in background...`);
-              const result = await populateActivityBank(params.destination, destinationCoords);
-              console.log(`[AI Generate] Activity bank populated: ${result.count} activities, cost: $${result.cost}`);
-            }
-          } catch (err) {
-            console.error(`[AI Generate] Activity bank population error:`, err);
-          }
-        })()
-      );
     }
 
     // A must-do the plan holds nowhere gets one short question, and goes in
