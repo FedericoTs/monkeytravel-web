@@ -301,7 +301,7 @@ export function useWizardSave({
         { itinerary: generatedItinerary, formState: autoSaveFormState },
         user.id,
       );
-      void tripWrites.attachCoverImage(savedId, autoSaveFormState.destination);
+      void tripWrites.attachCoverImage(savedId, autoSaveFormState.destination, generatedItinerary);
       tripInserted(savedId, tripSpanDays(startDate, endDate), "Trip Save");
 
       // Go straight to the trip. The share ask waits until the user has

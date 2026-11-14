@@ -37,7 +37,7 @@ import type {
 type SaveTripFn = (input: PersistInput) => Promise<SaveResult>;
 type UpdateTripFn = (tripId: string, input: PersistInput) => Promise<void>;
 type DeleteTripFn = (tripId: string) => Promise<void>;
-type AttachCoverFn = (tripId: string, destination: string) => Promise<void>;
+type AttachCoverFn = (tripId: string, destination: string, itinerary?: PersistInput["itinerary"]) => Promise<void>;
 
 export type AutoSaveStatus = "idle" | "saving" | "saved" | "error";
 
@@ -238,7 +238,7 @@ export function useAutoSaveTrip({
             // Fire-and-forget cover image fetch. Doesn't block the
             // "saved" state transition or further regenerations.
             if (cbs.attachCoverImage) {
-              void cbs.attachCoverImage(result.tripId, form.destination);
+              void cbs.attachCoverImage(result.tripId, form.destination, input.itinerary);
             }
           }
           return;

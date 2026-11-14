@@ -9,7 +9,10 @@ import { NextRequest } from "next/server";
  */
 
 const build = vi.fn();
-vi.mock("@/lib/images/wikimedia", () => ({ buildDestinationPhotos: (...a: unknown[]) => build(...a) }));
+vi.mock("@/lib/images/wikimedia", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./wikimedia")>()),
+  buildDestinationPhotos: (...a: unknown[]) => build(...a),
+}));
 const allowed = vi.fn();
 vi.mock("@/lib/api/rate-limit", () => ({ createRateLimiter: () => ({ check: async () => ({ allowed: allowed(), remaining: 1 }) }) }));
 vi.mock("@/lib/api-gateway", () => ({ logApiCall: vi.fn(async () => {}) }));
@@ -85,6 +88,65 @@ describe("destinationPhotos", () => {
   it("looks nothing up past the hourly cap", async () => {
     allowed.mockReturnValue(false);
     expect(await destinationPhotos("Lisbon", request)).toBeNull();
+    expect(build).not.toHaveBeenCalled();
+  });
+});
+
+describe("destinationPhotos for a trip, near its stops", () => {
+  const SEOUL_TRIP = { lat: 37.55, lng: 126.99, km: 12 };
+  const lake = { ...photos, at: { lat: 50.33, lng: -92.25 } };
+  const seoul = { cover: "/api/images/wikimedia/bbbbbbbbbbbbbbbbbbbb-1920.jpg?a=Y&l=CC0&f=Seoul.jpg", gallery: [], at: { lat: 37.5667, lng: 126.9783 } };
+
+  it("gives a stored photo of the place near the trip", async () => {
+    cachedRow = { data: seoul };
+    expect(await destinationPhotos("Seul", request, SEOUL_TRIP)).toEqual(seoul);
+    expect(build).not.toHaveBeenCalled();
+  });
+
+  it("gives none for a stored photo of another place of the same name, and keeps it stored", async () => {
+    cachedRow = { data: lake };
+    expect(await destinationPhotos("Seul", request, SEOUL_TRIP)).toBeNull();
+    expect(build).not.toHaveBeenCalled();
+    expect(upserts).toEqual([]);
+    // Asked without a trip, it is still the destination's photo.
+    expect(await destinationPhotos("Seul", request)).toEqual(lake);
+  });
+
+  it("looks a photo stored without its place up again for the trip, and stores what it finds with its place", async () => {
+    cachedRow = { data: photos };
+    build.mockResolvedValue(seoul);
+    expect(await destinationPhotos("Seul", request, SEOUL_TRIP)).toEqual(seoul);
+    expect(build).toHaveBeenCalledWith("Seul", expect.anything(), SEOUL_TRIP);
+    expect(upserts[0]).toMatchObject({ data: seoul });
+  });
+
+  it("gives none when that finds nothing near the trip, and keeps the stored photo for everyone else", async () => {
+    cachedRow = { data: photos };
+    build.mockResolvedValue(null);
+    expect(await destinationPhotos("Seul", request, SEOUL_TRIP)).toBeNull();
+    expect(upserts).toEqual([]);
+  });
+
+  it("stores a new destination's photo with its place", async () => {
+    build.mockResolvedValue(seoul);
+    expect(await destinationPhotos("Seoul, South Korea", request, SEOUL_TRIP)).toEqual(seoul);
+    expect(upserts[0]).toMatchObject({ data: seoul });
+  });
+});
+
+describe("readNear", () => {
+  it("reads where a trip is from the query: its middle and how far its stops spread", async () => {
+    const { readNear } = await import("./destination-photos");
+    expect(readNear("37.5500,126.9900,12")).toEqual({ lat: 37.55, lng: 126.99, km: 12 });
+    for (const bad of [null, "", "37.5,126.9", "91,0,5", "0,181,5", "a,b,c", "37,126,-1", "37,126,20001"]) expect(readNear(bad), String(bad)).toBeUndefined();
+  });
+});
+
+describe("destinationPhotos for a trip, when new lookups are capped", () => {
+  it("still gives a photo stored before places were kept, as before", async () => {
+    cachedRow = { data: photos };
+    allowed.mockReturnValue(false);
+    expect(await destinationPhotos("Seul", request, { lat: 37.55, lng: 126.99, km: 12 })).toEqual(photos);
     expect(build).not.toHaveBeenCalled();
   });
 });
