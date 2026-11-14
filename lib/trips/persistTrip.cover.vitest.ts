@@ -1,6 +1,6 @@
 /** @vitest-environment node */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { insertTrip, updateTrip, type PersistInput } from "./persistTrip";
+import { attachCoverImage, insertTrip, updateTrip, type PersistInput } from "./persistTrip";
 
 /**
  * A trip's cover is set when it is created and kept after that. Updates (a
@@ -86,5 +86,31 @@ describe("a trip's cover after creation", () => {
     await insertTrip(client, input([{ type: "attraction", image_url: TOWER }]), "user-1");
     expect(updates).toHaveLength(1);
     expect(updates[0]).not.toHaveProperty("cover_image_url");
+  });
+});
+
+describe("the cover looked up after the save", () => {
+  const plan = (points: Array<[number, number] | null>) =>
+    ({
+      ...input([]).itinerary,
+      days: [{ day_number: 1, activities: points.map((p, i) => ({ id: `a${i}`, name: `A${i}`, type: "attraction", ...(p ? { coordinates: { lat: p[0], lng: p[1] } } : {}) })) }],
+    }) as PersistInput["itinerary"];
+  const asked = () => new URL(String((fetch as unknown as { mock: { calls: unknown[][] } }).mock.calls[0][0]), "https://x").searchParams;
+
+  it("says where the trip is: the middle of its stops and how far they spread", async () => {
+    const { client } = fakeSupabase();
+    // A placeholder point (0,0) is no place and is left out.
+    await attachCoverImage(client, "trip-1", "Seul", plan([[37.57, 126.98], [37.53, 127.0], [0, 0], null]));
+    expect(asked().get("destination")).toBe("Seul");
+    const [lat, lng, km] = String(asked().get("near")).split(",").map(Number);
+    expect(lat).toBeCloseTo(37.55, 4);
+    expect(lng).toBeCloseTo(126.99, 4);
+    expect(km).toBe(3);
+  });
+
+  it("asks without it when the plan has no real point", async () => {
+    const { client } = fakeSupabase();
+    await attachCoverImage(client, "trip-1", "Seul", plan([[0, 0], null]));
+    expect(asked().get("near")).toBeNull();
   });
 });

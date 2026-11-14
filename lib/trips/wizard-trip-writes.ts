@@ -49,7 +49,7 @@ export function wizardTripWrites(mountId: string) {
 
     deleteTrip: (tripId: string): Promise<void> => deleteTrip(createClient(), tripId),
 
-    attachCoverImage: (tripId: string, destination: string): Promise<void> =>
-      attachCoverImage(createClient(), tripId, destination),
+    attachCoverImage: (tripId: string, destination: string, itinerary?: PersistInput["itinerary"]): Promise<void> =>
+      attachCoverImage(createClient(), tripId, destination, itinerary),
   };
 }

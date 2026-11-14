@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { readJsonBody } from "@/lib/api/json-body";
 import { PEXELS_API_BASE } from "@/lib/constants/externalApis";
-import { destinationPhotos } from "@/lib/images/destination-photos";
+import { destinationPhotos, readNear } from "@/lib/images/destination-photos";
 
 // Pexels API endpoint
 const PEXELS_API_URL = `${PEXELS_API_BASE}/search`;
@@ -247,7 +247,10 @@ export async function GET(request: NextRequest) {
   };
 
   // Check cache first
-  const cached = imageCache.get(cacheKey);
+  // Asked for a trip (near its stops), this instance's memory of the
+  // destination is neither read nor written: it may be another place's.
+  const near = readNear(searchParams.get("near"));
+  const cached = near ? undefined : imageCache.get(cacheKey);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
     return apiSuccess({
       url: cached.url,
@@ -259,7 +262,7 @@ export async function GET(request: NextRequest) {
   // Try curated images first (fastest, most reliable)
   const curatedUrl = findCuratedImage(destination);
   if (curatedUrl) {
-    imageCache.set(cacheKey, { url: curatedUrl, timestamp: Date.now() });
+    if (!near) imageCache.set(cacheKey, { url: curatedUrl, timestamp: Date.now() });
     return apiSuccess({
       url: curatedUrl,
       source: "curated",
@@ -269,9 +272,9 @@ export async function GET(request: NextRequest) {
 
   // Then Wikimedia: a photo of the place itself, stored and credited. The
   // Pexels search below matches on words and has put London on a Trieste trip.
-  const wiki = await destinationPhotos(destination, request);
+  const wiki = await destinationPhotos(destination, request, near);
   if (wiki) {
-    imageCache.set(cacheKey, { url: wiki.cover, timestamp: Date.now() });
+    if (!near) imageCache.set(cacheKey, { url: wiki.cover, timestamp: Date.now() });
     return apiSuccess({
       url: wiki.cover,
       source: "wikimedia",
@@ -282,7 +285,7 @@ export async function GET(request: NextRequest) {
   // Try Pexels API for uncurated destinations
   const pexelsUrl = await fetchFromPexels(destination);
   if (pexelsUrl) {
-    imageCache.set(cacheKey, { url: pexelsUrl, timestamp: Date.now() });
+    if (!near) imageCache.set(cacheKey, { url: pexelsUrl, timestamp: Date.now() });
     return apiSuccess({
       url: pexelsUrl,
       source: "pexels",
