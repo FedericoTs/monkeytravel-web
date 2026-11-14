@@ -596,7 +596,8 @@
     "tripConfirmed": "Trip confirmed",
     "tripCancelled": "Trip cancelled",
     "readyToConfirm": "Ready to confirm your trip?",
-    "confirmTripDescription": "Once confirmed, you'll get a countdown to your departure and access to your pre-trip checklist."
+    "confirmTripDescription": "Once confirmed, you'll get a countdown to your departure and access to your pre-trip checklist.",
+    "deleteReason": "What didn't work? (optional)"
   },
   "booking": {
     "bookYourTrip": "Book Your Trip",

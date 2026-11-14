@@ -3,6 +3,7 @@ import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
 import { readJsonBody } from "@/lib/api/json-body";
+import { DELETION_REASONS } from "@/lib/trips/deletion-reasons";
 
 /**
  * POST /api/trips/[id]/deletion-feedback
@@ -40,14 +41,7 @@ interface DeletionFeedbackBody {
   was_auto_saved?: boolean;
 }
 
-const VALID_REASONS = new Set([
-  "wrong_destination",
-  "wrong_dates",
-  "didnt_like_suggestions",
-  "too_expensive",
-  "made_by_mistake",
-  "other",
-]);
+const VALID_REASONS = new Set<string>(DELETION_REASONS);
 
 const MAX_CUSTOM_REASON_LEN = 500;
 

@@ -596,7 +596,8 @@
     "tripConfirmed": "Viagem confirmada",
     "tripCancelled": "Viagem cancelada",
     "readyToConfirm": "Pronto para confirmar sua viagem?",
-    "confirmTripDescription": "Depois de confirmada, você terá uma contagem regressiva até a partida e acesso à sua lista de preparativos."
+    "confirmTripDescription": "Depois de confirmada, você terá uma contagem regressiva até a partida e acesso à sua lista de preparativos.",
+    "deleteReason": "O que não funcionou? (opcional)"
   },
   "booking": {
     "bookYourTrip": "Reserve Sua Viagem",
