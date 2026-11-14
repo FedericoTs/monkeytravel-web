@@ -63,7 +63,6 @@ vi.mock("@/lib/gemini", () => ({
 }));
 vi.mock("@/lib/ai/itinerary-text", () => ({ parseStreamedItinerary: (text: string) => JSON.parse(text) }));
 vi.mock("@/lib/images/activity", () => ({ fetchActivityImages: async () => [] }));
-vi.mock("@/lib/activity-bank", () => ({ isActivityBankPopulated: async () => true, populateActivityBank: async () => ({}) }));
 vi.mock("@/lib/ai/observability", () => ({ recordAiOutcome: async () => {} }));
 vi.mock("@/lib/ai/known-places", () => ({ knownPlacesFor: async () => [], knownPlacesUsed: () => 0 }));
 

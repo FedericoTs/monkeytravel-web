@@ -59,7 +59,6 @@ describe("the models in use", () => {
     "packing-list",
     "email-parser",
     "trip-title",
-    "activity-bank",
     "assistant-optimize",
     "assistant-edits",
     "assistant-chat",
