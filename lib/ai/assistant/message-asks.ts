@@ -105,9 +105,14 @@ export function talksAboutDayCount(message: string): boolean {
 const FREE_DAY =
   /(?<![\p{L}])(?:free|empty|clear|blank|day\s+off|nothing\s+planned|libres?|vac[ií][oa]s?|en\s+blanco|liber[oiae]|vuot[oiae]|in\s+bianco|livres?|vazi[oa]s?|em\s+branco|folga)(?![\p{L}])/iu;
 
-/** Does the message ask for a day with nothing planned? */
+// Every day emptied, to fill in themselves: "delete everything", "start from
+// scratch", "borra todo", "cancella tutto", "apaga tudo".
+const CLEAR_ALL =
+  /(?<![\p{L}])(?:(?:delete|remove|clear|erase|wipe|scrap|empty)\s+(?:out\s+)?(?:all|everything)|(?:borr|elimin|quit|vac[ií])\p{L}*\s+tod[oa]s?|(?:cancell|elimin|togli|rimuov|svuot)\p{L}*\s+tutt[oie]|(?:apag|exclu|remov|tir|limp)\p{L}*\s+(?:tudo|tod[oa]s)|from\s+scratch|(?:desde|de)\s+cero|da\s+(?:zero|capo)|do\s+zero)(?![\p{L}])/iu;
+
+/** Does the message ask for a day, or every day, with nothing planned? */
 export function asksForFreeDay(message: string): boolean {
-  return FREE_DAY.test(message);
+  return FREE_DAY.test(message) || CLEAR_ALL.test(message);
 }
 
 // Telling, not asking, where they stay: "our hotel is Hotel Arts", "we're

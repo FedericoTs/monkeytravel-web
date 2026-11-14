@@ -116,7 +116,8 @@ function readOutcome(input: AssistInput, obj: Record<string, unknown>, cur: stri
     input.days,
     { edits: rawEdits, tripLength: obj.trip_length, moreDays: obj.more_days },
     cur,
-    asksForFreeDay(input.message),
+    // Asked now, or in the message a "yes" answers ("Delete everything?").
+    asksForFreeDay(input.message) || asksForFreeDay([...(input.history ?? [])].reverse().find((t) => t.role === "user")?.text ?? ""),
   );
   const told = [input.message, ...(input.history ?? []).slice(-4).filter((t) => t.role === "user").map((t) => t.text)].join("\n");
   const edits = keepDepartureTime(

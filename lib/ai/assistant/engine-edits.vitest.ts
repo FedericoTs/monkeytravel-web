@@ -693,6 +693,16 @@ describe("composeReply: what a change said and didn't do", () => {
     expect(composeReply({ ...base, reply: "Day 1 costs about 120 EUR. Here's the breakdown:", edits: [] })).toBe("Day 1 costs about 120 EUR.");
   });
 
+  it("says the plan wasn't cleared when nothing was prepared, in each language", () => {
+    const told = (locale: string, reply: string) => composeReply({ ...base, locale, reply, edits: [] });
+    expect(told("pt", "Apaguei todas as atividades do roteiro para você recomeçar.")).toMatch(/^Não alterei o seu plano/);
+    expect(told("it", "Ho cancellato tutto il viaggio. Dimmi pure da dove vuoi ricominciare!")).toMatch(/^Non ho modificato il tuo piano/);
+    expect(told("it", "Tutte le attività sono state cancellate.")).toMatch(/^Non ho modificato il tuo piano/);
+    expect(told("es", "Borré todo el plan. ¿Qué quieres hacer?")).toMatch(/^No he cambiado tu plan/);
+    expect(told("es", "He vaciado los tres días.")).toMatch(/^No he cambiado tu plan/);
+    expect(told("pt", "Os dias foram esvaziados.")).toMatch(/^Não alterei o seu plano/);
+  });
+
   it("says a day called free wasn't freed when nothing was prepared", () => {
     const reply = "Com certeza! O dia 22 de dezembro e o dia 2 de janeiro estão agora livres para você aproveitar como preferir. Aqui estão as atualizações:";
     expect(composeReply({ ...base, locale: "pt", reply, edits: [] })).toMatch(/^Não alterei o seu plano/);
@@ -743,6 +753,26 @@ describe("a free day", () => {
     expect(asksForFreeDay("lascia il giorno 1 in bianco")).toBe(true);
     expect(asksForFreeDay("deixe o dia 1 em branco")).toBe(true);
     expect(asksForFreeDay("fill in the blanks on day 2 with museums")).toBe(false);
+  });
+
+  // "delete everything": the model emptied every day, each empty day was
+  // dropped, and the reply said nothing had changed.
+  it("is asked for as the whole plan cleared, in each language", () => {
+    for (const message of [
+      "delete everything",
+      "Remove all the activities, I'll add my own",
+      "start from scratch",
+      "borra todo el plan",
+      "elimina todas las actividades",
+      "cancella tutto",
+      "apaga tudo",
+      "quero começar do zero",
+    ])
+      expect(asksForFreeDay(message), message).toBe(true);
+    expect(asksForFreeDay("delete the cooking class on day 2")).toBe(false);
+    expect(asksForFreeDay("keep everything and add a museum")).toBe(false);
+    expect(asksForFreeDay("todo bien, añade un museo")).toBe(false);
+    expect(asksForFreeDay("tutto ok, aggiungi un museo il giorno 2")).toBe(false);
   });
 
   it("empties a day only when the traveller asked for one", () => {
