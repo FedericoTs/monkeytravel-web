@@ -97,7 +97,9 @@ test.describe("trip status", () => {
   });
 
   test.afterEach(async () => {
-    if (tripId) await admin.from("trips").delete().eq("id", tripId);
+    if (!tripId) return;
+    await admin.from("trip_deletion_feedback").delete().eq("trip_id", tripId);
+    await admin.from("trips").delete().eq("id", tripId);
   });
 
   test("the owner confirms a planning trip", async ({ page }) => {
@@ -148,6 +150,34 @@ test.describe("trip status", () => {
     await page.getByRole("dialog").getByRole("button", { name: "Restore from Archive" }).click();
     await expect.poll(archivedInDb, { timeout: 20_000 }).toBe(false);
     await expect(card).toBeVisible({ timeout: 20_000 });
+  });
+
+  test("deleting from My Trips asks what didn't work, keeps the answer, and the trip goes", async ({ page }) => {
+    const deletedInDb = async () => {
+      const { data, error } = await admin.from("trips").select("deleted_at").eq("id", tripId).single();
+      if (error) throw error;
+      return data.deleted_at !== null;
+    };
+    await page.goto("/en/trips", { waitUntil: "domcontentloaded", timeout: 120_000 });
+    await declineConsent(page);
+    const card = page.locator(`a[href$="/trips/${tripId}"]`);
+    await expect(card).toBeVisible({ timeout: 60_000 });
+
+    await card.getByRole("button", { name: "Trip actions" }).click();
+    await page.getByRole("menuitem", { name: "Delete Trip" }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByText("What didn't work? (optional)")).toBeVisible();
+    await dialog.getByRole("button", { name: "Wrong dates" }).click();
+    await dialog.getByRole("button", { name: "Delete Trip" }).click();
+
+    await expect.poll(deletedInDb, { timeout: 20_000 }).toBe(true);
+    await expect(card).toHaveCount(0, { timeout: 20_000 });
+    const { data: answers, error } = await admin
+      .from("trip_deletion_feedback")
+      .select("reason, destination, was_auto_saved")
+      .eq("trip_id", tripId);
+    if (error) throw error;
+    expect(answers).toEqual([{ reason: "wrong_dates", destination: "E2E trip status (safe to delete)", was_auto_saved: false }]);
   });
 
   test("cancelling asks first, and a cancelled trip can be restored", async ({ page }) => {
