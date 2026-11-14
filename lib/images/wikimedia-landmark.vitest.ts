@@ -284,13 +284,46 @@ describe("findLandmarkPhoto", () => {
     expect(await findLandmarkPhoto(q, signal)).toBeNull();
   });
 
-  it("asks Wikipedia nothing when its own photo will do", async () => {
-    found["Pantheon"] = ["Q8"];
-    items.Q8 = { labels: ["Pantheon"], at: [41.8986, 12.4769], images: { P18: ["Pantheon.jpg"] }, wikis: { enwiki: "Pantheon, Rome" } };
-    leads["en:Pantheon, Rome"] = "Pantheon lead.jpg";
-    files = [photo("Pantheon.jpg"), photo("Pantheon lead.jpg")];
-    expect((await findLandmarkPhoto({ names: ["Pantheon"], lat: 41.8986, lng: 12.4769 }, signal))?.name).toBe("Pantheon.jpg");
-    expect(wiki.mock.calls.some(([base]) => base.includes("wikipedia.org"))).toBe(false);
+  it("takes the photo its Wikipedia articles lead with over its own: a painting, an old print, a view from inside", async () => {
+    found["Piazza Signoria"] = ["Q8"];
+    items.Q8 = {
+      labels: ["Piazza della Signoria"],
+      at: [43.7696, 11.2558],
+      images: { P18: ["Zocchi - The Piazza della Signoria.jpg"] },
+      wikis: { enwiki: "Piazza della Signoria", itwiki: "Piazza della Signoria" },
+    };
+    leads["it:Piazza della Signoria"] = "Piazza Signoria - Firenze.jpg";
+    files = [photo("Zocchi - The Piazza della Signoria.jpg"), photo("Piazza Signoria - Firenze.jpg")];
+    const q = { names: ["Piazza della Signoria"], lat: 43.7696, lng: 11.2558 };
+    expect((await findLandmarkPhoto(q, signal))?.name).toBe("Piazza Signoria - Firenze.jpg");
+    // The first wiki in order whose lead will do.
+    leads["en:Piazza della Signoria"] = "Signoria from the Uffizi.jpg";
+    files.push(photo("Signoria from the Uffizi.jpg"));
+    expect((await findLandmarkPhoto(q, signal))?.name).toBe("Signoria from the Uffizi.jpg");
+  });
+
+  it("keeps its own photo when its articles lead with none that will do, or it has none", async () => {
+    found["Eiffel Tower"] = ["Q8"];
+    items.Q8 = { labels: ["Eiffel Tower"], at: [48.8583, 2.2944], images: { P18: ["Tower at night.jpg"] }, wikis: { enwiki: "Eiffel Tower" } };
+    leads["en:Eiffel Tower"] = "Tower portrait.jpg";
+    files = [photo("Tower portrait.jpg", { width: 2000, height: 3000 }), photo("Tower at night.jpg")];
+    const q = { names: ["Eiffel Tower"], lat: PARIS[0], lng: PARIS[1] };
+    expect((await findLandmarkPhoto(q, signal))?.name).toBe("Tower at night.jpg");
+    leads = {};
+    expect((await findLandmarkPhoto(q, signal))?.name).toBe("Tower at night.jpg");
+  });
+
+  it("takes no collage of several views, from its articles or its own", async () => {
+    found["Montmartre"] = ["Q8"];
+    items.Q8 = { labels: ["Montmartre"], at: [48.8867, 2.3431], images: { P18: ["Montmartre_montage_2.jpg", "Sacre-Coeur from the steps.jpg"] }, wikis: { enwiki: "Montmartre", frwiki: "Montmartre" } };
+    leads["en:Montmartre"] = "Montmartre montage.jpg";
+    leads["fr:Montmartre"] = "Collage Montmartre.jpg";
+    files = [photo("Montmartre montage.jpg"), photo("Collage Montmartre.jpg"), photo("Montmartre_montage_2.jpg"), photo("Sacre-Coeur from the steps.jpg")];
+    expect((await findLandmarkPhoto({ names: ["Montmartre"], lat: 48.8867, lng: 2.3431 }, signal))?.name).toBe("Sacre-Coeur from the steps.jpg");
+    // A mountain is not a montage.
+    leads["en:Montmartre"] = "Montagne Sainte-Genevieve view.jpg";
+    files.push(photo("Montagne Sainte-Genevieve view.jpg"));
+    expect((await findLandmarkPhoto({ names: ["Montmartre"], lat: 48.8867, lng: 2.3431 }, signal))?.name).toBe("Montagne Sainte-Genevieve view.jpg");
   });
 
   it("finds a sight named with another one: either is the place", async () => {

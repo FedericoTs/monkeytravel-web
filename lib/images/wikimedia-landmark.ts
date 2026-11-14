@@ -24,11 +24,14 @@ export const LANDMARK_WIDTHS = [500, 960];
 const MIN_WIDTH = 1000;
 // A square view crops well into a card; one taller than wide doesn't.
 const SQUARE = 1;
-// The item's own image, then its panoramic, night, aerial and interior views.
-const IMAGE_PROPERTIES = ["P18", "P4291", "P3451", "P8592", "P5775"];
-// Where those are all taller than wide or too small: the photo the place's
-// Wikipedia articles lead with, in these wikis' order.
+// The photo the place's Wikipedia articles lead with, in these wikis' order.
 const LEAD_WIKIS = ["en", "de", "fr", "es", "it", "pt"];
+// Where those are all taller than wide or too small: the item's own image,
+// then its panoramic, night, aerial and interior views.
+const IMAGE_PROPERTIES = ["P18", "P4291", "P3451", "P8592", "P5775"];
+// A collage of several views crops into none of them.
+const COLLAGE = /\b(?:(?:photo|foto)?montage|montaje|montagem|montaggio|collage)\b/i;
+const usable = (f: CommonsFile) => isUsableView(f, MIN_WIDTH, SQUARE) && !COLLAGE.test(f.name.replace(/_/g, " "));
 // Two places in one name, in the plans' languages: "Roman Forum and Palatine Hill".
 const JOINED = /\s+(?:and|y|e|ed|et|und)\s+/i;
 const LANGUAGES = "en|mul|fr|es|it|pt|de|ca|nl|ja|el|hu|cs|pl|tr|id|ko|zh";
@@ -322,16 +325,18 @@ export async function findLandmarkPhoto(q: LandmarkQuery, signal: AbortSignal): 
     // unless that place is all it names ("Dinner in Trastevere"): "Ciudad
     // Condal" is also Barcelona, whose photo is the Sagrada Família.
     if (q.meal && claims.P1082?.length && score < 2) continue;
+    // The photo its Wikipedia articles lead with: their editors' pick of the
+    // place, where its own image can be a painting, an old print or a view
+    // from inside.
+    const leads = await commonsFiles(await leadPhotoNames(entity?.sitelinks ?? {}, signal), signal);
+    const lead = leads.find(usable);
+    if (lead) return lead;
+    // Those are all taller than wide or too small (a tower, a museum's
+    // entrance), or it has no article: its own.
     const names = IMAGE_PROPERTIES.flatMap((p) => (claims[p] ?? []).map((c) => c.mainsnak?.datavalue?.value)).filter(
       (n): n is string => typeof n === "string",
     );
-    const files = await commonsFiles([...new Set(names)].slice(0, 8), signal);
-    const own = files.find((f) => isUsableView(f, MIN_WIDTH, SQUARE));
-    if (own) return own;
-    // Its own photos are all taller than wide or too small (a square's long
-    // panorama, a museum's entrance): the photo its Wikipedia articles lead with.
-    const leads = await commonsFiles(await leadPhotoNames(entity?.sitelinks ?? {}, signal), signal);
-    return leads.find((f) => isUsableView(f, MIN_WIDTH, SQUARE)) ?? null;
+    return (await commonsFiles([...new Set(names)].slice(0, 8), signal)).find(usable) ?? null;
   }
   return null;
 }
