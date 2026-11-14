@@ -221,10 +221,38 @@ export function pickImages(
   return { cover, gallery: usable.filter((f) => f !== cover).slice(0, GALLERY_SIZE) };
 }
 
+// Wikimedia turns a request away for now (429) when it has had too many from
+// this address, which a serverless platform shares between many sites: one
+// more try after the wait it names, two seconds at most, a second if none.
+const RETRY_WAIT_MAX_MS = 2000;
+const RETRY_WAIT_MS = 1000;
+
+/** Waits, unless the lookup is called off first. */
+function pause(ms: number, signal: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) return reject(signal.reason);
+    const timer = setTimeout(() => {
+      signal.removeEventListener("abort", stop);
+      resolve();
+    }, ms);
+    const stop = () => {
+      clearTimeout(timer);
+      reject(signal.reason);
+    };
+    signal.addEventListener("abort", stop, { once: true });
+  });
+}
+
 export async function wiki(base: string, params: Record<string, string | number>, signal: AbortSignal): Promise<unknown> {
   const query = new URLSearchParams({ format: "json", formatversion: "2" });
   for (const [k, v] of Object.entries(params)) query.set(k, String(v));
-  const res = await fetch(`${base}?${query.toString()}`, { headers: { "User-Agent": COMMONS_USER_AGENT }, signal });
+  const ask = () => fetch(`${base}?${query.toString()}`, { headers: { "User-Agent": COMMONS_USER_AGENT }, signal });
+  let res = await ask();
+  if (res.status === 429) {
+    const named = Number(res.headers.get("retry-after")) * 1000;
+    await pause(named > 0 ? Math.min(named, RETRY_WAIT_MAX_MS) : RETRY_WAIT_MS, signal);
+    res = await ask();
+  }
   if (!res.ok) throw new Error(`${new URL(base).hostname} answered ${res.status}`);
   return res.json();
 }
