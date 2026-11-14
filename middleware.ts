@@ -18,13 +18,6 @@ import { unprefixedCallbackUrl } from "@/lib/auth/callback-url";
 // Create the i18n middleware
 const intlMiddleware = createIntlMiddleware(routing);
 
-// Pages that are the same for everyone and hold nothing to edit, sent without
-// "no-store" so Back brings them back at once: Chrome keeps no "no-store" page
-// for Back once a cookie has changed, and analytics write one on every page.
-// "no-cache" still has an ordinary visit ask the server for the page.
-const INSTANT_BACK_PATHS = new Set(["/trips/new", "/explore"]);
-const INSTANT_BACK_CACHE_CONTROL = "private, no-cache, max-age=0, must-revalidate";
-
 // User agents that get a 403 before any other work runs: training-only
 // scrapers, content resellers and SEO-tool crawlers. None of them brings
 // citation surface, and each blocked request saves a function invocation, a
@@ -167,11 +160,6 @@ export async function middleware(request: NextRequest) {
     // not send it and let frame-ancestors do the work.
     if (!allowsThirdPartyFraming(request.nextUrl.pathname)) {
       response.headers.set("X-Frame-Options", "SAMEORIGIN");
-    }
-
-    const pagePath = pathname.replace(/^\/(en|es|it|pt)(?=\/|$)/, "") || "/";
-    if (request.method === "GET" && response.status === 200 && INSTANT_BACK_PATHS.has(pagePath)) {
-      response.headers.set("Cache-Control", INSTANT_BACK_CACHE_CONTROL);
     }
 
     if (!shouldEnforceCsp(pathname)) return response;

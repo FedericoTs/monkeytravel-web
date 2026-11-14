@@ -124,22 +124,3 @@ describe("Server-Timing for the session step", () => {
     expect((await get("/blog/lisbon-in-3-days")).headers.get("server-timing")).toBeNull();
   });
 });
-
-describe("Back on the planner and Explore", () => {
-  const page = (path: string, method = "GET") => middleware(new NextRequest(`https://monkeytravel.app${path}`, { method }));
-
-  it.each(["/trips/new", "/es/trips/new", "/explore", "/pt/explore"])("%s is sent without no-store, so Back can restore it at once", async (path) => {
-    const cacheControl = (await page(path)).headers.get("cache-control");
-    expect(cacheControl).toBe("private, no-cache, max-age=0, must-revalidate");
-  });
-
-  it.each(["/trips", "/trips/3f6c1d2e-0000-4000-8000-000000000000", "/explore/anything"])("%s keeps the framework's own", async (path) => {
-    expect((await page(path)).headers.get("cache-control")).toBeNull();
-  });
-
-  it("a POST or a redirect keeps its own", async () => {
-    expect((await page("/trips/new", "POST")).headers.get("cache-control")).toBeNull();
-    intl.mockImplementationOnce(() => NextResponse.redirect("https://monkeytravel.app/trips/new", 308));
-    expect((await page("/en/trips/new")).headers.get("cache-control")).toBeNull();
-  });
-});
