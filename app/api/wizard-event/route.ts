@@ -32,6 +32,7 @@ import { createRateLimiter } from "@/lib/api/rate-limit";
 import { WIZARD_EVENT_STEPS } from "@/components/wizard/wizardEvents";
 import { writesTelemetry } from "@/lib/analytics/telemetry-env";
 import { readJsonBody } from "@/lib/api/json-body";
+import { wizardField } from "@/lib/wizard/fields";
 
 const BodySchema = z.object({
   step: z.enum(WIZARD_EVENT_STEPS),
@@ -73,6 +74,10 @@ const BodySchema = z.object({
   // document's referrer (host and path) and the URL's utm_source.
   referrer: z.string().trim().max(256).optional(),
   utm_source: z.string().trim().max(64).optional(),
+  // The planner field: on step1_heartbeat rows the one the session was on
+  // last, on abandoned rows the one it touched last. A name the list doesn't
+  // know (a page cached before a field was added) lands without it.
+  field: z.string().trim().max(40).optional().transform(wizardField),
   // The sky test's arm, kept on `result` rows only. Pages cached from the
   // retired crew-first test may still send its arms: accepted, not kept.
   result_variant: z
@@ -218,6 +223,7 @@ export async function POST(request: NextRequest) {
     failure_detail: body.failure_detail || null,
     step1_variant: body.step1_variant ?? null,
     result_variant: body.step === "result" ? (body.result_variant ?? null) : null,
+    field: body.step === "step1_heartbeat" || body.step === "abandoned" ? (body.field ?? null) : null,
     referrer: body.referrer || null,
     utm_source: body.utm_source || null,
     // Only when sent: rows from other steps never name the column.

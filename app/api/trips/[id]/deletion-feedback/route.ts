@@ -3,7 +3,7 @@ import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
 import { readJsonBody } from "@/lib/api/json-body";
-import { DELETION_REASONS } from "@/lib/trips/deletion-reasons";
+import { DELETION_REASONS, deletionSource } from "@/lib/trips/deletion-reasons";
 
 /**
  * POST /api/trips/[id]/deletion-feedback
@@ -39,6 +39,8 @@ interface DeletionFeedbackBody {
   destination?: string;
   trip_age_seconds?: number;
   was_auto_saved?: boolean;
+  /** Where the trip was deleted: my_trips or start_over; anything else is kept as unknown. */
+  source?: string;
 }
 
 const VALID_REASONS = new Set<string>(DELETION_REASONS);
@@ -83,6 +85,7 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
         custom_reason: customReason || null,
         trip_age_seconds: tripAgeSeconds,
         was_auto_saved: Boolean(body.was_auto_saved),
+        source: deletionSource(body.source),
       });
 
     if (error) {

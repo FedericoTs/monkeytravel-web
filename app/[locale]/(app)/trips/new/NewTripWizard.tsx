@@ -1024,6 +1024,7 @@ export default function NewTripPage({
             custom_reason: customReason,
             destination,
             was_auto_saved: wasAutoSaved && !autoSave.keepsSavedTrip,
+            source: "start_over",
           }),
         });
       } catch (err) {

@@ -1,5 +1,6 @@
 "use client";
 
+import type { WizardField } from "@/lib/wizard/fields";
 import type { BudgetTier } from "@/types";
 import type { ChosenTripIntent } from "@/lib/wizard/answers";
 
@@ -176,19 +177,7 @@ export interface TripWizardAbandonedEvent {
    * from "filled everything but didn't submit". Values match
    * `TripWizardFieldInteractedEvent.field`.
    */
-  last_touched_field?:
-    | "destination_autocomplete"
-    | "destination_pill"
-    | "start_date"
-    | "end_date"
-    | "vibe"
-    | "budget"
-    | "pace"
-    | "requirements"
-    | "flexible_dates"
-    | "express_plan"
-    | "read_request"
-    | null;
+  last_touched_field?: WizardField | null;
   /** Did they put something in the destination field by the time they left? */
   had_destination?: boolean;
   /** Did they pick both start AND end date? */
@@ -200,18 +189,7 @@ export interface TripWizardAbandonedEvent {
 export interface TripWizardFieldInteractedEvent {
   step_number: number;
   step_name: string;
-  field:
-    | "destination_autocomplete"
-    | "destination_pill"
-    | "start_date"
-    | "end_date"
-    | "vibe"
-    | "budget"
-    | "pace"
-    | "requirements"
-    | "flexible_dates"
-    | "express_plan"
-    | "read_request";
+  field: WizardField;
   /** First time this field was touched in this step session, or a follow-up? */
   first_touch: boolean;
 }

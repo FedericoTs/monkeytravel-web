@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { landingAttribution, trackWizardEvent, type WizardEventStep } from "@/components/wizard/wizardEvents";
+import { landingAttribution, trackWizardEvent } from "@/components/wizard/wizardEvents";
 import { useDwellHeartbeat } from "@/hooks/useDwellHeartbeat";
 import { funnelDays, funnelTraits } from "@/lib/wizard/plan-funnel";
 import {
@@ -120,7 +120,16 @@ export function useWizardFunnel({
   // vs deliberate struggle) is unmeasurable. A heartbeat while the session
   // sits on step 1 turns them into a time series; the 10s spacing never
   // collides with the wizard-event sink's 1s dedupe bucket.
-  useDwellHeartbeat(step === 1, () => void trackWizardEvent("step1_heartbeat", { locale }));
+  // Each beat also says where the session is: the field it was on last, and
+  // whether a destination and the dates are in. A stall then has a place.
+  useDwellHeartbeat(step === 1, () =>
+    void trackWizardEvent("step1_heartbeat", {
+      locale,
+      field: lastTouchedFieldRef.current ?? undefined,
+      destination: destinationFieldRef.current || undefined,
+      duration_days: funnelDays(startDateRef.current, endDateRef.current),
+    })
+  );
 
   useEffect(() => { stepRef.current = step; }, [step]);
   useEffect(() => { destinationFieldRef.current = destination; }, [destination]);
@@ -178,27 +187,16 @@ export function useWizardFunnel({
         had_dates: Boolean(startDateRef.current && endDateRef.current),
         had_vibes: vibesRef.current.length > 0,
       });
-      // Supabase funnel mirror — terminal `abandoned` state. We use
-      // the same step-name vocabulary as the other wizard events so
-      // SQL funnel queries can self-join the table on
-      // (session_id, step) without name translation.
-      // keepalive=true on the fetch is what makes this survive the
-      // beforeunload / pagehide path on most browsers.
-      const lastStepName: WizardEventStep =
-        stepRef.current === 1
-          ? "step_1_destination_dates"
-          : "step_2_vibes";
+      // Supabase funnel mirror — terminal `abandoned` state. keepalive=true
+      // on the fetch is what makes this survive the beforeunload / pagehide
+      // path on most browsers.
+      // The field touched last answers "which field did people quit on?" in
+      // SQL (wizard_step_events.field), as last_touched_field does in PostHog.
       void trackWizardEvent("abandoned", {
         destination: destinationFieldRef.current || undefined,
         duration_days: funnelDays(startDateRef.current, endDateRef.current),
         locale,
-        // Surface the last in-wizard step the user reached, plus the
-        // last field they touched, so we can answer "which field did
-        // people quit on?" in SQL the same way we already can in
-        // PostHog.
-        last_step: lastStepName,
-        last_touched_field: lastTouchedFieldRef.current ?? undefined,
-        total_time_seconds: totalSeconds,
+        field: lastTouchedFieldRef.current ?? undefined,
       });
     }
 

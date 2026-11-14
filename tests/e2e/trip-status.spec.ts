@@ -174,10 +174,12 @@ test.describe("trip status", () => {
     await expect(card).toHaveCount(0, { timeout: 20_000 });
     const { data: answers, error } = await admin
       .from("trip_deletion_feedback")
-      .select("reason, destination, was_auto_saved")
+      .select("reason, destination, was_auto_saved, source")
       .eq("trip_id", tripId);
     if (error) throw error;
-    expect(answers).toEqual([{ reason: "wrong_dates", destination: "E2E trip status (safe to delete)", was_auto_saved: false }]);
+    expect(answers).toEqual([
+      { reason: "wrong_dates", destination: "E2E trip status (safe to delete)", was_auto_saved: false, source: "my_trips" },
+    ]);
   });
 
   test("cancelling asks first, and a cancelled trip can be restored", async ({ page }) => {
