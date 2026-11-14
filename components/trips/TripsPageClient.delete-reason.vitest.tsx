@@ -103,7 +103,7 @@ describe("deleting a trip from My Trips", () => {
       ["/api/trips/trip-1", "DELETE"],
     ]);
     const sent = JSON.parse(String((fetchMock.mock.calls[0][1] as RequestInit).body));
-    expect(sent).toMatchObject({ reason: "wrong_dates", destination: "Honolulu Trip", was_auto_saved: false });
+    expect(sent).toMatchObject({ reason: "wrong_dates", destination: "Honolulu Trip", was_auto_saved: false, source: "my_trips" });
     expect(sent.trip_age_seconds).toBeGreaterThan(0);
     expect(s.refresh).toHaveBeenCalledTimes(1);
   });
