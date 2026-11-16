@@ -142,39 +142,31 @@ interface HolidayEntry {
    */
   countries?: string[];
   /**
-   * Fixed day of the month (1-31). When set together with the month key,
-   * we know the exact date and can filter holidays that fall outside the
-   * trip's [startDate, endDate] window. Omit for holidays that move year
-   * to year (Easter, Lunar New Year, Mother's Day = 2nd Sunday, etc.) —
-   * those keep the legacy month-only behavior.
+   * Fixed day of the month (1-31). With the month key it dates the holiday, so it can be checked against the
+   * trip's dates. A holiday that moves from year to year (Easter, Lunar New Year, Diwali) isn't listed: shown for
+   * a whole month, it named a holiday the trip didn't have.
    */
-  dayOfMonth?: number;
+  dayOfMonth: number;
 }
 
 export const HOLIDAYS_BY_MONTH: Record<number, HolidayEntry[]> = {
   1: [
     { name: "New Year's Day", dayOfMonth: 1 },
     { name: "Three Kings Day", dayOfMonth: 6, countries: ["ES", "IT", "MX", "AR", "PT"] },
-    { name: "Lunar New Year (varies)", countries: ["CN", "VN", "KR", "SG", "TW", "MY"] },
   ],
   2: [
     { name: "Valentine's Day", dayOfMonth: 14 },
-    { name: "Carnival (varies)", countries: ["BR", "IT", "DE", "PT", "ES", "TT"] },
   ],
   3: [
     { name: "St. Patrick's Day", dayOfMonth: 17, countries: ["IE", "US", "GB", "CA", "AU"] },
-    { name: "Holi (varies)", countries: ["IN", "NP"] },
-    { name: "Las Fallas (Spain)", countries: ["ES"] }, // Mid-March, varies
   ],
   4: [
-    { name: "Easter (varies)" }, // Widely observed in Christian countries
     { name: "King's Day (Netherlands)", dayOfMonth: 27, countries: ["NL"] },
     { name: "Songkran (Thai New Year)", dayOfMonth: 13, countries: ["TH", "LA", "KH"] },
   ],
   5: [
     { name: "Cinco de Mayo", dayOfMonth: 5, countries: ["MX", "US"] },
     { name: "Labor Day", dayOfMonth: 1 }, // Many countries, May 1
-    { name: "Mother's Day (varies)" }, // Many countries, second Sunday — keep loose
   ],
   6: [
     { name: "Summer Solstice", dayOfMonth: 21 },
@@ -184,29 +176,18 @@ export const HOLIDAYS_BY_MONTH: Record<number, HolidayEntry[]> = {
   7: [
     { name: "Independence Day", dayOfMonth: 4, countries: ["US"] },
     { name: "Bastille Day", dayOfMonth: 14, countries: ["FR"] },
-    { name: "Tour de France (varies)", countries: ["FR"] },
   ],
   8: [
     { name: "Ferragosto", dayOfMonth: 15, countries: ["IT"] },
-    { name: "Notting Hill Carnival", countries: ["GB"] }, // Last weekend of August
-    { name: "Edinburgh Fringe", countries: ["GB"] }, // Spans most of August
   ],
-  9: [
-    { name: "Oktoberfest begins", countries: ["DE"] }, // Mid-late September, varies
-    { name: "Mid-Autumn Festival", countries: ["CN", "VN", "KR", "TW", "SG", "MY"] },
-  ],
+  9: [],
   10: [
     { name: "Halloween", dayOfMonth: 31, countries: ["US", "CA", "GB", "IE", "AU", "NZ"] },
-    { name: "Diwali (varies)", countries: ["IN", "NP", "SG", "MY", "GB"] },
-    { name: "Oktoberfest (ongoing)", countries: ["DE"] }, // Runs ~16 days, into early Oct
     { name: "Republic Day (Portugal)", dayOfMonth: 5, countries: ["PT"] },
-    { name: "Sports Day", countries: ["JP"] }, // Second Monday in October
     { name: "Day of the Spanish Nation", dayOfMonth: 12, countries: ["ES"] },
-    { name: "Canadian Thanksgiving", countries: ["CA"] }, // Second Monday in October
   ],
   11: [
     { name: "Day of the Dead", dayOfMonth: 2, countries: ["MX"] },
-    { name: "Thanksgiving", countries: ["US"] }, // Fourth Thursday in November
     { name: "Guy Fawkes Night", dayOfMonth: 5, countries: ["GB"] },
     // Widely observed in Catholic countries + Latin America (Nov 1).
     {
@@ -216,11 +197,9 @@ export const HOLIDAYS_BY_MONTH: Record<number, HolidayEntry[]> = {
     },
     { name: "Singles' Day", dayOfMonth: 11, countries: ["CN"] },
     { name: "Bonfire Night", dayOfMonth: 5, countries: ["GB"] }, // alt name for Guy Fawkes
-    { name: "Diwali (early Nov varies)", countries: ["IN", "NP", "SG", "MY"] },
   ],
   12: [
     { name: "Christmas", dayOfMonth: 25 }, // Widely celebrated
-    { name: "Hanukkah (varies)", countries: ["IL", "US"] },
     { name: "New Year's Eve", dayOfMonth: 31 },
     { name: "Boxing Day", dayOfMonth: 26, countries: ["GB", "CA", "AU", "NZ", "IE"] },
   ],
@@ -394,16 +373,8 @@ export function relevantHolidaysForDestination(
   destination: string,
   month: number,
   /**
-   * Optional trip window. When provided, holidays with a known
-   * `dayOfMonth` only surface if that day falls inside [startDate, endDate].
-   * Holidays without `dayOfMonth` (variable: Easter, Carnival, Mother's Day)
-   * keep the legacy month-only behavior — we don't compute moveable-feast
-   * dates here.
-   *
-   * **Why this exists** — a month-only match would surface "Labor Day"
-   * (May 1) and "Mother's Day" (May 10) on a May 28–30 trip. `dayOfMonth`
-   * on each fixed-date holiday + filtering here removes those false
-   * positives without dropping the variable holidays we can't pin.
+   * Optional trip window. When provided, a holiday surfaces only if its day falls inside [startDate, endDate],
+   * in the year of either end (a trip over New Year spans two).
    */
   tripWindow?: { startDate: string; endDate: string }
 ): string[] {
@@ -421,27 +392,41 @@ export function relevantHolidaysForDestination(
     const start = parseLocal(tripWindow.startDate);
     const end = parseLocal(tripWindow.endDate);
     if (!start || !end) return null;
-    const year = start.getFullYear();
-    return (day: number) => {
-      const holidayDate = new Date(year, month - 1, day);
-      return holidayDate >= start && holidayDate <= end;
-    };
+    const years = [start.getFullYear(), end.getFullYear()];
+    return (day: number) =>
+      years.some((year) => {
+        const holidayDate = new Date(year, month - 1, day);
+        return holidayDate >= start && holidayDate <= end;
+      });
   })();
 
-  return entries
+  return [...entries]
+    .sort((a, b) => a.dayOfMonth - b.dayOfMonth)
     .filter((h) => {
       // Country filter (existing logic).
       if (h.countries && h.countries.length > 0) {
         if (!country) return false;
         if (!h.countries.includes(country)) return false;
       }
-      // Date filter (only when we have both a window AND a fixed day).
-      if (inWindow && typeof h.dayOfMonth === "number") {
-        return inWindow(h.dayOfMonth);
-      }
-      return true;
+      // With the trip's dates, only a holiday that falls inside them.
+      return inWindow ? inWindow(h.dayOfMonth) : true;
     })
     .map((h) => h.name);
+}
+
+// The months a trip touches, in order (one over New Year: 12, then 1), at most twelve. Without an end date, the
+// first month. Null when the start isn't a YYYY-MM-DD date.
+export function tripMonths(startDate: string, endDate?: string): number[] | null {
+  const monthIndex = (s?: string) => {
+    const m = s ? /^(\d{4})-(\d{2})-\d{2}$/.exec(s) : null;
+    return m ? parseInt(m[1], 10) * 12 + parseInt(m[2], 10) - 1 : null;
+  };
+  const first = monthIndex(startDate);
+  if (first === null) return null;
+  const last = Math.max(first, monthIndex(endDate) ?? first);
+  const months: number[] = [];
+  for (let k = first; k <= last && months.length < 12; k++) months.push((k % 12) + 1);
+  return months;
 }
 
 // Build complete seasonal context.
@@ -472,10 +457,8 @@ export function buildSeasonalContext(
   // When endDate is provided, also drops fixed-date holidays outside the
   // [startDate, endDate] window.
   const tripWindow = endDate ? { startDate, endDate } : undefined;
-  const relevantHolidays = relevantHolidaysForDestination(
-    destination,
-    month,
-    tripWindow
+  const relevantHolidays = (tripMonths(startDate, endDate) ?? [month]).flatMap((m) =>
+    relevantHolidaysForDestination(destination, m, tripWindow)
   );
 
   return {
