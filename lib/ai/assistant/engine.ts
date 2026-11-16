@@ -268,6 +268,26 @@ const samePlace = (a: string, b: string) => {
   return shorter >= 10 && editDistance(x, y) <= (shorter >= 16 ? 2 : 1);
 };
 
+// Saying they don't like a place asks for it to go: "I dont like the food at
+// Farm 12", "no me gusta", "non mi piace", "não gosto".
+const DISLIKES = /\b(?:don['’]?t|do not|didn['’]?t|did not)\s+(?:really\s+)?(?:like|love|want)\b|\bnot a fan of\b|\bno\s+(?:me|nos)\s+gust|\bnon\s+(?:mi|ci)\s+piac|\bn[ãa]o\s+gost/iu;
+// What an activity's name says besides the place: "Lunch at Farm 12" is Farm 12.
+const DOING = /^(?:breakfast|brunch|lunch|dinner|drinks|coffee|tea|visit|explore|tour|walk|stroll)\b\s*(?:at|in|on|to|of|through|around|along)?\s+/i;
+
+/** The plan's places the message names, by their own name ("farm 12" names "Lunch at Farm 12"). */
+function placesNamed(message: string, days: ItineraryDay[]): string[] {
+  const said = placeName(message);
+  const names = days.flatMap((d) => (Array.isArray(d.activities) ? d.activities : []).map((a) => a.name)).filter((n): n is string => typeof n === "string");
+  return [
+    ...new Set(
+      names.filter((n) => {
+        const own = placeName(n.replace(DOING, "")).trim();
+        return own.length >= 4 && said.includes(` ${own} `);
+      }),
+    ),
+  ];
+}
+
 /** Whether a name is on several days of the plan ("Breakfast at the hotel"), which it is on purpose. */
 function recursOnPurpose(days: ItineraryDay[]): (name: string) => boolean {
   const key = (name: unknown) => (typeof name === "string" ? name.trim().toLowerCase() : "");
@@ -554,6 +574,16 @@ export function correctionFor(
   }
   if (asksToAdd(input.message) && !asksToRemove(input.message) && dropped.length > 0 && dropped.length <= 2) {
     return `They asked only to add. Keep ${dropped.join(" and ")} and add the new activity alongside, moving times if needed. Take something out only if the day truly can't fit it, and then say which in "reply".`;
+  }
+  // A place they said they don't like stayed while others went: "I dont like
+  // the food at Farm 12" came back with the day's dinner swapped instead.
+  if (dropped.length > 0 && DISLIKES.test(input.message)) {
+    const named = placesNamed(input.message, input.days);
+    const went = (n: string) => dropped.some((d) => d === n || samePlace(d, n));
+    const wrong = dropped.filter((d) => !named.some((n) => d === n || samePlace(d, n)));
+    if (named.length > 0 && !named.some(went) && wrong.length > 0) {
+      return `They asked about ${named.join(" and ")}: change that, as they asked, and keep ${wrong.join(" and ")} as it was.`;
+    }
   }
   // A list of places to add came back short, with no other days to come.
   const missing = rules.list !== false && (o.moreDays?.length ?? 0) === 0 ? missingFromList(input, o.edits) : [];
