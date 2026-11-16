@@ -6,6 +6,11 @@
  * that leaves the fewest of them on such a day. Each date keeps its place and
  * number; the days' contents move. Meals are not asked about: the model's word
  * on a restaurant's closing day is unreliable.
+ *
+ * Holidays close sights whatever their weekday, and a plan puts them there even
+ * when told the holiday (the Louvre on Christmas Day, the Statue of Liberty on
+ * Thanksgiving). So the same question also asks which of the plan's holiday
+ * dates each place is shut on.
  */
 import { SchemaType, type ResponseSchema } from "@/lib/ai/genai-compat";
 import { genAI, withTimeout } from "@/lib/ai/gemini-call";
@@ -16,6 +21,8 @@ export const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday",
 export type Weekday = (typeof WEEKDAYS)[number];
 /** A place's name, lower-cased, to the weekdays it is shut. */
 export type Closings = Map<string, Weekday[]>;
+/** A place's name, lower-cased, to the plan's dates (YYYY-MM-DD) it is shut on besides its weekdays. */
+export type ShutDates = Map<string, string[]>;
 
 type Stop = { name?: string; type?: string };
 type Day = { day_number?: number; date?: string; activities?: Stop[] };
@@ -40,81 +47,123 @@ export function placesToAsk(days: Day[]): string[] {
   return [...places.values()].slice(0, MAX_PLACES);
 }
 
-const SCHEMA: ResponseSchema = {
-  type: SchemaType.OBJECT,
-  properties: {
-    places: {
-      type: SchemaType.ARRAY,
-      items: {
-        type: SchemaType.OBJECT,
-        properties: {
-          n: { type: SchemaType.INTEGER },
-          closed: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING, enum: [...WEEKDAYS] } },
+/**
+ * The plan's dates on which sights close for a holiday whatever their weekday:
+ * Christmas to Epiphany, the first of May, and Thanksgiving (the fourth
+ * Thursday of November). Each is asked about by its date.
+ */
+export function holidayDatesToAsk(days: Day[]): string[] {
+  const dates = new Set<string>();
+  for (const day of days) if (day.date && isHolidayDate(day.date)) dates.add(day.date);
+  return [...dates];
+}
+
+function isHolidayDate(date: string): boolean {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+  if (!m) return false;
+  const [year, month, dom] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  if ((month === 12 && dom >= 24) || (month === 1 && dom <= 6) || (month === 5 && dom === 1)) return true;
+  if (month !== 11) return false;
+  const firstThursday = ((4 - new Date(Date.UTC(year, 10, 1)).getUTCDay() + 7) % 7) + 1;
+  return dom === firstThursday + 21;
+}
+
+function schemaFor(dates: string[]): ResponseSchema {
+  return {
+    type: SchemaType.OBJECT,
+    properties: {
+      places: {
+        type: SchemaType.ARRAY,
+        items: {
+          type: SchemaType.OBJECT,
+          properties: {
+            n: { type: SchemaType.INTEGER },
+            closed: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING, enum: [...WEEKDAYS] } },
+            ...(dates.length > 0 ? { shutOn: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING, enum: dates } } } : {}),
+          },
+          required: ["n", "closed"],
         },
-        required: ["n", "closed"],
       },
     },
-  },
-  required: ["places"],
-};
+    required: ["places"],
+  };
+}
 
 /**
- * Each place's weekly closing days. None when there is no key, or the
- * question fails or takes too long: the plan then keeps its order. The cost
- * goes to the running request's meter, and is returned for a route that sums
- * its own.
+ * Each place's weekly closing days, and which of the given holiday dates it is
+ * shut on. None when there is no key, or the question fails or takes too
+ * long: the plan then keeps its order. The cost goes to the running request's
+ * meter, and is returned for a route that sums its own.
  */
 export async function askClosingDays(
   destination: string,
-  places: string[]
-): Promise<{ closings: Closings; costUsd: number }> {
+  places: string[],
+  dates: string[] = []
+): Promise<{ closings: Closings; shutDates: ShutDates; costUsd: number }> {
   const closings: Closings = new Map();
-  if (places.length === 0 || !process.env.GOOGLE_AI_API_KEY) return { closings, costUsd: 0 };
+  const shutDates: ShutDates = new Map();
+  if (places.length === 0 || !process.env.GOOGLE_AI_API_KEY) return { closings, shutDates, costUsd: 0 };
   const modelName = getModelForPurpose("trip-generation");
   const model = genAI.getGenerativeModel({
     model: modelName,
     generationConfig: {
       responseMimeType: "application/json",
-      responseSchema: SCHEMA,
+      responseSchema: schemaFor(dates),
       maxOutputTokens: 2048,
       thinkingConfig: thinkingConfigFor(modelName),
     },
   });
   const question = [
     `On which days of the week is each of these places in ${destination} closed to visitors, every week? Leave out public holidays and seasonal closures. A place open every day has an empty list.`,
+    ...(dates.length > 0
+      ? [
+          `Also, in "shutOn", the dates among these on which each place is closed to visitors, for a holiday or any other reason: ${dates
+            .map((date) => `${date} (${weekdayOf(date)})`)
+            .join(", ")}. Leave out a date when it is open that day.`,
+        ]
+      : []),
     ...places.map((place, i) => `${i + 1}. ${place}`),
   ].join("\n");
   try {
     const result = await withTimeout(model.generateContent(question), TIMEOUT_MS, "Closing days");
     const usage = result.response.usageMetadata;
     recordGeminiUsage(modelName, usage);
-    const answer = JSON.parse(result.response.text()) as { places?: Array<{ n?: unknown; closed?: unknown }> };
+    const answer = JSON.parse(result.response.text()) as {
+      places?: Array<{ n?: unknown; closed?: unknown; shutOn?: unknown }>;
+    };
     for (const entry of answer.places ?? []) {
       const place = typeof entry.n === "number" ? places[entry.n - 1] : undefined;
+      if (!place) continue;
       const days = Array.isArray(entry.closed)
         ? WEEKDAYS.filter((weekday) => (entry.closed as unknown[]).includes(weekday))
         : [];
-      if (place && days.length > 0) closings.set(placeKey(place), days);
+      if (days.length > 0) closings.set(placeKey(place), days);
+      const shut = Array.isArray(entry.shutOn) ? dates.filter((date) => (entry.shutOn as unknown[]).includes(date)) : [];
+      if (shut.length > 0) shutDates.set(placeKey(place), shut);
     }
-    return { closings, costUsd: geminiCostUsd(modelName, usage) };
+    return { closings, shutDates, costUsd: geminiCostUsd(modelName, usage) };
   } catch (err) {
     console.warn("[closing-days] not checked:", err instanceof Error ? err.message : String(err));
-    return { closings, costUsd: 0 };
+    return { closings: new Map(), shutDates: new Map(), costUsd: 0 };
   }
 }
 
 const weekdayOf = (date?: string): Weekday | null =>
   date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? WEEKDAYS[new Date(`${date}T00:00:00Z`).getUTCDay()] : null;
 
-/** How many of a day's stops are shut on a weekday. */
-function shutOn(day: Day, weekday: Weekday | null, closings: Closings): number {
-  if (!weekday) return 0;
-  return (day.activities ?? []).filter((stop) => stop.name && closings.get(placeKey(stop.name))?.includes(weekday)).length;
+/** How many of a day's stops are shut on a date: on its weekday, or on that date itself. */
+function shutOn(day: Day, date: string | undefined, closings: Closings, shutDates: ShutDates): number {
+  const weekday = weekdayOf(date);
+  return (day.activities ?? []).filter((stop) => {
+    if (!stop.name) return false;
+    const key = placeKey(stop.name);
+    return Boolean((weekday && closings.get(key)?.includes(weekday)) || (date && shutDates.get(key)?.includes(date)));
+  }).length;
 }
 
 /** How many of the days' stops fall on a day they're shut. */
-export function shutStops(days: Day[], closings: Closings): number {
-  return days.reduce((sum, day) => sum + shutOn(day, weekdayOf(day.date), closings), 0);
+export function shutStops(days: Day[], closings: Closings, shutDates: ShutDates = new Map()): number {
+  return days.reduce((sum, day) => sum + shutOn(day, day.date, closings, shutDates), 0);
 }
 
 /** order[slot] is the index of the day whose contents go to that slot. Lower is better: stops shut, ends moved, days moved. */
@@ -178,10 +227,9 @@ function swappedOrder(shut: number[][], movable: boolean[]): number[] {
  * date. Each date keeps its place and number. The same array when nothing
  * moves.
  */
-export function orderAroundClosings<T extends Day>(days: T[], closings: Closings): T[] {
-  if (closings.size === 0 || days.length < 2) return days;
-  const weekdays = days.map((day) => weekdayOf(day.date));
-  const shut = days.map((day) => weekdays.map((weekday) => shutOn(day, weekday, closings)));
+export function orderAroundClosings<T extends Day>(days: T[], closings: Closings, shutDates: ShutDates = new Map()): T[] {
+  if ((closings.size === 0 && shutDates.size === 0) || days.length < 2) return days;
+  const shut = days.map((day) => days.map((slot) => shutOn(day, slot.date, closings, shutDates)));
   const movable = days.map((day) => !(day.activities ?? []).some((stop) => stop.type === "event"));
   const order = days.length <= 7 ? bestOrder(shut, movable) : swappedOrder(shut, movable);
   if (order.every((from, slot) => from === slot)) return days;
@@ -195,13 +243,13 @@ export async function keepOffClosingDays<T extends { days: Day[] }>(
   ask: typeof askClosingDays = askClosingDays
 ): Promise<{ itinerary: T; costUsd: number; asked: number; shutBefore: number; shutAfter: number }> {
   const places = placesToAsk(itinerary.days);
-  const { closings, costUsd } = await ask(destination, places);
-  const days = orderAroundClosings(itinerary.days, closings);
+  const { closings, shutDates, costUsd } = await ask(destination, places, holidayDatesToAsk(itinerary.days));
+  const days = orderAroundClosings(itinerary.days, closings, shutDates);
   return {
     itinerary: days === itinerary.days ? itinerary : { ...itinerary, days },
     costUsd,
     asked: places.length,
-    shutBefore: shutStops(itinerary.days, closings),
-    shutAfter: shutStops(days, closings),
+    shutBefore: shutStops(itinerary.days, closings, shutDates),
+    shutAfter: shutStops(days, closings, shutDates),
   };
 }
