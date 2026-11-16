@@ -86,6 +86,44 @@ describe("pageScriptHashes: one probe per path, verdict remembered", () => {
     expect(await pageScriptHashes(new NextRequest("https://example.com/en/blog"))).toBeNull();
   });
 
+  describe("a page stamped by another deployment", () => {
+    const page = (deployment: string, boot: string) =>
+      `<html><head><script src="/_next/static/chunks/a.js?dpl=${deployment}" async></script><script>${boot}</script></head></html>`;
+    beforeEach(() => vi.stubEnv("NEXT_DEPLOYMENT_ID", "dpl_NEW5xY"));
+    afterEach(() => vi.unstubAllEnvs());
+
+    it("is not pinned: the probe throws, and the next request reads this deployment's page", async () => {
+      respond(page("dpl_OLD7zQ", "boot('old')"), { "content-type": "text/html", "cache-control": "public" });
+      const req = new NextRequest("https://example.com/");
+      await expect(pageScriptHashes(req)).rejects.toThrow(/another deployment/);
+      respond(page("dpl_NEW5xY", "boot('new')"), { "content-type": "text/html", "cache-control": "public" });
+      expect(await pageScriptHashes(req)).toEqual([sha("boot('new')")]);
+      expect(await pageScriptHashes(req)).toEqual([sha("boot('new')")]);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it("is not remembered as a per-request page either, when it answered 404", async () => {
+      respond(page("dpl_OLD7zQ", "notFound()"), { "content-type": "text/html", "cache-control": "public" }, 404);
+      const req = new NextRequest("https://example.com/blog/new-guide");
+      await expect(pageScriptHashes(req)).rejects.toThrow(/another deployment/);
+      respond(page("dpl_NEW5xY", "guide()"), { "content-type": "text/html", "cache-control": "public" });
+      expect(await pageScriptHashes(req)).toEqual([sha("guide()")]);
+    });
+
+    it("leaves a page with no stamp to be read as before", async () => {
+      respond(staticHtml, { "content-type": "text/html", "cache-control": "public" });
+      expect(await pageScriptHashes(new NextRequest("https://example.com/about"))).toEqual([sha("self.__next_f.push([0])")]);
+    });
+  });
+
+  it("takes a stamped page as it comes where this server has no deployment id (a local build)", async () => {
+    vi.stubEnv("NEXT_DEPLOYMENT_ID", "");
+    vi.stubEnv("VERCEL_DEPLOYMENT_ID", "");
+    respond(`<html><script src="/a.js?dpl=dpl_ANY1"></script><script>run()</script></html>`, { "content-type": "text/html", "cache-control": "public" });
+    expect(await pageScriptHashes(new NextRequest("https://example.com/terms"))).toEqual([sha("run()")]);
+    vi.unstubAllEnvs();
+  });
+
   it("lets a failed probe throw so the caller can degrade explicitly", async () => {
     fetchMock.mockRejectedValueOnce(new Error("network down"));
     await expect(pageScriptHashes(new NextRequest("https://example.com/blog"))).rejects.toThrow("network down");
