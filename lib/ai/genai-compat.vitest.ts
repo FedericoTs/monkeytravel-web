@@ -31,6 +31,11 @@ beforeEach(() => {
 });
 
 describe("GoogleGenerativeAI compatibility layer", () => {
+  it("names the API version every request goes to, instead of taking the SDK's default", () => {
+    const client = new GoogleGenerativeAI("key") as unknown as { ai: { opts: Record<string, unknown> } };
+    expect(client.ai.opts).toEqual({ apiKey: "key", apiVersion: "v1beta" });
+  });
+
   it("turns a prompt string into a user turn and the generation config into the SDK config", async () => {
     const model = new GoogleGenerativeAI("key").getGenerativeModel({
       model: "gemini-2.5-flash",
