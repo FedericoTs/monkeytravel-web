@@ -34,6 +34,11 @@ export async function inlineScriptHashes(html: string): Promise<string[]> {
   return hashes.sort();
 }
 
+/** This deployment's id, as Next stamps it on the page's asset addresses (?dpl=…); empty where there is none. */
+function thisDeployment(): string {
+  return process.env.NEXT_DEPLOYMENT_ID || process.env.VERCEL_DEPLOYMENT_ID || "";
+}
+
 /** What the probe learned about a path: its hashes, or null when it is rendered per request. */
 type Verdict = readonly string[] | null;
 
@@ -64,6 +69,17 @@ async function probe(request: NextRequest): Promise<Verdict> {
   // and the caller serves this one response with the permissive policy.
   const res = await fetch(new URL(pathname, origin), { headers, redirect: "manual", signal: AbortSignal.timeout(3000) });
   const html = await res.text();
+  // Right after a deploy, the site's address can still answer from the previous deployment for a
+  // moment. That page loads the previous build's files, so its bootstrap script is not this build's:
+  // pinning it would refuse this deployment's own bootstrap and leave the page without its
+  // JavaScript for as long as this server runs. A page stamped by another deployment is not
+  // remembered, whatever it answered, and the caller serves this one response with the permissive
+  // policy until a probe reads this deployment's page.
+  const ours = thisDeployment();
+  const stamped = html.match(/\bdpl_[A-Za-z0-9]+/g);
+  if (ours && stamped && !stamped.includes(ours)) {
+    throw new Error(`the probe of ${pathname} was answered by another deployment`);
+  }
   const isHtml = (res.headers.get("content-type") ?? "").includes("text/html");
   if (res.status !== 200 || !isHtml) return null;
   // A page rendered per request carries the nonce Next stamped on it, and
