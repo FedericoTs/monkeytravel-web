@@ -869,6 +869,6 @@ describe("a place they don't like", () => {
       expect(correctionFor({ message, days }, wrongEdit), message).toContain("They asked about Lunch at Farm 12");
     // Nothing of the plan named, or no dislike said: left to the other checks.
     expect(correctionFor({ message: "I don't like seafood", days }, wrongEdit) ?? "").not.toContain("They asked about");
-    expect(correctionFor({ message: "after Farm 12 add a coffee", days }, wrongEdit) ?? "").not.toContain("They asked about");
+    expect(correctionFor({ message: "Farm 12 looks great, is it open on Mondays?", days }, wrongEdit) ?? "").not.toContain("They asked about");
   });
 });
