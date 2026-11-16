@@ -4,7 +4,7 @@ import type { ItineraryDay } from "@/types";
 import { buildPrompt } from "./edit-prompt";
 import { composeReply } from "./edit-reply";
 import type { DayEdit } from "./edit-validation";
-import { correctionFor } from "./engine";
+import { correctionFor, correctionWithRule } from "./engine";
 import { asksForFewerDays, asksForMoreDays, asksToAdd, keepsEverything, listedPlaces, talksAboutDayCount } from "./message-asks";
 import { keepSavedActivities, ownWords, takenOut } from "./saved-activities";
 import { outsideTravelTimes, readTravelTimes } from "./travel-times";
@@ -840,6 +840,22 @@ describe("buildPrompt", () => {
 
   it("suggests hotels instead of asking for their names", () => {
     expect(prompt).toContain("Asked where to stay or for hotels: suggest 2-3 concrete areas or well-known hotels");
+  });
+});
+
+describe("the rule a correction names", () => {
+  const days = [day(2, ["Space Needle", "Lunch at Ivar's"]), day(3, ["Lunch at Farm 12", "Pike Place Market", "Dinner at WildFin American Grill"])];
+  const told = { message: "I dont like the food at farm 12, I need places with more gluten free options", days };
+  const wrong = { reply: "I've swapped WildFin for Duke's Seafood.", edits: [edit(3, ["Lunch at Farm 12", "Pike Place Market", "Dinner at Duke's Seafood"])] };
+
+  it("is given with the words it sends, which correctionFor still returns alone", () => {
+    const named = correctionWithRule(told, wrong);
+    expect(named?.rule).toBe("disliked_place");
+    expect(named?.text).toBe(correctionFor(told, wrong));
+  });
+
+  it("is null when the reply broke no rule", () => {
+    expect(correctionWithRule({ message: "what time does the Space Needle open?", days }, { reply: "At 10:00.", edits: [] })).toBeNull();
   });
 });
 

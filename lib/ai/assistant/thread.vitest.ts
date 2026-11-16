@@ -61,7 +61,15 @@ describe("the messages of a turn", () => {
     expect(assistantMessage(reply, { guarded: true, pendingNote: "Not saved yet." })).toMatchObject({ guarded: true, pendingNote: "Not saved yet.", action: undefined });
     const plain = assistantMessage(reply, { guarded: false });
     expect(plain).not.toHaveProperty("guarded");
+    expect(plain).not.toHaveProperty("corrected");
     expect(plain).not.toHaveProperty("pendingNote");
+  });
+});
+
+describe("a correction the engine made", () => {
+  it("is kept on the reply's message, so the rate can be read back", () => {
+    const message = assistantMessage({ summary: "Ready.", cards: [] }, { guarded: false, corrected: { rule: "named_day", answer: "second" } });
+    expect(message.corrected).toEqual({ rule: "named_day", answer: "second" });
   });
 });
 

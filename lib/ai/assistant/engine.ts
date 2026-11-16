@@ -95,6 +95,8 @@ export interface AssistResult {
   /** A new route offered for the whole trip, when the traveller told one. */
   route?: RouteStop[];
   meta: { model: string; costUsd: number; generationTimeMs: number };
+  /** The rule the first answer broke and which answer stood, when it got one more try. */
+  corrected?: Corrected;
 }
 
 type Outcome = ReturnType<typeof validateEdits> & {
@@ -465,14 +467,54 @@ function countsWrong(input: Pick<AssistInput, "message" | "days">, reply: string
   return talksAboutDayCount(input.message) && statedDayCounts(reply).some((n) => n !== (tripLength ?? input.days.length));
 }
 
-/** What a reply got wrong that one more try may fix, or null. Pure; unit-tested. */
-export function correctionFor(
+/** Which of the rules below a reply broke, as the logs record it. */
+export type CorrectionRule =
+  | "over_cap"
+  | "proposal_without_edits"
+  | "yes_to_offer"
+  | "answer_announced"
+  | "fixed_plan"
+  | "city_mixed"
+  | "named_day"
+  | "stay_check_in"
+  | "travel_times"
+  | "longer_unasked"
+  | "trip_length"
+  | "longer_incomplete"
+  | "no_change"
+  | "kept_everything"
+  | "only_add"
+  | "disliked_place"
+  | "list_missing"
+  | "twin_place"
+  | "claimed_change";
+
+/** A rule a reply broke, and what the model is told for its one more try. */
+export interface Correction {
+  rule: CorrectionRule;
+  text: string;
+}
+
+/**
+ * The correction assistTrip made, kept so the logs can count them: the rule the
+ * first answer broke, and which answer stood ("none": no second try, for lack of
+ * time or because it failed).
+ */
+export interface Corrected {
+  rule: CorrectionRule;
+  answer: "first" | "second" | "none";
+}
+
+const said = (rule: CorrectionRule, text: string): Correction => ({ rule, text });
+
+/** What a reply got wrong that one more try may fix, and the rule it broke, or null. Pure; unit-tested. */
+export function correctionWithRule(
   input: Pick<AssistInput, "message" | "history" | "days" | "canAddDays" | "startDate">,
   o: Pick<Outcome, "reply" | "edits" | "tripLength"> &
     Partial<Pick<Outcome, "travelTimes" | "elsewhere" | "lengthRefused" | "moreDays" | "lockedDays" | "overCap" | "wantsMore">>,
   /** Hold the reply to a list of places they asked to add (on by default). */
   rules: { list?: boolean } = {},
-): string | null {
+): Correction | null {
   // Other places offered for the whole trip: there are no days to correct.
   if ((o.elsewhere?.length ?? 0) > 0) return null;
   const current = input.days.length;
@@ -480,20 +522,20 @@ export function correctionFor(
   // 14-day trip was dropped in silence, four times running.
   if (o.overCap) {
     const max = maxTripDays(input.days);
-    return current >= max
+    return said("over_cap", current >= max
       ? `Trips can be at most ${max} days, and this one has ${current}: keep "trip_length" null and add no day. Say so in "reply" in a few words, and offer instead to put what they wanted on one of the days, in place of its lightest part, or to plan those days as a separate trip.`
-      : `Trips can be at most ${max} days, and this one has ${current}: "trip_length" can be ${max} at most. Say so in "reply" in a few words.`;
+      : `Trips can be at most ${max} days, and this one has ${current}: "trip_length" can be ${max} at most. Say so in "reply" in a few words.`);
   }
   const prepared = o.edits.length > 0 || o.tripLength !== undefined;
   if (!prepared && announcesProposal(o.reply)) {
-    return `Your "reply" hands over a change, but "edits" is empty. Put that change in "edits" now, or say plainly in "reply" that you couldn't make it.`;
+    return said("proposal_without_edits", `Your "reply" hands over a change, but "edits" is empty. Put that change in "edits" now, or say plainly in "reply" that you couldn't make it.`);
   }
   const last = input.history?.at(-1);
   if (!prepared && isConfirmation(input.message) && last?.role === "assistant" && (offersChange(last.text) || announcesProposal(last.text))) {
-    return `The traveller said yes to the change your last message offered. Make exactly that change now, in "edits".`;
+    return said("yes_to_offer", `The traveller said yes to the change your last message offered. Make exactly that change now, in "edits".`);
   }
   if (!prepared && announcedButMissing(o.reply)) {
-    return 'Your "reply" announced an answer without giving it. Put the whole answer in "reply" now.';
+    return said("answer_announced", 'Your "reply" announced an answer without giving it. Put the whole answer in "reply" now.');
   }
   // A fixed plan the reply took out, moved or copied is back as it was
   // (validateEdits), and the rest of its day may not fit around it.
@@ -502,7 +544,7 @@ export function correctionFor(
     const plans = (input.days.find((d) => d.day_number === fixed.dayNumber)?.activities ?? [])
       .filter(isLockedActivity)
       .map((a) => `${a.name} at ${a.start_time}`);
-    return `Day ${fixed.dayNumber} has a fixed plan the traveller set: ${plans.join(", ")}. Return it exactly as it is, under its exact name and at its time, on Day ${fixed.dayNumber} only, and plan the rest of that day around it. If they asked to move, change or remove it, leave it as it is and say in "reply" that they can change it themselves in the plan; make the rest of what they asked.`;
+    return said("fixed_plan", `Day ${fixed.dayNumber} has a fixed plan the traveller set: ${plans.join(", ")}. Return it exactly as it is, under its exact name and at its time, on Day ${fixed.dayNumber} only, and plan the rest of that day around it. If they asked to move, change or remove it, leave it as it is and say in "reply" that they can change it themselves in the plan; make the rest of what they asked.`);
   }
   // A trip through several cities: a change puts no place of another city on a
   // day, and a regroup leaves none there, nor for a later part, which can't move
@@ -516,16 +558,16 @@ export function correctionFor(
     .find((x) => !later.has(x.day) || alsoInTheirCity(input.days, o.edits, x).length < x.activities.length);
   if (mixed) {
     const names = mixed.activities.map((a) => a.name).join(", ");
-    return unchanged.has(mixed.day)
+    return said("city_mixed", unchanged.has(mixed.day)
       ? `Day ${mixed.day} is in ${mixed.city}, but it holds places in ${mixed.other}: ${names}. Regrouping keeps each city's places on that city's days: in "edits" now, return Day ${mixed.day} with places in ${mixed.city}, and put those on days in ${mixed.other} where they fit, each once. A place you move to Day ${mixed.day} from another day leaves that day: return that day too, in "edits" or "more_days".`
-      : `Day ${mixed.day} is in ${mixed.city}, but your edits put places in ${mixed.other} on it: ${names}. Each city's places stay on that city's days: move them to days in ${mixed.other}, each once, or swap them for places in ${mixed.city}. Keep every day in its city.`;
+      : `Day ${mixed.day} is in ${mixed.city}, but your edits put places in ${mixed.other} on it: ${names}. Each city's places stay on that city's days: move them to days in ${mixed.other}, each once, or swap them for places in ${mixed.city}. Keep every day in its city.`);
   }
   const day = dayMentioned(input.message);
   if (day && day <= current && o.edits.length > 0 && !o.edits.some((e) => e.day_number === day)) {
-    return `The traveller named Day ${day}. Make the change on Day ${day}, keeping its other activities unless they can't fit. If Day ${day} really can't work, change nothing and say why in "reply", suggesting another day.`;
+    return said("named_day", `The traveller named Day ${day}. Make the change on Day ${day}, keeping its other activities unless they can't fit. If Day ${day} really can't work, change nothing and say why in "reply", suggesting another day.`);
   }
   if (tellsWhereTheyStay(input.message) && !o.edits.some((e) => e.activities.some((a) => CHECK_IN.test(a.name)))) {
-    return `The traveller told you where they are staying. Add a short "Check in at <place>" activity on the first day of that stay (evening, or after their arrival), keeping everything else.`;
+    return said("stay_check_in", `The traveller told you where they are staying. Add a short "Check in at <place>" activity on the first day of that stay (evening, or after their arrival), keeping everything else.`);
   }
   // The days this reply changes, and every day when the message gives a time:
   // that is when the plan must first be fitted to it.
@@ -542,27 +584,27 @@ export function correctionFor(
     ]
       .filter(Boolean)
       .join(", and ");
-    return `Day ${outside.day}: ${when}. ${outside.names.join(", ")} ${outside.names.length > 1 ? "don't" : "doesn't"} fit. Move what matters to a day with room, or leave it out, and say so in "reply".`;
+    return said("travel_times", `Day ${outside.day}: ${when}. ${outside.names.join(", ")} ${outside.names.length > 1 ? "don't" : "doesn't"} fit. Move what matters to a day with room, or leave it out, and say so in "reply".`);
   }
   const recent = [input.message, ...(input.history ?? []).slice(-2).map((t) => t.text)].join("\n");
   // A longer trip nobody asked for, whether its new days came back or not: "I am
   // arriving at 6pm on the 28th" on a trip from the 29th got a new Day 1 over the
   // 29th's plan, and a note that the trip stays at 8 days.
   if (((o.tripLength !== undefined && o.tripLength > current) || o.wantsMore) && !asksForMoreDays(recent, current)) {
-    return `Keep the trip at ${current} days: fit the change into the existing days and say in "reply" what it replaces. Add days only when the traveller asks. If they arrive before Day 1's date, change no day for it, and in "reply" tell them they can change the trip's dates to start that day, which moves every day's plan with it.`;
+    return said("longer_unasked", `Keep the trip at ${current} days: fit the change into the existing days and say in "reply" what it replaces. Add days only when the traveller asks. If they arrive before Day 1's date, change no day for it, and in "reply" tell them they can change the trip's dates to start that day, which moves every day's plan with it.`);
   }
   // How long the trip is comes from its dates: "isn't 28 Nov to 6 Dec 8 days?"
   // got "You're totally right!", and "count, it's 8" a day cut from the trip.
   const cut = cutUnasked(input, o.tripLength);
   if (cut || countsWrong(input, o.reply, o.tripLength)) {
     const wrong = cut ? "Your edits make the trip shorter, which they didn't ask for." : 'Your "reply" gives it another number of days.';
-    return `${tripLengthLine(input.days, input.startDate)} ${wrong} Keep every day and give this count. If they count it differently, say kindly that ${current} days are ${current - 1} nights, day by day with the dates if they ask. Add or remove days only when they ask for that.`;
+    return said("trip_length", `${tripLengthLine(input.days, input.startDate)} ${wrong} Keep every day and give this count. If they count it differently, say kindly that ${current} days are ${current - 1} nights, day by day with the dates if they ask. Add or remove days only when they ask for that.`);
   }
   if (o.tripLength === undefined && input.canAddDays !== false && asksForMoreDays(recent, current) && (o.lengthRefused || claimsLongerTrip(o.reply))) {
-    return `The longer trip didn't come back whole. The trip has ${current} days. Set "trip_length" to the new total, and return every day from the first new one to the new last day, in "edits" or listed in "more_days": new days in the middle of the trip move the later days along. If you can't, change nothing and say why in "reply".`;
+    return said("longer_incomplete", `The longer trip didn't come back whole. The trip has ${current} days. Set "trip_length" to the new total, and return every day from the first new one to the new last day, in "edits" or listed in "more_days": new days in the middle of the trip move the later days along. If you can't, change nothing and say why in "reply".`);
   }
   if (o.edits.length > 0 && o.tripLength === undefined && o.edits.every((e) => leavesDayAsItWas(input.days, e))) {
-    return `Your edits left every day as it was. Make the change the traveller asked for, or say plainly in "reply" that you didn't.`;
+    return said("no_change", `Your edits left every day as it was. Make the change the traveller asked for, or say plainly in "reply" that you didn't.`);
   }
   // Told to keep everything planned ("não remova nada"), now or in their last
   // messages, a day lost activities; or asked only to add, it lost one or two
@@ -570,10 +612,10 @@ export function correctionFor(
   const dropped = takenOut(input.days, o.edits);
   const told = [input.message, ...(input.history ?? []).slice(-4).filter((t) => t.role === "user").map((t) => t.text)].join("\n");
   if (dropped.length > 0 && !asksToRemove(input.message) && keepsEverything(told)) {
-    return `They asked you to keep everything already planned. Keep ${dropped.join(" and ")} and add alongside: a day can hold more activities, so move times rather than take anything out.`;
+    return said("kept_everything", `They asked you to keep everything already planned. Keep ${dropped.join(" and ")} and add alongside: a day can hold more activities, so move times rather than take anything out.`);
   }
   if (asksToAdd(input.message) && !asksToRemove(input.message) && dropped.length > 0 && dropped.length <= 2) {
-    return `They asked only to add. Keep ${dropped.join(" and ")} and add the new activity alongside, moving times if needed. Take something out only if the day truly can't fit it, and then say which in "reply".`;
+    return said("only_add", `They asked only to add. Keep ${dropped.join(" and ")} and add the new activity alongside, moving times if needed. Take something out only if the day truly can't fit it, and then say which in "reply".`);
   }
   // A place they said they don't like stayed while others went: "I dont like
   // the food at Farm 12" came back with the day's dinner swapped instead.
@@ -582,26 +624,31 @@ export function correctionFor(
     const went = (n: string) => dropped.some((d) => d === n || samePlace(d, n));
     const wrong = dropped.filter((d) => !named.some((n) => d === n || samePlace(d, n)));
     if (named.length > 0 && !named.some(went) && wrong.length > 0) {
-      return `They asked about ${named.join(" and ")}: change that, as they asked, and keep ${wrong.join(" and ")} as it was.`;
+      return said("disliked_place", `They asked about ${named.join(" and ")}: change that, as they asked, and keep ${wrong.join(" and ")} as it was.`);
     }
   }
   // A list of places to add came back short, with no other days to come.
   const missing = rules.list !== false && (o.moreDays?.length ?? 0) === 0 ? missingFromList(input, o.edits) : [];
   if (missing.length > 0) {
-    return `These places from their list aren't in your edits: ${missing.join(", ")}. Add each one once, on a day where it fits, keeping everything else, or say in "reply" which can't fit and why.`;
+    return said("list_missing", `These places from their list aren't in your edits: ${missing.join(", ")}. Add each one once, on a day where it fits, keeping everything else, or say in "reply" which can't fit and why.`);
   }
   // A saved place added to a day while the day that has it is left as it was.
   // A regroup takes that day in a later part instead (assistTrip).
   const twin = regroup ? undefined : twinsOf(input.days, o.edits, o.moreDays ?? [])[0];
   if (twin) {
-    return `${twin.name} is already on Day ${twin.from}. To have it on Day ${twin.to}, move it: also return Day ${twin.from} without it. Otherwise leave it where it is and say so in "reply".`;
+    return said("twin_place", `${twin.name} is already on Day ${twin.from}. To have it on Day ${twin.to}, move it: also return Day ${twin.from} without it. Otherwise leave it where it is and say so in "reply".`);
   }
   // Said to be made, with nothing sent: "I've added…" and an empty "edits". A
   // currency request is the page's to answer, with no edits.
   if (!prepared && claimsItineraryChange(o.reply) && !currencyRequested(input.message)) {
-    return `Your "reply" says the plan changes, but "edits" is empty. Put that change in "edits" now, or say plainly in "reply" that you couldn't make it.`;
+    return said("claimed_change", `Your "reply" says the plan changes, but "edits" is empty. Put that change in "edits" now, or say plainly in "reply" that you couldn't make it.`);
   }
   return null;
+}
+
+/** What a reply got wrong that one more try may fix, or null. */
+export function correctionFor(...args: Parameters<typeof correctionWithRule>): string | null {
+  return correctionWithRule(...args)?.text ?? null;
 }
 
 /**
@@ -727,10 +774,11 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
       meta: { model: modelId, costUsd, generationTimeMs: Date.now() - startedAt },
     };
   }
-  const correction = correctionFor(input, outcome);
+  const correction = correctionWithRule(input, outcome);
+  let corrected: Corrected | undefined = correction ? { rule: correction.rule, answer: "none" } : undefined;
   if (correction && Date.now() - startedAt < CORRECTION_DEADLINE_MS) {
     try {
-      const retried = readOutcome(input, await ask(`${prompt}\n\nCORRECTION: ${correction}`, 1), cur);
+      const retried = readOutcome(input, await ask(`${prompt}\n\nCORRECTION: ${correction.text}`, 1), cur);
       // Held to the first reply's travel times too, in case it drops them.
       const times = [...retried.travelTimes, ...outcome.travelTimes];
       const fixed = { ...retried, travelTimes: times };
@@ -738,7 +786,9 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
       const moreOfList =
         missingFromList(input, retried.edits).length < missingFromList(input, outcome.edits).length &&
         !correctionFor(input, fixed, { list: false });
-      if (!correctionFor(input, fixed) || betterThanNothing(input, outcome, retried) || moreOfList) outcome = retried;
+      const better = !correctionFor(input, fixed) || betterThanNothing(input, outcome, retried) || moreOfList;
+      if (better) outcome = retried;
+      corrected = { rule: correction.rule, answer: better ? "second" : "first" };
     } catch (err) {
       console.warn("assistant-anon: correction failed, keeping the first reply:", err instanceof Error ? err.message : err);
     }
@@ -1059,6 +1109,7 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
     tripLength,
     currency,
     ...(outcome.elsewhere.length > 0 ? { elsewhere: outcome.elsewhere } : {}),
+    ...(corrected ? { corrected } : {}),
     meta: { model: modelId, costUsd, generationTimeMs: Date.now() - startedAt },
   };
 }

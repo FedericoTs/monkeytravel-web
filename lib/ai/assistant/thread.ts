@@ -4,6 +4,7 @@ import { isNoRow } from "@/lib/supabase/no-row";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { logWriteError } from "@/lib/supabase/log-write-error";
 import type { AssistantCard, StructuredAssistantResponse } from "@/types";
+import type { Corrected } from "./engine";
 
 /** One message of a trip-assistant thread, as ai_conversations keeps it. */
 export interface AssistantMessage {
@@ -15,6 +16,11 @@ export interface AssistantMessage {
    * read back from ai_conversations.
    */
   guarded?: boolean;
+  /**
+   * The engine's first answer broke one of its rules and got one more try:
+   * which rule, and which answer stood. Kept so the rate can be read back.
+   */
+  corrected?: Corrected;
   /**
    * That the change waits for the Apply button. Beside the reply, not in it:
    * the chat shows it only while the change waits (AIAssistantEnhanced).
@@ -60,7 +66,7 @@ export function userMessage(content: string): AssistantMessage {
  */
 export function assistantMessage(
   reply: StructuredAssistantResponse,
-  { guarded, pendingNote }: { guarded: boolean; pendingNote?: string }
+  { guarded, pendingNote, corrected }: { guarded: boolean; pendingNote?: string; corrected?: Corrected }
 ): AssistantMessage {
   return {
     role: "assistant",
@@ -79,6 +85,7 @@ export function assistantMessage(
         }
       : undefined,
     ...(guarded ? { guarded: true } : {}),
+    ...(corrected ? { corrected } : {}),
     ...(pendingNote ? { pendingNote } : {}),
     timestamp: new Date().toISOString(),
   };

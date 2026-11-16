@@ -110,6 +110,41 @@ describe("assistTrip on a reply that breaks a rule", () => {
   });
 });
 
+// Kept for the logs (anon_assistant_logs.edit, ai_conversations): how often a
+// first answer breaks each rule, and whether the second try was the one shown.
+describe("assistTrip records the correction it made", () => {
+  const onDay1 = { ...input, message: "add a gelato stop on day 1" };
+  const onDay2 = edited(2, ["Day 2 thing", "Gelato at Giolitti"]);
+
+  it("names the rule, and the second answer when that one stood", async () => {
+    generateContent.mockResolvedValueOnce(onDay2).mockResolvedValueOnce(edited(1, ["Day 1 thing", "Gelato at Giolitti"]));
+    expect((await run(onDay1)).corrected).toEqual({ rule: "named_day", answer: "second" });
+  });
+
+  it("says the first answer stood when the second was no better", async () => {
+    generateContent.mockResolvedValueOnce(onDay2).mockResolvedValueOnce(onDay2);
+    expect((await run(onDay1)).corrected).toEqual({ rule: "named_day", answer: "first" });
+  });
+
+  it("says there was no second answer when that try failed", async () => {
+    generateContent.mockResolvedValueOnce(onDay2).mockRejectedValueOnce(overloaded());
+    expect((await run(onDay1)).corrected).toEqual({ rule: "named_day", answer: "none" });
+  });
+
+  it("says there was no second answer when there was no time for one", async () => {
+    const now = vi.spyOn(Date, "now").mockReturnValueOnce(0).mockReturnValue(30_000);
+    generateContent.mockResolvedValueOnce(onDay2);
+    const out = await run(onDay1);
+    now.mockRestore();
+    expect(out.corrected).toEqual({ rule: "named_day", answer: "none" });
+  });
+
+  it("records nothing when the first answer broke no rule", async () => {
+    generateContent.mockResolvedValueOnce(edited(1, ["Day 1 thing", "Gelato at Giolitti"]));
+    expect((await run(onDay1)).corrected).toBeUndefined();
+  });
+});
+
 // The reply says the change is made while "edits" is empty.
 describe("assistTrip on a change it says it made but didn't send", () => {
   const timed = (n: number, names: string[]) =>

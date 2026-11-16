@@ -193,6 +193,18 @@ describe("trip-page assistant: free-form edits", () => {
     expect(recordUsage).toHaveBeenCalledWith(expect.objectContaining({ modelId: "engine-model", costCents: 0.2 }));
   });
 
+  it("keeps on the saved message the correction the engine made, so the rate can be read back", async () => {
+    proposeTripEdits.mockResolvedValue({
+      reply: "Ready: Wigwam on Day 3.",
+      revisedDays: [wigwamDay3],
+      summary: "",
+      corrected: { rule: "named_day", answer: "second" },
+      meta,
+    });
+    await send("adding Wigwam to Day 3");
+    expect(savedAssistantMessage().corrected).toEqual({ rule: "named_day", answer: "second" });
+  });
+
   it("hands the engine a change still waiting on its card, and says when the new one keeps it", async () => {
     proposeTripEdits.mockResolvedValue({ reply: "Ready: Wigwam on Day 3.", revisedDays: [wigwamDay3], summary: "", waitingKept: true, meta });
     const waiting = { days: [wigwamDay3], reason: "Day 3: Wigwam." };

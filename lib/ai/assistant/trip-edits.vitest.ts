@@ -69,6 +69,20 @@ describe("readDisplayCurrency: the page's currency, when sane", () => {
   });
 });
 
+describe("a correction the engine made", () => {
+  it("comes back with the proposal, for the message the thread keeps", async () => {
+    assistTrip.mockResolvedValue({ reply: "Done.", edits: [], corrected: { rule: "only_add", answer: "first" }, meta: { model: "m", costUsd: 0, generationTimeMs: 1 } });
+    const out = await proposeTripEdits({ message: "add a coffee", destination: "Dublin", tripTitle: "Dublin", days: trip(), locale: "en", history: [] });
+    expect(out?.corrected).toEqual({ rule: "only_add", answer: "first" });
+  });
+
+  it("is absent when the engine made none", async () => {
+    assistTrip.mockResolvedValue({ reply: "Done.", edits: [], meta: { model: "m", costUsd: 0, generationTimeMs: 1 } });
+    const out = await proposeTripEdits({ message: "add a coffee", destination: "Dublin", tripTitle: "Dublin", days: trip(), locale: "en", history: [] });
+    expect(out).not.toHaveProperty("corrected");
+  });
+});
+
 describe("conversationTurns", () => {
   it("passes the last six turns with text, and before them the traveller's own messages, oldest first", () => {
     const messages = [

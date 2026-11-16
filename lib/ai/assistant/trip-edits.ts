@@ -11,7 +11,7 @@
 
 import type { AssistTurn } from "./edit-prompt";
 import type { DayEdit } from "./edit-validation";
-import { assistTrip } from "./engine";
+import { assistTrip, type Corrected } from "./engine";
 import { lengthUnchangedNote, ownerAddsDaysReply, waitingKeptNote } from "@/lib/ai/assistant/honesty";
 import type { DisplayCurrency } from "@/lib/ai/assistant/plan-costs";
 import { addDaysISO, computeExtendedEndDate } from "@/lib/ai/assistant/structural";
@@ -180,6 +180,8 @@ export interface TripEditProposal {
   /** The currency the traveller asked to see prices in: the page switches to it. */
   currency?: string;
   meta: { model: string; costUsd: number; generationTimeMs: number };
+  /** The rule the engine's first answer broke, and which answer stood (engine.ts). */
+  corrected?: Corrected;
 }
 
 /** Ask the engine. */
@@ -268,6 +270,7 @@ export async function proposeTripEdits(input: {
       : summary,
     ...(waitingKept ? { waitingKept: true as const } : {}),
     ...(result.currency ? { currency: result.currency } : {}),
+    ...(result.corrected ? { corrected: result.corrected } : {}),
     meta: result.meta,
   };
 }
