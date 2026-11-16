@@ -33,6 +33,7 @@ import {
   type Closings,
   type ShutDates,
 } from "./closing-days";
+import type { Move, WordDay } from "./moved-day-words";
 
 type Stop = [name: string, type: string];
 const day = (n: number, date: string, stops: Stop[]) => ({
@@ -301,5 +302,43 @@ describe("a plan kept off its closing days", () => {
     );
     expect(names(result.itinerary.days)[1]).toBe("Musée d'Orsay");
     expect(result).toMatchObject({ shutBefore: 1, shutAfter: 0 });
+  });
+
+  it("hands the days it moved to be re-worded, with the dates they were written for", async () => {
+    const plan = {
+      days: [
+        day(1, "2026-12-24", [["Sainte-Chapelle", "landmark"]]),
+        day(2, "2026-12-25", [["Louvre Museum", "museum"]]),
+        day(3, "2026-12-26", [["Musée d'Orsay", "museum"]]),
+        day(4, "2026-12-27", [["Montmartre", "landmark"]]),
+      ],
+    };
+    const ask = vi.fn(async () => ({ closings: new Map(), shutDates: shutDates([["Louvre Museum", ["2026-12-25"]]]), costUsd: 0.0004 }));
+    const reword = vi.fn(async <T extends WordDay>(days: T[], _moves: Move[], _destination: string) => ({
+      days: days.map((d) => ({ ...d, theme: `${d.theme} again` }) as T),
+      costUsd: 0.0002,
+      reworded: 1,
+    }));
+    // A mock of a generic function is not assignable to it as typed: the cast is for the type checker only.
+    const result = await keepOffClosingDays(plan, "Paris", ask, reword as unknown as NonNullable<Parameters<typeof keepOffClosingDays>[3]>);
+    expect(reword).toHaveBeenCalledTimes(1);
+    expect(reword.mock.calls[0][1]).toEqual([
+      { slot: 1, from: "2026-12-26" },
+      { slot: 2, from: "2026-12-25" },
+    ]);
+    expect(reword.mock.calls[0][2]).toBe("Paris");
+    expect(names(reword.mock.calls[0][0] as typeof plan.days)).toEqual(["Sainte-Chapelle", "Musée d'Orsay", "Louvre Museum", "Montmartre"]);
+    expect(result.itinerary.days.map((d) => d.theme)).toEqual(["theme 1 again", "theme 3 again", "theme 2 again", "theme 4 again"]);
+    expect(result.costUsd).toBeCloseTo(0.0006, 10);
+    expect(result).toMatchObject({ reworded: 1, shutBefore: 1, shutAfter: 0 });
+  });
+
+  it("asks for no re-wording when no day moves", async () => {
+    const reword = vi.fn();
+    const plan = { days: seville() };
+    const result = await keepOffClosingDays(plan, "Seville", async () => ({ closings: new Map(), shutDates: new Map(), costUsd: 0 }), reword);
+    expect(reword).not.toHaveBeenCalled();
+    expect(result.itinerary).toBe(plan);
+    expect(result.reworded).toBe(0);
   });
 });
