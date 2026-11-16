@@ -378,6 +378,20 @@ describe("findLandmarkPhoto", () => {
     expect(searches.every((s) => s.includes("nearcoord"))).toBe(true);
   });
 
+  it("searches a meal by all of its name's words only", async () => {
+    // Only the any-word search would find it, and a meal no longer makes that search.
+    found["Trattoria Mario"] = [];
+    found["Trattoria OR Mario"] = ["Q13"];
+    items.Q13 = { labels: ["Trattoria Mario"], at: [43.776, 11.2537], images: { P18: ["Mario.jpg"] } };
+    files = [photo("Mario.jpg")];
+    expect(await findLandmarkPhoto({ names: ["Trattoria Mario"], lat: 43.776, lng: 11.2537, meal: true }, signal)).toBeNull();
+    expect(searches).toEqual(["Trattoria Mario haswbstatement:P18 nearcoord:1500m,43.77600,11.25370"]);
+    // A sight named alike still gets the any-word search.
+    searches.length = 0;
+    await findLandmarkPhoto({ names: ["Trattoria Mario"], lat: 43.776, lng: 11.2537 }, signal);
+    expect(searches.some((s) => s.startsWith("Trattoria OR Mario"))).toBe(true);
+  });
+
   it("finds nothing for a meal named like the town it is in", async () => {
     found["Ciudad Condal"] = ["Q8"];
     items.Q8 = { labels: ["Barcelona"], aliases: ["Ciudad Condal"], at: [41.3825, 2.1769], people: 1620343, images: { P18: ["Sagrada.jpg"] } };
