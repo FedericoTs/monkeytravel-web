@@ -468,7 +468,26 @@ function countsWrong(input: Pick<AssistInput, "message" | "days">, reply: string
 }
 
 /** Which of the rules below a reply broke, as the logs record it. */
-export type CorrectionRule = "over_cap" | "proposal_without_edits" | "yes_to_offer" | "answer_announced" | "fixed_plan" | "city_mixed" | "named_day" | "stay_check_in" | "travel_times" | "longer_unasked" | "trip_length" | "longer_incomplete" | "no_change" | "kept_everything" | "only_add" | "disliked_place" | "list_missing" | "twin_place" | "claimed_change";
+export type CorrectionRule =
+  | "over_cap"
+  | "proposal_without_edits"
+  | "yes_to_offer"
+  | "answer_announced"
+  | "fixed_plan"
+  | "city_mixed"
+  | "named_day"
+  | "stay_check_in"
+  | "travel_times"
+  | "longer_unasked"
+  | "trip_length"
+  | "longer_incomplete"
+  | "no_change"
+  | "kept_everything"
+  | "only_add"
+  | "disliked_place"
+  | "list_missing"
+  | "twin_place"
+  | "claimed_change";
 
 /** A rule a reply broke, and what the model is told for its one more try. */
 export interface Correction {
