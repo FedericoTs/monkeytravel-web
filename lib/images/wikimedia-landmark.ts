@@ -287,13 +287,15 @@ async function leadPhotoNames(sitelinks: Record<string, { title?: string }>, sig
 export async function findLandmarkPhoto(q: LandmarkQuery, signal: AbortSignal): Promise<CommonsFile | null> {
   const variants = nameVariants(q.names, q.meal);
   if (!variants.length) return null;
-  // All of the name's words first; any of them when that finds nothing named alike.
+  // All of the name's words first; for a sight, any of them when that finds
+  // nothing named alike. A meal stops there: Wikidata knows few restaurants,
+  // and its searches are the ones it turns away when they come too fast.
   let ranked: { id: string; score: number }[] = [];
   // Then, for a sight, all of its words anywhere: Wikidata's map search leaves
   // some places out (Ponte Vecchio), and an item's own coordinates still decide
   // below, among more of the places that share the name.
   let tries = 2;
-  for (const pass of q.meal ? (["all", "any"] as const) : (["all", "any", "anywhere"] as const)) {
+  for (const pass of q.meal ? (["all"] as const) : (["all", "any", "anywhere"] as const)) {
     const any = pass === "any";
     const ids = new Set<string>();
     for (const v of variants.slice(0, 2)) {
