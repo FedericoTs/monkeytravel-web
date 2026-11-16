@@ -66,10 +66,18 @@ describe("words tied to a date", () => {
       "Quinta-feira no Chiado",
       "Museums and New Year's Eve panorama",
       "Thanksgiving parade",
+      "Museum Masterpieces & NYE Traditions",
+      "Hogmanay in the Old Town",
+      "St. Stephen's Day walk",
+      "Hatsumode at Meiji Jingu",
+      "Shōgatsu lunch",
+      "Oshogatsu foods",
+      "Ōmisoka soba in Asakusa",
+      "Omisoka bells",
     ]) {
       expect(hasDatedWords(text), text).toBe(true);
     }
-    for (const text of ["Old town and the river", "The smartest way in", "Mercato Centrale", "Quinta da Regaleira", "Fondation Louis Vuitton", "", undefined]) {
+    for (const text of ["Old town and the river", "The smartest way in", "Nyerere Road", "Mercato Centrale", "Quinta da Regaleira", "Fondation Louis Vuitton", "", undefined]) {
       expect(hasDatedWords(text), String(text)).toBe(false);
     }
   });
