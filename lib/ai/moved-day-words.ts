@@ -25,7 +25,13 @@ export type WordDay = {
 /** A day the reorder moved: where it is in the plan now, and the date its words were written for. */
 export type Move = { slot: number; from?: string };
 
-/** Weekdays, and the holidays from Christmas to Epiphany, the first of May and Thanksgiving, in the plan's four languages. */
+/**
+ * Weekdays, and the holidays from Christmas to Epiphany, the first of May and
+ * Thanksgiving, in the plan's four languages, with the short and local names
+ * plans use for them ("NYE", Hogmanay, Japan's shōgatsu and ōmisoka). A word
+ * starting with a letter outside A-Z is matched from its first plain letter
+ * ("misoka" in "Ōmisoka"): a word boundary is only seen before plain letters.
+ */
 const DATED_WORDS = new RegExp(
   [
     "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
@@ -33,6 +39,7 @@ const DATED_WORDS = new RegExp(
     "lunes", "martes", "mi[eé]rcoles", "jueves", "viernes", "s[aá]bado", "domingo",
     "segunda-feira", "ter[cç]a-feira", "quarta-feira", "quinta-feira", "sexta-feira",
     "christmas", "xmas", "boxing day", "new year", "epiphany", "thanksgiving", "may day", "labou?r day",
+    "nye\\b", "hogmanay", "st\\.? stephen", "hatsum", "o?sh[oō]gatsu", "omisoka", "misoka",
     "natal", "vigilia", "santo stefano", "capodanno", "san silvestro", "epifan", "befana", "primo maggio",
     "festa dei lavoratori", "ringraziamento", "navid", "nochebuena", "nochevieja", "a[nñ]o nuevo", "reyes",
     "acci[oó]n de gracias", "d[ií]a del trabajo", "v[eé]spera", "consoada", "r[eé]veillon", "ano novo",
@@ -157,6 +164,7 @@ export async function rewordMovedDays<T extends WordDay>(
       }
       return copy as T;
     });
+    console.info(`[moved-day-words] re-worded ${rewritten.size} of ${spots.length} text(s) for "${destination}"`);
     return { days: next, costUsd, reworded: rewritten.size };
   } catch (err) {
     console.warn("[moved-day-words] not re-worded:", err instanceof Error ? err.message : String(err));
