@@ -198,7 +198,12 @@ export async function POST(request: NextRequest) {
         : null;
     const previousAsk = conversation.messages.filter((m) => m.role === "user").at(-1)?.content;
     const askedDates = assistantRole === "owner" && tripSpan ? askedTripDates(message, previousAsk, tripSpan) : null;
-    const reply = offerTripDates(assistantMessage(parsedResponse, honesty), askedDates, tripSpan, userLanguage);
+    const reply = offerTripDates(
+      assistantMessage(parsedResponse, { ...honesty, corrected: tripEdits?.corrected }),
+      askedDates,
+      tripSpan,
+      userLanguage,
+    );
     await appendTurn(supabase, conversation, [userMessage(message), reply]);
 
     // The change waiting for the user's confirm.

@@ -221,7 +221,7 @@ export async function POST(request: NextRequest) {
       reply: result.reply,
       // day_number stays the first edited day, so existing queries still read it.
       edit:
-        result.edits.length > 0 || result.tripLength !== undefined || result.currency || result.elsewhere || result.route
+        result.edits.length > 0 || result.tripLength !== undefined || result.currency || result.elsewhere || result.route || result.corrected
           ? {
               day_number: result.edits[0]?.day_number ?? null,
               days: result.edits.map((e) => e.day_number),
@@ -229,6 +229,7 @@ export async function POST(request: NextRequest) {
               ...(result.currency ? { currency: result.currency } : {}),
               ...(result.elsewhere ? { elsewhere: result.elsewhere.map(placeLabel) } : {}),
               ...(result.route ? { route: result.route.map((s) => `${placeLabel(s)}: ${s.days}`) } : {}),
+              ...(result.corrected ? { corrected: result.corrected } : {}),
               ...(body.autoApply && (result.edits.length > 0 || result.tripLength !== undefined) ? { auto_applied: true } : {}),
             }
           : undefined,
