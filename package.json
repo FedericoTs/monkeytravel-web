@@ -57,7 +57,7 @@
     "gray-matter": "^4.0.3",
     "jspdf": "^4.2.1",
     "lucide-react": "^1.72.0",
-    "nanoid": "^5.1.6",
+    "nanoid": "^6.0.2",
     "next": "^16.4.6",
     "next-intl": "^4.15.1",
     "posthog-js": "^1.444.0",
