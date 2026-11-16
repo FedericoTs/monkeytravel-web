@@ -24,6 +24,17 @@ describe("mendJson", () => {
     expect(mendJson('{"tips":["one" "two"],"more":[[1] [2]]}').value).toEqual({ tips: ["one", "two"], more: [[1], [2]] });
   });
 
+  it("writes a line break, a tab or another control character typed inside a string as its escape", () => {
+    expect(mendJson('{"tip":"Book ahead.\nGo early","note":"a\tb"}')).toEqual({
+      value: { tip: "Book ahead.\nGo early", note: "a\tb" },
+      mends: 2,
+    });
+    expect(mendJson('{"a":"x\r\ny"}').value).toEqual({ a: "x\r\ny" });
+    expect(mendJson('{"a":"x\u0001y"}').value).toEqual({ a: "x\u0001y" });
+    // Outside a string it is no slip of this kind.
+    expect(() => mendJson('{"a":1\u0001}')).toThrow(SyntaxError);
+  });
+
   it("throws the parser's first error when the text is broken some other way", () => {
     const stray = '{"address":ოფ Flat 4,"x":1}';
     expect(() => mendJson(stray)).toThrow(/Unexpected token/);
