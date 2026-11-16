@@ -4,7 +4,7 @@ slug: "solar-eclipse-2027"
 description: "Por dónde pasa el eclipse del 2 de agosto de 2027, qué lugares se quedan fuera por poco (Sevilla, Granada, Asuán, Lampedusa) y horas de totalidad, altura del Sol y tiempo en Cádiz, Ceuta, Melilla, la Costa del Sol, Tánger y Luxor, además de qué reservar primero y qué verás desde casa."
 author: "Emanuela P."
 publishedAt: "2026-11-06"
-updatedAt: "2026-11-06"
+updatedAt: "2026-11-16"
 category: "Seasonal Travel"
 tags: ["estacional","mejores destinos","planificación de viajes"]
 image: "/images/blog/solar-eclipse-2027.jpg"
@@ -42,6 +42,10 @@ Las duraciones proceden del [IGN](https://astronomia.ign.es/en/eclipses-de-sol-y
 
 [La tabla de la NASA sobre la trayectoria](https://eclipse.gsfc.nasa.gov/SEpath/SEpath2001/SE2027Aug02Tpath.html) muestra una franja de 236 km (147 millas) de ancho en el Estrecho y de 258 km (160 millas) en Egipto.
 
+[![Mapa del eclipse total de Sol del 2 de agosto de 2027: una franja de unos 240 km de ancho cruza el sur de España y el norte de Marruecos, y después Argelia, Túnez, Libia, Egipto, Arabia Saudí, Yemen y Somalia. Dentro: Tánger 4:50, Orán 5:07, Sfax 5:39, Bengasi 6:09, Luxor 6:20, Yeda 5:56. Justo fuera: Argel, Túnez, El Cairo y Asuán.](/images/blog/solar-eclipse-2027-path-es.svg)](https://monkeytravel.app/images/blog/solar-eclipse-2027-path-es.svg)
+
+*Por dónde pasa la sombra completa de la Luna el 2 de agosto de 2027, con la duración de la totalidad en varios puntos del camino.*
+
 - **España:** Ceuta, Melilla, casi toda la provincia de Cádiz, buena parte de la de Málaga y los bordes sur de Granada y Almería, según el IGN. La totalidad cae aproximadamente entre las 10:45 y las 10:53 CEST.
 - **Gibraltar:** 4:26 desde las 10:45 CEST.
 - **Marruecos:** Tánger 4:50, Tetuán 4:51, Chefchaouen 4:13, Alhucemas 4:25, Nador 4:14.
@@ -57,6 +61,10 @@ Las duraciones proceden del [IGN](https://astronomia.ign.es/en/eclipses-de-sol-y
 ## Cerca del límite: quién ve la totalidad y quién se queda fuera
 
 Aquí es donde la gente pierde dinero. Cerca del límite, la totalidad se acorta deprisa y luego desaparece, y un 99% no es totalidad: fuera de la franja, dice la [American Astronomical Society](https://eclipse.aas.org/eye-safety), nunca es seguro mirar sin filtro.
+
+[![Mapa del estrecho de Gibraltar el 2 de agosto de 2027: el borde norte de la totalidad pasa justo al norte de Jerez y Málaga y justo al sur de la ciudad de Almería. Dentro: Cádiz 2:54, Conil 4:01, Tarifa 4:38, Gibraltar 4:26, Estepona 3:37, Marbella 3:17, Málaga 1:48, Ceuta 4:48, Tánger 4:50, Tetuán 4:51, Chefchaouen 4:13, Alhucemas 4:25, Melilla 4:34. Justo fuera: Sevilla, Granada y Almería.](/images/blog/solar-eclipse-2027-strait-es.svg)](https://monkeytravel.app/images/blog/solar-eclipse-2027-strait-es.svg)
+
+*La provincia de Cádiz, la Costa del Sol desde Málaga hacia el oeste, Gibraltar, Ceuta, Melilla y el norte de Marruecos quedan dentro de la franja; Sevilla, Granada y la ciudad de Almería, justo fuera.*
 
 | Lugar | Veredicto | Qué verás | Mejor opción más cercana |
 |---|---|---|---|
