@@ -11,11 +11,15 @@
  * when told the holiday (the Louvre on Christmas Day, the Statue of Liberty on
  * Thanksgiving). So the same question also asks which of the plan's holiday
  * dates each place is shut on.
+ *
+ * A moved day's words were written for its old date; those that name it are
+ * re-worded for the new one (lib/ai/moved-day-words.ts).
  */
 import { SchemaType, type ResponseSchema } from "@/lib/ai/genai-compat";
 import { genAI, withTimeout } from "@/lib/ai/gemini-call";
 import { getModelForPurpose, thinkingConfigFor } from "@/lib/ai/model-router";
 import { geminiCostUsd, recordGeminiUsage } from "@/lib/ai/gemini-cost";
+import { rewordMovedDays, type WordDay } from "@/lib/ai/moved-day-words";
 
 export const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
 export type Weekday = (typeof WEEKDAYS)[number];
@@ -24,8 +28,7 @@ export type Closings = Map<string, Weekday[]>;
 /** A place's name, lower-cased, to the plan's dates (YYYY-MM-DD) it is shut on besides its weekdays. */
 export type ShutDates = Map<string, string[]>;
 
-type Stop = { name?: string; type?: string };
-type Day = { day_number?: number; date?: string; activities?: Stop[] };
+type Day = WordDay;
 
 /** The kinds of stop asked about. */
 const ASKED = new Set(["museum", "landmark", "attraction", "market", "entertainment", "tour", "spa", "activity"]);
@@ -221,35 +224,54 @@ function swappedOrder(shut: number[][], movable: boolean[]): number[] {
 }
 
 /**
- * The days in the order that leaves the fewest stops on a day they're shut;
- * among orders as good, the one that keeps the first and last days in place,
- * then the one that moves fewest days. A day with a dated event keeps its
- * date. Each date keeps its place and number. The same array when nothing
- * moves.
+ * Where each day's contents go: order[slot] is the day whose contents take
+ * that slot's date. The order that leaves the fewest stops on a day they're
+ * shut; among orders as good, the one that keeps the first and last days in
+ * place, then the one that moves fewest days. A day with a dated event keeps
+ * its date.
  */
-export function orderAroundClosings<T extends Day>(days: T[], closings: Closings, shutDates: ShutDates = new Map()): T[] {
-  if ((closings.size === 0 && shutDates.size === 0) || days.length < 2) return days;
+export function closingOrder(days: Day[], closings: Closings, shutDates: ShutDates = new Map()): number[] {
+  if ((closings.size === 0 && shutDates.size === 0) || days.length < 2) return days.map((_, i) => i);
   const shut = days.map((day) => days.map((slot) => shutOn(day, slot.date, closings, shutDates)));
   const movable = days.map((day) => !(day.activities ?? []).some((stop) => stop.type === "event"));
-  const order = days.length <= 7 ? bestOrder(shut, movable) : swappedOrder(shut, movable);
+  return days.length <= 7 ? bestOrder(shut, movable) : swappedOrder(shut, movable);
+}
+
+/** The days in an order. Each date keeps its place and number; the same array when nothing moves. */
+function inOrder<T extends Day>(days: T[], order: number[]): T[] {
   if (order.every((from, slot) => from === slot)) return days;
   return order.map((from, slot) => ({ ...days[from], day_number: days[slot].day_number, date: days[slot].date }));
 }
 
-/** A plan with its days in the order that keeps its places off their closing days, and what was found. */
+/** The days in their closing order (above). */
+export function orderAroundClosings<T extends Day>(days: T[], closings: Closings, shutDates: ShutDates = new Map()): T[] {
+  return inOrder(days, closingOrder(days, closings, shutDates));
+}
+
+/**
+ * A plan with its days in the order that keeps its places off their closing
+ * days, the moved days' words that name their old date re-worded, and what
+ * was found.
+ */
 export async function keepOffClosingDays<T extends { days: Day[] }>(
   itinerary: T,
   destination: string,
-  ask: typeof askClosingDays = askClosingDays
-): Promise<{ itinerary: T; costUsd: number; asked: number; shutBefore: number; shutAfter: number }> {
+  ask: typeof askClosingDays = askClosingDays,
+  reword: typeof rewordMovedDays = rewordMovedDays
+): Promise<{ itinerary: T; costUsd: number; asked: number; shutBefore: number; shutAfter: number; reworded: number }> {
   const places = placesToAsk(itinerary.days);
   const { closings, shutDates, costUsd } = await ask(destination, places, holidayDatesToAsk(itinerary.days));
-  const days = orderAroundClosings(itinerary.days, closings, shutDates);
+  const order = closingOrder(itinerary.days, closings, shutDates);
+  const moves = order.flatMap((from, slot) => (from === slot ? [] : [{ slot, from: itinerary.days[from].date }]));
+  const ordered = inOrder(itinerary.days, order);
+  const words = moves.length > 0 ? await reword(ordered, moves, destination) : { days: ordered, costUsd: 0, reworded: 0 };
+  const days = words.days;
   return {
     itinerary: days === itinerary.days ? itinerary : { ...itinerary, days },
-    costUsd,
+    costUsd: costUsd + words.costUsd,
     asked: places.length,
     shutBefore: shutStops(itinerary.days, closings, shutDates),
     shutAfter: shutStops(days, closings, shutDates),
+    reworded: words.reworded,
   };
 }
