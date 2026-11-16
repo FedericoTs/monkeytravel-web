@@ -213,7 +213,10 @@ export class GoogleGenerativeAI {
   private readonly ai: GoogleGenAI;
 
   constructor(apiKey: string) {
-    this.ai = new GoogleGenAI({ apiKey });
+    // The API version is named here rather than left to the SDK: its default moved from v1beta to v1
+    // in version 3, and v1beta is what every model, setting and structured output here runs on.
+    // Moving to v1 is its own change, with live plans and assistant replies read before and after.
+    this.ai = new GoogleGenAI({ apiKey, apiVersion: "v1beta" });
   }
 
   getGenerativeModel(params: ModelParams): GenerativeModel {
