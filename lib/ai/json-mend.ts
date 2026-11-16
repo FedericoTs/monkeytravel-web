@@ -1,9 +1,10 @@
 /**
- * The model's JSON with the two slips it makes mid-reply mended, where the
- * parser says exactly where they are: a double quote left unescaped inside a
- * string (`"the "best" view"`) and a comma left out between two items
- * (`{…}{…}`). One mend per parse, at the parser's position, so text that
- * parses is never touched. Anything else is thrown as JSON.parse throws it.
+ * The model's JSON with the slips it makes mid-reply mended, where the parser
+ * says exactly where they are: a double quote left unescaped inside a string
+ * (`"the "best" view"`), a comma left out between two items (`{…}{…}`), and a
+ * line break or tab typed as it is inside a string. One mend per parse, at the
+ * parser's position, so text that parses is never touched. Anything else is
+ * thrown as JSON.parse throws it.
  */
 
 /** The parser's own pointer to the first character it couldn't take. */
@@ -11,8 +12,14 @@ const POSITION = /in JSON at position (\d+)/;
 /** More slips than this in one reply is no slip: the reply is broken. */
 const MENDS_MAX = 20;
 
-/** The text with the slip at `at` mended, or null when it isn't one of the two. */
+/** How a control character is written inside a JSON string. */
+const ESCAPES: Record<string, string> = { "\n": "\\n", "\r": "\\r", "\t": "\\t" };
+const escapeOf = (c: string) => ESCAPES[c] ?? `\\u${c.charCodeAt(0).toString(16).padStart(4, "0")}`;
+
+/** The text with the slip at `at` mended, or null when it isn't one of them. */
 function mendAt(text: string, at: number): string | null {
+  // A line break or another control character inside a string: written as its escape.
+  if (at < text.length && text.charCodeAt(at) < 0x20) return `${text.slice(0, at)}${escapeOf(text[at])}${text.slice(at + 1)}`;
   let before = at - 1;
   while (before >= 0 && /\s/.test(text[before])) before--;
   const prev = text[before];
