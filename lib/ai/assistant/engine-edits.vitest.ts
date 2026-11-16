@@ -541,6 +541,13 @@ describe("buildPrompt", () => {
     expect(prompt).toContain("tell them they can change the trip's dates to start that day, which moves every day's plan with it.");
   });
 
+  // On a road trip asked to use car trains and ferries, a reply added a ferry between two cities no ferry joins.
+  it("adds a ferry or car train only on a route one really runs, and says what to check otherwise", () => {
+    const prompt = buildPrompt({ message: "il viaggio sarà in auto, considera anche treni dove posso caricare la macchina", destination: "Berlino → Capo Nord", tripTitle: "Capo Nord", days: trip(), locale: "it" });
+    expect(prompt).toContain("A ferry or car train you add must be a regular service on that exact route: never invent one.");
+    expect(prompt).toContain(`When you're not sure one runs, don't add it: say in "reply" what to check.`);
+  });
+
   it("asks where each activity is, so a new stop can be put on the map", () => {
     const prompt = buildPrompt({ message: "add a fado show", destination: "Lisbon", tripTitle: "Lisbon", days: trip(), locale: "en" });
     expect(prompt).toContain('"coordinates": { "lat": <latitude, 6 decimals>, "lng": <longitude, 6 decimals> }');
