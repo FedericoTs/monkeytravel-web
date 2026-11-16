@@ -141,6 +141,8 @@ interface ResendWebhookPayload {
     from?: string;
     subject?: string;
     text?: string;
+    // email.bounced: how the mailbox refused ("Permanent", "Transient", "Undetermined").
+    bounce?: { type?: string; subType?: string };
     // contact.* events carry the contact's own email + opt-out flag
     email?: string;
     unsubscribed?: boolean;
@@ -204,6 +206,15 @@ async function optOutMarketing(
     .eq("id", user.id);
   if (updErr) return { ok: false, reason: updErr.message };
   return { ok: true };
+}
+
+/**
+ * A bounce that says the mailbox may take mail later: a full inbox, a server that turns a new
+ * sender away for a while, or a refusal nobody could classify. Resend keeps sending to these
+ * addresses; only a permanent bounce puts one on its suppression list, and so it is here.
+ */
+function isTemporaryBounce(bounce: { type?: string } | undefined): boolean {
+  return bounce?.type === "Transient" || bounce?.type === "Undetermined";
 }
 
 export async function POST(request: NextRequest) {
@@ -423,6 +434,12 @@ Reply directly to this message to answer the sender.
   let openedOnly = false;
   switch (eventType) {
     case "email.bounced":
+      // Marking it bounced would stop every later email to the address, trip reminders included,
+      // for a refusal that may not happen again.
+      if (isTemporaryBounce(payload.data?.bounce)) {
+        console.log("[resend-webhook] temporary bounce, address kept", JSON.stringify({ message_id: messageId, sub_type: payload.data?.bounce?.subType ?? null }));
+        return NextResponse.json({ ok: true, ignored: "temporary_bounce" });
+      }
       targetStatus = "bounced";
       break;
     case "email.complained":

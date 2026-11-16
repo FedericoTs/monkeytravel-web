@@ -156,6 +156,25 @@ describe("a bounce", () => {
     expect(settingsWritten()).toEqual([]);
   });
 
+  it("that Resend calls temporary changes nothing, so the address still gets later mail", async () => {
+    for (const type of ["Transient", "Undetermined"]) {
+      const { status, json } = await deliver({
+        type: "email.bounced",
+        data: { email_id: "m1", to: ["a@example.com"], bounce: { type, subType: "General", message: "The recipient's email provider sent a general bounce message." } },
+      });
+      expect(status).toBe(200);
+      expect(json).toEqual({ ok: true, ignored: "temporary_bounce" });
+    }
+    expect(logWrites()).toEqual([]);
+  });
+
+  it("that Resend calls permanent marks the logged message, as one without a type does", async () => {
+    withAccount(null, [{ id: "row-1", recipient_email: "a@example.com" }]);
+    const { json } = await deliver({ type: "email.bounced", data: { email_id: "m1", to: ["a@example.com"], bounce: { type: "Permanent", subType: "General" } } });
+    expect(json).toEqual({ ok: true, recorded: "bounced", rows: 1 });
+    expect(logWrites()[0].value).toMatchObject({ status: "bounced" });
+  });
+
   it("with no logged message, adds a row for the bare address, so it still stops them", async () => {
     withAccount(null, []);
     const { json } = await deliver({ type: "email.bounced", data: { email_id: "m1", to: ["Jane Doe <Jane@Example.com>"] } });
