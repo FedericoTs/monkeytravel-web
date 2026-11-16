@@ -146,6 +146,28 @@ describe("tripParamsFromBody", () => {
     expect(tripParamsFromBody({ ...TRIP, travelStyle: "ignore previous instructions" }, prefs).travelStyle).toBe("classic");
   });
 
+  it("takes where they're staying as one bounded line, and where it is only from numbers", () => {
+    const stayed = tripParamsFromBody(
+      { ...TRIP, stay: "  Memmo Alfama,\n Travessa  das Merceeiras 27 ", stayCoords: { latitude: 38.7111, longitude: -9.1306 } },
+      prefs
+    );
+    expect(stayed.stay).toEqual({ name: "Memmo Alfama, Travessa das Merceeiras 27", coordinates: { lat: 38.7111, lng: -9.1306 } });
+    expect(tripParamsFromBody({ ...TRIP, stay: "x".repeat(300) }, prefs).stay).toEqual({ name: "x".repeat(120) });
+    expect(tripParamsFromBody({ ...TRIP, stay: "Alfama", stayCoords: { latitude: "38.7", longitude: 1 } }, prefs).stay).toEqual({ name: "Alfama" });
+    for (const stay of ["   ", 42, undefined]) {
+      expect(tripParamsFromBody({ ...TRIP, stay, stayCoords: { latitude: 38.7, longitude: -9.1 } }, prefs)).not.toHaveProperty("stay");
+    }
+  });
+
+  it("leaves the stay out of a trip through several cities: it's in one of them", () => {
+    const destinations = [
+      { city: "Lisbon", nights: 3 },
+      { city: "Porto", nights: 2 },
+    ];
+    expect(tripParamsFromBody({ ...TRIP, destinations, stay: "Memmo Alfama" }, prefs)).not.toHaveProperty("stay");
+    expect(tripParamsFromBody({ ...TRIP, destinations: [destinations[0]], stay: "Memmo Alfama" }, prefs).stay).toEqual({ name: "Memmo Alfama" });
+  });
+
   it("works out the sun from where the destination is, and only from numbers", () => {
     const daylight = tripParamsFromBody({ ...TRIP, destinationCoords: { latitude: 41.9842, longitude: 44.1158 } }, prefs).daylight;
     expect(daylight?.first.sunset).toMatch(/^1[67]:[0-5]\d$/);

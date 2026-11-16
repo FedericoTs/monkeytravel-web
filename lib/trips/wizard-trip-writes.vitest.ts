@@ -82,8 +82,9 @@ describe("the rest", () => {
   });
 
   it("attaches a cover to the trip it is given", async () => {
-    await writes.attachCoverImage("trip-1", "Paris");
-    expect(persist.attachCoverImage).toHaveBeenCalledWith(client, "trip-1", "Paris");
+    const itinerary = { days: [] } as never;
+    await writes.attachCoverImage("trip-1", "Paris", itinerary);
+    expect(persist.attachCoverImage).toHaveBeenCalledWith(client, "trip-1", "Paris", itinerary);
   });
 });
 

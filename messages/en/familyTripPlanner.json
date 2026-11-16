@@ -33,7 +33,7 @@
     "items": {
       "kidFriendly": {
         "title": "Kid-Friendly Activities",
-        "description": "Say you're travelling with kids and the plan leans towards parks, hands-on museums and other things children enjoy. It's AI, so look over each stop."
+        "description": "Choose Family under Who's coming? in step 1 and the plan leans towards parks, hands-on museums, casual places to eat and other things children enjoy. It's AI, so look over each stop."
       },
       "ageAppropriate": {
         "title": "Age-Appropriate Suggestions",
@@ -62,7 +62,7 @@
     "steps": {
       "step1": {
         "title": "Enter Family Details",
-        "description": "Tell us your destination and travel dates. Add your children's ages and what your family enjoys under Special Requirements. Beach lovers? History buffs? Theme park fans? Just say so."
+        "description": "Tell us your destination and travel dates, and choose Family under Who's coming?. Add your children's ages and what your family enjoys under Special Requirements. Beach lovers? History buffs? Theme park fans? Just say so."
       },
       "step2": {
         "title": "AI Builds Your Family Itinerary",

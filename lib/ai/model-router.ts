@@ -17,7 +17,6 @@
  *   packing-list                | gemini-2.5-flash-lite  | Deterministic list, cheap
  *   email-parser                | gemini-2.5-flash-lite  | Structured extraction, low temp
  *   trip-title                  | gemini-2.5-flash-lite  | One-shot string, cheapest
- *   activity-bank               | gemini-3.5-flash-lite  | Batch list generation
  *   assistant-optimize          | gemini-3.5-flash-lite  | A pasted multi-day draft mapped onto the trip
  *   assistant-edits             | gemini-3.5-flash-lite  | The assistant's edit engine (wizard + trip page)
  *   assistant-chat              | gemini-3.5-flash-lite  | The trip assistant's reply when the engine gave none
@@ -38,7 +37,6 @@ export type GeminiPurpose =
   | "packing-list"
   | "email-parser"
   | "trip-title"
-  | "activity-bank"
   | "assistant-optimize"
   | "assistant-edits"
   | "assistant-chat"
@@ -63,7 +61,6 @@ const PURPOSE_TO_MODEL: Record<GeminiPurpose, GeminiModelId> = {
   "packing-list": "gemini-2.5-flash-lite",
   "email-parser": "gemini-2.5-flash-lite",
   "trip-title": "gemini-2.5-flash-lite",
-  "activity-bank": "gemini-3.5-flash-lite",
   "assistant-optimize": "gemini-3.5-flash-lite",
   "assistant-edits": "gemini-3.5-flash-lite",
   "assistant-chat": "gemini-3.5-flash-lite",

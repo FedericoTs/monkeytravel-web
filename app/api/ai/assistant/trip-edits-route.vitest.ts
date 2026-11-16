@@ -36,10 +36,6 @@ vi.mock("@/lib/ai/genai-compat", async (importOriginal) => ({
 vi.mock("@/lib/ai/cache-metrics", () => ({ logCacheMetrics: vi.fn() }));
 vi.mock("@/lib/ai/regenerate-day", () => ({ regenerateSingleDay: vi.fn() }));
 vi.mock("@/lib/trip/coordinate-fallback", () => ({ validateAndFixCoordinates: (days: unknown) => days }));
-vi.mock("@/lib/activity-bank", () => ({
-  populateActivityBank: vi.fn(async () => {}),
-  isActivityBankPopulated: vi.fn(async () => true),
-}));
 const logApiCall = vi.fn(async (_row: unknown) => {});
 vi.mock("@/lib/api-gateway", () => ({
   checkApiAccess: async () => ({ allowed: true }),
@@ -244,6 +240,18 @@ describe("trip-page assistant: free-form edits", () => {
     expect(json.message.content).toBe("Which nights would you like?");
     expect(json.pendingChange).toBeNull();
     expect(chatCalls).not.toHaveBeenCalled();
+  });
+
+  it("hands a currency request to the page to switch, and says so as it is", async () => {
+    proposeTripEdits.mockResolvedValue({ reply: "Done: prices now show in EUR.", revisedDays: [], summary: "", currency: "EUR", meta });
+    const { json } = await send("show the costs in euros");
+    expect(json.currency).toBe("EUR");
+    expect(json.message.content).toBe("Done: prices now show in EUR.");
+    expect(json.pendingChange).toBeNull();
+    expect(chatCalls).not.toHaveBeenCalled();
+    // Any other turn leaves the page's currency alone.
+    proposeTripEdits.mockResolvedValue({ reply: "Day 2 comes to about 22 USD.", revisedDays: [], summary: "", meta });
+    expect((await send("How much is day 2?")).json.currency).toBeUndefined();
   });
 
   it("answers a question with the engine, in the currency the page shows", async () => {

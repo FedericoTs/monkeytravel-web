@@ -9,13 +9,29 @@ import { fireEvent, render, screen } from "@testing-library/react";
  * what decides it, so the stand-in below shows it on the anchor.
  */
 
+type Handlers = {
+  onClick: (event: { currentTarget: { href: string } }) => void;
+  onNavigate: (event: { preventDefault: () => void }) => void;
+};
+const handlers = vi.hoisted(() => new Map<string, Handlers>());
 vi.mock("./navigation", () => ({
-  NavigationLink: ({ prefetch, children, ...props }: { prefetch?: boolean | "auto" | null; children: ReactNode }) => (
-    <a data-prefetch={String(prefetch)} {...props}>
-      {children}
-    </a>
-  ),
+  NavigationLink: ({
+    prefetch,
+    children,
+    onClick,
+    onNavigate,
+    ...props
+  }: { prefetch?: boolean | "auto" | null; children: ReactNode; href: string } & Handlers) => {
+    handlers.set(props.href, { onClick, onNavigate });
+    return (
+      <a data-prefetch={String(prefetch)} {...props}>
+        {children}
+      </a>
+    );
+  },
 }));
+const cue = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/navigation-cue", () => ({ startNavigationCue: cue }));
 
 import { Link } from "./link";
 
@@ -78,5 +94,48 @@ describe("Link", () => {
       </Link>,
     );
     expect(ref.current?.tagName).toBe("A");
+  });
+});
+
+describe("Link and the bar that follows a tap", () => {
+  const tap = (href: string, address: string) => {
+    handlers.get(href)!.onClick({ currentTarget: { href: address } });
+    const prevent = vi.fn();
+    handlers.get(href)!.onNavigate({ preventDefault: prevent });
+    return prevent;
+  };
+
+  it("starts the bar for the page the tap asked for, once next/link navigates", () => {
+    cue.mockClear();
+    render(<Link href="/trips/1">Trip</Link>);
+    tap("/trips/1", "https://monkeytravel.app/en/trips/1");
+    expect(cue).toHaveBeenCalledWith("https://monkeytravel.app/en/trips/1");
+  });
+
+  it("keeps the caller's own handlers", () => {
+    cue.mockClear();
+    const clicked = vi.fn();
+    const navigated = vi.fn();
+    render(
+      <Link href="/trips/2" onClick={clicked} onNavigate={navigated}>
+        Trip
+      </Link>,
+    );
+    tap("/trips/2", "https://monkeytravel.app/en/trips/2");
+    expect(clicked).toHaveBeenCalledTimes(1);
+    expect(navigated).toHaveBeenCalledTimes(1);
+    expect(cue).toHaveBeenCalledTimes(1);
+  });
+
+  it("leaves the bar alone when the caller stops the navigation", () => {
+    cue.mockClear();
+    render(
+      <Link href="/trips/3" onNavigate={(event) => event.preventDefault()}>
+        Trip
+      </Link>,
+    );
+    const prevent = tap("/trips/3", "https://monkeytravel.app/en/trips/3");
+    expect(prevent).toHaveBeenCalled();
+    expect(cue).not.toHaveBeenCalled();
   });
 });

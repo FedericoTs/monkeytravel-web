@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { NextIntlClientProvider } from "next-intl";
 import { APP_CLIENT_NAMESPACES, pickMessages } from "@/lib/i18n/client-messages";
 import { getMessages, setRequestLocale } from "next-intl/server";
@@ -5,6 +6,7 @@ import { LocaleProvider } from "@/lib/locale";
 import { PlaceCacheProvider } from "@/lib/context/PlaceCacheContext";
 import { ToastProvider } from "@/components/ui/Toast";
 import ProfileCompletionProvider from "@/components/profile/ProfileCompletionProvider";
+import NavigationCue from "@/components/NavigationCue";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -24,6 +26,11 @@ export default async function AppLayout({ children, params }: AppLayoutProps) {
 
   return (
     <NextIntlClientProvider messages={pickMessages(messages, APP_CLIENT_NAMESPACES)} locale={locale}>
+      {/* The bar that shows a tap has opened another page. It reads the query, so it
+          renders in the browser only, never holding the page back. */}
+      <Suspense fallback={null}>
+        <NavigationCue />
+      </Suspense>
       <LocaleProvider>
         <PlaceCacheProvider>
           <ToastProvider>

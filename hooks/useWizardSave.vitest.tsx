@@ -257,7 +257,7 @@ describe("the Save button, signed in, with the auto-save off", () => {
   it("then attaches a cover, reports the save once, forgets the draft, and opens the trip", async () => {
     const { now } = show({ autoSaveEnabled: false });
     await act(() => now().handleSaveTrip());
-    expect(writes.attachCoverImage).toHaveBeenCalledWith("manual-1", "Paris, France");
+    expect(writes.attachCoverImage).toHaveBeenCalledWith("manual-1", "Paris, France", expect.objectContaining({ days: expect.any(Array) }));
     expect(reportTripSaved).toHaveBeenCalledExactlyOnceWith(
       {
         tripId: "manual-1",
@@ -323,7 +323,7 @@ describe("the auto-save, signed in", () => {
       itinerary: plan,
       formState: { ...answers, derivedInterests: ["food"], locale: "it" },
     });
-    expect(writes.attachCoverImage).toHaveBeenCalledWith("auto-1", "Paris, France");
+    expect(writes.attachCoverImage).toHaveBeenCalledWith("auto-1", "Paris, France", expect.objectContaining({ days: expect.any(Array) }));
     expect(reportTripSaved).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ tripId: "auto-1" }), "Auto-save");
     expect(clearDraft).toHaveBeenCalled();
     expect(now().savedTripId).toBe("auto-1");

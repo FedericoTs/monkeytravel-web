@@ -4,33 +4,19 @@ import { useState } from "react";
 import { useChanged } from "@/hooks/useChanged";
 import { useTranslations } from "next-intl";
 import BaseModal from "@/components/ui/BaseModal";
+import { DELETION_REASONS, type DeletionReason } from "@/lib/trips/deletion-reasons";
 
 /**
  * Reasons surfaced in the Start Over modal's "why are you discarding?"
- * picker. Must match the CHECK constraint in
- * `supabase/migrations/<ts>_trip_deletion_feedback.sql`. Adding a value
- * here requires updating both.
+ * picker: lib/trips/deletion-reasons.ts, shared with My Trips' delete.
  *
  * Order in the UI is intentional: most-likely user reasons first, then
  * "made by mistake" (an escape hatch for misclicks), then "other"
  * (long-tail / free-text).
  */
-export type StartOverReason =
-  | "wrong_destination"
-  | "wrong_dates"
-  | "didnt_like_suggestions"
-  | "too_expensive"
-  | "made_by_mistake"
-  | "other";
+export type StartOverReason = DeletionReason;
 
-const REASONS: StartOverReason[] = [
-  "wrong_destination",
-  "wrong_dates",
-  "didnt_like_suggestions",
-  "too_expensive",
-  "made_by_mistake",
-  "other",
-];
+const REASONS = DELETION_REASONS;
 
 interface StartOverModalProps {
   isOpen: boolean;

@@ -18,7 +18,7 @@ async function isolate(page: Page) {
   await page.route("**/*", (route) => {
     const req = route.request();
     const url = new URL(req.url());
-    if (/(googletagmanager|google-analytics|posthog|buildhop)\.|^maps\.googleapis\.com$/.test(url.host)) {
+    if (/(googletagmanager|google-analytics|posthog)\.|^maps\.googleapis\.com$/.test(url.host)) {
       return route.abort();
     }
     if (url.pathname === "/api/plans" && req.method() === "POST") {
@@ -171,8 +171,12 @@ test.describe("wizard: planning a trip", () => {
 
   test("switching back to an earlier plan in the session tray brings back its own answers", async ({ page }) => {
     await isolate(page);
-    // Start Over reports why the plan was dropped; nothing is stored here.
-    await page.route("**/api/trips/*/deletion-feedback", (route) => route.fulfill({ status: 204, body: "" }));
+    // Start Over reports why the plan was dropped, and from where; nothing is stored here.
+    const dropped: unknown[] = [];
+    await page.route("**/api/trips/*/deletion-feedback", (route) => {
+      dropped.push(route.request().postDataJSON());
+      return route.fulfill({ status: 204, body: "" });
+    });
     await stubGeneration(page);
 
     await page.goto("/trips/new");
@@ -187,6 +191,7 @@ test.describe("wizard: planning a trip", () => {
     await page.getByRole("button", { name: "Start Over" }).first().click();
     await page.getByLabel("What didn't work?").selectOption("wrong_destination");
     await page.getByRole("button", { name: "Start Fresh" }).click();
+    await expect.poll(() => dropped).toEqual([expect.objectContaining({ reason: "wrong_destination", source: "start_over" })]);
     const second = await planPick(page, picks.nth(1), "Sunset at the viewpoint");
     expect(second).not.toBe(first);
 
@@ -285,5 +290,22 @@ test.describe("wizard: planning a trip on a phone", () => {
     await page.getByLabel("What didn't work?").selectOption("wrong_destination");
     await page.getByRole("button", { name: "Start Fresh" }).click();
     await expect(page.getByRole("group", { name: "Popular right now" })).toBeVisible();
+  });
+
+  test("Share is in sight above the bottom bar, without opening More", async ({ page }) => {
+    await isolate(page);
+    await stubGeneration(page);
+
+    await page.goto("/trips/new");
+    const essentialOnly = page.getByRole("button", { name: /essential only/i });
+    await essentialOnly
+      .waitFor({ state: "visible", timeout: 4_000 })
+      .then(() => essentialOnly.click())
+      .catch(() => {});
+
+    const picks = page.getByRole("group", { name: "Popular right now" }).getByRole("button");
+    await planPick(page, picks.nth(0), "Lunch at the market");
+    await expect(page.getByRole("button", { name: "Share this trip" })).toBeInViewport();
+    await expect(page.locator('button[aria-controls="result-more"]')).toHaveAttribute("aria-expanded", "false");
   });
 });

@@ -298,9 +298,15 @@ describe("proposeTripEdits", () => {
     expect(out?.summary).toBe("Day 1: Museums first. Day 2: Arrival plan.");
   });
 
-  it("leaves a currency request to the chat: only the wizard switches currency", async () => {
-    assistTrip.mockResolvedValue({ reply: "Prices now in USD.", edits: [], currency: "USD", meta });
-    expect(await proposeTripEdits({ ...input, message: "show prices in dollars" })).toBeNull();
+  it("hands a currency request to the page, which switches to it", async () => {
+    assistTrip.mockResolvedValue({ reply: "Done: prices now show in USD.", edits: [], currency: "USD", meta });
+    expect(await proposeTripEdits({ ...input, message: "show prices in dollars" })).toEqual({
+      reply: "Done: prices now show in USD.",
+      revisedDays: [],
+      summary: "",
+      currency: "USD",
+      meta,
+    });
   });
 
   it("returns an answer with no days when nothing needs to change", async () => {

@@ -131,7 +131,7 @@ export function DayDropList({ dayNumber, dragging, isEmpty, children }: DayDropL
             isEmpty ? "min-h-24" : "min-h-12"
           } ${
             isOver
-              ? "border-[var(--primary)] bg-[var(--primary)]/5 text-[var(--primary-ink)]"
+              ? "border-[var(--primary)] bg-[var(--primary)]/5 text-[var(--foreground)]"
               : "border-slate-200 text-slate-400"
           }`}
         >

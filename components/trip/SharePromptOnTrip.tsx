@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { fetchShareStatus } from "@/lib/trips/share-status";
+import type { ChosenTripIntent } from "@/lib/wizard/answers";
 import {
   captureSharePromptVariantShown,
   captureExploreTripPublished,
@@ -41,7 +42,7 @@ interface Props {
   destination: string;
   isOwner: boolean;
   /** From trip_meta.trip_intent. Absent = the user never answered. */
-  tripIntent?: "solo" | "group";
+  tripIntent?: ChosenTripIntent;
   /**
    * Resolved server-side: explore is on AND the trip is not already public.
    * False hides the publish tick entirely rather than offering an affordance

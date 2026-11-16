@@ -33,7 +33,7 @@
     "items": {
       "kidFriendly": {
         "title": "Actividades Aptas para Niños",
-        "description": "Di que viajas con niños y el plan se inclina por parques, museos interactivos y otras cosas que les gustan. Es AI, así que revisa cada parada."
+        "description": "Elige Familia en ¿Quién viene? en el paso 1 y el plan se inclina por parques, museos interactivos, sitios informales para comer y otras cosas que les gustan a los niños. Es AI, así que revisa cada parada."
       },
       "ageAppropriate": {
         "title": "Sugerencias Adaptadas por Edad",
@@ -62,7 +62,7 @@
     "steps": {
       "step1": {
         "title": "Introduce los Detalles Familiares",
-        "description": "Dinos tu destino y fechas de viaje. Añade en Requisitos Especiales las edades de los niños y qué le gusta a tu familia. ¿Amantes de la playa? ¿Aficionados a la historia? ¿Fans de parques temáticos? Solo dilo."
+        "description": "Dinos tu destino y fechas de viaje, y elige Familia en ¿Quién viene?. Añade en Requisitos Especiales las edades de los niños y qué le gusta a tu familia. ¿Amantes de la playa? ¿Aficionados a la historia? ¿Fans de parques temáticos? Solo dilo."
       },
       "step2": {
         "title": "La AI Crea Tu Itinerario Familiar",

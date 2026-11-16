@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { BOOKED_IDS_MAX, bookAheadStops, type BookAheadStop } from "@/lib/trips/book-ahead";
@@ -33,10 +33,13 @@ export default function BookAheadList({
   tripId,
   itinerary,
   initialBooked,
+  onProgress,
 }: {
   tripId: string;
   itinerary: ItineraryDay[];
   initialBooked: string[];
+  /** Told how many stops are ticked, at first and after each tick. */
+  onProgress?: (booked: number) => void;
 }) {
   const t = useTranslations("common.bookAhead");
   const locale = useLocale();
@@ -52,8 +55,12 @@ export default function BookAheadList({
     }
   }, [locale]);
 
-  if (stops.length === 0) return null;
   const done = stops.filter((s) => booked.has(s.id)).length;
+  useEffect(() => {
+    onProgress?.(done);
+  }, [done, onProgress]);
+
+  if (stops.length === 0) return null;
 
   const when = (s: BookAheadStop) =>
     [t("day", { day: s.dayNumber }), s.date ? dateLabel.format(new Date(`${s.date}T00:00:00Z`)) : null, s.startTime ?? null]

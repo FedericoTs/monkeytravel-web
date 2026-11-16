@@ -195,6 +195,14 @@ test.describe("Editing a saved trip by hand", () => {
     await expect(lunch).toContainText("13:00", { timeout: 10_000 });
   });
 
+  test("a screen reader finds the trip's title in the page header, and each stop as a heading under its day", async ({ page }) => {
+    await openTrip(page, tripId);
+    // Headings go trip (1), day (2), stop (3), with no level skipped.
+    await expect(page.getByRole("banner").getByRole("heading", { level: 1 })).toContainText("E2E trip editing");
+    await expect(page.getByRole("heading", { level: 2, name: "Day 1" })).toBeVisible();
+    await expect(cardIn(page, 1, "e-d1a1").getByRole("heading", { level: 3 })).toContainText("Castelo de São Jorge");
+  });
+
   test("a new start time puts the stop in its place, and it stays after a reload", async ({ page }) => {
     await openTrip(page, tripId);
     const castle = cardIn(page, 1, "e-d1a1");

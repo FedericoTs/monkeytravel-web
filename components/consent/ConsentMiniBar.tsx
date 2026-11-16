@@ -32,11 +32,7 @@
  * - **No dismiss control.** The bar ends on a decision, identically from
  *   either side. A "×" that suppressed it would make refusal the expensive
  *   option again, in a subtler way.
- * - **From 640px: left-anchored, content-width, with a fixed 92px right
- *   gutter.** The BuildHop launcher is `position: fixed` bottom-right at
- *   z-index 2147483000 (app/globals.css) — that stacking contest cannot be
- *   won, only the geometry. Phones do not load the launcher, so the bar spans
- *   the width there.
+ * - **From 640px: left-anchored, 320px wide.** Phones span the width.
  * - **`max()` of the published bar heights, not their sum.** `--mt-nav-h`,
  *   `--mt-bottom-bar-h` and `--mt-sticky-cta-h` are all `fixed bottom-0`
  *   siblings: on /shared the save bar and the mobile nav overlap rather than
@@ -61,9 +57,9 @@ const MINI_BTN =
   "hover:bg-slate-50 active:bg-slate-100 transition-colors";
 
 /**
- * Phones (no feedback launcher there) get the full width, which keeps the bar
- * short. `placement="top"` is the phone's first view on pages whose heading
- * starts low enough to stay clear; `origin` tells the two surfaces apart.
+ * Phones get the full width, which keeps the bar short. `placement="top"` is
+ * the phone's first view on pages whose heading starts low enough to stay
+ * clear; `origin` tells the two surfaces apart.
  */
 export function ConsentMiniBar({
   onWizard,

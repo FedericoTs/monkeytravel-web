@@ -138,6 +138,7 @@ export default async function BlogTagPage({ params }: PageProps) {
   if (posts.length === 0) permanentRedirect(fallback);
 
   const t = await getTranslations("blog");
+  const tA11y = await getTranslations("common.a11y");
 
   const breadcrumbSchema = generateBreadcrumbSchema([
     { name: t("breadcrumbs.home"), url: `${SITE_URL}${localePrefix}` },
@@ -159,19 +160,19 @@ export default async function BlogTagPage({ params }: PageProps) {
         <section className="py-14 sm:py-16 bg-gradient-to-b from-[var(--primary)]/5 to-white">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Breadcrumb */}
-            <nav className="flex items-center gap-2 text-sm text-[var(--foreground-muted)] mb-6">
-              <Link href="/" className="hover:text-[var(--primary-ink)] transition-colors">
+            <nav aria-label={tA11y("breadcrumb")} className="flex items-center gap-2 text-sm text-[var(--foreground-muted)] mb-6">
+              <Link href="/" className="inline-flex items-center justify-center hover:text-[var(--primary-ink)] transition-colors">
                 {t("breadcrumbs.home")}
               </Link>
               <span>/</span>
-              <Link href="/blog" className="hover:text-[var(--primary-ink)] transition-colors">
+              <Link href="/blog" className="inline-flex items-center justify-center hover:text-[var(--primary-ink)] transition-colors">
                 {t("breadcrumbs.blog")}
               </Link>
               <span>/</span>
               <span className="text-[var(--foreground)] font-medium">{display}</span>
             </nav>
 
-            <p className="text-sm font-semibold uppercase tracking-wider text-[var(--primary-ink)] mb-2">
+            <p className="text-sm font-semibold uppercase tracking-wider text-[var(--foreground-muted)] mb-2">
               {t("tag.eyebrow")}
             </p>
             <h1 className="text-4xl sm:text-5xl font-bold text-[var(--foreground)] mb-4 tracking-tight">

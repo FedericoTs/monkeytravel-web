@@ -85,6 +85,7 @@ export default async function BlogIndexPage({ params }: PageProps) {
   setRequestLocale(locale);
 
   const t = await getTranslations("blog");
+  const tA11y = await getTranslations("common.a11y");
   // Index page only needs frontmatter (title, slug, excerpt, cover, date,
   // tags, readingTime — all metadata). Avoid getAllPosts here: that parses
   // each MDX body through remark/rehype to produce HTML we never render,
@@ -148,8 +149,8 @@ export default async function BlogIndexPage({ params }: PageProps) {
         <section className="relative py-12 sm:py-16 bg-gradient-to-b from-[var(--primary)]/5 via-white to-white border-b border-slate-200/60">
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Breadcrumb */}
-            <nav className="flex items-center gap-2 text-sm text-slate-500 mb-4">
-              <Link href="/" className="hover:text-[var(--primary-ink)] transition-colors">
+            <nav aria-label={tA11y("breadcrumb")} className="flex items-center gap-2 text-sm text-slate-500 mb-4">
+              <Link href="/" className="inline-flex items-center justify-center hover:text-[var(--primary-ink)] transition-colors">
                 {t("breadcrumbs.home")}
               </Link>
               <span className="text-slate-300">/</span>

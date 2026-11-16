@@ -76,7 +76,7 @@ export default function NotFound() {
                   <Link
                     prefetch={false}
                     href="/trips/new"
-                    className="text-[var(--primary-ink)] hover:underline font-medium"
+                    className="font-medium text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 hover:decoration-2"
                   >
                     {chunks}
                   </Link>
@@ -92,7 +92,7 @@ export default function NotFound() {
         <p>
           {t.rich("poweredBy", {
             link: (chunks) => (
-              <Link prefetch={false} href="/" className="text-[var(--primary-ink)] hover:underline">
+              <Link prefetch={false} href="/" className="text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 hover:decoration-2">
                 {chunks}
               </Link>
             ),

@@ -78,8 +78,9 @@ const assistUserLimiter = createRateLimiter("assistant-signed-in", 150, 24 * 60 
 const assistUserBurstLimiter = createRateLimiter("assistant-signed-in-burst", 12, 60 * 1000);
 
 const BodySchema = z.object({
-  // People paste a whole day's plan ("day 3 - Route Quito → Cotopaxi…").
-  message: z.string().trim().min(3).max(1500),
+  // People paste a whole day's plan ("day 3 - Route Quito → Cotopaxi…"), and answer
+  // the assistant's questions in a word: "sì", "ok", "2".
+  message: z.string().trim().min(1).max(1500),
   destination: z.string().trim().min(1).max(120),
   tripTitle: z.string().trim().min(1).max(160),
   days: z.array(z.unknown()).min(1).max(MAX_TRIP_DAYS_MULTI),
@@ -198,6 +199,8 @@ export async function POST(request: NextRequest) {
         explainRemovals: true,
         // The wizard plans another place anew when the traveller picks one.
         canPlanElsewhere: true,
+        // And, with multi-city on, a new route.
+        canPlanRoute: process.env.NEXT_PUBLIC_MULTI_CITY_ENABLED === "true",
       })
     );
     waitUntil(logApiCall({
@@ -218,13 +221,14 @@ export async function POST(request: NextRequest) {
       reply: result.reply,
       // day_number stays the first edited day, so existing queries still read it.
       edit:
-        result.edits.length > 0 || result.tripLength !== undefined || result.currency || result.elsewhere
+        result.edits.length > 0 || result.tripLength !== undefined || result.currency || result.elsewhere || result.route
           ? {
               day_number: result.edits[0]?.day_number ?? null,
               days: result.edits.map((e) => e.day_number),
               trip_length: result.tripLength ?? null,
               ...(result.currency ? { currency: result.currency } : {}),
               ...(result.elsewhere ? { elsewhere: result.elsewhere.map(placeLabel) } : {}),
+              ...(result.route ? { route: result.route.map((s) => `${placeLabel(s)}: ${s.days}`) } : {}),
               ...(body.autoApply && (result.edits.length > 0 || result.tripLength !== undefined) ? { auto_applied: true } : {}),
             }
           : undefined,
@@ -235,6 +239,7 @@ export async function POST(request: NextRequest) {
       tripLength: result.tripLength,
       currency: result.currency,
       elsewhere: result.elsewhere,
+      route: result.route,
     });
   } catch (err) {
     console.error("[assistant-anon] error:", err);

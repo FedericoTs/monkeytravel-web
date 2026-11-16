@@ -70,10 +70,8 @@ export default function ReadingProgress({ slug }: ReadingProgressProps) {
     <div
       className="fixed top-0 left-0 h-[3px] bg-[var(--accent)] z-50 transition-[width] duration-150"
       style={{ width: `${progress}%` }}
-      role="progressbar"
-      aria-valuenow={Math.round(progress)}
-      aria-valuemin={0}
-      aria-valuemax={100}
+      // Decoration: screen readers keep their own sense of place in a page.
+      aria-hidden="true"
     />
   );
 }

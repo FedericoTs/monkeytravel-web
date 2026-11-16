@@ -151,4 +151,13 @@ describe("reminder button", () => {
     expect(sent.template.props.groupAsk?.url).toBe(`https://monkeytravel.app/trips/${TRIP}?slot=visa_check_7d&share=invite`);
     expect(await check(sent)).toEqual({ ok: true });
   });
+
+  it("asks a family to add the people coming, and leaves a couple and one person alone", async () => {
+    const family = await runReminder("visa_check_7d", 7, "en", { trip_intent: "family" });
+    expect(family.sent.template.props.groupAsk?.url).toBe(`https://monkeytravel.app/trips/${TRIP}?slot=visa_check_7d&share=invite`);
+    for (const trip_intent of ["couple", "solo"]) {
+      const { sent } = await runReminder("visa_check_7d", 7, "en", { trip_intent });
+      expect(sent.template.props.groupAsk).toBeUndefined();
+    }
+  });
 });

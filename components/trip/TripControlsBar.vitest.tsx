@@ -53,6 +53,8 @@ describe("TripControlsBar", () => {
   it("leads back to the trips and keeps the editing controls last", () => {
     bar();
     expect(screen.getByRole("link").getAttribute("href")).toBe("/trips");
+    // From the sm width up: a phone has the tab bar for it, and no room above the plan.
+    expect(screen.getByRole("link").parentElement?.className).toContain("hidden sm:flex");
     expect(screen.getByTestId("edit-controls")).toBeTruthy();
   });
 
@@ -102,5 +104,11 @@ describe("TripControlsBar", () => {
     expect(screen.queryByTitle("trips:detail.editWithAi")).toBeNull();
     expect(screen.queryByRole("button", { name: /trips:detail\.more/ })).toBeNull();
     expect(screen.getByTestId("edit-controls")).toBeTruthy();
+  });
+
+  it("hands its Edit with AI button to the page, which watches whether it is on screen", () => {
+    const watch = vi.fn();
+    bar({ assistantButtonRef: watch });
+    expect(watch).toHaveBeenCalledWith(screen.getByTitle("trips:detail.editWithAi"));
   });
 });

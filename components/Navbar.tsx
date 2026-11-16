@@ -57,7 +57,7 @@ export default async function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="px-4 py-2 rounded-full text-sm font-medium text-[var(--foreground-muted)] hover:text-[var(--primary-ink)] hover:bg-[var(--primary)]/5 transition-colors"
+                className="px-4 py-2 rounded-full text-sm font-medium text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[var(--primary)]/5 transition-colors"
               >
                 {link.label}
               </Link>

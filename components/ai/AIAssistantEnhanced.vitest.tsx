@@ -13,6 +13,7 @@ import type { TripAssistantChange } from "@/lib/ai/assistant/pending-change";
 vi.mock("next-intl", () => ({
   // Echoes the key and its values, so a test sees which text and with what.
   useTranslations: () => (key: string, values?: Record<string, unknown>) => (values ? `${key} ${JSON.stringify(values)}` : key),
+  useLocale: () => "en",
 }));
 vi.mock("@/lib/locale", () => ({ useLocale: () => ({ preferences: { preferredCurrency: "EUR" }, exchangeRates: null }) }));
 vi.mock("@/lib/analytics", () => ({ trackAIAssistantMessage: vi.fn() }));
@@ -98,5 +99,50 @@ describe("a change a turn prepared", () => {
     fireEvent.click(screen.getByRole("button", { name: /undoButton/ }));
     expect(await screen.findByText(/undoActions\.addedDay .*number.*4/)).toBeTruthy();
     expect(posts.find((p) => p.url === "/api/ai/assistant/undo")?.body).toMatchObject({ previousEndDate: "2027-03-12" });
+  });
+});
+
+describe("a reply that read new trip dates from the ask", () => {
+  /** The panel's calls, with a reply that carries `changeDates` and nothing to apply. */
+  function serveDates() {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: string, init?: RequestInit) => {
+        if (init?.method !== "POST") return new Response(JSON.stringify({ conversations: [] }));
+        return new Response(
+          JSON.stringify({
+            conversationId: "conv-1",
+            message: {
+              role: "assistant",
+              content: "Your trip is 11 to 12 March.",
+              changeDates: { start: "2027-03-11", end: "2027-03-14" },
+              timestamp: "2027-01-01T00:00:00Z",
+            },
+            pendingChange: null,
+            usage: { remaining: 9, limit: 10, tier: "free", resetAt: "2027-01-02T00:00:00Z" },
+          })
+        );
+      })
+    );
+  }
+  async function ask(onChangeDates?: (start: string, end: string) => void) {
+    render(<AIAssistantEnhanced tripId="trip-1" tripTitle="Dublin" itinerary={days} isOpen onClose={() => {}} onChangeDates={onChangeDates} />);
+    fireEvent.change(screen.getByPlaceholderText("placeholder"), { target: { value: "we stay until 14 March" } });
+    fireEvent.submit(screen.getByPlaceholderText("placeholder").closest("form") as HTMLFormElement);
+    await screen.findByText("Your trip is 11 to 12 March.");
+  }
+
+  it("offers Change dates on those dates under the reply", async () => {
+    serveDates();
+    const onChangeDates = vi.fn();
+    await ask(onChangeDates);
+    fireEvent.click(screen.getByRole("button", { name: /changeDatesTo/ }));
+    expect(onChangeDates).toHaveBeenCalledWith("2027-03-11", "2027-03-14");
+  });
+
+  it("offers nothing where the trip's dates can't be changed", async () => {
+    serveDates();
+    await ask();
+    expect(screen.queryByRole("button", { name: /changeDatesTo/ })).toBeNull();
   });
 });

@@ -2,7 +2,8 @@
   "nothingChanged": "Não alterei o seu itinerário: não consegui fazer essa alteração daqui. Você pode fazê-la com \"Editar viagem\".",
   "noProposal": "(Esta alteração não está pronta: não há nada para confirmar. Peça de novo com o dia e a atividade.)",
   "preparedChange": "Preparei esta alteração.",
-  "wizardNothingChanged": "Não alterei o seu plano: não consegui fazer essa alteração. Tente pedir dia a dia, por exemplo \"faça do dia 3 um dia de observação de baleias\".",
+  "wizardNothingChanged": "Não alterei o seu plano: não consegui fazer essa alteração. Tente pedir dia a dia, por exemplo \"deixe o dia 3 mais tranquilo\".",
+  "tripDatesOffer": "(As datas da viagem continuam {current}: para mudá-las para {range}, toque no botão abaixo.)",
   "uncoveredDays": "(Esta alteração inclui só o dia {covered}. Peça-me o dia {uncovered} se também o quiser alterar.)",
   "notAppliedLead": "Ainda não aplicado: toque em \"Aplicar alteração\" abaixo para atualizar o seu plano.",
   "lockedDay": "O dia {day} tem um compromisso fixo que você definiu ({fixed}), então deixei como está: você mesmo pode mudá-lo no plano. Posso mudar todo o resto desse dia.",
@@ -32,5 +33,7 @@
   "tripCap": "{room, plural, =0 {As viagens podem ter no máximo {max} dias, e esta já tem {max}, por isso não acrescentei nenhum dia.} =1 {As viagens podem ter no máximo {max} dias, por isso esta ainda pode ter mais um dia: é só pedir.} other {As viagens podem ter no máximo {max} dias, por isso esta ainda pode ter mais #: peça até #.}} Também posso encaixar o que você queria nos dias que já tem, no lugar das partes mais leves, ou você pode planejar os dias extras como uma segunda viagem.",
   "missingAnswer": "Não consegui preparar essa resposta. Pergunte uma coisa de cada vez, por exemplo o que fazer no dia 2.",
   "currencySwitched": "Pronto: agora os preços aparecem em {code}.",
-  "elsewhereNote": "Escolha um lugar abaixo e eu o planejo para as mesmas datas."
+  "elsewhereNote": "Escolha um lugar abaixo e eu o planejo para as mesmas datas.",
+  "routeStop": "{name} ({days, plural, =1 {# dia} other {# dias}})",
+  "routeOffer": "Seu novo roteiro: {route}. Toque no botão abaixo e eu planejo a viagem inteira assim, nas mesmas datas."
 }

@@ -16,6 +16,8 @@ const s = vi.hoisted(() => ({
   readError: null as unknown,
   jpegFails: false,
   log: [] as unknown[],
+  // What the trip card was drawn with.
+  card: null as { budget: string | null } | null,
 }));
 
 vi.mock("next/og", () => ({
@@ -26,6 +28,16 @@ vi.mock("next/og", () => ({
   },
 }));
 vi.mock("@/lib/og/fonts", () => ({ cardFonts: async () => [] }));
+vi.mock("@/lib/og/trip-card", async (importOriginal) => {
+  const real = await importOriginal<typeof import("@/lib/og/trip-card")>();
+  return {
+    ...real,
+    renderTripCard: (d: Parameters<typeof real.renderTripCard>[0], format: Parameters<typeof real.renderTripCard>[1]) => {
+      s.card = d;
+      return real.renderTripCard(d, format);
+    },
+  };
+});
 vi.mock("@/lib/og/link-card-jpeg", () => ({
   linkCardJpeg: async () => {
     if (s.jpegFails) throw new Error("no jpeg");
@@ -77,6 +89,7 @@ beforeEach(() => {
   s.readError = null;
   s.jpegFails = false;
   s.log = [];
+  s.card = null;
   vi.spyOn(console, "warn").mockImplementation(() => {});
 });
 
@@ -115,6 +128,27 @@ describe("a trip's card", () => {
     const res = await card(`token=${TOKEN}`);
     expect(res.headers.get("Content-Type")).toBe("image/png");
     expectTripCard(res);
+  });
+
+  // The estimate saved with the plan never moves after a change; the page adds up its stops.
+  it("prices the trip as its page does: the stops added up, per person, never the estimate saved with it", async () => {
+    s.row = {
+      ...TRIP,
+      budget: { total: 4503, currency: "USD" },
+      itinerary: [
+        {
+          day_number: 1,
+          activities: [
+            { name: "Alfama", estimated_cost: { amount: 30, currency: "USD" } },
+            { name: "Fado dinner", estimated_cost: { amount: 20, currency: "USD" } },
+          ],
+        },
+      ],
+    };
+    await card(`token=${TOKEN}`);
+    expect(s.card?.budget).toBe("50 USD per person");
+    await card(`token=${TOKEN}&locale=pt`);
+    expect(s.card?.budget).toBe("50 USD por pessoa");
   });
 
   it.each(["square", "story"])("stays a PNG as the %s people save and post", async (format) => {

@@ -13,6 +13,7 @@ import type { KeptPlan } from "@/lib/plans/kept-plan";
 
 const itinerary = { days: [{ day_number: 1 }, { day_number: 2 }] } as unknown as GeneratedItinerary;
 const anchors = [{ type: "lodging", date: "2027-05-01", title: "Hotel Lisboa" }] as unknown as TripAnchor[];
+const STAY = { name: "Memmo Alfama", coordinates: { lat: 38.7111, lng: -9.1306 } };
 
 const fullDraft: ItineraryDraft = {
   generatedItinerary: itinerary,
@@ -28,6 +29,7 @@ const fullDraft: ItineraryDraft = {
   dietary: ["vegan", "not-a-diet"],
   tripIntent: "group",
   flexibleDates: true,
+  stay: { name: "  Memmo   Alfama ", coordinates: { lat: 38.7111, lng: -9.1306 } },
   savedAt: 1,
 };
 
@@ -45,6 +47,7 @@ function targets() {
     setAnchors: vi.fn(),
     setTripIntent: vi.fn(),
     setFlexibleDates: vi.fn(),
+    setStay: vi.fn(),
     setGeneratedItinerary: vi.fn(),
     registerRestore: vi.fn(),
   } satisfies DraftTargets;
@@ -67,6 +70,7 @@ describe("applyDraft", () => {
     expect(to.setAnchors).toHaveBeenCalledWith(anchors);
     expect(to.setTripIntent).toHaveBeenCalledWith("group");
     expect(to.setFlexibleDates).toHaveBeenCalledWith(true);
+    expect(to.setStay).toHaveBeenCalledWith(STAY);
     expect(to.setGeneratedItinerary).toHaveBeenCalledWith(itinerary);
     expect(to.registerRestore).toHaveBeenCalledWith({
       destination: "Lisbon, Portugal",
@@ -83,6 +87,7 @@ describe("applyDraft", () => {
       dietary: ["vegan"],
       tripIntent: "group",
       flexibleDates: true,
+      stay: STAY,
     });
   });
 
@@ -111,10 +116,20 @@ describe("applyDraft", () => {
     expect(to.setMustDos).not.toHaveBeenCalled();
     expect(to.setTripIntent).not.toHaveBeenCalled();
     expect(to.setFlexibleDates).not.toHaveBeenCalled();
+    expect(to.setStay).not.toHaveBeenCalled();
     expect(to.setDietary).toHaveBeenCalledWith([]);
     const entry = to.registerRestore.mock.calls[0][0];
     expect(entry).toMatchObject({ travelStyle: "classic", dietary: [] });
-    for (const lacking of ["anchors", "mustDos", "tripIntent", "flexibleDates"]) expect(entry).not.toHaveProperty(lacking);
+    for (const lacking of ["anchors", "mustDos", "tripIntent", "flexibleDates", "stay"]) expect(entry).not.toHaveProperty(lacking);
+  });
+
+  it("leaves out a stored stay that isn't one", () => {
+    for (const stay of [{ name: "   " }, { coordinates: { lat: 1, lng: 2 } }, "Memmo Alfama"]) {
+      const to = targets();
+      applyDraft({ ...fullDraft, stay } as unknown as ItineraryDraft, to);
+      expect(to.setStay).not.toHaveBeenCalled();
+      expect(to.registerRestore.mock.calls[0][0]).not.toHaveProperty("stay");
+    }
   });
 });
 
@@ -134,6 +149,7 @@ describe("applyKeptPlan", () => {
     flexibleDates: true,
     mustDos: ["Tram 28"],
     dietary: ["vegan"],
+    stay: STAY,
   };
 
   it("puts the whole plan on screen and makes it the tray's current trip", () => {
@@ -150,6 +166,7 @@ describe("applyKeptPlan", () => {
     expect(to.setFlexibleDates).toHaveBeenCalledWith(true);
     expect(to.setMustDos).toHaveBeenCalledWith(["Tram 28"]);
     expect(to.setDietary).toHaveBeenCalledWith(["vegan"]);
+    expect(to.setStay).toHaveBeenCalledWith(STAY);
     expect(to.setGeneratedItinerary).toHaveBeenCalledWith(itinerary);
     expect(to.registerRestore).toHaveBeenCalledWith({
       destination: "Lisbon, Portugal",
@@ -166,6 +183,7 @@ describe("applyKeptPlan", () => {
       dietary: ["vegan"],
       tripIntent: "group",
       flexibleDates: true,
+      stay: STAY,
     });
   });
 
@@ -180,6 +198,7 @@ describe("applyKeptPlan", () => {
     expect(to.setFlexibleDates).toHaveBeenCalledWith(false);
     expect(to.setMustDos).toHaveBeenCalledWith([]);
     expect(to.setDietary).toHaveBeenCalledWith([]);
+    expect(to.setStay).toHaveBeenCalledWith(null);
   });
 
   it("keeps the wizard's pace, vibes and budget when the plan has none, and names them for the tray", () => {
@@ -229,6 +248,7 @@ describe("applySessionTrip", () => {
     dietary: ["vegan"],
     tripIntent: "group",
     flexibleDates: true,
+    stay: STAY,
   };
 
   it("puts the plan back with its own answers, in one city with no coordinates", () => {
@@ -246,6 +266,7 @@ describe("applySessionTrip", () => {
     expect(to.setDietary).toHaveBeenCalledWith(["vegan"]);
     expect(to.setTripIntent).toHaveBeenCalledWith("group");
     expect(to.setFlexibleDates).toHaveBeenCalledWith(true);
+    expect(to.setStay).toHaveBeenCalledWith(STAY);
     expect(to.setGeneratedItinerary).toHaveBeenCalledWith(itinerary);
     expect(to.setDestinationCoords).toHaveBeenCalledWith(null);
     expect(to.setMultiCityMode).toHaveBeenCalledWith(false);
@@ -260,8 +281,9 @@ describe("applySessionTrip", () => {
 
   it("gives an older entry's missing answers a fresh wizard's values", () => {
     const to = trayTargets();
-    const { anchors: _a, mustDos: _m, dietary: _d, tripIntent: _t, flexibleDates: _f, travelStyle: _s, ...older } = entry;
+    const { anchors: _a, mustDos: _m, dietary: _d, tripIntent: _t, flexibleDates: _f, travelStyle: _s, stay: _st, ...older } = entry;
     applySessionTrip(older, to);
+    expect(to.setStay).toHaveBeenCalledWith(null);
     expect(to.setTravelStyle).toHaveBeenCalledWith("classic");
     expect(to.setAnchors).toHaveBeenCalledWith([]);
     expect(to.setMustDos).toHaveBeenCalledWith([]);

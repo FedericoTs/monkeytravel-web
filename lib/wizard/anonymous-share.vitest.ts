@@ -47,4 +47,9 @@ describe("anonymousShare", () => {
     expect([share.mode, share.existingShareUrl]).toEqual(["crew", "https://monkeytravel.app/shared/abc"]);
     expect(anonymousShare({ ...plan, tripIntent: "solo" }).mode).toBe("share");
   });
+
+  it("asks a family to vote too, and hands a couple the plain link", () => {
+    expect(anonymousShare({ ...plan, tripIntent: "family" }).mode).toBe("crew");
+    expect(anonymousShare({ ...plan, tripIntent: "couple" }).mode).toBe("share");
+  });
 });

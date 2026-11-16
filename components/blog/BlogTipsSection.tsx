@@ -36,7 +36,7 @@ export default function BlogTipsSection({ tips }: BlogTipsSectionProps) {
         </div>
         <Link
           href="/blog"
-          className="text-sm font-medium text-[var(--primary-ink)] hover:underline"
+          className="text-sm font-medium text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 hover:decoration-2"
         >
           {t("tips.viewAll")} &rarr;
         </Link>

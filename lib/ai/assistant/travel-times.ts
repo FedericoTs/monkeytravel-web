@@ -4,7 +4,9 @@
  */
 
 import { formatMinutesToTime } from "@/lib/datetime/format";
+import type { ItineraryDay } from "@/types";
 import { clockTime, num, type DayEdit } from "./edit-validation";
+import { TELLS_TIME } from "./message-asks";
 
 /** A time the traveller arrives or leaves on a day ("travel_times"). */
 export interface TravelTime {
@@ -45,6 +47,63 @@ export interface OutsideTravelTimes {
   until: string | null;
   /** The activities outside, with their start times. */
   names: string[];
+}
+
+// The plan's own way home on its last day: "Flight home", "Train to the airport",
+// "Voo de regresso a casa", "Ida para o aeroporto".
+const HOMEWARD =
+  /(?<![\p{L}])(?:home|airport|aeropuerto|aeroporto|aéroport|flights?|vuelos?|vol[oi]|voos?|departure|depart|salida|partenza|partida|regreso|ritorno|regresso|retorno|volta|casa)(?![\p{L}])/iu;
+const BY: Array<[RegExp, string]> = [
+  [/(?<![\p{L}])(?:trains?|tren|treno|comboio|trem)(?![\p{L}])/iu, "train"],
+  [/(?<![\p{L}])(?:bus|autob[uú]s|autobus|[oô]nibus)(?![\p{L}])/iu, "bus"],
+  [/(?<![\p{L}])(?:boat|ferry|barco|traghetto|balsa)(?![\p{L}])/iu, "boat"],
+];
+
+/**
+ * The plan's own way home: the last transport stop of its last day that
+ * names a way home or a departure. When it leaves is when the traveller
+ * leaves, as if they had said so; nothing after it can happen.
+ */
+export function planDeparture(days: ItineraryDay[]): (TravelTime & { id?: string; name: string }) | null {
+  const last = days[days.length - 1];
+  const leaving = [...(Array.isArray(last?.activities) ? last.activities : [])]
+    .reverse()
+    .find((a) => a?.type === "transport" && typeof a.name === "string" && HOMEWARD.test(a.name));
+  const leaves = clockTime(leaving?.start_time);
+  if (!leaving || !leaves) return null;
+  const by = BY.find(([re]) => re.test(leaving.name))?.[1] ?? "flight";
+  return { day: last.day_number, leaves, by, id: leaving.id, name: leaving.name };
+}
+
+/** The times they told, with the plan's own way home on its last day unless they told when they leave then. */
+export function withPlanDeparture(told: TravelTime[], days: ItineraryDay[]): TravelTime[] {
+  const home = planDeparture(days);
+  if (!home || told.some((t) => t.day === home.day && t.leaves)) return told;
+  const { id: _id, name: _name, ...time } = home;
+  return [...told, time];
+}
+
+/**
+ * The edits with the plan's way home back at its time, unless the message
+ * gives one: a change to the last day may move other stops, not the way home.
+ */
+export function keepDepartureTime<E extends Pick<DayEdit, "day_number" | "activities">>(days: ItineraryDay[], edits: E[], message: string): E[] {
+  const home = planDeparture(days);
+  if (!home || TELLS_TIME.test(message)) return edits;
+  const saved = days[days.length - 1].activities.find((a) => (home.id ? a.id === home.id : a.name === home.name));
+  if (!saved) return edits;
+  return edits.map((e) =>
+    e.day_number !== home.day
+      ? e
+      : {
+          ...e,
+          activities: e.activities.map((a) =>
+            (home.id ? a.id === home.id : a.name === home.name)
+              ? { ...a, start_time: saved.start_time, time_slot: saved.time_slot, duration_minutes: saved.duration_minutes }
+              : a,
+          ),
+        },
+  );
 }
 
 /** "travel_times" as the model wrote them, kept when the day and a time read. */

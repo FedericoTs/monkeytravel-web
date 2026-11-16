@@ -127,6 +127,7 @@ export default async function DestinationDetailPage({ params }: PageProps) {
 
   const loc = locale as Locale;
   const t = await getTranslations("destinations");
+  const tA11y = await getTranslations("common.a11y");
   const tBlog = await getTranslations("blog");
   const cityName = destination.name[loc];
   const countryName = destination.country[loc];
@@ -216,17 +217,17 @@ export default async function DestinationDetailPage({ params }: PageProps) {
         {/* Breadcrumbs */}
         <div className="bg-white pt-20 pb-0">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <nav className="flex items-center gap-2 text-sm text-[var(--foreground-muted)] py-3">
+            <nav aria-label={tA11y("breadcrumb")} className="flex items-center gap-2 text-sm text-[var(--foreground-muted)] py-3">
               <Link
                 href="/"
-                className="hover:text-[var(--primary-ink)] transition-colors"
+                className="inline-flex items-center justify-center hover:text-[var(--primary-ink)] transition-colors"
               >
                 {t("breadcrumbs.home")}
               </Link>
               <span>/</span>
               <Link
                 href="/destinations"
-                className="hover:text-[var(--primary-ink)] transition-colors"
+                className="inline-flex items-center justify-center hover:text-[var(--primary-ink)] transition-colors"
               >
                 {t("breadcrumbs.destinations")}
               </Link>
@@ -250,7 +251,7 @@ export default async function DestinationDetailPage({ params }: PageProps) {
         <section id="overview" className="py-12 sm:py-16 bg-white scroll-mt-32">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-5 border-b border-slate-200/80">
-              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--primary-ink)]">
+              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--foreground-muted)]">
                 {destination.country[loc]}
                 <span aria-hidden="true" className="mx-2 text-slate-300">·</span>
                 <span className="text-slate-500 normal-case tracking-normal">
@@ -309,7 +310,7 @@ export default async function DestinationDetailPage({ params }: PageProps) {
                 </h2>
                 <Link
                   href={`/explore?destination=${encodeURIComponent(cityName)}`}
-                  className="text-sm font-medium text-[var(--primary-ink)] hover:underline"
+                  className="text-sm font-medium text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 hover:decoration-2"
                 >
                   {t("sections.browseAllTripsTo", { city: cityName })}
                 </Link>
@@ -373,13 +374,13 @@ export default async function DestinationDetailPage({ params }: PageProps) {
                     href={`/blog/${blogSlug}`}
                     className="group block rounded-xl border border-gray-100 hover:border-[var(--accent)]/30 hover:shadow-lg transition-all p-6 bg-white"
                   >
-                    <span className="text-sm font-medium text-[var(--primary-ink)] mb-2 block">
+                    <span className="text-sm font-medium text-[var(--foreground-muted)] mb-2 block">
                       Blog
                     </span>
                     <h3 className="text-lg font-semibold text-[var(--foreground)] group-hover:text-[var(--primary-ink)] transition-colors leading-snug">
                       {tBlog(`posts.${blogSlug}.title`)}
                     </h3>
-                    <span className="mt-3 text-sm text-[var(--primary-ink)] font-medium inline-flex items-center gap-1">
+                    <span className="mt-3 text-sm text-[var(--foreground)] font-medium inline-flex items-center gap-1">
                       {tBlog("index.readMore")} →
                     </span>
                   </Link>

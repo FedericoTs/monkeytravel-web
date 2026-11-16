@@ -34,7 +34,7 @@ export function TravelConnector({
         return {
           icon: Footprints,
           label: "Walk",
-          color: "text-emerald-600",
+          color: "text-emerald-700",
           bgColor: "bg-emerald-50",
           borderColor: "border-emerald-200",
           dotColor: "bg-emerald-400",
@@ -43,7 +43,7 @@ export function TravelConnector({
         return {
           icon: Car,
           label: "Drive",
-          color: "text-blue-600",
+          color: "text-blue-700",
           bgColor: "bg-blue-50",
           borderColor: "border-blue-200",
           dotColor: "bg-blue-400",
@@ -52,7 +52,7 @@ export function TravelConnector({
         return {
           icon: Bus,
           label: "Transit",
-          color: "text-purple-600",
+          color: "text-purple-700",
           bgColor: "bg-purple-50",
           borderColor: "border-purple-200",
           dotColor: "bg-purple-400",
@@ -163,7 +163,7 @@ export function TravelConnector({
 
           <span className="text-gray-300">|</span>
 
-          <span className="text-xs text-gray-500 font-medium">
+          <span className="text-xs text-gray-600 font-medium">
             {displayDistance}
           </span>
         </div>

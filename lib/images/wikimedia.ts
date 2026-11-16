@@ -1,4 +1,5 @@
 import { createHash } from "crypto";
+import { haversineKm, type LatLng } from "@/lib/map/geo";
 import { WIKIMEDIA_IMAGE_PATH, withCredit } from "@/lib/images/wikimedia-credit";
 
 /**
@@ -47,7 +48,21 @@ export interface DestinationPhotos {
   cover: string;
   /** Served gallery thumbnails, credit attached. */
   gallery: string[];
+  /** Where the place the photos show is. */
+  at?: LatLng;
 }
+
+/** Where a trip is: the middle of its stops, and how far from it they spread. */
+export interface NearPoint extends LatLng {
+  km: number;
+}
+
+// The place a destination names lies within the trip's spread and this much
+// more. Past it, it is another place of the same name: "Seul" (Portuguese for
+// Seoul) is also a lake in Ontario.
+const NEAR_SLACK_KM = 100;
+
+export const isNear = (at: LatLng, near: NearPoint) => haversineKm(at, near) <= near.km + NEAR_SLACK_KM;
 
 const sameName = (a: string, b: string) => a.replace(/_/g, " ").toLowerCase() === b.replace(/_/g, " ").toLowerCase();
 
@@ -57,10 +72,15 @@ const sameName = (a: string, b: string) => a.replace(/_/g, " ").toLowerCase() ==
  * can name.
  */
 export function isUsablePhoto(f: CommonsFile, minWidth = 1280): boolean {
+  return isUsableView(f, minWidth, 1.2);
+}
+
+/** A usable photo at least `minRatio` times as wide as it is tall: a square one crops well into a card. */
+export function isUsableView(f: CommonsFile, minWidth: number, minRatio: number): boolean {
   return (
     f.mime === "image/jpeg" &&
     f.width >= minWidth &&
-    f.width / f.height >= 1.2 &&
+    f.width / f.height >= minRatio &&
     FREE_LICENSE.test(f.license.trim()) &&
     (f.artist !== "" || !/^cc by/i.test(f.license.trim())) &&
     !/trademark/i.test(f.restrictions) &&
@@ -201,10 +221,38 @@ export function pickImages(
   return { cover, gallery: usable.filter((f) => f !== cover).slice(0, GALLERY_SIZE) };
 }
 
+// Wikimedia turns a request away for now (429) when it has had too many from
+// this address, which a serverless platform shares between many sites: one
+// more try after the wait it names, two seconds at most, a second if none.
+const RETRY_WAIT_MAX_MS = 2000;
+const RETRY_WAIT_MS = 1000;
+
+/** Waits, unless the lookup is called off first. */
+function pause(ms: number, signal: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) return reject(signal.reason);
+    const timer = setTimeout(() => {
+      signal.removeEventListener("abort", stop);
+      resolve();
+    }, ms);
+    const stop = () => {
+      clearTimeout(timer);
+      reject(signal.reason);
+    };
+    signal.addEventListener("abort", stop, { once: true });
+  });
+}
+
 export async function wiki(base: string, params: Record<string, string | number>, signal: AbortSignal): Promise<unknown> {
   const query = new URLSearchParams({ format: "json", formatversion: "2" });
   for (const [k, v] of Object.entries(params)) query.set(k, String(v));
-  const res = await fetch(`${base}?${query.toString()}`, { headers: { "User-Agent": COMMONS_USER_AGENT }, signal });
+  const ask = () => fetch(`${base}?${query.toString()}`, { headers: { "User-Agent": COMMONS_USER_AGENT }, signal });
+  let res = await ask();
+  if (res.status === 429) {
+    const named = Number(res.headers.get("retry-after")) * 1000;
+    await pause(named > 0 ? Math.min(named, RETRY_WAIT_MAX_MS) : RETRY_WAIT_MS, signal);
+    res = await ask();
+  }
   if (!res.ok) throw new Error(`${new URL(base).hostname} answered ${res.status}`);
   return res.json();
 }
@@ -217,8 +265,8 @@ interface SearchPage {
   pageimage?: string;
 }
 
-/** The Wikipedia article (with coordinates, so a place) the destination names. */
-async function findPlace(destination: string, signal: AbortSignal) {
+/** The Wikipedia article (with coordinates, so a place) the destination names: near the trip, when it says where. */
+export async function findPlace(destination: string, signal: AbortSignal, near?: NearPoint) {
   for (const q of searchQueries(destination)) {
     const d = (await wiki(
       WIKIPEDIA_API,
@@ -226,8 +274,13 @@ async function findPlace(destination: string, signal: AbortSignal) {
       signal,
     )) as { query?: { pages?: SearchPage[] } };
     const pages = [...(d.query?.pages ?? [])].sort((a, b) => (a.index ?? 99) - (b.index ?? 99));
-    const hit = pages.find((p) => p.pageprops?.wikibase_item && p.coordinates?.length);
-    if (hit?.pageprops?.wikibase_item) return { qid: hit.pageprops.wikibase_item, lead: hit.pageimage };
+    for (const p of pages) {
+      const point = p.coordinates?.[0] as { lat?: unknown; lon?: unknown } | undefined;
+      if (!p.pageprops?.wikibase_item || typeof point?.lat !== "number" || typeof point.lon !== "number") continue;
+      const at = { lat: point.lat, lng: point.lon };
+      if (near && !isNear(at, near)) continue;
+      return { qid: p.pageprops.wikibase_item, lead: p.pageimage, at };
+    }
   }
   return null;
 }
@@ -280,8 +333,8 @@ export async function commonsFiles(names: string[], signal: AbortSignal): Promis
 }
 
 /** The destination's cover and gallery on Commons, or null when it has no usable photo. */
-export async function findDestinationPhotos(destination: string, signal: AbortSignal) {
-  const place = await findPlace(destination, signal);
+export async function findDestinationPhotos(destination: string, signal: AbortSignal, near?: NearPoint) {
+  const place = await findPlace(destination, signal, near);
   if (!place) return null;
   const entity = (
     (await wiki(WIKIDATA_API, { action: "wbgetentities", ids: place.qid, props: "claims|sitelinks", sitefilter: "enwikivoyage" }, signal)) as {
@@ -300,7 +353,8 @@ export async function findDestinationPhotos(destination: string, signal: AbortSi
     if (!names.some((m) => sameName(m, n))) names.push(n);
   }
   const files = await commonsFiles(names.slice(0, MAX_CANDIDATES), signal);
-  return pickImages(files, (f) => coverNames.some((c) => sameName(c, f.name)));
+  const picked = pickImages(files, (f) => coverNames.some((c) => sameName(c, f.name)));
+  return picked && { ...picked, at: place.at };
 }
 
 /** The id of a Commons file in a served photo's path. */
@@ -327,7 +381,7 @@ export function destinationPhotoUrls(cover: CommonsFile, gallery: CommonsFile[])
 }
 
 /** Finds the destination's photos; null when Commons has no usable one. */
-export async function buildDestinationPhotos(destination: string, signal: AbortSignal): Promise<DestinationPhotos | null> {
-  const picked = await findDestinationPhotos(destination, signal);
-  return picked && destinationPhotoUrls(picked.cover, picked.gallery);
+export async function buildDestinationPhotos(destination: string, signal: AbortSignal, near?: NearPoint): Promise<DestinationPhotos | null> {
+  const picked = await findDestinationPhotos(destination, signal, near);
+  return picked && { ...destinationPhotoUrls(picked.cover, picked.gallery), at: picked.at };
 }

@@ -118,7 +118,7 @@ describe("fetchActivityImages with Wikimedia photos", () => {
     expect(landmarkPhotos.mock.calls.map(([, opts]) => opts.waitMs)).toEqual([0, 5000]);
   });
 
-  it("gives a plan in the planner's preview free photos only: Wikimedia or stock, never Google's, cached ones included", async () => {
+  it("gives a plan in the planner's preview free photos only: Wikimedia or none for a sight, never Google's, cached ones included", async () => {
     const googlePhoto = "/api/places/photo?name=places%2FChIJcol%2Fphotos%2Fp&w=600&h=400&t=attraction";
     const days = [
       {
@@ -133,7 +133,7 @@ describe("fetchActivityImages with Wikimedia photos", () => {
     const before = db.log.length;
     await fetchActivityImages(days, "Rome, Italy", { maxPaidLookups: 0, freePhotosOnly: true });
     expect(days[0].activities[0].image_url).toBe(KNOWN.get("colosseum|rome italy"));
-    expect(days[0].activities[1].image_url).toMatch(/^https:\/\/images\.pexels\.com\//);
+    expect(days[0].activities[1].image_url).toBeUndefined();
     expect(days[0].activities[2].image_url).toBe(KNOWN.get("colosseum|rome italy"));
     expect(google).not.toHaveBeenCalled();
     // Google's cached places lend names and coordinates, not counted as photo hits.

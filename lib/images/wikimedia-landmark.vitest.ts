@@ -9,17 +9,36 @@ import type { CommonsFile } from "./wikimedia";
  * none, so anything uncertain finds nothing.
  */
 
-type Item = { labels: string[]; aliases?: string[]; at?: [number, number]; kinds?: string[]; people?: number; images?: Record<string, string[]> };
+type Item = {
+  labels: string[];
+  aliases?: string[];
+  at?: [number, number];
+  kinds?: string[];
+  people?: number;
+  images?: Record<string, string[]>;
+  /** Its Wikipedia articles' titles, by site ("enwiki"). */
+  wikis?: Record<string, string>;
+};
 let items: Record<string, Item>;
+/** The lead photo of each Wikipedia article, by "<lang>:<title>". */
+let leads: Record<string, string>;
 let found: Record<string, string[]>;
+/** Search results without the map filter, by text. */
+let anywhere: Record<string, string[]>;
 const searches: string[] = [];
 let files: CommonsFile[];
 
-const wiki = vi.fn(async (_base: string, params: Record<string, string | number>) => {
+const wiki = vi.fn(async (base: string, params: Record<string, string | number>) => {
+  if (params.prop === "pageimages") {
+    const lang = new URL(base).hostname.split(".")[0];
+    const pageimage = leads[`${lang}:${params.titles}`];
+    return { query: { pages: [{ title: String(params.titles), ...(pageimage ? { pageimage } : {}) }] } };
+  }
   if (params.list === "search") {
     const text = String(params.srsearch);
     searches.push(text);
-    return { query: { search: (found[text.split(" haswbstatement")[0]] ?? []).map((title) => ({ title })) } };
+    const hits = (text.includes("nearcoord") ? found : anywhere)[text.split(" haswbstatement")[0]];
+    return { query: { search: (hits ?? []).map((title) => ({ title })) } };
   }
   const ids = String(params.ids).split("|");
   const entities: Record<string, unknown> = {};
@@ -27,8 +46,9 @@ const wiki = vi.fn(async (_base: string, params: Record<string, string | number>
     const item = items[id];
     if (!item) continue;
     entities[id] =
-      params.props === "claims"
+      String(params.props).includes("claims")
         ? {
+            sitelinks: Object.fromEntries(Object.entries(item.wikis ?? {}).map(([site, title]) => [site, { title }])),
             claims: {
               ...(item.at ? { P625: [{ mainsnak: { datavalue: { value: { latitude: item.at[0], longitude: item.at[1] } } } }] } : {}),
               P31: (item.kinds ?? []).map((k) => ({ mainsnak: { datavalue: { value: { id: k } } } })),
@@ -53,7 +73,7 @@ vi.mock("@/lib/images/wikimedia", async (importOriginal) => ({
   servedPhotoUrls: (...a: Parameters<typeof servedPhotoUrls>) => servedPhotoUrls(...a),
 }));
 
-const { buildLandmarkPhoto, findLandmarkPhoto, itemMatch, nameMatch, namesAgree, nameTokens, nameVariants, placeName } = await import("./wikimedia-landmark");
+const { bareName, buildLandmarkPhoto, findLandmarkPhoto, itemMatch, nameMatch, namesAgree, nameTokens, nameVariants, placeName } = await import("./wikimedia-landmark");
 
 const photo = (name: string, extra: Partial<CommonsFile> = {}): CommonsFile => ({
   name,
@@ -71,7 +91,9 @@ const match = (a: string, b: string) => nameMatch(nameTokens(a), nameTokens(b));
 
 beforeEach(() => {
   items = {};
+  leads = {};
   found = {};
+  anywhere = {};
   files = [];
   searches.length = 0;
   vi.clearAllMocks();
@@ -90,6 +112,47 @@ describe("nameVariants", () => {
     expect(nameVariants(["Lunch at Katz's Delicatessen"])).toContain("Katz's Delicatessen");
     expect(nameVariants(["La Pedrera - Casa Milà"])).toEqual(expect.arrayContaining(["La Pedrera", "Casa Milà"]));
     expect(nameVariants(["Kinkaku-ji (Golden Pavilion)"])).toEqual(expect.arrayContaining(["Kinkaku-ji", "Golden Pavilion"]));
+  });
+
+  it("keeps the whole name of a place that starts like a small word", () => {
+    for (const [name, place] of [
+      ["Visit Tokyo Tower", "Tokyo Tower"],
+      ["Visit Atlantis Books", "Atlantis Books"],
+      ["Explore Inverness Castle", "Inverness Castle"],
+      ["Visit Theatre Royal", "Theatre Royal"],
+      ["Tour Ofuna Kannon", "Ofuna Kannon"],
+      ["Explore Ontario Place", "Ontario Place"],
+    ]) {
+      expect(bareName(name), name).toBe(place);
+    }
+    expect(bareName("Walk along the Seine")).toBe("the Seine");
+    expect(bareName("Walk across Ponte Vecchio")).toBe("Ponte Vecchio");
+    expect(bareName("Hike up Montjuic")).toBe("Montjuic");
+  });
+
+  it("names the place without what the activity does there, in the plans' other languages", () => {
+    for (const [name, place] of [
+      ["Visita al Colosseo", "Colosseo"],
+      ["Passeggiata sul Lago di Caldonazzo", "Lago di Caldonazzo"],
+      ["Esplorazione del borgo di Baselga di Piné", "borgo di Baselga di Piné"],
+      ["Paseo por el Retiro", "el Retiro"],
+      ["Passeio pelo Bairro Alto", "Bairro Alto"],
+      ["Visita ao MoMA (Museum of Modern Art)", "MoMA (Museum of Modern Art)"],
+      ["Sunset from Gianicolo Hill", "Gianicolo Hill"],
+    ]) {
+      expect(bareName(name), name).toBe(place);
+    }
+  });
+
+  it("names each of two sights joined by 'and', in the plans' languages", () => {
+    expect(nameVariants(["Roman Forum and Palatine Hill"])).toEqual(expect.arrayContaining(["Roman Forum", "Palatine Hill"]));
+    expect(nameVariants(["Visita al Pantheon e Piazza Navona"])).toEqual(expect.arrayContaining(["Pantheon", "Piazza Navona"]));
+    expect(nameVariants(["Sagrada Família y Park Güell"])).toEqual(expect.arrayContaining(["Sagrada Família", "Park Güell"]));
+  });
+
+  it("keeps a name of two words and a meal's name whole: one shop, one restaurant", () => {
+    expect(nameVariants(["Fortnum and Mason"])).toEqual(["Fortnum and Mason"]);
+    expect(nameVariants(["Dinner at Salt and Pepper Grill"], true)).toEqual(["Dinner at Salt and Pepper Grill", "Salt and Pepper Grill"]);
   });
 
   it("drops a part that only says what kind of place it is", () => {
@@ -173,6 +236,11 @@ describe("nameMatch", () => {
     expect(namesAgree("Lunch in the Latin Quarter", "Cathédrale Notre-Dame de Paris")).toBe(false);
   });
 
+  it("reads a label's part before a comma as the place's name, the rest says where it is", () => {
+    expect(itemMatch(["Riverside Market"], { labels: { en: { value: "Riverside Market, Christchurch" } } })).toBeGreaterThan(0);
+    expect(itemMatch(["Christchurch"], { labels: { en: { value: "Riverside Market, Christchurch" } } })).toBe(0);
+  });
+
   it("ranks a label above an alias with the same words", () => {
     const variants = ["Asakusa"];
     expect(itemMatch(variants, { labels: { en: { value: "Asakusa" } } })).toBeGreaterThan(
@@ -190,6 +258,81 @@ describe("findLandmarkPhoto", () => {
     const result = await findLandmarkPhoto({ names: ["Eiffel Tower"], lat: PARIS[0], lng: PARIS[1] }, signal);
     expect(result?.name).toBe("Tower at night.jpg");
     expect(searches[0]).toBe("Eiffel Tower haswbstatement:P18 nearcoord:1500m,48.85840,2.29450");
+  });
+
+  it("takes a square view of the place, but not one taller than wide", async () => {
+    found["Wiener Riesenrad"] = ["Q9"];
+    items.Q9 = { labels: ["Wiener Riesenrad"], at: [48.2166, 16.3958], images: { P18: ["Wheel.jpg"] } };
+    const q = { names: ["Wiener Riesenrad"], lat: 48.2166, lng: 16.3958 };
+    files = [photo("Wheel.jpg", { width: 2560, height: 2560 })];
+    expect((await findLandmarkPhoto(q, signal))?.name).toBe("Wheel.jpg");
+    files = [photo("Wheel.jpg", { width: 1200, height: 1600 })];
+    expect(await findLandmarkPhoto(q, signal)).toBeNull();
+  });
+
+  it("takes the photo its Wikipedia articles lead with when its own are all taller than wide", async () => {
+    found["Piazza Navona"] = ["Q5"];
+    items.Q5 = { labels: ["Piazza Navona"], at: [41.8992, 12.4731], images: { P18: ["Navona tall.jpg"] }, wikis: { enwiki: "Piazza Navona", itwiki: "Piazza Navona" } };
+    leads["it:Piazza Navona"] = "Navona tall.jpg";
+    leads["en:Piazza Navona"] = "Navona wide.jpg";
+    files = [photo("Navona tall.jpg", { width: 816, height: 1280 }), photo("Navona wide.jpg")];
+    const q = { names: ["Piazza Navona"], lat: 41.8992, lng: 12.4731 };
+    expect((await findLandmarkPhoto(q, signal))?.name).toBe("Navona wide.jpg");
+
+    // Nor any of its articles' lead photos: nothing.
+    files = [photo("Navona tall.jpg", { width: 816, height: 1280 }), photo("Navona wide.jpg", { width: 1600, height: 2400 })];
+    expect(await findLandmarkPhoto(q, signal)).toBeNull();
+  });
+
+  it("takes the photo its Wikipedia articles lead with over its own: a painting, an old print, a view from inside", async () => {
+    found["Piazza Signoria"] = ["Q8"];
+    items.Q8 = {
+      labels: ["Piazza della Signoria"],
+      at: [43.7696, 11.2558],
+      images: { P18: ["Zocchi - The Piazza della Signoria.jpg"] },
+      wikis: { enwiki: "Piazza della Signoria", itwiki: "Piazza della Signoria" },
+    };
+    leads["it:Piazza della Signoria"] = "Piazza Signoria - Firenze.jpg";
+    files = [photo("Zocchi - The Piazza della Signoria.jpg"), photo("Piazza Signoria - Firenze.jpg")];
+    const q = { names: ["Piazza della Signoria"], lat: 43.7696, lng: 11.2558 };
+    expect((await findLandmarkPhoto(q, signal))?.name).toBe("Piazza Signoria - Firenze.jpg");
+    // The first wiki in order whose lead will do.
+    leads["en:Piazza della Signoria"] = "Signoria from the Uffizi.jpg";
+    files.push(photo("Signoria from the Uffizi.jpg"));
+    expect((await findLandmarkPhoto(q, signal))?.name).toBe("Signoria from the Uffizi.jpg");
+  });
+
+  it("keeps its own photo when its articles lead with none that will do, or it has none", async () => {
+    found["Eiffel Tower"] = ["Q8"];
+    items.Q8 = { labels: ["Eiffel Tower"], at: [48.8583, 2.2944], images: { P18: ["Tower at night.jpg"] }, wikis: { enwiki: "Eiffel Tower" } };
+    leads["en:Eiffel Tower"] = "Tower portrait.jpg";
+    files = [photo("Tower portrait.jpg", { width: 2000, height: 3000 }), photo("Tower at night.jpg")];
+    const q = { names: ["Eiffel Tower"], lat: PARIS[0], lng: PARIS[1] };
+    expect((await findLandmarkPhoto(q, signal))?.name).toBe("Tower at night.jpg");
+    leads = {};
+    expect((await findLandmarkPhoto(q, signal))?.name).toBe("Tower at night.jpg");
+  });
+
+  it("takes no collage of several views, from its articles or its own", async () => {
+    found["Montmartre"] = ["Q8"];
+    items.Q8 = { labels: ["Montmartre"], at: [48.8867, 2.3431], images: { P18: ["Montmartre_montage_2.jpg", "Sacre-Coeur from the steps.jpg"] }, wikis: { enwiki: "Montmartre", frwiki: "Montmartre" } };
+    leads["en:Montmartre"] = "Montmartre montage.jpg";
+    leads["fr:Montmartre"] = "Collage Montmartre.jpg";
+    files = [photo("Montmartre montage.jpg"), photo("Collage Montmartre.jpg"), photo("Montmartre_montage_2.jpg"), photo("Sacre-Coeur from the steps.jpg")];
+    expect((await findLandmarkPhoto({ names: ["Montmartre"], lat: 48.8867, lng: 2.3431 }, signal))?.name).toBe("Sacre-Coeur from the steps.jpg");
+    // A mountain is not a montage.
+    leads["en:Montmartre"] = "Montagne Sainte-Genevieve view.jpg";
+    files.push(photo("Montagne Sainte-Genevieve view.jpg"));
+    expect((await findLandmarkPhoto({ names: ["Montmartre"], lat: 48.8867, lng: 2.3431 }, signal))?.name).toBe("Montagne Sainte-Genevieve view.jpg");
+  });
+
+  it("finds a sight named with another one: either is the place", async () => {
+    found["Roman OR Forum OR Palatine OR Hill"] = ["Q6", "Q7"];
+    items.Q6 = { labels: ["Palatine Hill"], at: [41.8894, 12.4875], images: { P18: ["Palatine.jpg"] } };
+    items.Q7 = { labels: ["Roman Forum"], at: [41.8925, 12.4853], images: { P18: ["Forum.jpg"] } };
+    files = [photo("Palatine.jpg"), photo("Forum.jpg")];
+    const result = await findLandmarkPhoto({ names: ["Roman Forum and Palatine Hill"], lat: 41.8925, lng: 12.4853 }, signal);
+    expect(["Palatine.jpg", "Forum.jpg"]).toContain(result?.name);
   });
 
   it("finds nothing when the place named alike is far away, or is a station", async () => {
@@ -212,6 +355,41 @@ describe("findLandmarkPhoto", () => {
     const result = await findLandmarkPhoto({ names: ["Sacred Monkey Forest Sanctuary"], lat: -8.5188, lng: 115.2585 }, signal);
     expect(result?.name).toBe("Forest.jpg");
     expect(searches).toHaveLength(2);
+  });
+
+  it("finds a sight Wikidata's map search leaves out by its name, among places that share it, by its own coordinates", async () => {
+    anywhere["Ponte Vecchio"] = ["Q10", "Q12", "Q11"];
+    items.Q10 = { labels: ["Ponte Vecchio"], at: [45.7663, 11.7311], images: { P18: ["Bassano.jpg"] } };
+    items.Q12 = { labels: ["Ponte Vecchio"], at: [44.4949, 11.3426], images: { P18: ["Bologna.jpg"] } };
+    items.Q11 = { labels: ["Ponte Vecchio"], at: [43.768, 11.2532], images: { P18: ["Florence.jpg"] } };
+    files = [photo("Bassano.jpg"), photo("Bologna.jpg"), photo("Florence.jpg")];
+    expect((await findLandmarkPhoto({ names: ["Ponte Vecchio"], lat: 43.768, lng: 11.2531 }, signal))?.name).toBe("Florence.jpg");
+    expect(searches.at(-1)).toBe("Ponte Vecchio haswbstatement:P18");
+
+    // Named alike only far away: nothing.
+    expect(await findLandmarkPhoto({ names: ["Ponte Vecchio"], lat: 41.9, lng: 12.5 }, signal)).toBeNull();
+  });
+
+  it("does not look for a meal anywhere but near", async () => {
+    anywhere["Trattoria Mario"] = ["Q13"];
+    items.Q13 = { labels: ["Trattoria Mario"], at: [43.776, 11.2537], images: { P18: ["Mario.jpg"] } };
+    files = [photo("Mario.jpg")];
+    expect(await findLandmarkPhoto({ names: ["Trattoria Mario"], lat: 43.776, lng: 11.2537, meal: true }, signal)).toBeNull();
+    expect(searches.every((s) => s.includes("nearcoord"))).toBe(true);
+  });
+
+  it("searches a meal by all of its name's words only", async () => {
+    // Only the any-word search would find it, and a meal no longer makes that search.
+    found["Trattoria Mario"] = [];
+    found["Trattoria OR Mario"] = ["Q13"];
+    items.Q13 = { labels: ["Trattoria Mario"], at: [43.776, 11.2537], images: { P18: ["Mario.jpg"] } };
+    files = [photo("Mario.jpg")];
+    expect(await findLandmarkPhoto({ names: ["Trattoria Mario"], lat: 43.776, lng: 11.2537, meal: true }, signal)).toBeNull();
+    expect(searches).toEqual(["Trattoria Mario haswbstatement:P18 nearcoord:1500m,43.77600,11.25370"]);
+    // A sight named alike still gets the any-word search.
+    searches.length = 0;
+    await findLandmarkPhoto({ names: ["Trattoria Mario"], lat: 43.776, lng: 11.2537 }, signal);
+    expect(searches.some((s) => s.startsWith("Trattoria OR Mario"))).toBe(true);
   });
 
   it("finds nothing for a meal named like the town it is in", async () => {

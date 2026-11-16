@@ -637,7 +637,7 @@ function TripMapInner({
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-[var(--primary-ink)] hover:underline"
+                  className="text-xs text-[var(--foreground)] underline underline-offset-2"
                 >
                   {t("openInMaps")}
                 </a>
@@ -647,7 +647,7 @@ function TripMapInner({
                       onActivityClick(selectedActivity, selectedActivity.dayNumber);
                       setSelectedActivity(null);
                     }}
-                    className="text-xs text-[var(--primary-ink)] hover:underline"
+                    className="text-xs text-[var(--foreground)] underline underline-offset-2"
                   >
                     {t("viewDetails")}
                   </button>

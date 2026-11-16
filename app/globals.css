@@ -1067,14 +1067,18 @@ h1, h2, h3 {
   margin-bottom: 1.75rem;
 }
 
+/* Links are read, so they are set in the text colour; the coral underline is the
+   brand's cue (DESIGN.md: coral is decoration, never text that must be read). */
 .blog-prose a:not([class*="bg-"]) {
-  color: var(--primary-ink);
+  color: var(--foreground);
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-decoration-color: var(--primary);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
 }
 
 .blog-prose a:not([class*="bg-"]):hover {
-  color: var(--primary-ink);
+  text-decoration-color: var(--primary-dark);
 }
 
 .blog-prose strong {
@@ -1182,10 +1186,6 @@ h1, h2, h3 {
   color: var(--foreground);
 }
 
-.blog-prose td strong {
-  color: var(--primary-ink);
-}
-
 .blog-prose img {
   max-width: 100%;
   height: auto;
@@ -1282,7 +1282,7 @@ h1, h2, h3 {
   position: relative;
   font-weight: 600;
   text-decoration: none;
-  color: var(--primary-ink);
+  color: var(--foreground);
   background-image: linear-gradient(transparent 65%, color-mix(in srgb, var(--accent) 35%, transparent) 65%);
   padding: 0 0.15em;
   transition: background-image 0.2s, color 0.2s;
@@ -1297,7 +1297,7 @@ h1, h2, h3 {
   transition: opacity 0.15s ease, transform 0.15s ease;
 }
 .blog-prose a.dest-chip:hover {
-  color: var(--primary-ink);
+  color: var(--foreground);
   background-image: linear-gradient(transparent 0%, color-mix(in srgb, var(--accent) 55%, transparent) 0%);
 }
 .blog-prose a.dest-chip:hover::after {
@@ -1881,19 +1881,6 @@ nav[data-monkey-nav].monkey-nav-scrolled {
   }
 }
 
-/* Phone widths: hide the BuildHop feedback launcher everywhere.
-   The launcher (components/BuildHopFeedbackWidget.tsx) is a closed-shadow
-   host, position:fixed bottom-right at z-index 2147483000 — on phones it sat
-   on Continue in the wizard, on page content and on the consent bar. The
-   widget is not loaded below 640px; this covers a window narrowed after load.
-   Outer-document rules beat the shadow's :host styles, and !important makes
-   that unconditional. */
-@media (max-width: 639px) {
-  [data-buildhop-feedback-widget] {
-    display: none !important;
-  }
-}
-
 /* Trip page: a first visit reserves the docked assistant's column on <main> for
    the panel that opens by itself. A browser that has already met the assistant
    (marked on <html> before paint by the layout's script) keeps the centred
@@ -1902,5 +1889,27 @@ nav[data-monkey-nav].monkey-nav-scrolled {
 @media (min-width: 1024px) {
   html[data-assistant-seen] main[data-assistant-dock="reserved"] {
     margin-right: auto;
+  }
+}
+
+/* The bar that follows a tap to another page (components/NavigationCue.tsx):
+   it runs most of the way while the page is asked for, and stands still for
+   those who ask for less motion. */
+@keyframes navigation-cue {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(0.85);
+  }
+}
+.navigation-cue {
+  transform-origin: left;
+  animation: navigation-cue 2.5s cubic-bezier(0.1, 0.6, 0.3, 1) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .navigation-cue {
+    animation: none;
+    transform: scaleX(0.85);
   }
 }

@@ -301,7 +301,7 @@ export function ProposeActivitySheet({
                   <p>{t("noResults", { query: searchQuery })}</p>
                   <button
                     onClick={() => setStep('custom')}
-                    className="mt-2 text-[var(--primary-ink)] hover:underline text-sm"
+                    className="mt-2 text-sm text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 hover:decoration-2"
                   >
                     {t("createCustom")}
                   </button>
@@ -316,7 +316,7 @@ export function ProposeActivitySheet({
             {/* Add Custom Link */}
             <button
               onClick={() => setStep('custom')}
-              className="w-full text-center py-2 text-sm text-[var(--primary-ink)]
+              className="w-full text-center py-2 text-sm font-medium text-[var(--foreground)]
                          hover:bg-[var(--primary)]/5 rounded-lg transition-colors"
             >
               + {t("createCustom")}

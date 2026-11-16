@@ -110,6 +110,7 @@ export default async function VisaCheckerPage({
   // next-intl renders the literal "breadcrumbs.home" key. Fixed by using
   // the full path. Same pattern would bite any future breadcrumb caller.
   const tBreadcrumbs = await getTranslations("common.breadcrumbs");
+  const tA11y = await getTranslations("common.a11y");
   const tPassport = await getTranslations("passport");
 
   const localePrefix = locale === "en" ? "" : `/${locale}`;
@@ -194,7 +195,7 @@ export default async function VisaCheckerPage({
       )}
       <Navbar />
       <main className="flex-1 max-w-3xl mx-auto px-4 py-8 sm:py-12 w-full">
-        <nav className="text-sm text-slate-500 mb-4" aria-label="Breadcrumb">
+        <nav className="text-sm text-slate-500 mb-4" aria-label={tA11y("breadcrumb")}>
           <Link href="/" className="hover:text-slate-700">
             {tBreadcrumbs("home")}
           </Link>
@@ -275,7 +276,7 @@ export default async function VisaCheckerPage({
                 <ExternalLinkButton
                   href={officialSourceUrl}
                   rel="noopener noreferrer nofollow"
-                  className="inline-flex items-center gap-2 font-medium text-[var(--primary-ink)] hover:underline"
+                  className="inline-flex items-center gap-2 font-medium text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 hover:decoration-2"
                   captureEvent="tools_visa_checker_external_click"
                   captureProps={{
                     kind: "official",
@@ -310,7 +311,7 @@ export default async function VisaCheckerPage({
                 <ExternalLinkButton
                   href={advisory.url}
                   rel="noopener noreferrer nofollow"
-                  className="text-sm text-[var(--primary-ink)] hover:underline"
+                  className="text-sm text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 hover:decoration-2"
                   captureEvent="tools_visa_checker_external_click"
                   captureProps={{
                     kind: "advisory",
@@ -361,7 +362,7 @@ export default async function VisaCheckerPage({
             {status !== "same country" && status !== "no admission" && (
               <Link
                 href={`/trips/new?destination=${encodeURIComponent(toName)}`}
-                className="inline-flex items-center gap-2 text-[var(--primary-ink)] hover:underline font-medium"
+                className="inline-flex items-center gap-2 font-medium text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 hover:decoration-2"
               >
                 {t("planTripCta", { destination: toName })}
               </Link>
@@ -394,7 +395,7 @@ export default async function VisaCheckerPage({
         <div className="border-t border-slate-200 mt-12 pt-8">
           <Link
             href="/tools/packing-list"
-            className="inline-flex items-center gap-2 text-[var(--primary-ink)] hover:underline font-medium"
+            className="inline-flex items-center gap-2 font-medium text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 hover:decoration-2"
           >
             🧳{" "}
             {locale === "it"

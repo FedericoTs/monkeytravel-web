@@ -6,22 +6,26 @@ import { useTranslations } from "next-intl";
 /**
  * The way to the trip assistant: a floating button, bigger and accented, that
  * pulses for a planner who hasn't opened the assistant yet; in edit mode a
- * compact one sits above the edit bar instead.
+ * compact one sits above the edit bar instead. On a phone the floating button
+ * covers the plan under it, so it stays away while the controls bar's own
+ * assistant button is on screen (`barButtonInView`).
  */
 export default function TripAssistantButton({
   isEditMode,
   hasSeenAssistant,
+  barButtonInView = false,
   onOpen,
 }: {
   isEditMode: boolean;
   hasSeenAssistant: boolean;
+  barButtonInView?: boolean;
   onOpen: () => void;
 }) {
   const t = useTranslations("trips");
   return !isEditMode ? (
     <button
       onClick={onOpen}
-      className={`fixed bottom-24 sm:bottom-6 left-6 lg:bottom-8 lg:left-8 z-40 group ${!hasSeenAssistant ? "animate-pulse" : ""}`}
+      className={`fixed bottom-24 sm:bottom-6 left-6 lg:bottom-8 lg:left-8 z-40 group ${barButtonInView ? "max-sm:hidden" : ""} ${!hasSeenAssistant ? "animate-pulse" : ""}`}
       title={t('detail.aiTripAssistant')}
     >
       <div className="flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-3.5 rounded-2xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary-dark)] text-white shadow-xl shadow-[var(--primary)]/30 hover:shadow-2xl hover:scale-[1.04] transition-all duration-300 ring-2 ring-white">

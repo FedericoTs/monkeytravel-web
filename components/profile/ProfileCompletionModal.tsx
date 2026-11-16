@@ -204,7 +204,7 @@ export default function ProfileCompletionModal({
         {/* Header Icon */}
         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-[var(--primary)]/20 to-[var(--secondary)]/20 flex items-center justify-center">
           <svg
-            className="w-8 h-8 text-[var(--primary-ink)]"
+            className="w-8 h-8 text-[var(--primary)]"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

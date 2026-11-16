@@ -737,10 +737,11 @@ export async function fetchActivityImages<T extends { activities: ActivityWithIm
           occ.activity.image_url = withActivityTypeHint(url, occ.type);
         }
       } else {
-        // No photo resolved: the whole group gets one curated fallback, picked
-        // from the first occurrence's name and type.
+        // No photo of the place itself. A meal or a drink shows a generic
+        // table, which reads as generic, picked from the first occurrence's
+        // name; anything else shows none rather than another place.
         fallbackHits++;
-        const fallback = curatedFor(first.name, first.type);
+        const fallback = MEAL_TYPES.has(normalizeActivityType(first.type, first.name)) ? curatedFor(first.name, first.type) : undefined;
         for (const occ of occurrences) {
           occ.activity.image_url = fallback;
         }

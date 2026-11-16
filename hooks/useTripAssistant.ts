@@ -36,6 +36,9 @@ export interface Message {
   local?: boolean;
   // "Not saved yet: tap …", from the server beside the reply (showsPendingNote).
   pendingNote?: string;
+  // The trip dates the traveller asked for, which only Change dates can set:
+  // the panel offers it under the reply.
+  changeDates?: { start: string; end: string };
 }
 
 /**
@@ -137,7 +140,7 @@ export function useTripAssistant({
     },
     [t]
   );
-  const { preferences, exchangeRates } = useLocalePrefs();
+  const { preferences, exchangeRates, setPreferredCurrency } = useLocalePrefs();
 
 
   // Core state
@@ -288,6 +291,8 @@ export function useTripAssistant({
         if (data.conversationId && !conversationId) {
           setConversationId(data.conversationId);
         }
+        // Prices follow the viewer's currency, so a currency request is applied here.
+        if (typeof data.currency === "string" && data.currency) setPreferredCurrency(data.currency);
 
         // Track AI assistant usage — GA4 (legacy) AND PostHog. The dual-write
         // is a regression guard: the shipped AIAssistant already writes to
@@ -348,7 +353,7 @@ export function useTripAssistant({
         setIsLoading(false);
       }
     },
-    [tripId, conversationId, isLoading, itinerary, simulateLoadingStages, clearUndo, pendingChange, isApplyingChange, t, failure, preferences, exchangeRates, setInput]
+    [tripId, conversationId, isLoading, itinerary, simulateLoadingStages, clearUndo, pendingChange, isApplyingChange, t, failure, preferences, exchangeRates, setPreferredCurrency, setInput]
   );
 
   // Apply pending change

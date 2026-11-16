@@ -12,6 +12,7 @@ import { cardFonts } from "@/lib/og/fonts";
 import { linkCardJpeg } from "@/lib/og/link-card-jpeg";
 import {
   CARD_SIZES,
+  cardBudget,
   cardFormat,
   cardLocale,
   coverForCard,
@@ -137,11 +138,10 @@ export async function GET(request: NextRequest) {
   const days = asDays(data.itinerary);
   const activityCount = days.reduce((sum, d) => sum + d.activities.length, 0);
 
-  // The stored currency, deliberately. The page converts into the VIEWER's
-  // preferred currency client-side with live Frankfurter rates (useCurrency),
-  // which a scraper has no equivalent of - there is no viewer at unfurl time.
-  const budgetTotal = typeof data.budget?.total === "number" ? data.budget.total : null;
-  const budget = budgetTotal && budgetTotal > 0 ? `${Math.round(budgetTotal)} ${data.budget?.currency || "USD"}` : null;
+  // What the page shows: the plan's stops added up, per person, in the plan's
+  // own currency. The page converts into the viewer's currency with live
+  // rates (useCurrency); there is no viewer at unfurl time.
+  const budget = cardBudget(data.itinerary, data.budget?.currency, locale);
 
   // Nights is a date difference, not days - 1: SharedTripView's `nights` is
   // ceil((end - start) / 86400000), while days come from itinerary.length and

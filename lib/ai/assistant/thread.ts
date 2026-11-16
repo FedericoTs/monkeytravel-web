@@ -20,6 +20,11 @@ export interface AssistantMessage {
    * the chat shows it only while the change waits (AIAssistantEnhanced).
    */
   pendingNote?: string;
+  /**
+   * New dates for the whole trip, read from the ask: only Change dates moves a
+   * trip, so the chat offers it on them under this reply (trip-dates.ts).
+   */
+  changeDates?: { start: string; end: string };
   cards?: AssistantCard[];
   action?: {
     type: string;

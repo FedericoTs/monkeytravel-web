@@ -311,7 +311,7 @@ export default function SaveTripModal({
             <div className="p-6">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-full bg-[var(--primary)]/10 flex items-center justify-center">
-                  <Calendar className="w-5 h-5 text-[var(--primary-ink)]" />
+                  <Calendar className="w-5 h-5 text-[var(--primary)]" />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-900">
@@ -397,7 +397,7 @@ export default function SaveTripModal({
                       await storePendingSave();
                       router.push(`/auth/login?redirect=${encodeURIComponent(returnPath)}`);
                     }}
-                    className="text-[var(--primary-ink)] hover:underline font-medium"
+                    className="text-[var(--foreground)] underline underline-offset-2 font-medium"
                   >
                     {t("logIn")}
                   </button>

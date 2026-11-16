@@ -137,7 +137,7 @@ export default function ExploreFilters() {
           aria-pressed={activeTravelStyle === "backpacker"}
           className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm transition-colors ${
             activeTravelStyle === "backpacker"
-              ? "bg-emerald-500 text-white border-emerald-500"
+              ? "bg-emerald-700 text-white border-emerald-700"
               : "bg-white text-slate-700 border-slate-300 hover:border-emerald-500"
           }`}
         >

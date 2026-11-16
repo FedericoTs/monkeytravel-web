@@ -60,6 +60,24 @@ describe("DestinationHero budget chip", () => {
     expect(chip.parentElement?.children.length).toBeGreaterThan(3);
     expect(chip.parentElement?.lastElementChild).toBe(chip);
   });
+
+  it("says whom the total is for, and what it counts, when the page says so", () => {
+    const hint = "What the plan's activities and meals cost, per person.";
+    const { container } = render(
+      <DestinationHero
+        destination="Lisbon, Portugal"
+        title="Lisbon Trip"
+        disableApiCalls
+        budget={{ total: 900, currency: "EUR" }}
+        budgetNote="per person"
+        budgetHint={hint}
+      />
+    );
+    const chip = container.querySelector(`[title="${hint}"]`);
+    expect(chip?.textContent).toContain("900 EUR");
+    expect(chip?.querySelector(".font-normal")?.textContent).toBe("per person");
+    expect(chip?.querySelector(".sr-only")?.textContent).toBe(hint);
+  });
 });
 
 /**

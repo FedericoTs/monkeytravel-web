@@ -130,7 +130,7 @@ describe("useAutoSaveTrip", () => {
     expect(mocks.saveTrip).toHaveBeenCalledTimes(1);
     expect(mocks.updateTrip).not.toHaveBeenCalled();
     expect(result.current.savedTripId).toBe("trip-1");
-    expect(mocks.attachCoverImage).toHaveBeenCalledWith("trip-1", "Paris");
+    expect(mocks.attachCoverImage).toHaveBeenCalledWith("trip-1", "Paris", expect.objectContaining({ days: expect.any(Array) }));
     expect(mocks.onPersisted).toHaveBeenCalledWith("trip-1", 5, "insert");
   });
 

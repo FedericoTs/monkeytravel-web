@@ -19,6 +19,7 @@ import { verifyRenderedEmail, blockingDefects, summarizeDefects } from "@/lib/em
 import { didNotGoUrl, postTripCtaUrl } from "@/lib/email/followup-cta";
 import { needAnswerUrls, reminderCtaUrl } from "@/lib/email/reminder-cta";
 import { resolveLocale, formatDateRange, formatDayMonth } from "@/lib/email/reminder-locale";
+import { sharesAsGroup } from "@/lib/wizard/answers";
 import {
   type TripEmailRow,
   type SlotRow,
@@ -178,10 +179,10 @@ export async function sendSlotEmail(
       ? ctaT("finalNote")
       : undefined;
 
-  // The group ask (GROUP_ASK_SLOTS): a group trip with no share link and no
-  // invite yet. Optional, so a failed read just leaves it out.
+  // The group ask (GROUP_ASK_SLOTS): a trip for friends or a family with no
+  // share link and no invite yet. Optional, so a failed read just leaves it out.
   let groupAsk: { text: string; label: string; url: string } | undefined;
-  if (!followup && GROUP_ASK_SLOTS.has(row.slot) && trip.trip_intent === "group" && !trip.shared_at) {
+  if (!followup && GROUP_ASK_SLOTS.has(row.slot) && sharesAsGroup(trip.trip_intent) && !trip.shared_at) {
     const { count, error } = await svc
       .from("trip_invites")
       .select("id", { count: "exact", head: true })

@@ -295,7 +295,7 @@ export default function PackingListClient({ locale }: Props) {
                     onClick={() => setTravelStyle(opt.value)}
                     className={`flex flex-col items-center gap-1 py-3 rounded-xl border-2 text-xs font-medium transition-all ${
                       selected
-                        ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary-ink)]"
+                        ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--foreground)]"
                         : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
                     }`}
                   >
@@ -321,7 +321,7 @@ export default function PackingListClient({ locale }: Props) {
                     onClick={() => toggleActivity(a)}
                     className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
                       selected
-                        ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary-ink)]"
+                        ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--foreground)]"
                         : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
                     }`}
                   >
@@ -388,7 +388,7 @@ export default function PackingListClient({ locale }: Props) {
               <button
                 type="button"
                 onClick={handleShare}
-                className="text-sm text-[var(--primary-ink)] hover:underline"
+                className="text-sm text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 hover:decoration-2"
               >
                 {t("shareCta")}
               </button>

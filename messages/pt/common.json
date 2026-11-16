@@ -178,7 +178,12 @@
   "drag": {
     "title": "Segure e arraste para reordenar ou mover para outro dia",
     "ariaLabel": "Alça: segure e arraste para reordenar ou mover para outro dia",
-    "hint": "Arrastar"
+    "hint": "Arrastar",
+    "instructions": "Para mover uma atividade, pressione espaço ou enter e use as setas. Pressione espaço ou enter de novo para soltá-la, ou esc para cancelar.",
+    "pickedUp": "Movendo {name}: atividade {position} de {count} do dia {day}.",
+    "over": "{name}: atividade {position} de {count} do dia {day}.",
+    "dropped": "Pronto: {name} é a atividade {position} de {count} do dia {day}.",
+    "cancelled": "Mudança cancelada: {name} volta a ser a atividade {position} de {count} do dia {day}."
   },
   "validation": {
     "required": "Este campo é obrigatório",
@@ -320,10 +325,14 @@
     "linkCopied": "Link copiado!",
     "shareTrip": "Compartilhar Viagem"
   },
+  "tripTotal": {
+    "perPerson": "por pessoa",
+    "hint": "O que custam as atividades e refeições do plano, por pessoa. Não inclui hospedagem nem a viagem até lá."
+  },
   "shared": {
     "sharedTrip": "Viagem Compartilhada",
     "backpackerRoute": "Roteiro mochileiro",
-    "estBudget": "Orçamento Est.",
+    "estBudget": "Est. por pessoa",
     "noItinerary": "Ainda sem roteiro",
     "noItineraryDesc": "Esta viagem ainda não tem atividades planejadas.",
     "footerTagline": "Planejar viagens com IA, de um jeito simples",
@@ -587,7 +596,8 @@
     "tripConfirmed": "Viagem confirmada",
     "tripCancelled": "Viagem cancelada",
     "readyToConfirm": "Pronto para confirmar sua viagem?",
-    "confirmTripDescription": "Depois de confirmada, você terá uma contagem regressiva até a partida e acesso à sua lista de preparativos."
+    "confirmTripDescription": "Depois de confirmada, você terá uma contagem regressiva até a partida e acesso à sua lista de preparativos.",
+    "deleteReason": "O que não funcionou? (opcional)"
   },
   "booking": {
     "bookYourTrip": "Reserve Sua Viagem",
@@ -1706,6 +1716,9 @@
       "other": "Outros"
     }
   },
+  "tripStrip": {
+    "label": "Preparativos"
+  },
   "bookAhead": {
     "title": "Reserve com antecedência",
     "intro": "Estas paradas precisam de reserva. Marque cada uma quando estiver feita.",
@@ -1844,7 +1857,8 @@
       "undoActions": {
         "addedDay": "Dia {number} adicionado",
         "updatedDays": "{count, plural, one {# dia atualizado} other {# dias atualizados}}"
-      }
+      },
+      "changeDatesTo": "Mudar as datas para {range}"
     },
     "cards": {
       "addToTrip": "Adicionar à viagem",
@@ -2597,10 +2611,14 @@
     }
   },
   "advisory": {
-    "level": {
-      "advisory": "Alerta de viagem",
-      "high": "Evite viagens não essenciais",
-      "extreme": "Evite todas as viagens"
+    "chip": "Alertas de viagem",
+    "someAreas": "algumas regiões",
+    "advice": {
+      "all_whole": "O Reino Unido desaconselha qualquer viagem a este país",
+      "essential_whole": "O Reino Unido desaconselha viagens não essenciais a este país",
+      "all_parts": "O Reino Unido desaconselha qualquer viagem a algumas regiões",
+      "essential_parts": "O Reino Unido desaconselha viagens não essenciais a algumas regiões",
+      "other": "Alertas de viagem do Reino Unido"
     },
     "sourceLabel": "Fonte: {source}",
     "readFullAdvisory": "Ler alerta completo",

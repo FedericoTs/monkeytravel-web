@@ -11,6 +11,7 @@ import { fetchShareStatus, forgetShareStatus } from "@/lib/trips/share-status";
 import type { TripCollaborator } from "@/types";
 import { Spinner } from "@/components/ui/Spinner";
 import { useToast } from "@/components/ui/Toast";
+import type { ChosenTripIntent } from "@/lib/wizard/answers";
 
 interface ShareButtonProps {
   tripId: string;
@@ -22,7 +23,7 @@ interface ShareButtonProps {
   /** Auto-open the modal on mount (used after trip save) */
   autoOpen?: boolean;
   /** trip_meta.trip_intent — "group" opens the share tab on the crew ask. */
-  tripIntent?: "solo" | "group" | null;
+  tripIntent?: ChosenTripIntent | null;
   /** False for collaborators: turning the link on/off is the owner's. */
   canManageSharing?: boolean;
 }

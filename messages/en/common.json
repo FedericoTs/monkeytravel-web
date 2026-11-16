@@ -178,7 +178,12 @@
   "drag": {
     "title": "Hold and drag to reorder or move to another day",
     "ariaLabel": "Drag handle — hold and drag to reorder or move to another day",
-    "hint": "Drag"
+    "hint": "Drag",
+    "instructions": "To move an activity, press space or enter, then use the arrow keys. Press space or enter again to drop it, or escape to cancel.",
+    "pickedUp": "Picked up {name}: activity {position} of {count} on Day {day}.",
+    "over": "{name}: activity {position} of {count} on Day {day}.",
+    "dropped": "Dropped {name}: activity {position} of {count} on Day {day}.",
+    "cancelled": "Move cancelled. {name} is back as activity {position} of {count} on Day {day}."
   },
   "validation": {
     "required": "This field is required",
@@ -320,10 +325,14 @@
     "linkCopied": "Link copied!",
     "shareTrip": "Share Trip"
   },
+  "tripTotal": {
+    "perPerson": "per person",
+    "hint": "What the plan's activities and meals cost, per person. Stays and getting there aren't included."
+  },
   "shared": {
     "sharedTrip": "Shared Trip",
     "backpackerRoute": "Backpacker route",
-    "estBudget": "Est. Budget",
+    "estBudget": "Est. per person",
     "noItinerary": "No Itinerary Yet",
     "noItineraryDesc": "This trip doesn't have any activities planned yet.",
     "footerTagline": "AI-powered travel planning made simple",
@@ -587,7 +596,8 @@
     "tripConfirmed": "Trip confirmed",
     "tripCancelled": "Trip cancelled",
     "readyToConfirm": "Ready to confirm your trip?",
-    "confirmTripDescription": "Once confirmed, you'll get a countdown to your departure and access to your pre-trip checklist."
+    "confirmTripDescription": "Once confirmed, you'll get a countdown to your departure and access to your pre-trip checklist.",
+    "deleteReason": "What didn't work? (optional)"
   },
   "booking": {
     "bookYourTrip": "Book Your Trip",
@@ -1706,6 +1716,9 @@
       "other": "Other"
     }
   },
+  "tripStrip": {
+    "label": "Getting ready"
+  },
   "bookAhead": {
     "title": "Book ahead",
     "intro": "These stops need a booking. Tick each one once it's done.",
@@ -1844,7 +1857,8 @@
       "undoActions": {
         "addedDay": "Added Day {number}",
         "updatedDays": "Updated {count, plural, one {# day} other {# days}}"
-      }
+      },
+      "changeDatesTo": "Change dates to {range}"
     },
     "cards": {
       "addToTrip": "Add to trip",
@@ -2597,10 +2611,14 @@
     }
   },
   "advisory": {
-    "level": {
-      "advisory": "Travel advisory",
-      "high": "Avoid all but essential travel",
-      "extreme": "Avoid all travel"
+    "chip": "Travel advice",
+    "someAreas": "some areas",
+    "advice": {
+      "all_whole": "The UK advises against all travel to this country",
+      "essential_whole": "The UK advises against all but essential travel to this country",
+      "all_parts": "The UK advises against all travel to some areas",
+      "essential_parts": "The UK advises against all but essential travel to some areas",
+      "other": "UK travel advice"
     },
     "sourceLabel": "Source: {source}",
     "readFullAdvisory": "Read full advisory",

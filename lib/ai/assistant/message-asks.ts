@@ -41,6 +41,16 @@ export function asksToRegroup(text: string): boolean {
   return REGROUP.test(text);
 }
 
+// "every day", "each day", "all the days", "todos los días", "cada día",
+// "tutti i giorni", "ogni giorno", "todos os dias", "todo dia".
+const EVERY_DAY =
+  /(?<![\p{L}])(?:every\s*day|each\s+day|all\s+(?:(?:the|my|our|of\s+the)\s+)?days|tod[oa]s\s+(?:los\s+|os\s+)?d[ií]as|tod[oa]\s+d[ií]a|cada\s+d[ií]a|tutti\s+i\s+giorni|ogni\s+giorno)(?![\p{L}])/iu;
+
+/** Does the message ask for something on every day of the trip? */
+export function asksForEveryDay(text: string): boolean {
+  return EVERY_DAY.test(text);
+}
+
 // A day by its number: "day 6", "giorno 6", "día 6", "dia 6".
 const DAY_NUMBER = /(?<![\p{L}])(?:day|giorno|día|dia)\s+(\d{1,2})(?![\p{N}])/giu;
 
@@ -95,9 +105,14 @@ export function talksAboutDayCount(message: string): boolean {
 const FREE_DAY =
   /(?<![\p{L}])(?:free|empty|clear|blank|day\s+off|nothing\s+planned|libres?|vac[ií][oa]s?|en\s+blanco|liber[oiae]|vuot[oiae]|in\s+bianco|livres?|vazi[oa]s?|em\s+branco|folga)(?![\p{L}])/iu;
 
-/** Does the message ask for a day with nothing planned? */
+// Every day emptied, to fill in themselves: "delete everything", "start from
+// scratch", "borra todo", "cancella tutto", "apaga tudo".
+const CLEAR_ALL =
+  /(?<![\p{L}])(?:(?:delete|remove|clear|erase|wipe|scrap|empty)\s+(?:out\s+)?(?:all|everything)|(?:borr|elimin|quit|vac[ií])\p{L}*\s+tod[oa]s?|(?:cancell|elimin|togli|rimuov|svuot)\p{L}*\s+tutt[oie]|(?:apag|exclu|remov|tir|limp)\p{L}*\s+(?:tudo|tod[oa]s)|from\s+scratch|(?:desde|de)\s+cero|da\s+(?:zero|capo)|do\s+zero)(?![\p{L}])/iu;
+
+/** Does the message ask for a day, or every day, with nothing planned? */
 export function asksForFreeDay(message: string): boolean {
-  return FREE_DAY.test(message);
+  return FREE_DAY.test(message) || CLEAR_ALL.test(message);
 }
 
 // Telling, not asking, where they stay: "our hotel is Hotel Arts", "we're

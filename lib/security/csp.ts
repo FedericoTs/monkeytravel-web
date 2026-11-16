@@ -80,8 +80,6 @@ const SCRIPT_HOSTS = [
   "https://maps.googleapis.com",
   "https://maps.gstatic.com",
   "https://js.stripe.com",
-  // BuildHop feedback widget — see components/BuildHopFeedbackWidget.tsx.
-  "https://buildhop.io",
 ];
 
 /**
@@ -176,22 +174,11 @@ export function buildCspHeader(pathname: string, scripts: ScriptPolicy): string 
       // script's own error reporting to a third party, it is not needed for
       // affiliate links to work, and it would ship page URLs off-site.
       "https://emrldco.com",
-      // BuildHop feedback widget's own submit/config calls. script-src alone
-      // is exactly the emrldco.com bug above: the script loads and runs, but
-      // any fetch() it makes gets silently refused without a matching
-      // connect-src entry, and the failure is invisible from the server.
-      "https://buildhop.io",
     ],
     "frame-src": [
       "'self'",
       "https://accounts.google.com",
       "https://js.stripe.com",
-      // The BuildHop widget's launcher is only the visible half. Clicking it
-      // injects an iframe at buildhop.io/embed/feedback/<id> — a THIRD
-      // directive this one integration needs, after script-src (load the
-      // script) and connect-src (its session POST). Without this the launcher
-      // renders, the click registers, and the panel opens blank.
-      "https://buildhop.io",
     ],
     // Session replay (PostHog) compresses in a worker built from a
     // blob: URL. Without this the worker falls back to script-src, which has

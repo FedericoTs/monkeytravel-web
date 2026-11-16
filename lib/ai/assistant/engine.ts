@@ -34,10 +34,13 @@ import { planCosts, planCurrency } from "@/lib/ai/assistant/plan-costs";
 import { dayMentioned } from "@/lib/ai/assistant/day-target";
 import { currencyRequested } from "@/lib/ai/assistant/currency-request";
 import { readElsewhere, type TripPlace } from "@/lib/ai/assistant/elsewhere";
+import { planRoute, readRoute, type RouteStop } from "@/lib/ai/assistant/route";
+import { askForRoute, routeOfferReply } from "@/lib/ai/assistant/route-reading";
 import type { ItineraryDay } from "@/types";
 import {
   type AssistInput,
   canOfferElsewhere,
+  canOfferRoute,
   buildPrompt,
   MAX_DAYS_PER_REPLY,
   tripLengthLine,
@@ -58,9 +61,10 @@ import {
   talksAboutDayCount,
   asksToRegroup,
   asksForDayTrip,
+  asksForEveryDay,
 } from "./message-asks";
 import { alsoInTheirCity, daysOfCity, keepDayCities, placesAway, withoutPlacesAway, type PlacesAway } from "./city-days";
-import { type TravelTime, readTravelTimes, outsideTravelTimes, minutesOf } from "./travel-times";
+import { type TravelTime, readTravelTimes, outsideTravelTimes, minutesOf, keepDepartureTime, withPlanDeparture } from "./travel-times";
 import { composeReply, type PlaceOnDay } from "./edit-reply";
 import { maxTripDays } from "./structural";
 import { askForNames, gluedNames, renamesOf, withNames } from "@/lib/ai/one-script-names";
@@ -88,6 +92,8 @@ export interface AssistResult {
   currency?: string;
   /** Places offered for the whole trip, when the traveller asked to go somewhere else. */
   elsewhere?: TripPlace[];
+  /** A new route offered for the whole trip, when the traveller told one. */
+  route?: RouteStop[];
   meta: { model: string; costUsd: number; generationTimeMs: number };
 }
 
@@ -97,6 +103,8 @@ type Outcome = ReturnType<typeof validateEdits> & {
   travelTimes: TravelTime[];
   /** Places offered for the whole trip; only with no change prepared. */
   elsewhere: TripPlace[];
+  /** A new route offered for the whole trip; only with no change prepared. */
+  route: RouteStop[];
 };
 
 /** The model's JSON, as the reply and checked edits this engine works with. */
@@ -108,10 +116,15 @@ function readOutcome(input: AssistInput, obj: Record<string, unknown>, cur: stri
     input.days,
     { edits: rawEdits, tripLength: obj.trip_length, moreDays: obj.more_days },
     cur,
-    asksForFreeDay(input.message),
+    // Asked now, or in the message a "yes" answers ("Delete everything?").
+    asksForFreeDay(input.message) || asksForFreeDay([...(input.history ?? [])].reverse().find((t) => t.role === "user")?.text ?? ""),
   );
   const told = [input.message, ...(input.history ?? []).slice(-4).filter((t) => t.role === "user").map((t) => t.text)].join("\n");
-  const edits = keepDayCities(input.days, keepSavedActivities(input.days, checked.edits, { reply, message: input.message }), told);
+  const edits = keepDepartureTime(
+    input.days,
+    keepDayCities(input.days, keepSavedActivities(input.days, checked.edits, { reply, message: input.message }), told),
+    input.message,
+  );
   // The other days the change concerns, past what one reply holds.
   const length = checked.tripLength ?? input.days.length;
   const done = new Set(edits.map((e) => e.day_number));
@@ -122,7 +135,11 @@ function readOutcome(input: AssistInput, obj: Record<string, unknown>, cur: stri
     canOfferElsewhere(input) && edits.length === 0 && checked.tripLength === undefined
       ? readElsewhere(obj.elsewhere, input.destination)
       : [];
-  return { ...checked, edits, reply, moreDays, travelTimes: readTravelTimes(obj.travel_times, length), elsewhere };
+  const route =
+    canOfferRoute(input) && edits.length === 0 && checked.tripLength === undefined && elsewhere.length === 0
+      ? readRoute(obj.route, input.days.length, planRoute(input.days))
+      : [];
+  return { ...checked, edits, reply, moreDays, travelTimes: readTravelTimes(obj.travel_times, length), elsewhere, route };
 }
 
 /**
@@ -250,6 +267,26 @@ const samePlace = (a: string, b: string) => {
   const shorter = Math.min(x.length, y.length);
   return shorter >= 10 && editDistance(x, y) <= (shorter >= 16 ? 2 : 1);
 };
+
+// Saying they don't like a place asks for it to go: "I dont like the food at
+// Farm 12", "no me gusta", "non mi piace", "não gosto".
+const DISLIKES = /\b(?:don['’]?t|do not|didn['’]?t|did not)\s+(?:really\s+)?(?:like|love|want)\b|\bnot a fan of\b|\bno\s+(?:me|nos)\s+gust|\bnon\s+(?:mi|ci)\s+piac|\bn[ãa]o\s+gost/iu;
+// What an activity's name says besides the place: "Lunch at Farm 12" is Farm 12.
+const DOING = /^(?:breakfast|brunch|lunch|dinner|drinks|coffee|tea|visit|explore|tour|walk|stroll)\b\s*(?:at|in|on|to|of|through|around|along)?\s+/i;
+
+/** The plan's places the message names, by their own name ("farm 12" names "Lunch at Farm 12"). */
+function placesNamed(message: string, days: ItineraryDay[]): string[] {
+  const said = placeName(message);
+  const names = days.flatMap((d) => (Array.isArray(d.activities) ? d.activities : []).map((a) => a.name)).filter((n): n is string => typeof n === "string");
+  return [
+    ...new Set(
+      names.filter((n) => {
+        const own = placeName(n.replace(DOING, "")).trim();
+        return own.length >= 4 && said.includes(` ${own} `);
+      }),
+    ),
+  ];
+}
 
 /** Whether a name is on several days of the plan ("Breakfast at the hotel"), which it is on purpose. */
 function recursOnPurpose(days: ItineraryDay[]): (name: string) => boolean {
@@ -493,7 +530,7 @@ export function correctionFor(
   // The days this reply changes, and every day when the message gives a time:
   // that is when the plan must first be fitted to it.
   const timed = TELLS_TIME.test(input.message) ? withEdits(input.days, o.edits) : o.edits;
-  const outside = outsideTravelTimes(timed, o.travelTimes ?? [])[0];
+  const outside = outsideTravelTimes(timed, withPlanDeparture(o.travelTimes ?? [], input.days))[0];
   if (outside) {
     const late = outside.from !== null && minutesOf(outside.from) >= 22 * 60;
     const when = [
@@ -537,6 +574,16 @@ export function correctionFor(
   }
   if (asksToAdd(input.message) && !asksToRemove(input.message) && dropped.length > 0 && dropped.length <= 2) {
     return `They asked only to add. Keep ${dropped.join(" and ")} and add the new activity alongside, moving times if needed. Take something out only if the day truly can't fit it, and then say which in "reply".`;
+  }
+  // A place they said they don't like stayed while others went: "I dont like
+  // the food at Farm 12" came back with the day's dinner swapped instead.
+  if (dropped.length > 0 && DISLIKES.test(input.message)) {
+    const named = placesNamed(input.message, input.days);
+    const went = (n: string) => dropped.some((d) => d === n || samePlace(d, n));
+    const wrong = dropped.filter((d) => !named.some((n) => d === n || samePlace(d, n)));
+    if (named.length > 0 && !named.some(went) && wrong.length > 0) {
+      return `They asked about ${named.join(" and ")}: change that, as they asked, and keep ${wrong.join(" and ")} as it was.`;
+    }
   }
   // A list of places to add came back short, with no other days to come.
   const missing = rules.list !== false && (o.moreDays?.length ?? 0) === 0 ? missingFromList(input, o.edits) : [];
@@ -660,8 +707,26 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   // named, a longer trip nobody asked for, an answer announced and not given)
   // gets one more try with the rule spelled out, while there's time for one.
   // The first reply stands when the second fails or is no better.
+  // A trip through several cities told a new route: read by a question of its
+  // own (route-reading.ts), asked beside the edit. A route either reads is
+  // offered as a whole, for the page to plan anew, and no day moves for it.
+  const routeRead =
+    canOfferRoute(input) && input.days.some((d) => d.city)
+      ? askForRoute({ message: input.message, days: input.days, startDate: input.startDate, locale: input.locale })
+      : null;
   const prompt = buildPrompt(input);
   let outcome = readOutcome(input, await ask(prompt), cur);
+  const told = routeRead ? await routeRead : { route: [], costUsd: 0 };
+  costUsd += told.costUsd;
+  const route = told.route.length > 0 ? told.route : outcome.route;
+  if (route.length > 0) {
+    return {
+      reply: routeOfferReply(input.locale, route),
+      edits: [],
+      route,
+      meta: { model: modelId, costUsd, generationTimeMs: Date.now() - startedAt },
+    };
+  }
   const correction = correctionFor(input, outcome);
   if (correction && Date.now() - startedAt < CORRECTION_DEADLINE_MS) {
     try {
@@ -713,6 +778,14 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   // in the next part, which gives them places of their own.
   if (asksToRegroup(input.message)) {
     daysLeft = [...new Set([...daysLeft, ...twinsOf(input.days, edits, daysLeft).map((t) => t.from)])].sort((a, b) => a - b);
+  }
+  // Asked for every day ("restaurants for every day"), the change covers every
+  // day: the days a reply neither changed nor named for later are asked for in
+  // parts too, and those that don't come back in time are named in the reply.
+  if (edits.length > 0 && asksForEveryDay(input.message)) {
+    const covered = new Set([...edits.map((e) => e.day_number), ...daysLeft]);
+    const rest = input.days.map((d) => d.day_number).filter((n) => !covered.has(n));
+    if (rest.length > 0) daysLeft = [...daysLeft, ...rest].sort((a, b) => a - b);
   }
   // A change of what the days hold (places added or taken out): a part's day
   // that only moved times isn't part of it. A change of times keeps those.
@@ -937,7 +1010,7 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   }
   // Rarely, a changed day still doesn't fit an arrival or a departure after
   // the correction: the reply says so rather than leave it for the airport.
-  const outsideTimes = outsideTravelTimes(edits, outcome.travelTimes);
+  const outsideTimes = outsideTravelTimes(edits, withPlanDeparture(outcome.travelTimes, input.days));
   // A list that still came back short says what's missing, whatever the reply claims.
   const listMissing = daysLeft.length === 0 ? missingFromList(input, edits) : [];
 

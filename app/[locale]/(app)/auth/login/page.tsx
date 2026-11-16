@@ -216,7 +216,7 @@ function LoginForm() {
             </p>
           ) : null}
           {error?.message?.includes("incorrect") && (
-            <Link href="/auth/forgot-password" className="text-sm text-[var(--primary-ink)] font-medium hover:underline mt-2 inline-block">
+            <Link href="/auth/forgot-password" className="text-sm font-medium text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 hover:decoration-2 mt-2 inline-block">
               {t("forgotPasswordLink")}
             </Link>
           )}
@@ -243,7 +243,7 @@ function LoginForm() {
                     type="button"
                     onClick={handleResendConfirmation}
                     disabled={resending || !email}
-                    className="text-sm font-semibold text-[var(--primary-ink)] underline underline-offset-2 hover:no-underline disabled:opacity-60 disabled:no-underline"
+                    className="text-sm font-semibold text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 hover:no-underline disabled:opacity-60 disabled:no-underline"
                   >
                     {resending ? t("resendSending") : t("resendConfirmation")}
                   </button>
@@ -306,7 +306,7 @@ function LoginForm() {
           labelAside={
             <Link
               href="/auth/forgot-password"
-              className="text-sm text-[var(--primary-ink)] hover:underline"
+              className="text-sm text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 hover:decoration-2"
             >
               {t("forgotPassword")}
             </Link>
@@ -331,7 +331,7 @@ function LoginForm() {
           {t("noAccount")}{" "}
           <Link
             href={hasDestination ? `/auth/signup?redirect=${encodeURIComponent(redirect)}` : "/auth/signup"}
-            className="text-[var(--primary-ink)] font-medium hover:underline"
+            className="font-medium text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 hover:decoration-2"
           >
             {t("signUpLink")}
           </Link>

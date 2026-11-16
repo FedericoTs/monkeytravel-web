@@ -353,7 +353,7 @@ export default function DateRangePicker({
                   : ""
                 }
                 ${inRange && !isStart && !isEnd
-                  ? "bg-[var(--primary)]/10 text-[var(--primary-ink)]"
+                  ? "bg-[var(--primary)]/10 text-[var(--foreground)]"
                   : ""
                 }
                 ${!inRange && !isStart && !isEnd && !disabled

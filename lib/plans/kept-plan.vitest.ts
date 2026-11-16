@@ -33,6 +33,7 @@ const plan = () => ({
   flexibleDates: true,
   mustDos: ["Pastéis de Belém", 42],
   dietary: ["vegan", "carnivore"],
+  stay: { name: " Memmo  Alfama ", coordinates: { lat: 38.7111, lng: -9.1306 } },
 });
 
 describe("parseKeptPlan", () => {
@@ -50,6 +51,7 @@ describe("parseKeptPlan", () => {
       flexibleDates: true,
       mustDos: ["Pastéis de Belém"],
       dietary: ["vegan"],
+      stay: { name: "Memmo Alfama", coordinates: { lat: 38.7111, lng: -9.1306 } },
     });
     expect(kept.itinerary.days).toHaveLength(1);
   });
@@ -67,7 +69,8 @@ describe("parseKeptPlan", () => {
   });
 
   it("drops values the planner has no use for", () => {
-    const kept = parseKeptPlan({ ...plan(), pace: "frantic", budgetTier: "infinite", travelStyle: "x", tripIntent: "unspecified", flexibleDates: "yes" })!;
+    const kept = parseKeptPlan({ ...plan(), pace: "frantic", budgetTier: "infinite", travelStyle: "x", tripIntent: "unspecified", flexibleDates: "yes", stay: { name: "  " } })!;
+    expect(kept).not.toHaveProperty("stay");
     expect(kept).not.toHaveProperty("pace");
     expect(kept).not.toHaveProperty("budgetTier");
     expect(kept).not.toHaveProperty("travelStyle");

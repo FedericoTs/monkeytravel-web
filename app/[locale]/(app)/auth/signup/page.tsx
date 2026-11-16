@@ -335,7 +335,7 @@ function SignupForm() {
         <div className="flex flex-col items-center gap-3">
           <Link
             href={hasDestination ? `/auth/login?redirect=${encodeURIComponent(redirectUrl)}` : "/auth/login"}
-            className="text-[var(--primary-ink)] font-medium hover:underline"
+            className="font-medium text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 hover:decoration-2"
           >
             {t("backToLogin")}
           </Link>
@@ -502,7 +502,7 @@ function SignupForm() {
           {t("hasAccount")}{" "}
           <Link
             href={hasDestination ? `/auth/login?redirect=${encodeURIComponent(redirectUrl)}` : "/auth/login"}
-            className="text-[var(--primary-ink)] font-medium hover:underline"
+            className="font-medium text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 hover:decoration-2"
           >
             {t("signInLink")}
           </Link>

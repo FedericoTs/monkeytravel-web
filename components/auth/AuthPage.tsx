@@ -12,12 +12,13 @@ export function AuthPage({ centered = false, children }: { centered?: boolean; c
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex flex-col">
       <header className="p-4">
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/images/logo.png" alt="MonkeyTravel" width={40} height={40} className="rounded-lg" />
+          {/* Decoration: the name beside it already names the link. */}
+          <Image src="/images/logo.png" alt="" width={40} height={40} className="rounded-lg" />
           <span className="font-bold text-xl text-[var(--primary-ink)]">MonkeyTravel</span>
         </Link>
       </header>
 
-      <div className="flex-1 flex items-center justify-center px-4">
+      <main className="flex-1 flex items-center justify-center px-4">
         <div className="w-full max-w-md">
           <div
             className={
@@ -29,7 +30,7 @@ export function AuthPage({ centered = false, children }: { centered?: boolean; c
             {children}
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

@@ -120,14 +120,14 @@ export default function PreferencesStep({
             {mustDos.map((item) => (
               <span
                 key={item}
-                className="inline-flex items-center gap-1.5 rounded-full bg-[var(--primary)]/10 px-3 py-1.5 text-sm font-medium text-[var(--primary-ink)]"
+                className="inline-flex items-center gap-1.5 rounded-full bg-[var(--primary)]/10 px-3 py-1.5 text-sm font-medium text-[var(--foreground)]"
               >
                 {item}
                 <button
                   type="button"
                   onClick={() => setMustDos((prev) => prev.filter((m) => m !== item))}
                   aria-label={t("wizard.step2.mustDos.remove", { item })}
-                  className="text-[var(--primary-ink)]/60 hover:text-[var(--primary-ink)] min-h-[24px] min-w-[24px]"
+                  className="text-[var(--foreground-muted)] hover:text-[var(--foreground)] min-h-[24px] min-w-[24px]"
                 >
                   ×
                 </button>

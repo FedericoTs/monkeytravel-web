@@ -24,7 +24,7 @@
  * action (`declineConsent`) is unaffected.
  *
  * Phones never get the card: they open on the mini bar, so 1 and 2 are
- * asserted on the bar there, and the feedback launcher is not shown at all.
+ * asserted on the bar there.
  *
  * Run locally:   npx playwright test tests/e2e/consent-overlap.spec.ts
  * Against prod:  BASE_URL=https://monkeytravel.app npx playwright test tests/e2e/consent-overlap.spec.ts
@@ -195,28 +195,6 @@ for (const vp of VIEWPORTS) {
               overlapArea(await mini.boundingBox(), await bar.first().boundingBox()),
               `consent bar overlaps ${testId}`
             ).toBe(0);
-          }
-        }
-
-        // Phase 1.2: the third-party feedback launcher (fixed bottom-right,
-        // z-index 2147483000) must not sit on Continue either. Phones do not
-        // show it at all; on desktop it must simply not intersect.
-        {
-          const launcher = page.locator("[data-buildhop-feedback-widget]");
-          if (phone) {
-            await expect(launcher).toBeHidden();
-          } else if ((await launcher.count()) > 0 && (await launcher.isVisible())) {
-            expect(overlapArea(await launcher.boundingBox(), await ctaAfter.boundingBox())).toBe(0);
-            // The consent bar's 92px right gutter exists for exactly this.
-            expect(
-              overlapArea(await launcher.boundingBox(), await mini.boundingBox()),
-              "consent bar overlaps the third-party launcher"
-            ).toBe(0);
-          } else {
-            test.info().annotations.push({
-              type: "note",
-              description: "feedback launcher not loaded in this run (third-party script)",
-            });
           }
         }
       });

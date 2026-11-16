@@ -40,6 +40,7 @@ function renderPanel(props: {
   onApplyEdits?: () => string | void;
   onUndoEdits?: (id: string) => boolean;
   onPlanElsewhere?: (place: string) => void;
+  onPlanRoute?: (route: unknown) => void;
 }) {
   const onApplyEdits = vi.fn(props.onApplyEdits ?? (() => "edit-1"));
   const { unmount } = render(
@@ -50,6 +51,7 @@ function renderPanel(props: {
       onApplyEdits={onApplyEdits}
       onUndoEdits={props.onUndoEdits}
       onPlanElsewhere={props.onPlanElsewhere}
+      onPlanRoute={props.onPlanRoute}
     />
   );
   return { onApplyEdits, unmount };
@@ -230,17 +232,51 @@ describe("another place for the whole trip", () => {
   });
 });
 
+/**
+ * A trip through several cities told a new route: the reply names it, and one
+ * button plans the trip anew along it, for the same dates.
+ */
+describe("a new route for the whole trip", () => {
+  const route = [
+    { name: "Lisboa", country: "Portugal", days: 7 },
+    { name: "Porto", country: "Portugal", days: 4 },
+    { name: "Lisboa", country: "Portugal", days: 3 },
+  ];
+  const offer = { data: { reply: "Your new route: Lisboa (7 days) → Porto (4 days) → Lisboa (3 days).", edits: [], route } };
+
+  it("offers it as one button that plans it, changing nothing yet", async () => {
+    fetchMock.mockImplementation(async () => new Response(JSON.stringify(offer), { status: 200 }));
+    const onPlanRoute = vi.fn();
+    const { onApplyEdits } = renderPanel({ onUndoEdits: () => true, onPlanRoute });
+    await ask("the last 3 days back in Lisbon");
+    const button = await screen.findByRole("button", { name: "assistant.planRoute" });
+    fireEvent.click(button);
+    expect(onPlanRoute).toHaveBeenCalledWith(route);
+    expect(onApplyEdits).not.toHaveBeenCalled();
+    expect(capture).toHaveBeenCalledWith("anon_assistant_plan_route", { destination: "Lisbon, Portugal", route: "Lisboa → Porto → Lisboa", stops: 3 });
+  });
+
+  it("shows the answer without the button on a page that can't plan a route", async () => {
+    fetchMock.mockImplementation(async () => new Response(JSON.stringify(offer), { status: 200 }));
+    renderPanel({ onUndoEdits: () => true });
+    await ask("the last 3 days back in Lisbon");
+    await screen.findByText("Your new route: Lisboa (7 days) → Porto (4 days) → Lisboa (3 days).");
+    expect(screen.queryByRole("button", { name: "assistant.planRoute" })).toBeNull();
+  });
+});
+
 describe("the copy exists in every language", () => {
   it.each(["en", "es", "it", "pt"])("%s", async (locale) => {
     const messages = (await import(`../../messages/${locale}/trips.json`)).default as {
       assistant: Record<string, string>;
     };
-    for (const key of ["updatedDay", "updatedDays", "undo", "undoGone", "note", "planElsewhere"]) {
+    for (const key of ["updatedDay", "updatedDays", "undo", "undoGone", "note", "planElsewhere", "planRoute"]) {
       expect(messages.assistant[key]?.trim(), `${locale} ${key}`).toBeTruthy();
     }
     expect(messages.assistant.updatedDay).toContain("{number}");
     expect(messages.assistant.updatedDays).toContain("{days}");
     expect(messages.assistant.planElsewhere).toContain("{place}");
+    expect(messages.assistant.planRoute).toContain("{route}");
   });
 });
 

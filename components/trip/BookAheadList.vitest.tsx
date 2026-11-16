@@ -112,6 +112,24 @@ describe("BookAheadList", () => {
     expect(screen.getByText("0 of 2 booked")).toBeTruthy();
   });
 
+  // The trip page keeps the list behind a chip, which shows this count.
+  it("tells how many stops are ticked, at first and after each tick", async () => {
+    const told: number[] = [];
+    const onProgress = (booked: number) => {
+      told.push(booked);
+    };
+    render(
+      <NextIntlClientProvider locale="en" messages={{ common }} onError={() => {}}>
+        <BookAheadList tripId="trip-1" itinerary={itinerary} initialBooked={["a2"]} onProgress={onProgress} />
+      </NextIntlClientProvider>,
+    );
+    expect(told).toEqual([1]);
+    await act(async () => {
+      fireEvent.click(screen.getByRole("checkbox", { name: "Booked: Flamenco show" }));
+    });
+    expect(told).toEqual([1, 2]);
+  });
+
   it("shows nothing for a plan with nothing to book", () => {
     const { container } = show([{ day_number: 1, date: "2026-12-01", activities: [stop("a1", "Breakfast")] }] as unknown as ItineraryDay[]);
     expect(container.innerHTML).toBe("");

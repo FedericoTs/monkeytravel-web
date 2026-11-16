@@ -362,7 +362,7 @@ export default function OnboardingPage() {
           <div className="max-w-md mx-auto text-center mt-4">
             <p className="text-sm text-slate-500">
               {tAuth("hasAccount")}{" "}
-              <Link href="/auth/login" className="text-[var(--primary-ink)] font-medium hover:underline">
+              <Link href="/auth/login" className="text-[var(--foreground)] font-medium underline underline-offset-2">
                 {tAuth("signInLink")}
               </Link>
             </p>

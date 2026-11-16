@@ -59,3 +59,36 @@ describe("another place for the whole trip", () => {
     expect(logged[0].edit).toBeUndefined();
   });
 });
+
+describe("a new route for the whole trip", () => {
+  const route = [
+    { name: "Lisboa", country: "Portugal", days: 7 },
+    { name: "Porto", country: "Portugal", days: 4 },
+    { name: "Lisboa", country: "Portugal", days: 3 },
+  ];
+
+  it("is allowed with multi-city on, passed on to the page and logged with the exchange", async () => {
+    vi.stubEnv("NEXT_PUBLIC_MULTI_CITY_ENABLED", "true");
+    assistTrip.mockResolvedValue({ reply: "Your new route: …", edits: [], route, meta });
+
+    const res = await ask("the last 3 days back in Lisbon");
+
+    expect(assistTrip.mock.calls[0][0]).toMatchObject({ canPlanRoute: true });
+    expect(await answer(res)).toMatchObject({ edits: [], route });
+    expect(logged[0].edit).toEqual({
+      day_number: null,
+      days: [],
+      trip_length: null,
+      route: ["Lisboa, Portugal: 7", "Porto, Portugal: 4", "Lisboa, Portugal: 3"],
+    });
+    vi.unstubAllEnvs();
+  });
+
+  it("is not asked for with multi-city off", async () => {
+    vi.stubEnv("NEXT_PUBLIC_MULTI_CITY_ENABLED", "false");
+    assistTrip.mockResolvedValue({ reply: "Done.", edits: [], meta });
+    await ask("the last 3 days back in Lisbon");
+    expect(assistTrip.mock.calls[0][0]).toMatchObject({ canPlanRoute: false });
+    vi.unstubAllEnvs();
+  });
+});

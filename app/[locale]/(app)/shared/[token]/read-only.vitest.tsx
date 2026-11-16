@@ -22,6 +22,12 @@ const state = vi.hoisted(() => ({
   prefsSet: [] as Array<[string, string]>,
   // Props given to the view's lazily loaded components (rendered as nothing).
   lazyProps: [] as Array<Record<string, unknown>>,
+  // Props given to the hero.
+  hero: null as Record<string, unknown> | null,
+  // Props given to the phone tab bar.
+  tabBar: null as Record<string, unknown> | null,
+  // The page's exchange rates, null until they load.
+  rates: null as { base: string; rates: Record<string, number> } | null,
 }));
 
 vi.mock("next-intl", () => ({ useTranslations: () => (key: string) => key, useLocale: () => "en" }));
@@ -74,9 +80,15 @@ vi.mock("@/lib/locale", () => ({
     convert: (value: number, currency: string) => ({ value, currency, formatted: `${value} ${currency}` }),
     format: (value: number, currency: string) => `${value} ${currency}`,
     preferredCurrency: "EUR",
+    exchangeRates: state.rates,
   }),
 }));
-vi.mock("@/components/DestinationHero", () => ({ default: ({ children }: { children?: ReactNode }) => <div>{children}</div> }));
+vi.mock("@/components/DestinationHero", () => ({
+  default: (props: { children?: ReactNode }) => {
+    state.hero = props;
+    return <div>{props.children}</div>;
+  },
+}));
 vi.mock("@/components/ErrorBoundary", () => ({ default: ({ children }: { children?: ReactNode }) => <>{children}</> }));
 vi.mock("@/components/ActivityCard", () => ({ default: () => <div data-testid="activity-card" /> }));
 vi.mock("@/components/trip/BackpackerHostelCta", () => ({ default: () => null }));
@@ -85,7 +97,12 @@ vi.mock("@/components/trip/TripPackingEssentials", () => ({ default: () => null 
 vi.mock("@/components/ui/DaySlider", () => ({ default: () => null }));
 vi.mock("@/components/trip/TravelConnector", () => ({ default: () => null }));
 vi.mock("@/components/trip/DaySummary", () => ({ default: () => null }));
-vi.mock("@/components/ui/MobileBottomNav", () => ({ default: () => null }));
+vi.mock("@/components/ui/MobileBottomNav", () => ({
+  default: (props: Record<string, unknown>) => {
+    state.tabBar = props;
+    return null;
+  },
+}));
 vi.mock("@/components/trip/WhoIsGoingCard", () => ({ default: () => <div data-testid="who-is-going" /> }));
 vi.mock("@/components/trip/ParticipantsBar", () => ({
   default: ({ shareToken }: { shareToken: string }) => <div data-testid="participants-bar" data-token={shareToken} />,
@@ -287,6 +304,81 @@ describe("the share link keeps the group's controls", { timeout: 20_000 }, () =>
   it("acts on Today through the share link's routes", () => {
     renderView({ token: TOKEN, live: true });
     expect(screen.getByTestId("today-view").getAttribute("data-api-base")).toBe(`/api/shared/${TOKEN}`);
+  });
+});
+
+describe("the page's header", { timeout: 20_000 }, () => {
+  // The hero (title, dates, badges) is a landmark a screen reader can jump to.
+  it.each([["a share link", "tok-1"], ["the public page", undefined]])("holds the trip's hero on %s", (_page, token) => {
+    renderView({ token });
+    expect(within(screen.getByRole("banner")).getByText("shared.sharedTrip")).toBeTruthy();
+  });
+
+  // The estimate saved with the plan never moves after a change; the plan's own
+  // stops do, and they are what the assistant quotes.
+  it("totals the plan's stops, per person, not the estimate saved with it", () => {
+    const priced = {
+      ...trip,
+      budget: { total: 10224, currency: "EUR" },
+      itinerary: [
+        {
+          day_number: 1,
+          date: "2026-10-10",
+          theme: "Alfama",
+          activities: [
+            { id: "a1", name: "Tram 28", type: "attraction", start_time: "09:00", duration_minutes: 60, description: "", location: "Alfama", estimated_cost: { amount: 3, currency: "EUR" } },
+            { id: "a2", name: "Fado dinner", type: "restaurant", start_time: "20:00", duration_minutes: 120, description: "", location: "Alfama", estimated_cost: { amount: 50, currency: "EUR" } },
+          ],
+        },
+      ] as never,
+    } as unknown as typeof trip;
+    renderView({ shown: priced });
+    expect(state.hero?.budget).toEqual({ total: 53, currency: "EUR" });
+    expect(state.hero?.budgetNote).toBe("tripTotal.perPerson");
+    expect(state.hero?.budgetHint).toBe("tripTotal.hint");
+  });
+
+  describe("a plan whose stops are priced in two currencies", () => {
+    const twoCurrencies = {
+      ...trip,
+      budget: { total: 900, currency: "USD" },
+      itinerary: [
+        {
+          day_number: 1,
+          date: "2026-10-10",
+          theme: "Cape Town",
+          activities: [
+            { id: "a1", name: "Table Mountain cableway", type: "attraction", start_time: "09:00", duration_minutes: 120, description: "", location: "Cape Town", estimated_cost: { amount: 30, currency: "USD" } },
+            { id: "a2", name: "Gold Restaurant", type: "restaurant", start_time: "19:00", duration_minutes: 120, description: "", location: "Cape Town", estimated_cost: { amount: 400, currency: "ZAR" } },
+          ],
+        },
+      ] as never,
+    } as unknown as typeof trip;
+
+    it("totals each stop converted at the page's rates, never the bare numbers added", () => {
+      state.rates = { base: "EUR", rates: { USD: 1.2, ZAR: 20 } };
+      renderView({ shown: twoCurrencies });
+      // 400 rand is 20 euros, which is 24 dollars: 54 dollars, not 430.
+      expect(state.hero?.budget).toEqual({ total: 54, currency: "USD" });
+      state.rates = null;
+    });
+
+    it("shows no total until the rates load, rather than a wrong one", () => {
+      state.rates = null;
+      renderView({ shown: twoCurrencies });
+      expect(state.hero?.budget).toBeUndefined();
+    });
+  });
+
+  // The trip is someone else's, whoever looks at it.
+  it.each([["a share link", "tok-1"], ["the public page", undefined]])("lights no tab of the phone tab bar on %s", (_page, token) => {
+    renderView({ token });
+    expect(state.tabBar?.activePage).toBe("shared-trip");
+  });
+
+  it("shows no total for a plan that prices nothing", () => {
+    renderView({ shown: { ...trip, budget: { total: 900, currency: "EUR" } } as unknown as typeof trip });
+    expect(state.hero?.budget).toBeUndefined();
   });
 });
 

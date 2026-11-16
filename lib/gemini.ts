@@ -61,6 +61,7 @@ export async function generateItinerary(
     requirements: params.requirements,
     travelStyle: params.travelStyle,
     tripIntent: params.tripIntent,
+    stay: params.stay,
     profile: params.profilePreferences,
     anchorBrief: options?.anchorBrief,
   });

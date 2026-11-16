@@ -249,7 +249,7 @@ export default function ParticipantsBar({
                 <span
                   key={p.id}
                   title={p.display_name ?? undefined}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-[var(--primary)]/15 text-[11px] font-bold text-[var(--primary-ink)]"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-[var(--primary)]/15 text-[11px] font-bold text-[var(--foreground)]"
                 >
                   {initialsOf(p.display_name)}
                 </span>

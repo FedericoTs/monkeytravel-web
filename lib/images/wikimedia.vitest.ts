@@ -1,6 +1,6 @@
 /** @vitest-environment node */
 import { describe, expect, it, vi } from "vitest";
-import { isUsablePhoto, pickImages, plainArtist, searchQueries, travelSectionImages, type CommonsFile, commonsPhotoId, commonsPhotoUrl, servedPhotoUrls, destinationPhotoUrls } from "./wikimedia";
+import { buildDestinationPhotos, findPlace, isUsablePhoto, isUsableView, pickImages, plainArtist, searchQueries, travelSectionImages, type CommonsFile, commonsPhotoId, commonsPhotoUrl, servedPhotoUrls, destinationPhotoUrls } from "./wikimedia";
 
 /**
  * Which Commons photos may become a destination's cover or gallery: a free
@@ -32,6 +32,13 @@ describe("isUsablePhoto", () => {
     expect(isUsablePhoto(file("Lisboa837.png", { mime: "image/png" }))).toBe(false);
     expect(isUsablePhoto(file("Poster.jpg", { license: "Fair use" }))).toBe(false);
     expect(isUsablePhoto(file("Logo.jpg", { restrictions: "trademarked" }))).toBe(false);
+  });
+
+  it("takes a square photo only when asked to, and a portrait never", () => {
+    const square = file("Riesenrad.jpg", { width: 2560, height: 2560 });
+    expect(isUsablePhoto(square, 1000)).toBe(false);
+    expect(isUsableView(square, 1000, 1)).toBe(true);
+    expect(isUsableView(file("Gallery.jpg", { width: 1200, height: 1600 }), 1000, 1)).toBe(false);
   });
 
   it("needs an author it can name under an attribution licence, not under public domain", () => {
@@ -237,5 +244,90 @@ describe("pickImages", () => {
 
   it("is null with no usable photo", () => {
     expect(pickImages([file("Courthouse.jpg", { width: 1200, height: 1600 })], () => true)).toBeNull();
+  });
+});
+
+describe("the place a destination names, for a trip", () => {
+  // en.wikipedia's search for "Seul" (Portuguese for Seoul) puts a lake in Ontario first.
+  const LAC_SEUL = { title: "Lac Seul", index: 1, pageprops: { wikibase_item: "Q1800817" }, coordinates: [{ lat: 50.33, lon: -92.25 }] };
+  const SEOUL = { title: "Seoul", index: 2, pageprops: { wikibase_item: "Q8684" }, coordinates: [{ lat: 37.5667, lon: 126.9783 }], pageimage: "Seoul skyline.jpg" };
+  const results: Record<string, unknown[]> = {};
+  const signal = new AbortController().signal;
+  const stubSearch = () =>
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        const q = new URL(url).searchParams.get("gsrsearch") ?? "";
+        return { ok: true, json: async () => ({ query: { pages: results[q] ?? [] } }) };
+      }),
+    );
+
+  it("takes the first place with a point when nothing says where the trip is", async () => {
+    results.Seul = [LAC_SEUL, SEOUL];
+    stubSearch();
+    expect(await findPlace("Seul", signal)).toMatchObject({ qid: "Q1800817", at: { lat: 50.33, lng: -92.25 } });
+  });
+
+  it("passes over a place of the same name far from the trip's stops", async () => {
+    results.Seul = [LAC_SEUL, SEOUL];
+    stubSearch();
+    const near = { lat: 37.55, lng: 126.99, km: 12 };
+    expect(await findPlace("Seul", signal, near)).toMatchObject({ qid: "Q8684", lead: "Seoul skyline.jpg", at: { lat: 37.5667, lng: 126.9783 } });
+    // Nothing near: no place, so the caller's next source answers.
+    results.Seul = [LAC_SEUL];
+    expect(await findPlace("Seul", signal, near)).toBeNull();
+  });
+
+  it("reaches as far as the trip's own stops spread, and then some", async () => {
+    // Busan & Seoul: the middle of the stops is between the two cities.
+    const BUSAN = { title: "Busan", index: 1, pageprops: { wikibase_item: "Q16520" }, coordinates: [{ lat: 35.18, lon: 129.075 }] };
+    results["Busan & Seoul, South Korea"] = [];
+    results.Busan = [BUSAN];
+    stubSearch();
+    expect(await findPlace("Busan & Seoul, South Korea", signal, { lat: 36.4, lng: 128.0, km: 170 })).toMatchObject({ qid: "Q16520" });
+  });
+});
+
+describe("a destination's photos, for a trip", () => {
+  const signal = new AbortController().signal;
+
+  it("say where the place they show is, so the stored copy can be checked against the next trip", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        const u = new URL(url);
+        const json =
+          u.hostname === "en.wikipedia.org"
+            ? { query: { pages: [{ title: "Seoul", index: 1, pageprops: { wikibase_item: "Q8684" }, coordinates: [{ lat: 37.5667, lon: 126.9783 }], pageimage: "Seoul skyline.jpg" }] } }
+            : u.hostname === "www.wikidata.org"
+              ? { entities: { Q8684: { claims: {} } } }
+              : {
+                  query: {
+                    pages: [
+                      {
+                        title: "File:Seoul skyline.jpg",
+                        imageinfo: [{ width: 4000, height: 2600, mime: "image/jpeg", extmetadata: { LicenseShortName: { value: "CC BY-SA 4.0" }, Artist: { value: "A Photographer" } } }],
+                      },
+                    ],
+                  },
+                };
+        return { ok: true, json: async () => json };
+      }),
+    );
+    const photos = await buildDestinationPhotos("Seoul", signal, { lat: 37.55, lng: 126.99, km: 12 });
+    expect(photos?.cover).toContain("Seoul");
+    expect(photos?.at).toEqual({ lat: 37.5667, lng: 126.9783 });
+  });
+
+  it("may show a place past the stops' own spread, a region's middle for one of its towns", async () => {
+    // The Algarve's point is about 60 km from a trip whose stops are all around Lagos.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => ({ query: { pages: [{ title: "Algarve", index: 1, pageprops: { wikibase_item: "Q159457" }, coordinates: [{ lat: 37.25, lon: -8.15 }] }] } }),
+      })),
+    );
+    expect(await findPlace("Algarve", signal, { lat: 37.1, lng: -8.67, km: 10 })).toMatchObject({ qid: "Q159457" });
   });
 });

@@ -20,6 +20,10 @@ describe("cachePolicy", () => {
     expect(cachePolicy(trip({ tripIntent: "group" }), false, 3).tailored).toBe(true);
   });
 
+  it("counts a plan around where they're staying as tailored", () => {
+    expect(cachePolicy(trip({ stay: { name: "Memmo Alfama" } }), false, 3).tailored).toBe(true);
+  });
+
   it("carries the fresh flag and the trip's length", () => {
     expect(cachePolicy(trip(), true, 5)).toEqual({ tailored: false, fresh: true, totalDays: 5 });
   });

@@ -35,7 +35,7 @@ export default function BlogCard({
           loading="lazy"
         />
         {/* Category badge */}
-        <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-[var(--primary)] text-white text-xs font-medium">
+        <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-[var(--primary)] text-[var(--foreground)] text-xs font-semibold">
           {category}
         </div>
       </div>
@@ -53,7 +53,7 @@ export default function BlogCard({
         {/* Meta row */}
         <div className="flex items-center justify-between text-sm text-[var(--foreground-muted)]">
           <span>{minuteReadLabel}</span>
-          <span className="text-[var(--primary-ink)] font-semibold group-hover:underline">
+          <span className="text-[var(--foreground)] font-semibold group-hover:underline">
             {readMoreLabel} &rarr;
           </span>
         </div>

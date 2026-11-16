@@ -46,11 +46,11 @@ export default function TripOptions({
     </div>
     )}
 
-    {/* Who's coming? — captures whether the user is planning solo or
-        with friends, the evidence for the group-vs-solo decision.
-        Group also shows the invite hint below and puts the anonymous
-        share button in crew mode. Option labels come from messages so
-        every locale gets localized copy. */}
+    {/* Who's coming? — one person, a couple, a family or friends, which
+        shapes the plan's places. Friends also shows the invite hint below;
+        friends and a family put the anonymous share button in crew mode.
+        Two by two, so the four fit a phone's width. Option labels come
+        from messages so every locale gets localized copy. */}
     <div className="order-last">
       <div className="text-sm font-medium text-slate-700 mb-2">
         {t("wizard.step1.whosComing")}
@@ -59,6 +59,8 @@ export default function TripOptions({
         {(
           [
             { value: "solo", labelKey: "wizard.step1.justMe", emoji: "👤" },
+            { value: "couple", labelKey: "wizard.step1.couple", emoji: "💑" },
+            { value: "family", labelKey: "wizard.step1.family", emoji: "👨‍👩‍👧" },
             { value: "group", labelKey: "wizard.step1.withFriends", emoji: "👥" },
           ] as const
         ).map((opt) => {
@@ -82,7 +84,7 @@ export default function TripOptions({
               // barely visible).
               className={`relative flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all ${
                 isSelected
-                  ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary-ink)]"
+                  ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--foreground)]"
                   : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
               }`}
               aria-pressed={isSelected}

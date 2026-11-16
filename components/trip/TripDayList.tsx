@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, type ComponentProps } from "react";
+import { Fragment, useMemo, type ComponentProps, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import {
   DndContext,
@@ -30,6 +30,7 @@ import {
   type dayOptionsOf,
 } from "@/components/trip/ItineraryDnd";
 import SortableActivityCard from "@/components/trip/SortableActivityCard";
+import { dragAnnouncements } from "@/lib/trip/itinerary-dnd";
 import { NoItinerary, RegeneratingDayOverlay, ReorderHint } from "@/components/trip/TripNotices";
 import type { FocusedDay } from "@/hooks/useDayFocus";
 import type { useItineraryMoves } from "@/hooks/useItineraryMoves";
@@ -95,11 +96,14 @@ interface DayContext {
 export default function TripDayList({
   days,
   selectedDay,
+  afterFirstDay,
   ...context
 }: DayContext & {
   days: ItineraryDay[];
   /** The day the slider picked; null shows them all. */
   selectedDay: number | null;
+  /** Shown under the first day on screen: above the plan, it would push the first stop down. */
+  afterFirstDay?: ReactNode;
 }) {
   const { moves, renderEpoch } = context;
   const collisionDetection = useMemo(() => makeItineraryCollisionDetection(), []);
@@ -110,6 +114,24 @@ export default function TripDayList({
   // the map or an image loading) would leave their rects stale and a drop over
   // a header would land somewhere else. ~15 rects per move is negligible.
   const dndMeasuring = useMemo(() => ({ droppable: { strategy: MeasuringStrategy.Always } }), []);
+
+  // What a screen reader hears while a stop moves: its name, its day and its
+  // place in that day, in the page's language (dnd-kit's own words are
+  // English, with internal ids). Worked out from the plan as the page shows it;
+  // a cancelled move goes back to the plan as it was.
+  const tDrag = useTranslations("common.drag");
+  const shownPlan = moves.preview ?? days;
+  const dndAccessibility = useMemo(
+    () => ({
+      announcements: dragAnnouncements(
+        (key, place) => tDrag(key, { ...place }),
+        () => shownPlan,
+        () => days,
+      ),
+      screenReaderInstructions: { draggable: tDrag("instructions") },
+    }),
+    [tDrag, shownPlan, days],
+  );
 
   // Drag-and-drop sensors for reordering activities
   // Optimized for premium iOS-like touch experience
@@ -138,9 +160,14 @@ export default function TripDayList({
     // day boundary snaps back). Inert when nothing is sortable (view
     // mode / read-only), so it wraps unconditionally.
     <DndContext
+      // A fixed id names the screen reader's instructions. Left to dnd-kit, it is
+      // a running count that differs between the server's page and the browser's,
+      // so every handle's aria-describedby pointed at nothing.
+      id="trip-days-drag-help"
       sensors={sensors}
       collisionDetection={collisionDetection}
       measuring={dndMeasuring}
+      accessibility={dndAccessibility}
       onDragStart={moves.onDragStart}
       onDragOver={moves.onDragOver}
       onDragEnd={moves.onDragEnd}
@@ -153,13 +180,10 @@ export default function TripDayList({
           .map((day, dayIndex) => ({ day, dayIndex }))
           .filter(({ day }) => selectedDay === null || day.day_number === selectedDay)
           .map(({ day, dayIndex }, shownIndex) => (
-            <TripDay
-              key={`day-${day.day_number}-v${renderEpoch}`}
-              day={day}
-              dayIndex={dayIndex}
-              firstShown={shownIndex === 0}
-              {...context}
-            />
+            <Fragment key={`day-${day.day_number}-v${renderEpoch}`}>
+              <TripDay day={day} dayIndex={dayIndex} firstShown={shownIndex === 0} {...context} />
+              {shownIndex === 0 && afterFirstDay}
+            </Fragment>
           ))}
       </div>
       {/* The card that follows the pointer; the source card stays as a faded placeholder. */}
@@ -302,8 +326,9 @@ function TripDay({
           {editingActive ? (
             /* Edit Mode with Drag-and-Drop */
             <>
-              {/* Edit mode reorder hint - only on the first day shown */}
-              {firstShown && <ReorderHint />}
+              {/* Edit mode reorder hint - only on the first day shown. An owner
+                  who edits in place reads the page's own line under that day. */}
+              {firstShown && isEditMode && <ReorderHint />}
               <DayDropList dayNumber={day.day_number} dragging={moves.dragging} isEmpty={day.activities.length === 0}>
                 <SortableContext
                   items={day.activities.map((a) => a.id || `activity-${day.activities.indexOf(a)}`)}

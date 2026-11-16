@@ -19,6 +19,7 @@ import BlogTipsSection, { type BlogTip } from "@/components/blog/BlogTipsSection
 import ReferralModal from "@/components/referral/ReferralModal";
 import { referralsShown } from "@/lib/referral/shown";
 import TripActionModal from "@/components/trips/TripActionModal";
+import { sendDeletionReason, type DeletionReason } from "@/lib/trips/deletion-reasons";
 import TripCard, { type Trip } from "@/components/trips/TripCard";
 import WaitingRoom from "@/components/trips/WaitingRoom";
 import type { WaitingRoomTrip } from "@/lib/trips/waiting-room";
@@ -191,7 +192,9 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
     }
   };
 
-  const handleDelete = async (tripId: string) => {
+  const handleDelete = async (tripId: string, reason: DeletionReason | null) => {
+    // The reason first, so it is kept even if the delete then fails.
+    if (reason) await sendDeletionReason(tripId, reason, trips.find((trip) => trip.id === tripId));
     const response = await fetch(`/api/trips/${tripId}`, {
       method: "DELETE",
     });
@@ -210,7 +213,7 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
     setActionModal({ ...actionModal, isOpen: false });
   };
 
-  const confirmAction = async () => {
+  const confirmAction = async (reason: DeletionReason | null) => {
     const { tripId, action } = actionModal;
     switch (action) {
       case "archive":
@@ -220,7 +223,7 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
         await handleUnarchive(tripId);
         break;
       case "delete":
-        await handleDelete(tripId);
+        await handleDelete(tripId, reason);
         break;
     }
   };

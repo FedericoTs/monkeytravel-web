@@ -1,4 +1,4 @@
-import { commonsFiles, isUsablePhoto, servedPhotoUrls, wiki, WIKIDATA_API, type CommonsFile } from "@/lib/images/wikimedia";
+import { commonsFiles, isUsableView, servedPhotoUrls, wiki, WIKIDATA_API, type CommonsFile } from "@/lib/images/wikimedia";
 
 /**
  * An activity's photo from Wikimedia Commons, when Wikidata knows the place: an
@@ -22,8 +22,18 @@ const RADIUS_M = 1500;
 export const LANDMARK_WIDTHS = [500, 960];
 // Wider than the largest stored width, so Commons scales every copy down.
 const MIN_WIDTH = 1000;
-// The item's own image, then its panoramic, night, aerial and interior views.
+// A square view crops well into a card; one taller than wide doesn't.
+const SQUARE = 1;
+// The photo the place's Wikipedia articles lead with, in these wikis' order.
+const LEAD_WIKIS = ["en", "de", "fr", "es", "it", "pt"];
+// Where those are all taller than wide or too small: the item's own image,
+// then its panoramic, night, aerial and interior views.
 const IMAGE_PROPERTIES = ["P18", "P4291", "P3451", "P8592", "P5775"];
+// A collage of several views crops into none of them.
+const COLLAGE = /\b(?:(?:photo|foto)?montage|montaje|montagem|montaggio|collage)\b/i;
+const usable = (f: CommonsFile) => isUsableView(f, MIN_WIDTH, SQUARE) && !COLLAGE.test(f.name.replace(/_/g, " "));
+// Two places in one name, in the plans' languages: "Roman Forum and Palatine Hill".
+const JOINED = /\s+(?:and|y|e|ed|et|und)\s+/i;
 const LANGUAGES = "en|mul|fr|es|it|pt|de|ca|nl|ja|el|hu|cs|pl|tr|id|ko|zh";
 // Instances of these are not sights: stops and stations, airports, hotels, companies.
 const NOT_A_SIGHT = new Set(["Q953806", "Q2175765", "Q928830", "Q55488", "Q1248784", "Q644371", "Q27686", "Q783794", "Q4830453", "Q6881511", "Q891723"]);
@@ -32,9 +42,10 @@ const STOP = new Set(
   "the of and a an at in on to by de du des la le les l d el los las il lo gli di da do dos das del della delle dei al y e et und der die das van von"
     .split(" "),
 );
-// What an activity name says besides the place: "Lunch at Katz's Delicatessen".
+// What an activity name says besides the place, in the plans' languages: "Lunch at Katz's Delicatessen",
+// "Visita al Colosseo", "Paseo por el Retiro". The word after the verb must be whole: "Visit Tokyo Tower" keeps "Tokyo".
 const ACTIVITY_WORDS =
-  /^((romantic|farewell|welcome|quick|late|early|relaxing|guided|self-guided)\s+)*(visit|explore|discover|see|walk|stroll|wander|hike|tour|lunch|dinner|breakfast|brunch|drinks|coffee|picnic|sunset|sunrise|evening|morning|afternoon|day trip|shopping)\s+(at|to|in|on|around|through|along|of|the)?\s*/i;
+  /^((romantic|farewell|welcome|quick|late|early|relaxing|guided|self-guided)\s+)*(visit|explore|discover|see|walk|stroll|wander|hike|tour|lunch|dinner|breakfast|brunch|drinks|coffee|picnic|sunset|sunrise|evening|morning|afternoon|day trip|shopping|visita|passeggiata|esplorazione|escursione|giro|tramonto|pranzo|cena|colazione|aperitivo|paseo|recorrido|excursi[oó]n|caminata|atardecer|almuerzo|desayuno|passeio|caminhada|excurs[aã]o|almo[cç]o|jantar|p[oô]r do sol)\s+((at|to|in|on|around|through|along|across|up|into|inside|under|past|of|the|from|over|a|al|alla|allo|ai|ad|ao|aos|à|às|nel|nella|nello|nei|sul|sulla|sullo|sui|del|della|dello|dei|di|da|dal|dalla|lungo|per|en|por|de|el|la|los|las|em|no|na|nos|nas|pelo|pela|do|dos|das)\s+)?/i;
 
 // Words for a kind of place, in the languages place names come in, folded to
 // one word per kind so "Museu Picasso" and "Picasso Museum" agree.
@@ -117,7 +128,11 @@ export function nameVariants(names: string[], meal = false): string[] {
     const bare = bareName(name);
     // A part that is only kinds of place ("Restaurant") names nothing.
     const parts = bare.split(/\s+[|–—-]\s+|\s*\|\s*|\s*&\s*|[()]/).filter((p) => nameTokens(p).some((t) => !isKind(t)));
-    for (const n of [name, bare, ...(meal ? parts.slice(0, 1) : parts)]) {
+    // Two sights joined by "and" are each a way to name the place. Not a
+    // meal's ("Salt and Pepper" is one restaurant), and not a name of two
+    // words ("Fortnum and Mason" is one shop).
+    const joined = !meal && nameTokens(bare).length >= 3 ? bare.split(JOINED).filter((p) => nameTokens(p).some((t) => !isKind(t))) : [];
+    for (const n of [name, bare, ...(meal ? parts.slice(0, 1) : parts), ...(joined.length > 1 ? joined : [])]) {
       const v = n.trim();
       if (v && !out.includes(v) && nameTokens(v).some((t) => !isKind(t))) out.push(v);
     }
@@ -205,9 +220,13 @@ interface Snak {
   mainsnak?: { datavalue?: { value?: unknown } };
 }
 
-/** An item's best match among the activity's names; a label beats an alias. */
+/**
+ * An item's best match among the activity's names; a label beats an alias. A
+ * label's part after a comma says where it is ("Riverside Market, Christchurch"),
+ * so its first part counts too.
+ */
 export function itemMatch(variants: string[], item: Labelled): number {
-  const labels = Object.values(item.labels ?? {}).map((l) => l.value);
+  const labels = Object.values(item.labels ?? {}).flatMap((l) => (l.value.includes(",") ? [l.value, l.value.split(",")[0]] : [l.value]));
   const aliases = Object.values(item.aliases ?? {}).flat().map((a) => a.value);
   let best = 0;
   for (const v of variants.map(nameTokens)) {
@@ -217,7 +236,7 @@ export function itemMatch(variants: string[], item: Labelled): number {
   return best;
 }
 
-async function searchItems(text: string, q: LandmarkQuery, signal: AbortSignal): Promise<string[]> {
+async function searchItems(text: string, q: LandmarkQuery, signal: AbortSignal, near: boolean): Promise<string[]> {
   const d = (await wiki(
     WIKIDATA_API,
     {
@@ -226,45 +245,79 @@ async function searchItems(text: string, q: LandmarkQuery, signal: AbortSignal):
       srnamespace: 0,
       srlimit: 20,
       // The radius must be whole metres: a decimal one silently drops the filter.
-      srsearch: `${text} haswbstatement:P18 nearcoord:${RADIUS_M}m,${q.lat.toFixed(5)},${q.lng.toFixed(5)}`,
+      srsearch: near ? `${text} haswbstatement:P18 nearcoord:${RADIUS_M}m,${q.lat.toFixed(5)},${q.lng.toFixed(5)}` : `${text} haswbstatement:P18`,
     },
     signal,
   )) as { query?: { search?: { title: string }[] } };
   return (d.query?.search ?? []).map((s) => s.title);
 }
 
-async function entities(ids: string[], props: string, signal: AbortSignal): Promise<Record<string, Labelled & { claims?: Record<string, Snak[]> }>> {
+type Entity = Labelled & { claims?: Record<string, Snak[]>; sitelinks?: Record<string, { title?: string }> };
+
+async function entities(ids: string[], props: string, signal: AbortSignal): Promise<Record<string, Entity>> {
   if (!ids.length) return {};
   const d = (await wiki(WIKIDATA_API, { action: "wbgetentities", ids: ids.join("|"), props, languages: LANGUAGES }, signal)) as {
-    entities?: Record<string, Labelled & { claims?: Record<string, Snak[]> }>;
+    entities?: Record<string, Entity>;
   };
   return d.entities ?? {};
+}
+
+/** The lead photos of the item's Wikipedia articles, in LEAD_WIKIS order; an article that can't be read is skipped. */
+async function leadPhotoNames(sitelinks: Record<string, { title?: string }>, signal: AbortSignal): Promise<string[]> {
+  const names = await Promise.all(
+    LEAD_WIKIS.map(async (lang) => {
+      const title = sitelinks[`${lang}wiki`]?.title;
+      if (!title) return null;
+      try {
+        const d = (await wiki(
+          `https://${lang}.wikipedia.org/w/api.php`,
+          { action: "query", prop: "pageimages", piprop: "name", pilicense: "free", titles: title },
+          signal,
+        )) as { query?: { pages?: { pageimage?: string }[] } };
+        return d.query?.pages?.[0]?.pageimage ?? null;
+      } catch {
+        return null;
+      }
+    }),
+  );
+  return [...new Set(names.filter((n): n is string => !!n))];
 }
 
 /** The Commons photo of the place the activity names, or null when Wikidata has no usable one. */
 export async function findLandmarkPhoto(q: LandmarkQuery, signal: AbortSignal): Promise<CommonsFile | null> {
   const variants = nameVariants(q.names, q.meal);
   if (!variants.length) return null;
-  // All of the name's words first; any of them when that finds nothing named alike.
+  // All of the name's words first; for a sight, any of them when that finds
+  // nothing named alike. A meal stops there: Wikidata knows few restaurants,
+  // and its searches are the ones it turns away when they come too fast.
   let ranked: { id: string; score: number }[] = [];
-  for (const any of [false, true]) {
+  // Then, for a sight, all of its words anywhere: Wikidata's map search leaves
+  // some places out (Ponte Vecchio), and an item's own coordinates still decide
+  // below, among more of the places that share the name.
+  let tries = 2;
+  for (const pass of q.meal ? (["all"] as const) : (["all", "any", "anywhere"] as const)) {
+    const any = pass === "any";
     const ids = new Set<string>();
     for (const v of variants.slice(0, 2)) {
       const words = v.replace(/[^\p{L}\p{N}]+/gu, " ").trim().split(" ").filter((w) => w.length > 1 && !STOP.has(w.toLowerCase()));
       if (!words.length || (any && words.length < 2)) continue;
-      for (const id of await searchItems(words.join(any ? " OR " : " "), q, signal)) ids.add(id);
+      for (const id of await searchItems(words.join(any ? " OR " : " "), q, signal, pass !== "anywhere")) ids.add(id);
     }
     const items = await entities([...ids].slice(0, 20), "labels|aliases", signal);
     ranked = Object.entries(items)
       .map(([id, item]) => ({ id, score: itemMatch(variants, item) }))
       .filter((r) => r.score > 0)
       .sort((x, y) => y.score - x.score);
-    if (ranked.length) break;
+    if (ranked.length) {
+      tries = pass === "anywhere" ? 5 : 2;
+      break;
+    }
   }
   // The best-named item near the activity that is a sight; nothing else is the place.
-  for (const { id, score } of ranked.slice(0, 2)) {
+  for (const { id, score } of ranked.slice(0, tries)) {
     if (score < ranked[0].score) break;
-    const claims = (await entities([id], "claims", signal))[id]?.claims ?? {};
+    const entity = (await entities([id], "claims|sitelinks", signal))[id];
+    const claims = entity?.claims ?? {};
     const at = claims.P625?.[0]?.mainsnak?.datavalue?.value as { latitude?: number; longitude?: number } | undefined;
     if (typeof at?.latitude !== "number" || typeof at.longitude !== "number") continue;
     if (distanceM(q.lat, q.lng, at.latitude, at.longitude) > RADIUS_M) continue;
@@ -274,11 +327,18 @@ export async function findLandmarkPhoto(q: LandmarkQuery, signal: AbortSignal): 
     // unless that place is all it names ("Dinner in Trastevere"): "Ciudad
     // Condal" is also Barcelona, whose photo is the Sagrada Família.
     if (q.meal && claims.P1082?.length && score < 2) continue;
+    // The photo its Wikipedia articles lead with: their editors' pick of the
+    // place, where its own image can be a painting, an old print or a view
+    // from inside.
+    const leads = await commonsFiles(await leadPhotoNames(entity?.sitelinks ?? {}, signal), signal);
+    const lead = leads.find(usable);
+    if (lead) return lead;
+    // Those are all taller than wide or too small (a tower, a museum's
+    // entrance), or it has no article: its own.
     const names = IMAGE_PROPERTIES.flatMap((p) => (claims[p] ?? []).map((c) => c.mainsnak?.datavalue?.value)).filter(
       (n): n is string => typeof n === "string",
     );
-    const files = await commonsFiles([...new Set(names)].slice(0, 8), signal);
-    return files.find((f) => isUsablePhoto(f, MIN_WIDTH)) ?? null;
+    return (await commonsFiles([...new Set(names)].slice(0, 8), signal)).find(usable) ?? null;
   }
   return null;
 }

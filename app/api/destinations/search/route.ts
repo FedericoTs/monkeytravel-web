@@ -18,6 +18,7 @@ import { ilikeSearchTerm } from "@/lib/api/postgrest-filter";
 import { flagEmoji } from "@/lib/utils/flag-emoji";
 import { closeMatches } from "@/lib/destinations/close-matches";
 import { logReadError } from "@/lib/supabase/log-read-error";
+import { resolvePhotonLang } from "@/lib/places/photon";
 
 // Country name to ISO code mapping
 const countryToCode: Record<string, string> = {
@@ -478,28 +479,6 @@ interface PhotonResponse {
 
 const PHOTON_TIMEOUT_MS = 800;
 const PHOTON_PLACE_TYPES = new Set(["city", "town", "village", "island"]);
-
-// Photon ONLY supports these display languages. It hard-400s on anything
-// else — and it silently DROPPED "it" support, which meant every Italian
-// user (Accept-Language: it-*) got HTTP 400 → empty fallback → "no results"
-// on the wizard's #1 input. That killed long-tail/native-name search for
-// Italian. For unsupported locales (it/es/pt/…) we use "default", which
-// returns endonyms ("Firenze, Italia", "Sevilla, España") that match what
-// native-language users actually type. `lang=it` answers 400
-// {"message":"Language is not supported. Supported are: default, de, en, fr"}.
-const PHOTON_SUPPORTED_LANGS = new Set(["de", "en", "fr"]);
-
-function resolvePhotonLang(
-  locale?: string,
-  acceptLanguage?: string | null
-): string {
-  // Prefer the explicit app locale (authoritative — the client forwards it)
-  // over the browser's Accept-Language, which often disagrees with the site
-  // locale (an Italian user browsing /it on an English-configured browser).
-  const raw = (locale || acceptLanguage || "").toLowerCase();
-  const two = raw.slice(0, 2);
-  return PHOTON_SUPPORTED_LANGS.has(two) ? two : "default";
-}
 
 async function fetchPhotonSuggestions(
   query: string,

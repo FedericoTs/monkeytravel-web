@@ -15,6 +15,7 @@ const answers: WizardAnswers = {
   dietary: [],
   tripIntent: "solo",
   flexibleDates: false,
+  stay: null,
 };
 const extra = { legs: [], interests: ["food"], seasonalContext: null, requirements: "", locale: "pt" };
 const anchor = { id: "a1", type: "transport" as const, title: "Land at LIS 09:40", date: "2027-05-10" };
@@ -82,6 +83,26 @@ describe("generationRequest", () => {
     expect(body.destinations).toEqual(legs);
     expect(body).not.toHaveProperty("anchors");
     expect([stream, isMultiCity, isAnchored]).toEqual([false, true, false]);
+  });
+
+  it("sends where they're staying, and where that is when it was picked, on a one-city trip only", () => {
+    const stay = { name: "Memmo Alfama", coordinates: { lat: 38.7111, lng: -9.1306 } };
+    const picked = generationRequest({ ...answers, stay }, extra).body;
+    expect(picked.stay).toBe("Memmo Alfama");
+    expect(picked.stayCoords).toEqual({ latitude: 38.7111, longitude: -9.1306 });
+    const typed = generationRequest({ ...answers, stay: { name: "Alfama" } }, extra).body;
+    expect(typed.stay).toBe("Alfama");
+    expect(typed).not.toHaveProperty("stayCoords");
+    expect(generationRequest(answers, extra).body).not.toHaveProperty("stay");
+    const route = generationRequest({ ...answers, stay }, {
+      ...extra,
+      legs: [
+        { city: "Lisbon", nights: 3 },
+        { city: "Porto", nights: 2 },
+      ],
+    }).body;
+    expect(route).not.toHaveProperty("stay");
+    expect(route).not.toHaveProperty("stayCoords");
   });
 
   it("sends where the place is, for its sunrise and sunset, on a one-city trip only", () => {

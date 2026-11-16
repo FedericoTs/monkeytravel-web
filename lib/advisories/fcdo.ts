@@ -26,6 +26,15 @@
  * per cold instance is well within FCDO's tolerance.
  */
 
+import { advisoryCountry } from "./country";
+
+/**
+ * What the UK advises, in its own terms: against all travel or all but
+ * essential travel, to the whole country or to parts of it; "other" for advice
+ * that is neither.
+ */
+export type TravelAdvice = "all_whole" | "essential_whole" | "all_parts" | "essential_parts" | "other";
+
 /** Normalized advisory shape — what the UI consumes. */
 export interface TravelAdvisory {
   /** Stable source identifier ("fcdo" today; "state" later). */
@@ -36,6 +45,8 @@ export interface TravelAdvisory {
   countryName: string;
   /** Normalized severity. */
   level: "low" | "advisory" | "high" | "extreme";
+  /** What the UK advises, for the heading; null at the lowest level. */
+  advice: TravelAdvice | null;
   /** Human-readable headline (one sentence). */
   summary: string;
   /** Full advice page on gov.uk — the user's authoritative source. */
@@ -121,7 +132,8 @@ function deriveLevel(
  * default lowercased-hyphenated form.
  */
 export function countryNameToFcdoSlug(country: string): string {
-  const trimmed = country.trim().toLowerCase();
+  // A whole destination ("Istanbul, Turkey") is looked up by its country.
+  const trimmed = advisoryCountry(country).toLowerCase();
   const aliases: Record<string, string> = {
     "united states": "usa",
     "united states of america": "usa",
@@ -143,6 +155,26 @@ export function countryNameToFcdoSlug(country: string): string {
     .replace(/[^a-z0-9\s-]/g, "") // strip punctuation
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-");
+}
+
+/**
+ * The UK's advice in its own terms, from the same alert keys as the level. The
+ * level's names can't be the heading: "high" is advice against all but
+ * essential travel to the whole country, and also advice against all travel to
+ * parts of it, which says nothing about the rest. Whole-country advice comes
+ * first, as it covers wherever the trip goes.
+ */
+export function deriveAdvice(
+  alertStatus: string[] | undefined,
+  level: TravelAdvisory["level"]
+): TravelAdvice | null {
+  if (level === "low") return null;
+  const tags = new Set((alertStatus ?? []).map((s) => s.toLowerCase()));
+  if (tags.has("avoid_all_travel_to_whole_country")) return "all_whole";
+  if (tags.has("avoid_all_but_essential_travel_to_whole_country")) return "essential_whole";
+  if (tags.has("avoid_all_travel_to_parts")) return "all_parts";
+  if (tags.has("avoid_all_but_essential_travel_to_parts")) return "essential_parts";
+  return "other";
 }
 
 /**
@@ -205,11 +237,13 @@ export async function getFcdoAdvisory(
   const cleanedTitle = (raw.title || "")
     .replace(/\s*travel advice\s*$/i, "")
     .trim();
+  const level = deriveLevel(raw.details?.alert_status, summary);
   const advisory: TravelAdvisory = {
     source: "fcdo",
     sourceCountry: "GB",
     countryName: cleanedTitle || country,
-    level: deriveLevel(raw.details?.alert_status, summary),
+    level,
+    advice: deriveAdvice(raw.details?.alert_status, level),
     summary: summary.slice(0, 400),
     url: `https://www.gov.uk${raw.base_path ?? `/foreign-travel-advice/${slug}`}`,
     updatedAt:

@@ -274,7 +274,7 @@ afterEach(() => {
 });
 
 describe("generation (no paid lookups)", () => {
-  it("picks the same images: cached photos for hits, curated fallbacks for the rest", async () => {
+  it("picks the same images: cached photos for hits; for the rest, a generic one for a meal or a drink and none for a sight", async () => {
     const result = await run(trip(), { maxPaidLookups: 0 });
     expect(result.images).toEqual([
       cachedPhoto("ChIJcolosseum", "attraction"),
@@ -284,9 +284,9 @@ describe("generation (no paid lookups)", () => {
       cachedPhoto("ChIJsteps", "landmark"),
       cachedPhoto("ChIJcolosseum", "cultural"),
       curatedFor("Hidden Bar", "bar"),
-      curatedFor("Il Colosseo", "attraction"),
+      undefined,
       cachedPhoto("ChIJnavona", "attraction"),
-      curatedFor("Secret Garden", "park"),
+      undefined,
     ]);
     expect(result.google).toEqual([]);
     expect(result.cacheWrites).toEqual([]);
@@ -348,17 +348,17 @@ describe("generation (no paid lookups)", () => {
   it("treats a failed lookup as all misses, as a failed single lookup was", async () => {
     lookupError = { message: "upstream timeout" };
     const result = await run(trip(), { maxPaidLookups: 0 });
+    // Sights show none rather than another place; a meal and a drink show a generic photo.
     expect(result.images).toEqual([
-      curatedFor("Colosseum", "attraction"),
+      undefined,
       curatedFor("Lunch at Roscioli", "restaurant"),
-      curatedFor("Trevi Fountain", "landmark"),
-      curatedFor("Spanish Steps", "landmark"),
-      // The group's fallback comes from its first occurrence.
-      curatedFor("Colosseum", "attraction"),
+      undefined,
+      undefined,
+      undefined,
       curatedFor("Hidden Bar", "bar"),
-      curatedFor("Il Colosseo", "attraction"),
-      curatedFor("Piazza Navona", "attraction"),
-      curatedFor("Secret Garden", "park"),
+      undefined,
+      undefined,
+      undefined,
     ]);
     expect(result.logRows).toEqual([]);
     expect(result.cacheWrites).toEqual([]);
@@ -392,7 +392,7 @@ describe("enrichment (paid lookups)", () => {
       cachedPhoto("ChIJcolosseum", "attraction"),
       // Refresh budget spent: the stale ref is kept.
       cachedPhoto("ChIJnavona", "attraction"),
-      curatedFor("Secret Garden", "park"),
+      undefined,
     ]);
 
     const search = (textQuery: string) => [
@@ -477,7 +477,7 @@ describe("names Google found nothing for", () => {
     google.mockClear();
     // One paid lookup: it goes to the place Google can find, listed second.
     const result = await run([day(["Secret Garden", "park"], ["Lunch at Roscioli", "restaurant"])], { maxPaidLookups: 1 });
-    expect(result.images).toEqual([curatedFor("Secret Garden", "park"), freshPhoto("ChIJroscioli", "restaurant")]);
+    expect(result.images).toEqual([undefined, freshPhoto("ChIJroscioli", "restaurant")]);
     expect(google.mock.calls.map(([, init]) => (init?.body ? JSON.parse(String(init.body)).textQuery : null))).not.toContain("Secret Garden");
   });
 
@@ -521,7 +521,8 @@ describe("kill switch", () => {
     const days = trip();
     await fresh.fetchActivityImages(days, DEST, { maxPaidLookups: 0 });
     expect(db.log).toEqual([]);
-    expect(days[0].activities[0].image_url).toBe(curatedFor("Colosseum", "attraction"));
+    expect(days[0].activities[0].image_url).toBeUndefined();
+    expect(days[0].activities[1].image_url).toBe(curatedFor("Lunch at Roscioli", "restaurant"));
   });
 });
 
@@ -535,7 +536,7 @@ describe("a Google photo of another place", () => {
     places.set("ChIJakrotiri", { ...placeRow("ChIJakrotiri", "Akrotiri", { updatedDaysAgo: 3 }), latitude: 36.3517, longitude: 25.4033 });
     lookups.set("ancient thera|rome italy", "ChIJakrotiri");
     const result = await run([activity("Ancient Thera", "landmark", at(36.3615, 25.4772))], { maxPaidLookups: 8 });
-    expect(result.images).toEqual([curatedFor("Ancient Thera", "landmark")]);
+    expect(result.images).toEqual([undefined]);
     expect(result.legacy).toEqual([]);
     expect(result.google).toEqual([]);
     expect(result.logRows).toContain(JSON.stringify(anotherPlaceRow));

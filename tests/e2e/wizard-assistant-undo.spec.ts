@@ -134,14 +134,17 @@ test.describe("wizard: the assistant's edits", () => {
 
     await ask(page);
     await expect.poll(() => firstDayKept(page)).toEqual(["Canal cruise"]);
+    // The new stop, which has no photo, in the middle of the screen while the photos are found.
+    await page.locator('[data-activity-name="Canal cruise"]').first().evaluate((el) => el.scrollIntoView({ block: "center" }));
     // The planner asks for the photos found 5 seconds after a plan's activities change.
     const photoOf = async (name: string) =>
       (await storedDraft(page)).generatedItinerary.days.flatMap((d) => d.activities).find((a) => a.name === name)?.image_url;
-    await expect.poll(() => photoOf("Canal cruise"), { timeout: 15_000 }).toContain("/api/images/wikimedia/found-");
-    // Day 2 has no photo of this place in the draft.
+    // Day 2 has no photo of this place in the draft, and is below the screen: its photo is added.
     const lunch = "Lunch at Le Comptoir du Panthéon";
+    await expect.poll(() => photoOf(lunch), { timeout: 15_000 }).toContain("/api/images/wikimedia/found-");
     const lunchPhoto = await photoOf(lunch);
-    expect(lunchPhoto).toContain("/api/images/wikimedia/found-");
+    // The stop on screen keeps showing none: adding one there would move what is being read.
+    expect(await photoOf("Canal cruise")).toBeUndefined();
 
     await page.getByRole("button", { name: "Undo", exact: true }).click();
     await expect.poll(() => firstDayKept(page)).toEqual(originalDayOne);

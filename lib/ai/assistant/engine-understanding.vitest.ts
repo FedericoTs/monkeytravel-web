@@ -842,3 +842,33 @@ describe("buildPrompt", () => {
     expect(prompt).toContain("Asked where to stay or for hotels: suggest 2-3 concrete areas or well-known hotels");
   });
 });
+
+describe("a place they don't like", () => {
+  // "I dont like the food at farm 12, I need places with more gluten free
+  // options" came back with WildFin swapped for Duke's, and Farm 12 still there.
+  const days = [day(2, ["Space Needle", "Lunch at Ivar's"]), day(3, ["Lunch at Farm 12", "Pike Place Market", "Dinner at WildFin American Grill"])];
+  const told = { message: "I dont like the food at farm 12, I need places with more gluten free options", days };
+
+  it("is the one to change: another taken out in its place is sent back", () => {
+    const wrong = correctionFor(told, { reply: "I've swapped WildFin for Duke's Seafood.", edits: [edit(3, ["Lunch at Farm 12", "Pike Place Market", "Dinner at Duke's Seafood"])] });
+    expect(wrong).toContain("Lunch at Farm 12");
+    expect(wrong).toContain("keep Dinner at WildFin American Grill");
+  });
+
+  it("is let through when it is the one changed", () => {
+    const right = correctionFor(told, { reply: "Farm 12 is now Capitol Cider.", edits: [edit(3, ["Lunch at Capitol Cider", "Pike Place Market", "Dinner at WildFin American Grill"])] });
+    expect(right ?? "").not.toContain("They asked about");
+    // Changed along with another: the place they named went, so this check is done.
+    const both = correctionFor(told, { reply: "Done.", edits: [edit(3, ["Lunch at Capitol Cider", "Pike Place Market", "Dinner at Duke's Seafood"])] });
+    expect(both ?? "").not.toContain("They asked about");
+  });
+
+  it("is heard in each language, and only when it is a place of the plan", () => {
+    const wrongEdit = { reply: "Fatto.", edits: [edit(3, ["Lunch at Farm 12", "Pike Place Market", "Dinner at Duke's Seafood"])] };
+    for (const message of ["no me gusta la comida de Farm 12", "non mi piace Farm 12", "não gosto do Farm 12", "I don't really like Farm 12"])
+      expect(correctionFor({ message, days }, wrongEdit), message).toContain("They asked about Lunch at Farm 12");
+    // Nothing of the plan named, or no dislike said: left to the other checks.
+    expect(correctionFor({ message: "I don't like seafood", days }, wrongEdit) ?? "").not.toContain("They asked about");
+    expect(correctionFor({ message: "Farm 12 looks great, is it open on Mondays?", days }, wrongEdit) ?? "").not.toContain("They asked about");
+  });
+});

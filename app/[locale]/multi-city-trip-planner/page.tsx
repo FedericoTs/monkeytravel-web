@@ -141,7 +141,7 @@ export default async function MultiCityTripPlannerPage({
         <section id="routes" className="py-24 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--primary)]/5 text-[var(--primary-ink)] text-sm font-semibold mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--primary)]/5 text-[var(--foreground)] text-sm font-semibold mb-6">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -166,15 +166,15 @@ export default async function MultiCityTripPlannerPage({
                   <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">
                     {t(`routes.items.${key}.name`)}
                   </h3>
-                  <div className="text-[var(--primary-ink)] font-bold mb-3">
+                  <div className="text-[var(--foreground)] font-bold mb-3">
                     {t(`routes.items.${key}.stops`)}
                   </div>
                   <p className="text-sm text-[var(--foreground-muted)] leading-relaxed mb-6">
                     {t(`routes.items.${key}.description`)}
                   </p>
-                  <div className="mt-auto inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary-ink)]">
+                  <div className="mt-auto inline-flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
                     <span>{t('routes.cta')}</span>
-                    <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-4 h-4 text-[var(--primary)] group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
                   </div>

@@ -59,7 +59,7 @@ async function isolate(page: Page) {
   await page.route("**/*", (route) => {
     const req = route.request();
     const url = new URL(req.url());
-    if (/(googletagmanager|google-analytics|posthog|buildhop)\.|^maps\.googleapis\.com$/.test(url.host)) {
+    if (/(googletagmanager|google-analytics|posthog)\.|^maps\.googleapis\.com$/.test(url.host)) {
       return route.abort();
     }
     if (url.pathname.endsWith("/email") && url.pathname.startsWith("/api/plans/")) {

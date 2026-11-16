@@ -29,7 +29,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { TripIntent } from "@/lib/posthog/events";
 import type { Diet } from "@/lib/trips/diet";
-import type { GeneratedItinerary, TripAnchor } from "@/types";
+import type { GeneratedItinerary, TripAnchor, TripStay } from "@/types";
 
 const STACK_KEY = "mt_session_trips";
 const CURRENT_KEY = "mt_session_trips_current";
@@ -53,6 +53,7 @@ export interface SessionTripSnapshot {
   dietary?: Diet[];
   tripIntent?: TripIntent;
   flexibleDates?: boolean;
+  stay?: TripStay | null;
   /**
    * True when this entry got onto the screen via a restore (post-auth silent
    * draft restore, draft-recovery banner, or a tray chip click) rather than a

@@ -13,17 +13,20 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { GeneratedItinerary, TripAnchor, TripVibe, BudgetTier, TripPace } from "@/types";
+import type { GeneratedItinerary, TripAnchor, TripStay, TripVibe, BudgetTier, TripPace } from "@/types";
 import { splitCities } from "@/lib/ai/multi-city-core";
 import { isSupportedLanguage, resolveAiLanguage } from "@/lib/ai/language";
 import { isValidTimeZone } from "@/lib/trip/live";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { newTripTitle } from "@/lib/trips/title";
 import { pickCoverFromItinerary } from "@/lib/trips/cover";
+import { isRealPoint } from "@/lib/trip/placeholder-point";
+import { haversineKm } from "@/lib/map/geo";
 import type { PencilledDates } from "@/lib/trips/pencilled-dates";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { logWriteError } from "@/lib/supabase/log-write-error";
 import { tripSpanDays } from "@/lib/dates/iso-date";
+import { isChosenTripIntent, type ChosenTripIntent } from "@/lib/wizard/answers";
 
 export interface TripFormState {
   destination: string;
@@ -79,13 +82,15 @@ export interface TripFormState {
    * "unspecified" is not persisted (the key stays absent), so a row carrying
    * trip_intent means the user actively chose.
    */
-  tripIntent?: "solo" | "group" | "unspecified";
+  tripIntent?: ChosenTripIntent | "unspecified";
   /**
    * The dates were pencilled in for the traveller ("flexible dates", a plan
    * from one sentence) rather than chosen. Written as trip_meta.dates_pencilled
    * (lib/trips/pencilled-dates.ts): the trip's emails wait until its dates change.
    */
   flexibleDates?: boolean;
+  /** Where they're staying, when they said; written as trip_meta.stay. */
+  stay?: TripStay | null;
 }
 
 /**
@@ -206,12 +211,14 @@ function buildTripRow(
     // Only written when the user actually picked, so `trip_intent is not null`
     // reads as "answered" and the untouched-default case stays distinguishable
     // from a deliberate choice.
-    ...(formState.tripIntent === "solo" || formState.tripIntent === "group"
+    ...(isChosenTripIntent(formState.tripIntent)
       ? { trip_intent: formState.tripIntent }
       : {}),
     ...(formState.flexibleDates
       ? { dates_pencilled: { start: formState.startDate, end: formState.endDate } satisfies PencilledDates }
       : {}),
+    // Where they're staying, when they said: the plan was made around it.
+    ...(formState.stay ? { stay: formState.stay } : {}),
   };
 
   return {
@@ -357,6 +364,19 @@ export async function deleteTrip(
 }
 
 /**
+ * Where the trip is, for its cover ("lat,lng,km": the middle of its stops and
+ * how far they spread), so a photo of another place with the destination's
+ * name isn't taken (lib/images/destination-photos.ts). None without a real point.
+ */
+function tripNear(itinerary: GeneratedItinerary | undefined): string | undefined {
+  const points = (itinerary?.days ?? []).flatMap((d) => (d.activities ?? []).map((a) => a.coordinates)).filter(isRealPoint);
+  if (!points.length) return undefined;
+  const middle = { lat: points.reduce((sum, p) => sum + p.lat, 0) / points.length, lng: points.reduce((sum, p) => sum + p.lng, 0) / points.length };
+  const km = Math.ceil(Math.max(...points.map((p) => haversineKm(middle, p))));
+  return `${middle.lat.toFixed(4)},${middle.lng.toFixed(4)},${km}`;
+}
+
+/**
  * Asynchronously fetch a high-quality cover image for the trip and
  * attach it via UPDATE. Fire-and-forget: never throws, never returns
  * meaningful errors to the caller. Logs to the console on failure.
@@ -368,10 +388,12 @@ export async function attachCoverImage(
   supabase: SupabaseClient,
   tripId: string,
   destination: string,
+  itinerary?: GeneratedItinerary,
 ): Promise<void> {
   try {
+    const near = tripNear(itinerary);
     const response = await fetch(
-      `/api/images/destination?destination=${encodeURIComponent(destination)}`,
+      `/api/images/destination?destination=${encodeURIComponent(destination)}${near ? `&near=${near}` : ""}`,
       { keepalive: true },
     );
     if (!response.ok) return;

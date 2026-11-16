@@ -280,7 +280,7 @@ export default async function BackpackerLandingPage({
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Link
                 href="/trips/new?style=backpacker"
-                className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-emerald-500 text-white font-bold rounded-xl hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/30"
+                className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-emerald-700 text-white font-bold rounded-xl hover:bg-emerald-800 transition-all shadow-lg shadow-emerald-500/30"
               >
                 <span aria-hidden>🎒</span>
                 <span>{t("hero.ctaPrimary")}</span>
@@ -396,7 +396,7 @@ export default async function BackpackerLandingPage({
             <div className="grid md:grid-cols-3 gap-6">
               {STEP_KEYS.map((step) => (
                 <div key={step.n} className="bg-white rounded-2xl p-6 border border-slate-200 relative">
-                  <div className="w-10 h-10 rounded-full bg-emerald-500 text-white font-bold text-lg flex items-center justify-center mb-4">
+                  <div className="w-10 h-10 rounded-full bg-emerald-700 text-white font-bold text-lg flex items-center justify-center mb-4">
                     {step.n}
                   </div>
                   <h3 className="text-lg font-semibold text-slate-900 mb-2">

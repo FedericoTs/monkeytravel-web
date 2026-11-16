@@ -286,6 +286,30 @@ describe("with a day picked, edits go to that day's place in the trip", () => {
   });
 });
 
+describe("what goes under the first day", () => {
+  const note = <p>edits save themselves</p>;
+  const follows = (a: Node, b: Node) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+
+  it("sits between the first day and the second, once", () => {
+    show({ afterFirstDay: note });
+    const line = screen.getByText("edits save themselves");
+    expect(screen.getAllByText("edits save themselves")).toHaveLength(1);
+    expect(dayBox(1).contains(line)).toBe(false);
+    expect(follows(dayBox(1), line)).toBe(true);
+    expect(follows(line, dayBox(2))).toBe(true);
+  });
+
+  it("follows the day the slider picked", () => {
+    show({ selectedDay: 3, afterFirstDay: note });
+    expect(follows(dayBox(3), screen.getByText("edits save themselves"))).toBe(true);
+  });
+
+  it("waits for a plan", () => {
+    show({ days: [], afterFirstDay: note });
+    expect(screen.queryByText("edits save themselves")).toBeNull();
+  });
+});
+
 describe("the reorder hint", () => {
   it("shows once, on the first day shown, even when that isn't Day 1", () => {
     show({ ...editing, selectedDay: 2 });
@@ -300,6 +324,13 @@ describe("the reorder hint", () => {
 
   it("doesn't show while viewing", () => {
     show();
+    expect(screen.queryByText("reorder hint")).toBeNull();
+  });
+
+  // The page tells them in one line under its controls; a second box above the
+  // first stop said it again and pushed the plan down.
+  it("doesn't show to an owner who edits in place, without an edit mode", () => {
+    show({ editingActive: true, isEditMode: false });
     expect(screen.queryByText("reorder hint")).toBeNull();
   });
 });
@@ -608,6 +639,45 @@ describe("the drag", () => {
     expect(seen.drag!.collisionDetection).toBe(first.collisionDetection);
     expect(seen.drag!.measuring).toBe(first.measuring);
     expect(seen.drag!.sensors).toBeTruthy();
+  });
+  type Spoken = {
+    screenReaderInstructions: { draggable: string };
+    announcements: Record<string, (event: unknown) => string | undefined>;
+  };
+  const spoken = () => seen.drag!.accessibility as Spoken;
+  const words = (key: string, place: object) => `common.drag.${key} ${JSON.stringify(place)}`;
+
+  it("names its instructions the same way on every render, so the handles on the server's page point at them", () => {
+    const instructionsId = () => screen.getByText("common.drag.instructions").id;
+    const first = show(editing);
+    const id = instructionsId();
+    first.unmount();
+    show(editing);
+    expect(instructionsId()).toBe(id);
+  });
+
+  it("tells a screen reader how to move a stop, in the page's words", () => {
+    show(editing);
+    expect(spoken().screenReaderInstructions.draggable).toBe("common.drag.instructions");
+  });
+
+  it("names the stop and its place as it's picked up, moved and dropped", () => {
+    show(editing);
+    const say = spoken().announcements;
+    expect(say.onDragStart({ active: { id: "a2" } })).toBe(words("pickedUp", { name: "a2", day: 1, position: 2, count: 3 }));
+    expect(say.onDragOver({ active: { id: "a2" }, over: { id: "c1" } })).toBe(words("over", { name: "a2", day: 3, position: 1, count: 3 }));
+    expect(say.onDragEnd({ active: { id: "a2" }, over: { id: "a1" } })).toBe(words("dropped", { name: "a2", day: 1, position: 1, count: 3 }));
+  });
+
+  it("reads the plan as the page shows it while dragging, and as it was when the move is cancelled", () => {
+    const view = show(editing);
+    const [d1, d2, d3] = threeDays();
+    moves.preview = [{ ...d1, activities: d1.activities.slice(1) }, { ...d2, activities: [...d2.activities, d1.activities[0]] }, d3];
+    view.rerender(<TripDayList {...baseProps(editing)} />);
+    const say = spoken().announcements;
+    expect(say.onDragOver({ active: { id: "a1" }, over: { id: "b1" } })).toBe(words("over", { name: "a1", day: 2, position: 1, count: 2 }));
+    expect(say.onDragEnd({ active: { id: "a1" }, over: null })).toBe(words("dropped", { name: "a1", day: 2, position: 2, count: 2 }));
+    expect(say.onDragCancel({ active: { id: "a1" } })).toBe(words("cancelled", { name: "a1", day: 1, position: 1, count: 3 }));
   });
 });
 

@@ -18,6 +18,7 @@ const answers: WizardAnswers = {
   dietary: ["vegan"],
   tripIntent: "group",
   flexibleDates: true,
+  stay: { name: "Memmo Alfama", coordinates: { lat: 38.7111, lng: -9.1306 } },
 };
 
 describe("tripFormState", () => {
@@ -43,15 +44,17 @@ describe("keptPlanOf", () => {
       flexibleDates: true,
       mustDos: ["Belém tower"],
       dietary: ["vegan"],
+      stay: { name: "Memmo Alfama", coordinates: { lat: 38.7111, lng: -9.1306 } },
     });
   });
 
-  it("leaves out an unanswered intent, fixed dates, and empty wishes and diets", () => {
-    const plan = keptPlanOf({ ...answers, tripIntent: "unspecified", flexibleDates: false, mustDos: [], dietary: [] }, itinerary);
+  it("leaves out an unanswered intent, fixed dates, empty wishes and diets, and no stay", () => {
+    const plan = keptPlanOf({ ...answers, tripIntent: "unspecified", flexibleDates: false, mustDos: [], dietary: [], stay: null }, itinerary);
     expect(plan).not.toHaveProperty("tripIntent");
     expect(plan).not.toHaveProperty("flexibleDates");
     expect(plan).not.toHaveProperty("mustDos");
     expect(plan).not.toHaveProperty("dietary");
+    expect(plan).not.toHaveProperty("stay");
   });
 });
 

@@ -88,14 +88,7 @@ describe("useWizardFunnel", () => {
     window.dispatchEvent(new Event("pagehide"));
     window.dispatchEvent(new Event("beforeunload"));
     expect(rows("abandoned")).toEqual([
-      {
-        destination: "Lisbon, Portugal",
-        duration_days: 2,
-        locale: "en",
-        last_step: "step_1_destination_dates",
-        last_touched_field: "destination_autocomplete",
-        total_time_seconds: 42,
-      },
+      { destination: "Lisbon, Portugal", duration_days: 2, locale: "en", field: "destination_autocomplete" },
     ]);
     expect(abandoned).toHaveBeenCalledWith(
       expect.objectContaining({ last_step_completed: 0, had_destination: true, had_dates: true, had_vibes: false })
@@ -121,8 +114,21 @@ describe("useWizardFunnel", () => {
   it("reports when the wizard unmounts mid-flow", () => {
     const { unmount } = renderHook((p: Props) => useWizardFunnel(p), { initialProps: props({ step: 2 }) });
     unmount();
-    expect(rows("abandoned")).toEqual([
-      expect.objectContaining({ last_step: "step_2_vibes", locale: "en" }),
-    ]);
+    expect(rows("abandoned")).toEqual([expect.objectContaining({ locale: "en" })]);
+  });
+
+  it("says on each step-1 beat where the session is: its field, and whether a destination and dates are in", () => {
+    const { result, rerender } = renderHook((p: Props) => useWizardFunnel(p), { initialProps: props() });
+    vi.advanceTimersByTime(10_000);
+    expect(rows("step1_heartbeat").at(-1)).toEqual({ locale: "en", field: undefined, destination: undefined, duration_days: undefined });
+
+    act(() => result.current.trackFieldInteraction("start_date"));
+    rerender(props({ destination: "Lisbon, Portugal", startDate: "2027-05-10" }));
+    vi.advanceTimersByTime(10_000);
+    expect(rows("step1_heartbeat").at(-1)).toEqual({ locale: "en", field: "start_date", destination: "Lisbon, Portugal", duration_days: undefined });
+
+    rerender(props({ destination: "Lisbon, Portugal", startDate: "2027-05-10", endDate: "2027-05-12" }));
+    vi.advanceTimersByTime(10_000);
+    expect(rows("step1_heartbeat").at(-1)).toMatchObject({ field: "start_date", duration_days: 3 });
   });
 });

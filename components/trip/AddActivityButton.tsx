@@ -307,7 +307,7 @@ export default function AddActivityButton({
                 <p>{t("noResults", { query: searchQuery })}</p>
                 <button
                   onClick={openCustomForm}
-                  className="mt-2 text-[var(--primary-ink)] hover:underline text-sm"
+                  className="mt-2 text-sm text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 hover:decoration-2"
                 >
                   {t("addManually")}
                 </button>
@@ -322,7 +322,7 @@ export default function AddActivityButton({
           {/* Add Custom Link */}
           <button
             onClick={openCustomForm}
-            className="w-full text-center py-2 text-sm text-[var(--primary-ink)] hover:bg-[var(--primary)]/5 rounded-lg transition-colors"
+            className="w-full text-center py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--primary)]/5 rounded-lg transition-colors"
           >
             + {t("addCustom")}
           </button>

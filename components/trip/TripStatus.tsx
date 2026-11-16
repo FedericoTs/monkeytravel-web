@@ -129,7 +129,7 @@ export function ConfirmTripCard({
           <button
             onClick={onConfirm}
             disabled={updating}
-            className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-green-700 text-white font-medium hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {updating ? (
               <Spinner className="w-5 h-5" />

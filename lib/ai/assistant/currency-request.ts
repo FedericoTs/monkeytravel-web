@@ -6,7 +6,8 @@ import { note } from "./notes";
  * prices shown in another currency. The model cannot change that and used to
  * reply "already in euros" while every amount still read "$". The page shows
  * prices in the viewer's preferred currency, so the request is answered by
- * switching that preference (AnonAssistantPanel), not by an itinerary edit.
+ * switching that preference (AnonAssistantPanel on the planner,
+ * useTripAssistant on the trip page), not by an itinerary edit.
  */
 
 // Letters and digits in any script: a plain \b breaks on accented words.
@@ -34,7 +35,7 @@ const ARTICLE = "(?:(?:the|el|los|las|il|lo|la|i|gli|le|o|os|as)\\s+)?";
 const INTENT = new RegExp(
   `${B}(?:convert\\p{L}*|change|switch|show|display|put|use|set|make|turn|want|give|see|currency|currencies|` +
     `convier\\p{L}*|cambia\\p{L}*|muestr\\p{L}*|mostr\\p{L}*|pon|poner|pasa\\p{L}*|moneda|divisa|` +
-    `metti|mettere|valuta|mude|mudar|coloque|colocar|passe|passar|troque|trocar|moeda|` +
+    `metti|mettere|valuta|mude|mudar|coloque|colocar|passe|passar|troque|trocar|exib\\p{L}*|moeda|` +
     `prices?|costs?|budget|amounts?|estimates?|precios?|costos?|costes?|presupuesto|importes?|prezzi|costi|importi|preços|custos|orçamento|valores|` +
     `sign|symbol|s[ií]mbolo|signo|segno|sinal)${E}`,
   "iu"
@@ -70,10 +71,27 @@ function toCode(token: string): string | null {
   return null;
 }
 
+// "Are the prices in pesos?", "Los precios son en pesos mexicanos?": a question
+// about the currency, to be answered, not a request to switch it. A request in
+// question form asks with a verb: "can you show the prices in euros?".
+const ASKS_ABOUT = new RegExp(`${B}(?:are|is|was|were|son|es|están|estan|sono|è|são|é|está|estão)${E}`, "iu");
+const ASKS_FOR = new RegExp(
+  `${B}(?:convert\\p{L}*|change|switch|show|display|put|use|set|make|turn|want|give|see|can|could|would|please|` +
+    `convier\\p{L}*|cambia\\p{L}*|muestr\\p{L}*|mostr\\p{L}*|pon|poner|pasa\\p{L}*|puedes|podr[ií]as|favor|` +
+    `metti|mettere|converti\\p{L}*|puoi|potresti|favore|` +
+    `mude|mudar|coloque|colocar|passe|passar|troque|trocar|exib\\p{L}*|pode|poderia|podes)${E}`,
+  "iu"
+);
+
+/** A question about the currency prices are in, not a request to change it. */
+function asksAboutCurrency(text: string): boolean {
+  return /\?[\s\p{P}\p{S}]*$/u.test(text) && ASKS_ABOUT.test(text) && !ASKS_FOR.test(text);
+}
+
 /** The currency the message asks prices to be shown in, or null. */
 export function currencyRequested(message: string | null | undefined): string | null {
   const text = (message ?? "").trim();
-  if (!text) return null;
+  if (!text || asksAboutCurrency(text)) return null;
   if (INTENT.test(text)) {
     for (const re of TARGETS) {
       for (const match of text.matchAll(re)) {

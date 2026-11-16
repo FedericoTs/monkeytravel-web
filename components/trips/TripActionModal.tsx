@@ -2,6 +2,8 @@
 
 import { useId, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useChanged } from "@/hooks/useChanged";
+import { DELETION_REASONS, type DeletionReason } from "@/lib/trips/deletion-reasons";
 import { useToast } from "@/components/ui/Toast";
 import { useModalBehavior } from "@/hooks/useModalBehavior";
 import { Spinner } from "@/components/ui/Spinner";
@@ -9,7 +11,8 @@ import { Spinner } from "@/components/ui/Spinner";
 interface TripActionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => Promise<void>;
+  /** With the reason picked for a delete, if any; always null for the other actions. */
+  onConfirm: (reason: DeletionReason | null) => Promise<void>;
   tripTitle: string;
   action: "archive" | "delete" | "unarchive";
 }
@@ -23,8 +26,13 @@ export default function TripActionModal({
 }: TripActionModalProps) {
   const t = useTranslations("common.trips");
   const tButtons = useTranslations("common.buttons");
+  const tReasons = useTranslations("common.startOver.reasons");
   const { addToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  // Why the trip goes, when someone says: one tap, never required.
+  const [reason, setReason] = useState<DeletionReason | null>(null);
+  const openChanged = useChanged(isOpen);
+  if (openChanged && isOpen && reason !== null) setReason(null);
   const { panelRef } = useModalBehavior({ isOpen, onClose });
   const titleId = useId();
 
@@ -33,7 +41,7 @@ export default function TripActionModal({
   const handleConfirm = async () => {
     setIsLoading(true);
     try {
-      await onConfirm();
+      await onConfirm(action === "delete" ? reason : null);
       onClose();
     } catch (error) {
       console.error("Action failed:", error);
@@ -151,6 +159,30 @@ export default function TripActionModal({
         <p className="text-sm text-slate-500 text-center mb-6">
           {getMessage()}
         </p>
+
+        {/* Why it goes, for a delete: optional, one tap. Without an answer
+            nobody knows why a trip was deleted and made again. */}
+        {action === "delete" && (
+          <fieldset className="mb-6">
+            <legend className="mb-2 w-full text-center text-sm font-medium text-slate-700">{t("deleteReason")}</legend>
+            <div className="flex flex-wrap justify-center gap-2">
+              {DELETION_REASONS.map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  aria-pressed={reason === r}
+                  onClick={() => setReason(reason === r ? null : r)}
+                  disabled={isLoading}
+                  className={`min-h-[44px] rounded-full border px-3 text-sm transition-colors ${
+                    reason === r ? "border-slate-900 bg-slate-900 text-white" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  {tReasons(r)}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+        )}
 
         {/* Actions */}
         <div className="flex gap-3">
