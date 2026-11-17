@@ -31,6 +31,12 @@ describe("a Japanese museum's Mondays", () => {
     expect(shutBy(gyoen, "2026-09-25")).toBe(false);
   });
 
+  it("opens Shinjuku Gyoen on the cherry-blossom Monday its calendar lists", () => {
+    const gyoen = entry("Shinjuku Gyoen", "Tokyo");
+    expect(shutBy(gyoen, "2027-03-29")).toBe(false);
+    expect(shutBy(gyoen, "2027-03-15")).toBe(true);
+  });
+
   it("keeps its year-end closure, and is open again on the day the list doesn't shut", () => {
     for (const date of ["2026-12-26", "2026-12-29", "2026-12-31"]) expect(shutBy(tnm, date)).toBe(true);
     expect(shutBy(tnm, "2026-12-25")).toBe(false);

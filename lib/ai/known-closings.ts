@@ -106,6 +106,8 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
     names: /\bshinjuku gyoen\b|新宿御苑/i,
     city: TOKYO,
     rules: [{ weekly: ["Monday"], holidayShift: "jp" }, { from: "2026-12-29", to: "2027-01-03" }],
+    // Open every day in the cherry-blossom weeks.
+    openOn: ["2027-03-29"],
     source: "https://policies.env.go.jp/national-garden/shinjukugyoen/guide/information/",
   },
   {
