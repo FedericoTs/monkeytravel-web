@@ -41,6 +41,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 interface TripDay {
   destination: string;
   dayNumber: number;
+  /** How many days the trip has, from its dates. */
+  totalDays: number;
   title: string;
   activities: Activity[];
   currency?: string;
@@ -68,6 +70,7 @@ async function loadTripDay(tripId: string, date: string): Promise<TripDay | null
   return {
     destination: (data.title ?? "").replace(/\s+Trip\s*$/i, "").trim(),
     dayNumber,
+    totalDays: tripDayNumber(data.start_date, data.end_date, (data.end_date ?? data.start_date).slice(0, 10)) ?? dayNumber,
     title: typeof day?.title === "string" ? day.title.trim() : "",
     activities: activities.filter(
       (a): a is Activity => !!a && typeof a === "object" && typeof (a as { name?: unknown }).name === "string",
@@ -117,6 +120,9 @@ export default async function TripDayPage({ params, searchParams }: PageProps) {
   const tripPath = `/trips/${tripId.toLowerCase()}`;
   const { data: auth } = await (await createClient()).auth.getUser();
   const editHref = auth.user ? `${prefix}${tripPath}` : `${prefix}/auth/login?redirect=${encodeURIComponent(tripPath)}`;
+  // A trip of several days says so, and where the other days are: this page shows only one.
+  const total = day.totalDays >= 2 ? day.totalDays : null;
+  const allDays = total ? (auth.user ? t("seeAllDays", { total }) : t("signInToSeeAll", { total })) : null;
   const format = await getFormatter();
   const when = format.dateTime(new Date(`${date}T00:00:00Z`), {
     weekday: "long",
@@ -156,9 +162,14 @@ export default async function TripDayPage({ params, searchParams }: PageProps) {
           <p className="text-sm font-medium text-[var(--foreground-muted)]">{day.destination}</p>
         ) : null}
         <h1 className="mt-1 text-2xl sm:text-3xl font-bold text-[var(--foreground)]">
-          {t("heading", { day: day.dayNumber })}
+          {total ? t("headingOf", { day: day.dayNumber, total }) : t("heading", { day: day.dayNumber })}
         </h1>
         <p className="mt-1 text-[var(--foreground-muted)]">{day.title ? `${when} · ${day.title}` : when}</p>
+        {allDays ? (
+          <a href={editHref} className="mt-1 inline-block text-sm font-medium text-[var(--foreground)] underline underline-offset-2">
+            {allDays}
+          </a>
+        ) : null}
         <DayRouteLink activities={day.activities} surface="day" className="mt-1" />
 
         {canSend && sendKey ? (
@@ -202,12 +213,12 @@ export default async function TripDayPage({ params, searchParams }: PageProps) {
         )}
 
         <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 text-center">
-          <p className="text-sm text-[var(--foreground-muted)]">{t("readOnly")}</p>
+          <p className="text-sm text-[var(--foreground-muted)]">{total ? t("readOnlyOf", { total }) : t("readOnly")}</p>
           <a
             href={editHref}
             className="mt-3 inline-flex items-center justify-center px-6 py-3 bg-[var(--primary)] text-white rounded-xl font-medium hover:bg-[var(--primary)]/90 transition-colors"
           >
-            {auth.user ? t("openTrip") : t("signInToEdit")}
+            {auth.user ? t("openTrip") : total ? t("signInToSeeAll", { total }) : t("signInToEdit")}
           </a>
         </div>
       </div>

@@ -2828,7 +2828,11 @@
   "tripDayPage": {
     "metaTitle": "Il tuo piano del giorno",
     "heading": "Giorno {day}",
+    "headingOf": "Giorno {day} di {total}",
     "readOnly": "Questa è una vista in sola lettura della giornata.",
+    "readOnlyOf": "Questa pagina mostra un giorno del tuo viaggio di {total} giorni.",
+    "seeAllDays": "Vedi tutti i {total} giorni",
+    "signInToSeeAll": "Accedi per vedere tutti i {total} giorni",
     "signInToEdit": "Accedi per modificare",
     "openTrip": "Apri e modifica il viaggio",
     "empty": "Ancora niente in programma per questo giorno.",

@@ -2828,7 +2828,11 @@
   "tripDayPage": {
     "metaTitle": "Your day plan",
     "heading": "Day {day}",
+    "headingOf": "Day {day} of {total}",
     "readOnly": "This is a read-only view of the day.",
+    "readOnlyOf": "This page shows one day of your {total}-day trip.",
+    "seeAllDays": "See all {total} days",
+    "signInToSeeAll": "Sign in to see all {total} days",
     "signInToEdit": "Sign in to edit",
     "openTrip": "Open and edit your trip",
     "empty": "Nothing planned for this day yet.",
