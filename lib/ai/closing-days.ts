@@ -21,6 +21,7 @@
  * nowhere to go (shut on every date of the trip) is swapped for an open place,
  * when the route asks for that (lib/ai/closed-swaps.ts).
  */
+import { withKnownClosings } from "@/lib/ai/known-closings";
 import { SchemaType, type ResponseSchema } from "@/lib/ai/genai-compat";
 import { genAI, withTimeout } from "@/lib/ai/gemini-call";
 import { getModelForPurpose, thinkingConfigFor } from "@/lib/ai/model-router";
@@ -392,11 +393,14 @@ export async function keepOffClosingDays<T extends { days: Day[] }>(
   destination: string,
   ask: typeof askClosingDays = askClosingDays,
   reword: typeof rewordMovedDays = rewordMovedDays,
-  swap?: SwapStuck
+  swap?: SwapStuck,
+  checked: typeof withKnownClosings = withKnownClosings
 ): Promise<{
   itinerary: T;
   costUsd: number;
   asked: number;
+  /** Stops whose closing days came from the checked list. */
+  known: number;
   shutBefore: number;
   shutAfter: number;
   reworded: number;
@@ -404,7 +408,10 @@ export async function keepOffClosingDays<T extends { days: Day[] }>(
   swapped: number;
 }> {
   const places = placesToAsk(itinerary.days);
-  const { closings, shutDates, costUsd } = await ask(destination, places, holidayDatesToAsk(itinerary.days));
+  const answer = await ask(destination, places, holidayDatesToAsk(itinerary.days));
+  // The sights on the checked list are decided by it, not by the model (lib/ai/known-closings.ts).
+  const { closings, shutDates, known } = checked(answer, itinerary.days, destination);
+  const costUsd = answer.costUsd;
   const order = closingOrder(itinerary.days, closings, shutDates);
   const moves = order.flatMap((from, slot) => (from === slot ? [] : [{ slot, from: itinerary.days[from].date }]));
   const ordered = inOrder(itinerary.days, order);
@@ -417,6 +424,7 @@ export async function keepOffClosingDays<T extends { days: Day[] }>(
     itinerary: days === itinerary.days ? itinerary : { ...itinerary, days },
     costUsd: costUsd + words.costUsd + swaps.costUsd,
     asked: places.length,
+    known,
     shutBefore: shutStops(itinerary.days, closings, shutDates),
     shutAfter: shutStops(days, closings, shutDates),
     reworded: words.reworded,

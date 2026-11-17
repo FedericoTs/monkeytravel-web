@@ -62,6 +62,10 @@ afterEach(() => {
   generateContent.mockClear();
 });
 
+/** The model's answer alone, without the checked list (lib/ai/known-closings.ts has its own tests). */
+const modelOnly = <A extends { closings: Map<string, unknown>; shutDates: Map<string, string[]> }>(answer: A) =>
+  ({ closings: answer.closings, shutDates: answer.shutDates, known: 0 }) as never;
+
 describe("ordering the days around closing days", () => {
   it("moves a day whose sight is shut on its weekday to a day it is open, each date keeping its place", () => {
     const days = orderAroundClosings(seville(), closings([["Museo de Bellas Artes", ["Monday"]]]));
@@ -288,7 +292,7 @@ describe("a stop still shut after the reorder", () => {
       ["Borghese Gallery", ["2026-12-25"]],
     ]);
     const ask = vi.fn(async () => ({ closings: new Map(), shutDates: allOn25, costUsd: 0 }));
-    const result = await keepOffClosingDays(plan, "Rome", ask);
+    const result = await keepOffClosingDays(plan, "Rome", ask, undefined, undefined, modelOnly);
     expect(result).toMatchObject({ shutBefore: 1, shutAfter: 0, stopsMoved: 1 });
     expect(timed(result.itinerary.days)[1]).toBe("13:00 Pizzeria Remo");
   });
@@ -454,7 +458,7 @@ describe("a plan kept off its closing days", () => {
       ],
     };
     const ask = vi.fn(async () => ({ closings: new Map(), shutDates: shutDates([["Louvre Museum", ["2026-12-25"]]]), costUsd: 0 }));
-    const result = await keepOffClosingDays(plan, "Paris", ask);
+    const result = await keepOffClosingDays(plan, "Paris", ask, undefined, undefined, modelOnly);
     expect(ask).toHaveBeenCalledWith(
       "Paris",
       ["Sainte-Chapelle", "Louvre Museum", "Musée d'Orsay", "Montmartre"],
@@ -480,7 +484,7 @@ describe("a plan kept off its closing days", () => {
       reworded: 1,
     }));
     // A mock of a generic function is not assignable to it as typed: the cast is for the type checker only.
-    const result = await keepOffClosingDays(plan, "Paris", ask, reword as unknown as NonNullable<Parameters<typeof keepOffClosingDays>[3]>);
+    const result = await keepOffClosingDays(plan, "Paris", ask, reword as unknown as NonNullable<Parameters<typeof keepOffClosingDays>[3]>, undefined, modelOnly);
     expect(reword).toHaveBeenCalledTimes(1);
     expect(reword.mock.calls[0][1]).toEqual([
       { slot: 1, from: "2026-12-26" },
