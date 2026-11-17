@@ -14,12 +14,18 @@
  *
  * A moved day's words were written for its old date; those that name it are
  * re-worded for the new one (lib/ai/moved-day-words.ts).
+ *
+ * Some plans have no order that keeps every sight open: on Christmas Day each
+ * day may hold a museum shut that day. A stop still shut after the reorder
+ * moves on its own to a day it is open, when one has room for it.
  */
 import { SchemaType, type ResponseSchema } from "@/lib/ai/genai-compat";
 import { genAI, withTimeout } from "@/lib/ai/gemini-call";
 import { getModelForPurpose, thinkingConfigFor } from "@/lib/ai/model-router";
 import { geminiCostUsd, recordGeminiUsage } from "@/lib/ai/gemini-cost";
-import { rewordMovedDays, type WordDay } from "@/lib/ai/moved-day-words";
+import { rewordMovedDays, type WordDay, type WordStop } from "@/lib/ai/moved-day-words";
+import { determineTimeSlot } from "@/lib/utils/activity-id";
+import { formatMinutesToTime } from "@/lib/datetime/format";
 
 export const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
 export type Weekday = (typeof WEEKDAYS)[number];
@@ -154,14 +160,17 @@ export async function askClosingDays(
 const weekdayOf = (date?: string): Weekday | null =>
   date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? WEEKDAYS[new Date(`${date}T00:00:00Z`).getUTCDay()] : null;
 
-/** How many of a day's stops are shut on a date: on its weekday, or on that date itself. */
-function shutOn(day: Day, date: string | undefined, closings: Closings, shutDates: ShutDates): number {
+/** Whether a stop is shut on a date: on its weekday, or on that date itself. */
+function stopShutOn(stop: WordStop, date: string | undefined, closings: Closings, shutDates: ShutDates): boolean {
+  if (!stop.name) return false;
+  const key = placeKey(stop.name);
   const weekday = weekdayOf(date);
-  return (day.activities ?? []).filter((stop) => {
-    if (!stop.name) return false;
-    const key = placeKey(stop.name);
-    return Boolean((weekday && closings.get(key)?.includes(weekday)) || (date && shutDates.get(key)?.includes(date)));
-  }).length;
+  return Boolean((weekday && closings.get(key)?.includes(weekday)) || (date && shutDates.get(key)?.includes(date)));
+}
+
+/** How many of a day's stops are shut on a date. */
+function shutOn(day: Day, date: string | undefined, closings: Closings, shutDates: ShutDates): number {
+  return (day.activities ?? []).filter((stop) => stopShutOn(stop, date, closings, shutDates)).length;
 }
 
 /** How many of the days' stops fall on a day they're shut. */
@@ -248,24 +257,130 @@ export function orderAroundClosings<T extends Day>(days: T[], closings: Closings
   return inOrder(days, closingOrder(days, closings, shutDates));
 }
 
+type TimedStop = WordStop & { start_time?: string; duration_minutes?: number; time_slot?: string };
+
+/** The latest a stop may start once the stops after one moved in make room for it. */
+const LATEST_START = 22 * 60;
+/** From one stop's end to the next one's start, when a day makes room. */
+const BETWEEN_MINUTES = 20;
+/** A stop's length when the plan gives none. */
+const DEFAULT_MINUTES = 90;
+
+const minutesOf = (time?: string): number | null => {
+  const m = /^(\d{1,2}):(\d{2})/.exec(time ?? "");
+  return m ? Number(m[1]) * 60 + Number(m[2]) : null;
+};
+
+/**
+ * The day with `stop` put in at its own time, and from there each stop moved
+ * later when it would start before the one ahead of it ends, with a short walk
+ * between. Null when that would start a stop after the evening, or move a
+ * dated event: the day has no room.
+ */
+function withStop<T extends Day>(day: T, stop: TimedStop): T | null {
+  const stops = [...((day.activities ?? []) as TimedStop[])];
+  const own = minutesOf(stop.start_time);
+  const later = stops.findIndex((other) => {
+    const start = minutesOf(other.start_time);
+    return own !== null && start !== null && start > own;
+  });
+  const at = later === -1 ? stops.length : later;
+  stops.splice(at, 0, stop);
+  for (let i = Math.max(at, 1); i < stops.length; i++) {
+    const ahead = stops[i - 1];
+    const aheadStart = minutesOf(ahead.start_time);
+    const start = minutesOf(stops[i].start_time);
+    if (aheadStart === null || start === null) break;
+    const earliest = aheadStart + (ahead.duration_minutes || DEFAULT_MINUTES) + BETWEEN_MINUTES;
+    if (start >= earliest) {
+      if (i > at) break;
+      continue;
+    }
+    if (earliest > LATEST_START || stops[i].type === "event") return null;
+    const time = formatMinutesToTime(earliest);
+    stops[i] = { ...stops[i], start_time: time, time_slot: determineTimeSlot(time) };
+  }
+  return { ...day, activities: stops };
+}
+
+const plannedMinutes = (day: Day) =>
+  ((day.activities ?? []) as TimedStop[]).reduce((sum, stop) => sum + (stop.duration_minutes || DEFAULT_MINUTES), 0);
+
+/**
+ * The days with each stop still shut on its day moved to another day of the
+ * trip when it is open then: of those, the day with the least planned time
+ * that has room for it, the nearest first among equals. Only the plan's
+ * sights are asked about, so a meal never moves. A stop with nowhere to go
+ * stays where it is.
+ */
+export function moveShutStops<T extends Day>(
+  days: T[],
+  closings: Closings,
+  shutDates: ShutDates
+): { days: T[]; moved: number } {
+  if ((closings.size === 0 && shutDates.size === 0) || days.length < 2) return { days, moved: 0 };
+  let current = days;
+  let moved = 0;
+  for (let d = 0; d < current.length; d++) {
+    let s = 0;
+    while (s < (current[d].activities ?? []).length) {
+      const stop = (current[d].activities ?? [])[s] as TimedStop;
+      if (!stopShutOn(stop, current[d].date, closings, shutDates)) {
+        s++;
+        continue;
+      }
+      const options = current
+        .map((day, i) => ({ day, i }))
+        .filter(({ day, i }) => i !== d && day.date !== undefined && !stopShutOn(stop, day.date, closings, shutDates))
+        .sort((a, b) => plannedMinutes(a.day) - plannedMinutes(b.day) || Math.abs(a.i - d) - Math.abs(b.i - d));
+      let target: { i: number; day: T } | null = null;
+      for (const option of options) {
+        const day = withStop(option.day, stop);
+        if (day) {
+          target = { i: option.i, day };
+          break;
+        }
+      }
+      if (!target) {
+        s++;
+        continue;
+      }
+      const into = target;
+      const from = { ...current[d], activities: (current[d].activities ?? []).filter((_, k) => k !== s) };
+      current = current.map((day, k) => (k === d ? from : k === into.i ? into.day : day));
+      moved++;
+    }
+  }
+  return { days: current, moved };
+}
+
 /**
  * A plan with its days in the order that keeps its places off their closing
- * days, the moved days' words that name their old date re-worded, and what
- * was found.
+ * days, the moved days' words that name their old date re-worded, a stop still
+ * shut moved to a day it is open, and what was found.
  */
 export async function keepOffClosingDays<T extends { days: Day[] }>(
   itinerary: T,
   destination: string,
   ask: typeof askClosingDays = askClosingDays,
   reword: typeof rewordMovedDays = rewordMovedDays
-): Promise<{ itinerary: T; costUsd: number; asked: number; shutBefore: number; shutAfter: number; reworded: number }> {
+): Promise<{
+  itinerary: T;
+  costUsd: number;
+  asked: number;
+  shutBefore: number;
+  shutAfter: number;
+  reworded: number;
+  stopsMoved: number;
+}> {
   const places = placesToAsk(itinerary.days);
   const { closings, shutDates, costUsd } = await ask(destination, places, holidayDatesToAsk(itinerary.days));
   const order = closingOrder(itinerary.days, closings, shutDates);
   const moves = order.flatMap((from, slot) => (from === slot ? [] : [{ slot, from: itinerary.days[from].date }]));
   const ordered = inOrder(itinerary.days, order);
   const words = moves.length > 0 ? await reword(ordered, moves, destination) : { days: ordered, costUsd: 0, reworded: 0 };
-  const days = words.days;
+  const stops = moveShutStops(words.days, closings, shutDates);
+  const days = stops.days;
   return {
     itinerary: days === itinerary.days ? itinerary : { ...itinerary, days },
     costUsd: costUsd + words.costUsd,
@@ -273,5 +388,6 @@ export async function keepOffClosingDays<T extends { days: Day[] }>(
     shutBefore: shutStops(itinerary.days, closings, shutDates),
     shutAfter: shutStops(days, closings, shutDates),
     reworded: words.reworded,
+    stopsMoved: stops.moved,
   };
 }
