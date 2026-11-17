@@ -35,6 +35,7 @@ import { PartsError, writeInParts, writesInParts } from "@/lib/ai/plan-in-parts"
 import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/generation-result";
 import { knownPlacesFor, knownPlacesUsed, type KnownPlace } from "@/lib/ai/known-places";
 import { keepOffClosingDays } from "@/lib/ai/closing-days";
+import { swapClosedStops } from "@/lib/ai/closed-swaps";
 import { withoutLongClosures } from "@/lib/ai/long-closures";
 import { keepMustDos } from "@/lib/ai/must-dos";
 import { keepNamesInOneScript } from "@/lib/ai/one-script-names";
@@ -358,8 +359,11 @@ export async function POST(request: NextRequest) {
       finalItinerary = longClosed.itinerary;
       // 5b. No stop on a day it's shut: the plan's sights are asked about,
       //     and its days ordered around their closing days. A cached plan has
-      //     new dates, so it too (lib/ai/closing-days.ts).
-      const openDays = await keepOffClosingDays(finalItinerary, params.destination);
+      //     new dates, so it too (lib/ai/closing-days.ts). One shut on every
+      //     date it could go to is swapped for an open place (lib/ai/closed-swaps.ts).
+      const openDays = await keepOffClosingDays(finalItinerary, params.destination, undefined, undefined, (days, stuck) =>
+        swapClosedStops(params.destination, days, stuck, userLanguage)
+      );
       finalItinerary = openDays.itinerary;
       generationCost += openDays.costUsd;
       if (!cacheHit) {
@@ -445,6 +449,7 @@ export async function POST(request: NextRequest) {
                         shut_before: openDays.shutBefore,
                         shut_after: openDays.shutAfter,
                         stops_moved: openDays.stopsMoved,
+                        swapped: openDays.swapped,
                       },
                     }
                   : {}),
