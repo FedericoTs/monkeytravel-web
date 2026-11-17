@@ -33,6 +33,7 @@ import {
   shutStops,
   stopsStillShut,
   type Closings,
+  type StuckStop,
   type ShutDates,
 } from "./closing-days";
 import type { Move, WordDay } from "./moved-day-words";
@@ -317,7 +318,7 @@ describe("a stop shut on every date it could go to", () => {
   });
 
   it("is handed to the swap, which the plan check then reports", async () => {
-    const swap = vi.fn(async (days: WordDay[]) => ({
+    const swap = vi.fn(async (days: WordDay[], _stuck: StuckStop[]) => ({
       days: days.map((d, i) => (i === 0 ? { ...d, activities: [{ name: "Mori Art Museum", type: "museum" }, ...(d.activities ?? []).slice(1)] } : d)),
       swapped: 1,
       costUsd: 0.0003,
