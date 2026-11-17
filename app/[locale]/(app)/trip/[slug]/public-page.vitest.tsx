@@ -46,6 +46,8 @@ const ROW = {
   share_token: TOKEN,
 };
 
+/** The row the database answers with; a test may swap it. */
+let row: Record<string, unknown> = ROW;
 const selects: Record<string, string[]> = {};
 /** Whether the database refuses the trips read. */
 let tripsRefused = false;
@@ -68,7 +70,7 @@ vi.mock("@/lib/supabase/admin", () => ({
           table === "trips"
             ? tripsRefused
               ? { data: null, error: { code: "57014", message: "canceling statement due to statement timeout" } }
-              : { data: { ...ROW }, error: null }
+              : { data: { ...row }, error: null }
             : authorRead(),
       };
       return q;
@@ -110,6 +112,7 @@ function findView(node: unknown): Record<string, unknown> | null {
 }
 
 beforeEach(() => {
+  row = ROW;
   for (const key of Object.keys(selects)) delete selects[key];
   tripsRefused = false;
   authorRead = async () => AUTHOR;
@@ -182,5 +185,38 @@ describe("a published trip the database couldn't read", () => {
   it("goes to the error page, not a 404", async () => {
     tripsRefused = true;
     await expect(PublicTripPage({ params: Promise.resolve({ locale: "en", slug: "refused-trip-abc123" }) })).rejects.toMatchObject({ code: "57014" });
+  });
+});
+
+describe("the snippet a search shows", () => {
+  const day = (n: number, theme: string | undefined) => ({ ...ROW.itinerary[0], day_number: n, theme });
+
+  it("says what the searcher gets: the trip's days by their themes", async () => {
+    row = { ...ROW, itinerary: [day(1, "Alfama and the castle"), day(2, "Belém"), day(3, "Sintra")] };
+    const { description } = await generateMetadata({ params });
+    expect(description).toContain("metaDescriptionDays");
+    expect(description).toContain("Alfama and the castle; Belém; Sintra");
+    expect(description).not.toContain("Three days of trams and tiles");
+  });
+
+  it("names at most four days", async () => {
+    row = { ...ROW, itinerary: ["Alfama", "Belém", "Sintra", "Cascais", "Évora", "Óbidos"].map((theme, i) => day(i + 1, theme)) };
+    const { description } = await generateMetadata({ params });
+    expect(description).toContain("Alfama; Belém; Sintra; Cascais");
+    expect(description).not.toContain("Évora");
+  });
+
+  it("stays within what Google shows when the themes are long", async () => {
+    const long = Array.from({ length: 4 }, (_, i) => day(i + 1, `Day ${i + 1} through the old town's longest lanes and markets`));
+    row = { ...ROW, itinerary: long };
+    const { description } = await generateMetadata({ params });
+    expect(String(description).length).toBeLessThanOrEqual(155);
+    expect(String(description).endsWith("…")).toBe(true);
+  });
+
+  it("keeps the trip's own words when no day has a theme", async () => {
+    row = { ...ROW, itinerary: [day(1, undefined), day(2, "  ")] };
+    const { description } = await generateMetadata({ params });
+    expect(description).toBe("Three days of trams and tiles");
   });
 });

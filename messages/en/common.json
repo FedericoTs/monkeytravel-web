@@ -2803,6 +2803,7 @@
   "publicTrip": {
     "metaTitle": "{title} — {destination} Itinerary",
     "metaTitleDays": "{destination} Itinerary: {days, plural, one {# Day} other {# Days}}",
+    "metaDescriptionDays": "{days, plural, one {# day} other {# days}} in {destination}, planned day by day with times, costs and a map: {themes}",
     "metaDescriptionFallback": "A detailed day-by-day travel itinerary for {destination}, planned on MonkeyTravel.",
     "notFoundTitle": "Trip Not Found",
     "breadcrumbHome": "Home",

@@ -160,8 +160,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     days > 0 && city && (!trip.title || trip.title.toLowerCase().includes(city))
       ? t("metaTitleDays", { destination, days })
       : t("metaTitle", { destination, title: trip.title });
+  // The snippet says what the searcher gets: the trip's days by their themes, not the destination's blurb.
+  const themes = rawItinerary.map((day) => (day.theme || day.title || "").trim()).filter(Boolean);
   const description = clipMetaDescription(
-    trip.description || t("metaDescriptionFallback", { destination }),
+    themes.length > 0
+      ? t("metaDescriptionDays", { destination, days, themes: themes.slice(0, 4).join("; ") })
+      : trip.description || t("metaDescriptionFallback", { destination }),
   );
   // The generated card (app/api/og/trip), never the raw cover: the cover is
   // a landscape stock photo of another size, and a trip without one had no
