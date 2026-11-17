@@ -3,21 +3,23 @@
  * in Tokyo the national museums and gardens close for days on end. Once the
  * closing-day check has ordered the days and moved what it could
  * (lib/ai/closing-days.ts), a sight still shut on its day gets one short
- * question: a place to go instead, at that time on that day, open that date,
- * of the same kind and near that day's other places. An answer goes in, in the
- * closed place's time and length, only when it is a real place the plan
- * doesn't already hold and the closing-day question finds it open that date;
- * otherwise the closed place stays.
+ * question: up to three places to go instead, best first, open that date, near
+ * that day's other places. Each is put to the closing-day question on its date,
+ * and the first open one goes in, in the closed place's time and length, when
+ * it is a real place the plan doesn't already hold; otherwise the closed place
+ * stays. One offer often isn't enough: on a Monday in Rome the museums a model
+ * thinks of first are shut too.
  */
 import { SchemaType, type ResponseSchema } from "@/lib/ai/genai-compat";
 import { genAI, withTimeout } from "@/lib/ai/gemini-call";
 import { getModelForPurpose, thinkingConfigFor } from "@/lib/ai/model-router";
 import { geminiCostUsd, recordGeminiUsage } from "@/lib/ai/gemini-cost";
 import { LANGUAGE_NAMES, type SupportedLanguage } from "@/lib/ai/language";
-import { ACTIVITY, activityOf, held } from "@/lib/ai/must-dos";
+import { activityOf, held } from "@/lib/ai/must-dos";
 import { nameTokens } from "@/lib/ai/assistant/saved-activities";
 import { WEEKDAYS, askClosingDays, stopShutOn, type StuckStop } from "@/lib/ai/closing-days";
 import { formatMinutesToTime } from "@/lib/datetime/format";
+import type { Activity } from "@/types";
 
 type Stop = { name?: string; start_time?: string; duration_minutes?: number; time_slot?: string };
 type Day = { day_number?: number; date?: string; title?: string; theme?: string; activities?: Stop[] };
@@ -25,6 +27,26 @@ type Day = { day_number?: number; date?: string; title?: string; theme?: string;
 /** A day's title or theme that named the closed place, naming the one in its place. */
 const renamed = (words: string | undefined, closed: string, open: string) =>
   typeof words === "string" && words.includes(closed) ? { value: words.split(closed).join(open) } : null;
+
+/** The offers read for each closed place, best first. */
+const MAX_OFFERS = 3;
+
+/** A place offered: what a stop needs besides its time, which stays the closed place's. */
+const PLACE: ResponseSchema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    name: { type: SchemaType.STRING },
+    type: { type: SchemaType.STRING },
+    description: { type: SchemaType.STRING },
+    location: { type: SchemaType.STRING, description: "The neighbourhood" },
+    coordinates: {
+      type: SchemaType.OBJECT,
+      properties: { lat: { type: SchemaType.NUMBER }, lng: { type: SchemaType.NUMBER } },
+      required: ["lat", "lng"],
+    },
+  },
+  required: ["name", "type", "description", "location", "coordinates"],
+};
 
 const SCHEMA: ResponseSchema = {
   type: SchemaType.OBJECT,
@@ -35,21 +57,27 @@ const SCHEMA: ResponseSchema = {
         type: SchemaType.OBJECT,
         properties: {
           n: { type: SchemaType.INTEGER, description: "The closed place's number in the list" },
-          activity: ACTIVITY,
+          places: { type: SchemaType.ARRAY, items: PLACE, description: "Up to three, best first" },
         },
-        required: ["n", "activity"],
+        required: ["n", "places"],
       },
     },
   },
   required: ["swaps"],
 };
 
-/** What the model answers: each entry is checked before it goes in (withSwaps). */
+/** What the model answers: each offer is checked before it goes in (offersOf, withSwaps). */
 export interface SwapAnswer {
-  swaps?: Array<{ n?: unknown; activity?: Record<string, unknown> }>;
+  swaps?: Array<{ n?: unknown; places?: unknown }>;
 }
 
-const TIMEOUT_MS = 6000;
+/** A real place offered for a closed one, as a plan's activity in the closed place's time. */
+export interface Offer {
+  closed: StuckStop;
+  activity: Activity;
+}
+
+const TIMEOUT_MS = 10_000;
 
 const weekdayOf = (date: string) => WEEKDAYS[new Date(`${date}T00:00:00Z`).getUTCDay()];
 
@@ -78,7 +106,7 @@ function dayLine(day: Day): string {
 }
 
 /**
- * A place to go instead of each closed one, as the model sees it. No answer
+ * Places to go instead of each closed one, as the model sees them. No answer
  * when there is no key, or the question fails or takes too long: the plan then
  * stays as it was. The cost goes to the running request's meter, and is
  * returned for a route that sums its own.
@@ -107,8 +135,8 @@ export async function askForSwaps(
     "The plan:",
     ...days.map(dayLine),
     "",
-    "For each, give one place to go instead, at that time on that day: open to visitors on that date, of the same kind (a museum for a museum, a garden or park for a garden), near that day's other places, and not one the plan already has. Leave one out when there is no such place.",
-    `Write each name as Google Maps shows it, and the description (about 25 words) and tips in ${LANGUAGE_NAMES[language]}.`,
+    "For each, give up to three places to go instead, best first, each at that time on that day and open to visitors on that date: of the same kind when one is open then (a museum for a museum, a garden or park for a garden), otherwise anything worth that time nearby (a church, a park, a market, a viewpoint); near that day's other places, and not one the plan already has. Give none when there is no such place.",
+    `Write each name as Google Maps shows it, and the description (about 20 words) in ${LANGUAGE_NAMES[language]}.`,
   ].join("\n");
   try {
     const result = await withTimeout(model.generateContent(question), TIMEOUT_MS, "Closed swaps");
@@ -121,27 +149,38 @@ export async function askForSwaps(
   }
 }
 
+/** The real places an answer offers, best first for each closed place, at most three each. Pure; unit-tested. */
+export function offersOf(answer: SwapAnswer, stuck: StuckStop[]): Offer[] {
+  return (answer.swaps ?? []).flatMap((entry) => {
+    const closed = typeof entry.n === "number" ? stuck[entry.n - 1] : undefined;
+    const places = Array.isArray(entry.places) ? (entry.places as unknown[]).slice(0, MAX_OFFERS) : [];
+    if (!closed) return [];
+    return places.flatMap((place) => {
+      const activity =
+        place && typeof place === "object"
+          ? activityOf({ ...(place as Record<string, unknown>), start_time: closed.start_time ?? "12:00", duration_minutes: closed.duration_minutes ?? 90 })
+          : null;
+      return activity ? [{ closed, activity }] : [];
+    });
+  });
+}
+
 /**
- * The days with each closed place the answer has a swap for replaced, in the
- * closed place's time and length so the rest of its day stays as it was, and
- * named in its place in the day's title or theme where they named it. A swap
- * goes in only when it is a real place (activityOf) that the plan doesn't
- * already hold and that isn't the closed place under another name. Pure;
- * unit-tested.
+ * The days with each closed place replaced by the first of its offers that can
+ * go in: in the closed place's time and length so the rest of its day stays as
+ * it was, and named in its place in the day's title or theme where they named
+ * it. An offer goes in only when the plan doesn't already hold it and it isn't
+ * the closed place under another name. Pure; unit-tested.
  */
-export function withSwaps<D extends Day>(days: D[], stuck: StuckStop[], answer: SwapAnswer): { days: D[]; swapped: number } {
+export function withSwaps<D extends Day>(days: D[], offers: Offer[]): { days: D[]; swapped: number } {
   let out = days;
   let swapped = 0;
-  for (const entry of answer.swaps ?? []) {
-    const n = typeof entry.n === "number" ? entry.n : 0;
-    const closed = stuck[n - 1];
-    const activity = activityOf(entry.activity);
-    // Once swapped, a closed place is no longer on its day: a second answer for it finds nothing to replace.
-    if (!closed || !activity) continue;
+  for (const { closed, activity } of offers) {
     const words = nameTokens(activity.name);
     const names = out.flatMap((d) => d.activities ?? []).map((a) => nameTokens(a?.name ?? ""));
     if (words.length === 0 || held(words, names) || held(nameTokens(closed.name), [words])) continue;
     const at = out.findIndex((d) => d.day_number === closed.day);
+    // Once swapped, a closed place is no longer on its day: its later offers find nothing to replace.
     const old = at < 0 ? undefined : (out[at].activities ?? []).find((a) => a?.name === closed.name);
     if (!old) continue;
     const swap = {
@@ -168,10 +207,11 @@ export function withSwaps<D extends Day>(days: D[], stuck: StuckStop[], answer: 
 }
 
 /**
- * The days with the closed places swapped where the model has an open one, how
- * many, and what the questions cost. Each swap is then asked about as the
- * plan's places were (askClosingDays), on its own date, and one shut that day
- * too stays out. When that check can't be asked, the swaps go in as answered.
+ * The days with the closed places swapped where the model offers an open one,
+ * how many, and what the questions cost. Every offer is asked about as the
+ * plan's places were (askClosingDays), on its closed place's date, and one shut
+ * that day too is passed over for the next. When that check can't be asked, the
+ * offers go in as answered.
  */
 export async function swapClosedStops<D extends Day>(
   destination: string,
@@ -183,13 +223,10 @@ export async function swapClosedStops<D extends Day>(
 ): Promise<{ days: D[]; swapped: number; costUsd: number }> {
   if (stuck.length === 0) return { days, swapped: 0, costUsd: 0 };
   const { answer, costUsd } = await ask(destination, days, stuck, language);
-  const offered = (answer.swaps ?? []).flatMap((entry) => {
-    const closed = typeof entry.n === "number" ? stuck[entry.n - 1] : undefined;
-    const activity = activityOf(entry.activity);
-    return closed && activity ? [{ entry, name: activity.name, date: closed.date }] : [];
-  });
-  if (offered.length === 0) return { days, swapped: 0, costUsd };
-  const shut = await check(destination, offered.map((o) => o.name), [...new Set(offered.map((o) => o.date))]);
-  const open = offered.filter((o) => !stopShutOn({ name: o.name }, o.date, shut.closings, shut.shutDates)).map((o) => o.entry);
-  return { ...withSwaps(days, stuck, { swaps: open }), costUsd: costUsd + shut.costUsd };
+  const offers = offersOf(answer, stuck);
+  if (offers.length === 0) return { days, swapped: 0, costUsd };
+  const names = [...new Set(offers.map((o) => o.activity.name))];
+  const shut = await check(destination, names, [...new Set(offers.map((o) => o.closed.date))]);
+  const open = offers.filter((o) => !stopShutOn({ name: o.activity.name }, o.closed.date, shut.closings, shut.shutDates));
+  return { ...withSwaps(days, open), costUsd: costUsd + shut.costUsd };
 }
