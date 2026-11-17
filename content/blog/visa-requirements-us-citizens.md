@@ -49,6 +49,8 @@ This guide covers every scenario: where you can travel freely, where you need ad
 
 If you want the wider context on how the US passport got here, our [Passport Power Index 2026](/blog/passport-power-index-2026) tracks the rankings and the twenty-year slide behind them.
 
+**Checking your own passport?** Our free [visa requirements checker](/tools/visa-checker) tells you in seconds whether you need a visa, for 199 passports and 199 destinations.
+
 ---
 
 ## How the US Passport Stacks Up in 2026

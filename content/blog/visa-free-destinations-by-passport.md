@@ -37,6 +37,8 @@ The difference is staggering. The world's most powerful passport unlocks 195 des
 
 This guide breaks down visa-free access for the world's top 15 passports, explains the growing role of electronic travel authorizations, and gives you practical strategies for maximizing your travel freedom no matter which passport you carry.
 
+**Checking your own passport?** Our free [visa requirements checker](/tools/visa-checker) tells you in seconds whether you need a visa, for 199 passports and 199 destinations.
+
 ## The 2026 Passport Power Rankings
 
 The Henley Passport Index, based on exclusive data from the International Air Transport Association (IATA), ranks every passport by the number of destinations their holders can access without a prior visa. Here are the top 15 passports for 2026:

@@ -38,6 +38,8 @@ A diferença é impressionante. O passaporte mais poderoso do mundo desbloqueia 
 
 Este guia detalha o acesso sem visto para os 15 principais passaportes do mundo, explica o papel crescente das autorizações eletrônicas de viagem e oferece estratégias práticas para maximizar a sua liberdade de viagem, não importa qual passaporte você tenha.
 
+**Quer conferir o seu passaporte?** Nosso [verificador de requisitos de visto](/pt/tools/visa-checker) gratuito diz em segundos se você precisa de visto, para 199 passaportes e 199 destinos.
+
 ## O ranking de poder dos passaportes em 2026
 
 O Índice de Passaportes Henley, baseado em dados exclusivos da Associação Internacional de Transporte Aéreo (IATA), classifica cada passaporte pelo número de destinos a que seus titulares podem ter acesso sem visto prévio. Estes são os 15 melhores passaportes de 2026:

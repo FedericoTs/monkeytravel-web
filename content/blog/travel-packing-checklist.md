@@ -38,6 +38,8 @@ This checklist exists so you never have that moment again. We organized everythi
 
 Bookmark this page. Print it. Screenshot it. Whatever works for your pre-trip ritual.
 
+**Want the list for your own trip?** Our free [packing list generator](/tools/packing-list) builds one from your destination's weather, its plugs and what you plan to do. No signup.
+
 ---
 
 ## Carry-On Essentials

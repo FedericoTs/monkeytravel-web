@@ -38,6 +38,8 @@ Questa lista esiste perche tu non debba mai piu vivere quel momento. Abbiamo org
 
 Salva questa pagina nei preferiti. Stampala. Fai uno screenshot. Qualsiasi cosa funzioni per il tuo rituale pre-viaggio.
 
+**Vuoi la lista per il tuo viaggio?** Il nostro [generatore di lista bagagli](/it/tools/packing-list) gratuito la prepara in base al meteo della destinazione, alle prese elettriche e a quello che pensi di fare. Senza registrazione.
+
 ---
 
 ## Essenziali del Bagaglio a Mano

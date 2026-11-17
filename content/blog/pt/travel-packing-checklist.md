@@ -38,6 +38,8 @@ Esta lista existe para que você nunca mais tenha esse momento. Organizamos tudo
 
 Salve esta página nos favoritos. Imprima. Tire um print. O que funcionar para o seu ritual pré-viagem.
 
+**Quer a lista da sua própria viagem?** Nosso [gerador de lista de bagagem](/pt/tools/packing-list) gratuito monta a lista com o clima do destino, as tomadas e o que você pretende fazer. Sem cadastro.
+
 ---
 
 ## Essenciais da Bagagem de Mão
