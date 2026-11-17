@@ -78,6 +78,54 @@ describe("the other rules", () => {
   });
 });
 
+describe("closures the official pages state for every year", () => {
+  const shutOn = (name: string, city: string, dates: string[]) => dates.filter((date) => shutBy(entry(name, city), date));
+
+  it("shut a span that runs into the new year, in a year the list's dates were never checked for", () => {
+    // Wednesday 29 December 2027 to Monday 3 January 2028; the Tuesdays either side are open.
+    const span = ["2027-12-28", "2027-12-29", "2027-12-31", "2028-01-01", "2028-01-03", "2028-01-04"];
+    expect(shutOn("Shinjuku Gyoen National Garden", "Tokyo", span)).toEqual(span.slice(1, 5));
+    expect(shutOn("Imperial Palace East Gardens", "Tokyo", span)).toEqual(span.slice(0, 5));
+    expect(shutOn("Hama-rikyu Gardens", "Tokyo", [...span, "2028-01-02"])).toEqual(["2027-12-29", "2027-12-31", "2028-01-01"]);
+    expect(shutOn("Kyoto Imperial Palace", "Kyoto", [...span, "2028-01-05"])).toEqual(span);
+  });
+
+  it("keep the decks open on New Year's Day between their two closures", () => {
+    const days = ["2027-12-28", "2027-12-29", "2027-12-31", "2028-01-01", "2028-01-02", "2028-01-03", "2028-01-04"];
+    expect(shutOn("Tokyo Metropolitan Government Building", "Tokyo", days)).toEqual(["2027-12-29", "2027-12-31", "2028-01-02", "2028-01-03"]);
+  });
+
+  it("shut the same days each year in Paris, Rome, London and New York", () => {
+    const days = ["2027-05-01", "2027-05-02", "2027-12-24", "2027-12-25", "2027-12-26", "2028-01-01", "2028-05-01"];
+    expect(shutOn("Louvre Museum", "Paris", days)).toEqual(["2027-05-01", "2027-12-25", "2028-01-01", "2028-05-01"]);
+    expect(shutOn("Sainte-Chapelle", "Paris", days)).toEqual(["2027-05-01", "2027-12-25", "2028-01-01", "2028-05-01"]);
+    // Orsay's Monday is 1 May 2028 anyway.
+    expect(shutOn("Musée d'Orsay", "Paris", days)).toEqual(["2027-05-01", "2027-12-25", "2028-05-01"]);
+    expect(shutOn("Pantheon", "Rome", days)).toEqual(["2027-12-25", "2028-01-01"]);
+    expect(shutOn("Castel Sant'Angelo", "Rome", days)).toEqual(["2027-12-25", "2028-01-01", "2028-05-01"]);
+    // The Capitoline Museums open on New Year's Day.
+    expect(shutOn("Capitoline Museums", "Rome", days)).toEqual(["2027-05-01", "2027-12-25", "2028-05-01"]);
+    expect(shutOn("Natural History Museum", "London", [...days, "2027-12-27"])).toEqual(["2027-12-24", "2027-12-25", "2027-12-26"]);
+    expect(shutOn("Statue of Liberty", "New York", days)).toEqual(["2027-12-25"]);
+  });
+
+  it("open a garden every day of its seasons, Mondays included, and shut its Mondays outside them", () => {
+    const mondays = ["2027-03-15", "2027-03-29", "2028-04-03", "2028-04-24", "2027-04-26", "2027-11-01", "2027-11-15", "2027-11-22"];
+    expect(shutOn("Shinjuku Gyoen", "Tokyo", mondays)).toEqual(["2027-03-15", "2027-04-26", "2027-11-22"]);
+  });
+
+  it("past the checked window, shut a sight on its New Year closure though the model said nothing", () => {
+    const days = [
+      { date: "2027-12-30", activities: [{ name: "Shinjuku Gyoen National Garden" }] },
+      { date: "2028-01-04", activities: [{ name: "Kyoto Imperial Palace" }] },
+    ];
+    const silent = { closings: new Map<string, Weekday[]>(), shutDates: new Map<string, string[]>() };
+    expect(withKnownClosings(silent, days, "Tokyo").shutDates.get("shinjuku gyoen national garden")).toEqual(["2027-12-30"]);
+    // The palace is shut on both of the trip's dates (28 December to 4 January).
+    expect(withKnownClosings(silent, days, "Kyoto").shutDates.get("kyoto imperial palace")).toEqual(["2027-12-30", "2028-01-04"]);
+  });
+});
+
 describe("the list's entries", () => {
   it("each name an official https page", () => {
     for (const place of KNOWN_CLOSINGS) expect(place.source).toMatch(/^https:\/\/[^\s]+$/);
