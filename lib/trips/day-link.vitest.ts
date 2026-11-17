@@ -6,6 +6,7 @@ import {
   dayLinkUrl,
   daySendUrl,
   digestDayUrl,
+  siblingDayKey,
   signDayLink,
   tripDayDate,
   tripDayNumber,
@@ -116,6 +117,35 @@ describe("without a usable secret", () => {
   it("refuses to sign a malformed trip or date", () => {
     expect(() => signDayLink("not-a-uuid", DATE)).toThrow();
     expect(() => signDayLink(TRIP, "2026-13-01")).toThrow();
+  });
+});
+
+describe("siblingDayKey: another day of the same trip, from one day's page", () => {
+  it("opens that day of that trip, and nothing else", () => {
+    const sibling = siblingDayKey(TRIP, "2026-10-16", signDayLink(TRIP, DATE))!;
+    expect(verifyDayLink(TRIP, "2026-10-16", sibling, SENT_AT)).toEqual({ ok: true });
+    expect(verifyDayLink(TRIP, DATE, sibling, SENT_AT)).toEqual({ ok: false, reason: "signature" });
+    expect(verifyDayLink(OTHER_TRIP, "2026-10-16", sibling, SENT_AT)).toEqual({ ok: false, reason: "signature" });
+    expect(verifyDayLink(TRIP, "2026-10-16", sibling, SENT_AT, "send")).toEqual({ ok: false, reason: "signature" });
+  });
+
+  it("ends when the key it came from ends, never later", () => {
+    const k = signDayLink(TRIP, DATE);
+    const sibling = siblingDayKey(TRIP, "2026-10-18", k)!;
+    expect(sibling.split(".")[0]).toBe(k.split(".")[0]);
+    expect(verifyDayLink(TRIP, "2026-10-18", sibling, dayLinkExpiry(DATE) * 1000 - 1)).toEqual({ ok: true });
+    expect(verifyDayLink(TRIP, "2026-10-18", sibling, dayLinkExpiry(DATE) * 1000)).toEqual({ ok: false, reason: "expired" });
+  });
+
+  it("is nothing for a key that isn't one, or without a secret", () => {
+    for (const bad of ["", "abc", "123.", `${signDayLink(TRIP, DATE)}x`]) expect(siblingDayKey(TRIP, "2026-10-16", bad)).toBeNull();
+    const k = signDayLink(TRIP, DATE);
+    vi.stubEnv("EMAIL_UNSUBSCRIBE_SECRET", "");
+    expect(siblingDayKey(TRIP, "2026-10-16", k)).toBeNull();
+  });
+
+  it("is nothing for a date that isn't one, without throwing", () => {
+    expect(siblingDayKey(TRIP, "2026-13-01", signDayLink(TRIP, DATE))).toBeNull();
   });
 });
 
