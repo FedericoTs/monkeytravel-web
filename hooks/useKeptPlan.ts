@@ -18,6 +18,8 @@ import {
 const LINKS_KEY = "mt_kept_by_trip";
 // Edits come in bursts (the assistant, a date change, photos arriving).
 const CHANGE_DELAY_MS = 2500;
+// A page that doesn't say otherwise has no changes of the planner's own.
+const NOT_CHANGED = () => false;
 
 /**
  * The key is there only when this browser may change the plan. `adopted`: a new plan linked to one kept earlier for
@@ -81,20 +83,31 @@ export interface KeptState {
  *
  * A plan opened from its link (adoptOpened) is not kept again; changed in a
  * browser without its key, it is kept as a copy of its own.
+ *
+ * A plan the planner changed (`changedByPlanner`: the assistant's edits, not
+ * photos arriving by themselves) is marked in the list, and making the same
+ * trip again keeps the new plan beside it instead of over it.
  */
 export function useKeptPlan({
   enabled,
   planId,
   plan,
+  changedByPlanner = NOT_CHANGED,
 }: {
   enabled: boolean;
   planId: string | null;
   plan: KeptPlan | null;
+  /** Whether the planner has changed the plan on screen. */
+  changedByPlanner?: () => boolean;
 }): { kept: KeptState | null; adoptOpened: (token: string, opened: KeptPlan, expiresAt: string) => void } {
   const openedRef = useRef<{ token: string; plan: KeptPlan; expiresAt: string } | null>(null);
   const keepingRef = useRef(new Set<string>());
   const pendingRef = useRef<{ planId: string; link: Link; plan: KeptPlan; fingerprint: string } | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const changedRef = useRef(changedByPlanner);
+  useEffect(() => {
+    changedRef.current = changedByPlanner;
+  }, [changedByPlanner]);
 
   const tabLinks = useSyncExternalStore(subscribe, allLinks, () => NO_LINKS);
   const link = enabled && planId ? tabLinks[planId] : undefined;
@@ -128,7 +141,7 @@ export function useKeptPlan({
       setLink(id, null);
       void keepNew(id, current, fingerprint);
     } else if (result) {
-      rememberKeptPlan(entryFor(sent.token, current, result.expiresAt, sent.key, !sent.adopted));
+      rememberKeptPlan(entryFor(sent.token, current, result.expiresAt, sent.key, !sent.adopted && changedRef.current()));
       if (allLinks()[id]?.token === sent.token) {
         setLink(id, { token: sent.token, key: sent.key, expiresAt: result.expiresAt, fingerprint });
       }
@@ -191,7 +204,7 @@ export function useKeptPlan({
       pendingRef.current = null;
       // Written down here too: the page may be gone before the answer comes.
       const sent = pending.link;
-      rememberKeptPlan(entryFor(sent.token, pending.plan, sent.expiresAt, sent.key, !sent.adopted));
+      rememberKeptPlan(entryFor(sent.token, pending.plan, sent.expiresAt, sent.key, !sent.adopted && changedRef.current()));
       // keepalive outlives the page (up to 64 KB of body).
       void fetch(`/api/plans/${pending.link.token}`, {
         method: "PUT",

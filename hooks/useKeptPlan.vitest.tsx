@@ -56,10 +56,12 @@ afterEach(() => {
   localStorage.clear();
 });
 
-function harness(planId: string, first: KeptPlan, enabled = true) {
-  return renderHook((p: { plan: KeptPlan; enabled: boolean }) => useKeptPlan({ enabled: p.enabled, planId, plan: p.plan }), {
-    initialProps: { plan: first, enabled },
-  });
+/** `edited`: whether the page says the planner changed the plan (the assistant's edits). */
+function harness(planId: string, first: KeptPlan, enabled = true, edited: () => boolean = () => true) {
+  return renderHook(
+    (p: { plan: KeptPlan; enabled: boolean }) => useKeptPlan({ enabled: p.enabled, planId, plan: p.plan, changedByPlanner: edited }),
+    { initialProps: { plan: first, enabled } }
+  );
 }
 
 const settle = () => act(() => vi.advanceTimersByTimeAsync(0));
@@ -205,7 +207,57 @@ describe("a plan opened in another tab", () => {
   });
 });
 
+describe("a plan that changed by itself", () => {
+  const quiet = () => false;
+
+  it("is not marked by photos arriving, and is brought up to date when the trip is made again", async () => {
+    const first = harness("photos", plan("2027-03-17", "as made"), true, quiet);
+    await settle();
+    const token = first.result.current.kept!.token;
+    first.rerender({ plan: plan("2027-03-17", "as made, with photos"), enabled: true });
+    await act(() => vi.advanceTimersByTimeAsync(2500));
+    expect(readKeptPlans()[0].changed).toBeUndefined();
+    calls = [];
+    const again = harness("photos-again", plan("2027-03-17", "made again"), true, quiet);
+    await settle();
+    await act(() => vi.advanceTimersByTimeAsync(2500));
+    expect(calls.map((c) => [c.method, c.url])).toEqual([["PUT", `/api/plans/${token}`]]);
+    expect(again.result.current.kept?.token).toBe(token);
+  });
+
+  it("is not marked when such a change goes out with the page", async () => {
+    const hook = harness("photos-leave", plan("2027-03-17", "as made"), true, quiet);
+    await settle();
+    hook.rerender({ plan: plan("2027-03-17", "as made, with photos"), enabled: true });
+    await settle();
+    hook.unmount();
+    expect(readKeptPlans()[0].changed).toBeUndefined();
+  });
+
+  it("keeps the planner's mark through later changes the planner didn't make", async () => {
+    let edited = true;
+    const hook = harness("edit-then-photos", plan("2027-03-17", "as made"), true, () => edited);
+    await settle();
+    hook.rerender({ plan: plan("2027-03-17", "a stop swapped"), enabled: true });
+    await act(() => vi.advanceTimersByTimeAsync(2500));
+    // A reload: this page no longer knows of the edits.
+    edited = false;
+    hook.rerender({ plan: plan("2027-03-17", "a stop swapped, with photos"), enabled: true });
+    await act(() => vi.advanceTimersByTimeAsync(2500));
+    expect(readKeptPlans()[0].changed).toBe(true);
+  });
+});
+
 describe("a plan made again for the same trip", () => {
+  it("is not marked when it replaces a plan and goes out with the page", async () => {
+    harness("replace-leave-one", plan("2027-03-17", "as made"));
+    await settle();
+    const again = harness("replace-leave-two", plan("2027-03-17", "made again"));
+    await settle();
+    again.unmount();
+    expect(readKeptPlans()[0].changed).toBeUndefined();
+  });
+
   it("brings an unchanged kept plan up to date instead of keeping another, and marks it once it is changed", async () => {
     const first = harness("unchanged", plan("2027-03-17", "as made"));
     await settle();
