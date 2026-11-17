@@ -305,7 +305,7 @@ describe("a stop shut on every date it could go to", () => {
   const tokyo = () => [
     { day_number: 1, date: "2027-12-29", activities: [stop("Tokyo National Museum", "museum", "09:30", 150), stop("Ueno Seiyoken", "restaurant", "12:30", 90)] },
     { day_number: 2, date: "2027-12-30", activities: [stop("teamLab Planets", "attraction", "10:00", 150)] },
-    { day_number: 3, date: "2027-12-31", activities: [stop("Shinjuku Gyoen", "nature", "14:15", 120)] },
+    { day_number: 3, date: "2027-12-31", activities: [stop("Yoyogi Park", "nature", "14:15", 120)] },
     { day_number: 4, date: "2028-01-01", activities: [stop("Meiji Jingu", "landmark", "08:30", 120)] },
   ];
   const newYear = shutDates([["Tokyo National Museum", ["2027-12-29", "2027-12-30", "2027-12-31", "2028-01-01"]]]);

@@ -12,9 +12,12 @@ import type { Weekday } from "@/lib/ai/closing-days";
 /** Sunday first, as Date.getUTCDay() counts (closing-days.ts imports this file, so its own list isn't used here). */
 const WEEKDAYS: readonly Weekday[] = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-/** The window the list's dated closures were checked for. Weekly rules hold beyond it. */
+/** The window the list's dated closures were checked for. Weekly and yearly rules hold beyond it. */
 export const CHECKED_FROM = "2026-11-15";
 export const CHECKED_UNTIL = "2027-03-31";
+
+/** Days of every year, as month-day (MM-DD), both ends included. A span may run into the new year (12-29 to 01-03). */
+type YearlySpan = { from: string; to: string };
 
 type Rule =
   /** Shut every week on these days. With `holidayShift`, a Japanese national holiday on one of them opens the place
@@ -24,6 +27,9 @@ type Rule =
   | { nth: Weekday; of: number[] }
   /** Shut from one date to another, both included. */
   | { from: string; to: string }
+  /** Shut on the same days every year. Only where the official page states it as a standing rule ("closed 1 January,
+   * 1 May and 25 December"), not a dated notice. */
+  | { yearly: YearlySpan }
   /** Shut on Thanksgiving Day in the US, the fourth Thursday of November. */
   | { thanksgiving: true }
   /** Shut on Sundays except the last Sunday of the month. */
@@ -40,6 +46,8 @@ export type KnownClosing = {
   rules: Rule[];
   /** Days a rule above would shut it, that it is open. */
   openOn?: string[];
+  /** Seasons of every year it is open every day, its weekly closure aside (Shinjuku Gyoen's cherry-blossom weeks). */
+  openEveryYear?: YearlySpan[];
   /** The official page the rules come from. */
   source: string;
 };
@@ -68,15 +76,17 @@ const NEW_YORK = /\bnew york\b|\bnueva york\b|\bnova york\b|\bnyc\b/i;
 const MEXICO_CITY = /\bmexico city\b|\bciudad de m[eé]xico\b|\bcdmx\b|\bcitt[aà] del messico\b|\bcidade do m[eé]xico\b/i;
 
 const day = (date: string) => ({ from: date, to: date });
+/** Shut every year from one month-day to another (or on one), e.g. yearly("12-29", "01-03"). */
+const yearly = (from: string, to = from): Rule => ({ yearly: { from, to } });
 const OPEN_EVERY_DAY: Rule[] = [];
 
 export const KNOWN_CLOSINGS: KnownClosing[] = [
   // Tokyo
   {
-    // The two decks shut on alternate days, so one is always open; both shut over the New Year.
+    // The two decks shut on alternate days, so one is always open; both shut over the New Year but on New Year's Day.
     names: /\btokyo metropolitan government\b|\bmetropolitan government (?:building|bldg)\b|\btocho\b|東京都庁/i,
     city: TOKYO,
-    rules: [{ from: "2026-12-29", to: "2026-12-31" }, { from: "2027-01-02", to: "2027-01-03" }],
+    rules: [yearly("12-29", "12-31"), yearly("01-02", "01-03")],
     source: "https://www.zaimu.metro.tokyo.lg.jp/tochousha/goannai/tenbou",
   },
   { names: /\bmeiji (?:jingu|shrine)\b|明治神宮/i, city: TOKYO, rules: OPEN_EVERY_DAY, source: "https://www.meijijingu.or.jp/en/visit/" },
@@ -98,16 +108,16 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
     // The east gardens only: the outer gardens and Nijubashi stay open.
     names: /\bimperial palace east gardens?\b|\beast gardens? of the imperial palace\b|\bhigashi[- ]?gyoen\b|皇居東御苑|\bjard[ií]n(?:es)? (?:del )?este del palacio imperial\b|\bgiardin[oi] orientali? del palazzo imperiale\b|\bjardi(?:m|ns) (?:do )?leste do pal[aá]cio imperial\b/i,
     city: TOKYO,
-    rules: [{ weekly: ["Monday", "Friday"], holidayShift: "jp" }, { from: "2026-12-28", to: "2027-01-03" }],
+    rules: [{ weekly: ["Monday", "Friday"], holidayShift: "jp" }, yearly("12-28", "01-03")],
     openOn: ["2026-11-30", "2026-12-04"],
     source: "https://www.kunaicho.go.jp/en/visit/event/higashigyoen/index.html",
   },
   {
+    // Open on Mondays too in the cherry-blossom weeks and the chrysanthemum show.
     names: /\bshinjuku gyoen\b|新宿御苑/i,
     city: TOKYO,
-    rules: [{ weekly: ["Monday"], holidayShift: "jp" }, { from: "2026-12-29", to: "2027-01-03" }],
-    // Open every day in the cherry-blossom weeks.
-    openOn: ["2027-03-29"],
+    rules: [{ weekly: ["Monday"], holidayShift: "jp" }, yearly("12-29", "01-03")],
+    openEveryYear: [{ from: "03-25", to: "04-24" }, { from: "11-01", to: "11-15" }],
     source: "https://policies.env.go.jp/national-garden/shinjukugyoen/guide/information/",
   },
   {
@@ -120,7 +130,7 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
   {
     names: /\bhama[- ]?rikyu\b|浜離宮/i,
     city: TOKYO,
-    rules: [{ from: "2026-12-29", to: "2027-01-01" }],
+    rules: [yearly("12-29", "01-01")],
     source: "https://www.tokyo-park.or.jp/teien/en/hama-rikyu/outline.html",
   },
   {
@@ -140,7 +150,7 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
     names: /\bkyoto imperial palace\b|\bkyoto gosho\b|京都御所|\bpalacio imperial de kioto\b|\bpalazzo imperiale di kyoto\b|\bpal[aá]cio imperial de quioto\b/i,
     notNames: /\bsento\b/i,
     city: KYOTO,
-    rules: [{ weekly: ["Monday"], holidayShift: "jp" }, { from: "2026-12-28", to: "2027-01-04" }],
+    rules: [{ weekly: ["Monday"], holidayShift: "jp" }, yearly("12-28", "01-04")],
     source: "https://kyoto-gosho.kunaicho.go.jp/en",
   },
   {
@@ -170,20 +180,20 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
   {
     names: /\bmus[eé]e d.orsay\b|\borsay museum\b|\bmuseo d.orsay\b|\bmuseu d.orsay\b/i,
     city: PARIS,
-    rules: [{ weekly: ["Monday"] }, day("2026-12-25")],
+    rules: [{ weekly: ["Monday"] }, yearly("05-01"), yearly("12-25")],
     source: "https://www.visitparisregion.com/en/musee-d-orsay",
   },
   {
     names: /\bsainte[- ]chapelle\b/i,
     city: PARIS,
-    rules: [day("2026-12-25"), day("2027-01-01")],
+    rules: [yearly("01-01"), yearly("05-01"), yearly("12-25")],
     source: "https://www.sainte-chapelle.fr/en/visit/practical-information",
   },
   {
     names: /\blouvre\b/i,
     notNames: /\babu dhabi\b|\blens\b|\bdes antiquaires\b/i,
     city: PARIS,
-    rules: [{ weekly: ["Tuesday"] }, day("2026-12-25"), day("2027-01-01")],
+    rules: [{ weekly: ["Tuesday"] }, yearly("01-01"), yearly("05-01"), yearly("12-25")],
     source: "https://www.louvre.fr/en/visit/hours-admission",
   },
   {
@@ -199,13 +209,13 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
   {
     names: /\bcastel sant.?angelo\b|\bcastillo de sant.?angelo\b|\bcastelo de sant.?angelo\b|\bmausoleum of hadrian\b/i,
     city: ROME,
-    rules: [{ weekly: ["Monday"] }, day("2026-12-25"), day("2027-01-01")],
+    rules: [{ weekly: ["Monday"] }, yearly("12-25"), yearly("01-01")],
     source: "https://www.turismoroma.it/en/places/santangelo-castle",
   },
   {
     names: /\bpantheon\b|\bpante[oó]n\b|\bpante[aã]o\b/i,
     city: ROME,
-    rules: [day("2026-12-25"), day("2027-01-01")],
+    rules: [yearly("12-25"), yearly("01-01")],
     source: "https://www.pantheonroma.com/en/openings-info/",
   },
   {
@@ -239,8 +249,8 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
   {
     names: /\bcapitoline museums?\b|\bmusei capitolini\b|\bmuseos capitolinos\b|\bmuseus capitolinos\b/i,
     city: ROME,
-    rules: [day("2026-12-25")],
-    source: "https://www.museicapitolini.org/en/informazioni_pratiche",
+    rules: [yearly("05-01"), yearly("12-25")],
+    source: "https://www.museicapitolini.org/en/informazioni_pratiche/orari_e_indirizzi",
   },
   // Barcelona
   { names: /\bboqueria\b|\bmercat de sant josep\b/i, city: BARCELONA, rules: [{ weekly: ["Sunday"] }], source: "https://ajuntament.barcelona.cat/memoriademocratica/en/detail/mercat-boqueria-sant-josep_92086009447" },
@@ -258,7 +268,7 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
   {
     names: /\bnatural history museum\b|\bmuseo de historia natural\b|\bmuseo di storia naturale\b|\bmuseu de hist[oó]ria natural\b/i,
     city: LONDON,
-    rules: [{ from: "2026-12-24", to: "2026-12-26" }],
+    rules: [yearly("12-24", "12-26")],
     source: "https://www.nhm.ac.uk/visit.html",
   },
   // New York
@@ -272,7 +282,7 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
   {
     names: /\bstatue of liberty\b|\bellis island\b|\bliberty island\b/i,
     city: NEW_YORK,
-    rules: [{ thanksgiving: true }, day("2026-12-25")],
+    rules: [{ thanksgiving: true }, yearly("12-25")],
     source: "https://statuecitycruises.com/plan-your-visit/schedule",
   },
   {
@@ -312,13 +322,21 @@ function weeklyShut(rule: { weekly: Weekday[]; holidayShift?: "jp" }, date: stri
   return moved;
 }
 
+/** Whether a date falls in a span of every year; a span whose end comes before its start runs into the new year. */
+function inYearly(date: string, { from, to }: YearlySpan): boolean {
+  const monthDay = date.slice(5);
+  return from <= to ? monthDay >= from && monthDay <= to : monthDay >= from || monthDay <= to;
+}
+
 /** Whether a place's rules shut it on a date (YYYY-MM-DD). */
 export function shutBy(entry: KnownClosing, date: string): boolean {
   if (!isDate(date) || entry.openOn?.includes(date)) return false;
+  if (entry.openEveryYear?.some((season) => inYearly(date, season))) return false;
   const d = at(date);
   return entry.rules.some((rule) => {
     if ("weekly" in rule) return weeklyShut(rule, date);
     if ("nth" in rule) return weekdayOf(date) === rule.nth && rule.of.includes(Math.ceil(d.getUTCDate() / 7));
+    if ("yearly" in rule) return inYearly(date, rule.yearly);
     if ("from" in rule) return date >= rule.from && date <= rule.to;
     if ("thanksgiving" in rule) return d.getUTCMonth() === 10 && weekdayOf(date) === "Thursday" && Math.ceil(d.getUTCDate() / 7) === 4;
     if ("sundaysButLast" in rule) return weekdayOf(date) === "Sunday" && d.getUTCMonth() === at(plusDays(date, 7)).getUTCMonth();
