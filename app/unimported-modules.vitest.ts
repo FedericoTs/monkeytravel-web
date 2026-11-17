@@ -22,6 +22,8 @@ function importersByModule(files: string[]): Map<string, Set<string>> {
   if (!configPath) throw new Error("tsconfig.json not found");
   const { options } = ts.parseJsonConfigFileContent(ts.readConfigFile(configPath, ts.sys.readFile).config, ts.sys, root);
   const host = ts.createCompilerHost(options);
+  // Each folder's lookups are resolved once, not once per file that imports from it.
+  const cache = ts.createModuleResolutionCache(root, (name) => name.toLowerCase(), options);
   const key = (p: string) => path.resolve(p).replace(/\\/g, "/").toLowerCase();
   const importers = new Map<string, Set<string>>();
   for (const file of files) {
@@ -41,7 +43,7 @@ function importersByModule(files: string[]): Map<string, Set<string>> {
     };
     visit(source);
     for (const specifier of specifiers) {
-      const resolved = ts.resolveModuleName(specifier, path.resolve(file), options, host).resolvedModule;
+      const resolved = ts.resolveModuleName(specifier, path.resolve(file), options, host, cache).resolvedModule;
       if (!resolved || resolved.isExternalLibraryImport) continue;
       const k = key(resolved.resolvedFileName);
       if (!importers.has(k)) importers.set(k, new Set());
@@ -65,5 +67,6 @@ describe("modules nothing uses", () => {
         return !by || [...by].every(isTest);
       });
     expect(unused, `modules nothing imports (or only their tests do):\n${unused.join("\n")}`).toEqual([]);
-  }, 120_000);
+    // Alone it takes seconds; beside a full parallel run on a laptop it has needed more than two minutes.
+  }, 600_000);
 });
