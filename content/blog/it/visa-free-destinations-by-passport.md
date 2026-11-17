@@ -37,6 +37,8 @@ La differenza e sorprendente. Il passaporto piu potente del mondo sblocca 195 de
 
 Questa guida analizza l'accesso senza visto per i 15 passaporti piu potenti del mondo, spiega il ruolo crescente delle autorizzazioni elettroniche di viaggio e ti offre strategie pratiche per massimizzare la tua liberta di viaggio indipendentemente dal passaporto che possiedi.
 
+**Vuoi controllare il tuo passaporto?** Il nostro [verificatore dei requisiti di visto](/it/tools/visa-checker) gratuito ti dice in pochi secondi se ti serve un visto, per 199 passaporti e 199 destinazioni.
+
 ## Le classifiche di potere dei passaporti 2026
 
 L'Indice dei Passaporti Henley, basato su dati esclusivi dell'Associazione Internazionale del Trasporto Aereo (IATA), classifica ogni passaporto in base al numero di destinazioni a cui i titolari possono accedere senza visto preventivo. Ecco i 15 migliori passaporti del 2026:

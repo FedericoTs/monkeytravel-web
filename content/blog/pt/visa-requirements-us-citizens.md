@@ -43,6 +43,8 @@ Pelo menos 20 países exigem que os cidadãos americanos obtenham um visto ou um
 
 Este guia cobre todos os cenários: onde você pode viajar livremente, onde precisa de documentação prévia, quanto custa e quanto tempo leva. Salve-o nos favoritos antes da sua próxima viagem.
 
+**Quer conferir o seu passaporte?** Nosso [verificador de requisitos de visto](/pt/tools/visa-checker) gratuito diz em segundos se você precisa de visto, para 199 passaportes e 199 destinos.
+
 ---
 
 ## Como o Passaporte Americano se Posiciona em 2026

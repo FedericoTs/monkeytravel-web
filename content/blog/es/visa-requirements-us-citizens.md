@@ -39,6 +39,8 @@ Al menos 20 paises requieren que los ciudadanos estadounidenses obtengan una vis
 
 Esta guia cubre cada escenario: donde puedes viajar libremente, donde necesitas tramites previos, cuanto cuesta y cuanto tiempo toma. Guardala en favoritos antes de tu proximo viaje.
 
+**¿Quieres comprobar tu propio pasaporte?** Nuestro [verificador de requisitos de visa](/es/tools/visa-checker) gratuito te dice en segundos si necesitas visa, para 199 pasaportes y 199 destinos.
+
 ---
 
 ## El Pasaporte Estadounidense en 2026

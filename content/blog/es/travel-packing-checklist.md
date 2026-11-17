@@ -38,6 +38,8 @@ Esta lista existe para que nunca vuelvas a tener ese momento. Organizamos todo p
 
 Guarda esta pagina en favoritos. Imprimela. Haz una captura de pantalla. Lo que funcione para tu ritual previo al viaje.
 
+**¿Quieres la lista para tu propio viaje?** Nuestro [generador de lista de equipaje](/es/tools/packing-list) gratuito la arma con el clima de tu destino, sus enchufes y lo que piensas hacer. Sin registro.
+
 ---
 
 ## Esenciales del Equipaje de Mano

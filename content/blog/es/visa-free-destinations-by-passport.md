@@ -37,6 +37,8 @@ La diferencia es asombrosa. El pasaporte mas poderoso del mundo desbloquea 195 d
 
 Esta guia desglosa el acceso sin visa para los 15 pasaportes mas poderosos del mundo, explica el creciente papel de las autorizaciones electronicas de viaje y te ofrece estrategias practicas para maximizar tu libertad de viaje sin importar que pasaporte tengas.
 
+**¿Quieres comprobar tu propio pasaporte?** Nuestro [verificador de requisitos de visa](/es/tools/visa-checker) gratuito te dice en segundos si necesitas visa, para 199 pasaportes y 199 destinos.
+
 ## Las clasificaciones de poder de pasaportes 2026
 
 El Indice de Pasaportes Henley, basado en datos exclusivos de la Asociacion de Transporte Aereo Internacional (IATA), clasifica cada pasaporte segun el numero de destinos a los que sus titulares pueden acceder sin visa previa. Estos son los 15 mejores pasaportes de 2026:

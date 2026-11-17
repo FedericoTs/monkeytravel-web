@@ -36,6 +36,8 @@ Almeno 20 paesi richiedono ai cittadini americani di ottenere un visto o un'auto
 
 Questa guida copre ogni scenario: dove puoi viaggiare liberamente, dove servono pratiche preventive, quanto costa e quanto tempo ci vuole. Salvala tra i preferiti prima del tuo prossimo viaggio.
 
+**Vuoi controllare il tuo passaporto?** Il nostro [verificatore dei requisiti di visto](/it/tools/visa-checker) gratuito ti dice in pochi secondi se ti serve un visto, per 199 passaporti e 199 destinazioni.
+
 ---
 
 ## Il Passaporto Americano nel 2026
