@@ -46,6 +46,8 @@ export function KeptPlansList({
               <span className="text-xs text-slate-500">
                 {dateRange(plan.startDate, plan.endDate, locale)} · {t("wizard.kept.days", { count: plan.dayCount })}
               </span>
+              {/* Tells a plan they changed from a newer one for the same trip. */}
+              {plan.changed && <span className="text-xs font-medium text-slate-700">{t("wizard.kept.changed")}</span>}
             </button>
           </li>
         ))}

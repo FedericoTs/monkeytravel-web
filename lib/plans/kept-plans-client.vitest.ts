@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   emailKeptPlan,
+  entryFor,
   forgetKeptPlan,
   keptPlanLink,
   keptPlansSnapshot,
@@ -53,6 +54,19 @@ describe("the browser's list of kept plans", () => {
     expect(keptPlansSnapshot()).toBe(first);
     rememberKeptPlan(entry({ token: "ZZZZZZZZZZZZZZZZZZZZZZ" }));
     expect(keptPlansSnapshot()).not.toBe(first);
+  });
+
+  it("keeps a plan's being changed when it is opened or remembered again", () => {
+    rememberKeptPlan(entry({ key: "k1", fingerprint: "v2", changed: true }));
+    rememberKeptPlan(entry({ fingerprint: "v2", expiresAt: "2099-02-01T00:00:00.000Z" }));
+    expect(readKeptPlans()[0]).toMatchObject({ key: "k1", changed: true, expiresAt: "2099-02-01T00:00:00.000Z" });
+  });
+
+  it("reads entries written before plans had a version, and none with a made-up mark", () => {
+    rememberKeptPlan(entry());
+    expect(readKeptPlans()[0].changed).toBeUndefined();
+    localStorage.setItem("mt_kept_plans", JSON.stringify([{ ...entry(), changed: "yes" }]));
+    expect(readKeptPlans()).toEqual([]);
   });
 
   it("survives a corrupt store", () => {
@@ -110,5 +124,16 @@ describe("planFingerprint", () => {
     const plan = { destination: "Lisbon", startDate: "2027-03-15", endDate: "2027-03-17" } as KeptPlan;
     expect(planFingerprint(plan)).toBe(planFingerprint({ ...plan }));
     expect(planFingerprint(plan)).not.toBe(planFingerprint({ ...plan, endDate: "2027-03-18" }));
+  });
+});
+
+describe("entryFor", () => {
+  const plan = { destination: "Lisbon", startDate: "2027-03-15", endDate: "2027-03-17", itinerary: { days: [{}, {}, {}] } } as unknown as KeptPlan;
+
+  it("records the version it describes, and its being changed only when told", () => {
+    const made = entryFor(TOKEN, plan, "2099-01-01T00:00:00.000Z", "k1");
+    expect(made).toMatchObject({ token: TOKEN, key: "k1", dayCount: 3, fingerprint: planFingerprint(plan) });
+    expect(made).not.toHaveProperty("changed");
+    expect(entryFor(TOKEN, plan, "2099-01-01T00:00:00.000Z", "k1", true).changed).toBe(true);
   });
 });

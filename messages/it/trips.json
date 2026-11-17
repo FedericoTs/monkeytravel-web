@@ -85,6 +85,7 @@
     "kept": {
       "yourPlans": "I tuoi piani",
       "days": "{count, plural, one {# giorno} other {# giorni}}",
+      "changed": "Con le tue modifiche",
       "copyLink": "Copia link",
       "copied": "Link copiato",
       "linkHint": "Lo teniamo per 30 giorni. Il link apre questo piano su qualsiasi dispositivo, e chi lo riceve può vederlo.",
