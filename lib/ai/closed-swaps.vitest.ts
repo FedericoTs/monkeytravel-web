@@ -147,11 +147,20 @@ describe("askForSwaps", () => {
     const out = await askForSwaps("Tokyo", tokyo(), [museum], "it");
     expect(out.answer.swaps).toHaveLength(1);
     const question = generateContent.mock.calls[0][0];
-    expect(question).toContain("1. Day 1 (Wednesday 2027-12-29), 09:30 for 150 min: Tokyo National Museum");
+    expect(question).toContain("1. Day 1 (Wednesday 2027-12-29), 09:30-12:00: Tokyo National Museum");
     expect(question).toContain("Day 1 (2027-12-29): 09:30 Tokyo National Museum; 12:30 Ueno Seiyoken");
     expect(question).toContain("open to visitors on that date");
     expect(question).toContain("in Italian.");
     expect(modelConfig?.model).toBe("gemini-3.6-flash");
+  });
+
+  it("gives a time without a length as the start alone, and no time at all when there is none", async () => {
+    vi.stubEnv("GOOGLE_AI_API_KEY", "test");
+    answer = async () => ({ response: { text: () => JSON.stringify({ swaps: [] }) } });
+    await askForSwaps("Tokyo", tokyo(), [{ ...museum, start_time: "9:30", duration_minutes: undefined }, { ...museum, start_time: undefined }], "en");
+    const question = generateContent.mock.calls[0][0];
+    expect(question).toContain("1. Day 1 (Wednesday 2027-12-29), 09:30: Tokyo National Museum");
+    expect(question).toContain("2. Day 1 (Wednesday 2027-12-29): Tokyo National Museum");
   });
 
   it("answers nothing when the question fails, there is no key, or nothing is stuck", async () => {

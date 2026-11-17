@@ -17,6 +17,7 @@ import { LANGUAGE_NAMES, type SupportedLanguage } from "@/lib/ai/language";
 import { ACTIVITY, activityOf, held } from "@/lib/ai/must-dos";
 import { nameTokens } from "@/lib/ai/assistant/saved-activities";
 import { WEEKDAYS, askClosingDays, stopShutOn, type StuckStop } from "@/lib/ai/closing-days";
+import { formatMinutesToTime } from "@/lib/datetime/format";
 
 type Stop = { name?: string; start_time?: string; duration_minutes?: number; time_slot?: string };
 type Day = { day_number?: number; date?: string; title?: string; theme?: string; activities?: Stop[] };
@@ -52,8 +53,22 @@ const TIMEOUT_MS = 6000;
 
 const weekdayOf = (date: string) => WEEKDAYS[new Date(`${date}T00:00:00Z`).getUTCDay()];
 
+const minutesOf = (time?: string): number | null => {
+  const m = /^(\d{1,2}):(\d{2})/.exec(time ?? "");
+  return m ? Number(m[1]) * 60 + Number(m[2]) : null;
+};
+
+/** "09:30-12:00" when the stop has a time and a length, "09:30" with a time only. */
+function span(stop: StuckStop): string {
+  const start = minutesOf(stop.start_time);
+  if (start === null) return "";
+  return stop.duration_minutes
+    ? `${formatMinutesToTime(start)}-${formatMinutesToTime(start + stop.duration_minutes)}`
+    : formatMinutesToTime(start);
+}
+
 function stuckLine(stop: StuckStop, n: number): string {
-  const when = [stop.start_time, stop.duration_minutes ? `for ${stop.duration_minutes} min` : ""].filter(Boolean).join(" ");
+  const when = span(stop);
   return `${n}. Day ${stop.day} (${weekdayOf(stop.date)} ${stop.date})${when ? `, ${when}` : ""}: ${stop.name}`;
 }
 

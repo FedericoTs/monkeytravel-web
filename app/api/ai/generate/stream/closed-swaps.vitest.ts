@@ -128,7 +128,7 @@ describe("a sight shut on every date of the trip", () => {
     expect(first).toMatchObject({ name: "Mori Art Museum", start_time: "10:00", duration_minutes: 120, location: "Roppongi" });
     expect(JSON.stringify(done.itinerary)).not.toContain("Tokyo National Museum");
     expect(asked.filter((q) => q.includes("place to go instead"))).toHaveLength(1);
-    expect(asked.find((q) => q.includes("place to go instead"))).toContain("Day 1 (Thursday 2027-12-30), 10:00 for 120 min: Tokyo National Museum");
+    expect(asked.find((q) => q.includes("place to go instead"))).toContain("Day 1 (Thursday 2027-12-30), 10:00-12:00: Tokyo National Museum");
     // The swap itself was asked about on its date before it went in.
     expect(asked.some((q) => q.includes("1. Mori Art Museum") && q.includes("2027-12-30 (Thursday)"))).toBe(true);
     await vi.waitFor(() => expect(logged.find((row) => row.status === 200)).toBeTruthy());
