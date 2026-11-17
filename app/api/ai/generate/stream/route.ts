@@ -437,9 +437,16 @@ export async function POST(request: NextRequest) {
                 ...(mustDosIn.missing > 0 ? { must_dos: { missing: mustDosIn.missing, added: mustDosIn.added } } : {}),
                 ...(namesIn.glued > 0 ? { names: { glued: namesIn.glued, renamed: namesIn.renamed } } : {}),
                 ...(longClosed.removed > 0 ? { long_closures_removed: longClosed.removed } : {}),
-                // Stops on a day they're shut, before and after the days were ordered.
+                // Stops on a day they're shut, before and after the days were ordered, and stops moved on their own.
                 ...(openDays.asked > 0
-                  ? { closing_days: { asked: openDays.asked, shut_before: openDays.shutBefore, shut_after: openDays.shutAfter } }
+                  ? {
+                      closing_days: {
+                        asked: openDays.asked,
+                        shut_before: openDays.shutBefore,
+                        shut_after: openDays.shutAfter,
+                        stops_moved: openDays.stopsMoved,
+                      },
+                    }
                   : {}),
                 ...(generationId ? { generation_id: generationId } : {}),
               },
