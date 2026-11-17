@@ -2,6 +2,7 @@ import type { TripCreationParams, TripVibe, UserProfilePreferences } from "@/typ
 import type { SupportedLanguage } from "@/lib/ai/language";
 import type { OutlineDay } from "@/lib/ai/trip-outline";
 import type { KnownPlace } from "@/lib/ai/known-places";
+import { closuresFor, isClosedPlace, longClosuresLine } from "@/lib/ai/long-closures";
 import { paceBudgetPromptClause } from "@/lib/trip/pace";
 import { ACTIVITY_TYPES } from "@/lib/trip/activity-type";
 import { addIsoDays, tripSpanDays } from "@/lib/dates/iso-date";
@@ -418,7 +419,9 @@ Build each of your days around its own places, at the pace asked for above. Neve
 `
     : "";
 
-  const knownPlaces = part ? [] : (options?.knownPlaces ?? []);
+  // A place travellers kept that is now shut for the whole trip (lib/ai/long-closures) is not offered again.
+  const shut = closuresFor(params);
+  const knownPlaces = part ? [] : (options?.knownPlaces ?? []).filter((p) => !isClosedPlace(p.name, shut));
   const knownSection = knownPlaces.length
     ? `
 ## Places Travellers Kept Here
@@ -430,6 +433,7 @@ ${knownPlaces.map((p) => `- ${p.name} (${p.type})`).join("\n")}
   const travellers = travellersLine(params);
   const daylight = daylightLine(params);
   const stay = stayLine(params);
+  const closed = longClosuresLine(params);
   const days = daysLine(params.startDate, duration);
   // One city of a trip through several (lib/ai/multi-city): the must-dos are the
   // whole trip's, and the other cities have their own days.
@@ -461,7 +465,7 @@ ${params.mustDos.map((m) => `- ${m}`).join("\n")}
 ${days ? `- ${days}\n` : ""}- Duration: ${duration} days
 - Budget Tier: ${params.budgetTier}
 - Travel Pace: ${params.pace} — ${paceBudgetPromptClause(params.pace)}
-${travellers ? `- ${travellers}\n` : ""}${daylight ? `- ${daylight}\n` : ""}${stay ? `- ${stay}\n` : ""}
+${travellers ? `- ${travellers}\n` : ""}${daylight ? `- ${daylight}\n` : ""}${stay ? `- ${stay}\n` : ""}${closed ? `- ${closed}\n` : ""}
 ${travelStyleSection}${vibeSection}${seasonalSection}## Traveler Preferences
 - Interests: ${params.interests.length > 0 ? params.interests.join(", ") : "general sightseeing"}
 ${params.requirements ? `- Special Requirements: ${params.requirements}` : ""}

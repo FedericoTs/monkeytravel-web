@@ -35,6 +35,7 @@ import { PartsError, writeInParts, writesInParts } from "@/lib/ai/plan-in-parts"
 import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/generation-result";
 import { knownPlacesFor, knownPlacesUsed, type KnownPlace } from "@/lib/ai/known-places";
 import { keepOffClosingDays } from "@/lib/ai/closing-days";
+import { withoutLongClosures } from "@/lib/ai/long-closures";
 import { keepMustDos } from "@/lib/ai/must-dos";
 import { keepNamesInOneScript } from "@/lib/ai/one-script-names";
 import { tripSpanDays } from "@/lib/dates/iso-date";
@@ -351,6 +352,10 @@ export async function POST(request: NextRequest) {
       const namesIn = await keepNamesInOneScript(finalItinerary, params.destination, userLanguage);
       finalItinerary = namesIn.itinerary;
       generationCost += namesIn.costUsd;
+      // 5a''. No stop at a place shut for the whole trip (lib/ai/long-closures.ts),
+      //       a cached plan's or a must-do's included.
+      const longClosed = withoutLongClosures(finalItinerary, params);
+      finalItinerary = longClosed.itinerary;
       // 5b. No stop on a day it's shut: the plan's sights are asked about,
       //     and its days ordered around their closing days. A cached plan has
       //     new dates, so it too (lib/ai/closing-days.ts).
@@ -431,6 +436,7 @@ export async function POST(request: NextRequest) {
                 // Must-dos the plan held nowhere, and how many of them went in.
                 ...(mustDosIn.missing > 0 ? { must_dos: { missing: mustDosIn.missing, added: mustDosIn.added } } : {}),
                 ...(namesIn.glued > 0 ? { names: { glued: namesIn.glued, renamed: namesIn.renamed } } : {}),
+                ...(longClosed.removed > 0 ? { long_closures_removed: longClosed.removed } : {}),
                 // Stops on a day they're shut, before and after the days were ordered, and stops moved on their own.
                 ...(openDays.asked > 0
                   ? {

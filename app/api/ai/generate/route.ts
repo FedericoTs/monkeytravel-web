@@ -27,6 +27,7 @@ import {
 import { generateAnchoredItinerary, validateAnchors } from "@/lib/ai/anchored";
 import { knownPlacesFor } from "@/lib/ai/known-places";
 import { keepOffClosingDays } from "@/lib/ai/closing-days";
+import { withoutLongClosures } from "@/lib/ai/long-closures";
 import { keepMustDos } from "@/lib/ai/must-dos";
 import { keepNamesInOneScript } from "@/lib/ai/one-script-names";
 import { inPlanCurrency } from "@/lib/ai/plan-currency";
@@ -213,6 +214,10 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     // its usual name (lib/ai/one-script-names.ts).
     const namesIn = await keepNamesInOneScript(itinerary, params.destination, userLanguage);
     itinerary = namesIn.itinerary;
+
+    // No stop at a place shut for the whole trip (lib/ai/long-closures.ts), a
+    // cached plan's or a must-do's included.
+    itinerary = withoutLongClosures(itinerary, params).itinerary;
 
     // No stop on a day it's shut (lib/ai/closing-days.ts). A multi-city or
     // anchored trip keeps its order: its cities and commitments fix the days.
