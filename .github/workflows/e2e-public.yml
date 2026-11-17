@@ -10,7 +10,9 @@ on:
     branches: [master]
 
 concurrency:
-  group: e2e-public-${{ github.ref }}
+  # On a pull request a newer push replaces its older run. On master each commit has a group of its own, so
+  # every merge's run finishes and gets a verdict.
+  group: e2e-public-${{ github.ref }}-${{ github.event_name == 'push' && github.sha || 'latest' }}
   cancel-in-progress: true
 
 permissions:
