@@ -408,6 +408,9 @@ describe("undoing", () => {
 
   it("a new question takes the offer away", async () => {
     await applied({});
+    // The box is shut while the change finishes; a person can only type once it opens. The form is submitted directly
+    // here, which a shut box doesn't stop, so wait for it as a person would.
+    await waitFor(() => expect(box().disabled).toBe(false));
     send("Another question");
     await waitFor(() => expect(screen.queryByRole("button", { name: /undoButton/ })).toBeNull());
   });
