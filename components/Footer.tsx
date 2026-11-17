@@ -4,7 +4,7 @@ import { getTranslations, getLocale } from 'next-intl/server';
 import { CookieSettingsButton } from '@/components/consent';
 import { destinations } from '@/lib/destinations/data';
 import { getAllFrontmatter } from '@/lib/blog/api';
-import { PLANNER_PAGES } from '@/lib/seo/planner-pages';
+import { FOOTER_PLANNERS } from '@/lib/seo/planner-pages';
 import type { Locale } from '@/lib/destinations/types';
 
 // No LinkedIn link: linkedin.com/company/monkeytravel is another company's page.
@@ -195,7 +195,7 @@ export default async function Footer() {
           <div>
             <h3 className="font-semibold mb-5 text-white/90">{t('planners.title')}</h3>
             <ul className="space-y-3">
-              {PLANNER_PAGES.map(({ path, label }) => (
+              {FOOTER_PLANNERS.map(({ path, label }) => (
                 <li key={path}>
                   <Link href={path} className="text-white/65 hover:text-[var(--accent)] transition-colors text-sm">
                     {t(`planners.${label}`)}
