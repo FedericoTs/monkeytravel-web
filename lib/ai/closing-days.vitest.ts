@@ -27,6 +27,7 @@ import {
   askClosingDays,
   holidayDatesToAsk,
   keepOffClosingDays,
+  moveShutStops,
   orderAroundClosings,
   placesToAsk,
   shutStops,
@@ -178,6 +179,116 @@ describe("holiday dates", () => {
     expect(ordered.map((d) => d.date)).toEqual(days.map((d) => d.date));
     // The weekly closing days alone leave the statue on Thanksgiving.
     expect(shutStops(orderAroundClosings(days, weekly), weekly, dated)).toBe(1);
+  });
+});
+
+describe("a stop still shut after the reorder", () => {
+  type Timed = { name: string; type: string; start_time: string; duration_minutes: number; time_slot?: string };
+  const stop = (name: string, type: string, start_time: string, duration_minutes: number): Timed => ({
+    name,
+    type,
+    start_time,
+    duration_minutes,
+  });
+  const timed = (days: Array<{ activities?: Array<{ name?: string; start_time?: string }> }>) =>
+    days.map((d) => (d.activities ?? []).map((a) => `${a.start_time} ${a.name}`).join(" | "));
+  // Thursday 24 to Saturday 26 December 2026: the Capitoline Museums on Christmas Day, when they are shut.
+  const rome = () => [
+    { day_number: 1, date: "2026-12-24", activities: [stop("Colosseum", "landmark", "09:00", 180), stop("Trattoria Luzzi", "restaurant", "13:00", 60)] },
+    { day_number: 2, date: "2026-12-25", activities: [stop("Capitoline Museums", "museum", "10:00", 120), stop("Pizzeria Remo", "restaurant", "13:00", 60)] },
+    { day_number: 3, date: "2026-12-26", activities: [stop("Borghese Gallery", "museum", "10:00", 120)] },
+  ];
+  const capitolineShut = shutDates([["Capitoline Museums", ["2026-12-25"]]]);
+
+  it("moves to the day with the least planned that it is open on, after the stop ahead of it ends", () => {
+    const { days, moved } = moveShutStops(rome(), new Map(), capitolineShut);
+    expect(moved).toBe(1);
+    expect(timed(days)).toEqual([
+      "09:00 Colosseum | 13:00 Trattoria Luzzi",
+      "13:00 Pizzeria Remo",
+      "10:00 Borghese Gallery | 12:20 Capitoline Museums",
+    ]);
+    expect((days[2].activities[1] as Timed).time_slot).toBe("afternoon");
+    expect(days.map((d) => d.date)).toEqual(["2026-12-24", "2026-12-25", "2026-12-26"]);
+    expect(shutStops(days, new Map(), capitolineShut)).toBe(0);
+  });
+
+  it("keeps its own time where it is free, moving later stops only as far as they must", () => {
+    const days = rome();
+    days[2].activities = [stop("Borghese Gallery", "museum", "15:00", 120), stop("Galleria Doria", "museum", "18:00", 60)];
+    const moved = moveShutStops(days, new Map(), capitolineShut).days;
+    expect(timed(moved)[2]).toBe("10:00 Capitoline Museums | 15:00 Borghese Gallery | 18:00 Galleria Doria");
+
+    days[2].activities = [stop("Borghese Gallery", "museum", "11:00", 120), stop("Galleria Doria", "museum", "17:00", 60)];
+    expect(timed(moveShutStops(days, new Map(), capitolineShut).days)[2]).toBe(
+      "10:00 Capitoline Museums | 12:20 Borghese Gallery | 17:00 Galleria Doria"
+    );
+  });
+
+  it("leaves the rest of the day as it was, and counts a stop with no length as an hour and a half", () => {
+    const days = rome();
+    // Galleria Doria already starts before the gallery ends: not this check's to change.
+    days[2].activities = [stop("Borghese Gallery", "museum", "15:00", 120), stop("Galleria Doria", "museum", "16:00", 60)];
+    expect(timed(moveShutStops(days, new Map(), capitolineShut).days)[2]).toBe(
+      "10:00 Capitoline Museums | 15:00 Borghese Gallery | 16:00 Galleria Doria"
+    );
+    days[2].activities = [{ name: "Borghese Gallery", type: "museum", start_time: "10:00" } as Timed];
+    expect(timed(moveShutStops(days, new Map(), capitolineShut).days)[2]).toBe("10:00 Borghese Gallery | 11:50 Capitoline Museums");
+  });
+
+  it("takes the nearest of two days with as much planned", () => {
+    // Thursday 24 to Sunday 27 December: the gallery is shut on the 26th; the 24th and the 27th hold as much.
+    const days = [
+      { day_number: 1, date: "2026-12-24", activities: [stop("Colosseum", "landmark", "09:00", 120)] },
+      { day_number: 2, date: "2026-12-25", activities: [stop("Vatican Gardens", "landmark", "09:00", 300)] },
+      { day_number: 3, date: "2026-12-26", activities: [stop("Borghese Gallery", "museum", "15:00", 120)] },
+      { day_number: 4, date: "2026-12-27", activities: [stop("Pantheon", "landmark", "09:00", 120)] },
+    ];
+    const moved = moveShutStops(days, new Map(), shutDates([["Borghese Gallery", ["2026-12-26"]]])).days;
+    expect(timed(moved)).toEqual(["09:00 Colosseum", "09:00 Vatican Gardens", "", "09:00 Pantheon | 15:00 Borghese Gallery"]);
+  });
+
+  it("goes to the next day with room when the lightest one would run past the evening", () => {
+    // An evening visit: on the 26th it would start after the gallery ends, past ten at night.
+    const days = rome();
+    days[1].activities = [stop("Pizzeria Remo", "restaurant", "13:00", 60), stop("Capitoline Museums", "museum", "21:00", 60)];
+    days[2].activities = [stop("Borghese Gallery", "museum", "20:30", 120)];
+    expect(timed(moveShutStops(days, new Map(), capitolineShut).days)).toEqual([
+      "09:00 Colosseum | 13:00 Trattoria Luzzi | 21:00 Capitoline Museums",
+      "13:00 Pizzeria Remo",
+      "20:30 Borghese Gallery",
+    ]);
+  });
+
+  it("never moves a dated event to make room", () => {
+    const days = rome();
+    days[0].activities = [stop("Christmas concert", "event", "10:30", 90)];
+    days[2].activities = [stop("Borghese Gallery", "museum", "10:00", 120), stop("Opera", "event", "12:00", 150)];
+    const { days: after, moved } = moveShutStops(days, new Map(), capitolineShut);
+    expect(moved).toBe(0);
+    expect(after).toBe(days);
+  });
+
+  it("stays when it is shut on every day of the trip, and moves on a weekly closing too", () => {
+    const allShut = shutDates([["Capitoline Museums", ["2026-12-24", "2026-12-25", "2026-12-26"]]]);
+    const days = rome();
+    expect(moveShutStops(days, new Map(), allShut)).toEqual({ days, moved: 0 });
+    // Friday 25 December: shut every Friday.
+    expect(moveShutStops(rome(), closings([["Capitoline Museums", ["Friday"]]]), new Map()).moved).toBe(1);
+  });
+
+  it("is reported by the plan check, with nothing left shut", async () => {
+    // Every day has a sight shut on Christmas Day, so no order of the days avoids one.
+    const plan = { days: rome() };
+    const allOn25 = shutDates([
+      ["Capitoline Museums", ["2026-12-25"]],
+      ["Colosseum", ["2026-12-25"]],
+      ["Borghese Gallery", ["2026-12-25"]],
+    ]);
+    const ask = vi.fn(async () => ({ closings: new Map(), shutDates: allOn25, costUsd: 0 }));
+    const result = await keepOffClosingDays(plan, "Rome", ask);
+    expect(result).toMatchObject({ shutBefore: 1, shutAfter: 0, stopsMoved: 1 });
+    expect(timed(result.itinerary.days)[1]).toBe("13:00 Pizzeria Remo");
   });
 });
 
