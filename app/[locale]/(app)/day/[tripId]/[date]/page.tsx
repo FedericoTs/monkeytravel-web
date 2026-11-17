@@ -5,7 +5,7 @@ import { DayRouteLink } from "@/components/trip/DayRouteLink";
 import SendDayToGroup from "@/components/trip/SendDayToGroup";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { tripDayNumber, verifyDayLink } from "@/lib/trips/day-link";
+import { siblingDayKey, tripDayDate, tripDayNumber, verifyDayLink } from "@/lib/trips/day-link";
 import type { Activity } from "@/types";
 import { isNoRow } from "@/lib/supabase/no-row";
 
@@ -38,9 +38,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
+/** The most days the page links to: no trip in the planner is longer. */
+const MAX_DAY_LINKS = 31;
+
 interface TripDay {
   destination: string;
   dayNumber: number;
+  /** The trip's first date, and how many days it has, from its dates. */
+  startDate: string;
+  totalDays: number;
   title: string;
   activities: Activity[];
   currency?: string;
@@ -68,6 +74,8 @@ async function loadTripDay(tripId: string, date: string): Promise<TripDay | null
   return {
     destination: (data.title ?? "").replace(/\s+Trip\s*$/i, "").trim(),
     dayNumber,
+    startDate: String(data.start_date).slice(0, 10),
+    totalDays: tripDayNumber(data.start_date, data.end_date, (data.end_date ?? data.start_date).slice(0, 10)) ?? dayNumber,
     title: typeof day?.title === "string" ? day.title.trim() : "",
     activities: activities.filter(
       (a): a is Activity => !!a && typeof a === "object" && typeof (a as { name?: unknown }).name === "string",
@@ -117,6 +125,21 @@ export default async function TripDayPage({ params, searchParams }: PageProps) {
   const tripPath = `/trips/${tripId.toLowerCase()}`;
   const { data: auth } = await (await createClient()).auth.getUser();
   const editHref = auth.user ? `${prefix}${tripPath}` : `${prefix}/auth/login?redirect=${encodeURIComponent(tripPath)}`;
+  // On a trip of several days the other days are a tap away, read-only like this one, and only for as long as the
+  // link that opened this page: going from day to day never makes a link last longer.
+  const total = day.totalDays >= 2 ? day.totalDays : null;
+  const viewKey = typeof k === "string" ? k : "";
+  const tripDays = total
+    ? Array.from({ length: Math.min(total, MAX_DAY_LINKS) }, (_, i) => {
+        const other = tripDayDate(day.startDate, i + 1);
+        const key = other && other !== date ? siblingDayKey(tripId, other, viewKey) : null;
+        return {
+          day: i + 1,
+          current: other === date,
+          href: key ? `${prefix}/day/${tripId.toLowerCase()}/${other}?k=${encodeURIComponent(key)}` : null,
+        };
+      })
+    : [];
   const format = await getFormatter();
   const when = format.dateTime(new Date(`${date}T00:00:00Z`), {
     weekday: "long",
@@ -156,9 +179,32 @@ export default async function TripDayPage({ params, searchParams }: PageProps) {
           <p className="text-sm font-medium text-[var(--foreground-muted)]">{day.destination}</p>
         ) : null}
         <h1 className="mt-1 text-2xl sm:text-3xl font-bold text-[var(--foreground)]">
-          {t("heading", { day: day.dayNumber })}
+          {total ? t("headingOf", { day: day.dayNumber, total }) : t("heading", { day: day.dayNumber })}
         </h1>
         <p className="mt-1 text-[var(--foreground-muted)]">{day.title ? `${when} · ${day.title}` : when}</p>
+        {tripDays.length > 0 ? (
+          <nav aria-label={t("days")} className="mt-3 flex flex-wrap gap-2">
+            {tripDays.map((d) =>
+              d.current ? (
+                <span
+                  key={d.day}
+                  aria-current="page"
+                  className="inline-flex min-h-11 items-center rounded-full bg-[var(--foreground)] px-4 text-sm font-medium text-white"
+                >
+                  {t("heading", { day: d.day })}
+                </span>
+              ) : d.href ? (
+                <a
+                  key={d.day}
+                  href={d.href}
+                  className="inline-flex min-h-11 items-center rounded-full border border-slate-300 bg-white px-4 text-sm font-medium text-[var(--foreground)] hover:border-slate-400"
+                >
+                  {t("heading", { day: d.day })}
+                </a>
+              ) : null,
+            )}
+          </nav>
+        ) : null}
         <DayRouteLink activities={day.activities} surface="day" className="mt-1" />
 
         {canSend && sendKey ? (

@@ -27,6 +27,7 @@ import {
 import { generateAnchoredItinerary, validateAnchors } from "@/lib/ai/anchored";
 import { knownPlacesFor } from "@/lib/ai/known-places";
 import { keepOffClosingDays } from "@/lib/ai/closing-days";
+import { swapClosedStops } from "@/lib/ai/closed-swaps";
 import { withoutLongClosures } from "@/lib/ai/long-closures";
 import { keepMustDos } from "@/lib/ai/must-dos";
 import { keepNamesInOneScript } from "@/lib/ai/one-script-names";
@@ -219,10 +220,15 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     // cached plan's or a must-do's included.
     itinerary = withoutLongClosures(itinerary, params).itinerary;
 
-    // No stop on a day it's shut (lib/ai/closing-days.ts). A multi-city or
-    // anchored trip keeps its order: its cities and commitments fix the days.
+    // No stop on a day it's shut (lib/ai/closing-days.ts), and one shut on every
+    // date it could go to swapped for an open place (lib/ai/closed-swaps.ts). A
+    // multi-city or anchored trip keeps its order: its cities and commitments fix the days.
     if (!isMultiCity && !isAnchored) {
-      itinerary = (await keepOffClosingDays(itinerary, params.destination)).itinerary;
+      itinerary = (
+        await keepOffClosingDays(itinerary, params.destination, undefined, undefined, (days, stuck) =>
+          swapClosedStops(params.destination, days, stuck, userLanguage)
+        )
+      ).itinerary;
     }
 
     // Assign activity images server-side (prevents a client race), cached

@@ -17,7 +17,9 @@
  *
  * Some plans have no order that keeps every sight open: on Christmas Day each
  * day may hold a museum shut that day. A stop still shut after the reorder
- * moves on its own to a day it is open, when one has room for it.
+ * moves on its own to a day it is open, when one has room for it. One with
+ * nowhere to go (shut on every date of the trip) is swapped for an open place,
+ * when the route asks for that (lib/ai/closed-swaps.ts).
  */
 import { SchemaType, type ResponseSchema } from "@/lib/ai/genai-compat";
 import { genAI, withTimeout } from "@/lib/ai/gemini-call";
@@ -161,7 +163,7 @@ const weekdayOf = (date?: string): Weekday | null =>
   date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? WEEKDAYS[new Date(`${date}T00:00:00Z`).getUTCDay()] : null;
 
 /** Whether a stop is shut on a date: on its weekday, or on that date itself. */
-function stopShutOn(stop: WordStop, date: string | undefined, closings: Closings, shutDates: ShutDates): boolean {
+export function stopShutOn(stop: WordStop, date: string | undefined, closings: Closings, shutDates: ShutDates): boolean {
   if (!stop.name) return false;
   const key = placeKey(stop.name);
   const weekday = weekdayOf(date);
@@ -354,16 +356,43 @@ export function moveShutStops<T extends Day>(
   return { days: current, moved };
 }
 
+/** A stop still shut on its own day once the days were ordered and stops moved: nowhere open could take it. */
+export interface StuckStop {
+  /** The day it is on. */
+  day: number;
+  date: string;
+  name: string;
+  start_time?: string;
+  duration_minutes?: number;
+}
+
+/** The stops shut on their own day, in plan order. */
+export function stopsStillShut(days: Day[], closings: Closings, shutDates: ShutDates): StuckStop[] {
+  return days.flatMap((day) =>
+    (day.activities ?? []).flatMap((stop) => {
+      const { start_time, duration_minutes } = stop as TimedStop;
+      return day.date && typeof day.day_number === "number" && stop.name && stopShutOn(stop, day.date, closings, shutDates)
+        ? [{ day: day.day_number, date: day.date, name: stop.name, start_time, duration_minutes }]
+        : [];
+    })
+  );
+}
+
+/** Swaps stuck stops for open places (lib/ai/closed-swaps.ts): the days, how many went in, and what it cost. */
+export type SwapStuck = (days: Day[], stuck: StuckStop[]) => Promise<{ days: Day[]; swapped: number; costUsd: number }>;
+
 /**
  * A plan with its days in the order that keeps its places off their closing
  * days, the moved days' words that name their old date re-worded, a stop still
- * shut moved to a day it is open, and what was found.
+ * shut moved to a day it is open, one with nowhere to go swapped for an open
+ * place when `swap` is given, and what was found.
  */
 export async function keepOffClosingDays<T extends { days: Day[] }>(
   itinerary: T,
   destination: string,
   ask: typeof askClosingDays = askClosingDays,
-  reword: typeof rewordMovedDays = rewordMovedDays
+  reword: typeof rewordMovedDays = rewordMovedDays,
+  swap?: SwapStuck
 ): Promise<{
   itinerary: T;
   costUsd: number;
@@ -372,6 +401,7 @@ export async function keepOffClosingDays<T extends { days: Day[] }>(
   shutAfter: number;
   reworded: number;
   stopsMoved: number;
+  swapped: number;
 }> {
   const places = placesToAsk(itinerary.days);
   const { closings, shutDates, costUsd } = await ask(destination, places, holidayDatesToAsk(itinerary.days));
@@ -380,14 +410,17 @@ export async function keepOffClosingDays<T extends { days: Day[] }>(
   const ordered = inOrder(itinerary.days, order);
   const words = moves.length > 0 ? await reword(ordered, moves, destination) : { days: ordered, costUsd: 0, reworded: 0 };
   const stops = moveShutStops(words.days, closings, shutDates);
-  const days = stops.days;
+  const stuck = swap ? stopsStillShut(stops.days, closings, shutDates) : [];
+  const swaps = swap && stuck.length > 0 ? await swap(stops.days, stuck) : { days: stops.days, swapped: 0, costUsd: 0 };
+  const days = swaps.days;
   return {
     itinerary: days === itinerary.days ? itinerary : { ...itinerary, days },
-    costUsd: costUsd + words.costUsd,
+    costUsd: costUsd + words.costUsd + swaps.costUsd,
     asked: places.length,
     shutBefore: shutStops(itinerary.days, closings, shutDates),
     shutAfter: shutStops(days, closings, shutDates),
     reworded: words.reworded,
     stopsMoved: stops.moved,
+    swapped: swaps.swapped,
   };
 }

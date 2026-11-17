@@ -56,7 +56,7 @@ function tellingWords(mustDo: string): string[] {
 }
 
 /** Whether one of these names has every one of the words, a letter off allowed. */
-function held(words: string[], names: string[][]): boolean {
+export function held(words: string[], names: string[][]): boolean {
   return names.some((name) => words.every((word) => name.some((n) => sameWord(word, n))));
 }
 
@@ -204,7 +204,7 @@ export async function askForMustDos(
 }
 
 /** The activity of an answer, with only what a plan's activity holds, or null when it isn't one. */
-function activityOf(raw: Record<string, unknown> | undefined): Activity | null {
+export function activityOf(raw: Record<string, unknown> | undefined): Activity | null {
   if (!raw || typeof raw.name !== "string" || !raw.name.trim()) return null;
   const start = minutesOf(raw.start_time);
   const length = Number(raw.duration_minutes);
