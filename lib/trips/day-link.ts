@@ -84,6 +84,22 @@ export function verifyDayLink(
   return expires * 1000 > now ? { ok: true } : { ok: false, reason: "expired" };
 }
 
+/**
+ * The view key for another day of the same trip, ending when `k` ends: going
+ * from one day's page to the trip's other days never makes a link last longer.
+ * Null when `k` isn't a key or nothing can be signed. Verify `k` first: this
+ * only reads its expiry.
+ */
+export function siblingDayKey(tripId: string, date: string, k: string): string | null {
+  const parts = KEY_RE.exec(k);
+  if (!parts) return null;
+  try {
+    return signDayLink(tripId, date, Number(parts[1]));
+  } catch {
+    return null;
+  }
+}
+
 /** Absolute URL of a signed day link, locale-prefixed as-needed. Throws without a secret. */
 export function dayLinkUrl(opts: {
   appUrl: string;
