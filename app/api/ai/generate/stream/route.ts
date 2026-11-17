@@ -442,10 +442,11 @@ export async function POST(request: NextRequest) {
                 ...(namesIn.glued > 0 ? { names: { glued: namesIn.glued, renamed: namesIn.renamed } } : {}),
                 ...(longClosed.removed > 0 ? { long_closures_removed: longClosed.removed } : {}),
                 // Stops on a day they're shut, before and after the days were ordered, and stops moved on their own.
-                ...(openDays.asked > 0
+                ...(openDays.asked > 0 || openDays.known > 0
                   ? {
                       closing_days: {
                         asked: openDays.asked,
+                        known: openDays.known,
                         shut_before: openDays.shutBefore,
                         shut_after: openDays.shutAfter,
                         stops_moved: openDays.stopsMoved,

@@ -127,7 +127,7 @@ describe("a sight shut on every date of the trip", () => {
     expect(asked.some((q) => q.includes("1. Mori Art Museum") && q.includes("2027-12-30 (Thursday)"))).toBe(true);
     await vi.waitFor(() => expect(logged.find((row) => row.status === 200)).toBeTruthy());
     expect(logged.find((row) => row.status === 200)?.metadata).toMatchObject({
-      closing_days: { asked: 3, shut_before: 1, shut_after: 0, stops_moved: 0, swapped: 1 },
+      closing_days: { asked: 3, known: 3, shut_before: 1, shut_after: 0, stops_moved: 0, swapped: 1 },
     });
   });
 
