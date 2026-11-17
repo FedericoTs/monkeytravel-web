@@ -93,8 +93,7 @@ function dayLine(day: Day): string {
 
 const TYPES = ["attraction", "landmark", "museum", "restaurant", "cafe", "bar", "food", "market", "shopping", "activity", "nature", "park", "entertainment", "nightlife", "spa", "cultural"];
 
-/** One activity as a model answer gives it (closed-place swaps use it too). */
-export const ACTIVITY: ResponseSchema = {
+const ACTIVITY: ResponseSchema = {
   type: SchemaType.OBJECT,
   properties: {
     start_time: { type: SchemaType.STRING, description: "HH:MM" },

@@ -59,9 +59,9 @@ vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
       generateContent: async (question: string) => {
         asked.push(question);
         const usageMetadata = { promptTokenCount: 80, candidatesTokenCount: 20 };
-        if (question.includes("place to go instead")) {
-          const activity = { start_time: "10:00", duration_minutes: 90, name: "Mori Art Museum", type: "museum", description: "Arte a Roppongi.", location: "Roppongi", coordinates: { lat: 35.6605, lng: 139.7292 } };
-          return { response: { text: () => JSON.stringify({ swaps: [{ n: 1, activity }] }), usageMetadata } };
+        if (question.includes("to go instead")) {
+          const place = { name: "Mori Art Museum", type: "museum", description: "Arte a Roppongi.", location: "Roppongi", coordinates: { lat: 35.6605, lng: 139.7292 } };
+          return { response: { text: () => JSON.stringify({ swaps: [{ n: 1, places: [place] }] }), usageMetadata } };
         }
         const museum = question.split("\n").find((line) => line.includes("Tokyo National Museum"));
         const places = museum ? [{ n: Number(museum.split(".")[0]), closed: [], shutOn: DATES }] : [];
@@ -94,6 +94,6 @@ describe("the JSON route", () => {
       "10:00 Meiji Jingu",
       "10:00 Senso-ji",
     ]);
-    expect(asked.find((q) => q.includes("place to go instead"))).toContain("in Italian.");
+    expect(asked.find((q) => q.includes("to go instead"))).toContain("in Italian.");
   });
 });

@@ -74,19 +74,13 @@ vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
       generateContent: async (question: string) => {
         asked.push(question);
         const usageMetadata = { promptTokenCount: 80, candidatesTokenCount: 20 };
-        if (question.includes("place to go instead")) {
+        if (question.includes("to go instead")) {
           const swaps = [
             {
               n: 1,
-              activity: {
-                start_time: "11:00",
-                duration_minutes: 90,
-                name: "Mori Art Museum",
-                type: "museum",
-                description: "Art above Roppongi.",
-                location: "Roppongi",
-                coordinates: { lat: 35.6605, lng: 139.7292 },
-              },
+              places: [
+                { name: "Mori Art Museum", type: "museum", description: "Art above Roppongi.", location: "Roppongi", coordinates: { lat: 35.6605, lng: 139.7292 } },
+              ],
             },
           ];
           return { response: { text: () => JSON.stringify({ swaps }), usageMetadata } };
@@ -127,8 +121,8 @@ describe("a sight shut on every date of the trip", () => {
     const first = done.itinerary.days[0].activities[0];
     expect(first).toMatchObject({ name: "Mori Art Museum", start_time: "10:00", duration_minutes: 120, location: "Roppongi" });
     expect(JSON.stringify(done.itinerary)).not.toContain("Tokyo National Museum");
-    expect(asked.filter((q) => q.includes("place to go instead"))).toHaveLength(1);
-    expect(asked.find((q) => q.includes("place to go instead"))).toContain("Day 1 (Thursday 2027-12-30), 10:00-12:00: Tokyo National Museum");
+    expect(asked.filter((q) => q.includes("to go instead"))).toHaveLength(1);
+    expect(asked.find((q) => q.includes("to go instead"))).toContain("Day 1 (Thursday 2027-12-30), 10:00-12:00: Tokyo National Museum");
     // The swap itself was asked about on its date before it went in.
     expect(asked.some((q) => q.includes("1. Mori Art Museum") && q.includes("2027-12-30 (Thursday)"))).toBe(true);
     await vi.waitFor(() => expect(logged.find((row) => row.status === 200)).toBeTruthy());
