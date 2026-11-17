@@ -2275,7 +2275,8 @@
   },
   "authPrompt": {
     "title": "Keep this plan",
-    "subtitle": "Your {destination} plan is ready. One tap with Google, or a code by email. Free, no password.",
+    "titleFor": "Keep your {destination} plan",
+    "subtitle": "On the trip, each day opens on your phone, and your friends can join it. One tap with Google, or a code by email. Free, no password.",
     "benefits": {
       "aiPowered": "Edit and regenerate any day",
       "saveEdit": "Save and access from any device",
