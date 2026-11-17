@@ -31,6 +31,7 @@ import {
   orderAroundClosings,
   placesToAsk,
   shutStops,
+  stopsStillShut,
   type Closings,
   type ShutDates,
 } from "./closing-days";
@@ -289,6 +290,53 @@ describe("a stop still shut after the reorder", () => {
     const result = await keepOffClosingDays(plan, "Rome", ask);
     expect(result).toMatchObject({ shutBefore: 1, shutAfter: 0, stopsMoved: 1 });
     expect(timed(result.itinerary.days)[1]).toBe("13:00 Pizzeria Remo");
+  });
+});
+
+describe("a stop shut on every date it could go to", () => {
+  type Timed = { name: string; type: string; start_time: string; duration_minutes: number };
+  const stop = (name: string, type: string, start_time: string, duration_minutes: number): Timed => ({ name, type, start_time, duration_minutes });
+  // Wednesday 29 December 2027 to Saturday 1 January 2028 in Tokyo.
+  const tokyo = () => [
+    { day_number: 1, date: "2027-12-29", activities: [stop("Tokyo National Museum", "museum", "09:30", 150), stop("Ueno Seiyoken", "restaurant", "12:30", 90)] },
+    { day_number: 2, date: "2027-12-30", activities: [stop("teamLab Planets", "attraction", "10:00", 150)] },
+    { day_number: 3, date: "2027-12-31", activities: [stop("Shinjuku Gyoen", "nature", "14:15", 120)] },
+    { day_number: 4, date: "2028-01-01", activities: [stop("Meiji Jingu", "landmark", "08:30", 120)] },
+  ];
+  const newYear = shutDates([["Tokyo National Museum", ["2027-12-29", "2027-12-30", "2027-12-31", "2028-01-01"]]]);
+  const ask = async () => ({ closings: new Map(), shutDates: newYear, costUsd: 0.0004 });
+
+  it("is found where it is, with its day, date and time", () => {
+    expect(stopsStillShut(tokyo(), new Map(), newYear)).toEqual([
+      { day: 1, date: "2027-12-29", name: "Tokyo National Museum", start_time: "09:30", duration_minutes: 150 },
+    ]);
+    expect(stopsStillShut(tokyo(), closings([["Meiji Jingu", ["Saturday"]]]), new Map())).toEqual([
+      { day: 4, date: "2028-01-01", name: "Meiji Jingu", start_time: "08:30", duration_minutes: 120 },
+    ]);
+    expect(stopsStillShut(tokyo(), new Map(), new Map())).toEqual([]);
+  });
+
+  it("is handed to the swap, which the plan check then reports", async () => {
+    const swap = vi.fn(async (days: WordDay[]) => ({
+      days: days.map((d, i) => (i === 0 ? { ...d, activities: [{ name: "Mori Art Museum", type: "museum" }, ...(d.activities ?? []).slice(1)] } : d)),
+      swapped: 1,
+      costUsd: 0.0003,
+    }));
+    const result = await keepOffClosingDays({ days: tokyo() }, "Tokyo", ask, undefined, swap);
+    expect(swap).toHaveBeenCalledTimes(1);
+    expect(swap.mock.calls[0][1]).toEqual([{ day: 1, date: "2027-12-29", name: "Tokyo National Museum", start_time: "09:30", duration_minutes: 150 }]);
+    expect(names(result.itinerary.days as Array<{ activities: Array<{ name: string }> }>)[0]).toBe("Mori Art Museum+Ueno Seiyoken");
+    expect(result).toMatchObject({ shutBefore: 1, shutAfter: 0, stopsMoved: 0, swapped: 1 });
+    expect(result.costUsd).toBeCloseTo(0.0007, 10);
+  });
+
+  it("is not swapped without a swap, or when nothing is stuck", async () => {
+    const without = await keepOffClosingDays({ days: tokyo() }, "Tokyo", ask);
+    expect(without).toMatchObject({ shutAfter: 1, swapped: 0 });
+    const swap = vi.fn();
+    const open = await keepOffClosingDays({ days: tokyo() }, "Tokyo", async () => ({ closings: new Map(), shutDates: new Map(), costUsd: 0 }), undefined, swap);
+    expect(swap).not.toHaveBeenCalled();
+    expect(open.swapped).toBe(0);
   });
 });
 
