@@ -15,7 +15,7 @@ vi.mock("@/lib/wizard/draft-saved-check", () => ({ isItinerarySaved: (...a: unkn
 vi.mock("@/lib/supabase/client", () => ({ createClient: () => ({}) }));
 vi.mock("@/lib/posthog/events", () => ({ capture: (...a: unknown[]) => capture(...a) }));
 
-import { readKeptPlans, rememberKeptPlan } from "@/lib/plans/kept-plans-client";
+import { planFingerprint, readKeptPlans, rememberKeptPlan } from "@/lib/plans/kept-plans-client";
 import { useKeptPlanOpening } from "./useKeptPlanOpening";
 
 const TOKEN = "T".repeat(22);
@@ -86,6 +86,8 @@ const entry = (token: string) => ({
   endDate: plan.endDate,
   dayCount: 2,
   expiresAt: EXPIRES,
+  // The version the list holds: the plan as it opened.
+  fingerprint: planFingerprint(plan),
 });
 
 beforeEach(() => {

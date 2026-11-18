@@ -917,6 +917,19 @@ export default function NewTripPage({
   const sessionTrayVisible =
     hasResult && isUnsaved && !autoSaveArmActive && sessionTrips.length >= 2;
 
+  // A plan on screen and not saved: the save nudges, the leave guard and the
+  // exit event (hooks/useUnsavedPlan.ts).
+  const { noteEditApplied } = useUnsavedPlan({ hasResult, isUnsaved, sessionTrayVisible, showAuthModal, getGenCount });
+  // The assistant's edits to the plan on screen, and their undo (hooks/useAssistantEdits.ts).
+  const { applyEdits, undoEdits, hasEdits, forgetEdits } = useAssistantEdits({
+    plan: generatedItinerary,
+    onPlan: setGeneratedItinerary,
+    startDate,
+    endDate,
+    onEndDate: setEndDate,
+    noteEditApplied,
+  });
+
   // ── Kept plans ───────────────────────────────────────────────────────────
   // Every plan a signed-out planner makes is kept behind a private link for 30
   // days (hooks/useKeptPlan.ts): closing the tab or changing device loses
@@ -932,6 +945,8 @@ export default function NewTripPage({
     enabled: isAuthenticated === false && hasResult && isUnsaved && !generating,
     planId: sessionTripCurrentId,
     plan: keptPlanInput,
+    // The assistant's edits: making the same trip again then keeps this plan.
+    changedByPlanner: hasEdits,
   });
   // Free photos found for the plan's places after it was shown.
   usePlanPhotos({ plan: generatedItinerary, destination, onPlan: setGeneratedItinerary });
@@ -949,19 +964,6 @@ export default function NewTripPage({
     selectedVibes,
     budgetTier,
     tripIntent,
-  });
-
-  // A plan on screen and not saved: the save nudges, the leave guard and the
-  // exit event (hooks/useUnsavedPlan.ts).
-  const { noteEditApplied } = useUnsavedPlan({ hasResult, isUnsaved, sessionTrayVisible, showAuthModal, getGenCount });
-  // The assistant's edits to the plan on screen, and their undo (hooks/useAssistantEdits.ts).
-  const { applyEdits, undoEdits, hasEdits, forgetEdits } = useAssistantEdits({
-    plan: generatedItinerary,
-    onPlan: setGeneratedItinerary,
-    startDate,
-    endDate,
-    onEndDate: setEndDate,
-    noteEditApplied,
   });
 
   // Regenerate, asking first when the assistant has changed this itinerary.

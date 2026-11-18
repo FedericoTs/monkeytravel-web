@@ -18,6 +18,11 @@ export interface KeptPlanEntry {
   endDate: string;
   dayCount: number;
   expiresAt: string;
+  /** The version this browser last kept or sent (planFingerprint). */
+  fingerprint?: string;
+  /** Changed after it was made (the assistant, a moved stop). A new plan for the same trip is kept beside it, not
+   * over it, so the changes aren't lost. */
+  changed?: true;
 }
 
 function isEntry(v: unknown): v is KeptPlanEntry {
@@ -30,7 +35,9 @@ function isEntry(v: unknown): v is KeptPlanEntry {
     typeof e.startDate === "string" &&
     typeof e.endDate === "string" &&
     typeof e.dayCount === "number" &&
-    typeof e.expiresAt === "string"
+    typeof e.expiresAt === "string" &&
+    (e.fingerprint === undefined || typeof e.fingerprint === "string") &&
+    (e.changed === undefined || e.changed === true)
   );
 }
 
@@ -53,11 +60,19 @@ function write(entries: KeptPlanEntry[]) {
   listeners.forEach((onChange) => onChange());
 }
 
-/** Puts the plan first; a key this browser already holds for it is kept. */
+/**
+ * Puts the plan first. A key this browser already holds for it is kept, and so is its having been changed: a
+ * changed plan is never replaced by another (useKeptPlan keeps that one beside it), only opened or changed again.
+ */
 export function rememberKeptPlan(entry: KeptPlanEntry): void {
   const all = readKeptPlans();
-  const key = entry.key ?? all.find((e) => e.token === entry.token)?.key;
-  write([{ ...entry, ...(key ? { key } : {}) }, ...all.filter((e) => e.token !== entry.token)]);
+  const before = all.find((e) => e.token === entry.token);
+  const key = entry.key ?? before?.key;
+  const changed = entry.changed ?? before?.changed;
+  write([
+    { ...entry, ...(key ? { key } : {}), ...(changed ? { changed } : {}) },
+    ...all.filter((e) => e.token !== entry.token),
+  ]);
 }
 
 export function forgetKeptPlan(token: string): void {
@@ -88,7 +103,8 @@ export function subscribeKeptPlans(onChange: () => void): () => void {
   };
 }
 
-export function entryFor(token: string, plan: KeptPlan, expiresAt: string, key?: string): KeptPlanEntry {
+/** `changed`: this version is the planner's change to the plan, not a plan as it was made. */
+export function entryFor(token: string, plan: KeptPlan, expiresAt: string, key?: string, changed = false): KeptPlanEntry {
   return {
     token,
     ...(key ? { key } : {}),
@@ -97,6 +113,8 @@ export function entryFor(token: string, plan: KeptPlan, expiresAt: string, key?:
     endDate: plan.endDate,
     dayCount: plan.itinerary.days.length,
     expiresAt,
+    fingerprint: planFingerprint(plan),
+    ...(changed ? { changed: true as const } : {}),
   };
 }
 
