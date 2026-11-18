@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mendJson } from "./json-mend";
+import { mendJson, slipNear } from "./json-mend";
 
 const tips = (body: string) => `{"day":1,"tips":[${body}],"theme":"Old town"}`;
 // A reply long enough that the parser quotes only the text around a token it can't take.
@@ -79,6 +79,32 @@ describe("mendJson", () => {
     expect(() => mendJson('{"d":"a "b", c","x":1}')).toThrow(/after property value in JSON at position 9/);
     // A comma before the end of a list in a reply too short for the parser to quote around it.
     expect(() => mendJson("[1,]")).toThrow(SyntaxError);
+  });
+
+  // A plan that couldn't be read logged only the parser's words ("Expected double-quoted property name ... line 337
+  // column 7"), so the slip couldn't be taught.
+  it("keeps the text around the slip it couldn't mend, on one line, for the logs", () => {
+    const caught = (text: string): unknown => {
+      try {
+        mendJson(text);
+      } catch (err) {
+        return err;
+      }
+      throw new Error("it parsed");
+    };
+    // A number right after a number: no comma it can put back.
+    expect(slipNear(caught('{"a":[1 2]}'))).toBe('{"a":[1 ⟪2]}');
+    // A name without its quotes at the start of a line, the line break written as its escape.
+    expect(slipNear(caught('{"a":1,\n      x: 2}'))).toBe('{"a":1,\\n      ⟪x: 2}');
+    // After the slips it mended, the text as mended, around the one that stopped it.
+    expect(slipNear(caught('{"tip":"Try the "best" coffee","address":ოფ Flat 4}'))).toBe('ip":"Try the \\"best\\" coffee","address":⟪ოფ Flat 4}');
+    // Forty characters on each side, no more.
+    expect(slipNear(caught(`{"a":"${"x".repeat(100)}","b":[1 2]}`))).toBe(`${"x".repeat(31)}","b":[1 ⟪2]}`);
+    expect(slipNear(caught(`{"b":[1 2],"c":"${"y".repeat(100)}"}`))).toBe(`{"b":[1 ⟪2],"c":"${"y".repeat(32)}`);
+    // No place for the parser's error, or another error: nothing.
+    expect(slipNear(caught('{"a":'))).toBeNull();
+    expect(slipNear(new Error("timeout"))).toBeNull();
+    expect(slipNear("not an error")).toBeNull();
   });
 
   it("gives up on a reply with more slips than a slip", () => {

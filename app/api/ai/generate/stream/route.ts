@@ -5,6 +5,7 @@ import { errors } from "@/lib/api/response-wrapper";
 import { recordAnonymousGeneration } from "@/lib/anonymous/rate-limit";
 import { generateItineraryStream } from "@/lib/gemini";
 import { parseStreamedItinerary } from "@/lib/ai/itinerary-text";
+import { slipNear } from "@/lib/ai/json-mend";
 import { validateTripParams } from "@/lib/trips/request-validation";
 import { bookingLinksFor, withActivityDefaults, withServerFields } from "@/lib/ai/server-fields";
 import { inPlanCurrency } from "@/lib/ai/plan-currency";
@@ -302,7 +303,12 @@ export async function POST(request: NextRequest) {
               costUsd: generationCost,
               exactCost: true,
               error: `unparseable output: ${msg}`,
-              metadata: { user_id: user?.id ?? "anonymous", ...(generationId ? { generation_id: generationId } : {}) },
+              metadata: {
+                user_id: user?.id ?? "anonymous",
+                ...(generationId ? { generation_id: generationId } : {}),
+                // The text around the slip that couldn't be mended: the next one to teach lib/ai/json-mend.ts.
+                ...(slipNear(err) ? { slip: slipNear(err) } : {}),
+              },
             }).catch(() => undefined)
           );
           yield {
