@@ -53,7 +53,7 @@
       },
       "exportShare": {
         "title": "Exportar y Compartir",
-        "description": "Exporta tu itinerario como PDF, comparte un enlace con tus compañeros de viaje o sincroniza con tu calendario. Tus planes de viaje, donde los necesites."
+        "description": "Exporta tu itinerario como PDF, comparte un enlace con tus compañeros de viaje o descárgalo para tu calendario. Tus planes de viaje, donde los necesites."
       }
     }
   },
@@ -101,7 +101,7 @@
       },
       "exportOptions": {
         "label": "Exportar y compartir",
-        "monkey": "Exportar a PDF, enlaces compartibles, sincronización con calendario",
+        "monkey": "Exportar a PDF, enlaces compartibles, archivo de calendario",
         "chatgpt": "Solo copiar y pegar texto"
       }
     }
@@ -123,7 +123,7 @@
       },
       "exportFormats": {
         "question": "¿Puedo exportar o compartir mi itinerario?",
-        "answer": "Por supuesto. Puedes exportar tu itinerario generado como PDF, compartirlo mediante un enlace único con compañeros de viaje o sincronizarlo con tu calendario. Un viaje guardado que hayas abierto una vez también se puede leer sin conexión mientras viajas."
+        "answer": "Por supuesto. Puedes exportar tu itinerario generado como PDF, compartirlo mediante un enlace único con compañeros de viaje o descargar un archivo para añadirlo a tu calendario. Un viaje guardado que hayas abierto una vez también se puede leer sin conexión mientras viajas."
       },
       "isFree": {
         "question": "¿El generador de itinerarios con AI es gratis?",

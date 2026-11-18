@@ -53,7 +53,7 @@
       },
       "exportShare": {
         "title": "Export & Share",
-        "description": "Export your itinerary as PDF, share a link with travel companions, or sync with your calendar. Your trip plans, everywhere you need them."
+        "description": "Export your itinerary as PDF, share a link with travel companions, or download it for your calendar. Your trip plans, everywhere you need them."
       }
     }
   },
@@ -101,7 +101,7 @@
       },
       "exportOptions": {
         "label": "Export & sharing",
-        "monkey": "PDF export, shareable links, calendar sync",
+        "monkey": "PDF export, shareable links, calendar file",
         "chatgpt": "Copy-paste text only"
       }
     }
@@ -123,7 +123,7 @@
       },
       "exportFormats": {
         "question": "Can I export or share my itinerary?",
-        "answer": "Absolutely. You can export your generated itinerary as a PDF, share it via a unique link with travel companions, or sync it to your calendar. A saved trip you've opened once also stays readable offline while you travel."
+        "answer": "Absolutely. You can export your generated itinerary as a PDF, share it via a unique link with travel companions, or download a calendar file to add it to your calendar. A saved trip you've opened once also stays readable offline while you travel."
       },
       "isFree": {
         "question": "Is the AI itinerary generator free?",

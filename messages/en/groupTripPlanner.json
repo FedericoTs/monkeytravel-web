@@ -143,7 +143,7 @@
       },
       "splitCosts": {
         "question": "Can MonkeyTravel help split costs?",
-        "answer": "Yes. On a saved trip, tap \"Who paid?\" on an activity or add an expense, and Settle up shows who owes whom. Plans also show an estimated cost for each activity and for the whole trip."
+        "answer": "Not yet. Plans show an estimated cost for each activity and for the whole trip, so the group can see what it will spend, but MonkeyTravel doesn't track what each person has paid."
       }
     }
   },

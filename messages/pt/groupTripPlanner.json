@@ -143,7 +143,7 @@
       },
       "splitCosts": {
         "question": "O MonkeyTravel pode ajudar a dividir os custos?",
-        "answer": "Sim. Em uma viagem salva, toque em \"Quem pagou?\" em uma atividade ou adicione uma despesa, e Acertar contas mostra quem deve para quem. Os planos também mostram um custo estimado para cada atividade e para a viagem toda."
+        "answer": "Ainda não. Os planos mostram um custo estimado para cada atividade e para a viagem toda, para o grupo saber quanto vai gastar, mas o MonkeyTravel não registra quanto cada um pagou."
       }
     }
   },
