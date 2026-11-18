@@ -17,11 +17,8 @@ import type {
   CurrencyCode,
   FormattedCurrency,
 } from "./types";
-import {
-  FAHRENHEIT_COUNTRIES,
-  IMPERIAL_COUNTRIES,
-  LOCALE_CURRENCY_MAP,
-} from "./types";
+import { FAHRENHEIT_COUNTRIES, IMPERIAL_COUNTRIES } from "./types";
+import { currencyForLocale } from "./currency-guess";
 import { formatTemperature, formatDistance } from "./conversions";
 import {
   getExchangeRates,
@@ -71,11 +68,8 @@ function detectLocalePreferences(): LocalePreferences {
       ? FAHRENHEIT_COUNTRIES.includes(countryCode)
       : false;
 
-    // Determine preferred currency from locale
-    const preferredCurrency =
-      LOCALE_CURRENCY_MAP[browserLocale] ||
-      LOCALE_CURRENCY_MAP[`en-${countryCode}`] ||
-      "USD";
+    // The currency the locale points to: its region's, or its language's (lib/locale/currency-guess.ts).
+    const preferredCurrency = currencyForLocale(browserLocale);
 
     return {
       locale: browserLocale,
