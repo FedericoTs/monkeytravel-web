@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { keepOffClosingDays, type Weekday } from "@/lib/ai/closing-days";
-import { KNOWN_CLOSINGS, knownClosingFor, shutBy, withKnownClosings, type KnownClosing } from "@/lib/ai/known-closings";
+import { KNOWN_CLOSINGS, hoursOn, knownClosingFor, shutBy, withKnownClosings, type KnownClosing } from "@/lib/ai/known-closings";
 
 const entry = (name: string, destination: string) => {
   const found = knownClosingFor(name, destination);
@@ -172,6 +172,18 @@ describe("Tokyo's metropolitan gardens", () => {
 describe("the list's entries", () => {
   it("each name an official https page", () => {
     for (const place of KNOWN_CLOSINGS) expect(place.source).toMatch(/^https:\/\/[^\s]+$/);
+    for (const place of KNOWN_CLOSINGS.filter((p) => p.hoursSource)) expect(place.hoursSource).toMatch(/^https:\/\/[^\s]+$/);
+  });
+
+  it("keep a winter visit to the Tokyo gardens inside their official hours", () => {
+    // Thursday 28 January 2027.
+    expect(hoursOn(entry("Imperial Palace East Gardens", "Tokyo"), "2027-01-28")).toEqual({ open: 540, close: 960, lastEntry: 930 });
+    expect(hoursOn(entry("Shinjuku Gyoen", "Tokyo"), "2027-01-28")).toEqual({ open: 540, close: 990, lastEntry: 960 });
+    // The Louvre stays open late on Fridays, and the Acropolis Museum isn't the Acropolis.
+    expect(hoursOn(entry("Louvre Museum", "Paris"), "2027-01-29")?.close).toBe(21 * 60);
+    expect(hoursOn(entry("Louvre Museum", "Paris"), "2027-01-28")?.close).toBe(18 * 60);
+    expect(knownClosingFor("Acropolis Museum", "Athens")).toBeUndefined();
+    expect(hoursOn(entry("Acropolis", "Athens"), "2027-01-28")).toEqual({ open: 480, close: 1020, lastEntry: 1000 });
   });
 
   it("tell a market from the park beside it, and a garden from the palace's open grounds", () => {
@@ -274,5 +286,45 @@ describe("the list decides its places over the model's answer", () => {
     expect(result.shutBefore).toBe(1);
     expect(result.shutAfter).toBe(0);
     expect(result.itinerary.days[1].activities.map((a) => a.name)).toContain("Tokyo National Museum");
+  });
+});
+
+describe("a listed place's hours on a date", () => {
+  const garden: KnownClosing = {
+    names: /\bgarden\b/i,
+    city: /\btokyo\b/i,
+    rules: [{ weekly: ["Monday"] }],
+    hours: [
+      { from: "10-01", to: "03-14", open: "09:00", close: "16:00", lastEntry: "15:30" },
+      { from: "03-15", to: "09-30", days: ["Saturday"], open: "09:00", close: "19:00" },
+      { from: "03-15", to: "09-30", open: "09:00", close: "17:30", lastEntry: "17:00" },
+    ],
+    source: "https://example.test/hours",
+  };
+  const minutes = (time: string) => Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5));
+
+  it("takes the first row whose season and weekday hold, a season running into the new year included", () => {
+    expect(hoursOn(garden, "2027-01-28")).toEqual({ open: minutes("09:00"), close: minutes("16:00"), lastEntry: minutes("15:30") });
+    expect(hoursOn(garden, "2026-12-31")).toEqual({ open: minutes("09:00"), close: minutes("16:00"), lastEntry: minutes("15:30") });
+    expect(hoursOn(garden, "2027-05-15")).toEqual({ open: minutes("09:00"), close: minutes("19:00") });
+    expect(hoursOn(garden, "2027-05-14")).toEqual({ open: minutes("09:00"), close: minutes("17:30"), lastEntry: minutes("17:00") });
+  });
+
+  it("has none on a day the place is shut, a date it can't read, or a place without hours", () => {
+    expect(hoursOn(garden, "2027-01-25")).toBeNull();
+    expect(hoursOn(garden, "28/01/2027")).toBeNull();
+    expect(hoursOn({ ...garden, hours: undefined }, "2027-01-28")).toBeNull();
+    expect(hoursOn({ ...garden, hours: [{ from: "04-01", to: "04-30", open: "09:00", close: "17:00" }] }, "2027-01-28")).toBeNull();
+  });
+
+  it("lists hours only as whole times of day, each season opening before it closes", () => {
+    for (const place of KNOWN_CLOSINGS) {
+      for (const row of place.hours ?? []) {
+        for (const time of [row.open, row.close, ...(row.lastEntry ? [row.lastEntry] : [])]) expect(time).toMatch(/^([01]\d|2[0-3]):[0-5]\d$/);
+        for (const monthDay of [row.from, row.to]) expect(monthDay).toMatch(/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/);
+        expect(minutes(row.open)).toBeLessThan(minutes(row.close));
+        if (row.lastEntry) expect(minutes(row.lastEntry)).toBeLessThanOrEqual(minutes(row.close));
+      }
+    }
   });
 });
