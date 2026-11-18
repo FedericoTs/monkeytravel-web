@@ -143,7 +143,7 @@
       },
       "splitCosts": {
         "question": "¿MonkeyTravel puede ayudar a dividir gastos?",
-        "answer": "Sí. En un viaje guardado, toca \"¿Quién pagó?\" en una actividad o añade un gasto, y Liquidar te muestra quién le debe a quién. Los planes también muestran un coste estimado por actividad y del viaje completo."
+        "answer": "Todavía no. Los planes muestran un coste estimado por actividad y del viaje completo, para que el grupo sepa cuánto va a gastar, pero MonkeyTravel no registra lo que ha pagado cada uno."
       }
     }
   },

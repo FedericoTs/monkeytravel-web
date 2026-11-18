@@ -127,7 +127,7 @@
       },
       "needAccount": {
         "question": "Does everyone need an account?",
-        "answer": "No. You can plan a trip and share the link without an account, and your friends can view and vote without one either. A free account is what saves the trip to your trips, lets you edit it and unlocks the AI concierge — and if you sign up after sharing, the trip you already made comes with you."
+        "answer": "No. You can plan a trip and share the link without an account, and your friends can view and vote without one either. A free account is what saves the trip to your trips, lets you edit it and unlocks the AI assistant on your trip — and if you sign up after sharing, the trip you already made comes with you."
       },
       "votingWorks": {
         "question": "How does the voting system work?",
@@ -143,7 +143,7 @@
       },
       "splitCosts": {
         "question": "Can MonkeyTravel help split costs?",
-        "answer": "Yes. On a saved trip, tap \"Who paid?\" on an activity or add an expense, and Settle up shows who owes whom. Plans also show an estimated cost for each activity and for the whole trip."
+        "answer": "Not yet. Plans show an estimated cost for each activity and for the whole trip, so the group can see what it will spend, but MonkeyTravel doesn't track what each person has paid."
       }
     }
   },

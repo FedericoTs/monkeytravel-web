@@ -32,19 +32,41 @@ const NOT_PROMISED: Record<string, string[]> = {
   pt: ["preços reais", "preços atuais", "disponibilidade verificados", "dados verificados", "avaliada pensando nas famílias", "avaliado para famílias", "rotas seguras", "preços para crianças", "informar a idade de cada criança", "milhares de dados", "melhores ofertas", "milhares de famílias", "o único planejador", "3 roteiros completos"],
 };
 
+/**
+ * Features switched off for now: the trip concierge, splitting costs ("Who paid?", "Settle up") and the calendar
+ * button (a calendar file stays under Export, so "calendar file" is true and "sync" isn't). No landing page may offer
+ * them while they're off. The app's own strings for them (trips) stay until their code goes; when a feature comes
+ * back, take its words out of this list.
+ */
+const SWITCHED_OFF: Record<string, string[]> = {
+  en: ["concierge", "who paid", "settle up", "calendar sync", "sync with your calendar", "sync it to your calendar"],
+  es: ["concierge", "quién pagó", "liquidar", "sincronización con calendario", "sincroniza con tu calendario", "sincronizarlo con tu calendario"],
+  it: ["concierge", "chi ha pagato", "liquidare", "sincronizzazione calendario", "sincronizza con il tuo calendario", "sincronizzarlo con il tuo calendario"],
+  pt: ["concierge", "quem pagou", "acertar contas", "sincronização com calendário", "sincronize com o seu calendário", "sincronizá-lo com o seu calendário"],
+};
+const LANDING_PAGES = PAGES.filter((page) => page !== "trips");
+
 function lines(node: unknown, at = ""): [string, string][] {
   if (typeof node === "string") return [[at, node]];
   if (!node || typeof node !== "object") return [];
   return Object.entries(node).flatMap(([key, value]) => lines(value, at ? `${at}.${key}` : key));
 }
 
+/** The keys of `pages` whose text holds one of `phrases`. */
+function saying(locale: string, pages: string[], phrases: string[]): string[] {
+  return pages.flatMap((page) =>
+    lines(JSON.parse(readFileSync(join(process.cwd(), "messages", locale, `${page}.json`), "utf8")))
+      .filter(([, text]) => phrases.some((phrase) => text.toLowerCase().includes(phrase)))
+      .map(([key]) => `${page}.${key}`)
+  );
+}
+
 describe.each(Object.keys(NOT_PROMISED))("messages/%s", (locale) => {
   it("promises only what a plan does", () => {
-    const found = PAGES.flatMap((page) =>
-      lines(JSON.parse(readFileSync(join(process.cwd(), "messages", locale, `${page}.json`), "utf8")))
-        .filter(([, text]) => NOT_PROMISED[locale].some((phrase) => text.toLowerCase().includes(phrase)))
-        .map(([key]) => `${page}.${key}`)
-    );
-    expect(found).toEqual([]);
+    expect(saying(locale, PAGES, NOT_PROMISED[locale])).toEqual([]);
+  });
+
+  it("offers nothing that is switched off", () => {
+    expect(saying(locale, LANDING_PAGES, SWITCHED_OFF[locale])).toEqual([]);
   });
 });

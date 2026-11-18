@@ -53,7 +53,7 @@
       },
       "exportShare": {
         "title": "Exportar e Compartilhar",
-        "description": "Exporte seu roteiro em PDF, compartilhe um link com seus companheiros de viagem ou sincronize com o seu calendário. Seus planos de viagem, onde você precisar deles."
+        "description": "Exporte seu roteiro em PDF, compartilhe um link com seus companheiros de viagem ou baixe-o para o seu calendário. Seus planos de viagem, onde você precisar deles."
       }
     }
   },
@@ -101,7 +101,7 @@
       },
       "exportOptions": {
         "label": "Exportar e compartilhar",
-        "monkey": "Exportação em PDF, links compartilháveis, sincronização com calendário",
+        "monkey": "Exportação em PDF, links compartilháveis, arquivo de calendário",
         "chatgpt": "Apenas copiar e colar texto"
       }
     }
@@ -123,7 +123,7 @@
       },
       "exportFormats": {
         "question": "Posso exportar ou compartilhar meu roteiro?",
-        "answer": "Com certeza. Você pode exportar seu roteiro gerado em PDF, compartilhá-lo por meio de um link exclusivo com companheiros de viagem ou sincronizá-lo com o seu calendário. Uma viagem salva que você abriu uma vez também fica legível offline durante a viagem."
+        "answer": "Com certeza. Você pode exportar seu roteiro gerado em PDF, compartilhá-lo por meio de um link exclusivo com companheiros de viagem ou baixar um arquivo para adicioná-lo ao seu calendário. Uma viagem salva que você abriu uma vez também fica legível offline durante a viagem."
       },
       "isFree": {
         "question": "O gerador de roteiros com AI é grátis?",
