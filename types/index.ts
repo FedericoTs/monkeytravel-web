@@ -120,7 +120,7 @@ export interface Activity {
    * (lib/ai/transfer-legs.ts) so the JourneyRibbon can label the hop
    * ("TRAIN · 4h 10m") without string-matching activity names.
    */
-  transport_mode?: "train" | "flight" | "ground";
+  transport_mode?: "train" | "flight" | "bus" | "ferry" | "ground";
   description: string;
   location: string;
   address?: string; // Full street address for map links
