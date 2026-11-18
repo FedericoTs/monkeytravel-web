@@ -7,7 +7,8 @@
  * `"address":amp; "Main"`), and a line break or tab typed as it is inside a
  * string. One mend per parse, at the parser's position, so text that parses is
  * never touched. A reply it can't mend throws the parser's first error, and when
- * it mended slips before giving up, the one that stopped it.
+ * it mended slips before giving up, the one that stopped it; either carries the
+ * text around the slip that stopped it (slipNear), for the logs.
  */
 
 /** The parser's own pointer to the first character it couldn't take. */
@@ -75,6 +76,23 @@ function mendAt(text: string, at: number): string | null {
 
 const messageOf = (err: unknown) => (err instanceof Error ? err.message : String(err));
 
+/** Characters each side of a slip in what is logged of it. */
+const NEAR = 40;
+
+/** The text around where the parser stopped, marked ⟪ and on one line; null when that can't be told. */
+function nearOf(source: string, err: unknown): string | null {
+  const at = positionOf(messageOf(err), source);
+  if (at === null) return null;
+  const near = `${source.slice(Math.max(0, at - NEAR), at)}⟪${source.slice(at, at + NEAR)}`;
+  return Array.from(near, (c) => (c.charCodeAt(0) < 0x20 ? escapeOf(c) : c)).join("");
+}
+
+/** The text around the slip a reply couldn't be mended past, from mendJson's error; null for any other error. */
+export function slipNear(err: unknown): string | null {
+  const near = err instanceof Error ? (err as Error & { near?: unknown }).near : undefined;
+  return typeof near === "string" ? near : null;
+}
+
 /** The parsed value and how many slips were mended to get it; JSON.parse's first error when it can't be. */
 export function mendJson(text: string): { value: unknown; mends: number } {
   let source = text;
@@ -86,9 +104,13 @@ export function mendJson(text: string): { value: unknown; mends: number } {
       first ??= err;
       const at = mends < MENDS_MAX ? positionOf(messageOf(err), source) : null;
       const mended = at === null ? null : mendAt(source, at);
-      if (mended === null && mends === 0) throw first;
-      // Where the reply went wrong first, and what couldn't be mended after the slips before it.
-      if (mended === null) throw new SyntaxError(`${messageOf(first)}; ${mends} mended, then: ${messageOf(err)}`);
+      if (mended === null) {
+        // Where the reply went wrong first, and what couldn't be mended after the slips before it.
+        const stopped = mends === 0 ? first : new SyntaxError(`${messageOf(first)}; ${mends} mended, then: ${messageOf(err)}`);
+        const near = nearOf(source, err);
+        if (near !== null && stopped instanceof Error) Object.assign(stopped, { near });
+        throw stopped;
+      }
       source = mended;
     }
   }
