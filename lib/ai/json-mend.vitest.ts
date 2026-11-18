@@ -35,12 +35,27 @@ describe("mendJson", () => {
     expect(() => mendJson('{"a":1\u0001}')).toThrow(SyntaxError);
   });
 
+  it("takes out a comma left before the end of an object", () => {
+    expect(mendJson('{"a":1,}')).toEqual({ value: { a: 1 }, mends: 1 });
+    expect(mendJson('{"days":[{"n":1,  }],"x":2}').value).toEqual({ days: [{ n: 1 }], x: 2 });
+    // Only a comma: a name left without its colon stays the parser's error.
+    expect(() => mendJson('{"a" }')).toThrow(/after property name in JSON at position 5 \(line 1 column 6\)$/);
+    // Nor a name left unquoted.
+    expect(() => mendJson('{"a":1, b:2}')).toThrow(/Expected double-quoted property name/);
+  });
+
+  it("names the slip it couldn't mend after mending the ones before it", () => {
+    const reply = '{"tip":"Try the "best" coffee","address":ოფ Flat 4}';
+    expect(() => mendJson(reply)).toThrow(/^Expected ',' or '\}' after property value in JSON at position 17 .*; 2 mended, then: Unexpected token 'ო'/);
+  });
+
   it("throws the parser's first error when the text is broken some other way", () => {
     const stray = '{"address":ოფ Flat 4,"x":1}';
     expect(() => mendJson(stray)).toThrow(/Unexpected token/);
     // A quote followed by a comma can't be told from the end of the string.
     expect(() => mendJson('{"d":"a "b", c","x":1}')).toThrow(/after property value in JSON at position 9/);
-    expect(() => mendJson('{"a":1,}')).toThrow(SyntaxError);
+    // A comma before the end of a list: the parser gives no position for it.
+    expect(() => mendJson("[1,]")).toThrow(SyntaxError);
   });
 
   it("gives up on a reply with more slips than a slip", () => {
