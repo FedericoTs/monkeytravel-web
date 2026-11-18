@@ -57,7 +57,7 @@ Eles também não conseguem criar roteiros estruturados e prontos para reserva. 
 
 ### 2. Planejadores de Viagem com AI Dedicados (MonkeyTravel, Wonderplan, Layla, TripPlanner AI)
 
-**O que fazem de diferente:** Essas ferramentas são feitas especificamente para viagens. Elas se conectam ao Google Places, a bancos de dados de avaliações e a dados de preços reais. Quando recomendam um restaurante, ele existe, está aberto e a nota é real. O [planejador de viagens com AI gratis da MonkeyTravel](/) é um exemplo — ele gera roteiros estruturados com locais verificados, três faixas de orçamento e roteirização geográfica inteligente.
+**O que fazem de diferente:** Essas ferramentas são feitas especificamente para viagens: planejam dia a dia, com horários, lugares e o trajeto entre eles, e algumas verificam o que o modelo escreveu. O [planejador de viagens com AI gratis da MonkeyTravel](/) é um exemplo — ele tira os lugares dos dias em que fecham, checa no Google Maps os lugares para comer de uma viagem salva e dá custos estimados em três faixas de orçamento, com as paradas de cada dia perto umas das outras.
 
 **Em que são bons:** Gerar roteiros completos e estruturados — com locais específicos, horários, estimativas de orçamento e roteirização geográfica que minimiza idas e vindas. Os melhores deixam você personalizar o resultado, e não apenas aceitar ou recusar.
 
@@ -127,7 +127,7 @@ Esse fluxo de trabalho — rascunho da AI, edição humana, refinamento em grupo
 
 ## Experimente: 30 Segundos Até o Seu Primeiro Rascunho
 
-A MonkeyTravel é construída exatamente sobre esse fluxo de trabalho. Nossa AI gera um roteiro personalizado usando locais reais verificados pelo Google, preços de verdade e roteirização inteligente. Depois, você — e a sua turma de viagem — podem votar nas atividades, propor alternativas e remodelar o plano juntos.
+A MonkeyTravel é construída exatamente sobre esse fluxo de trabalho. Nossa AI gera um roteiro personalizado usando locais reais, custos estimados e roteirização inteligente. Depois, você — e a sua turma de viagem — podem votar nas atividades, propor alternativas e remodelar o plano juntos.
 
 Sem barreira de cadastro. Sem restaurantes inventados. Sem conselhos genéricos do tipo "visite os pontos turísticos famosos".
 
@@ -151,7 +151,7 @@ Não totalmente. A AI dá conta da maior parte do trabalho padrão e repetitivo 
 
 ### Qual é o melhor planejador de viagens com AI gratis?
 
-Procure ferramentas que usem dados reais de locais (não apenas geração de texto), forneçam horários e preços específicos e permitam personalização depois da geração. O [planejador de viagens com AI gratis da MonkeyTravel](/) usa locais verificados pelo Google e oferece três faixas de orçamento. Evite ferramentas que só geram descrições de texto sem roteiros estruturados dia a dia.
+Procure ferramentas que usem dados reais de locais (não apenas geração de texto), forneçam horários e preços específicos e permitam personalização depois da geração. O [planejador de viagens com AI gratis da MonkeyTravel](/) indica locais reais e oferece três faixas de orçamento. Evite ferramentas que só geram descrições de texto sem roteiros estruturados dia a dia.
 
 ### A AI pode planejar uma viagem em grupo?
 

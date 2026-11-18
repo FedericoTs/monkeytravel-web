@@ -130,7 +130,7 @@ Here's what a good AI-generated itinerary includes:
 
 This geographic clustering is one of AI's biggest advantages over manual planning. Humans tend to plan by priority ("I want to see Sagrada Familia and La Boqueria and Park Guell") without thinking about the 45 minutes of transit between each one. AI routes your day like a GPS routes a road trip — efficiently.
 
-**Important:** Not all AI trip planners are equal. General chatbots like ChatGPT will give you a paragraph of suggestions. Dedicated trip planners like MonkeyTravel generate structured itineraries with verified venues and real pricing. The difference matters. If a tool can't tell you the actual name and rating of a restaurant, it's guessing — and AI guesses (called hallucinations) are the biggest risk in AI trip planning.
+**Important:** Not all AI trip planners are equal. General chatbots like ChatGPT will give you a paragraph of suggestions. Dedicated trip planners like MonkeyTravel generate structured itineraries with real places and cost estimates. The difference matters. If a tool can't tell you the actual name and rating of a restaurant, it's guessing — and AI guesses (called hallucinations) are the biggest risk in AI trip planning.
 
 ## Step 4: Review and Customize
 
@@ -237,11 +237,11 @@ The AI generates a complete itinerary in 30 seconds to 2 minutes. Reviewing, cus
 
 ### Is AI trip planning free?
 
-Many AI trip planners offer free tiers. [MonkeyTravel](https://monkeytravel.app) lets you generate personalized itineraries for free with real venue data and budget breakdowns. General chatbots like ChatGPT are also free for basic queries, but they lack the structured itinerary format, verified venues, and geographic routing that dedicated trip planners provide.
+Many AI trip planners offer free tiers. [MonkeyTravel](https://monkeytravel.app) lets you generate personalized itineraries for free, with each day's places and cost estimates. General chatbots like ChatGPT are also free for basic queries, but they lack the structured itinerary format, the checks and the geographic routing that dedicated trip planners provide.
 
 ### Can I trust AI restaurant and activity recommendations?
 
-It depends on the tool. General chatbots sometimes hallucinate — they'll confidently recommend a restaurant that doesn't exist. Dedicated AI trip planners like MonkeyTravel pull from Google Places and verified review data, so the venues are real, the ratings are accurate, and the prices are current. That said, always do a quick check on opening hours and recent closures before your trip, especially for restaurants.
+It depends on the tool. General chatbots sometimes hallucinate — they'll confidently recommend a restaurant that doesn't exist. MonkeyTravel checks its plans after the model writes them: sights are moved off the days they're closed, and once you save a trip its places to eat are checked on Google Maps and any that aren't open are replaced. Costs are estimates. That said, always do a quick check on opening hours and recent closures before your trip, especially for restaurants.
 
 ### What if I'm planning a trip for a large group?
 
@@ -253,7 +253,7 @@ Yes, and this is one of AI's strongest use cases. Multi-city trips involve layer
 
 ### How is an AI trip planner different from just using ChatGPT?
 
-ChatGPT is a general-purpose AI that can talk about travel, but it doesn't have access to real-time venue data, can't verify that a restaurant is still open, and outputs unstructured text rather than a day-by-day itinerary with time slots. A dedicated AI trip planner connects to Google Places, review databases, and pricing data to give you specific, verified recommendations organized into a structured, actionable plan. Think of it this way: ChatGPT is like asking a well-read friend for advice. A dedicated AI trip planner is like hiring a research assistant who checks every fact. For a deeper comparison of AI tools versus traditional planning, see our [AI trip planner vs. travel agent breakdown](/blog/ai-trip-planner-vs-travel-agent).
+ChatGPT is a general-purpose AI that can talk about travel, but it doesn't have access to real-time venue data, can't verify that a restaurant is still open, and outputs unstructured text rather than a day-by-day itinerary with time slots. A dedicated AI trip planner gives you specific places organized into a structured, day-by-day plan, and the better ones check what the model wrote. Think of it this way: ChatGPT is like asking a well-read friend for advice. A dedicated AI trip planner is like a research assistant who checks the facts that most often go wrong. For a deeper comparison of AI tools versus traditional planning, see our [AI trip planner vs. travel agent breakdown](/blog/ai-trip-planner-vs-travel-agent).
 
 ## Your Next Trip Starts Here
 

@@ -303,7 +303,7 @@ Presupuesto realista para 4 días, por persona:
 
 Esta guía te da un marco sólido, pero cada viaje es diferente. Quizás quieres pasar más tiempo en Akihabara. Quizás visitas en temporada de cerezos y necesitas otra estrategia de parques. Quizás prefieres una excursión a Nikko en lugar de Kamakura.
 
-La AI de MonkeyTravel crea un **itinerario personalizado de Tokio día a día** en 30 segundos — con restaurantes reales, precios actuales, conexiones de tren y rutas inteligentes para que no estés zigzagueando por la ciudad.
+La AI de MonkeyTravel crea un **itinerario personalizado de Tokio día a día** en 30 segundos — con restaurantes reales, costes estimados, conexiones de tren y rutas inteligentes para que no estés zigzagueando por la ciudad.
 
 [Generar Mi Itinerario de Tokio — Gratis](https://monkeytravel.app)
 

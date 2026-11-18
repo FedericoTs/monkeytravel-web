@@ -57,7 +57,7 @@ Tampoco pueden crear itinerarios estructurados y reservables. Te dan un párrafo
 
 ### 2. Planificadores de viaje con AI dedicados ([MonkeyTravel](/es/free-ai-trip-planner), Wonderplan, Layla, TripPlanner AI)
 
-**Qué hacen diferente:** Estas herramientas están creadas específicamente para viajar. Se conectan a Google Places, bases de datos de reseñas y datos de precios reales. Cuando recomiendan un restaurante, existe, está abierto y la valoración es real.
+**Qué hacen diferente:** Estas herramientas están creadas específicamente para viajar: planifican día a día, con horarios, lugares y la ruta entre ellos, y algunas revisan lo que escribió el modelo. MonkeyTravel, por ejemplo, mueve los lugares que cierran ese día, comprueba en Google Maps los restaurantes de un viaje guardado y da costes estimados en tres niveles de presupuesto.
 
 **En qué son buenos:** Generar itinerarios completos y estructurados — con lugares específicos, franjas horarias, estimaciones de presupuesto y rutas geográficas que minimizan los desplazamientos innecesarios. Los mejores te permiten personalizar el resultado, no solo aceptarlo o rechazarlo.
 
@@ -127,7 +127,7 @@ Este flujo de trabajo — borrador del AI, edición humana, refinamiento en grup
 
 ## Pruébalo: 30 segundos para tu primer borrador
 
-MonkeyTravel se basa exactamente en este flujo de trabajo. Nuestro AI genera un itinerario personalizado usando lugares reales verificados con Google, precios actuales y rutas inteligentes. Luego tú — y tu grupo de viaje — podéis votar actividades, proponer alternativas y reformar el plan juntos.
+MonkeyTravel se basa exactamente en este flujo de trabajo. Nuestro AI genera un itinerario personalizado usando lugares reales, costes estimados y rutas inteligentes. Luego tú — y tu grupo de viaje — podéis votar actividades, proponer alternativas y reformar el plan juntos.
 
 Sin registro obligatorio. Sin restaurantes inventados. Sin consejos genéricos de "visita los monumentos famosos".
 

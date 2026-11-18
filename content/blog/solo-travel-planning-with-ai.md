@@ -221,7 +221,7 @@ AI trip planners compressed that into minutes. Not by making the decisions for y
 
 The freedom of traveling alone is unmatched. The planning shouldn't be the price you pay for that freedom.
 
-[Plan your trip free](/trips/new) with MonkeyTravel's AI — tell it you're traveling solo, and get a complete itinerary built for one. Real venues, real prices, smart routing, and zero judgment about the table for one.
+[Plan your trip free](/trips/new) with MonkeyTravel's AI — tell it you're traveling solo, and get a complete itinerary built for one. Real venues, cost estimates, smart routing, and zero judgment about the table for one.
 
 ---
 
@@ -239,7 +239,7 @@ Start with an AI trip planner to generate a base itinerary — this eliminates t
 
 ### What's the best AI trip planner for solo travelers?
 
-Look for a planner that lets you specify "solo traveler" as a travel style and adjusts recommendations accordingly — solo-friendly dining, safe neighborhoods, activities suited for one person. [MonkeyTravel](/) generates itineraries with Google-verified venues, three budget tiers, and geographic routing optimized for walking, which matters more when you don't have someone to split taxi costs with. Avoid generic chatbots that don't have travel-specific data.
+Look for a planner that lets you specify "solo traveler" as a travel style and adjusts recommendations accordingly — solo-friendly dining, safe neighborhoods, activities suited for one person. [MonkeyTravel](/) generates itineraries with real places, three budget tiers, and geographic routing optimized for walking, which matters more when you don't have someone to split taxi costs with. Avoid generic chatbots that don't have travel-specific data.
 
 ### How do I meet people while traveling alone?
 

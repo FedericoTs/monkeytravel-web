@@ -391,7 +391,7 @@ You'll get by with English in tourist areas of both cities. In Paris, learning "
 
 ## Plan Your 2026 Trip with AI
 
-Still deciding? MonkeyTravel's AI trip planner can build you a personalized itinerary for either city in minutes — with real prices, smart routing, and local recommendations tailored to your interests and budget.
+Still deciding? MonkeyTravel's AI trip planner can build you a personalized itinerary for either city in minutes — with cost estimates, smart routing, and local recommendations tailored to your interests and budget.
 
 Whether you choose the croissant or the cornetto, we'll make sure you don't waste a single day.
 

@@ -111,7 +111,7 @@ No necesitas una hoja de cálculo. Hay varias apps diseñadas específicamente p
 - **Tricount** — Muy popular en Europa. Funciona sin conexión (útil en el extranjero), soporta varias divisas y no requiere que todos se creen una cuenta.
 - **Settle Up** — Similar a Splitwise con mejor gestión de múltiples divisas y simplificación de deudas grupales.
 
-**Para presupuestar el viaje:** [MonkeyTravel](/es/group-trip-planner) genera itinerarios con tres niveles de presupuesto — Económico, Equilibrado y Premium — con precios reales para cada actividad, restaurante y hotel. Todo el grupo puede ver exactamente cuánto cuesta cada día antes de comprometerse. Sin sorpresas.
+**Para presupuestar el viaje:** [MonkeyTravel](/es/group-trip-planner) genera itinerarios con tres niveles de presupuesto — Económico, Equilibrado y Premium — con un coste estimado para cada actividad y restaurante. Todo el grupo puede ver más o menos cuánto costará cada día antes de comprometerse.
 
 **Para máxima transparencia:** Una hoja de Google compartida con tres columnas (fecha, gasto, quién pagó) funciona perfectamente si tu grupo prefiere algo manual. Actualizadla cada noche durante la cena.
 
@@ -147,7 +147,7 @@ Fodor's Travel recomienda abordar estas conversaciones durante la primera semana
 
 Planificar un viaje en grupo ya es bastante difícil. Calcular cuánto cuesta realmente cada día — entre distintas ciudades, divisas y niveles de actividad — no debería llevar horas de investigación.
 
-[MonkeyTravel](/es/group-trip-planner) genera itinerarios grupales con tres niveles de presupuesto y precios reales obtenidos de Google. El [planificador AI](/es/free-ai-trip-planner) se encarga de las cuentas para que tú no tengas que hacerlo. Todos ven los costes antes de comprometerse. Votad actividades, intercambiad alternativas y sabed exactamente cuánto vais a gastar antes de salir de casa. Sin hojas de cálculo.
+[MonkeyTravel](/es/group-trip-planner) genera itinerarios grupales con tres niveles de presupuesto y un coste estimado para cada actividad. El [planificador AI](/es/free-ai-trip-planner) se encarga de las cuentas para que tú no tengas que hacerlo. Todos ven los costes antes de comprometerse. Votad actividades, intercambiad alternativas y sabed más o menos cuánto vais a gastar antes de salir de casa. Sin hojas de cálculo.
 
 [Planifica un viaje en grupo — Gratis](/es/group-trip-planner)
 
@@ -161,7 +161,7 @@ El método más justo depende de la configuración de habitaciones. Si cada uno 
 
 ### ¿Cuál es la mejor app para dividir gastos de viaje en grupo?
 
-Splitwise es la más utilizada y gestiona bien los viajes con varias divisas. Para planificar el presupuesto del viaje, combínala con MonkeyTravel — la AI genera itinerarios con precios reales en tres niveles de presupuesto para que todos estéis de acuerdo en los costes antes de que empiece el viaje. Splitwise se encarga del seguimiento durante el viaje; MonkeyTravel del alineamiento previo. Juntas cubren el ciclo completo.
+Splitwise es la más utilizada y gestiona bien los viajes con varias divisas. Para planificar el presupuesto del viaje, combínala con MonkeyTravel — la AI genera itinerarios con costes estimados en tres niveles de presupuesto para que todos estéis de acuerdo en los costes antes de que empiece el viaje. Splitwise se encarga del seguimiento durante el viaje; MonkeyTravel del alineamiento previo. Juntas cubren el ciclo completo.
 
 ### ¿Hay que dividir a partes iguales si alguien gana más?
 

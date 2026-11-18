@@ -352,7 +352,7 @@ Here's a realistic budget for 4 days, per person:
 
 This guide gives you a solid framework, but everyone's trip is different. Maybe you want to spend more time in markets and less in museums. Maybe you're traveling with kids and need family-friendly adjustments. Maybe you only have 3 days, or you want to add a day trip to Stonehenge or Oxford.
 
-MonkeyTravel's AI creates a **personalized day-by-day London itinerary** in 30 seconds — with real restaurants, actual prices, Tube routing, and smart scheduling so you're not crisscrossing the city.
+MonkeyTravel's AI creates a **personalized day-by-day London itinerary** in 30 seconds — with real restaurants, cost estimates, Tube routing, and smart scheduling so you're not crisscrossing the city.
 
 [Generate My London Itinerary — Free](https://monkeytravel.app)
 

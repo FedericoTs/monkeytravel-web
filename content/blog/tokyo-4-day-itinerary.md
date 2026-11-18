@@ -303,7 +303,7 @@ Here's a realistic budget for 4 days, per person:
 
 This guide gives you a solid framework, but everyone's trip is different. Maybe you want to spend more time in Akihabara. Maybe you're visiting during cherry blossom season and need a different park strategy. Maybe you want a Nikko day trip instead of Kamakura.
 
-MonkeyTravel's AI creates a **personalized day-by-day Tokyo itinerary** in 30 seconds — with real restaurants, actual prices, train connections, and smart routing so you're not backtracking across the city.
+MonkeyTravel's AI creates a **personalized day-by-day Tokyo itinerary** in 30 seconds — with real restaurants, cost estimates, train connections, and smart routing so you're not backtracking across the city.
 
 [Generate My Tokyo Itinerary — Free](https://monkeytravel.app)
 

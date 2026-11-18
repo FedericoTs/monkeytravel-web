@@ -271,7 +271,7 @@ Budget realistico per 3 giorni, a persona:
 
 Questa guida ti dà una base solida, ma ogni viaggio è diverso. Magari sei ossessionato da Gaudí e vuoi un giorno intero di architettura modernista. Magari viaggi con bambini che hanno bisogno di pause in spiaggia. Magari arrivi da Madrid e hai solo 2 giorni.
 
-L'AI di MonkeyTravel crea un **itinerario personalizzato di Barcellona giorno per giorno** in 30 secondi — con ristoranti reali, prezzi attuali e percorsi intelligenti per non zigzagare per la città.
+L'AI di MonkeyTravel crea un **itinerario personalizzato di Barcellona giorno per giorno** in 30 secondi — con ristoranti reali, costi stimati e percorsi intelligenti per non zigzagare per la città.
 
 [Genera il Mio Itinerario di Barcellona — Gratis](https://monkeytravel.app)
 

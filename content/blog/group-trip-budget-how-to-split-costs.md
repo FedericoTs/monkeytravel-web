@@ -108,7 +108,7 @@ You don't need a spreadsheet. Several apps exist specifically for this problem:
 - **Tricount** — Popular in Europe. Works offline (useful abroad), supports multiple currencies, and doesn't require everyone to create an account.
 - **Settle Up** — Similar to Splitwise with better multi-currency handling and group debt simplification.
 
-**For trip-level budgeting:** [MonkeyTravel's free AI trip planner](/) generates itineraries with three budget tiers — Budget, Balanced, and Premium — with real prices for every activity, restaurant, and hotel. Everyone in the group can see exactly what each day costs before committing. No surprises.
+**For trip-level budgeting:** [MonkeyTravel's free AI trip planner](/) generates itineraries with three budget tiers — Budget, Balanced, and Premium — with an estimated cost for every activity and restaurant. Everyone in the group can see roughly what each day will cost before committing.
 
 **For full transparency:** A shared Google Sheet with three columns (date, expense, who paid) works fine if your group prefers something manual. Update it each evening over dinner.
 
@@ -144,7 +144,7 @@ Fodor's Travel recommends addressing these conversations within the first week a
 
 Planning a group trip is already hard enough. Figuring out what each day actually costs — across different cities, currencies, and activity levels — shouldn't take hours of research.
 
-[MonkeyTravel's group trip planner](/group-trip-planner) generates group itineraries with three budget tiers and real prices sourced from Google. Everyone sees the costs before committing. Vote on activities, swap in alternatives, and know exactly what you're spending before you leave. No spreadsheet required.
+[MonkeyTravel's group trip planner](/group-trip-planner) generates group itineraries with three budget tiers and an estimated cost for every activity. Everyone sees the costs before committing. Vote on activities, swap in alternatives, and know roughly what you'll spend before you leave. No spreadsheet required.
 
 [Plan a Group Trip — Free](/group-trip-planner)
 
@@ -158,7 +158,7 @@ The fairest approach depends on room configurations. If everyone gets their own 
 
 ### What's the best app for splitting group travel expenses?
 
-Splitwise is the most widely used and handles multi-currency trips well. For budget-level trip planning, pair it with MonkeyTravel — the AI generates itineraries with real prices across three budget tiers so everyone can agree on costs before the trip starts. Splitwise handles the during-trip tracking; MonkeyTravel handles the before-trip alignment. Together, they cover the full cycle.
+Splitwise is the most widely used and handles multi-currency trips well. For budget-level trip planning, pair it with MonkeyTravel — the AI generates itineraries with cost estimates across three budget tiers so everyone can agree on costs before the trip starts. Splitwise handles the during-trip tracking; MonkeyTravel handles the before-trip alignment. Together, they cover the full cycle.
 
 ### Should you split costs equally if someone earns more?
 

@@ -328,7 +328,7 @@ Allow **2 hours** from Seminyak or Canggu to the airport. From Ubud, allow **2.5
 
 This itinerary is a solid starting point, but maybe you want 3 days in Ubud instead of 2. Maybe you're a surfer who needs to be near the breaks. Maybe you're honeymooning and want more private pool villas and fewer backpacker warungs.
 
-MonkeyTravel's AI creates a **personalized day-by-day Bali itinerary** in 30 seconds — with real restaurants, actual prices, and smart routing so you're not burning half your vacation in a car.
+MonkeyTravel's AI creates a **personalized day-by-day Bali itinerary** in 30 seconds — with real restaurants, cost estimates, and smart routing so you're not burning half your vacation in a car.
 
 [Generate My Bali Itinerary — Free](https://monkeytravel.app)
 

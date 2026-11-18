@@ -218,7 +218,7 @@ Los precios de los safaris varían enormemente. Esto es lo que puedes esperar po
 
 Planificar un safari de la Gran Migración implica docenas de decisiones — qué mes, qué región, qué campamentos, qué lado de la frontera, presupuesto, logística, vuelos de conexión. Es mucho.
 
-La AI de MonkeyTravel crea un **itinerario de safari de migración personalizado** basado en tus fechas de viaje, presupuesto e intereses — con recomendaciones de campamentos reales, precios actuales y planificación día a día para que no pierdas ni un solo día.
+La AI de MonkeyTravel crea un **itinerario de safari de migración personalizado** basado en tus fechas de viaje, presupuesto e intereses — con recomendaciones de campamentos reales, costes estimados y planificación día a día para que no pierdas ni un solo día.
 
 [Planificar Mi Safari — Gratis](https://monkeytravel.app)
 

@@ -304,7 +304,7 @@ Aqui está um orçamento realista para 4 dias, por pessoa:
 
 Este guia te dá uma base sólida, mas a viagem de cada um é diferente. Talvez você queira passar mais tempo em Akihabara. Talvez você esteja visitando na temporada de cerejeiras e precise de uma estratégia de parques diferente. Talvez você prefira um bate e volta a Nikko em vez de Kamakura.
 
-A AI da MonkeyTravel cria um **roteiro personalizado de Tóquio dia a dia** em 30 segundos — com restaurantes reais, preços reais, conexões de trem e roteirização inteligente para você não ficar voltando pela cidade.
+A AI da MonkeyTravel cria um **roteiro personalizado de Tóquio dia a dia** em 30 segundos — com restaurantes reais, custos estimados, conexões de trem e roteirização inteligente para você não ficar voltando pela cidade.
 
 [Gerar Meu Roteiro de Tóquio — Grátis](https://monkeytravel.app)
 

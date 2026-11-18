@@ -330,7 +330,7 @@ Reserve **2 horas** de Seminyak ou Canggu até o aeroporto. De Ubud, reserve **2
 
 Este roteiro é um ótimo ponto de partida, mas talvez você queira 3 dias em Ubud em vez de 2. Talvez você seja surfista e precise estar perto das ondas. Talvez esteja em lua de mel e prefira mais villas com piscina privativa e menos warungs de mochileiro.
 
-A AI da MonkeyTravel cria um **roteiro personalizado de Bali, dia a dia**, em 30 segundos — com restaurantes de verdade, preços reais e rotas inteligentes para você não queimar metade das férias dentro de um carro.
+A AI da MonkeyTravel cria um **roteiro personalizado de Bali, dia a dia**, em 30 segundos — com restaurantes de verdade, custos estimados e rotas inteligentes para você não queimar metade das férias dentro de um carro.
 
 [Gerar Meu Roteiro de Bali — Grátis](https://monkeytravel.app)
 

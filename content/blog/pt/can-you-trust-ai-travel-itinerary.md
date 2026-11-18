@@ -191,7 +191,7 @@ Se a AI estima $15 para um museu que agora custa $22, essas diferenças se acumu
 
 Nem todos os planejadores de viagens com AI são iguais, e os melhores estão trabalhando ativamente para enfrentar essas limitações.
 
-**Verificação de locais reais.** Os planejadores de viagens com AI dedicados, como a MonkeyTravel, consultam o Google Places e dados de empresas verificadas em vez de gerar nomes de locais a partir de padrões. Cada restaurante, museu e atração no seu roteiro corresponde a um lugar real e verificado, com endereço confirmado. Isso reduz drasticamente as alucinações — embora a atualidade dos dados continue sendo um desafio em todo o setor.
+**Verificações depois que o plano é escrito.** Um plano que sai só de um modelo é tão bom quanto a memória dele, por isso alguns planejadores verificam o que ele escreveu. A MonkeyTravel tira os lugares dos dias em que fecham e, quando você salva uma viagem, checa os lugares para comer no Google Maps e troca os que não estão abertos. Isso reduz os erros que estragam um dia — embora um fechamento recente ou um horário alterado ainda possam passar.
 
 **Rotas geográficas inteligentes.** Em vez de listar as atrações por ordem de popularidade, os planejadores modernos com AI sequenciam as atividades geograficamente. Tudo no mesmo bairro fica agrupado, minimizando o tempo de transporte e aqueles cronogramas de "teletransporte" excessivamente otimistas.
 
@@ -224,7 +224,7 @@ Os seus dias de férias são valiosos demais para planos não verificados. Verif
 
 ## Experimente: monte um roteiro verificado
 
-A AI da MonkeyTravel gera roteiros personalizados usando locais verificados pelo Google, preços reais e rotas inteligentes que de fato consideram quanto tempo as coisas levam. Cada recomendação corresponde a um lugar real que você pode confirmar no Google Maps.
+A AI da MonkeyTravel gera roteiros personalizados usando locais reais, custos estimados e rotas inteligentes que de fato consideram quanto tempo as coisas levam. Cada recomendação corresponde a um lugar real que você pode confirmar no Google Maps.
 
 Receba o seu primeiro rascunho em 30 segundos. Dedique 20 minutos para verificar. Depois é só ir aproveitar a sua viagem.
 

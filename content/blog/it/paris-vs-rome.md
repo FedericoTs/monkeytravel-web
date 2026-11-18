@@ -392,7 +392,7 @@ Te la caverai con l'inglese nelle zone turistiche di entrambe le città. A Parig
 
 ## Pianifica il Tuo Viaggio 2026 con AI
 
-Ancora indeciso? Il pianificatore di viaggi con AI di MonkeyTravel può crearti un itinerario personalizzato per entrambe le città in pochi minuti — con prezzi reali, percorsi intelligenti e raccomandazioni locali su misura per i tuoi interessi e il tuo budget.
+Ancora indeciso? Il pianificatore di viaggi con AI di MonkeyTravel può crearti un itinerario personalizzato per entrambe le città in pochi minuti — con costi stimati, percorsi intelligenti e raccomandazioni locali su misura per i tuoi interessi e il tuo budget.
 
 Che tu scelga il croissant o il cornetto, ci assicureremo che non sprechi nemmeno un giorno.
 

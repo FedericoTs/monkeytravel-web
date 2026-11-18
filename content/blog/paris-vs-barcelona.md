@@ -308,7 +308,7 @@ Parts of it are — Las Ramblas, Barceloneta beach in August, and the area aroun
 
 ## Plan Your 2026 Trip with AI
 
-Still torn between croissants and patatas bravas? MonkeyTravel's AI trip planner builds personalized itineraries for both cities — with real prices, smart routing, and restaurant recommendations that avoid the tourist traps.
+Still torn between croissants and patatas bravas? MonkeyTravel's AI trip planner builds personalized itineraries for both cities — with cost estimates, smart routing, and restaurant recommendations that avoid the tourist traps.
 
 Tell it your dates, your budget, and what you care about most. You will have a day-by-day plan in minutes.
 

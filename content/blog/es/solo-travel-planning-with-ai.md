@@ -224,7 +224,7 @@ Los planificadores de viaje con AI comprimieron eso en minutos. No tomando las d
 
 La libertad de viajar solo no tiene comparación. La planificación no debería ser el precio que pagas por esa libertad.
 
-[Planifica tu viaje gratis](/trips/new) con el AI de MonkeyTravel — dile que viajas solo y obtén un itinerario completo diseñado para una persona. Lugares reales, precios reales, rutas inteligentes y cero juicios por la mesa para uno.
+[Planifica tu viaje gratis](/trips/new) con el AI de MonkeyTravel — dile que viajas solo y obtén un itinerario completo diseñado para una persona. Lugares reales, costes estimados, rutas inteligentes y cero juicios por la mesa para uno.
 
 ---
 
@@ -242,7 +242,7 @@ Empieza con un planificador de viaje con AI para generar un itinerario base — 
 
 ### ¿Cuál es el mejor planificador de viaje con AI para viajeros solos?
 
-Busca un planificador que te permita especificar "viajero solo" como estilo de viaje y ajuste las recomendaciones en consecuencia — restaurantes amigables para solos, barrios seguros, actividades adecuadas para una persona. [MonkeyTravel](/) genera itinerarios con lugares verificados por Google, tres niveles de presupuesto y rutas geográficas optimizadas para caminar, lo cual importa más cuando no tienes a alguien con quien dividir el coste de un taxi. Evita chatbots genéricos que no tienen datos específicos de viajes.
+Busca un planificador que te permita especificar "viajero solo" como estilo de viaje y ajuste las recomendaciones en consecuencia — restaurantes amigables para solos, barrios seguros, actividades adecuadas para una persona. [MonkeyTravel](/) genera itinerarios con lugares reales, tres niveles de presupuesto y rutas geográficas optimizadas para caminar, lo cual importa más cuando no tienes a alguien con quien dividir el coste de un taxi. Evita chatbots genéricos que no tienen datos específicos de viajes.
 
 ### ¿Cómo conozco gente mientras viajo solo?
 

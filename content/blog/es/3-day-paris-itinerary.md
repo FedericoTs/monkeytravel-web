@@ -189,7 +189,7 @@ Toma el RER C hasta **Versailles Château Rive Gauche** (35-45 minutos, €4,30 
 
 Esta guía te da un marco sólido, pero cada viaje es diferente. Quizás quieres más experiencias gastronómicas y menos museos. Quizás viajas con niños. Quizás solo tienes 2 días.
 
-La AI de MonkeyTravel crea un **itinerario personalizado de París día a día** en 30 segundos — con restaurantes reales, precios actuales y rutas inteligentes.
+La AI de MonkeyTravel crea un **itinerario personalizado de París día a día** en 30 segundos — con restaurantes reales, costes estimados y rutas inteligentes.
 
 [Generar Mi Itinerario de París — Gratis](https://monkeytravel.app)
 

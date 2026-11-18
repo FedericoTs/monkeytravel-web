@@ -189,7 +189,7 @@ If the AI estimates $15 for a museum that now costs $22, those gaps add up acros
 
 Not all AI trip planners are created equal, and the best ones are actively working to address these limitations.
 
-**Real venue verification.** Dedicated AI travel planners like MonkeyTravel pull from Google Places and verified business data rather than generating venue names from patterns. Every restaurant, museum, and attraction in your itinerary maps to a real, verified place with a confirmed address. This drastically reduces hallucination — though data freshness remains a challenge across the industry.
+**Checks after the plan is written.** A plan from a model alone is only as good as its memory, so some planners check what the model wrote. MonkeyTravel moves sights off the days they're closed, and once you save a trip it checks the places to eat on Google Maps and replaces any that aren't open. That cuts the misses that ruin a day — though a new closure or a changed opening time can still slip through.
 
 **Smart geographic routing.** Instead of listing attractions in order of popularity, modern AI planners sequence activities geographically. Everything in the same neighborhood is grouped together, minimizing transit time and those over-optimistic "teleportation" schedules.
 
@@ -222,7 +222,7 @@ Your vacation days are too valuable for unverified plans. Verify the details, th
 
 ## Try It: Build a Verified Itinerary
 
-MonkeyTravel's AI generates personalized itineraries using Google-verified venues, real prices, and smart routing that actually accounts for how long things take. Every recommendation maps to a real place you can confirm on Google Maps.
+MonkeyTravel's AI generates personalized itineraries using real places, cost estimates, and smart routing that actually accounts for how long things take. Every recommendation maps to a real place you can confirm on Google Maps.
 
 Get your first draft in 30 seconds. Spend 20 minutes verifying. Then go enjoy your trip.
 
