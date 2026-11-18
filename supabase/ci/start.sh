@@ -26,7 +26,20 @@ fi
 grep -q '^\[db\]' "$config" || printf '\n[db]\nmajor_version = 17\n' >> "$config"
 grep -q '^\[auth\.rate_limit\]' "$config" || printf '\n[auth.rate_limit]\nemail_sent = 100\n' >> "$config"
 
-supabase start --workdir "$stack" -x imgproxy,studio,edge-runtime,logflare,vector,supavisor
+# The image registry turns pulls away when busy ("Rate exceeded"), and a start
+# that failed half way leaves containers holding their ports, so a second start
+# finds them taken: what started is stopped before each new try, a while later.
+started=""
+for attempt in 1 2 3; do
+  if supabase start --workdir "$stack" -x imgproxy,studio,edge-runtime,logflare,vector,supavisor; then
+    started=1
+    break
+  fi
+  echo "supabase start failed (try $attempt of 3): stopping what started" >&2
+  supabase stop --no-backup --workdir "$stack" || true
+  if [[ "$attempt" -lt 3 ]]; then sleep $((attempt * 30)); fi
+done
+[[ -n "$started" ]] || { echo "the local Supabase stack did not start" >&2; exit 1; }
 eval "$(supabase status --workdir "$stack" -o env | grep -E '^[A-Z0-9_]+=')"
 : "${API_URL:?}" "${DB_URL:?}" "${ANON_KEY:?}" "${SERVICE_ROLE_KEY:?}"
 
