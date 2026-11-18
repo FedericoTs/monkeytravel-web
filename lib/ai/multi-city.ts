@@ -13,6 +13,8 @@
 import type { GeneratedItinerary, TripCreationParams } from "@/types";
 import { generateItinerary } from "@/lib/gemini";
 import { knownPlacesFor } from "./known-places";
+import { askForTransfers } from "./transfer-question";
+import { answeredTransfer } from "./transfer-legs";
 import {
   type CityLeg,
   addDaysISO,
@@ -31,6 +33,13 @@ export type MultiCityBaseParams = Omit<
   "destination" | "startDate" | "endDate"
 >;
 
+/** The hops between the cities, how many the answer covered, and how many of those the cards took. */
+export interface TransfersReport {
+  hops: number;
+  answered: number;
+  used: number;
+}
+
 /**
  * Generate a multi-city itinerary: one independent single-city generation per
  * leg (parallel), merged into one trip. `tripStartDate` is the trip's first day;
@@ -40,9 +49,14 @@ export async function generateMultiCityItinerary(
   base: MultiCityBaseParams,
   legs: CityLeg[],
   tripStartDate: string,
-  options?: Parameters<typeof generateItinerary>[1]
+  options?: Parameters<typeof generateItinerary>[1],
+  onTransfers?: (report: TransfersReport) => void
 ): Promise<GeneratedItinerary> {
   validateLegs(legs);
+
+  // How travellers make each hop, asked while the cities are planned: the
+  // cards between them take the answer where it can be right.
+  const transfersAsked = askForTransfers(legs.map((leg) => leg.city.trim()));
 
   // Derive each city's date sub-range from the cumulative nights so the legs
   // tile the trip with no gap or overlap.
@@ -87,8 +101,16 @@ export async function generateMultiCityItinerary(
   }
   // Transfer-leg labels follow the same language the per-city generations
   // used — it rides on the generation options, not the base params.
+  const { hops } = await transfersAsked;
   const merged = mergeCityItineraries(legs, inTheirCities.results, tripStartDate, {
     language: options?.language,
+    hops,
+  });
+  const cityDays = inTheirCities.results.map((r) => r.days ?? []);
+  onTransfers?.({
+    hops: legs.length - 1,
+    answered: hops.filter(Boolean).length,
+    used: cityDays.slice(1).filter((days, i) => answeredTransfer(hops[i], cityDays[i], days)).length,
   });
 
   // Post-merge validation — warn, don't throw: a usable trip beats a hard fail.

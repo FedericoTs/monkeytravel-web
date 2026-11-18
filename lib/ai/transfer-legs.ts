@@ -7,7 +7,9 @@
  * transfer between consecutive cities from pure code + a distance heuristic
  * (no API): a `transport` activity on each leg-boundary morning, and the
  * "TRAIN · 4h 10m" transit label the JourneyRibbon has had a slot for since
- * the wedge shipped but nothing ever filled.
+ * the wedge shipped but nothing ever filled. When the answer of how travellers
+ * make the hop (lib/ai/transfer-question.ts) can be right for the distance, the
+ * card takes its way and ride time instead of the estimate.
  *
  * Estimates are deliberately advisory (rounded to 10 minutes, cost bands, no
  * schedules) — v2/v3 of the plan bring real bookings and search. Pure and
@@ -97,6 +99,17 @@ export function railJoins(a: LatLng, b: LatLng): boolean {
   return island === -1 || ISLANDS[island].rail;
 }
 
+/** What each way adds to the ride: getting to the station, or to the airport and through it. */
+const OVERHEAD: Record<TransferMode, number> = { train: 30, flight: 150, ground: 30 };
+
+/** A rough one-way price band for a hop of this length; a generic one when the length is unknown. */
+function costOf(mode: TransferMode, km?: number): number {
+  if (km === undefined) return 40;
+  if (mode === "ground") return Math.min(100, Math.max(10, Math.round(km * 0.1)));
+  if (mode === "train") return Math.min(150, Math.max(10, Math.round(km * 0.15)));
+  return Math.min(300, Math.max(50, Math.round(60 + km * 0.08)));
+}
+
 /**
  * Mode + door-to-door duration + price band from straight-line distance.
  * By rail: short hops read as regional trains, mid-range as fast trains, and
@@ -106,32 +119,71 @@ export function railJoins(a: LatLng, b: LatLng): boolean {
  */
 export function estimateTransfer(distanceKm: number | null, byRail = true): TransferEstimate {
   if (distanceKm === null || !Number.isFinite(distanceKm) || distanceKm <= 0) {
-    return { mode: byRail ? "train" : "ground", durationMinutes: 180, estimatedCost: 40 };
+    return { mode: byRail ? "train" : "ground", durationMinutes: 180, estimatedCost: costOf("train") };
   }
   const km = Math.round(distanceKm);
   if (!byRail && km <= 450) {
-    return {
-      mode: "ground",
-      durationMinutes: Math.max(30, roundTo10(km + 30)),
-      estimatedCost: Math.min(100, Math.max(10, Math.round(km * 0.1))),
-      distanceKm: km,
-    };
+    return { mode: "ground", durationMinutes: Math.max(30, roundTo10(km + OVERHEAD.ground)), estimatedCost: costOf("ground", km), distanceKm: km };
   }
   if (byRail && km <= 700) {
     const speedKmh = km < 300 ? 90 : 130; // regional vs fast train
     return {
       mode: "train",
-      durationMinutes: Math.max(30, roundTo10((km / speedKmh) * 60 + 30)),
-      estimatedCost: Math.min(150, Math.max(10, Math.round(km * 0.15))),
+      durationMinutes: Math.max(30, roundTo10((km / speedKmh) * 60 + OVERHEAD.train)),
+      estimatedCost: costOf("train", km),
       distanceKm: km,
     };
   }
   return {
     mode: "flight",
     // Cruise time + check-in/security/transfers overhead.
-    durationMinutes: roundTo10((km / 750) * 60 + 150),
-    estimatedCost: Math.min(300, Math.max(50, Math.round(60 + km * 0.08))),
+    durationMinutes: roundTo10((km / 750) * 60 + OVERHEAD.flight),
+    estimatedCost: costOf("flight", km),
     distanceKm: km,
+  };
+}
+
+/** How travellers usually make a hop, as answered (lib/ai/transfer-question.ts). */
+export interface KnownHop {
+  mode: "train" | "flight" | "bus" | "car" | "ferry";
+  /** The ride itself, without getting to the station, airport or port. */
+  minutes: number;
+}
+
+/** The slowest and the fastest each way averages along the straight line between two places, in km/h. */
+const SPEEDS: Record<KnownHop["mode"], [number, number]> = {
+  train: [15, 320],
+  flight: [100, 950],
+  bus: [8, 110],
+  car: [8, 110],
+  ferry: [5, 80],
+};
+/** No flight between places closer than this. */
+const SHORTEST_FLIGHT_KM = 100;
+
+/**
+ * The hop as answered, when the answer can be right for the line between the two places: a ride of ten minutes to
+ * a day, at a speed that way can make, no train to or from an island, no flight between near places. A bus, a car
+ * or a ferry is a transfer. Null otherwise: the estimate from distance stands. With no point at either end the
+ * answer is taken as it is.
+ */
+function fromAnswer(hop: KnownHop | undefined, from: LatLng | null, to: LatLng | null): TransferEstimate | null {
+  if (!hop || !Object.prototype.hasOwnProperty.call(SPEEDS, hop.mode)) return null;
+  if (!Number.isFinite(hop.minutes) || hop.minutes < 10 || hop.minutes > 24 * 60) return null;
+  const mode: TransferMode = hop.mode === "train" || hop.mode === "flight" ? hop.mode : "ground";
+  const km = from && to ? Math.round(haversineKm(from, to)) : undefined;
+  if (km !== undefined) {
+    const speed = km / (hop.minutes / 60);
+    const [slowest, fastest] = SPEEDS[hop.mode];
+    if (speed < slowest || speed > fastest) return null;
+    if (hop.mode === "train" && !railJoins(from!, to!)) return null;
+    if (hop.mode === "flight" && km < SHORTEST_FLIGHT_KM) return null;
+  }
+  return {
+    mode,
+    durationMinutes: roundTo10(hop.minutes + OVERHEAD[mode]),
+    estimatedCost: costOf(mode, km),
+    ...(km !== undefined ? { distanceKm: km } : {}),
   };
 }
 
@@ -197,6 +249,11 @@ function middleOf(days: ItineraryDay[]): LatLng | null {
   return { lat: mid(points.map((p) => p.lat)), lng: mid(points.map((p) => p.lng)) };
 }
 
+/** Whether the card between these two cities' days takes the answer (buildTransferActivity), for the log. */
+export function answeredTransfer(known: KnownHop | undefined, fromDays: ItineraryDay[], toDays: ItineraryDay[]): boolean {
+  return fromAnswer(known, middleOf(fromDays), middleOf(toDays)) !== null;
+}
+
 /**
  * Build the leg-boundary `transport` activity inserted at the start of the
  * next city's first day. No `id` — every downstream consumer runs
@@ -212,11 +269,14 @@ export function buildTransferActivity(opts: {
   toDays: ItineraryDay[];
   currency: string;
   language?: string;
+  /** How travellers usually make the hop, as answered: taken when it can be right (answeredTransfer). */
+  known?: KnownHop;
 }): Activity {
   const from = middleOf(opts.fromDays);
   const to = middleOf(opts.toDays);
   const byRail = !!from && !!to && inRailRegion(from) && inRailRegion(to) && railJoins(from, to);
-  const estimate = estimateTransfer(from && to ? haversineKm(from, to) : null, byRail);
+  const estimate =
+    fromAnswer(opts.known, from, to) ?? estimateTransfer(from && to ? haversineKm(from, to) : null, byRail);
   const labels = LABELS[resolveLocale(opts.language)];
 
   return {
