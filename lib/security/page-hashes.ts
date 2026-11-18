@@ -78,7 +78,7 @@ async function probe(request: NextRequest): Promise<Verdict> {
   const ours = thisDeployment();
   const stamped = html.match(/\bdpl_[A-Za-z0-9]+/g);
   if (ours && stamped && !stamped.includes(ours)) {
-    throw new Error(`the probe of ${pathname} was answered by another deployment`);
+    throw new AnsweredByAnotherDeployment(pathname);
   }
   const isHtml = (res.headers.get("content-type") ?? "").includes("text/html");
   if (res.status !== 200 || !isHtml) return null;
@@ -86,6 +86,23 @@ async function probe(request: NextRequest): Promise<Verdict> {
   // says so in its cache headers; hashing it would pin one render only.
   if (/private/.test(res.headers.get("cache-control") ?? "") || /<script[^>]*\snonce=/i.test(html)) return null;
   return inlineScriptHashes(html);
+}
+
+/** The probe was answered by another deployment: expected for a moment after each deploy. */
+export class AnsweredByAnotherDeployment extends Error {
+  constructor(pathname: string) {
+    super(`the probe of ${pathname} was answered by another deployment`);
+    this.name = "AnsweredByAnotherDeployment";
+  }
+}
+
+/**
+ * Logs a probe that failed. The response goes out with the permissive policy either way. A page answered by the
+ * previous deployment happens after every deploy and is a warning; anything else is an error worth a look.
+ */
+export function logProbeFailure(err: unknown): void {
+  const log = err instanceof AnsweredByAnotherDeployment ? console.warn : console.error;
+  log("[csp] could not hash the page's inline scripts:", err);
 }
 
 /**
