@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   PACE_BUDGETS,
+  isMealStop,
   isOverpacked,
   lightenDayRequest,
   normalizePace,
@@ -54,10 +55,23 @@ describe("isOverpacked", () => {
     expect(isOverpacked(acts(300, 300), "moderate")).toBe(false);
   });
 
-  it("flags a day two activities past the pace target (busy-day parity)", () => {
-    // moderate target 4 → 6 short activities are still overpacked by count.
-    expect(isOverpacked(acts(30, 30, 30, 30, 30, 30), "moderate")).toBe(true);
-    expect(isOverpacked(acts(30, 30, 30, 30, 30), "moderate")).toBe(false);
+  it("flags a day two sights and activities past the pace target, its meals not counted", () => {
+    // moderate target 3 → 5 short activities are overpacked by count.
+    expect(isOverpacked(acts(30, 30, 30, 30, 30), "moderate")).toBe(true);
+    expect(isOverpacked(acts(30, 30, 30, 30), "moderate")).toBe(false);
+    // Four sights with lunch and dinner is a full day, not a packed one.
+    const meal = (type: string) => ({ duration_minutes: 60, type });
+    expect(isOverpacked([...acts(60, 60, 60, 60), meal("restaurant"), meal("cafe")], "moderate")).toBe(false);
+    expect(isOverpacked([...acts(60, 60, 60, 60), meal("museum")], "moderate")).toBe(true);
+  });
+
+  it("reads a meal from its type, however loosely the plan types it", () => {
+    for (const type of ["restaurant", "food", "foodie", "cafe", "café", "bar", "Ristorante", "meal", "brunch"]) {
+      expect(isMealStop({ type })).toBe(true);
+    }
+    for (const type of ["museum", "market", "barbershop", "landmark", "", null, undefined]) {
+      expect(isMealStop({ type })).toBe(false);
+    }
   });
 
   it("scales with pace: the same day reads differently on relaxed vs active", () => {
@@ -71,7 +85,7 @@ describe("paceBudgetPromptClause", () => {
   it("quantifies each pace with its target count and hour budget", () => {
     for (const pace of ["relaxed", "moderate", "active"] as const) {
       const clause = paceBudgetPromptClause(pace);
-      expect(clause).toContain(`~${PACE_BUDGETS[pace].targetActivities} activities/day`);
+      expect(clause).toContain(`~${PACE_BUDGETS[pace].targetActivities} sights and activities a day besides lunch and dinner`);
       expect(clause).toContain(`${Math.round(PACE_BUDGETS[pace].maxActivityMinutes / 60)} hours`);
     }
   });

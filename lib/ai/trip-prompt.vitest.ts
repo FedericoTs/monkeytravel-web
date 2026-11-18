@@ -13,8 +13,9 @@ describe("what every plan is asked for", () => {
     expect(spec).toContain("Every price is per person");
   });
 
-  it("has lunch and dinner on every full day, at real places", () => {
-    expect(spec).toMatch(/every full day has lunch, and dinner in the evening, at real named places/i);
+  it("has lunch and dinner on every full day, at real places, on top of the pace's sights", () => {
+    expect(spec).toMatch(/every full day has lunch, and dinner in the evening, at real named places, on top of the day's sights and activities/i);
+    expect(spec).not.toMatch(/count among the day's activities/i);
   });
 
   it("describes each stop with why it is worth it", () => {
