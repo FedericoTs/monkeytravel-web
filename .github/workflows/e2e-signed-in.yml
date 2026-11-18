@@ -2,6 +2,8 @@
 # conflict, trip status, expenses, crew, Today) against a production build of
 # the PR and a local Supabase stack with production's schema (supabase/ci).
 # Test accounts and trips live only in that stack, and no paid API is called.
+# The tests run in two halves side by side, each on its own runner with its
+# own stack, and the `e2e` check is green only when both are.
 name: E2E signed in
 
 on:
@@ -20,7 +22,13 @@ permissions:
   contents: read
 
 jobs:
-  e2e:
+  halves:
+    name: signed in ${{ matrix.half }}/2
+    strategy:
+      # Both halves run to the end, so one failure doesn't hide the other's.
+      fail-fast: false
+      matrix:
+        half: [1, 2]
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:
@@ -84,11 +92,11 @@ jobs:
           BASE_URL=http://localhost:3000 npx tsx scripts/e2e-login.mts
           kill "$server"
           for _ in $(seq 1 20); do curl -fsS -o /dev/null http://localhost:3000/ 2>/dev/null || break; sleep 1; done
-      # One worker: the specs share the fixture trip.
+      # One worker: the specs share the fixture trip. This runner's half of the tests.
       - name: Test the signed-in flows
         run: |
           export KEY_FLOWS_TRIP_ID=$(node -p 'require("./.auth/e2e-fixtures.json").tripId')
-          npx playwright test --project=chromium --workers=1 --reporter=list,html,json \
+          npx playwright test --project=chromium --workers=1 --shard=${{ matrix.half }}/2 --reporter=list,html,json \
             tests/e2e/waiting-room.spec.ts \
             tests/e2e/key-flows.spec.ts \
             tests/e2e/move-between-days.spec.ts \
@@ -138,8 +146,18 @@ jobs:
       - uses: actions/upload-artifact@v7
         if: failure()
         with:
-          name: playwright-report-signed-in
+          name: playwright-report-signed-in-${{ matrix.half }}
           path: |
             playwright-report
             .auth/login-fail-*.png
           retention-days: 7
+
+  # The check the branch rules require: green only when both halves passed.
+  e2e:
+    needs: halves
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Both halves passed
+        run: test "${{ needs.halves.result }}" = "success"
