@@ -72,7 +72,7 @@ export async function checkPlan(plan: PastedPlan, { lookUp }: { lookUp: boolean 
       label: day.label,
       stops: visits.map((stop) => ({ name: stop.name, status: found.get(stop) ?? null })),
       packed: isOverpacked(
-        visits.map((stop) => ({ duration_minutes: stop.minutes })),
+        visits.map((stop) => ({ duration_minutes: stop.minutes, type: stop.type })),
         "moderate",
       ),
     };
