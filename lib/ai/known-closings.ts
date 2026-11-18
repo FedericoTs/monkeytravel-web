@@ -8,6 +8,7 @@
  * from the model doesn't move them.
  */
 import type { Weekday } from "@/lib/ai/closing-days";
+import { isMealStop } from "@/lib/trip/pace";
 
 /** Sunday first, as Date.getUTCDay() counts (closing-days.ts imports this file, so its own list isn't used here). */
 const WEEKDAYS: readonly Weekday[] = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -795,7 +796,7 @@ export function knownClosingFor(name: string | undefined, destination: string): 
   return KNOWN_CLOSINGS.find((c) => c.city.test(destination) && c.names.test(name) && !c.notNames?.test(name));
 }
 
-type Stop = { name?: string };
+type Stop = { name?: string; type?: string };
 type Day = { date?: string; activities?: Stop[] };
 
 /**
@@ -803,7 +804,8 @@ type Day = { date?: string; activities?: Stop[] };
  * them (trimmed, lower-cased). On a trip whose dates all fall in the checked window, a listed stop's weekly days are
  * dropped and its shut dates become the trip's dates the list shuts it on. On a trip reaching past the window, the
  * list's shut dates are added to the model's answer, which is kept for the dates the list hasn't checked. `known`
- * counts the stops the list covered.
+ * counts the stops the list covered. A meal is never a listed place, whatever it is called: "Armando al Pantheon"
+ * is a restaurant, not the Pantheon.
  */
 export function withKnownClosings(
   answer: { closings: Map<string, Weekday[]>; shutDates: Map<string, string[]> },
@@ -816,6 +818,7 @@ export function withKnownClosings(
   const checked = dates.length > 0 && dates.every((date) => date >= CHECKED_FROM && date <= CHECKED_UNTIL);
   const covered = new Set<string>();
   for (const stop of days.flatMap((d) => d.activities ?? [])) {
+    if (isMealStop(stop)) continue;
     const entry = knownClosingFor(stop.name, destination);
     if (!entry || !stop.name) continue;
     const key = stop.name.trim().toLowerCase();
