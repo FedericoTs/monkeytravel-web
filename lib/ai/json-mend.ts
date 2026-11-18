@@ -2,20 +2,53 @@
  * The model's JSON with the slips it makes mid-reply mended, where the parser
  * says exactly where they are: a double quote left unescaped inside a string
  * (`"the "best" view"`), a comma left out between two items (`{…}{…}`), a comma
- * left before the end of an object (`{"a":1,}`), and a line break or tab typed
- * as it is inside a string. One mend per parse, at the parser's position, so
- * text that parses is never touched. A reply it can't mend throws the parser's
- * first error, and when it mended slips before giving up, the one that stopped it.
+ * left before the end of an object or a list (`{"a":1,}`, `[1,]`), a stray
+ * character or HTML scrap typed before a value (`"type":="market"`,
+ * `"address":amp; "Main"`), and a line break or tab typed as it is inside a
+ * string. One mend per parse, at the parser's position, so text that parses is
+ * never touched. A reply it can't mend throws the parser's first error, and when
+ * it mended slips before giving up, the one that stopped it.
  */
 
 /** The parser's own pointer to the first character it couldn't take. */
 const POSITION = /in JSON at position (\d+)/;
+/**
+ * A token the parser couldn't take, with the text around it and no position:
+ * `Unexpected token '=', ..."   "type":="market","... is not valid JSON`. In a
+ * long reply the text is cut to ten characters each side of the token.
+ */
+const AROUND = /^Unexpected token '([^']+)', \.\.\."([\s\S]*)"(?:\.\.\.)? is not valid JSON$/;
+const AROUND_BEFORE = 10;
 /** More slips than this in one reply is no slip: the reply is broken. */
 const MENDS_MAX = 20;
+/**
+ * A stray run before a string, an object or a list: up to six characters, none of them a quote, a bracket, a
+ * comma or a colon. Only before those: a run before a number could be the start of a garbled string, and taking it
+ * out would leave the number as the value.
+ */
+const STRAY_BEFORE_VALUE = /^[^"{}[\],:]{1,6}?(?=\s*["{[])/;
 
 /** How a control character is written inside a JSON string. */
 const ESCAPES: Record<string, string> = { "\n": "\\n", "\r": "\\r", "\t": "\\t" };
 const escapeOf = (c: string) => ESCAPES[c] ?? `\\u${c.charCodeAt(0).toString(16).padStart(4, "0")}`;
+
+/**
+ * Where the parser stopped: its own position, or, for a token it gives none for,
+ * the one place in the text where the ten characters it quotes are followed by
+ * that token. Null when that can't be told.
+ */
+function positionOf(message: string, text: string): number | null {
+  const at = POSITION.exec(message);
+  if (at) return Number(at[1]);
+  const around = AROUND.exec(message);
+  if (!around) return null;
+  const [, token, quoted] = around;
+  const lead = quoted.slice(0, AROUND_BEFORE);
+  if (lead.length < AROUND_BEFORE || !quoted.startsWith(token, AROUND_BEFORE)) return null;
+  const first = text.indexOf(lead + token);
+  if (first < 0 || text.indexOf(lead + token, first + 1) >= 0) return null;
+  return first + AROUND_BEFORE;
+}
 
 /** The text with the slip at `at` mended, or null when it isn't one of them. */
 function mendAt(text: string, at: number): string | null {
@@ -28,10 +61,15 @@ function mendAt(text: string, at: number): string | null {
   if (prev === undefined || next === undefined) return null;
   // Two items with nothing between them: `}{`, `""`, `]"`.
   if (/["}\]]/.test(prev) && /["{[]/.test(next)) return `${text.slice(0, before + 1)},${text.slice(before + 1)}`;
-  // A comma left before the end of an object.
-  if (prev === "," && next === "}") return `${text.slice(0, before)}${text.slice(before + 1)}`;
+  // A comma left before the end of an object or a list.
+  if (prev === "," && (next === "}" || next === "]")) return `${text.slice(0, before)}${text.slice(before + 1)}`;
   // A string that ended at a quote inside it, the words going on after it.
   if (prev === '"' && !/[,:\]}]/.test(next)) return `${text.slice(0, before)}\\"${text.slice(before + 1)}`;
+  // A stray character or scrap where a value starts: taken out, the value kept.
+  if (prev === ":") {
+    const stray = STRAY_BEFORE_VALUE.exec(text.slice(at, at + 24));
+    if (stray) return `${text.slice(0, at)}${text.slice(at + stray[0].length)}`;
+  }
   return null;
 }
 
@@ -46,8 +84,8 @@ export function mendJson(text: string): { value: unknown; mends: number } {
       return { value: JSON.parse(source), mends };
     } catch (err) {
       first ??= err;
-      const at = POSITION.exec(err instanceof Error ? err.message : "");
-      const mended = at && mends < MENDS_MAX ? mendAt(source, Number(at[1])) : null;
+      const at = mends < MENDS_MAX ? positionOf(messageOf(err), source) : null;
+      const mended = at === null ? null : mendAt(source, at);
       if (mended === null && mends === 0) throw first;
       // Where the reply went wrong first, and what couldn't be mended after the slips before it.
       if (mended === null) throw new SyntaxError(`${messageOf(first)}; ${mends} mended, then: ${messageOf(err)}`);
