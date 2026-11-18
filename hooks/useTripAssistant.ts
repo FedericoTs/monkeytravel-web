@@ -181,7 +181,11 @@ export function useTripAssistant({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, tripId]);
 
-  // Simulate loading stages for better UX
+  // The stages shown while the assistant works. Their timer stops after the
+  // last stage, when the answer comes or the request fails, and when the
+  // assistant closes, so none outlives the screen it was set for.
+  const stopStagesRef = useRef<(() => void) | null>(null);
+  useEffect(() => () => stopStagesRef.current?.(), []);
   const simulateLoadingStages = useCallback(() => {
     const stages: LoadingStage[] = ["parsing", "finding", "generating", "applying"];
     let currentIndex = 0;
@@ -191,9 +195,12 @@ export function useTripAssistant({
       if (currentIndex < stages.length) {
         setLoadingStage(stages[currentIndex]);
       }
+      if (currentIndex >= stages.length - 1) clearInterval(interval);
     }, 800);
 
-    return () => clearInterval(interval);
+    const stop = () => clearInterval(interval);
+    stopStagesRef.current = stop;
+    return stop;
   }, []);
 
   /**
@@ -350,6 +357,7 @@ export function useTripAssistant({
         setInput(content.trim());
         if (waiting) setPendingChange(waiting);
       } finally {
+        stopStages();
         setIsLoading(false);
       }
     },
