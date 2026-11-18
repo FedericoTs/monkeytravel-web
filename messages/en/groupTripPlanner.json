@@ -127,7 +127,7 @@
       },
       "needAccount": {
         "question": "Does everyone need an account?",
-        "answer": "No. You can plan a trip and share the link without an account, and your friends can view and vote without one either. A free account is what saves the trip to your trips, lets you edit it and unlocks the AI concierge — and if you sign up after sharing, the trip you already made comes with you."
+        "answer": "No. You can plan a trip and share the link without an account, and your friends can view and vote without one either. A free account is what saves the trip to your trips, lets you edit it and unlocks the AI assistant on your trip — and if you sign up after sharing, the trip you already made comes with you."
       },
       "votingWorks": {
         "question": "How does the voting system work?",
