@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createRef } from "react";
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, fireEvent, render } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import enTrips from "@/messages/en/trips.json";
 import esTrips from "@/messages/es/trips.json";
@@ -104,5 +104,65 @@ describe("the footer's main button", () => {
     expect(button.className).toContain("bg-[var(--primary)]");
     expect(button.className).toContain("text-white");
     expect(button.className).not.toContain("var(--accent)");
+  });
+});
+
+// A whole trip typed as the destination that can't go on as typed ("… a show at 21:30") kept Continue greyed out
+// with no word of why, the dates set and nothing left to do.
+describe("Continue on a whole trip typed as the destination", () => {
+  function continueButton(props: { canProceed: boolean; readOffered: boolean; readingRequest?: boolean }) {
+    const handleContinue = vi.fn();
+    const onReadRequest = vi.fn();
+    const { getByTestId } = render(
+      <NextIntlClientProvider locale="en" messages={{ trips: TRIPS.en }} onError={() => {}}>
+        <WizardFooter
+          footerRef={createRef()}
+          step={1}
+          setStep={vi.fn()}
+          totalSteps={2}
+          expressTrip={false}
+          canProceed={() => props.canProceed}
+          footerStateB={false}
+          step1Block={props.canProceed ? null : "chars"}
+          effectiveMaxTripDays={14}
+          isAuthenticated={false}
+          handleExpressPlan={vi.fn(async () => {})}
+          expressBusy={false}
+          handleFlexibleDates={vi.fn()}
+          setDatesPencilled={vi.fn()}
+          handleContinue={handleContinue}
+          handleGenerate={vi.fn(async () => {})}
+          readOffered={props.readOffered}
+          onReadRequest={onReadRequest}
+          readingRequest={props.readingRequest ?? false}
+        />
+      </NextIntlClientProvider>
+    );
+    return { button: getByTestId("wizard-continue") as HTMLButtonElement, handleContinue, onReadRequest };
+  }
+
+  it("reads it when pressed, instead of standing greyed out", () => {
+    const { button, handleContinue, onReadRequest } = continueButton({ canProceed: false, readOffered: true });
+    expect(button.disabled).toBe(false);
+    fireEvent.click(button);
+    expect(onReadRequest).toHaveBeenCalledTimes(1);
+    expect(handleContinue).not.toHaveBeenCalled();
+  });
+
+  it("waits while it is being read", () => {
+    const { button } = continueButton({ canProceed: false, readOffered: true, readingRequest: true });
+    expect(button.disabled).toBe(true);
+    expect(button.getAttribute("aria-busy")).toBe("true");
+  });
+
+  it("goes on as before when the text can go on as it is, or when nothing is offered to be read", () => {
+    const ready = continueButton({ canProceed: true, readOffered: true });
+    fireEvent.click(ready.button);
+    expect(ready.handleContinue).toHaveBeenCalledTimes(1);
+    expect(ready.onReadRequest).not.toHaveBeenCalled();
+    cleanup();
+    const blocked = continueButton({ canProceed: false, readOffered: false });
+    expect(blocked.button.disabled).toBe(true);
+    expect(blocked.button.hasAttribute("aria-busy")).toBe(false);
   });
 });

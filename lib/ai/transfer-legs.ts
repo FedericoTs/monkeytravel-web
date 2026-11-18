@@ -20,8 +20,11 @@ import type { Activity, ItineraryDay } from "@/types";
 import { isPlaceholderPoint } from "@/lib/trip/placeholder-point";
 import { formatMinutesToTime } from "@/lib/datetime/format";
 
-/** "ground" names no mode: where trains aren't the usual way, it may be a bus, a car or a boat. */
-export type TransferMode = "train" | "flight" | "ground";
+/**
+ * "ground" names no mode: a car, or a hop estimated from distance where trains aren't the usual way. A bus or a
+ * ferry is named when the answer of how travellers make the hop says so.
+ */
+export type TransferMode = "train" | "flight" | "bus" | "ferry" | "ground";
 
 export interface TransferEstimate {
   mode: TransferMode;
@@ -100,12 +103,12 @@ export function railJoins(a: LatLng, b: LatLng): boolean {
 }
 
 /** What each way adds to the ride: getting to the station, or to the airport and through it. */
-const OVERHEAD: Record<TransferMode, number> = { train: 30, flight: 150, ground: 30 };
+const OVERHEAD: Record<TransferMode, number> = { train: 30, flight: 150, bus: 30, ferry: 30, ground: 30 };
 
 /** A rough one-way price band for a hop of this length; a generic one when the length is unknown. */
 function costOf(mode: TransferMode, km?: number): number {
   if (km === undefined) return 40;
-  if (mode === "ground") return Math.min(100, Math.max(10, Math.round(km * 0.1)));
+  if (mode === "ground" || mode === "bus" || mode === "ferry") return Math.min(100, Math.max(10, Math.round(km * 0.1)));
   if (mode === "train") return Math.min(150, Math.max(10, Math.round(km * 0.15)));
   return Math.min(300, Math.max(50, Math.round(60 + km * 0.08)));
 }
@@ -163,14 +166,14 @@ const SHORTEST_FLIGHT_KM = 100;
 
 /**
  * The hop as answered, when the answer can be right for the line between the two places: a ride of ten minutes to
- * a day, at a speed that way can make, no train to or from an island, no flight between near places. A bus, a car
- * or a ferry is a transfer. Null otherwise: the estimate from distance stands. With no point at either end the
+ * a day, at a speed that way can make, no train to or from an island, no flight between near places. A car is a
+ * transfer of no named mode. Null otherwise: the estimate from distance stands. With no point at either end the
  * answer is taken as it is.
  */
 function fromAnswer(hop: KnownHop | undefined, from: LatLng | null, to: LatLng | null): TransferEstimate | null {
   if (!hop || !Object.prototype.hasOwnProperty.call(SPEEDS, hop.mode)) return null;
   if (!Number.isFinite(hop.minutes) || hop.minutes < 10 || hop.minutes > 24 * 60) return null;
-  const mode: TransferMode = hop.mode === "train" || hop.mode === "flight" ? hop.mode : "ground";
+  const mode: TransferMode = hop.mode === "car" ? "ground" : hop.mode;
   const km = from && to ? Math.round(haversineKm(from, to)) : undefined;
   if (km !== undefined) {
     const speed = km / (hop.minutes / 60);
@@ -200,32 +203,64 @@ const LABELS: Record<
   en: {
     train: "TRAIN",
     flight: "FLIGHT",
+    bus: "BUS",
+    ferry: "FERRY",
     ground: "TRANSFER",
-    name: { train: (c) => `Train to ${c}`, flight: (c) => `Flight to ${c}`, ground: (c) => `Transfer to ${c}` },
+    name: {
+      train: (c) => `Train to ${c}`,
+      flight: (c) => `Flight to ${c}`,
+      bus: (c) => `Bus to ${c}`,
+      ferry: (c) => `Ferry to ${c}`,
+      ground: (c) => `Transfer to ${c}`,
+    },
     description: (from, to) =>
       `Estimated transfer from ${from} to ${to} — times and prices are indicative, book ahead for the best fares.`,
   },
   it: {
     train: "TRENO",
     flight: "VOLO",
+    bus: "AUTOBUS",
+    ferry: "TRAGHETTO",
     ground: "TRASFERIMENTO",
-    name: { train: (c) => `Treno per ${c}`, flight: (c) => `Volo per ${c}`, ground: (c) => `Trasferimento a ${c}` },
+    name: {
+      train: (c) => `Treno per ${c}`,
+      flight: (c) => `Volo per ${c}`,
+      bus: (c) => `Autobus per ${c}`,
+      ferry: (c) => `Traghetto per ${c}`,
+      ground: (c) => `Trasferimento a ${c}`,
+    },
     description: (from, to) =>
       `Trasferimento stimato da ${from} a ${to} — orari e prezzi indicativi, prenota in anticipo per le tariffe migliori.`,
   },
   es: {
     train: "TREN",
     flight: "VUELO",
+    bus: "AUTOBÚS",
+    ferry: "FERRY",
     ground: "TRASLADO",
-    name: { train: (c) => `Tren a ${c}`, flight: (c) => `Vuelo a ${c}`, ground: (c) => `Traslado a ${c}` },
+    name: {
+      train: (c) => `Tren a ${c}`,
+      flight: (c) => `Vuelo a ${c}`,
+      bus: (c) => `Autobús a ${c}`,
+      ferry: (c) => `Ferry a ${c}`,
+      ground: (c) => `Traslado a ${c}`,
+    },
     description: (from, to) =>
       `Traslado estimado de ${from} a ${to} — horarios y precios orientativos, reserva con antelación para las mejores tarifas.`,
   },
   pt: {
     train: "TREM",
     flight: "VOO",
+    bus: "ÔNIBUS",
+    ferry: "BARCO",
     ground: "TRASLADO",
-    name: { train: (c) => `Trem para ${c}`, flight: (c) => `Voo para ${c}`, ground: (c) => `Traslado para ${c}` },
+    name: {
+      train: (c) => `Trem para ${c}`,
+      flight: (c) => `Voo para ${c}`,
+      bus: (c) => `Ônibus para ${c}`,
+      ferry: (c) => `Barco para ${c}`,
+      ground: (c) => `Traslado para ${c}`,
+    },
     description: (from, to) =>
       `Traslado estimado de ${from} para ${to} — horários e preços indicativos, reserve com antecedência para as melhores tarifas.`,
   },
