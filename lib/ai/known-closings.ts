@@ -93,6 +93,12 @@ const GRANADA = /\bgranada\b/i;
 const EDINBURGH = /\bedinburgh\b|\bedimburgo\b/i;
 /** Neuschwanstein is a day out from Munich or Füssen. */
 const BAVARIA = /\bm[uü]nchen\b|\bmunich\b|\bm[uú]nich\b|\bmunique\b|\bmonaco di baviera\b|\bf[uü]ssen\b|\bschwangau\b|\bbavaria\b|\bbaviera\b|\bbayern\b/i;
+const VIENNA = /\bvienna\b|\bwien\b|\bviena\b|\bvienne\b/i;
+const HANOI = /\bha ?noi\b|\bh[aà] n[oộ]i\b/i;
+const BALI = /\bbali\b|\bubud\b|\bseminyak\b|\bcanggu\b|\bcanga\b|\bkuta\b|\buluwat[ui]\b|\bsanur\b|\bnusa dua\b|\bdenpasar\b|\bjimbaran\b|\btampaksiring\b/i;
+const GOA = /\bgoa\b|\bpanaji\b|\bpanjim\b/i;
+const MUNNAR = /\bmunnar\b|\bkerala\b|\bidukki\b/i;
+const OSAKA = /\bosaka\b|\bosaca\b|大阪/i;
 
 const day = (date: string) => ({ from: date, to: date });
 /** Shut every year from one month-day to another (or on one), e.g. yearly("12-29", "01-03"). */
@@ -604,6 +610,123 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
       { from: "10-16", to: "03-27", open: "10:00", close: "16:00" },
     ],
     source: "https://www.neuschwanstein.de/englisch/tourist/opening.htm",
+  },
+  // London
+  {
+    names: /\btate modern\b/i,
+    city: LONDON,
+    rules: [yearly("12-24", "12-26")],
+    hours: [
+      { from: "01-01", to: "12-31", days: ["Friday", "Saturday"], open: "10:00", close: "21:00", lastEntry: "20:30" },
+      { from: "01-01", to: "12-31", open: "10:00", close: "18:00", lastEntry: "17:30" },
+    ],
+    source: "https://www.tate.org.uk/visit/tate-modern",
+  },
+  // Paris
+  {
+    names: /\bmus[eé]e rodin\b|\brodin museum\b|\bmuseo rodin\b|\bmuseu rodin\b/i,
+    city: PARIS,
+    rules: [{ weekly: ["Monday"] }, yearly("01-01"), yearly("05-01"), yearly("12-25")],
+    hours: [
+      { from: "12-24", to: "12-24", open: "10:00", close: "17:30", lastEntry: "16:45" },
+      { from: "12-31", to: "12-31", open: "10:00", close: "17:30", lastEntry: "16:45" },
+      { from: "01-01", to: "12-31", open: "10:00", close: "18:30", lastEntry: "17:45" },
+    ],
+    source: "https://www.musee-rodin.fr/en/plan-your-visit/plan-your-visit-musee-rodin",
+  },
+  // Vienna
+  {
+    // The Upper Belvedere; the Lower Belvedere keeps other hours.
+    names: /\bupper belvedere\b|\bbelvedere (?:palace|museum)\b|\bschloss belvedere\b|\boberes belvedere\b|\bpalacio (?:del )?belvedere\b|\bpalazzo belvedere\b|\bpal[aá]cio belvedere\b/i,
+    notNames: /\blower belvedere\b|\bunteres belvedere\b/i,
+    city: VIENNA,
+    rules: OPEN_EVERY_DAY,
+    hours: [{ from: "01-01", to: "12-31", open: "09:00", close: "18:00" }],
+    source: "https://www.belvedere.at/en/visit/upper-belvedere",
+  },
+  // New York
+  {
+    names: /\bwhitney museum\b|\bthe whitney\b/i,
+    city: NEW_YORK,
+    rules: [{ weekly: ["Tuesday"] }, yearly("12-25")],
+    hours: [
+      { from: "12-24", to: "12-24", open: "10:30", close: "17:00" },
+      { from: "12-31", to: "12-31", open: "10:30", close: "17:00" },
+      { from: "01-01", to: "12-31", days: ["Friday"], open: "10:30", close: "22:00" },
+      { from: "01-01", to: "12-31", open: "10:30", close: "18:00" },
+    ],
+    source: "https://whitney.org/visit",
+  },
+  // Hanoi
+  {
+    names: /\btemple of literature\b|\bv[aă]n mi[eế]u\b|\bquoc tu giam\b|\btempio della letteratura\b|\btemplo de la literatura\b|\btemplo da literatura\b/i,
+    city: HANOI,
+    rules: OPEN_EVERY_DAY,
+    hours: [{ from: "01-01", to: "12-31", open: "08:00", close: "17:00" }],
+    source: "https://vanmieu.gov.vn/en/introduction/visitor-information",
+  },
+  {
+    names: /\bmuseum of ethnology\b|\bmuseo (?:vietnamita )?de etnolog[ií]a\b|\bmuseo (?:vietnamita )?di etnologia\b|\bmuseu (?:vietnamita )?de etnologia\b/i,
+    city: HANOI,
+    rules: [{ weekly: ["Monday"] }],
+    hours: [{ from: "01-01", to: "12-31", open: "08:30", close: "17:30" }],
+    source: "https://vme-en.vass.gov.vn/",
+  },
+  // Bali
+  {
+    names: /\btirta empul\b/i,
+    city: BALI,
+    rules: OPEN_EVERY_DAY,
+    hours: [{ from: "01-01", to: "12-31", open: "08:00", close: "18:00" }],
+    source: "https://www.indonesia.travel/id-id/travel-ideas/pilgrimage/pura-tirta-empul/",
+  },
+  {
+    names: /\bmonkey forest\b|\bmandala suci wenara wana\b|\bforesta (?:sacra )?delle scimmie\b|\bbosque (?:sagrado )?de (?:los )?monos\b|\bfloresta (?:sagrada )?dos macacos\b/i,
+    city: BALI,
+    rules: OPEN_EVERY_DAY,
+    hours: [{ from: "01-01", to: "12-31", open: "09:00", close: "18:00", lastEntry: "17:00" }],
+    source: "https://monkeyforestubud.com/visit/",
+  },
+  // Goa
+  {
+    names: /\bbom jesus\b/i,
+    city: GOA,
+    rules: OPEN_EVERY_DAY,
+    hours: [
+      { from: "01-01", to: "12-31", days: ["Sunday"], open: "10:30", close: "18:30" },
+      { from: "01-01", to: "12-31", open: "09:00", close: "18:30" },
+    ],
+    source: "https://www.goa.gov.in/places/basilica-church-for-churches/",
+  },
+  // Munnar
+  {
+    // Shut while the Nilgiri tahr calve. Its page gives the entry window (8:00 to 14:00) but no closing time: no hours.
+    names: /\beravikulam\b|\brajamala\b/i,
+    city: MUNNAR,
+    rules: [yearly("02-01", "03-31")],
+    source: "https://eravikulamnationalpark.in/",
+  },
+  // Osaka
+  {
+    // The main tower; the park around it stays open. The castle's own pages state no hours: the city's tourism bureau.
+    names: /\bosaka castle\b|\bosaka-?jo\b|\bcastillo de osaka\b|\bcastello di osaka\b|\bcastelo de osaka\b|大阪城/i,
+    notNames: /\bpark\b|\bparque\b|\bparco\b|公園/i,
+    city: OSAKA,
+    rules: [yearly("12-28", "01-01")],
+    hours: [{ from: "01-01", to: "12-31", open: "09:00", close: "18:00", lastEntry: "17:30" }],
+    source: "https://osaka-info.jp/en/spot/osaka-castle-main-keep/",
+  },
+  // Tokyo
+  {
+    names: /\btokyo skytree\b|\bskytree\b|東京スカイツリー/i,
+    notNames: /\bskytree town\b|\bsolamachi\b/i,
+    city: TOKYO,
+    rules: OPEN_EVERY_DAY,
+    hours: [
+      { from: "01-01", to: "12-31", days: ["Saturday", "Sunday"], open: "09:00", close: "22:00", lastEntry: "21:00" },
+      { from: "01-01", to: "12-31", open: "10:00", close: "22:00", lastEntry: "21:00" },
+    ],
+    source: "https://en.tokyo-skytree.jp/open-hours/day_hours/",
   },
 ];
 

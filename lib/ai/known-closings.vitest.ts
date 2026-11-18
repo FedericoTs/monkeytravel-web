@@ -328,3 +328,25 @@ describe("a listed place's hours on a date", () => {
     }
   });
 });
+
+describe("more sights that close early", () => {
+  it("shut the Musée Rodin on Mondays, and keep Tate Modern open late on Fridays", () => {
+    // Monday 25 January 2027; Thursday 28 and Friday 29.
+    expect(shutBy(entry("Musée Rodin", "Paris"), "2027-01-25")).toBe(true);
+    expect(hoursOn(entry("Tate Modern", "London"), "2027-01-29")?.close).toBe(21 * 60);
+    expect(hoursOn(entry("Tate Modern", "London"), "2027-01-28")?.close).toBe(18 * 60);
+  });
+
+  it("shut Eravikulam while the tahr calve, and tell Osaka Castle's park from its tower", () => {
+    expect(shutBy(entry("Eravikulam National Park", "Munnar, Kerala"), "2027-02-15")).toBe(true);
+    expect(shutBy(entry("Eravikulam National Park", "Munnar, Kerala"), "2027-04-02")).toBe(false);
+    expect(knownClosingFor("Osaka Castle Park", "Osaka")).toBeUndefined();
+    expect(hoursOn(entry("Osaka Castle", "Osaka, Japan"), "2027-01-28")).toEqual({ open: 540, close: 1080, lastEntry: 1050 });
+  });
+
+  it("find Bali's sights on a trip named after any of its towns", () => {
+    expect(knownClosingFor("Sacred Monkey Forest Sanctuary", "UBUD, Uluwati, Canga & Seminyak")).toBeDefined();
+    expect(knownClosingFor("Tirta Empul Temple", "Bali, Indonesia")).toBeDefined();
+    expect(knownClosingFor("Tirta Empul Temple", "Lisbon")).toBeUndefined();
+  });
+});
