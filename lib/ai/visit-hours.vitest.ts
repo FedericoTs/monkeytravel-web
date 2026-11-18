@@ -231,3 +231,14 @@ describe("inside a day's hours", () => {
     expect(insideHours(at("23:00"), 600, null)).toBe(true);
   });
 });
+
+describe("a meal named after a sight", () => {
+  // Live, "Armando al Pantheon" (a restaurant) matched the Pantheon's hours: a 19:30 dinner read as a visit after closing.
+  it("keeps its time: it isn't the sight", () => {
+    const { hoursFor } = listed({ "Armando al Pantheon": hours("09:00", "19:00", "18:30") });
+    const plan = [day([stop("10:00", "Colosseum", "landmark", 120), stop("19:30", "Armando al Pantheon", "restaurant", 120)])];
+    const out = keepInsideHours(plan, "Rome", hoursFor);
+    expect(out.days[0]).toBe(plan[0]);
+    expect(out).toMatchObject({ checked: 0, outside: 0, moved: 0, left: [] });
+  });
+});

@@ -350,3 +350,14 @@ describe("more sights that close early", () => {
     expect(knownClosingFor("Tirta Empul Temple", "Lisbon")).toBeUndefined();
   });
 });
+
+describe("a meal named after a listed place", () => {
+  it("is never the place: a restaurant by the Pantheon isn't shut on its holidays", () => {
+    const days = [{ date: "2026-12-25", activities: [{ name: "Armando al Pantheon", type: "restaurant" }, { name: "Pantheon", type: "landmark" }] }];
+    const none = { closings: new Map<string, Weekday[]>(), shutDates: new Map<string, string[]>() };
+    const merged = withKnownClosings(none, days, "Rome");
+    expect(merged.known).toBe(1);
+    expect(merged.shutDates.get("armando al pantheon")).toBeUndefined();
+    expect(merged.shutDates.get("pantheon")).toEqual(["2026-12-25"]);
+  });
+});
