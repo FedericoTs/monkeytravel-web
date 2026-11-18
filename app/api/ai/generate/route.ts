@@ -23,6 +23,7 @@ import {
   generateMultiCityItinerary,
   validateLegs,
   type CityLeg,
+  type TransfersReport,
 } from "@/lib/ai/multi-city";
 import { generateAnchoredItinerary, validateAnchors } from "@/lib/ai/anchored";
 import { knownPlacesFor } from "@/lib/ai/known-places";
@@ -149,6 +150,8 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     // Check cross-user cache first for same destination + vibes + budget
     let itinerary: GeneratedItinerary;
     let cacheHit = false;
+    // A trip through several cities: how many of its hops took the answered way and time.
+    let transfers: TransfersReport | null = null;
 
     if (isMultiCity) {
       // Multi-city: generate each city independently and in parallel, then
@@ -156,9 +159,13 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       // incremental generation — those are single-destination optimizations.
       // (Each per-city generation still hits generateItinerary's own dedup.)
       console.log(`[AI Generate] Multi-city generation: ${legs!.length} cities, ${totalDays} days`);
-      itinerary = await generateMultiCityItinerary(params, legs!, params.startDate, {
-        language: userLanguage,
-      });
+      itinerary = await generateMultiCityItinerary(
+        params,
+        legs!,
+        params.startDate,
+        { language: userLanguage },
+        (report) => (transfers = report)
+      );
     } else if (isAnchored) {
       // Anchored: deterministic segmentation around the fixed commitments,
       // one small parallel generation per free gap, deterministic merge
@@ -297,6 +304,8 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         ...(mustDosIn.missing > 0 ? { must_dos: { missing: mustDosIn.missing, added: mustDosIn.added } } : {}),
         // Names with two writing systems in one word, and how many got their usual name.
         ...(namesIn.glued > 0 ? { names: { glued: namesIn.glued, renamed: namesIn.renamed } } : {}),
+        // The hops between cities, how many were answered, and how many cards took the answer.
+        ...(transfers ? { transfers } : {}),
         ...(generationId ? { generation_id: generationId } : {}),
       },
     });

@@ -11,7 +11,7 @@
  * actually calls Gemini lives in lib/ai/multi-city.ts.
  */
 import type { GeneratedItinerary, ItineraryDay } from "@/types";
-import { buildTransferActivity, dayWithTransfer } from "./transfer-legs";
+import { buildTransferActivity, dayWithTransfer, type KnownHop } from "./transfer-legs";
 import { flightLink, hotelLinks } from "./booking-links";
 import { addIsoDays } from "@/lib/dates/iso-date";
 import { haversineKm } from "@/lib/map/geo";
@@ -241,6 +241,8 @@ export function mergeCityItineraries(
     language?: string;
     /** P4 escape hatch — defaults to inserting transfer legs. */
     insertTransfers?: boolean;
+    /** How travellers make each hop, as answered: hops[i] is the hop from legs[i] to legs[i + 1]. */
+    hops?: Array<KnownHop | undefined>;
   }
 ): GeneratedItinerary {
   if (legs.length !== results.length) {
@@ -283,6 +285,7 @@ export function mergeCityItineraries(
           toDays: cityDays,
           currency,
           language: opts?.language,
+          known: opts?.hops?.[i - 1],
         });
         if (transfer.estimated_cost?.currency === currency) transfersCost += transfer.estimated_cost.amount;
         activities = dayWithTransfer(transfer, day.activities ?? []);

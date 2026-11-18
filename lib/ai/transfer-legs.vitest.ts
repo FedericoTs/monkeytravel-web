@@ -306,3 +306,100 @@ describe("dayWithTransfer", () => {
     expect(fits.map((a) => `${a.start_time} ${a.name}`)).toEqual(["08:30 Train to Florence", "16:00 Museum", "19:00 Dinner"]);
   });
 });
+
+// From straight-line distance the card said three and a half hours from Brussels to Paris (82 minutes by the fast
+// train), a train from Istanbul to Cappadocia (travellers fly) and a flight from Jaipur to Jaisalmer.
+describe("the way travellers make a hop, as answered", () => {
+  const BRUSSELS = { lat: 50.8467, lng: 4.3525 };
+  const PARIS = { lat: 48.8566, lng: 2.3522 };
+  const ISTANBUL = { lat: 41.0082, lng: 28.9784 };
+  const GOREME = { lat: 38.6431, lng: 34.8289 };
+  const KYOTO = { lat: 35.0116, lng: 135.7681 };
+  const OSAKA = { lat: 34.6937, lng: 135.5023 };
+  const UBUD = { lat: -8.5069, lng: 115.2625 };
+  const GILI = { lat: -8.3494, lng: 116.0384 };
+  const AGRA = { lat: 27.1767, lng: 78.0081 };
+  const JAIPUR = { lat: 26.9124, lng: 75.7873 };
+  const ATHENS = { lat: 37.9755, lng: 23.7348 };
+  const SANTORINI = { lat: 36.4167, lng: 25.4318 };
+  type Known = Parameters<typeof buildTransferActivity>[0]["known"];
+  const leg = (from: { lat: number; lng: number }, to: { lat: number; lng: number }, toCity: string, known?: Known) =>
+    buildTransferActivity({
+      fromCity: "From",
+      toCity,
+      fromDays: [{ day_number: 1, date: "2026-11-01", activities: [act("there", from)] }],
+      toDays: [{ day_number: 2, date: "2026-11-02", activities: [act("here", to)] }],
+      currency: "EUR",
+      known,
+    });
+
+  it("takes the answer's way and its ride, with the time to get to the station or through the airport", () => {
+    expect(leg(BRUSSELS, PARIS, "Paris", { mode: "train", minutes: 82 })).toMatchObject({
+      transport_mode: "train",
+      name: "Train to Paris",
+      duration_minutes: 110,
+      estimated_cost: { amount: 40 },
+    });
+    expect(leg(ISTANBUL, GOREME, "Cappadocia", { mode: "flight", minutes: 80 })).toMatchObject({
+      transport_mode: "flight",
+      name: "Flight to Cappadocia",
+      duration_minutes: 230,
+      estimated_cost: { amount: 105 },
+    });
+  });
+
+  it("calls a bus, a car or a ferry a transfer", () => {
+    expect(leg(HANOI, HA_LONG, "Ha Long Bay", { mode: "bus", minutes: 150 })).toMatchObject({
+      transport_mode: "ground",
+      name: "Transfer to Ha Long Bay",
+      duration_minutes: 180,
+    });
+    expect(leg(UBUD, GILI, "Gili Trawangan", { mode: "ferry", minutes: 120 })).toMatchObject({ transport_mode: "ground", duration_minutes: 150 });
+    expect(leg(AGRA, JAIPUR, "Jaipur", { mode: "car", minutes: 240 })).toMatchObject({ transport_mode: "ground", duration_minutes: 270 });
+  });
+
+  it("keeps the estimate when the answer can't be right for the line between the two places", () => {
+    const estimate = leg(BRUSSELS, PARIS, "Paris");
+    for (const wrong of [
+      { mode: "train", minutes: 30 }, // faster than any train
+      { mode: "train", minutes: 1200 }, // slower than any
+      { mode: "bus", minutes: 80 }, // a bus at 200 km/h
+      { mode: "flight", minutes: 200 }, // a flight slower than a car
+      { mode: "train", minutes: 5 },
+      { mode: "train", minutes: 1500 },
+      { mode: "rocket", minutes: 60 },
+    ]) {
+      expect(leg(BRUSSELS, PARIS, "Paris", wrong as Known), JSON.stringify(wrong)).toEqual(estimate);
+    }
+    expect(leg(UBUD, GILI, "Gili Trawangan", { mode: "ferry", minutes: 30 })).toEqual(leg(UBUD, GILI, "Gili Trawangan"));
+    expect(leg(HANOI, HA_LONG, "Ha Long Bay", { mode: "bus", minutes: 1200 })).toEqual(leg(HANOI, HA_LONG, "Ha Long Bay"));
+    // No train to an island, and no flight between places this close.
+    expect(leg(ATHENS, SANTORINI, "Santorini", { mode: "train", minutes: 300 })).toEqual(leg(ATHENS, SANTORINI, "Santorini"));
+    expect(leg(KYOTO, OSAKA, "Osaka", { mode: "flight", minutes: 15 })).toEqual(leg(KYOTO, OSAKA, "Osaka"));
+  });
+
+  it("takes the answer as it is when neither city has a pin to check it by, if it is a ride of ten minutes to a day", () => {
+    const unpinned = (known?: Known) => buildTransferActivity({ fromCity: "Lima", toCity: "Cusco", fromDays: [], toDays: [], currency: "USD", known });
+    expect(unpinned({ mode: "flight", minutes: 80 })).toMatchObject({ transport_mode: "flight", name: "Flight to Cusco", duration_minutes: 230, estimated_cost: { amount: 40 } });
+    expect(unpinned({ mode: "flight", minutes: 5 })).toEqual(unpinned());
+    expect(unpinned({ mode: "bus", minutes: 2000 })).toEqual(unpinned());
+  });
+
+  it("gives each hop of a trip its own answer, and the estimate where there is none", () => {
+    const merged = mergeCityItineraries(
+      [{ city: "Brussels", nights: 1 }, { city: "Paris", nights: 1 }, { city: "Lisbon", nights: 1 }],
+      [cityResult("Brussels", 1, BRUSSELS), cityResult("Paris", 1, PARIS), cityResult("Lisbon", 1, LISBON)],
+      "2026-09-01",
+      { hops: [{ mode: "train", minutes: 82 }, undefined] }
+    );
+    expect(merged.days[1].activities[0]).toMatchObject({ name: "Train to Paris", duration_minutes: 110 });
+    const estimated = buildTransferActivity({
+      fromCity: "Paris",
+      toCity: "Lisbon",
+      fromDays: cityResult("Paris", 1, PARIS).days,
+      toDays: cityResult("Lisbon", 1, LISBON).days,
+      currency: "EUR",
+    });
+    expect(merged.days[2].activities[0]).toMatchObject({ name: "Flight to Lisbon", duration_minutes: estimated.duration_minutes });
+  });
+});

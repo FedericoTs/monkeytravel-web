@@ -11,6 +11,7 @@ const routes: Array<TripCreationParams["destinations"]> = [];
 let placesFor: ((p: TripCreationParams, call: number) => Array<Array<[string, number, number]>>) | null = null;
 vi.mock("@/lib/gemini", () => ({
   generateItinerary: async (p: TripCreationParams, options: { knownPlaces?: unknown }) => {
+    events.push(`plan ${p.destination}`);
     generated.push({ destination: p.destination, knownPlaces: options.knownPlaces });
     asked.push({ destination: p.destination, mustDos: p.mustDos });
     routes.push(p.destinations);
@@ -32,6 +33,15 @@ vi.mock("./known-places", () => ({
   knownPlacesFor: async (p: TripCreationParams, days: number, language: string) => [
     { name: `${p.destination} for ${days} days in ${language}`, type: "landmark" },
   ],
+}));
+/** What happened, in order: the question of each hop's way, and each city's plan. */
+const events: string[] = [];
+let hopsAnswer: Array<{ mode: string; minutes: number } | undefined> = [];
+vi.mock("./transfer-question", () => ({
+  askForTransfers: async (cities: string[]) => {
+    events.push(`hops ${cities.join(" > ")}`);
+    return { hops: hopsAnswer, costUsd: 0 };
+  },
 }));
 
 const { generateMultiCityItinerary } = await import("./multi-city");
@@ -104,6 +114,37 @@ describe("generateMultiCityItinerary", () => {
     asked.length = 0;
     await generateMultiCityItinerary({ ...base, mustDos: undefined }, [{ city: "Busan", nights: 2 }, { city: "Seoul", nights: 2 }], "2027-05-01");
     expect(asked.map((a) => a.destination)).toEqual(["Busan", "Seoul"]);
+    placesFor = null;
+  });
+
+  // The card between two cities was an estimate from straight-line distance: Brussels to Paris took three and a half hours.
+  it("asks how travellers make each hop while the cities are planned, and the cards between them follow the answer", async () => {
+    events.length = 0;
+    placesFor = (p) => {
+      const city = p.destination.trim();
+      return city === "Brussels" ? [[["Grand-Place", 50.8467, 4.3525]]] : city === "Paris" ? [[["Louvre", 48.8606, 2.3376]]] : [[["Belem Tower", 38.6916, -9.216]]];
+    };
+    hopsAnswer = [{ mode: "train", minutes: 82 }, { mode: "train", minutes: 30 }];
+    const base = { budgetTier: "balanced", pace: "moderate", vibes: [], interests: [] } as unknown as Parameters<typeof generateMultiCityItinerary>[0];
+    const reports: unknown[] = [];
+    const plan = await generateMultiCityItinerary(
+      base,
+      [{ city: "Brussels", nights: 1 }, { city: " Paris ", nights: 1 }, { city: "Lisbon", nights: 1 }],
+      "2027-05-01",
+      undefined,
+      (report) => reports.push(report)
+    );
+    expect(events).toEqual(["hops Brussels > Paris > Lisbon", "plan Brussels", "plan  Paris ", "plan Lisbon"]);
+    expect(plan.days[1].activities[0]).toMatchObject({ name: "Train to Paris", duration_minutes: 110 });
+    // A train from Paris to Lisbon in half an hour can't be right: the card keeps the estimate.
+    expect(plan.days[2].activities[0]).toMatchObject({ name: "Flight to Lisbon" });
+    expect(reports).toEqual([{ hops: 2, answered: 2, used: 1 }]);
+    // No answer for the hop: its card is the estimate, and the report says so.
+    hopsAnswer = [undefined];
+    reports.length = 0;
+    const estimated = await generateMultiCityItinerary(base, [{ city: "Brussels", nights: 1 }, { city: "Paris", nights: 1 }], "2027-05-01", undefined, (r) => reports.push(r));
+    expect(estimated.days[1].activities[0].duration_minutes).toBe(210);
+    expect(reports).toEqual([{ hops: 1, answered: 0, used: 0 }]);
     placesFor = null;
   });
 });
