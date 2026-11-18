@@ -5,12 +5,15 @@ import type { TripCreationParams } from "@/types";
 
 const generated: Array<{ destination: string; knownPlaces: unknown }> = [];
 const asked: Array<{ destination: string; mustDos?: string[] }> = [];
+/** The route each city was given. */
+const routes: Array<TripCreationParams["destinations"]> = [];
 /** A city's places for each of its days, when a test gives them. */
 let placesFor: ((p: TripCreationParams, call: number) => Array<Array<[string, number, number]>>) | null = null;
 vi.mock("@/lib/gemini", () => ({
   generateItinerary: async (p: TripCreationParams, options: { knownPlaces?: unknown }) => {
     generated.push({ destination: p.destination, knownPlaces: options.knownPlaces });
     asked.push({ destination: p.destination, mustDos: p.mustDos });
+    routes.push(p.destinations);
     const nights = (Date.parse(p.endDate) - Date.parse(p.startDate)) / 864e5 + 1;
     const call = asked.filter((a) => a.destination === p.destination).length;
     const places = placesFor?.(p, call);
@@ -51,6 +54,19 @@ describe("generateMultiCityItinerary", () => {
       { destination: "Rome", knownPlaces: [{ name: "Rome for 3 days in it", type: "landmark" }] },
       { destination: "Florence", knownPlaces: [{ name: "Florence for 2 days in it", type: "landmark" }] },
     ]);
+  });
+
+  // Each city was planned from its name alone: "cordoba" on a trip through Argentina came back as Córdoba, Spain.
+  it("gives each city the whole route, so a name that fits several places means the one on it", async () => {
+    routes.length = 0;
+    const legs = [
+      { city: "buenos aires", nights: 2 },
+      { city: "cordoba", nights: 2 },
+      { city: "mendoza", nights: 2 },
+    ];
+    const base = { budgetTier: "balanced", pace: "moderate", vibes: [], interests: [] } as unknown as Parameters<typeof generateMultiCityItinerary>[0];
+    await generateMultiCityItinerary(base, legs, "2027-03-10");
+    expect(routes).toEqual([legs, legs, legs]);
   });
 
   // Live, Seoul's plan still put six of Busan's must-dos on its days, and its
