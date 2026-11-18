@@ -48,9 +48,20 @@ export type KnownClosing = {
   openOn?: string[];
   /** Seasons of every year it is open every day, its weekly closure aside (Shinjuku Gyoen's cherry-blossom weeks). */
   openEveryYear?: YearlySpan[];
+  /** Its opening hours through the year, from its official page. The first row that matches a date holds. */
+  hours?: HoursRow[];
+  /** The page the hours come from, when it isn't `source`. */
+  hoursSource?: string;
   /** The official page the rules come from. */
   source: string;
 };
+
+/** Opening hours, local time ("09:00"), on the days of every year from one month-day to another, on some weekdays
+ * only when `days` is given (the Louvre's late Wednesdays and Fridays come before its usual row). */
+export type HoursRow = { from: string; to: string; days?: Weekday[]; open: string; close: string; lastEntry?: string };
+
+/** A day's opening hours, in minutes after midnight. */
+export type OpenHours = { open: number; close: number; lastEntry?: number };
 
 /**
  * Japan's national holidays, from the Cabinet Office's list (https://www8.cao.go.jp/chosei/shukujitsu/gaiyou.html,
@@ -74,6 +85,14 @@ const BARCELONA = /\bbarcelon[ae]\b/i;
 const LONDON = /\blondon\b|\blondres\b|\blondra\b/i;
 const NEW_YORK = /\bnew york\b|\bnueva york\b|\bnova york\b|\bnyc\b/i;
 const MEXICO_CITY = /\bmexico city\b|\bciudad de m[eé]xico\b|\bcdmx\b|\bcitt[aà] del messico\b|\bcidade do m[eé]xico\b/i;
+const KANAZAWA = /\bkanazawa\b|金沢/i;
+/** Nara is a day out from Kyoto or Osaka as often as a stay. */
+const NARA_KYOTO_OSAKA = /\bnara\b|奈良|\bkyoto\b|\bkioto\b|\bquioto\b|京都|\bosaka\b|大阪/i;
+const ATHENS = /\bathens\b|\batene\b|\batenas\b|αθήνα/i;
+const GRANADA = /\bgranada\b/i;
+const EDINBURGH = /\bedinburgh\b|\bedimburgo\b/i;
+/** Neuschwanstein is a day out from Munich or Füssen. */
+const BAVARIA = /\bm[uü]nchen\b|\bmunich\b|\bm[uú]nich\b|\bmunique\b|\bmonaco di baviera\b|\bf[uü]ssen\b|\bschwangau\b|\bbavaria\b|\bbaviera\b|\bbayern\b/i;
 
 const day = (date: string) => ({ from: date, to: date });
 /** Shut every year from one month-day to another (or on one), e.g. yearly("12-29", "01-03"). */
@@ -87,15 +106,22 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
     names: /\btokyo metropolitan government\b|\bmetropolitan government (?:building|bldg)\b|\btocho\b|東京都庁/i,
     city: TOKYO,
     rules: [yearly("12-29", "12-31"), yearly("01-02", "01-03")],
+    hours: [
+      { from: "01-01", to: "12-31", open: "09:30", close: "22:00", lastEntry: "21:30" },
+    ],
     source: "https://www.zaimu.metro.tokyo.lg.jp/tochousha/goannai/tenbou",
   },
-  { names: /\bmeiji (?:jingu|shrine)\b|明治神宮/i, city: TOKYO, rules: OPEN_EVERY_DAY, source: "https://www.meijijingu.or.jp/en/visit/" },
+  { names: /\bmeiji (?:jingu|shrine)\b|明治神宮/i, city: TOKYO, rules: OPEN_EVERY_DAY, hours: [{ from: "01-01", to: "01-31", open: "06:40", close: "16:20" }, { from: "02-01", to: "02-29", open: "06:20", close: "16:50" }, { from: "03-01", to: "03-31", open: "05:40", close: "17:20" }, { from: "04-01", to: "04-30", open: "05:10", close: "17:50" }, { from: "05-01", to: "05-31", open: "05:00", close: "18:10" }, { from: "06-01", to: "06-30", open: "05:00", close: "18:30" }, { from: "07-01", to: "07-31", open: "05:00", close: "18:20" }, { from: "08-01", to: "08-31", open: "05:00", close: "18:00" }, { from: "09-01", to: "09-30", open: "05:20", close: "17:20" }, { from: "10-01", to: "10-31", open: "05:40", close: "16:40" }, { from: "11-01", to: "11-30", open: "06:10", close: "16:10" }, { from: "12-01", to: "12-31", open: "06:40", close: "16:00" }], source: "https://www.meijijingu.or.jp/en/visit/" },
   { names: /\bsens[oō]-?ji\b|\basakusa kannon\b|浅草寺/i, city: TOKYO, rules: OPEN_EVERY_DAY, source: "https://www.senso-ji.jp/visit/" },
   {
     names: /\btokyo national museum\b|東京国立博物館|\bmuseo nacional de tokio\b|\bmuseo nazionale di tokyo\b|\bmuseu nacional de t[oó]quio\b/i,
     city: TOKYO,
     rules: [{ weekly: ["Monday"], holidayShift: "jp" }, day("2026-12-15"), { from: "2026-12-26", to: "2026-12-31" }],
     openOn: ["2027-03-29"],
+    hours: [
+      { from: "01-01", to: "12-31", days: ["Friday", "Saturday"], open: "09:30", close: "20:00", lastEntry: "19:30" },
+      { from: "01-01", to: "12-31", open: "09:30", close: "17:00", lastEntry: "16:30" },
+    ],
     source: "https://www.tnm.jp/modules/r_free_page/index.php?id=113&lang=en",
   },
   {
@@ -110,6 +136,13 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
     city: TOKYO,
     rules: [{ weekly: ["Monday", "Friday"], holidayShift: "jp" }, yearly("12-28", "01-03")],
     openOn: ["2026-11-30", "2026-12-04"],
+    hours: [
+      { from: "03-01", to: "04-14", open: "09:00", close: "17:00", lastEntry: "16:30" },
+      { from: "04-15", to: "08-31", open: "09:00", close: "18:00", lastEntry: "17:30" },
+      { from: "09-01", to: "09-30", open: "09:00", close: "17:00", lastEntry: "16:30" },
+      { from: "10-01", to: "10-31", open: "09:00", close: "16:30", lastEntry: "16:00" },
+      { from: "11-01", to: "02-29", open: "09:00", close: "16:00", lastEntry: "15:30" },
+    ],
     source: "https://www.kunaicho.go.jp/en/visit/event/higashigyoen/index.html",
   },
   {
@@ -118,6 +151,11 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
     city: TOKYO,
     rules: [{ weekly: ["Monday"], holidayShift: "jp" }, yearly("12-29", "01-03")],
     openEveryYear: [{ from: "03-25", to: "04-24" }, { from: "11-01", to: "11-15" }],
+    hours: [
+      { from: "06-11", to: "07-31", open: "09:00", close: "19:00", lastEntry: "18:30" },
+      { from: "03-15", to: "09-30", open: "09:00", close: "18:00", lastEntry: "17:30" },
+      { from: "10-01", to: "03-14", open: "09:00", close: "16:30", lastEntry: "16:00" },
+    ],
     source: "https://policies.env.go.jp/national-garden/shinjukugyoen/guide/information/",
   },
   {
@@ -125,6 +163,10 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
     city: TOKYO,
     rules: [{ weekly: ["Tuesday"] }, { from: "2026-11-04", to: "2026-11-18" }, { from: "2026-12-27", to: "2027-01-02" }],
     openOn: ["2027-01-05", "2027-02-23"],
+    hours: [
+      { from: "01-01", to: "12-31", open: "10:00", close: "18:00" },
+    ],
+    hoursSource: "https://www.ghibli-museum.jp/en/hours-and-directions/",
     source: "https://www.ghibli-museum.jp/en/tickets/",
   },
   // Tokyo's metropolitan gardens: open every day but over the New Year.
@@ -132,14 +174,20 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
     names: /\bhama[- ]?rikyu\b|浜離宮/i,
     city: TOKYO,
     rules: [yearly("12-29", "01-01")],
+    hours: [
+      { from: "01-01", to: "12-31", open: "09:00", close: "17:00", lastEntry: "16:30" },
+    ],
     source: "https://www.tokyo-park.or.jp/teien/en/hama-rikyu/outline.html",
   },
-  { names: /\brikugi-?en\b|六義園/i, city: TOKYO, rules: [yearly("12-29", "01-01")], source: "https://www.tokyo-park.or.jp/teien/en/rikugien/outline.html" },
+  { names: /\brikugi-?en\b|六義園/i, city: TOKYO, rules: [yearly("12-29", "01-01")], hours: [{ from: "01-01", to: "12-31", open: "09:00", close: "17:00", lastEntry: "16:30" }], source: "https://www.tokyo-park.or.jp/teien/en/rikugien/outline.html" },
   {
     // Not the University of Tokyo's Koishikawa Botanical Garden, a different place.
     names: /\bkoishikawa[- ]?k[oō]rakuen\b|小石川後楽園/i,
     city: TOKYO,
     rules: [yearly("12-29", "01-01")],
+    hours: [
+      { from: "01-01", to: "12-31", open: "09:00", close: "17:00", lastEntry: "16:30" },
+    ],
     source: "https://www.tokyo-park.or.jp/teien/en/koishikawa/outline.html",
   },
   {
@@ -147,45 +195,67 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
     names: /\bkiyosumi (?:gardens?|teien)\b|清澄庭園/i,
     city: TOKYO,
     rules: [yearly("12-29", "01-01")],
+    hours: [
+      { from: "01-01", to: "12-31", open: "09:00", close: "17:00", lastEntry: "16:30" },
+    ],
     source: "https://www.tokyo-park.or.jp/teien/en/kiyosumi/outline.html",
   },
   {
     names: /\bkyu[- ]?shiba[- ]?rikyu\b|\bformer shiba detached palace\b|旧芝離宮/i,
     city: TOKYO,
     rules: [yearly("12-29", "01-01")],
+    hours: [
+      { from: "01-01", to: "12-31", open: "09:00", close: "17:00", lastEntry: "16:30" },
+    ],
     source: "https://www.tokyo-park.or.jp/teien/en/kyu-shiba/outline.html",
   },
   {
     names: /\bkyu[- ]?furukawa\b|\bformer furukawa\b|旧古河庭園/i,
     city: TOKYO,
     rules: [yearly("12-29", "01-01")],
+    hours: [
+      { from: "01-01", to: "12-31", open: "09:00", close: "17:00", lastEntry: "16:30" },
+    ],
     source: "https://www.tokyo-park.or.jp/teien/en/kyu-furukawa/outline.html",
   },
   {
     names: /\bkyu[- ]?iwasaki[- ]?tei\b|\bformer iwasaki (?:residence|house)\b|旧岩崎邸/i,
     city: TOKYO,
     rules: [yearly("12-29", "01-01")],
+    hours: [
+      { from: "01-01", to: "12-31", open: "09:00", close: "17:00", lastEntry: "16:30" },
+    ],
     source: "https://www.tokyo-park.or.jp/teien/en/kyu-iwasaki/outline.html",
   },
-  { names: /\btonogayato\b|殿ヶ谷戸/i, city: TOKYO, rules: [yearly("12-29", "01-01")], source: "https://www.tokyo-park.or.jp/teien/en/tonogayato/outline.html" },
+  { names: /\btonogayato\b|殿ヶ谷戸/i, city: TOKYO, rules: [yearly("12-29", "01-01")], hours: [{ from: "01-01", to: "12-31", open: "09:00", close: "17:00", lastEntry: "16:30" }], source: "https://www.tokyo-park.or.jp/teien/en/tonogayato/outline.html" },
   {
     // Its New Year closure runs two days longer than the other gardens'.
     names: /\bmukojima[- ]?hyakkaen\b|向島百花園/i,
     city: TOKYO,
     rules: [yearly("12-29", "01-03")],
+    hours: [
+      { from: "01-01", to: "12-31", open: "09:00", close: "17:00", lastEntry: "16:30" },
+    ],
     source: "https://www.tokyo-park.or.jp/teien/en/mukojima/outline.html",
   },
   {
     names: /\bginza (?:six|6)\b|ギンザシックス/i,
     city: TOKYO,
     rules: [{ from: "2027-01-01", to: "2027-01-02" }],
+    hours: [
+      { from: "01-01", to: "12-31", open: "10:30", close: "20:30" },
+    ],
+    hoursSource: "https://ginza6.tokyo/hours/",
     source: "https://ginza6.tokyo/news/detail/info/224389",
   },
   {
     names: /\bnational museum of nature and science\b|国立科学博物館/i,
     city: TOKYO,
     rules: [{ weekly: ["Monday"], holidayShift: "jp" }, { from: "2026-12-28", to: "2027-01-01" }],
-    source: "https://www.kahaku.go.jp/english/userguide/hour/index.html",
+    hours: [
+      { from: "01-01", to: "12-31", open: "09:00", close: "17:00", lastEntry: "16:30" },
+    ],
+    source: "https://www.kahaku.go.jp/english/riyou/nyukan-annai/",
   },
   // Kyoto
   {
@@ -199,6 +269,11 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
     names: /\bkyoto national museum\b|京都国立博物館/i,
     city: KYOTO,
     rules: [{ weekly: ["Monday"], holidayShift: "jp" }],
+    hours: [
+      { from: "01-01", to: "12-31", days: ["Friday"], open: "09:30", close: "20:00", lastEntry: "19:30" },
+      { from: "01-01", to: "12-31", open: "09:30", close: "17:00", lastEntry: "16:30" },
+    ],
+    hoursSource: "https://www.kyohaku.go.jp/eng/visit/info/",
     source: "https://www.kyohaku.go.jp/eng/visit/faq/",
   },
   { names: /\bfushimi inari\b|伏見稲荷/i, city: KYOTO, rules: OPEN_EVERY_DAY, source: "https://kyoto.travel/en/travel-inspiration/11-secret-tips-for-enjoying-kyoto-from-a-local-taxi-driver/" },
@@ -210,25 +285,36 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
     notNames: /\bpark\b|\bparque\b|\bparco\b/i,
     city: BANGKOK,
     rules: [{ weekly: ["Monday", "Tuesday", "Wednesday", "Thursday"] }],
+    hours: [
+      { from: "01-01", to: "12-31", open: "05:00", close: "18:00" },
+    ],
     source: "https://publicspace.bangkok.go.th/Spaces/Info/2FBD1377-1BC8-4565-86CA-2C647E59F18A",
   },
-  { names: /\bjim thompson house\b/i, city: BANGKOK, rules: OPEN_EVERY_DAY, source: "https://jimthompsonhouse.org/visitor-information/" },
+  { names: /\bjim thompson house\b/i, city: BANGKOK, rules: OPEN_EVERY_DAY, hours: [{ from: "01-01", to: "12-31", open: "10:00", close: "17:00" }], source: "https://jimthompsonhouse.org/visitor-information/" },
   { names: /\bor tor kor\b/i, city: BANGKOK, rules: OPEN_EVERY_DAY, source: "https://www.mof.or.th/posts?m_id=19&ac_id=461" },
-  { names: /\bwat pho\b|\breclining buddha\b|\bwat phra chetuphon\b/i, city: BANGKOK, rules: OPEN_EVERY_DAY, source: "https://www.watpho.com/th/contact/plan" },
-  { names: /\blum(?:ph|p)ini park\b/i, city: BANGKOK, rules: OPEN_EVERY_DAY, source: "https://publicspace.bangkok.go.th/Spaces/Info/B38EC1D0-49FE-4544-A709-AF9ED243ECCD" },
+  { names: /\bwat pho\b|\breclining buddha\b|\bwat phra chetuphon\b/i, city: BANGKOK, rules: OPEN_EVERY_DAY, hours: [{ from: "01-01", to: "12-31", open: "08:00", close: "19:30" }], source: "https://www.watpho.com/th/contact/plan" },
+  { names: /\blum(?:ph|p)ini park\b/i, city: BANGKOK, rules: OPEN_EVERY_DAY, hours: [{ from: "01-01", to: "12-31", open: "04:30", close: "22:00" }], source: "https://publicspace.bangkok.go.th/Spaces/Info/B38EC1D0-49FE-4544-A709-AF9ED243ECCD" },
   { names: /\basiatique\b/i, city: BANGKOK, rules: OPEN_EVERY_DAY, source: "https://www.asiatiquethailand.com/" },
-  { names: /\bgrand palace\b|\bwat phra kaew\b|\bemerald buddha\b|\bgran palacio\b|\bgrande? palazzo reale\b|\bgrande pal[aá]cio\b/i, city: BANGKOK, rules: OPEN_EVERY_DAY, source: "https://www.royalgrandpalace.th/en/visit/practical-information" },
+  { names: /\bgrand palace\b|\bwat phra kaew\b|\bemerald buddha\b|\bgran palacio\b|\bgrande? palazzo reale\b|\bgrande pal[aá]cio\b/i, city: BANGKOK, rules: OPEN_EVERY_DAY, hours: [{ from: "01-01", to: "12-31", open: "08:30", close: "16:30", lastEntry: "15:30" }], source: "https://www.royalgrandpalace.th/en/visit/practical-information" },
   // Paris
   {
     names: /\bmus[eé]e d.orsay\b|\borsay museum\b|\bmuseo d.orsay\b|\bmuseu d.orsay\b/i,
     city: PARIS,
     rules: [{ weekly: ["Monday"] }, yearly("05-01"), yearly("12-25")],
+    hours: [
+      { from: "01-01", to: "12-31", days: ["Thursday"], open: "09:30", close: "21:45" },
+      { from: "01-01", to: "12-31", open: "09:30", close: "18:00", lastEntry: "17:00" },
+    ],
     source: "https://www.visitparisregion.com/en/musee-d-orsay",
   },
   {
     names: /\bsainte[- ]chapelle\b/i,
     city: PARIS,
     rules: [yearly("01-01"), yearly("05-01"), yearly("12-25")],
+    hours: [
+      { from: "04-01", to: "09-30", open: "09:00", close: "19:00", lastEntry: "18:30" },
+      { from: "10-01", to: "03-31", open: "09:00", close: "17:00", lastEntry: "16:30" },
+    ],
     source: "https://www.sainte-chapelle.fr/en/visit/practical-information",
   },
   {
@@ -236,6 +322,10 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
     notNames: /\babu dhabi\b|\blens\b|\bdes antiquaires\b/i,
     city: PARIS,
     rules: [{ weekly: ["Tuesday"] }, yearly("01-01"), yearly("05-01"), yearly("12-25")],
+    hours: [
+      { from: "01-01", to: "12-31", days: ["Wednesday", "Friday"], open: "09:00", close: "21:00", lastEntry: "20:00" },
+      { from: "01-01", to: "12-31", open: "09:00", close: "18:00", lastEntry: "17:00" },
+    ],
     source: "https://www.louvre.fr/en/visit/hours-admission",
   },
   {
@@ -243,21 +333,31 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
     names: /\benfants[- ]rouges\b/i,
     city: PARIS,
     rules: [{ from: CHECKED_FROM, to: CHECKED_UNTIL }],
+    hours: [
+      { from: "01-01", to: "12-31", days: ["Sunday"], open: "08:30", close: "17:00" },
+      { from: "01-01", to: "12-31", open: "08:30", close: "20:30" },
+    ],
     source: "https://www.paris.fr/lieux/marche-couvert-des-enfants-rouges-5461",
   },
-  { names: /\bsacr[eé][- ]c(?:œ|oe|o)ur\b/i, city: PARIS, rules: OPEN_EVERY_DAY, source: "https://www.sacre-coeur-montmartre.com/en/info-and-visits/practical-information/hours-and-directions/" },
-  { names: /\bmus[eé]e de montmartre\b|\bjardins? renoir\b/i, city: PARIS, rules: OPEN_EVERY_DAY, source: "https://www.museedemontmartre.fr/en/practical-informations" },
+  { names: /\bsacr[eé][- ]c(?:œ|oe|o)ur\b/i, city: PARIS, rules: OPEN_EVERY_DAY, hours: [{ from: "01-01", to: "12-31", open: "06:30", close: "22:30" }], source: "https://www.sacre-coeur-montmartre.com/en/info-and-visits/practical-information/hours-and-directions/" },
+  { names: /\bmus[eé]e de montmartre\b|\bjardins? renoir\b/i, city: PARIS, rules: OPEN_EVERY_DAY, hours: [{ from: "03-01", to: "09-30", open: "10:00", close: "19:00", lastEntry: "18:15" }, { from: "10-01", to: "02-29", open: "10:00", close: "18:00", lastEntry: "17:15" }], source: "https://www.museedemontmartre.fr/en/practical-informations" },
   // Rome
   {
     names: /\bcastel sant.?angelo\b|\bcastillo de sant.?angelo\b|\bcastelo de sant.?angelo\b|\bmausoleum of hadrian\b/i,
     city: ROME,
     rules: [{ weekly: ["Monday"] }, yearly("12-25"), yearly("01-01")],
+    hours: [
+      { from: "01-01", to: "12-31", open: "09:00", close: "19:30", lastEntry: "18:30" },
+    ],
     source: "https://www.turismoroma.it/en/places/santangelo-castle",
   },
   {
     names: /\bpantheon\b|\bpante[oó]n\b|\bpante[aã]o\b/i,
     city: ROME,
     rules: [yearly("12-25"), yearly("01-01")],
+    hours: [
+      { from: "01-01", to: "12-31", open: "09:00", close: "19:00", lastEntry: "18:30" },
+    ],
     source: "https://www.pantheonroma.com/en/openings-info/",
   },
   {
@@ -274,30 +374,49 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
       day("2027-03-19"),
       { from: "2027-03-28", to: "2027-03-29" },
     ],
+    hours: [
+      { from: "01-01", to: "12-31", days: ["Sunday"], open: "09:00", close: "14:00", lastEntry: "12:30" },
+      { from: "01-01", to: "12-31", open: "08:00", close: "20:00", lastEntry: "18:00" },
+    ],
+    hoursSource: "https://www.museivaticani.va/content/museivaticani/en/info/orari-musei-vaticani.html",
     source: "https://www.museivaticani.va/content/dam/museivaticani/pdf/utilities/calendario_musei.pdf",
   },
   {
     names: /\bcolosse(?:um|o)\b|\bcoliseo\b|\bcoliseu\b|\broman forum\b|\bforo romano\b|\bf[oó]rum romano\b|\bpalatin(?:e|o) hill\b|\bmonte palatino\b/i,
     city: ROME,
     rules: [day("2026-12-25"), day("2027-01-01")],
+    hours: [
+      { from: "03-01", to: "03-28", open: "08:30", close: "17:30", lastEntry: "16:30" },
+      { from: "03-29", to: "09-30", open: "08:30", close: "19:15", lastEntry: "18:15" },
+      { from: "10-01", to: "10-24", open: "08:30", close: "18:30", lastEntry: "17:30" },
+      { from: "10-25", to: "02-29", open: "08:30", close: "16:30", lastEntry: "15:30" },
+    ],
     source: "https://www.turismoroma.it/en/node/1155",
   },
   {
     names: /\bgaller(?:ia|y|ie)\s+borghese\b|\bborghese gallery\b/i,
     city: ROME,
     rules: [{ weekly: ["Monday"] }],
+    hours: [
+      { from: "01-01", to: "12-31", open: "09:00", close: "19:00", lastEntry: "17:45" },
+    ],
     source: "https://www.turismoroma.it/en/places/borghese-gallery",
   },
   {
     names: /\bcapitoline museums?\b|\bmusei capitolini\b|\bmuseos capitolinos\b|\bmuseus capitolinos\b/i,
     city: ROME,
     rules: [yearly("05-01"), yearly("12-25")],
+    hours: [
+      { from: "12-24", to: "12-24", open: "09:30", close: "14:00", lastEntry: "13:00" },
+      { from: "12-31", to: "12-31", open: "09:30", close: "14:00", lastEntry: "13:00" },
+      { from: "01-01", to: "12-31", open: "09:30", close: "19:30", lastEntry: "18:30" },
+    ],
     source: "https://www.museicapitolini.org/en/informazioni_pratiche/orari_e_indirizzi",
   },
   // Barcelona
-  { names: /\bboqueria\b|\bmercat de sant josep\b/i, city: BARCELONA, rules: [{ weekly: ["Sunday"] }], source: "https://ajuntament.barcelona.cat/memoriademocratica/en/detail/mercat-boqueria-sant-josep_92086009447" },
+  { names: /\bboqueria\b|\bmercat de sant josep\b/i, city: BARCELONA, rules: [{ weekly: ["Sunday"] }], hours: [{ from: "01-01", to: "12-31", open: "08:00", close: "20:30" }], source: "https://ajuntament.barcelona.cat/memoriademocratica/en/detail/mercat-boqueria-sant-josep_92086009447" },
   { names: /\bpar(?:k|c|que) g[uü]ell\b/i, city: BARCELONA, rules: OPEN_EVERY_DAY, source: "https://parkguell.barcelona/en/planning-your-visit/prices-and-times" },
-  { names: /\bsagrada fam[ií]lia\b/i, city: BARCELONA, rules: OPEN_EVERY_DAY, source: "https://sagradafamilia.org/en/schedules-how-to-get" },
+  { names: /\bsagrada fam[ií]lia\b/i, city: BARCELONA, rules: OPEN_EVERY_DAY, hours: [{ from: "12-25", to: "12-26", open: "09:00", close: "14:00" }, { from: "01-01", to: "01-01", open: "09:00", close: "14:00" }, { from: "01-06", to: "01-06", open: "09:00", close: "14:00" }, { from: "11-01", to: "02-29", days: ["Sunday"], open: "10:30", close: "18:00" }, { from: "11-01", to: "02-29", open: "09:00", close: "18:00" }, { from: "03-01", to: "03-31", days: ["Saturday"], open: "09:00", close: "18:00" }, { from: "03-01", to: "03-31", days: ["Sunday"], open: "10:30", close: "19:00" }, { from: "03-01", to: "03-31", open: "09:00", close: "19:00" }, { from: "10-01", to: "10-31", days: ["Saturday"], open: "09:00", close: "18:00" }, { from: "10-01", to: "10-31", days: ["Sunday"], open: "10:30", close: "19:00" }, { from: "10-01", to: "10-31", open: "09:00", close: "19:00" }, { from: "04-01", to: "09-30", days: ["Saturday"], open: "09:00", close: "18:00" }, { from: "04-01", to: "09-30", days: ["Sunday"], open: "10:30", close: "20:00" }, { from: "04-01", to: "09-30", open: "09:00", close: "20:00" }], source: "https://sagradafamilia.org/en/schedules-how-to-get" },
   // London
   {
     // Shut on Mondays, but open every day from 30 November through December.
@@ -305,12 +424,21 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
     city: LONDON,
     rules: [{ weekly: ["Monday"] }, { from: "2026-12-25", to: "2026-12-27" }, day("2027-01-01")],
     openOn: ["2026-11-30", "2026-12-07", "2026-12-14", "2026-12-21", "2026-12-28"],
+    hours: [
+      { from: "01-01", to: "12-31", days: ["Saturday"], open: "09:00", close: "17:00" },
+      { from: "01-01", to: "12-31", days: ["Sunday"], open: "10:00", close: "16:00" },
+      { from: "01-01", to: "12-31", open: "10:00", close: "17:00" },
+    ],
+    hoursSource: "https://boroughmarket.org.uk/visit-us/",
     source: "https://boroughmarket.org.uk/events/bank-holiday-opening-times/",
   },
   {
     names: /\bnatural history museum\b|\bmuseo de historia natural\b|\bmuseo di storia naturale\b|\bmuseu de hist[oó]ria natural\b/i,
     city: LONDON,
     rules: [yearly("12-24", "12-26")],
+    hours: [
+      { from: "01-01", to: "12-31", open: "10:00", close: "17:50", lastEntry: "17:30" },
+    ],
     source: "https://www.nhm.ac.uk/visit.html",
   },
   // New York
@@ -325,6 +453,11 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
     names: /\bstatue of liberty\b|\bellis island\b|\bliberty island\b/i,
     city: NEW_YORK,
     rules: [{ thanksgiving: true }, yearly("12-25")],
+    hours: [
+      { from: "11-21", to: "11-29", open: "08:30", close: "17:00", lastEntry: "15:30" },
+      { from: "11-30", to: "12-18", open: "09:00", close: "17:00", lastEntry: "15:30" },
+      { from: "12-19", to: "01-04", open: "08:30", close: "17:00", lastEntry: "15:30" },
+    ],
     source: "https://statuecitycruises.com/plan-your-visit/schedule",
   },
   {
@@ -338,7 +471,139 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
     names: /\bmuseo nacional de antropolog[ií]a\b|\bnational museum of anthropology\b|\bmuseo (?:nazionale )?di antropologia\b|\bmuseu nacional de antropologia\b/i,
     city: MEXICO_CITY,
     rules: [{ weekly: ["Monday"] }],
+    hours: [
+      { from: "01-01", to: "12-31", open: "09:00", close: "18:00" },
+    ],
+    hoursSource: "https://www.inah.gob.mx/images/boletines/2026/187/Boletin_187.pdf",
     source: "https://www.mna.inah.gob.mx/",
+  },
+  // Kanazawa
+  {
+    names: /\bkenroku-?en\b|兼六園/i,
+    city: KANAZAWA,
+    rules: OPEN_EVERY_DAY,
+    hours: [
+      { from: "03-01", to: "10-15", open: "07:00", close: "18:00" },
+      { from: "10-16", to: "02-29", open: "08:00", close: "17:00" },
+    ],
+    source: "https://shiro-niwa.pref.ishikawa.lg.jp/kenrokuen-garden/e/info.html",
+  },
+  // Kyoto
+  {
+    names: /\bkinkaku-?ji\b|\bgolden pavilion\b|\bpabell[oó]n dorado\b|\bpadiglione d.oro\b|\bpavilh[aã]o dourado\b|金閣寺/i,
+    city: KYOTO,
+    rules: OPEN_EVERY_DAY,
+    hours: [{ from: "01-01", to: "12-31", open: "09:00", close: "17:00" }],
+    source: "https://www.shokoku-ji.jp/en/kinkakuji/faq/",
+  },
+  {
+    names: /\bginkaku-?ji\b|\bsilver pavilion\b|\bpabell[oó]n de plata\b|\bpadiglione d.argento\b|\bpavilh[aã]o de prata\b|銀閣寺/i,
+    city: KYOTO,
+    rules: OPEN_EVERY_DAY,
+    hours: [
+      { from: "03-01", to: "11-30", open: "08:30", close: "17:20", lastEntry: "17:00" },
+      { from: "12-01", to: "02-29", open: "09:00", close: "16:50", lastEntry: "16:30" },
+    ],
+    source: "https://www.shokoku-ji.jp/en/ginkakuji/faq/",
+  },
+  {
+    // Its spring and autumn night openings keep their hours: a stop named for the night isn't checked (visit-hours.ts).
+    names: /\bkiyomizu-?dera\b|清水寺/i,
+    city: KYOTO,
+    rules: OPEN_EVERY_DAY,
+    hours: [
+      { from: "07-01", to: "08-31", open: "06:00", close: "18:30" },
+      { from: "01-01", to: "12-31", open: "06:00", close: "18:00" },
+    ],
+    source: "https://www.kiyomizudera.or.jp/access.php",
+  },
+  {
+    // The castle; its Ninomaru Palace also shuts some Tuesdays, which the list doesn't hold.
+    names: /\bnij[oō]-?j[oō]\b|\bnij[oō] castle\b|\bcastillo (?:de )?nij[oō]\b|\bcastello (?:di )?nij[oō]\b|\bcastelo (?:de )?nij[oō]\b|二条城/i,
+    city: KYOTO,
+    rules: [yearly("12-29", "12-31")],
+    hours: [{ from: "01-01", to: "12-31", open: "08:45", close: "17:00", lastEntry: "16:00" }],
+    source: "https://nijo-jocastle.city.kyoto.lg.jp/guide/annai/",
+  },
+  {
+    names: /\btenry[uū]-?ji\b|天龍寺/i,
+    city: KYOTO,
+    rules: OPEN_EVERY_DAY,
+    hours: [{ from: "01-01", to: "12-31", open: "08:30", close: "17:00", lastEntry: "16:50" }],
+    source: "https://www.tenryuji.com/en/visit/index.html",
+  },
+  // Nara
+  {
+    names: /\bt[oō]dai-?ji\b|東大寺/i,
+    city: NARA_KYOTO_OSAKA,
+    rules: OPEN_EVERY_DAY,
+    hours: [
+      { from: "04-01", to: "10-31", open: "07:30", close: "17:30" },
+      { from: "11-01", to: "03-31", open: "08:00", close: "17:00" },
+    ],
+    source: "https://www.todaiji.or.jp/en/information/haikan/",
+  },
+  // Athens
+  {
+    // The site itself: the Acropolis Museum below it keeps other hours. Also shut on Easter Sunday, whose date moves.
+    names: /\bacropol(?:is|i|e)\b|\bacr[oó]pol(?:e|is)\b|\bparthenon\b|\bpartenone\b|\bparten[oó]n\b|ακρόπολη/i,
+    notNames: /\bmuse(?:um|o|u)\b|μουσείο/i,
+    city: ATHENS,
+    rules: [yearly("01-01"), yearly("03-25"), yearly("05-01"), yearly("12-25", "12-26")],
+    hours: [
+      { from: "04-01", to: "08-31", open: "08:00", close: "20:00", lastEntry: "19:40" },
+      { from: "09-01", to: "09-15", open: "08:00", close: "19:30", lastEntry: "19:10" },
+      { from: "09-16", to: "09-30", open: "08:00", close: "19:00", lastEntry: "18:40" },
+      { from: "10-01", to: "10-15", open: "08:00", close: "18:30", lastEntry: "18:10" },
+      { from: "10-16", to: "10-31", open: "08:00", close: "18:00", lastEntry: "17:40" },
+      { from: "11-01", to: "03-31", open: "08:00", close: "17:00", lastEntry: "16:40" },
+    ],
+    source: "https://www.hh.gr/en/?p=1582",
+  },
+  // Granada
+  {
+    // A viewpoint across the valley isn't a visit.
+    names: /\balhambra\b|\bgeneralife\b/i,
+    notNames: /\bmirador\b|\bviews?\b|\bvista\b|\bviewpoint\b/i,
+    city: GRANADA,
+    rules: [yearly("12-25"), yearly("01-01")],
+    hours: [
+      { from: "04-01", to: "10-14", open: "08:30", close: "20:00" },
+      { from: "10-15", to: "03-31", open: "08:30", close: "18:00" },
+    ],
+    source: "https://www.alhambra-patronato.es/en/visit/opening-hours-and-prices",
+  },
+  // London
+  {
+    // Sundays are for worship only. Its page doesn't say whether 15:30 is the last entry or the closing: no hours.
+    names: /\bwestminster abbey\b|\babad[ií]a de westminster\b|\babbazia di westminster\b/i,
+    city: LONDON,
+    rules: [{ weekly: ["Sunday"] }, yearly("12-25")],
+    source: "https://www.westminster-abbey.org/faq",
+  },
+  // Edinburgh
+  {
+    names: /\bedinburgh castle\b|\bcastillo de edimburgo\b|\bcastello di edimburgo\b|\bcastelo de edimburgo\b/i,
+    city: EDINBURGH,
+    rules: [yearly("12-25", "12-26")],
+    hours: [
+      { from: "12-24", to: "12-24", open: "09:30", close: "16:00", lastEntry: "15:00" },
+      { from: "01-01", to: "01-01", open: "11:00", close: "17:00", lastEntry: "16:00" },
+      { from: "04-01", to: "09-30", open: "09:30", close: "18:00", lastEntry: "17:00" },
+      { from: "10-01", to: "03-31", open: "09:30", close: "17:00", lastEntry: "16:00" },
+    ],
+    source: "https://www.edinburghcastle.scot/plan-your-visit/opening-times/",
+  },
+  // Bavaria
+  {
+    names: /\bneuschwanstein\b/i,
+    city: BAVARIA,
+    rules: [yearly("12-24", "12-25"), yearly("12-31", "01-01")],
+    hours: [
+      { from: "03-28", to: "10-15", open: "09:00", close: "18:00" },
+      { from: "10-16", to: "03-27", open: "10:00", close: "16:00" },
+    ],
+    source: "https://www.neuschwanstein.de/englisch/tourist/opening.htm",
   },
 ];
 
@@ -384,6 +649,21 @@ export function shutBy(entry: KnownClosing, date: string): boolean {
     if ("sundaysButLast" in rule) return weekdayOf(date) === "Sunday" && d.getUTCMonth() === at(plusDays(date, 7)).getUTCMonth();
     return false;
   });
+}
+
+const minutesOf = (time: string) => Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5));
+
+/** The hours a listed place keeps on a date (YYYY-MM-DD). None when its hours aren't listed or it is shut that day. */
+export function hoursOn(entry: KnownClosing, date: string): OpenHours | null {
+  if (!isDate(date) || !entry.hours || shutBy(entry, date)) return null;
+  const weekday = weekdayOf(date);
+  const row = entry.hours.find((r) => inYearly(date, r) && (!r.days || r.days.includes(weekday)));
+  if (!row) return null;
+  return {
+    open: minutesOf(row.open),
+    close: minutesOf(row.close),
+    ...(row.lastEntry ? { lastEntry: minutesOf(row.lastEntry) } : {}),
+  };
 }
 
 /** The listed place a stop is, for a trip to this destination. */

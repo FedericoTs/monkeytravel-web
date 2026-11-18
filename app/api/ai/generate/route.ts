@@ -27,6 +27,7 @@ import {
 import { generateAnchoredItinerary, validateAnchors } from "@/lib/ai/anchored";
 import { knownPlacesFor } from "@/lib/ai/known-places";
 import { keepOffClosingDays } from "@/lib/ai/closing-days";
+import { keepInsideHours } from "@/lib/ai/visit-hours";
 import { swapClosedStops } from "@/lib/ai/closed-swaps";
 import { withoutLongClosures } from "@/lib/ai/long-closures";
 import { keepMustDos } from "@/lib/ai/must-dos";
@@ -230,6 +231,11 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         )
       ).itinerary;
     }
+
+    // Each visit to a place of known hours inside them (lib/ai/visit-hours.ts).
+    // Visits trade slots within their own day, so a multi-city or anchored
+    // trip keeps its days.
+    itinerary = { ...itinerary, days: keepInsideHours(itinerary.days, params.destination).days };
 
     // Assign activity images server-side (prevents a client race), cached
     // plans included: ZERO Google here. Every activity still gets an image — a

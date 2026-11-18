@@ -35,6 +35,7 @@ import { PartsError, writeInParts, writesInParts } from "@/lib/ai/plan-in-parts"
 import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/generation-result";
 import { knownPlacesFor, knownPlacesUsed, type KnownPlace } from "@/lib/ai/known-places";
 import { keepOffClosingDays } from "@/lib/ai/closing-days";
+import { keepInsideHours } from "@/lib/ai/visit-hours";
 import { swapClosedStops } from "@/lib/ai/closed-swaps";
 import { withoutLongClosures } from "@/lib/ai/long-closures";
 import { keepMustDos } from "@/lib/ai/must-dos";
@@ -366,6 +367,11 @@ export async function POST(request: NextRequest) {
       );
       finalItinerary = openDays.itinerary;
       generationCost += openDays.costUsd;
+      // 5b'. Each visit to a place of known hours inside them: a garden that
+      //      shuts at four isn't planned from half past two to half past four
+      //      (lib/ai/visit-hours.ts).
+      const inHours = keepInsideHours(finalItinerary.days, params.destination);
+      finalItinerary = { ...finalItinerary, days: inHours.days };
       if (!cacheHit) {
         try {
           // Zero Google at generation: Wikimedia photos and type-relevant stock
@@ -453,6 +459,18 @@ export async function POST(request: NextRequest) {
                         swapped: openDays.swapped,
                         // Which stops were left on a day they're shut: a miss says what it was.
                         ...(openDays.leftShut.length > 0 ? { left: openDays.leftShut.slice(0, 5) } : {}),
+                      },
+                    }
+                  : {}),
+                // Visits to places of known hours: how many were outside them, and what was done.
+                ...(inHours.checked > 0
+                  ? {
+                      visit_hours: {
+                        checked: inHours.checked,
+                        outside: inHours.outside,
+                        moved: inHours.moved,
+                        shortened: inHours.shortened,
+                        ...(inHours.left.length > 0 ? { left: inHours.left.slice(0, 5) } : {}),
                       },
                     }
                   : {}),
