@@ -127,11 +127,53 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
     openOn: ["2027-01-05", "2027-02-23"],
     source: "https://www.ghibli-museum.jp/en/tickets/",
   },
+  // Tokyo's metropolitan gardens: open every day but over the New Year.
   {
     names: /\bhama[- ]?rikyu\b|浜離宮/i,
     city: TOKYO,
     rules: [yearly("12-29", "01-01")],
     source: "https://www.tokyo-park.or.jp/teien/en/hama-rikyu/outline.html",
+  },
+  { names: /\brikugi-?en\b|六義園/i, city: TOKYO, rules: [yearly("12-29", "01-01")], source: "https://www.tokyo-park.or.jp/teien/en/rikugien/outline.html" },
+  {
+    // Not the University of Tokyo's Koishikawa Botanical Garden, a different place.
+    names: /\bkoishikawa[- ]?k[oō]rakuen\b|小石川後楽園/i,
+    city: TOKYO,
+    rules: [yearly("12-29", "01-01")],
+    source: "https://www.tokyo-park.or.jp/teien/en/koishikawa/outline.html",
+  },
+  {
+    // The garden only, not the Kiyosumi-Shirakawa neighbourhood and its cafés.
+    names: /\bkiyosumi (?:gardens?|teien)\b|清澄庭園/i,
+    city: TOKYO,
+    rules: [yearly("12-29", "01-01")],
+    source: "https://www.tokyo-park.or.jp/teien/en/kiyosumi/outline.html",
+  },
+  {
+    names: /\bkyu[- ]?shiba[- ]?rikyu\b|\bformer shiba detached palace\b|旧芝離宮/i,
+    city: TOKYO,
+    rules: [yearly("12-29", "01-01")],
+    source: "https://www.tokyo-park.or.jp/teien/en/kyu-shiba/outline.html",
+  },
+  {
+    names: /\bkyu[- ]?furukawa\b|\bformer furukawa\b|旧古河庭園/i,
+    city: TOKYO,
+    rules: [yearly("12-29", "01-01")],
+    source: "https://www.tokyo-park.or.jp/teien/en/kyu-furukawa/outline.html",
+  },
+  {
+    names: /\bkyu[- ]?iwasaki[- ]?tei\b|\bformer iwasaki (?:residence|house)\b|旧岩崎邸/i,
+    city: TOKYO,
+    rules: [yearly("12-29", "01-01")],
+    source: "https://www.tokyo-park.or.jp/teien/en/kyu-iwasaki/outline.html",
+  },
+  { names: /\btonogayato\b|殿ヶ谷戸/i, city: TOKYO, rules: [yearly("12-29", "01-01")], source: "https://www.tokyo-park.or.jp/teien/en/tonogayato/outline.html" },
+  {
+    // Its New Year closure runs two days longer than the other gardens'.
+    names: /\bmukojima[- ]?hyakkaen\b|向島百花園/i,
+    city: TOKYO,
+    rules: [yearly("12-29", "01-03")],
+    source: "https://www.tokyo-park.or.jp/teien/en/mukojima/outline.html",
   },
   {
     names: /\bginza (?:six|6)\b|ギンザシックス/i,

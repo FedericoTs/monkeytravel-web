@@ -132,6 +132,43 @@ describe("closures the official pages state for every year", () => {
   });
 });
 
+describe("Tokyo's metropolitan gardens", () => {
+  // Tuesday 28 December 2027 to Tuesday 4 January 2028.
+  const days = ["2027-12-28", "2027-12-29", "2027-12-31", "2028-01-01", "2028-01-02", "2028-01-03", "2028-01-04"];
+  const shutOn = (name: string) => days.filter((date) => shutBy(entry(name, "Tokyo, Japan"), date));
+
+  it.each([
+    "Rikugien Garden",
+    "Koishikawa Korakuen Garden",
+    "Kiyosumi Gardens",
+    "Kyu-Shiba-rikyu Garden",
+    "Kyu-Furukawa Gardens",
+    "Kyu-Iwasaki-tei Gardens",
+    "Tonogayato Garden",
+    "Hama-rikyu Gardens",
+  ])("shut %s from 29 December to 1 January, and open it every other day", (name) => {
+    expect(shutOn(name)).toEqual(["2027-12-29", "2027-12-31", "2028-01-01"]);
+    // An ordinary week: no weekly closing day.
+    expect(["2027-11-15", "2027-11-16", "2027-11-17", "2027-11-18", "2027-11-19", "2027-11-20", "2027-11-21"].some((date) => shutBy(entry(name, "Tokyo"), date))).toBe(false);
+  });
+
+  it("shut Mukojima-Hyakkaen until 3 January", () => {
+    expect(shutOn("Mukojima-Hyakkaen Garden")).toEqual(["2027-12-29", "2027-12-31", "2028-01-01", "2028-01-02", "2028-01-03"]);
+  });
+
+  it("know them by their Japanese names too", () => {
+    for (const name of ["六義園", "小石川後楽園", "清澄庭園", "旧芝離宮恩賜庭園", "旧古河庭園", "旧岩崎邸庭園", "殿ヶ谷戸庭園", "向島百花園"]) {
+      expect(knownClosingFor(name, "Tokyo")).toBeDefined();
+    }
+  });
+
+  it("leave out the places that only share a name", () => {
+    expect(knownClosingFor("Koishikawa Botanical Garden", "Tokyo")).toBeUndefined();
+    expect(knownClosingFor("Blue Bottle Coffee Kiyosumi-Shirakawa", "Tokyo")).toBeUndefined();
+    expect(knownClosingFor("Kiyosumi Shirakawa coffee crawl", "Tokyo")).toBeUndefined();
+  });
+});
+
 describe("the list's entries", () => {
   it("each name an official https page", () => {
     for (const place of KNOWN_CLOSINGS) expect(place.source).toMatch(/^https:\/\/[^\s]+$/);
