@@ -54,3 +54,43 @@ describe("useTripAssistant", () => {
     expect(setPreferredCurrency).not.toHaveBeenCalled();
   });
 });
+
+describe("the stages shown while the assistant works", () => {
+  const hook = () => renderHook(() => useTripAssistant({ tripId: "trip-1", itinerary: [], isOpen: false }));
+  const pending = () => vi.fn(() => new Promise<Response>(() => {}));
+  afterEach(() => vi.useRealTimers());
+
+  it("go through their steps, then stop by themselves", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("fetch", pending());
+    const { result } = hook();
+    act(() => void result.current.sendMessage("how much is day 2?"));
+    expect(result.current.loadingStage).toBe("parsing");
+    await act(() => vi.advanceTimersByTimeAsync(800));
+    expect(result.current.loadingStage).toBe("finding");
+    await act(() => vi.advanceTimersByTimeAsync(1600));
+    expect(result.current.loadingStage).toBe("applying");
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("stop when the request fails", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("fetch", vi.fn(async () => Promise.reject(new TypeError("offline"))));
+    const { result } = hook();
+    await act(async () => {
+      await result.current.sendMessage("how much is day 2?");
+    });
+    expect(result.current.isLoading).toBe(false);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("stop when the assistant closes before the answer comes", () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("fetch", pending());
+    const { result, unmount } = hook();
+    act(() => void result.current.sendMessage("how much is day 2?"));
+    expect(vi.getTimerCount()).toBe(1);
+    unmount();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+});
