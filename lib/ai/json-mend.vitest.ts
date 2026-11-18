@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import { mendJson } from "./json-mend";
 
 const tips = (body: string) => `{"day":1,"tips":[${body}],"theme":"Old town"}`;
+// A reply long enough that the parser quotes only the text around a token it can't take.
+const long = (last: string) => `{"days":[${Array.from({ length: 30 }, (_, i) => `{"n":${i},"type":"museum"}`).join(",")},${last}]}`;
+const lastDay = (text: string) => (mendJson(text).value as { days: unknown[] }).days.at(-1);
 
 describe("mendJson", () => {
   it("leaves JSON that parses as it is", () => {
@@ -44,6 +47,26 @@ describe("mendJson", () => {
     expect(() => mendJson('{"a":1, b:2}')).toThrow(/Expected double-quoted property name/);
   });
 
+  it("takes out a stray character or scrap typed before a value, found by the text the parser quotes", () => {
+    expect(lastDay(long('{"n":99,   "type":="market","x":1}'))).toEqual({ n: 99, type: "market", x: 1 });
+    expect(lastDay(long('{"n":98,"address":amp; "Main St","x":2}'))).toEqual({ n: 98, address: "Main St", x: 2 });
+  });
+
+  it("takes out a comma left before the end of a list in a long reply", () => {
+    expect(lastDay(long('{"tags":["a","b",]}'))).toEqual({ tags: ["a", "b"] });
+  });
+
+  it("leaves a stray token as the parser's error where it can't tell the place or the value", () => {
+    // Short: the parser quotes the whole reply, so the place can't be told.
+    expect(() => mendJson('{"a":=1}')).toThrow(/Unexpected token '='/);
+    // Before a number the run could be the start of a garbled string, so it stays.
+    expect(() => mendJson(long('{"floor":ab 4,"x":1}'))).toThrow(/Unexpected token/);
+    // A longer run before a value is no slip.
+    expect(() => mendJson(long('{"note":abcdefghij "x","y":1}'))).toThrow(/Unexpected token/);
+    // The quoted text is in the reply twice: which one can't be told.
+    expect(() => mendJson(long('{"n":1,   "type":="a"},{"n":2,   "type":="b"}'))).toThrow(/Unexpected token '='/);
+  });
+
   it("names the slip it couldn't mend after mending the ones before it", () => {
     const reply = '{"tip":"Try the "best" coffee","address":ოფ Flat 4}';
     expect(() => mendJson(reply)).toThrow(/^Expected ',' or '\}' after property value in JSON at position 17 .*; 2 mended, then: Unexpected token 'ო'/);
@@ -54,7 +77,7 @@ describe("mendJson", () => {
     expect(() => mendJson(stray)).toThrow(/Unexpected token/);
     // A quote followed by a comma can't be told from the end of the string.
     expect(() => mendJson('{"d":"a "b", c","x":1}')).toThrow(/after property value in JSON at position 9/);
-    // A comma before the end of a list: the parser gives no position for it.
+    // A comma before the end of a list in a reply too short for the parser to quote around it.
     expect(() => mendJson("[1,]")).toThrow(SyntaxError);
   });
 
