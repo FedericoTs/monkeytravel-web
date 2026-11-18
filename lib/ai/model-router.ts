@@ -21,6 +21,7 @@
  *   assistant-edits             | gemini-3.5-flash-lite  | The assistant's edit engine (wizard + trip page)
  *   assistant-chat              | gemini-3.5-flash-lite  | The trip assistant's reply when the engine gave none
  *   closed-swaps                | gemini-3.6-flash       | An open place for a sight shut on every date of a trip
+ *   dinners                     | gemini-3.5-flash-lite  | A real restaurant for a full day the plan left without dinner
  *
  * Env override:
  *   GEMINI_MODEL_OVERRIDE — when set, ALL purposes resolve to that model.
@@ -43,7 +44,8 @@ export type GeminiPurpose =
   | "assistant-chat"
   | "anchor-import"
   | "request-reading"
-  | "closed-swaps";
+  | "closed-swaps"
+  | "dinners";
 
 export type GeminiModelId =
   | "gemini-2.5-flash"
@@ -77,6 +79,9 @@ const PURPOSE_TO_MODEL: Record<GeminiPurpose, GeminiModelId> = {
   // model offers places shut over the same holiday, this one keeps to open
   // ones. Asked only for those sights, so its price barely counts.
   "closed-swaps": "gemini-3.6-flash",
+  // A restaurant near the place a day ends at, for a full day the plan left
+  // without dinner (lib/ai/dinners.ts): the plans' own model knows them.
+  dinners: "gemini-3.5-flash-lite",
 };
 
 const ALLOWED_OVERRIDES = new Set<string>([

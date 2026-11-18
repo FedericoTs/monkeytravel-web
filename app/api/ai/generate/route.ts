@@ -28,6 +28,7 @@ import { generateAnchoredItinerary, validateAnchors } from "@/lib/ai/anchored";
 import { knownPlacesFor } from "@/lib/ai/known-places";
 import { keepOffClosingDays } from "@/lib/ai/closing-days";
 import { keepInsideHours } from "@/lib/ai/visit-hours";
+import { askForDinners, daysWithoutDinner, withDinners } from "@/lib/ai/dinners";
 import { swapClosedStops } from "@/lib/ai/closed-swaps";
 import { withoutLongClosures } from "@/lib/ai/long-closures";
 import { keepMustDos } from "@/lib/ai/must-dos";
@@ -236,6 +237,15 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     // Visits trade slots within their own day, so a multi-city or anchored
     // trip keeps its days.
     itinerary = { ...itinerary, days: keepInsideHours(itinerary.days, params.destination).days };
+
+    // A full day the plan left without dinner gets one (lib/ai/dinners.ts).
+    const dinnersWanted = daysWithoutDinner(itinerary.days, params.destination);
+    const dinnersAsked = await askForDinners(dinnersWanted, {
+      budgetTier: params.budgetTier,
+      diets: profilePreferences.dietaryPreferences,
+      language: userLanguage,
+    });
+    itinerary = { ...itinerary, days: withDinners(itinerary.days, dinnersWanted, dinnersAsked.answer).days };
 
     // Assign activity images server-side (prevents a client race), cached
     // plans included: ZERO Google here. Every activity still gets an image — a

@@ -36,6 +36,7 @@ import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/genera
 import { knownPlacesFor, knownPlacesUsed, type KnownPlace } from "@/lib/ai/known-places";
 import { keepOffClosingDays } from "@/lib/ai/closing-days";
 import { keepInsideHours } from "@/lib/ai/visit-hours";
+import { askForDinners, daysWithoutDinner, withDinners } from "@/lib/ai/dinners";
 import { swapClosedStops } from "@/lib/ai/closed-swaps";
 import { withoutLongClosures } from "@/lib/ai/long-closures";
 import { keepMustDos } from "@/lib/ai/must-dos";
@@ -362,6 +363,14 @@ export async function POST(request: NextRequest) {
       //     and its days ordered around their closing days. A cached plan has
       //     new dates, so it too (lib/ai/closing-days.ts). One shut on every
       //     date it could go to is swapped for an open place (lib/ai/closed-swaps.ts).
+      //     A full day the plan left without dinner gets one, asked for meanwhile
+      //     so the plan isn't slower (lib/ai/dinners.ts).
+      const dinnersWanted = daysWithoutDinner(finalItinerary.days, params.destination);
+      const dinnersAsked = askForDinners(dinnersWanted, {
+        budgetTier: params.budgetTier,
+        diets: profilePreferences.dietaryPreferences,
+        language: userLanguage,
+      });
       const openDays = await keepOffClosingDays(finalItinerary, params.destination, undefined, undefined, (days, stuck) =>
         swapClosedStops(params.destination, days, stuck, userLanguage)
       );
@@ -372,6 +381,11 @@ export async function POST(request: NextRequest) {
       //      (lib/ai/visit-hours.ts).
       const inHours = keepInsideHours(finalItinerary.days, params.destination);
       finalItinerary = { ...finalItinerary, days: inHours.days };
+      // 5b''. The dinners, after the places they were chosen near, wherever those now are.
+      const dinnerAnswer = await dinnersAsked;
+      const dinners = withDinners(finalItinerary.days, dinnersWanted, dinnerAnswer.answer);
+      finalItinerary = { ...finalItinerary, days: dinners.days };
+      generationCost += dinnerAnswer.costUsd;
       if (!cacheHit) {
         try {
           // Zero Google at generation: Wikimedia photos and type-relevant stock
@@ -474,6 +488,8 @@ export async function POST(request: NextRequest) {
                       },
                     }
                   : {}),
+                // Full days the plan left without dinner, and how many got one.
+                ...(dinnersWanted.length > 0 ? { dinners: { missing: dinnersWanted.length, added: dinners.added } } : {}),
                 ...(generationId ? { generation_id: generationId } : {}),
               },
             });
