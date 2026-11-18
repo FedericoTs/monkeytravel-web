@@ -1,10 +1,11 @@
 /**
  * The model's JSON with the slips it makes mid-reply mended, where the parser
  * says exactly where they are: a double quote left unescaped inside a string
- * (`"the "best" view"`), a comma left out between two items (`{…}{…}`), and a
- * line break or tab typed as it is inside a string. One mend per parse, at the
- * parser's position, so text that parses is never touched. Anything else is
- * thrown as JSON.parse throws it.
+ * (`"the "best" view"`), a comma left out between two items (`{…}{…}`), a comma
+ * left before the end of an object (`{"a":1,}`), and a line break or tab typed
+ * as it is inside a string. One mend per parse, at the parser's position, so
+ * text that parses is never touched. A reply it can't mend throws the parser's
+ * first error, and when it mended slips before giving up, the one that stopped it.
  */
 
 /** The parser's own pointer to the first character it couldn't take. */
@@ -27,10 +28,14 @@ function mendAt(text: string, at: number): string | null {
   if (prev === undefined || next === undefined) return null;
   // Two items with nothing between them: `}{`, `""`, `]"`.
   if (/["}\]]/.test(prev) && /["{[]/.test(next)) return `${text.slice(0, before + 1)},${text.slice(before + 1)}`;
+  // A comma left before the end of an object.
+  if (prev === "," && next === "}") return `${text.slice(0, before)}${text.slice(before + 1)}`;
   // A string that ended at a quote inside it, the words going on after it.
   if (prev === '"' && !/[,:\]}]/.test(next)) return `${text.slice(0, before)}\\"${text.slice(before + 1)}`;
   return null;
 }
+
+const messageOf = (err: unknown) => (err instanceof Error ? err.message : String(err));
 
 /** The parsed value and how many slips were mended to get it; JSON.parse's first error when it can't be. */
 export function mendJson(text: string): { value: unknown; mends: number } {
@@ -43,7 +48,9 @@ export function mendJson(text: string): { value: unknown; mends: number } {
       first ??= err;
       const at = POSITION.exec(err instanceof Error ? err.message : "");
       const mended = at && mends < MENDS_MAX ? mendAt(source, Number(at[1])) : null;
-      if (mended === null) throw first;
+      if (mended === null && mends === 0) throw first;
+      // Where the reply went wrong first, and what couldn't be mended after the slips before it.
+      if (mended === null) throw new SyntaxError(`${messageOf(first)}; ${mends} mended, then: ${messageOf(err)}`);
       source = mended;
     }
   }
