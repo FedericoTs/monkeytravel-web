@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { createHash } from "node:crypto";
 import { NextRequest } from "next/server";
-import { forgetPageScriptHashes, inlineScriptHashes, pageScriptHashes, PROBE_HEADER } from "./page-hashes";
+import { AnsweredByAnotherDeployment, forgetPageScriptHashes, inlineScriptHashes, logProbeFailure, pageScriptHashes, PROBE_HEADER } from "./page-hashes";
 
 const sha = (s: string) => `sha256-${createHash("sha256").update(s, "utf8").digest("base64")}`;
 
@@ -95,11 +95,26 @@ describe("pageScriptHashes: one probe per path, verdict remembered", () => {
     it("is not pinned: the probe throws, and the next request reads this deployment's page", async () => {
       respond(page("dpl_OLD7zQ", "boot('old')"), { "content-type": "text/html", "cache-control": "public" });
       const req = new NextRequest("https://example.com/");
-      await expect(pageScriptHashes(req)).rejects.toThrow(/another deployment/);
+      const failed = await pageScriptHashes(req).catch((err: unknown) => err);
+      expect(failed).toBeInstanceOf(AnsweredByAnotherDeployment);
+      expect(String(failed)).toMatch(/the probe of \/ was answered by another deployment/);
       respond(page("dpl_NEW5xY", "boot('new')"), { "content-type": "text/html", "cache-control": "public" });
       expect(await pageScriptHashes(req)).toEqual([sha("boot('new')")]);
       expect(await pageScriptHashes(req)).toEqual([sha("boot('new')")]);
       expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it("is logged as a warning, being expected for a moment after each deploy; any other failure as an error", () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const error = vi.spyOn(console, "error").mockImplementation(() => {});
+      logProbeFailure(new AnsweredByAnotherDeployment("/"));
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(error).not.toHaveBeenCalled();
+      logProbeFailure(new Error("The operation was aborted due to timeout"));
+      expect(error).toHaveBeenCalledTimes(1);
+      expect(String(error.mock.calls[0][0])).toContain("[csp] could not hash the page's inline scripts");
+      warn.mockRestore();
+      error.mockRestore();
     });
 
     it("is not remembered as a per-request page either, when it answered 404", async () => {

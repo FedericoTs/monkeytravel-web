@@ -10,7 +10,7 @@ import {
   allowsThirdPartyFraming,
 } from "@/lib/security/csp";
 import { isStaticPagePath } from "@/lib/security/static-routes";
-import { pageScriptHashes, PROBE_HEADER } from "@/lib/security/page-hashes";
+import { logProbeFailure, pageScriptHashes, PROBE_HEADER } from "@/lib/security/page-hashes";
 import { generateNonce } from "@/lib/security/nonce";
 import { isBlockedBotUserAgent } from "@/lib/security/bots";
 import { unprefixedCallbackUrl } from "@/lib/auth/callback-url";
@@ -176,7 +176,7 @@ export async function middleware(request: NextRequest) {
         // The page could not be read back. A policy that blocks its scripts
         // would take the page down, so this response allows inline scripts
         // and the failure is logged; the next request probes again.
-        console.error("[csp] could not hash the page's inline scripts:", err);
+        logProbeFailure(err);
         response.headers.set("Content-Security-Policy", buildCspHeader(pathname, { unsafeInline: true }));
         return response;
       }
