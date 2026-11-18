@@ -308,7 +308,7 @@ Alcune parti sì — Las Ramblas, la spiaggia della Barceloneta in agosto e la z
 
 ## Pianifica il Tuo Viaggio 2026 con AI
 
-Ancora indeciso tra croissant e patatas bravas? Il pianificatore di viaggi con AI di MonkeyTravel crea itinerari personalizzati per entrambe le città — con prezzi reali, percorsi intelligenti e raccomandazioni di ristoranti che evitano le trappole per turisti.
+Ancora indeciso tra croissant e patatas bravas? Il pianificatore di viaggi con AI di MonkeyTravel crea itinerari personalizzati per entrambe le città — con costi stimati, percorsi intelligenti e raccomandazioni di ristoranti che evitano le trappole per turisti.
 
 Digli le tue date, il tuo budget e cosa ti interessa di più. Avrai un piano giorno per giorno in pochi minuti.
 

@@ -42,7 +42,7 @@ Esto es lo que pasó.
 
 **El viaje:** 7 días en Portugal — Lisboa, Sintra y Oporto. Dos viajeros, presupuesto medio, interesados en gastronomía, cultura y experiencias locales. Fechas de viaje: octubre de 2026.
 
-**El AI:** Un [planificador de viajes AI dedicado](/es/free-ai-trip-planner) (como MonkeyTravel) que genera itinerarios personalizados basados en preferencias, presupuesto y datos reales de establecimientos. Aclaración: MonkeyTravel es nuestro propio producto.
+**El AI:** Un [planificador de viajes AI dedicado](/es/free-ai-trip-planner) (como MonkeyTravel) que genera itinerarios personalizados según tus preferencias y presupuesto, y luego los revisa para evitar los días de cierre. Aclaración: MonkeyTravel es nuestro propio producto.
 
 **El agente:** Un asesor de viajes independiente con buenas valoraciones (ni una agencia low-cost, ni un concierge de lujo — un profesional estándar que cobra $150 por la planificación).
 
@@ -149,7 +149,7 @@ Depende de lo que valores:
 
 ## Pruébalo tú mismo
 
-El AI de MonkeyTravel crea itinerarios personalizados con establecimientos reales verificados por Google, estimaciones de coste y rutas inteligentes — en unos 30 segundos. Sin tarifa de planificación, sin registro obligatorio, sin consejos genéricos de "visita los monumentos famosos".
+El AI de MonkeyTravel crea itinerarios personalizados con establecimientos reales, estimaciones de coste y rutas inteligentes — en unos 30 segundos. Sin tarifa de planificación, sin registro obligatorio, sin consejos genéricos de "visita los monumentos famosos".
 
 Mira lo que el AI planifica para tu próximo viaje, y luego decide si necesitas un agente además.
 

@@ -391,7 +391,7 @@ Here's a realistic budget for 5 days, per person:
 
 This guide gives you a solid framework, but everyone's trip is different. Maybe you're traveling with kids and need to swap the jazz clubs for the Bronx Zoo. Maybe you want to skip museums entirely and eat your way through Queens. Maybe you only have 3 days.
 
-MonkeyTravel's AI creates a **personalized day-by-day New York itinerary** in 30 seconds — with real restaurants, actual prices, and smart subway routing so you're not wasting half your trip underground.
+MonkeyTravel's AI creates a **personalized day-by-day New York itinerary** in 30 seconds — with real restaurants, cost estimates, and smart subway routing so you're not wasting half your trip underground.
 
 [Generate My NYC Itinerary — Free](https://monkeytravel.app)
 

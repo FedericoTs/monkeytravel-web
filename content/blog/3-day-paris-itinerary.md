@@ -196,7 +196,7 @@ Here's a realistic budget for 3 days, per person:
 
 This guide gives you a solid framework, but everyone's trip is different. Maybe you want more food experiences and fewer museums. Maybe you're traveling with kids. Maybe you only have 2 days instead of 3.
 
-MonkeyTravel's AI creates a **personalized day-by-day Paris itinerary** in 30 seconds — with real restaurants, actual prices, and smart routing so you're not zigzagging across the city.
+MonkeyTravel's AI creates a **personalized day-by-day Paris itinerary** in 30 seconds — with real restaurants, cost estimates, and smart routing so you're not zigzagging across the city.
 
 [Generate My Paris Itinerary — Free](https://monkeytravel.app)
 

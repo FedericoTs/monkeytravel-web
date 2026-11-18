@@ -329,7 +329,7 @@ Calcula **2 horas** desde Seminyak o Canggu hasta el aeropuerto. Desde Ubud, cal
 
 Este itinerario es un buen punto de partida, pero quizás quieres 3 días en Ubud en vez de 2. Quizás eres surfista y necesitas estar cerca de los breaks. Quizás estás de luna de miel y prefieres más villas con piscina privada y menos warungs mochileros.
 
-La AI de MonkeyTravel crea un **itinerario personalizado de Bali día a día** en 30 segundos — con restaurantes reales, precios actuales y rutas inteligentes para que no pases medio viaje en el coche.
+La AI de MonkeyTravel crea un **itinerario personalizado de Bali día a día** en 30 segundos — con restaurantes reales, costes estimados y rutas inteligentes para que no pases medio viaje en el coche.
 
 [Generar Mi Itinerario de Bali — Gratis](https://monkeytravel.app)
 

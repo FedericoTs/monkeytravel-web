@@ -438,7 +438,7 @@ Budget realistico per 5 giorni, a persona:
 
 Questa guida ti dà una base solida, ma ogni viaggio è diverso. Magari vuoi passare un'intera giornata a Chinatown. Magari visiti durante Songkran (il festival dell'acqua per il Capodanno thailandese, 13-15 aprile) e hai bisogno di una strategia completamente diversa. Magari vuoi aggiungere Kanchanaburi o Hua Hin come gita invece di Ayutthaya.
 
-L'AI di MonkeyTravel crea un **itinerario personalizzato di Bangkok giorno per giorno** in 30 secondi — con ristoranti reali, prezzi attuali, connessioni BTS/MRT e percorsi intelligenti per non restare bloccato nel traffico quando potresti star mangiando.
+L'AI di MonkeyTravel crea un **itinerario personalizzato di Bangkok giorno per giorno** in 30 secondi — con ristoranti reali, costi stimati, connessioni BTS/MRT e percorsi intelligenti per non restare bloccato nel traffico quando potresti star mangiando.
 
 [Genera il Mio Itinerario di Bangkok — Gratis](https://monkeytravel.app)
 

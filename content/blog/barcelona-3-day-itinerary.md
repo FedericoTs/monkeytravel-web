@@ -271,7 +271,7 @@ Here's a realistic budget for 3 days, per person:
 
 This guide gives you a solid framework, but everyone's trip is different. Maybe you're obsessed with Gaudi and want a full day of modernist architecture. Maybe you're traveling with kids who need beach breaks. Maybe you're coming from Madrid and only have 2 days.
 
-MonkeyTravel's AI creates a **personalized day-by-day Barcelona itinerary** in 30 seconds — with real restaurants, actual prices, and smart routing so you're not zigzagging across the city.
+MonkeyTravel's AI creates a **personalized day-by-day Barcelona itinerary** in 30 seconds — with real restaurants, cost estimates, and smart routing so you're not zigzagging across the city.
 
 [Generate My Barcelona Itinerary — Free](https://monkeytravel.app)
 

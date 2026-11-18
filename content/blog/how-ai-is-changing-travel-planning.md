@@ -58,7 +58,7 @@ They also can't create structured, bookable itineraries. You get a paragraph of 
 
 ### 2. Dedicated AI Trip Planners (MonkeyTravel, Wonderplan, Layla, TripPlanner AI)
 
-**What they do differently:** These tools are built specifically for travel. They connect to Google Places, review databases, and real pricing data. When they recommend a restaurant, it exists, it's open, and the rating is real. [MonkeyTravel's free AI trip planner](/) is one example — it generates structured itineraries with verified venues, three budget tiers, and smart geographic routing.
+**What they do differently:** These tools are built specifically for travel: they plan day by day, with times, places and the route between them, and some check what the model wrote. [MonkeyTravel's free AI trip planner](/) is one example — it moves sights off the days they're closed, checks a saved trip's places to eat on Google Maps, and gives cost estimates at three budget levels, with each day's stops close together.
 
 **What they're good at:** Generating complete, structured itineraries — with specific venues, time slots, budget estimates, and geographic routing that minimizes backtracking. The best ones let you customize the result, not just accept or reject it.
 
@@ -128,7 +128,7 @@ This workflow — AI draft, human edit, group refine — is how most successful 
 
 ## Try It: 30 Seconds to Your First Draft
 
-MonkeyTravel builds on exactly this workflow. Our AI generates a personalized itinerary using real Google-verified venues, actual prices, and smart routing. Then you — and your travel crew — can vote on activities, propose alternatives, and reshape the plan together.
+MonkeyTravel builds on exactly this workflow. Our AI generates a personalized itinerary using real places, cost estimates, and smart routing. Then you — and your travel crew — can vote on activities, propose alternatives, and reshape the plan together.
 
 No sign-up wall. No hallucinated restaurants. No generic "visit the famous landmarks" advice.
 
@@ -152,7 +152,7 @@ Not entirely. AI handles most of the standard, repeatable work faster and cheape
 
 ### What's the best free AI trip planner?
 
-Look for tools that use real venue data (not just text generation), provide specific times and prices, and allow customization after generation. [MonkeyTravel's free AI trip planner](/) uses Google-verified venues and offers three budget tiers. Avoid tools that only generate text descriptions without structured, day-by-day itineraries.
+Look for tools that use real venue data (not just text generation), provide specific times and prices, and allow customization after generation. [MonkeyTravel's free AI trip planner](/) names real places and offers three budget tiers. Avoid tools that only generate text descriptions without structured, day-by-day itineraries.
 
 ### Can AI plan a group trip?
 

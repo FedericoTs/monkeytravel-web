@@ -194,7 +194,7 @@ Si el AI estima $15 por un museo que ahora cuesta $22, esas diferencias se acumu
 
 No todos los planificadores de viaje con AI son iguales, y los mejores están trabajando activamente para abordar estas limitaciones.
 
-**Verificación de lugares reales.** Los planificadores de viaje con AI dedicados como MonkeyTravel consultan Google Places y datos de negocios verificados en lugar de generar nombres de lugares a partir de patrones. Cada restaurante, museo y atracción en tu itinerario corresponde a un lugar real y verificado con una dirección confirmada. Esto reduce drásticamente las alucinaciones — aunque la frescura de los datos sigue siendo un desafío en toda la industria.
+**Comprobaciones después de escribir el plan.** Un plan que sale solo de un modelo es tan bueno como su memoria, así que algunos planificadores revisan lo que escribió. MonkeyTravel mueve los lugares que cierran ese día a otro en que abren y, cuando guardas un viaje, comprueba sus restaurantes en Google Maps y sustituye los que no están abiertos. Eso reduce los fallos que arruinan un día — aunque un cierre reciente o un cambio de horario aún pueden colarse.
 
 **Rutas geográficas inteligentes.** En lugar de listar atracciones en orden de popularidad, los planificadores modernos con AI secuencian las actividades geográficamente. Todo en el mismo barrio se agrupa, minimizando el tiempo de transporte y esos horarios de "teletransportación" excesivamente optimistas.
 
@@ -227,7 +227,7 @@ Tus días de vacaciones son demasiado valiosos para planes sin verificar. Verifi
 
 ## Pruébalo: Crea un itinerario verificado
 
-El AI de MonkeyTravel genera itinerarios personalizados usando lugares verificados por Google, precios reales y rutas inteligentes que realmente tienen en cuenta cuánto tardan las cosas. Cada recomendación corresponde a un lugar real que puedes confirmar en Google Maps.
+El AI de MonkeyTravel genera itinerarios personalizados usando lugares reales, costes estimados y rutas inteligentes que realmente tienen en cuenta cuánto tardan las cosas. Cada recomendación corresponde a un lugar real que puedes confirmar en Google Maps.
 
 Obtén tu primer borrador en 30 segundos. Dedica 20 minutos a verificar. Luego ve y disfruta tu viaje.
 

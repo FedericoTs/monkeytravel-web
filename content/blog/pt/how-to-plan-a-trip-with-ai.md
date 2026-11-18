@@ -132,7 +132,7 @@ Veja o que um bom roteiro gerado por AI inclui:
 
 Esse agrupamento geográfico é uma das maiores vantagens da AI sobre o planejamento manual. As pessoas tendem a planejar por prioridade ("quero ver a Sagrada Família, a La Boqueria e o Park Güell") sem pensar nos 45 minutos de deslocamento entre cada um. A AI roteiriza o seu dia como um GPS roteiriza uma viagem de carro — de forma eficiente.
 
-**Importante:** nem todos os planejadores de viagens com AI são iguais. Chatbots gerais como o ChatGPT vão te dar um parágrafo de sugestões. Planejadores de viagem dedicados como o MonkeyTravel geram roteiros estruturados com lugares verificados e preços reais. A diferença importa. Se uma ferramenta não consegue te dizer o nome real e a avaliação de um restaurante, ela está adivinhando — e os palpites da AI (chamados de alucinações) são o maior risco no planejamento de viagem com AI.
+**Importante:** nem todos os planejadores de viagens com AI são iguais. Chatbots gerais como o ChatGPT vão te dar um parágrafo de sugestões. Planejadores de viagem dedicados como o MonkeyTravel geram roteiros estruturados com lugares reais e custos estimados. A diferença importa. Se uma ferramenta não consegue te dizer o nome real e a avaliação de um restaurante, ela está adivinhando — e os palpites da AI (chamados de alucinações) são o maior risco no planejamento de viagem com AI.
 
 ## Passo 4: revise e personalize
 
@@ -239,11 +239,11 @@ A AI gera um roteiro completo em 30 segundos a 2 minutos. Revisar, personalizar 
 
 ### O planejamento de viagem com AI é grátis?
 
-Muitos planejadores de viagens com AI oferecem planos gratuitos. O [MonkeyTravel](https://monkeytravel.app) permite gerar roteiros personalizados de graça, com dados reais de lugares e detalhamento de orçamento. Chatbots gerais como o ChatGPT também são gratuitos para consultas básicas, mas não têm o formato de roteiro estruturado, os lugares verificados e a roteirização geográfica que os planejadores de viagem dedicados oferecem.
+Muitos planejadores de viagens com AI oferecem planos gratuitos. O [MonkeyTravel](https://monkeytravel.app) permite gerar roteiros personalizados de graça, com os lugares de cada dia e custos estimados. Chatbots gerais como o ChatGPT também são gratuitos para consultas básicas, mas não têm o formato de roteiro estruturado, as verificações e a roteirização geográfica que os planejadores de viagem dedicados oferecem.
 
 ### Posso confiar nas recomendações de restaurantes e atividades da AI?
 
-Depende da ferramenta. Chatbots gerais às vezes alucinam — recomendam com confiança um restaurante que não existe. Planejadores de viagem com AI dedicados como o MonkeyTravel puxam dados do Google Places e de bases de avaliações verificadas, então os lugares são reais, as avaliações são precisas e os preços são atuais. Dito isso, sempre faça uma verificação rápida dos horários de funcionamento e fechamentos recentes antes da viagem, especialmente para restaurantes.
+Depende da ferramenta. Chatbots gerais às vezes alucinam — recomendam com confiança um restaurante que não existe. O MonkeyTravel verifica os planos depois que o modelo os escreve: tira os lugares dos dias em que fecham e, quando você salva uma viagem, checa os lugares para comer no Google Maps e troca os que não estão abertos. Os custos são estimativas. Dito isso, sempre faça uma verificação rápida dos horários de funcionamento e fechamentos recentes antes da viagem, especialmente para restaurantes.
 
 ### E se eu estiver planejando uma viagem para um grupo grande?
 
@@ -255,7 +255,7 @@ Sim, e este é um dos casos de uso mais fortes da AI. Viagens com várias cidade
 
 ### Como um planejador de viagens com AI é diferente de simplesmente usar o ChatGPT?
 
-O ChatGPT é uma AI de uso geral que consegue falar sobre viagens, mas não tem acesso a dados de lugares em tempo real, não consegue verificar se um restaurante ainda está aberto e produz texto não estruturado em vez de um roteiro dia a dia com horários. Um planejador de viagens com AI dedicado se conecta ao Google Places, a bancos de dados de avaliações e a dados de preços para te dar recomendações específicas e verificadas, organizadas em um plano estruturado e prático. Pense assim: o ChatGPT é como pedir conselho a um amigo bem-informado. Um planejador de viagens com AI dedicado é como contratar um assistente de pesquisa que verifica cada fato. Para uma comparação mais aprofundada entre ferramentas de AI e o planejamento tradicional, veja a nossa [análise planejador de viagens com AI vs. agente de viagens](/blog/ai-trip-planner-vs-travel-agent).
+O ChatGPT é uma AI de uso geral que consegue falar sobre viagens, mas não tem acesso a dados de lugares em tempo real, não consegue verificar se um restaurante ainda está aberto e produz texto não estruturado em vez de um roteiro dia a dia com horários. Um planejador de viagens com AI dedicado te dá lugares concretos organizados em um plano dia a dia, e os melhores verificam o que o modelo escreveu. Pense assim: o ChatGPT é como pedir conselho a um amigo bem-informado. Um planejador de viagens com AI dedicado é como um assistente de pesquisa que checa os dados que mais costumam falhar. Para uma comparação mais aprofundada entre ferramentas de AI e o planejamento tradicional, veja a nossa [análise planejador de viagens com AI vs. agente de viagens](/blog/ai-trip-planner-vs-travel-agent).
 
 ## Sua próxima viagem começa aqui
 

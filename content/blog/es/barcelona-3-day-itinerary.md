@@ -271,7 +271,7 @@ Presupuesto realista para 3 días, por persona:
 
 Esta guía te da un marco sólido, pero cada viaje es diferente. Quizás eres fan total de Gaudí y quieres un día entero de arquitectura modernista. Quizás viajas con niños que necesitan ratos de playa. Quizás vienes de Madrid y solo tienes 2 días.
 
-La AI de MonkeyTravel crea un **itinerario personalizado de Barcelona día a día** en 30 segundos — con restaurantes reales, precios actuales y rutas inteligentes para que no cruces la ciudad en zigzag.
+La AI de MonkeyTravel crea un **itinerario personalizado de Barcelona día a día** en 30 segundos — con restaurantes reales, costes estimados y rutas inteligentes para que no cruces la ciudad en zigzag.
 
 [Generar Mi Itinerario de Barcelona — Gratis](https://monkeytravel.app)
 

@@ -307,7 +307,7 @@ If you've seen enough palaces, spend Day 3 at the coast. **Cascais** is a charmi
 
 This guide covers the highlights, but every trip is different. Maybe you want to add a fourth day for the Tile Museum and Parque das Nacoes. Maybe you're traveling with kids who need park breaks. Maybe you want to skip Sintra and spend two days in Alfama.
 
-MonkeyTravel's AI creates a **personalized day-by-day Lisbon itinerary** in 30 seconds — with real restaurants, actual prices, and smart routing so you're not climbing the same hill twice.
+MonkeyTravel's AI creates a **personalized day-by-day Lisbon itinerary** in 30 seconds — with real restaurants, cost estimates, and smart routing so you're not climbing the same hill twice.
 
 [Generate My Lisbon Itinerary — Free](https://monkeytravel.app)
 

@@ -353,7 +353,7 @@ Aqui está um orçamento realista para 4 dias, por pessoa:
 
 Este guia te dá uma base sólida, mas a viagem de cada pessoa é diferente. Talvez você queira passar mais tempo em mercados e menos em museus. Talvez você esteja viajando com crianças e precise de ajustes para a família. Talvez você tenha só 3 dias, ou queira acrescentar um bate-volta a Stonehenge ou Oxford.
 
-A AI da MonkeyTravel cria um **roteiro personalizado de Londres dia a dia** em 30 segundos — com restaurantes reais, preços reais, rotas de metrô e agendamento inteligente para que você não fique cruzando a cidade de um lado para o outro.
+A AI da MonkeyTravel cria um **roteiro personalizado de Londres dia a dia** em 30 segundos — com restaurantes reais, custos estimados, rotas de metrô e agendamento inteligente para que você não fique cruzando a cidade de um lado para o outro.
 
 [Gerar Meu Roteiro de Londres — Grátis](https://monkeytravel.app)
 

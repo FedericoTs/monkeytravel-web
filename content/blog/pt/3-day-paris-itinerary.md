@@ -197,7 +197,7 @@ Aqui está um orçamento realista para 3 dias, por pessoa:
 
 Este guia te dá uma base sólida, mas cada viagem é diferente. Talvez você queira mais experiências gastronômicas e menos museus. Talvez esteja viajando com crianças. Talvez tenha apenas 2 dias em vez de 3.
 
-A AI da MonkeyTravel cria um **roteiro personalizado de Paris dia a dia** em 30 segundos — com restaurantes reais, preços atuais e rotas inteligentes, para você não ficar ziguezagueando pela cidade.
+A AI da MonkeyTravel cria um **roteiro personalizado de Paris dia a dia** em 30 segundos — com restaurantes reais, custos estimados e rotas inteligentes, para você não ficar ziguezagueando pela cidade.
 
 [Gerar Meu Roteiro de Paris — Grátis](https://monkeytravel.app)
 

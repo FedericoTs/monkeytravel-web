@@ -392,7 +392,7 @@ Te las arreglarás con inglés en las zonas turísticas de ambas ciudades. En Pa
 
 ## Planifica Tu Viaje 2026 con AI
 
-¿Todavía indeciso? El planificador de viajes con AI de MonkeyTravel puede crearte un itinerario personalizado para cualquiera de las dos ciudades en minutos — con precios reales, rutas inteligentes y recomendaciones locales adaptadas a tus intereses y presupuesto.
+¿Todavía indeciso? El planificador de viajes con AI de MonkeyTravel puede crearte un itinerario personalizado para cualquiera de las dos ciudades en minutos — con costes estimados, rutas inteligentes y recomendaciones locales adaptadas a tus intereses y presupuesto.
 
 Elijas el croissant o el cornetto, nos aseguraremos de que no desperdicies ni un solo día.
 
