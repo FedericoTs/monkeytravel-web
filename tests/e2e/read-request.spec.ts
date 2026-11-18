@@ -136,3 +136,52 @@ test.describe("a whole trip typed as the destination", () => {
     await expect(page.getByRole("combobox").first()).toHaveValue("");
   });
 });
+
+// A whole trip typed with a time in it ("… a show at 21:30") can't go on as typed (the colon is no place's character):
+// with the dates set, Continue stood greyed out and nothing said why.
+test.describe("Continue on a whole trip typed as the destination", () => {
+  async function typeOnly(page: Page, text: string, reading: unknown) {
+    const asked: unknown[] = [];
+    await page.route("**/api/wizard/read-request", async (route) => {
+      asked.push(route.request().postDataJSON());
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ reading }) });
+    });
+    await page.route("**/api/destinations/search", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ predictions: [] }) })
+    );
+    await page.goto("/trips/new");
+    await acceptEssentialOnly(page);
+    const field = page.getByRole("combobox").first();
+    await field.fill(text);
+    await field.press("Escape");
+    await expect(page.getByRole("button", { name: "Fill in from what I wrote" })).toBeVisible();
+    return asked;
+  }
+
+  test("reads it, and goes on to the next step once it has filled the place and the dates", async ({ page }) => {
+    await isolate(page);
+    const asked = await typeOnly(page, "Lisbon 12 to 15 March, a fado show at 21:30", {
+      places: [{ name: "Lisbon", days: 4 }],
+      days: 4,
+      startDate: "2027-03-12",
+      endDate: "2027-03-15",
+      month: null,
+      who: null,
+      vibes: [],
+      budget: null,
+    });
+    const next = page.getByTestId("wizard-continue");
+    await expect(next).toBeEnabled();
+    await next.click();
+    await expect(page.getByRole("heading", { name: "Set your travel style" })).toBeVisible({ timeout: 15_000 });
+    expect(asked).toHaveLength(1);
+  });
+
+  test("stays on the place when none could be read, and says it is wanted", async ({ page }) => {
+    await isolate(page);
+    await typeOnly(page, "somewhere warm from 12 to 15 March, a show at 21:30", null);
+    await page.getByTestId("wizard-continue").click();
+    await expect(page.getByText("Add a destination to continue")).toBeVisible();
+    await expect(page.getByRole("combobox").first()).toHaveValue("");
+  });
+});
