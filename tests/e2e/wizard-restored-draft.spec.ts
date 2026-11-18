@@ -23,6 +23,15 @@ async function isolate(page: Page) {
     if (/(googletagmanager|google-analytics|posthog)\.|^maps\.googleapis\.com$/.test(url.host)) {
       return route.abort();
     }
+    // The draft's prices are in euros and the visitor's in dollars: the rates
+    // are answered here, so a slow rates service can't leave them in euros.
+    if (url.host === "api.frankfurter.dev") {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ base: "EUR", date: "2026-11-18", rates: { USD: 1.1, GBP: 0.85 } }),
+      });
+    }
     if (url.pathname === "/api/plans" && req.method() === "POST") {
       return route.fulfill({
         status: 201,
