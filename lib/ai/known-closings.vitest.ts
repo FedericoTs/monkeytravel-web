@@ -351,6 +351,60 @@ describe("more sights that close early", () => {
   });
 });
 
+// The Taj Mahal shuts on Fridays, and a plan could put it there: India's most-visited sights, from official pages.
+describe("India's sights", () => {
+  // Monday 25 January 2027, Tuesday 26 (Republic Day), Thursday 28, Friday 29; Monday 1 February.
+  it("shut the Taj Mahal on Fridays, and leave the hotel and the views named after it", () => {
+    expect(shutBy(entry("Taj Mahal", "Agra"), "2027-01-29")).toBe(true);
+    expect(shutBy(entry("Taj Mahal at sunrise", "Delhi & Agra"), "2027-01-28")).toBe(false);
+    expect(knownClosingFor("Taj Mahal Palace", "Agra")).toBeUndefined();
+    expect(knownClosingFor("Taj Mahal view from Mehtab Bagh", "Agra")).toBeUndefined();
+    expect(knownClosingFor("Taj Mahal", "Mumbai")).toBeUndefined();
+  });
+
+  it("open the Red Fort on Mondays now, shut it before Independence Day, and tell Agra's red fort from it", () => {
+    expect(shutBy(entry("Red Fort", "New Delhi"), "2027-02-01")).toBe(false);
+    expect(shutBy(entry("Lal Qila (Red Fort)", "Delhi"), "2027-08-01")).toBe(true);
+    expect(knownClosingFor("Agra Fort (the Red Fort of Agra)", "Delhi & Agra")).toBeUndefined();
+  });
+
+  it("shut Delhi's museums and temples on Mondays, the National Museum on the national holidays too", () => {
+    const museum = entry("National Museum", "New Delhi, India");
+    expect(shutBy(museum, "2027-01-25")).toBe(true);
+    expect(shutBy(museum, "2027-01-26")).toBe(true);
+    expect(shutBy(museum, "2027-01-28")).toBe(false);
+    expect(hoursOn(museum, "2027-01-30")?.close).toBe(20 * 60);
+    expect(hoursOn(museum, "2027-01-28")?.close).toBe(18 * 60);
+    expect(shutBy(entry("Swaminarayan Akshardham", "Delhi"), "2027-02-01")).toBe(true);
+    expect(shutBy(entry("Lotus Temple", "Nueva Delhi"), "2027-02-01")).toBe(true);
+    expect(knownClosingFor("National Museum", "Mumbai")).toBeUndefined();
+  });
+
+  it("shut the caves on their own days", () => {
+    expect(shutBy(entry("Ajanta Caves", "Aurangabad"), "2027-01-25")).toBe(true);
+    expect(shutBy(entry("Ellora Caves", "Ajanta & Ellora"), "2027-01-26")).toBe(true);
+    expect(shutBy(entry("Ellora Caves", "Chhatrapati Sambhajinagar"), "2027-01-25")).toBe(false);
+    expect(shutBy(entry("Elephanta Caves", "Mumbai"), "2027-01-25")).toBe(true);
+    expect(hoursOn(entry("Elephanta Caves", "Bombay"), "2027-01-28")?.close).toBe(17 * 60 + 30);
+  });
+
+  it("shut Hyderabad's palace and museum, Kochi's palace and Chennai's museum on Fridays", () => {
+    expect(shutBy(entry("Salar Jung Museum", "Hyderabad"), "2027-01-29")).toBe(true);
+    expect(shutBy(entry("Chowmahalla Palace", "Hyderabad, India"), "2027-01-29")).toBe(true);
+    expect(shutBy(entry("Mattancherry Palace", "Kochi"), "2027-01-29")).toBe(true);
+    expect(shutBy(entry("Dutch Palace", "Fort Kochi, Kerala"), "2027-01-28")).toBe(false);
+    expect(shutBy(entry("Government Museum", "Chennai"), "2027-01-29")).toBe(true);
+    expect(shutBy(entry("Government Museum", "Chennai"), "2027-08-15")).toBe(true);
+  });
+
+  it("keep Mehrangarh, Mumbai's museum and Mysore Palace inside their hours", () => {
+    expect(hoursOn(entry("Mehrangarh Fort", "Jodhpur"), "2027-01-28")).toEqual({ open: 540, close: 1020 });
+    expect(hoursOn(entry("Chhatrapati Shivaji Maharaj Vastu Sangrahalaya", "Mumbai"), "2027-01-28")).toEqual({ open: 615, close: 1080, lastEntry: 1065 });
+    expect(shutBy(entry("CSMVS (Prince of Wales Museum)", "Mumbai"), "2027-05-01")).toBe(true);
+    expect(hoursOn(entry("Mysore Palace", "Mysuru"), "2027-01-28")).toEqual({ open: 600, close: 1050, lastEntry: 1020 });
+  });
+});
+
 describe("a meal named after a listed place", () => {
   it("is never the place: a restaurant by the Pantheon isn't shut on its holidays", () => {
     const days = [{ date: "2026-12-25", activities: [{ name: "Armando al Pantheon", type: "restaurant" }, { name: "Pantheon", type: "landmark" }] }];
