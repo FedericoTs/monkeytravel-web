@@ -59,9 +59,42 @@ const RAIL_REGIONS = [
   { lat: [21.8, 25.4], lng: [119.9, 122.1] },
 ];
 
+// Islands inside those regions. No train crosses to or from one, and only
+// those with a railway of their own (`rail`) have trains from town to town.
+// A box holding several islands (the Cyclades) has none: its hops are by sea.
+const ISLANDS = [
+  { lat: [36.3, 37.99], lng: [24.3, 26.0], rail: false }, // the Cyclades: Santorini, Mykonos, Naxos, Paros, Milos
+  { lat: [34.8, 35.7], lng: [23.5, 26.4], rail: false }, // Crete
+  { lat: [35.85, 36.47], lng: [27.68, 28.25], rail: false }, // Rhodes
+  { lat: [36.7, 36.92], lng: [26.9, 27.37], rail: false }, // Kos
+  { lat: [39.35, 39.8], lng: [19.6, 19.95], rail: false }, // Corfu
+  { lat: [37.65, 37.95], lng: [20.6, 20.95], rail: false }, // Zakynthos
+  { lat: [38.05, 38.5], lng: [20.3, 20.8], rail: false }, // Kefalonia
+  { lat: [39.25, 39.97], lng: [2.3, 3.5], rail: true }, // Mallorca
+  { lat: [38.6, 39.15], lng: [1.15, 1.65], rail: false }, // Ibiza and Formentera
+  { lat: [39.78, 40.1], lng: [3.78, 4.35], rail: false }, // Menorca
+  { lat: [38.85, 41.3], lng: [8.1, 9.85], rail: true }, // Sardinia
+  { lat: [41.35, 43.05], lng: [8.5, 9.6], rail: true }, // Corsica
+  { lat: [40.53, 40.57], lng: [14.19, 14.27], rail: false }, // Capri
+  { lat: [40.69, 40.76], lng: [13.85, 13.96], rail: false }, // Ischia
+  { lat: [35.78, 36.09], lng: [14.18, 14.58], rail: false }, // Malta and Gozo
+  { lat: [51.4, 55.4], lng: [-10.6, -5.9], rail: true }, // Ireland
+  { lat: [33.1, 33.6], lng: [126.1, 127.0], rail: false }, // Jeju
+];
+
+const inBox = (p: LatLng, r: { lat: number[]; lng: number[] }) =>
+  p.lat >= r.lat[0] && p.lat <= r.lat[1] && p.lng >= r.lng[0] && p.lng <= r.lng[1];
+
 /** Is the point somewhere trains are the usual way between nearby cities? */
 export function inRailRegion(p: LatLng): boolean {
-  return RAIL_REGIONS.some((r) => p.lat >= r.lat[0] && p.lat <= r.lat[1] && p.lng >= r.lng[0] && p.lng <= r.lng[1]);
+  return RAIL_REGIONS.some((r) => inBox(p, r));
+}
+
+/** Whether land joins the two points by rail: both on the mainland, or both on one island with a railway. */
+export function railJoins(a: LatLng, b: LatLng): boolean {
+  const island = ISLANDS.findIndex((r) => inBox(a, r));
+  if (island !== ISLANDS.findIndex((r) => inBox(b, r))) return false;
+  return island === -1 || ISLANDS[island].rail;
 }
 
 /**
@@ -182,7 +215,7 @@ export function buildTransferActivity(opts: {
 }): Activity {
   const from = middleOf(opts.fromDays);
   const to = middleOf(opts.toDays);
-  const byRail = !!from && !!to && inRailRegion(from) && inRailRegion(to);
+  const byRail = !!from && !!to && inRailRegion(from) && inRailRegion(to) && railJoins(from, to);
   const estimate = estimateTransfer(from && to ? haversineKm(from, to) : null, byRail);
   const labels = LABELS[resolveLocale(opts.language)];
 

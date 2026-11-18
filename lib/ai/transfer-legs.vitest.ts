@@ -184,6 +184,31 @@ describe("transfer modes", () => {
     expect(inRailRegion({ lat: 13.75, lng: 100.5 })).toBe(false);
   });
 
+  it("crosses to and between islands by sea or air, and takes a train only on an island with a railway", () => {
+    const at = (lat: number, lng: number) => ({ lat, lng });
+    const leg = (from: { lat: number; lng: number }, to: { lat: number; lng: number }, toCity: string) =>
+      buildTransferActivity({
+        fromCity: "From",
+        toCity,
+        fromDays: [{ day_number: 1, date: "2026-11-01", activities: [act("there", from)] }],
+        toDays: [{ day_number: 2, date: "2026-11-02", activities: [act("here", to)] }],
+        currency: "EUR",
+      });
+    const ATHENS = at(37.9755, 23.7348);
+    const SANTORINI = at(36.4167, 25.4318);
+    expect(leg(ATHENS, SANTORINI, "Santorini")).toMatchObject({ transport_mode: "ground", name: "Transfer to Santorini" });
+    expect(leg(SANTORINI, at(37.4467, 25.3289), "Mykonos").transport_mode).toBe("ground");
+    expect(leg(at(41.3874, 2.1686), at(39.5696, 2.6502), "Palma").transport_mode).toBe("ground");
+    expect(leg(at(35.5138, 24.018), at(35.3387, 25.1442), "Heraklion").transport_mode).toBe("ground");
+    expect(leg(at(37.5665, 126.978), at(33.4996, 126.5312), "Jeju").transport_mode).toBe("flight");
+    expect(leg(at(51.5072, -0.1276), at(53.3498, -6.2603), "Dublin").transport_mode).toBe("flight");
+    // Trains run on Mallorca, Sardinia and Ireland, and on the mainland as before.
+    expect(leg(at(39.5696, 2.6502), at(39.7667, 2.7154), "Sóller").transport_mode).toBe("train");
+    expect(leg(at(39.2238, 9.1217), at(40.9235, 9.4964), "Olbia").transport_mode).toBe("train");
+    expect(leg(at(53.3498, -6.2603), at(51.8985, -8.4756), "Cork").transport_mode).toBe("train");
+    expect(leg(ROME, FLORENCE, "Florence").transport_mode).toBe("train");
+  });
+
   it("names no mode for a ground hop elsewhere, and flies the long ones", () => {
     expect(estimateTransfer(150, false)).toMatchObject({ mode: "ground", durationMinutes: 180 });
     expect(estimateTransfer(600, false).mode).toBe("flight");
