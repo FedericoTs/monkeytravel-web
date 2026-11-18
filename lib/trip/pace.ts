@@ -7,9 +7,11 @@
  * as a list while holding 11 hours of scheduled activity on a "moderate" trip.
  * Feasibility has to be a number before the UI or the model can be held to it.
  *
- * Calibration: the generator averages about four activities a day of a
- * couple of hours each. Budgets bracket that reality rather than aspiring to
- * a different one, so the overpacked flag stays a signal, not wallpaper.
+ * Calibration: the generator averages about three sights and activities a
+ * day of a couple of hours each, besides lunch and dinner. Budgets bracket
+ * that reality rather than aspiring to a different one, so the overpacked
+ * flag stays a signal, not wallpaper. Meals don't count toward the target:
+ * counted, they were what a plan dropped to fit another sight.
  *
  * Pure and dependency-free — imported by client components (DaySummary),
  * server prompts (lib/ai/trip-prompt.ts, lib/gemini.ts) and unit tests alike.
@@ -18,16 +20,16 @@
 import type { TripPace } from "@/types";
 
 export interface PaceBudget {
-  /** Target number of scheduled activities per day. */
+  /** Target number of sights and activities per day, lunch and dinner not counted. */
   targetActivities: number;
-  /** Soft ceiling on the sum of activity duration_minutes per day. */
+  /** Soft ceiling on the sum of activity duration_minutes per day, meals included. */
   maxActivityMinutes: number;
 }
 
 export const PACE_BUDGETS: Record<TripPace, PaceBudget> = {
-  relaxed: { targetActivities: 3, maxActivityMinutes: 360 },
-  moderate: { targetActivities: 4, maxActivityMinutes: 480 },
-  active: { targetActivities: 5, maxActivityMinutes: 600 },
+  relaxed: { targetActivities: 2, maxActivityMinutes: 360 },
+  moderate: { targetActivities: 3, maxActivityMinutes: 480 },
+  active: { targetActivities: 4, maxActivityMinutes: 600 },
 };
 
 /**
@@ -57,19 +59,26 @@ export function sumPlannedMinutes(
   }, 0);
 }
 
+// A meal's type, read for what it says: plans type meals loosely ("foodie", "restaurante", "meal").
+const MEAL_TYPE = /food|restaur|ristorant|caf[eé]|meal|bakery|brunch|bistro|tapas|\bbar\b|\bpub\b/i;
+
+/** Whether a stop is a meal: it doesn't count toward a day's pace target. */
+export function isMealStop(activity: { type?: string | null }): boolean {
+  return MEAL_TYPE.test(activity.type ?? "");
+}
+
 /**
- * Soft overpacked test: 25% over the time budget OR two activities past the
- * target count. The count arm keeps parity with the assistant's busy-day
- * heuristic (BUSY_THRESHOLD = 6 ≙ moderate target 4 + 2); the time arm
- * catches the sneakier case of four 3-hour activities.
+ * Soft overpacked test: 25% over the time budget OR two sights and activities
+ * past the target count, meals not counted. The time arm catches the sneakier
+ * case of four 3-hour activities.
  */
 export function isOverpacked(
-  activities: ReadonlyArray<{ duration_minutes?: number | null }> | null | undefined,
+  activities: ReadonlyArray<{ duration_minutes?: number | null; type?: string | null }> | null | undefined,
   pace: TripPace
 ): boolean {
   const budget = PACE_BUDGETS[pace];
   const planned = sumPlannedMinutes(activities);
-  const count = activities?.length ?? 0;
+  const count = (activities ?? []).filter((a) => !isMealStop(a)).length;
   return planned > budget.maxActivityMinutes * 1.25 || count >= budget.targetActivities + 2;
 }
 
@@ -83,13 +92,14 @@ export function lightenDayRequest(
 }
 
 /**
- * Human sentence quantifying a pace for generation prompts, e.g.
- * "aim for ~4 activities/day and keep each day's total activity time under 8h".
+ * Human sentence quantifying a pace for generation prompts, e.g. "aim for ~3
+ * sights and activities a day besides lunch and dinner, and keep each day's
+ * total time under 8 hours".
  * Accepts the raw (possibly legacy) pace string so prompt call sites don't
  * each re-normalize.
  */
 export function paceBudgetPromptClause(pace: string): string {
   const budget = PACE_BUDGETS[normalizePace(pace)];
   const hours = Math.round(budget.maxActivityMinutes / 60);
-  return `aim for ~${budget.targetActivities} activities/day and keep each day's total activity time (sum of duration_minutes) under ${hours} hours`;
+  return `aim for ~${budget.targetActivities} sights and activities a day besides lunch and dinner, and keep each day's total time (sum of duration_minutes, meals included) under ${hours} hours`;
 }

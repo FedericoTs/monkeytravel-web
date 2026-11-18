@@ -98,9 +98,10 @@ describe("the report", () => {
 describe("a day that's too full", () => {
   const sights = (n: number, minutes: number | null = null) => Array.from({ length: n }, (_, i) => stop(`Sight ${i}`, "landmark", "", minutes));
 
-  it("by its number of stops", async () => {
-    const report = await checkPlan(planOf(sights(6), sights(5)), { lookUp: false });
-    expect(report.days.map((d) => d.packed)).toEqual([true, false]);
+  it("by its number of sights, its meals not counted", async () => {
+    const meals = [stop("Lunch at Da Enzo", "restaurant"), stop("Dinner at Roscioli", "restaurant")];
+    const report = await checkPlan(planOf(sights(5), sights(4), [...sights(4), ...meals]), { lookUp: false });
+    expect(report.days.map((d) => d.packed)).toEqual([true, false, false]);
     expect(report.packedDays).toBe(1);
   });
 
@@ -110,7 +111,7 @@ describe("a day that's too full", () => {
   });
 
   it("not counting the hotel and the transfers", async () => {
-    const report = await checkPlan(planOf([...sights(5), stop("Hotel", "lodging"), stop("Taxi", "transport")]), { lookUp: false });
+    const report = await checkPlan(planOf([...sights(4), stop("Hotel", "lodging"), stop("Taxi", "transport")]), { lookUp: false });
     expect(report.days[0].packed).toBe(false);
   });
 });

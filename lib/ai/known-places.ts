@@ -245,7 +245,8 @@ export function pickKnownPlaces(rows: KnownPlaceRow[], params: TripCreationParam
   // Hidden gems are what popular places are not.
   if (vibes[0] === "offbeat") return [];
 
-  const perDay = PACE_BUDGETS[normalizePace(params.pace)].targetActivities;
+  // The pace's sights and activities a day, and about one meal: meals are limited apart below.
+  const perDay = PACE_BUDGETS[normalizePace(params.pace)].targetActivities + 1;
   let limit = Math.min(MAX_PLACES, Math.max(4, Math.round(totalDays * perDay * 0.5)));
   if (vibes.includes("offbeat")) limit = Math.round(limit / 2);
   // Places to eat were kept whatever the traveller ate, so a trip with a diet is offered none.
