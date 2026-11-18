@@ -81,6 +81,45 @@ describe("isOverpacked", () => {
   });
 });
 
+// A Paris day made more relaxed got its hotel night as a stop of ten hours, and the note then read "5 stops and
+// about 17 hours planned": pressed again, there was nothing left to lighten.
+describe("the time a day is busy", () => {
+  const stop = (name: string, type: string, duration_minutes: number, extra: Record<string, unknown> = {}) => ({ name, type, duration_minutes, ...extra });
+  const relaxedParisDay = [
+    stop("Café Kitsuné", "cafe", 60),
+    stop("Louvre Museum", "museum", 150),
+    stop("Le Comptoir", "restaurant", 90),
+    stop("Brasserie Lipp", "restaurant", 120),
+    stop("Hôtel Lutetia", "accommodation", 600),
+  ];
+
+  it("leaves out a night at the hotel, however it is typed or named", () => {
+    expect(sumPlannedMinutes(relaxedParisDay)).toBe(420);
+    expect(sumPlannedMinutes([stop("Louvre Museum", "museum", 150), stop("Ryokan Sawaya", "hotel", 720)])).toBe(150);
+    expect(sumPlannedMinutes([stop("Louvre Museum", "museum", 150), stop("Check-in at Hotel Lutetia", "", 600)])).toBe(150);
+    // A sight with "Hotel" in its name is still a sight.
+    expect(sumPlannedMinutes([stop("Hôtel de Ville", "landmark", 60)])).toBe(60);
+  });
+
+  it("leaves out the trip from the last city, and keeps a local ride", () => {
+    const arrival = [stop("Flight to Florence", "transport", 270, { transport_mode: "flight" }), stop("Duomo", "landmark", 120)];
+    expect(sumPlannedMinutes(arrival)).toBe(120);
+    expect(sumPlannedMinutes([stop("Train to Versailles", "transport", 45), stop("Château de Versailles", "landmark", 240)])).toBe(285);
+  });
+
+  it("doesn't call that day packed, or count the hotel among its stops", () => {
+    expect(isOverpacked(relaxedParisDay, "moderate")).toBe(false);
+    expect(lightenDayRequest(1, relaxedParisDay)).toBe(
+      "Day 1 has 4 stops and about 7 hours planned, which feels packed. Make it more relaxed."
+    );
+    // Four sights and the hotel: four sights and activities, one under packed for a moderate day.
+    const fourSights = [...["Louvre", "Orsay", "Orangerie", "Rodin"].map((name) => stop(name, "museum", 60)), stop("Hôtel Lutetia", "accommodation", 60)];
+    expect(isOverpacked(fourSights, "moderate")).toBe(false);
+    // A long ride on the day isn't the day's own plan either.
+    expect(isOverpacked([stop("Train to Jaisalmer", "transport", 750, { transport_mode: "train" }), stop("Gadisar Lake", "nature", 90)], "moderate")).toBe(false);
+  });
+});
+
 describe("paceBudgetPromptClause", () => {
   it("quantifies each pace with its target count and hour budget", () => {
     for (const pace of ["relaxed", "moderate", "active"] as const) {

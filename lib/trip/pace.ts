@@ -13,11 +13,12 @@
  * flag stays a signal, not wallpaper. Meals don't count toward the target:
  * counted, they were what a plan dropped to fit another sight.
  *
- * Pure and dependency-free — imported by client components (DaySummary),
- * server prompts (lib/ai/trip-prompt.ts, lib/gemini.ts) and unit tests alike.
+ * Pure — imported by client components (DaySummary), server prompts
+ * (lib/ai/trip-prompt.ts, lib/gemini.ts) and unit tests alike.
  */
 
 import type { TripPace } from "@/types";
+import { normalizeActivityType } from "@/lib/trip/activity-type";
 
 export interface PaceBudget {
   /** Target number of sights and activities per day, lunch and dinner not counted. */
@@ -44,16 +45,24 @@ export function normalizePace(value: unknown): TripPace {
   return "moderate";
 }
 
+type Timed = { duration_minutes?: number | null; type?: string | null; name?: string | null; transport_mode?: string | null };
+
 /**
- * Sum of duration_minutes across a day's activities. Tolerates malformed
+ * Whether a stop is part of what the day is busy with: a night at the hotel isn't, nor the trip from the
+ * last city of a trip through several (its card, lib/ai/transfer-legs.ts). A ride within the day is.
+ */
+export function isDayStop(activity: Timed): boolean {
+  return !activity.transport_mode && normalizeActivityType(activity.type, activity.name) !== "accommodation";
+}
+
+/**
+ * Sum of duration_minutes across a day's own stops (isDayStop). Tolerates malformed
  * itineraries (missing/negative/non-numeric durations count as 0) because
  * assistant edits and older trips don't guarantee the field.
  */
-export function sumPlannedMinutes(
-  activities: ReadonlyArray<{ duration_minutes?: number | null }> | null | undefined
-): number {
+export function sumPlannedMinutes(activities: ReadonlyArray<Timed> | null | undefined): number {
   if (!activities) return 0;
-  return activities.reduce((total, a) => {
+  return activities.filter(isDayStop).reduce((total, a) => {
     const d = typeof a.duration_minutes === "number" && a.duration_minutes > 0 ? a.duration_minutes : 0;
     return total + d;
   }, 0);
@@ -72,23 +81,17 @@ export function isMealStop(activity: { type?: string | null }): boolean {
  * past the target count, meals not counted. The time arm catches the sneakier
  * case of four 3-hour activities.
  */
-export function isOverpacked(
-  activities: ReadonlyArray<{ duration_minutes?: number | null; type?: string | null }> | null | undefined,
-  pace: TripPace
-): boolean {
+export function isOverpacked(activities: ReadonlyArray<Timed> | null | undefined, pace: TripPace): boolean {
   const budget = PACE_BUDGETS[pace];
   const planned = sumPlannedMinutes(activities);
-  const count = (activities ?? []).filter((a) => !isMealStop(a)).length;
+  const count = (activities ?? []).filter((a) => isDayStop(a) && !isMealStop(a)).length;
   return planned > budget.maxActivityMinutes * 1.25 || count >= budget.targetActivities + 2;
 }
 
 /** What the assistant is asked when someone presses to lighten a packed day. */
-export function lightenDayRequest(
-  dayNumber: number,
-  activities: ReadonlyArray<{ duration_minutes?: number | null }> | null | undefined
-): string {
+export function lightenDayRequest(dayNumber: number, activities: ReadonlyArray<Timed> | null | undefined): string {
   const hours = Math.round(sumPlannedMinutes(activities) / 60);
-  return `Day ${dayNumber} has ${activities?.length ?? 0} stops and about ${hours} hours planned, which feels packed. Make it more relaxed.`;
+  return `Day ${dayNumber} has ${(activities ?? []).filter(isDayStop).length} stops and about ${hours} hours planned, which feels packed. Make it more relaxed.`;
 }
 
 /**
