@@ -301,6 +301,20 @@ function daylightLine({ daylight }: Pick<TripCreationParams, "daylight">): strin
   return `Daylight (local time): sunrise about ${span(first.sunrise, last.sunrise)}, sunset about ${span(first.sunset, last.sunset)}. A stop named for the sunrise or the sunset must be under way at that time; otherwise don't name it after one.`;
 }
 
+/**
+ * One city's place on a trip through several (lib/ai/multi-city), so a name that fits several places (Córdoba,
+ * Mérida) or a misspelled one ("Sampa" for Sapa) means the one on the route, not the best known one.
+ */
+function routeLine({ destination, destinations }: Pick<TripCreationParams, "destination" | "destinations">): string {
+  const cities = (destinations ?? []).map((d) => d.city.trim()).filter(Boolean);
+  const at = cities.findIndex((city) => city.toLowerCase() === destination.trim().toLowerCase());
+  if (cities.length < 2 || at === -1) return "";
+  const before = cities[at - 1];
+  const after = cities[at + 1];
+  const where = before && after ? `between ${before} and ${after}` : after ? `where it starts, before ${after}` : `where it ends, after ${before}`;
+  return `Route: ${cities.join(" → ")}. These days are in ${destination} only: the ${destination} on this route, ${where}. A name that fits several places, or a misspelled one, means the place that fits the route.`;
+}
+
 /** Where they're staying, so each day starts near it and ends a short ride from it. */
 function stayLine({ stay }: Pick<TripCreationParams, "stay">): string {
   if (!stay) return "";
@@ -433,6 +447,7 @@ ${knownPlaces.map((p) => `- ${p.name} (${p.type})`).join("\n")}
   const travellers = travellersLine(params);
   const daylight = daylightLine(params);
   const stay = stayLine(params);
+  const route = routeLine(params);
   const closed = longClosuresLine(params);
   const days = daysLine(params.startDate, duration);
   // One city of a trip through several (lib/ai/multi-city): the must-dos are the
@@ -462,7 +477,7 @@ ${params.mustDos.map((m) => `- ${m}`).join("\n")}
 
 ## Travel Details
 - Dates: ${params.startDate} to ${params.endDate}
-${days ? `- ${days}\n` : ""}- Duration: ${duration} days
+${days ? `- ${days}\n` : ""}${route ? `- ${route}\n` : ""}- Duration: ${duration} days
 - Budget Tier: ${params.budgetTier}
 - Travel Pace: ${params.pace} — ${paceBudgetPromptClause(params.pace)}
 ${travellers ? `- ${travellers}\n` : ""}${daylight ? `- ${daylight}\n` : ""}${stay ? `- ${stay}\n` : ""}${closed ? `- ${closed}\n` : ""}
@@ -477,5 +492,5 @@ ${
 ${anchorSection}${partSection}Generate the itinerary now, following the system rules and the Required Output schema exactly.${languageSection}`;
 }
 
-export { buildProfilePreferencesSection, buildSchedulingPreferencesSection, buildUserPrompt, daylightLine, stayLine, travellersLine };
+export { buildProfilePreferencesSection, buildSchedulingPreferencesSection, buildUserPrompt, daylightLine, routeLine, stayLine, travellersLine };
 export type { BuildPromptOptions };

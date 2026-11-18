@@ -51,7 +51,9 @@ export async function generateMultiCityItinerary(
     const cityStart = addDaysISO(tripStartDate, cursor);
     const cityEnd = addDaysISO(tripStartDate, cursor + leg.nights - 1);
     cursor += leg.nights;
-    return { ...base, destination: leg.city, startDate: cityStart, endDate: cityEnd };
+    // Each city's plan knows the whole route: a name that fits several places
+    // (Córdoba, Mérida) or a misspelled one means the one on it.
+    return { ...base, destinations: legs, destination: leg.city, startDate: cityStart, endDate: cityEnd };
   });
 
   // Parallel: wall-clock = slowest single city, not the sum. Each city starts

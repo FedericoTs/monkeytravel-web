@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildStaticChatHistory, buildUserPrompt, daylightLine, stayLine } from "./trip-prompt";
+import { buildStaticChatHistory, buildUserPrompt, daylightLine, routeLine, stayLine } from "./trip-prompt";
 import type { TripCreationParams } from "@/types";
 
 /**
@@ -210,5 +210,40 @@ describe("must-dos on a trip through several cities", () => {
     const single = buildUserPrompt(leg({ destination: "Seoul, South Korea", destinations: undefined }));
     expect(single).toContain("Traveller Must-Dos (explicitly requested — schedule every one)");
     expect(single).not.toContain("one city of a trip");
+  });
+});
+
+describe("one city of a trip through several", () => {
+  const leg = (destination: string, cities: string[]): TripCreationParams => ({
+    destination,
+    startDate: "2027-03-10",
+    endDate: "2027-03-11",
+    budgetTier: "balanced",
+    pace: "moderate",
+    vibes: [],
+    interests: [],
+    destinations: cities.map((city) => ({ city, nights: 2 })),
+  });
+
+  // Each city was planned from its name alone: "cordoba" on a trip through Argentina came back as Córdoba, Spain,
+  // and "Sampa" (Sapa, near Hanoi) as São Paulo.
+  it("is the one on the route, between the cities before and after it", () => {
+    const details = buildUserPrompt(leg("cordoba", ["buenos aires", "cordoba", "mendoza"])).split("## Travel Details")[1].split("\n\n")[0];
+    expect(details).toContain(
+      "- Route: buenos aires → cordoba → mendoza. These days are in cordoba only: the cordoba on this route, between buenos aires and mendoza. A name that fits several places, or a misspelled one, means the place that fits the route."
+    );
+  });
+
+  it("names where the route starts and ends", () => {
+    expect(routeLine(leg("anjar", ["anjar", "bhuj", "dhordo"]))).toContain("the anjar on this route, where it starts, before bhuj.");
+    expect(routeLine(leg("Seminyak", ["UBUD", "Canga", "Seminyak"]))).toContain("the Seminyak on this route, where it ends, after Canga.");
+  });
+
+  it("finds the city whatever its case, and says nothing on a trip to one place", () => {
+    expect(routeLine(leg("Sampa", ["Hanoi", "sampa", "Ha long"]))).toContain("between Hanoi and Ha long");
+    expect(routeLine({ destination: "Lisbon", destinations: undefined })).toBe("");
+    expect(routeLine(leg("Porto", ["Porto"]))).toBe("");
+    expect(routeLine(leg("Faro", ["Lisbon", "Porto"]))).toBe("");
+    expect(buildUserPrompt({ ...leg("Lisbon", ["Lisbon"]), destinations: undefined })).not.toContain("Route:");
   });
 });
