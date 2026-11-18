@@ -348,14 +348,54 @@ describe("the way travellers make a hop, as answered", () => {
     });
   });
 
-  it("calls a bus, a car or a ferry a transfer", () => {
+  it("names a bus and a ferry, and calls a car a transfer", () => {
     expect(leg(HANOI, HA_LONG, "Ha Long Bay", { mode: "bus", minutes: 150 })).toMatchObject({
-      transport_mode: "ground",
-      name: "Transfer to Ha Long Bay",
+      transport_mode: "bus",
+      name: "Bus to Ha Long Bay",
       duration_minutes: 180,
+      estimated_cost: { amount: 14 },
     });
-    expect(leg(UBUD, GILI, "Gili Trawangan", { mode: "ferry", minutes: 120 })).toMatchObject({ transport_mode: "ground", duration_minutes: 150 });
-    expect(leg(AGRA, JAIPUR, "Jaipur", { mode: "car", minutes: 240 })).toMatchObject({ transport_mode: "ground", duration_minutes: 270 });
+    expect(leg(UBUD, GILI, "Gili Trawangan", { mode: "ferry", minutes: 120 })).toMatchObject({
+      transport_mode: "ferry",
+      name: "Ferry to Gili Trawangan",
+      duration_minutes: 150,
+    });
+    expect(leg(AGRA, JAIPUR, "Jaipur", { mode: "car", minutes: 240 })).toMatchObject({
+      transport_mode: "ground",
+      name: "Transfer to Jaipur",
+      duration_minutes: 270,
+    });
+  });
+
+  it("names them in the trip's language, on the card and the ribbon", () => {
+    const NAPLES = { lat: 40.8518, lng: 14.2681 };
+    const CAPRI = { lat: 40.5509, lng: 14.2429 };
+    const named = (language: string, toCity: string, from: { lat: number; lng: number }, to: { lat: number; lng: number }, mode: "bus" | "ferry", minutes: number) =>
+      buildTransferActivity({
+        fromCity: "From",
+        toCity,
+        fromDays: [{ day_number: 1, date: "2026-11-01", activities: [act("there", from)] }],
+        toDays: [{ day_number: 2, date: "2026-11-02", activities: [act("here", to)] }],
+        currency: "EUR",
+        language,
+        known: { mode, minutes },
+      }).name;
+    const languages = ["en", "it", "es", "pt"];
+    expect(languages.map((l) => named(l, "Capri", NAPLES, CAPRI, "ferry", 50))).toEqual(["Ferry to Capri", "Traghetto per Capri", "Ferry a Capri", "Barco para Capri"]);
+    expect(languages.map((l) => named(l, "Ha Long Bay", HANOI, HA_LONG, "bus", 150))).toEqual([
+      "Bus to Ha Long Bay",
+      "Autobus per Ha Long Bay",
+      "Autobús a Ha Long Bay",
+      "Ônibus para Ha Long Bay",
+    ]);
+    const HUE = { lat: 16.4637, lng: 107.5909 };
+    const merged = mergeCityItineraries(
+      [{ city: "Hanoi", nights: 1 }, { city: "Ha Long Bay", nights: 1 }, { city: "Hue", nights: 1 }],
+      [cityResult("Hanoi", 1, HANOI), cityResult("Ha Long Bay", 1, HA_LONG), cityResult("Hue", 1, HUE)],
+      "2026-11-01",
+      { language: "it", hops: [{ mode: "bus", minutes: 150 }, { mode: "flight", minutes: 70 }] }
+    );
+    expect(buildJourneyStops(merged.days, "it").map((s) => s.transitFromPrev)).toEqual([undefined, "AUTOBUS · 3h", "VOLO · 3h 40m"]);
   });
 
   it("keeps the estimate when the answer can't be right for the line between the two places", () => {

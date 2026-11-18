@@ -29,6 +29,8 @@ export default function WizardFooter({
   handleContinue,
   handleGenerate,
   readOffered = false,
+  onReadRequest,
+  readingRequest = false,
 }: {
   footerRef: RefObject<HTMLDivElement | null>;
   step: number;
@@ -51,8 +53,14 @@ export default function WizardFooter({
   handleGenerate: () => Promise<void>;
   /** Step 1's text is a whole trip, offered to be read: that offer says what to do, so no hint here. */
   readOffered?: boolean;
+  /** Reads that whole trip into step 1, and goes on once it has filled it: what Continue does while it can't go on as it is. */
+  onReadRequest?: () => void;
+  /** The whole trip is being read. */
+  readingRequest?: boolean;
 }) {
   const t = useTranslations("trips");
+  // A whole trip that can't go on as typed: Continue reads it, rather than standing greyed out with nothing said.
+  const readsFirst = step === 1 && readOffered && !canProceed() && Boolean(onReadRequest);
   return (
   <div
     ref={footerRef}
@@ -132,8 +140,9 @@ export default function WizardFooter({
       <button
         key="continue"
         data-testid="wizard-continue"
-        onClick={handleContinue}
-        disabled={!canProceed()}
+        onClick={readsFirst ? onReadRequest : handleContinue}
+        disabled={readsFirst ? readingRequest : !canProceed()}
+        aria-busy={readsFirst && readingRequest ? true : undefined}
         className="bg-[var(--primary)] text-white px-8 py-3.5 sm:py-3 rounded-xl font-medium hover:bg-[var(--primary)]/90 active:bg-[var(--primary)]/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px] sm:min-h-0"
       >
         {t("wizard.step1.continue")} →

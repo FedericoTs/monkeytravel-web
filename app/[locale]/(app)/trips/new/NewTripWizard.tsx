@@ -1218,6 +1218,8 @@ export default function NewTripPage({
   const [readingRequest, setReadingRequest] = useState(false);
   // What a reading filled in, shown while the field still holds it.
   const [requestFilled, setRequestFilled] = useState<{ destination: string; capped: number | null } | null>(null);
+  // Whether the last reading filled step 1 enough to go on (handleReadAndContinue).
+  const filledStep1Ref = useRef(false);
 
   const handleReadRequest = async (): Promise<"filled" | "kept"> => {
     const text = destination.trim();
@@ -1259,6 +1261,11 @@ export default function NewTripPage({
     }
     keepDetails(fill);
     setRequestFilled({ destination: filledAs, capped: fill.capped });
+    // Whether step 1 can go on as filled: one place, and dates read or chosen. A
+    // route's rows set the destination themselves, a moment later.
+    filledStep1Ref.current =
+      !fill.route &&
+      step1Blocker(filledAs, fill.startDate || startDate, fill.startDate ? fill.endDate : endDate, effectiveMaxTripDays, today) === null;
     setReadingRequest(false);
     return "filled";
   };
@@ -1837,6 +1844,13 @@ export default function NewTripPage({
     setStep(step + 1);
   };
 
+  // Continue pressed on a whole trip that can't go on as typed: read it, and go
+  // on when what it filled in completes step 1. A place with no dates stays for them.
+  const handleReadAndContinue = async () => {
+    if (readingRequest) return;
+    if ((await handleReadRequest()) === "filled" && filledStep1Ref.current) handleContinue();
+  };
+
   // Wizard form
   return (
     <div className="min-h-screen bg-[var(--background)]">
@@ -2062,6 +2076,8 @@ export default function NewTripPage({
           handleContinue={handleContinue}
           handleGenerate={handleGenerate}
           readOffered={requestLike}
+          onReadRequest={() => void handleReadAndContinue()}
+          readingRequest={readingRequest}
         />
       </main>
 
