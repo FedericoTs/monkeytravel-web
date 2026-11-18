@@ -100,11 +100,23 @@ const BALI = /\bbali\b|\bubud\b|\bseminyak\b|\bcanggu\b|\bcanga\b|\bkuta\b|\bulu
 const GOA = /\bgoa\b|\bpanaji\b|\bpanjim\b/i;
 const MUNNAR = /\bmunnar\b|\bkerala\b|\bidukki\b/i;
 const OSAKA = /\bosaka\b|\bosaca\b|大阪/i;
+const AGRA = /\bagra\b|आगरा/i;
+const DELHI = /\bdelhi\b|\bnova d[eé]li\b|दिल्ली/i;
+const JODHPUR = /\bjodhpur\b/i;
+const HYDERABAD = /\bhyderabad\b|\bhaidarabad\b/i;
+// Ajanta and Ellora are reached from Chhatrapati Sambhajinagar, until 2023 Aurangabad.
+const AJANTA_ELLORA = /\baurangabad\b|\bsambhajinagar\b|\bajanta\b|\bellora\b/i;
+const MUMBAI = /\bmumbai\b|\bbombay\b|\bbombaim\b|मुंबई/i;
+const MYSURU = /\bmysuru\b|\bmysore\b/i;
+const KOCHI = /\bkochi\b|\bcochin\b|\bmattancherry\b|\bernakulam\b|\bkerala\b/i;
+const CHENNAI = /\bchennai\b|\bmadras\b/i;
 
 const day = (date: string) => ({ from: date, to: date });
 /** Shut every year from one month-day to another (or on one), e.g. yearly("12-29", "01-03"). */
 const yearly = (from: string, to = from): Rule => ({ yearly: { from, to } });
 const OPEN_EVERY_DAY: Rule[] = [];
+/** India's national holidays: Republic Day, Independence Day and Gandhi Jayanti. */
+const INDIA_NATIONAL_HOLIDAYS: Rule[] = [yearly("01-26"), yearly("08-15"), yearly("10-02")];
 
 export const KNOWN_CLOSINGS: KnownClosing[] = [
   // Tokyo
@@ -728,6 +740,126 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
       { from: "01-01", to: "12-31", open: "10:00", close: "22:00", lastEntry: "21:00" },
     ],
     source: "https://en.tokyo-skytree.jp/open-hours/day_hours/",
+  },
+  // Agra
+  {
+    // Open from half an hour before sunrise to half an hour before sunset: no clock hours to hold a visit to.
+    names: /\btaj mahal\b|ताज महल/i,
+    notNames: /\bhotel\b|\bpalace\b|\bmehtab\b|\bview(?:point)?\b/i,
+    city: AGRA,
+    rules: [{ weekly: ["Friday"] }],
+    source: "https://tajmahal.gov.in/visiting-hours.aspx",
+  },
+  // Delhi
+  {
+    // Open on Mondays since February 2026; shut for the Independence Day preparations, about 15 July to 15 August.
+    names: /\bred fort\b|\blal qil[ae]\b|\bfuerte rojo\b|\bforte rosso\b|\bforte vermelho\b|लाल किला/i,
+    notNames: /\bagra\b/i,
+    city: DELHI,
+    rules: [yearly("07-15", "08-15")],
+    source: "https://asi.paygov.org.in/asi-webapp/#/ticketbooking",
+  },
+  {
+    names: /\bnational museum\b|\bmuseo nacional\b|\bmuseo nazionale\b|\bmuseu nacional\b/i,
+    city: DELHI,
+    rules: [{ weekly: ["Monday"] }, ...INDIA_NATIONAL_HOLIDAYS],
+    hours: [
+      { from: "01-01", to: "12-31", days: ["Saturday", "Sunday"], open: "10:00", close: "20:00" },
+      { from: "01-01", to: "12-31", open: "10:00", close: "18:00" },
+    ],
+    source: "https://nationalmuseumindia.gov.in/en/visiting",
+  },
+  {
+    names: /\bakshardham\b|अक्षरधाम/i,
+    city: DELHI,
+    rules: [{ weekly: ["Monday"] }],
+    hours: [{ from: "01-01", to: "12-31", open: "10:00", close: "20:00", lastEntry: "18:30" }],
+    source: "https://akshardham.com/visitor-info/",
+  },
+  {
+    names: /\blotus temple\b|\bbah[aá]'?[ií] house of worship\b|\btempio del loto\b|\btemplo (?:del|do) l[oó]to\b|\btemplo (?:del|do) l[oó]tus\b/i,
+    city: DELHI,
+    rules: [{ weekly: ["Monday"] }],
+    hours: [{ from: "01-01", to: "12-31", open: "08:30", close: "18:00" }],
+    source: "https://bahaihouseofworship.in/plan-a-visit/",
+  },
+  // Jodhpur
+  {
+    names: /\bmehrangarh\b/i,
+    city: JODHPUR,
+    rules: OPEN_EVERY_DAY,
+    hours: [{ from: "01-01", to: "12-31", open: "09:00", close: "17:00" }],
+    source: "https://www.mehrangarh.org/visit/mehrangarh-museum/",
+  },
+  // Hyderabad
+  {
+    names: /\bsalar ?jung\b/i,
+    city: HYDERABAD,
+    rules: [{ weekly: ["Friday"] }],
+    hours: [{ from: "01-01", to: "12-31", open: "10:00", close: "18:00", lastEntry: "17:15" }],
+    source: "https://salarjungmuseum.in/plan-your-visit/",
+  },
+  {
+    names: /\bchow ?mahall?a\b/i,
+    city: HYDERABAD,
+    rules: [{ weekly: ["Friday"] }],
+    hours: [{ from: "01-01", to: "12-31", open: "10:00", close: "17:00" }],
+    source: "https://www.chowmahalla.in/visit/",
+  },
+  // Ajanta and Ellora
+  {
+    // The two official pages give different hours (sunrise to sunset, or 9:00 to 17:00): the closing day only.
+    names: /\bajanta\b/i,
+    city: AJANTA_ELLORA,
+    rules: [{ weekly: ["Monday"] }],
+    source: "https://asi.paygov.org.in/asi-webapp/#/ticketbooking",
+  },
+  {
+    names: /\bellora\b|\bkailasa temple\b/i,
+    city: AJANTA_ELLORA,
+    rules: [{ weekly: ["Tuesday"] }],
+    source: "https://asi.paygov.org.in/asi-webapp/#/ticketbooking",
+  },
+  // Mumbai
+  {
+    names: /\belephanta\b/i,
+    city: MUMBAI,
+    rules: [{ weekly: ["Monday"] }],
+    hours: [{ from: "01-01", to: "12-31", open: "09:00", close: "17:30" }],
+    source: "https://asi.nic.in/pages/m_category/isTicketed/monument/HQ",
+  },
+  {
+    names: /\bchhatrapati shivaji maharaj vastu sangrahalaya\b|\bcsmvs\b|\bprince of wales museum\b/i,
+    city: MUMBAI,
+    rules: [yearly("05-01"), ...INDIA_NATIONAL_HOLIDAYS],
+    hours: [{ from: "01-01", to: "12-31", open: "10:15", close: "18:00", lastEntry: "17:45" }],
+    source: "https://www.csmvs.in/visit-us.html",
+  },
+  // Mysuru
+  {
+    // The palace's evening illumination is named as such and isn't held to these hours (lib/ai/visit-hours.ts).
+    names: /\bmys(?:ore|uru) palace\b|\bamba vilas\b|\bpalazzo di mysore\b|\bpalacio de mysore\b|\bpal[aá]cio de mysore\b/i,
+    city: MYSURU,
+    rules: OPEN_EVERY_DAY,
+    hours: [{ from: "01-01", to: "12-31", open: "10:00", close: "17:30", lastEntry: "17:00" }],
+    source: "https://karnatakatourism.org/en/attractions/mysuru-palace/",
+  },
+  // Kochi
+  {
+    names: /\bmattancherry palace\b|\bdutch palace\b|\bpalazzo olandese\b|\bpalacio holand[eé]s\b|\bpal[aá]cio holand[eê]s\b/i,
+    city: KOCHI,
+    rules: [{ weekly: ["Friday"] }],
+    hours: [{ from: "01-01", to: "12-31", open: "10:00", close: "17:00" }],
+    source: "https://www.keralatourism.org/destination/mattancherry-palace-kochi/178/",
+  },
+  // Chennai
+  {
+    // Also shut for Deepavali and Pongal, whose dates move: not held here.
+    names: /\bgovernment museum\b|\begmore museum\b|\bmadras museum\b/i,
+    city: CHENNAI,
+    rules: [{ weekly: ["Friday"] }, ...INDIA_NATIONAL_HOLIDAYS],
+    hours: [{ from: "01-01", to: "12-31", open: "10:30", close: "18:30" }],
+    source: "https://govtmuseumchennai.org/",
   },
 ];
 
