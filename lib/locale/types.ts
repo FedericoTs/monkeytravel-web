@@ -157,6 +157,6 @@ export const LOCALE_CURRENCY_MAP: Record<string, CurrencyCode> = {
   "hu-HU": "HUF",
   "el-GR": "EUR",
   "ro-RO": "RON",
-  "bg-BG": "BGN",
+  "bg-BG": "EUR",
   "uk-UA": "UAH",
 };
