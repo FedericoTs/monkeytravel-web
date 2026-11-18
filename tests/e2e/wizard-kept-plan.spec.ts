@@ -53,6 +53,11 @@ function entry(token: string, destination: string, key?: string) {
   };
 }
 
+/** The list's entry once a plan has opened here: it also records the version it holds. */
+function opened(token: string, destination: string, key?: string) {
+  return { ...entry(token, destination, key), fingerprint: expect.any(String) };
+}
+
 /** Serves the plan (EXPIRED is gone), and records what the page asked of /api/plans. */
 async function isolate(page: Page) {
   const plans = { reads: [] as string[], writes: [] as string[], emailed: [] as unknown[] };
@@ -169,7 +174,7 @@ test.describe("wizard: a kept plan", () => {
     expect(plans.reads).toEqual([LINKED]);
     expect(plans.writes).toEqual([]);
     // Remembered here, without a key: this browser did not keep it.
-    expect(await keptList(page)).toEqual([entry(LINKED, plan.destination)]);
+    expect(await keptList(page)).toEqual([opened(LINKED, plan.destination)]);
     expect(carried, "the token reached a request other than the plan's own read").toEqual([]);
   });
 
@@ -253,7 +258,7 @@ test.describe("wizard: a kept plan", () => {
     await expect(page.getByRole("button", { name: "Copy link" }).filter({ visible: true }).first()).toBeVisible();
     expect(plans.reads).toEqual([LISTED]);
     expect(plans.writes).toEqual([]);
-    expect(await keptList(page)).toEqual([entry(LISTED, plan.destination, ownKey)]);
+    expect(await keptList(page)).toEqual([opened(LISTED, plan.destination, ownKey)]);
   });
 
   test("an expired link says so, and the list forgets its plan", async ({ page }) => {
