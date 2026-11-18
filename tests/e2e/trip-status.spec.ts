@@ -133,7 +133,8 @@ test.describe("trip status", () => {
     };
     await page.goto("/en/trips", { waitUntil: "domcontentloaded", timeout: 120_000 });
     await declineConsent(page);
-    const card = page.locator(`a[href$="/trips/${tripId}"]`);
+    // The trip's own card, with its actions: an upcoming trip is linked from a banner above the list too.
+    const card = page.locator(`a[href$="/trips/${tripId}"]`).filter({ has: page.getByRole("button", { name: "Trip actions" }) });
     await expect(card).toBeVisible({ timeout: 60_000 });
 
     await card.getByRole("button", { name: "Trip actions" }).click();
@@ -160,7 +161,8 @@ test.describe("trip status", () => {
     };
     await page.goto("/en/trips", { waitUntil: "domcontentloaded", timeout: 120_000 });
     await declineConsent(page);
-    const card = page.locator(`a[href$="/trips/${tripId}"]`);
+    // The trip's own card, with its actions: an upcoming trip is linked from a banner above the list too.
+    const card = page.locator(`a[href$="/trips/${tripId}"]`).filter({ has: page.getByRole("button", { name: "Trip actions" }) });
     await expect(card).toBeVisible({ timeout: 60_000 });
 
     await card.getByRole("button", { name: "Trip actions" }).click();
