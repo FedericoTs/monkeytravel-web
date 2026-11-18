@@ -129,6 +129,8 @@ describe("a sight shut on every date of the trip", () => {
     expect(logged.find((row) => row.status === 200)?.metadata).toMatchObject({
       closing_days: { asked: 3, known: 3, shut_before: 1, shut_after: 0, stops_moved: 0, swapped: 1 },
     });
+    // Nothing left shut: no names.
+    expect((logged.find((row) => row.status === 200)?.metadata?.closing_days as Record<string, unknown>).left).toBeUndefined();
   });
 
   it("keeps the closed sight when the place offered instead is shut that day too", async () => {
@@ -137,7 +139,8 @@ describe("a sight shut on every date of the trip", () => {
     expect(done.itinerary.days[0].activities[0].name).toBe("Tokyo National Museum");
     await vi.waitFor(() => expect(logged.find((row) => row.status === 200)).toBeTruthy());
     expect(logged.find((row) => row.status === 200)?.metadata).toMatchObject({
-      closing_days: { shut_before: 1, shut_after: 1, swapped: 0 },
+      // The log names the stop left shut, and its date.
+      closing_days: { shut_before: 1, shut_after: 1, swapped: 0, left: ["Tokyo National Museum (2027-12-30)"] },
     });
   });
 });
