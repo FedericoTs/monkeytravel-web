@@ -338,10 +338,13 @@ describe("a stop shut on every date it could go to", () => {
   it("is not swapped without a swap, or when nothing is stuck", async () => {
     const without = await keepOffClosingDays({ days: tokyo() }, "Tokyo", ask);
     expect(without).toMatchObject({ shutAfter: 1, swapped: 0 });
+    // The one left shut, by name and date, for the log.
+    expect(without.leftShut).toEqual(["Tokyo National Museum (2027-12-29)"]);
     const swap = vi.fn();
     const open = await keepOffClosingDays({ days: tokyo() }, "Tokyo", async () => ({ closings: new Map(), shutDates: new Map(), costUsd: 0 }), undefined, swap);
     expect(swap).not.toHaveBeenCalled();
     expect(open.swapped).toBe(0);
+    expect(open.leftShut).toEqual([]);
   });
 });
 

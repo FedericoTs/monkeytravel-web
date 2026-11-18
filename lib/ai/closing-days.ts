@@ -403,6 +403,8 @@ export async function keepOffClosingDays<T extends { days: Day[] }>(
   known: number;
   shutBefore: number;
   shutAfter: number;
+  /** The stops still on a day they're shut at the end, as "name (date)": what a miss was. */
+  leftShut: string[];
   reworded: number;
   stopsMoved: number;
   swapped: number;
@@ -427,6 +429,7 @@ export async function keepOffClosingDays<T extends { days: Day[] }>(
     known,
     shutBefore: shutStops(itinerary.days, closings, shutDates),
     shutAfter: shutStops(days, closings, shutDates),
+    leftShut: stopsStillShut(days, closings, shutDates).map((stop) => `${stop.name} (${stop.date})`),
     reworded: words.reworded,
     stopsMoved: stops.moved,
     swapped: swaps.swapped,

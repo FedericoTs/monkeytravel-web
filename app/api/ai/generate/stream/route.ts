@@ -451,6 +451,8 @@ export async function POST(request: NextRequest) {
                         shut_after: openDays.shutAfter,
                         stops_moved: openDays.stopsMoved,
                         swapped: openDays.swapped,
+                        // Which stops were left on a day they're shut: a miss says what it was.
+                        ...(openDays.leftShut.length > 0 ? { left: openDays.leftShut.slice(0, 5) } : {}),
                       },
                     }
                   : {}),
