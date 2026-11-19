@@ -12,8 +12,12 @@ import { getModelForPurpose, thinkingConfigFor } from "@/lib/ai/model-router";
 import { geminiCostUsd, recordGeminiUsage } from "@/lib/ai/gemini-cost";
 import { LANGUAGE_NAMES, type SupportedLanguage } from "@/lib/ai/language";
 
-// Hangul, kana and CJK ideographs.
-const OTHER = "\\u1100-\\u11ff\\u3040-\\u30ff\\u3130-\\u318f\\u3400-\\u4dbf\\u4e00-\\u9fff\\uac00-\\ud7af\\uf900-\\ufaff";
+// The writing systems of the places planned, other than Latin: Greek, Cyrillic, Armenian, Hebrew, Arabic, the
+// scripts of India and Sri Lanka, Thai and Lao, Myanmar, Georgian, Khmer, Hangul, kana and CJK ideographs.
+const OTHER =
+  "\\u0370-\\u03ff\\u0400-\\u04ff\\u0530-\\u058f\\u0590-\\u05ff\\u0600-\\u06ff\\u0750-\\u077f\\u0900-\\u0dff\\u0e00-\\u0eff" +
+  "\\u1000-\\u109f\\u10a0-\\u10ff\\u1100-\\u11ff\\u1780-\\u17ff\\u1f00-\\u1fff" +
+  "\\u3040-\\u30ff\\u3130-\\u318f\\u3400-\\u4dbf\\u4e00-\\u9fff\\uac00-\\ud7af\\uf900-\\ufaff";
 const GLUED = new RegExp(`\\p{Script=Latin}[${OTHER}]|[${OTHER}]\\p{Script=Latin}`, "u");
 const LATIN_RUNS = /\p{Script=Latin}+/gu;
 
