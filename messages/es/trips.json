@@ -133,10 +133,11 @@
       "longTripNudge": "¿{days} días de viaje? Los viajes tan largos suelen funcionar mejor con varias paradas: toca para dividir tu ruta en ciudades."
     },
     "routeOffer": {
-      "title": "Una ruta por {place}, {days} días",
+      "title": "Tu ruta por {place}, {days} días",
       "stop": "{city} · {nights, plural, one {# noche} other {# noches}}",
-      "take": "Planificar esta ruta",
-      "keep": "O sigue con {place} como un solo lugar."
+      "continues": "Al continuar, se planifica esta ruta.",
+      "take": "Cambiar la ruta",
+      "keep": "Planificar {place} como un solo lugar"
     },
     "datePicker": {
       "checkInLabel": "Llegada",

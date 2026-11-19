@@ -133,10 +133,11 @@
       "longTripNudge": "{days} giorni di viaggio? I viaggi così lunghi rendono meglio con più tappe — tocca per dividere il percorso in città."
     },
     "routeOffer": {
-      "title": "Un percorso attraverso {place}, {days} giorni",
+      "title": "Il tuo percorso attraverso {place}, {days} giorni",
       "stop": "{city} · {nights, plural, one {# notte} other {# notti}}",
-      "take": "Pianifica questo percorso",
-      "keep": "Oppure continua con {place} come un solo luogo."
+      "continues": "Continuando, si pianifica questo percorso.",
+      "take": "Cambia il percorso",
+      "keep": "Pianifica {place} come un solo luogo"
     },
     "datePicker": {
       "checkInLabel": "Check-in",

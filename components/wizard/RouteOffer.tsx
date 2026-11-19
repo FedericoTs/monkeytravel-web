@@ -23,21 +23,25 @@ function showWhenHidden(card: HTMLElement | null) {
 
 /**
  * Under step 1's dates, for a destination typed as a whole country or region:
- * the places most travellers stay in for that many days, in order, taken in one
- * tap as a trip through several cities (the route builder then shows them to
- * change). Left alone, the trip stays one place, as typed.
+ * the places most travellers stay in for that many days, in order. It is what
+ * Continue plans, as a trip through several cities; "Change the route" opens it
+ * in the route builder first, and one place is the traveller's choice, a tap away.
  */
 export default function RouteOffer({
   place,
   days,
   route,
   onTake,
+  onKeep,
 }: {
   /** The destination as typed ("Thailand"). */
   place: string;
   days: number;
   route: RouteStop[];
+  /** Takes the route now, into the route builder, to change before going on. */
   onTake: () => void;
+  /** Plans the place as typed, as one place: the route is no longer what Continue plans. */
+  onKeep: () => void;
 }) {
   const t = useTranslations("trips");
   const ref = useRef<HTMLDivElement>(null);
@@ -62,6 +66,7 @@ export default function RouteOffer({
           </li>
         ))}
       </ol>
+      <p className="mt-1.5 text-xs text-slate-600">{t("wizard.routeOffer.continues")}</p>
       <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
         <button
           type="button"
@@ -70,7 +75,13 @@ export default function RouteOffer({
         >
           {t("wizard.routeOffer.take")}
         </button>
-        <span className="text-xs text-slate-600">{t("wizard.routeOffer.keep", { place })}</span>
+        <button
+          type="button"
+          onClick={onKeep}
+          className="inline-flex min-h-[40px] items-center text-sm text-slate-700 underline underline-offset-2 hover:text-[var(--foreground)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--foreground)]"
+        >
+          {t("wizard.routeOffer.keep", { place })}
+        </button>
       </div>
     </div>
   );
