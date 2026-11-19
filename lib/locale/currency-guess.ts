@@ -40,3 +40,17 @@ export function currencyForLocale(locale: string): CurrencyCode {
   if (region) return COUNTRY_CURRENCY[region] ?? "USD";
   return LANGUAGE_CURRENCY[language.toLowerCase()] ?? "USD";
 }
+
+/** The currency of the country a visitor is in ("IN" rupees), when the exchange table converts it; null otherwise. */
+export function currencyForCountry(country: string | null | undefined): CurrencyCode | null {
+  return (country && COUNTRY_CURRENCY[country.toUpperCase()]) || null;
+}
+
+/**
+ * Whether a browser's language says little about where its user is: English set to the United States or
+ * Britain, as phones and computers come in many countries, or English alone. Their prices follow the
+ * country they're in; any other language with a region keeps its own.
+ */
+export function followsCountry(locale: string): boolean {
+  return /^en(?:[-_](?:us|gb))?$/i.test(locale);
+}
