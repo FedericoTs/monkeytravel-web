@@ -354,6 +354,15 @@ const plain = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCa
  * plan's own trip from the last city goes: the transfer stands for it.
  */
 export function dayWithTransfer(transfer: Activity, activities: Activity[]): Activity[] {
+  return arrivalDay(transfer, activities).activities;
+}
+
+/**
+ * dayWithTransfer's day, and the sights it left out for want of a gap: they
+ * can go to another day of the city (lib/ai/multi-city-core.ts). A meal left
+ * out isn't among them: it belongs to its hour of that day.
+ */
+export function arrivalDay(transfer: Activity, activities: Activity[]): { activities: Activity[]; left: Activity[] } {
   const leave = minutesOf(transfer.start_time) ?? 8 * 60 + 30;
   const arrive = leave + (transfer.duration_minutes || 0) + ARRIVAL_BUFFER_MINUTES;
   const length = (a: Activity) => a.duration_minutes || 60;
@@ -370,20 +379,25 @@ export function dayWithTransfer(transfer: Activity, activities: Activity[]): Act
     .map((a) => minutesOf(a.start_time))
     .flatMap((at, i) => (at === null ? [] : [[at, at + length(kept[i])] as [number, number]]));
   const moved: Activity[] = [];
+  const left: Activity[] = [];
   let from = arrive;
   for (const a of overlapping.sort((x, y) => minutesOf(x.start_time)! - minutesOf(y.start_time)!)) {
     let at = from;
     for (const [start, end] of [...busy].sort((x, y) => x[0] - y[0])) {
       if (at < end && at + length(a) > start) at = end;
     }
-    if (at + length(a) > MOVED_BY) continue;
-    if (MEAL.test(plain(`${a.type} ${a.name}`)) && at - minutesOf(a.start_time)! > MEAL_MOVE_MINUTES) continue;
+    const meal = MEAL.test(plain(`${a.type} ${a.name}`));
+    if (at + length(a) > MOVED_BY) {
+      if (!meal) left.push(a);
+      continue;
+    }
+    if (meal && at - minutesOf(a.start_time)! > MEAL_MOVE_MINUTES) continue;
     busy.push([at, at + length(a)]);
     from = at + length(a);
     moved.push({ ...a, start_time: formatMinutesToTime(at), time_slot: at < 12 * 60 ? "morning" : at < 17 * 60 ? "afternoon" : "evening" });
   }
   const order = (a: Activity) => minutesOf(a.start_time) ?? 24 * 60;
-  return [transfer, ...kept, ...moved].sort((x, y) => order(x) - order(y));
+  return { activities: [transfer, ...kept, ...moved].sort((x, y) => order(x) - order(y)), left };
 }
 
 export interface JourneyStopWithTransit {

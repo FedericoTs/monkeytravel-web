@@ -443,3 +443,66 @@ describe("the way travellers make a hop, as answered", () => {
     expect(merged.days[2].activities[0]).toMatchObject({ name: "Flight to Lisbon", duration_minutes: estimated.duration_minutes });
   });
 });
+
+// A city's plan can put its best-known sight on its first morning, the one the transfer takes: with no gap after
+// arriving, the trip would go there and never see it.
+describe("a sight the arrival day can't hold", () => {
+  const DELHI = { lat: 28.6139, lng: 77.209 };
+  const AGRA = { lat: 27.1751, lng: 78.0421 };
+  const stop = (name: string, type: string, start_time: string, duration_minutes: number): Activity =>
+    ({ ...act(name, AGRA), type, start_time, duration_minutes }) as Activity;
+  const agra = (days: Activity[][]): GeneratedItinerary =>
+    ({ ...cityResult("Agra", days.length, AGRA), days: days.map((activities, i) => ({ day_number: i + 1, date: `2027-01-${29 + i}`, activities })) }) as GeneratedItinerary;
+  const firstDay = () => [
+    stop("Taj Mahal", "landmark", "08:00", 180),
+    stop("Pinch of Spice", "restaurant", "11:30", 90),
+    stop("Agra Fort", "landmark", "13:30", 150),
+    stop("Mehtab Bagh", "park", "16:30", 90),
+    stop("Esphahan", "restaurant", "19:00", 90),
+  ];
+  const secondDay = () => [
+    stop("Itimad-ud-Daulah", "landmark", "09:00", 120),
+    stop("Joney's Place", "restaurant", "11:30", 90),
+    stop("Kinari Bazaar", "market", "13:30", 120),
+    stop("Akbar's Tomb", "landmark", "16:00", 120),
+    stop("Dasaprakash", "restaurant", "19:00", 90),
+  ];
+  const trip = (agraDays: Activity[][]) =>
+    mergeCityItineraries([{ city: "New Delhi", nights: 1 }, { city: "Agra", nights: agraDays.length }], [cityResult("New Delhi", 1, DELHI), agra(agraDays)], "2027-01-28", {
+      // Two hours by train: off at 8:30, in Agra by 11:30.
+      hops: [{ mode: "train", minutes: 120 }],
+    });
+  const timed = (day: { activities: Activity[] }) => day.activities.map((a) => `${a.start_time} ${a.name}`);
+
+  it("goes to another day of the city at its own time, the stops after it later", () => {
+    const merged = trip([firstDay(), secondDay()]);
+    expect(timed(merged.days[1])).toEqual(["08:30 Train to Agra", "11:30 Pinch of Spice", "13:30 Agra Fort", "16:30 Mehtab Bagh", "19:00 Esphahan"]);
+    expect(timed(merged.days[2])).toEqual([
+      "08:00 Taj Mahal",
+      "11:20 Itimad-ud-Daulah",
+      "13:40 Joney's Place",
+      "15:30 Kinari Bazaar",
+      "17:50 Akbar's Tomb",
+      "20:10 Dasaprakash",
+    ]);
+    expect(merged.days[2].activities[2].time_slot).toBe("afternoon");
+  });
+
+  it("goes to the day with the most room when the city has several", () => {
+    const light = [stop("Fatehpur Sikri", "landmark", "10:00", 180)];
+    const merged = trip([firstDay(), secondDay(), light]);
+    expect(timed(merged.days[3])).toEqual(["08:00 Taj Mahal", "11:20 Fatehpur Sikri"]);
+    expect(merged.days[2].activities.map((a) => a.name)).not.toContain("Taj Mahal");
+  });
+
+  it("is left out when no other day of the city has room, and a meal is never carried", () => {
+    // A city of one day: nowhere else to go.
+    expect(trip([firstDay()]).days[1].activities.map((a) => a.name)).not.toContain("Taj Mahal");
+    // A breakfast missed to the train stays missed, even one no gap after arriving could hold.
+    const withBreakfast = [stop("Sheroes Hangout", "cafe", "08:30", 90), ...firstDay().slice(1)];
+    expect(trip([withBreakfast, secondDay()]).days[2].activities.map((a) => a.name)).not.toContain("Sheroes Hangout");
+    // A day that would end past ten at night has no room.
+    const full = secondDay().map((s) => ({ ...s, duration_minutes: 200 }) as Activity);
+    expect(trip([firstDay(), full]).days[2].activities.map((a) => a.name)).not.toContain("Taj Mahal");
+  });
+});

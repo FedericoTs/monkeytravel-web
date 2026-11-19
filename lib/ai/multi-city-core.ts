@@ -11,11 +11,33 @@
  * actually calls Gemini lives in lib/ai/multi-city.ts.
  */
 import type { GeneratedItinerary, ItineraryDay } from "@/types";
-import { buildTransferActivity, dayWithTransfer, type KnownHop } from "./transfer-legs";
+import { arrivalDay, buildTransferActivity, type KnownHop } from "./transfer-legs";
+import { plannedMinutes, withStopAt } from "@/lib/trip/day-room";
 import { flightLink, hotelLinks } from "./booking-links";
 import { addIsoDays } from "@/lib/dates/iso-date";
 import { haversineKm } from "@/lib/map/geo";
 import { isRealPoint } from "@/lib/trip/placeholder-point";
+
+/**
+ * A city's days with each sight its arrival day couldn't hold put into another of its days at the sight's own time,
+ * the one with the least planned first; one no day has room for is left out.
+ */
+function withCarried(days: ItineraryDay[], left: ItineraryDay["activities"]): ItineraryDay[] {
+  let out = days;
+  for (const stop of left ?? []) {
+    const options = out
+      .map((day, d) => ({ day, d }))
+      .slice(1)
+      .sort((a, b) => plannedMinutes(a.day) - plannedMinutes(b.day) || a.d - b.d);
+    for (const { day, d } of options) {
+      const room = withStopAt(day, stop);
+      if (!room) continue;
+      out = out.map((x, k) => (k === d ? room : x));
+      break;
+    }
+  }
+  return out;
+}
 
 /** Max cities per trip in v1 (caps complexity + generation quality). */
 export const MAX_CITIES = 5;
@@ -266,39 +288,36 @@ export function mergeCityItineraries(
   for (let i = 0; i < results.length; i++) {
     const city = legs[i].city.trim();
     const cityDays = results[i].days ?? [];
-    for (let d = 0; d < cityDays.length; d++) {
-      const day = cityDays[d];
-      const date = addDaysISO(tripStartDate, globalIndex);
-      if (d === 0) stays.push({ city, first: date, last: date });
-      else stays[stays.length - 1].last = date;
-      // P4 transport spine v1: an estimated inter-city transfer leg on each
-      // leg-boundary morning ("otherwise it's just a list of activities").
-      // Distance comes from the neighbouring activities' own coordinates —
-      // pure heuristic, no API. See lib/ai/transfer-legs.ts. The day's own
-      // plan makes room for it (dayWithTransfer).
-      let activities = day.activities;
-      if (insertTransfers && i > 0 && d === 0) {
-        const transfer = buildTransferActivity({
-          fromCity: legs[i - 1].city.trim(),
-          toCity: city,
-          fromDays: results[i - 1].days ?? [],
-          toDays: cityDays,
-          currency,
-          language: opts?.language,
-          known: opts?.hops?.[i - 1],
-        });
-        if (transfer.estimated_cost?.currency === currency) transfersCost += transfer.estimated_cost.amount;
-        activities = dayWithTransfer(transfer, day.activities ?? []);
-      }
-      mergedDays.push({
-        ...day,
-        activities,
-        day_number: globalIndex + 1,
-        date,
-        city,
+    // The city's days, dated and numbered in the trip.
+    let own: ItineraryDay[] = cityDays.map((day, d) => ({
+      ...day,
+      day_number: globalIndex + d + 1,
+      date: addDaysISO(tripStartDate, globalIndex + d),
+      city,
+    }));
+    if (own.length > 0) stays.push({ city, first: own[0].date, last: own[own.length - 1].date });
+    // P4 transport spine v1: an estimated inter-city transfer leg on each
+    // leg-boundary morning ("otherwise it's just a list of activities"). See
+    // lib/ai/transfer-legs.ts. The day's own plan makes room for it
+    // (arrivalDay), and a sight no gap after arriving holds goes to another
+    // day of the same city that has room (withStopAt) rather than out.
+    if (insertTransfers && i > 0 && own.length > 0) {
+      const transfer = buildTransferActivity({
+        fromCity: legs[i - 1].city.trim(),
+        toCity: city,
+        fromDays: results[i - 1].days ?? [],
+        toDays: cityDays,
+        currency,
+        language: opts?.language,
+        known: opts?.hops?.[i - 1],
       });
-      globalIndex++;
+      if (transfer.estimated_cost?.currency === currency) transfersCost += transfer.estimated_cost.amount;
+      const arrival = arrivalDay(transfer, own[0].activities ?? []);
+      own[0] = { ...own[0], activities: arrival.activities };
+      own = withCarried(own, arrival.left);
     }
+    mergedDays.push(...own);
+    globalIndex += own.length;
   }
 
   const first = results[0];
