@@ -27,8 +27,7 @@ import { genAI, withTimeout } from "@/lib/ai/gemini-call";
 import { getModelForPurpose, thinkingConfigFor } from "@/lib/ai/model-router";
 import { geminiCostUsd, recordGeminiUsage } from "@/lib/ai/gemini-cost";
 import { rewordMovedDays, type WordDay, type WordStop } from "@/lib/ai/moved-day-words";
-import { determineTimeSlot } from "@/lib/utils/activity-id";
-import { formatMinutesToTime } from "@/lib/datetime/format";
+import { plannedMinutes, withStopAt, type TimedStop as DayRoomStop } from "@/lib/trip/day-room";
 
 export const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
 export type Weekday = (typeof WEEKDAYS)[number];
@@ -263,54 +262,7 @@ export function orderAroundClosings<T extends Day>(days: T[], closings: Closings
   return inOrder(days, closingOrder(days, closings, shutDates));
 }
 
-type TimedStop = WordStop & { start_time?: string; duration_minutes?: number; time_slot?: string };
-
-/** The latest a stop may start once the stops after one moved in make room for it. */
-const LATEST_START = 22 * 60;
-/** From one stop's end to the next one's start, when a day makes room. */
-const BETWEEN_MINUTES = 20;
-/** A stop's length when the plan gives none. */
-const DEFAULT_MINUTES = 90;
-
-const minutesOf = (time?: string): number | null => {
-  const m = /^(\d{1,2}):(\d{2})/.exec(time ?? "");
-  return m ? Number(m[1]) * 60 + Number(m[2]) : null;
-};
-
-/**
- * The day with `stop` put in at its own time, and from there each stop moved
- * later when it would start before the one ahead of it ends, with a short walk
- * between. Null when that would start a stop after the evening, or move a
- * dated event: the day has no room.
- */
-function withStop<T extends Day>(day: T, stop: TimedStop): T | null {
-  const stops = [...((day.activities ?? []) as TimedStop[])];
-  const own = minutesOf(stop.start_time);
-  const later = stops.findIndex((other) => {
-    const start = minutesOf(other.start_time);
-    return own !== null && start !== null && start > own;
-  });
-  const at = later === -1 ? stops.length : later;
-  stops.splice(at, 0, stop);
-  for (let i = Math.max(at, 1); i < stops.length; i++) {
-    const ahead = stops[i - 1];
-    const aheadStart = minutesOf(ahead.start_time);
-    const start = minutesOf(stops[i].start_time);
-    if (aheadStart === null || start === null) break;
-    const earliest = aheadStart + (ahead.duration_minutes || DEFAULT_MINUTES) + BETWEEN_MINUTES;
-    if (start >= earliest) {
-      if (i > at) break;
-      continue;
-    }
-    if (earliest > LATEST_START || stops[i].type === "event") return null;
-    const time = formatMinutesToTime(earliest);
-    stops[i] = { ...stops[i], start_time: time, time_slot: determineTimeSlot(time) };
-  }
-  return { ...day, activities: stops };
-}
-
-const plannedMinutes = (day: Day) =>
-  ((day.activities ?? []) as TimedStop[]).reduce((sum, stop) => sum + (stop.duration_minutes || DEFAULT_MINUTES), 0);
+type TimedStop = WordStop & DayRoomStop;
 
 /**
  * The days with each stop still shut on its day moved to another day of the
@@ -341,7 +293,7 @@ export function moveShutStops<T extends Day>(
         .sort((a, b) => plannedMinutes(a.day) - plannedMinutes(b.day) || Math.abs(a.i - d) - Math.abs(b.i - d));
       let target: { i: number; day: T } | null = null;
       for (const option of options) {
-        const day = withStop(option.day, stop);
+        const day = withStopAt(option.day, stop);
         if (day) {
           target = { i: option.i, day };
           break;
