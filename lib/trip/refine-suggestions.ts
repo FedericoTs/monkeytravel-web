@@ -27,6 +27,11 @@ export interface RefineSuggestion {
 const BUSY_THRESHOLD = 6;
 /** ...and "light" at or below this, excluding fully-anchored days. */
 const LIGHT_THRESHOLD = 2;
+/** A day whose few stops fill this many minutes isn't empty: a ride between cities, a full-day tour. */
+const LIGHT_DAY_FULL_MINUTES = 300;
+
+const filledMinutes = (day: ItineraryDay) =>
+  (day.activities ?? []).reduce((sum, a) => sum + (typeof a.duration_minutes === "number" && a.duration_minutes > 0 ? a.duration_minutes : 0), 0);
 /** A between-activities gap reads as "dead time" from this many minutes. */
 const LONG_GAP_MINUTES = 180;
 
@@ -140,8 +145,13 @@ export function deriveRefineSuggestions(
     }
   }
 
-  // 4. A suspiciously empty day.
-  const light = usable.find((d) => (d.activities?.length ?? 0) > 0 && (d.activities?.length ?? 0) <= LIGHT_THRESHOLD);
+  // 4. A suspiciously empty day: few stops, and not a day those few fill.
+  const light = usable.find(
+    (d) =>
+      (d.activities?.length ?? 0) > 0 &&
+      (d.activities?.length ?? 0) <= LIGHT_THRESHOLD &&
+      filledMinutes(d) < LIGHT_DAY_FULL_MINUTES
+  );
   if (light) {
     out.push({
       key: "lightDay",
