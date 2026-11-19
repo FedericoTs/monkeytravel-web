@@ -23,7 +23,11 @@ vi.mock("@/lib/anonymous/rate-limit", () => ({
 vi.mock("@/lib/ai/user-context", () => ({
   loadUserContext: async () => ({ profilePreferences: {}, userLanguage: "en" }),
 }));
-vi.mock("@/lib/api-gateway", () => ({ checkApiAccess: async () => ({ allowed: true }), logApiCall: async () => {} }));
+const logged: Array<Record<string, unknown>> = [];
+vi.mock("@/lib/api-gateway", () => ({
+  checkApiAccess: async () => ({ allowed: true }),
+  logApiCall: async (entry: { metadata?: Record<string, unknown> }) => void logged.push(entry.metadata ?? {}),
+}));
 vi.mock("@/lib/usage-limits", () => ({
   checkUsageLimit: async () => ({ allowed: true, used: 0, remaining: 10, limit: 10 }),
   incrementUsage: async () => {},
@@ -51,8 +55,43 @@ const plan = () => ({
     activities: [{ name, type, description: "", location: "Seville" }],
   })),
 });
+// Seville on Sunday 29 and Monday 30 November, the museum on the Monday; Granada on Tuesday 1 December.
+const route = () => ({
+  destination: { name: "Seville & Granada", country: "Spain" },
+  days: [
+    { city: "Seville", date: "2026-11-29", theme: "Plaza de España", activities: [{ name: "Plaza de España", type: "landmark", description: "", location: "Seville" }] },
+    { city: "Seville", date: "2026-11-30", theme: "Museo de Bellas Artes", activities: [{ name: "Museo de Bellas Artes", type: "museum", description: "", location: "Seville" }] },
+    {
+      city: "Granada",
+      date: "2026-12-01",
+      theme: "Alhambra",
+      activities: [
+        { name: "Train to Granada", type: "transport", transport_mode: "train", start_time: "08:30", duration_minutes: 120, description: "", location: "Seville" },
+        { name: "Alhambra", type: "attraction", start_time: "12:00", description: "", location: "Granada" },
+      ],
+    },
+  ].map((day, i) => ({ ...day, day_number: i + 1 })),
+});
+// Seville on Monday 30 November only, the museum shut; Granada on Tuesday 1 (arriving) and Wednesday 2 December.
+const shortSeville = () => ({
+  destination: { name: "Seville & Granada", country: "Spain" },
+  days: [
+    { city: "Seville", date: "2026-11-30", theme: "Museo de Bellas Artes", activities: [{ name: "Museo de Bellas Artes", type: "museum", description: "", location: "Seville" }] },
+    {
+      city: "Granada",
+      date: "2026-12-01",
+      theme: "Alhambra",
+      activities: [
+        { name: "Train to Granada", type: "transport", transport_mode: "train", start_time: "08:30", duration_minutes: 120, description: "", location: "Seville" },
+        { name: "Alhambra", type: "attraction", start_time: "12:00", description: "", location: "Granada" },
+      ],
+    },
+    { city: "Granada", date: "2026-12-02", theme: "Albaicín", activities: [{ name: "Albaicín", type: "landmark", description: "", location: "Granada" }] },
+  ].map((day, i) => ({ ...day, day_number: i + 1 })),
+});
+let multiCityPlan = route;
 vi.mock("@/lib/gemini", () => ({ generateItinerary: async () => plan() }));
-vi.mock("@/lib/ai/multi-city", () => ({ validateLegs: () => {}, generateMultiCityItinerary: async () => plan() }));
+vi.mock("@/lib/ai/multi-city", () => ({ validateLegs: () => {}, generateMultiCityItinerary: async () => multiCityPlan() }));
 vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/ai/gemini-call")>()),
   genAI: {
@@ -89,8 +128,27 @@ describe("the JSON route", () => {
     expect(await themes()).toEqual(["Real Alcázar", "Museo de Bellas Artes", "Plaza de España"]);
   });
 
-  it("keeps a multi-city plan's days in their order", async () => {
-    const legs = { destinations: [{ city: "Seville", nights: 2 }, { city: "Granada", nights: 1 }] };
-    expect(await themes(legs)).toEqual(["Real Alcázar", "Plaza de España", "Museo de Bellas Artes"]);
+  it("orders each city's own days on a trip through several, the route kept, and logs it", async () => {
+    logged.length = 0;
+    const legs = { destinations: [{ city: "Seville", nights: 2 }, { city: "Granada", nights: 1 }], destination: "Seville & Granada", startDate: "2026-11-29", endDate: "2026-12-01" };
+    expect(await themes(legs)).toEqual(["Museo de Bellas Artes", "Plaza de España", "Alhambra"]);
+    // The Alhambra is on the checked list (lib/ai/known-closings.ts), open that Tuesday.
+    expect(logged.at(-1)?.closing_days).toEqual({ asked: 3, known: 1, shut_before: 1, shut_after: 0, stops_moved: 0, swapped: 0 });
+  });
+
+  it("never puts a city's day on another city's dates", async () => {
+    logged.length = 0;
+    multiCityPlan = shortSeville;
+    const legs = { destinations: [{ city: "Seville", nights: 1 }, { city: "Granada", nights: 2 }], destination: "Seville & Granada", startDate: "2026-11-30", endDate: "2026-12-02" };
+    // Seville has no other day: its museum stays on the Monday, and the log says so.
+    expect(await themes(legs)).toEqual(["Museo de Bellas Artes", "Alhambra", "Albaicín"]);
+    expect(logged.at(-1)?.closing_days).toMatchObject({ shut_before: 1, shut_after: 1, left: ["Museo de Bellas Artes (2026-11-30)"] });
+    multiCityPlan = route;
+  });
+
+  it("logs the closing step of a one-city plan too", async () => {
+    logged.length = 0;
+    await themes();
+    expect(logged.at(-1)?.closing_days).toMatchObject({ asked: 3, shut_before: 1, shut_after: 0 });
   });
 });

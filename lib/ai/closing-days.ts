@@ -245,7 +245,10 @@ function swappedOrder(shut: number[][], movable: boolean[]): number[] {
 export function closingOrder(days: Day[], closings: Closings, shutDates: ShutDates = new Map()): number[] {
   if ((closings.size === 0 && shutDates.size === 0) || days.length < 2) return days.map((_, i) => i);
   const shut = days.map((day) => days.map((slot) => shutOn(day, slot.date, closings, shutDates)));
-  const movable = days.map((day) => !(day.activities ?? []).some((stop) => stop.type === "event"));
+  // A dated event keeps its day, and so does a city's arrival day on a trip through several (its transfer card).
+  const movable = days.map(
+    (day) => !(day.activities ?? []).some((stop) => stop.type === "event" || (stop as { transport_mode?: string }).transport_mode)
+  );
   return days.length <= 7 ? bestOrder(shut, movable) : swappedOrder(shut, movable);
 }
 
@@ -413,25 +416,96 @@ export async function keepOffClosingDays<T extends { days: Day[] }>(
   const answer = await ask(destination, places, holidayDatesToAsk(itinerary.days));
   // The sights on the checked list are decided by it, not by the model (lib/ai/known-closings.ts).
   const { closings, shutDates, known } = checked(answer, itinerary.days, destination);
-  const costUsd = answer.costUsd;
-  const order = closingOrder(itinerary.days, closings, shutDates);
-  const moves = order.flatMap((from, slot) => (from === slot ? [] : [{ slot, from: itinerary.days[from].date }]));
-  const ordered = inOrder(itinerary.days, order);
+  const settled = await settleDays(itinerary.days, closings, shutDates, destination, reword, swap);
+  return report(itinerary, settled, answer.costUsd, places.length, known, closings, shutDates);
+}
+
+type Settled<D> = { days: D[]; costUsd: number; reworded: number; stopsMoved: number; swapped: number };
+
+/** Days put in their closing order, moved days re-worded, stops still shut moved or swapped: the steps after the question. */
+async function settleDays<D extends Day>(
+  days: D[],
+  closings: Closings,
+  shutDates: ShutDates,
+  destination: string,
+  reword: typeof rewordMovedDays,
+  swap?: SwapStuck
+): Promise<Settled<D>> {
+  const order = closingOrder(days, closings, shutDates);
+  const moves = order.flatMap((from, slot) => (from === slot ? [] : [{ slot, from: days[from].date }]));
+  const ordered = inOrder(days, order);
   const words = moves.length > 0 ? await reword(ordered, moves, destination) : { days: ordered, costUsd: 0, reworded: 0 };
   const stops = moveShutStops(words.days, closings, shutDates);
   const stuck = swap ? stopsStillShut(stops.days, closings, shutDates) : [];
   const swaps = swap && stuck.length > 0 ? await swap(stops.days, stuck) : { days: stops.days, swapped: 0, costUsd: 0 };
-  const days = swaps.days;
+  return { days: swaps.days as D[], costUsd: words.costUsd + swaps.costUsd, reworded: words.reworded, stopsMoved: stops.moved, swapped: swaps.swapped };
+}
+
+/** What keepOffClosingDays and keepOffClosingDaysByCity give back. */
+function report<T extends { days: Day[] }>(
+  itinerary: T,
+  settled: Settled<Day>,
+  askedUsd: number,
+  asked: number,
+  known: number,
+  closings: Closings,
+  shutDates: ShutDates
+) {
+  const days = settled.days;
   return {
     itinerary: days === itinerary.days ? itinerary : { ...itinerary, days },
-    costUsd: costUsd + words.costUsd + swaps.costUsd,
-    asked: places.length,
+    costUsd: askedUsd + settled.costUsd,
+    asked,
     known,
     shutBefore: shutStops(itinerary.days, closings, shutDates),
     shutAfter: shutStops(days, closings, shutDates),
     leftShut: stopsStillShut(days, closings, shutDates).map((stop) => `${stop.name} (${stop.date})`),
-    reworded: words.reworded,
-    stopsMoved: stops.moved,
-    swapped: swaps.swapped,
+    reworded: settled.reworded,
+    stopsMoved: settled.stopsMoved,
+    swapped: settled.swapped,
   };
+}
+
+/** The runs of days in one city, in order; days with no city run as one. */
+function cityRuns<D extends Day>(days: D[]): Array<{ city: string; days: D[] }> {
+  const runs: Array<{ city: string; days: D[] }> = [];
+  for (const day of days) {
+    const city = (day as { city?: string }).city ?? "";
+    const last = runs.at(-1);
+    if (last && last.city === city) last.days.push(day);
+    else runs.push({ city, days: [day] });
+  }
+  return runs;
+}
+
+/**
+ * keepOffClosingDays for a trip through several cities: one question for all its places, then each city's own days
+ * put in order, re-worded, and its stops moved or swapped there, so a place never goes to another city and the
+ * route keeps its days. A city's arrival day (its transfer card) keeps its date. `swapIn` gives the swap for a city.
+ */
+export async function keepOffClosingDaysByCity<T extends { days: Day[] }>(
+  itinerary: T,
+  destination: string,
+  ask: typeof askClosingDays = askClosingDays,
+  reword: typeof rewordMovedDays = rewordMovedDays,
+  swapIn?: (city: string) => SwapStuck,
+  checked: typeof withKnownClosings = withKnownClosings
+): ReturnType<typeof keepOffClosingDays<T>> {
+  const places = placesToAsk(itinerary.days);
+  const answer = await ask(destination, places, holidayDatesToAsk(itinerary.days));
+  const { closings, shutDates, known } = checked(answer, itinerary.days, destination);
+  const parts = cityRuns(itinerary.days);
+  const runs = await Promise.all(
+    parts.map((part) => settleDays(part.days, closings, shutDates, part.city || destination, reword, swapIn?.(part.city || destination)))
+  );
+  // Settling returns a city's own days when nothing in them moved.
+  const changed = runs.some((run, i) => run.days !== parts[i].days);
+  const settled: Settled<Day> = {
+    days: changed ? runs.flatMap((run) => run.days) : itinerary.days,
+    costUsd: runs.reduce((sum, run) => sum + run.costUsd, 0),
+    reworded: runs.reduce((sum, run) => sum + run.reworded, 0),
+    stopsMoved: runs.reduce((sum, run) => sum + run.stopsMoved, 0),
+    swapped: runs.reduce((sum, run) => sum + run.swapped, 0),
+  };
+  return report(itinerary, settled, answer.costUsd, places.length, known, closings, shutDates);
 }
