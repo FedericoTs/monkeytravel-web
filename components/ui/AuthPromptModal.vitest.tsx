@@ -18,12 +18,10 @@ const verifyOtp = vi.fn();
 const signInWithOAuth = vi.fn();
 const push = vi.fn();
 const assign = vi.fn();
-const ui = vi.hoisted(() => ({ locale: "en", withValues: false }));
+const ui = vi.hoisted(() => ({ locale: "en" }));
 
 vi.mock("next-intl", () => ({
-  // The key, and with withValues on, the values it was given too.
-  useTranslations: () => (key: string, values?: Record<string, unknown>) =>
-    ui.withValues && values ? `${key} ${JSON.stringify(values)}` : key,
+  useTranslations: () => (key: string) => key,
   useLocale: () => ui.locale,
 }));
 vi.mock("next/navigation", () => ({
@@ -64,7 +62,6 @@ async function reachCodeEntry() {
 beforeEach(() => {
   vi.clearAllMocks();
   ui.locale = "en";
-  ui.withValues = false;
   signInWithOAuth.mockResolvedValue({ error: null });
   signInWithOtp.mockResolvedValue({ error: null });
   verifyOtp.mockResolvedValue({ error: null, data: { session: { access_token: "t" } } });
@@ -304,7 +301,6 @@ describe("at the free-generation cap", () => {
     expect(screen.getByRole("heading", { name: "generationLimit.title" })).toBeTruthy();
     expect(screen.getByText("generationLimit.subtitle")).toBeTruthy();
     expect(screen.queryByRole("heading", { name: "title" })).toBeNull();
-    expect(screen.queryByRole("heading", { name: "titleFor" })).toBeNull();
   });
 
   it("says so again once the link is on its way, and comes back to the wizard with the destination", async () => {
@@ -318,39 +314,9 @@ describe("at the free-generation cap", () => {
     expect(url.searchParams.get("next")).toBe("/trips/new?destination=Kutaisi");
   });
 
-  it("keeps the save wording without a reason", () => {
+  it("the save wording is unchanged without a reason", () => {
     render(<AuthPromptModal isOpen onClose={() => {}} destination="Lisboa" />);
-    expect(screen.getByRole("heading", { name: "titleFor" })).toBeTruthy();
-    expect(screen.getByText("subtitle")).toBeTruthy();
-  });
-});
-
-/**
- * A box closed at once, before either way in was tried, lost on its offer, not
- * on the sign-in. So it names the traveller's plan, and says what an account
- * gives before how to make one.
- */
-describe("what the box offers", () => {
-  it("names the traveller's own plan", () => {
-    ui.withValues = true;
-    render(<AuthPromptModal isOpen onClose={() => {}} destination=" Lisboa " />);
-    expect(screen.getByRole("heading", { name: 'titleFor {"destination":"Lisboa"}' })).toBeTruthy();
-  });
-
-  it("keeps the plain title when there is no destination to name", () => {
-    render(<AuthPromptModal isOpen onClose={() => {}} destination="  " />);
     expect(screen.getByRole("heading", { name: "title" })).toBeTruthy();
-    expect(screen.queryByRole("heading", { name: "titleFor" })).toBeNull();
-  });
-
-  it.each(["en", "es", "it", "pt"])("says what an account gives before the two ways in, in %s", async (locale) => {
-    const messages = (await import(`../../messages/${locale}/common.json`)).default as {
-      authPrompt: { subtitle: string };
-    };
-    const { subtitle } = messages.authPrompt;
-    const offer = { en: "your phone", es: "tu teléfono", it: "tuo telefono", pt: "seu celular" }[locale]!;
-    expect(subtitle.indexOf(offer)).toBeGreaterThan(-1);
-    expect(subtitle.indexOf(offer)).toBeLessThan(subtitle.indexOf("Google"));
   });
 });
 
@@ -378,9 +344,9 @@ describe("what sits above the sign-in buttons", () => {
 describe("the save copy names both sign-in paths in every language", () => {
   it.each(["en", "es", "it", "pt"])("%s", async (locale) => {
     const messages = (await import(`../../messages/${locale}/common.json`)).default as {
-      authPrompt: { title: string; titleFor: string; subtitle: string };
+      authPrompt: { title: string; subtitle: string };
     };
-    expect(messages.authPrompt.titleFor).toContain("{destination}");
+    expect(messages.authPrompt.subtitle).toContain("{destination}");
     expect(messages.authPrompt.subtitle).toContain("Google");
     expect(messages.authPrompt.title.trim()).toBeTruthy();
   });

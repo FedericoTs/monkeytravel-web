@@ -2275,8 +2275,7 @@
   },
   "authPrompt": {
     "title": "Guarda este plan",
-    "titleFor": "Guarda tu plan para {destination}",
-    "subtitle": "Durante el viaje, cada día se abre en tu teléfono y tus amigos pueden unirse. Un toque con Google, o un código por correo. Gratis, sin contraseña.",
+    "subtitle": "Tu plan para {destination} está listo. Un toque con Google, o un código por correo. Gratis, sin contraseña.",
     "benefits": {
       "aiPowered": "Edita y regenera cualquier día",
       "saveEdit": "Guarda y accede desde cualquier dispositivo",
