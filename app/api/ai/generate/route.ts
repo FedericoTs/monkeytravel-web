@@ -4,7 +4,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { recordAnonymousGeneration, refundAnonymousGeneration } from "@/lib/anonymous/rate-limit";
 import { generateItinerary } from "@/lib/gemini";
 import { validateTripParams } from "@/lib/trips/request-validation";
-import { MAX_TRIP_DAYS, MAX_TRIP_DAYS_MULTI } from "@/lib/trips/request-limits";
+import { DESTINATION_MAX_LENGTH, MAX_TRIP_DAYS, MAX_TRIP_DAYS_MULTI } from "@/lib/trips/request-limits";
 import { bookingLinksFor } from "@/lib/ai/server-fields";
 import { getModelForPurpose } from "@/lib/ai/model-router";
 import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
@@ -91,6 +91,10 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         return errors.badRequest(e instanceof Error ? e.message : "Invalid destinations");
       }
     }
+    // A route step 1 offered for a place typed as a whole country, taken: the
+    // place, for the log (lib/wizard/route-offer.ts).
+    const routeFrom =
+      isMultiCity && typeof body.routeFrom === "string" ? body.routeFrom.trim().slice(0, DESTINATION_MAX_LENGTH) : "";
 
     // Anchored trips (docs/CONSTRAINT_PLANNER_PLAN.md): fixed commitments the
     // plan must honour — a wedding, a flight, a night that must end in a
@@ -310,6 +314,8 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         ...(namesIn.glued > 0 ? { names: { glued: namesIn.glued, renamed: namesIn.renamed } } : {}),
         // The hops between cities, how many were answered, and how many cards took the answer.
         ...(transfers ? { transfers } : {}),
+        // The place typed before the route step 1 offered for it was taken.
+        ...(routeFrom ? { route_from: routeFrom } : {}),
         // Stops on a day they're shut before and after the closing step, as the stream logs them.
         ...(closing && closing.asked > 0
           ? {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type SetStateAction } from "react";
 import type { RouteStop } from "@/components/trips/MultiCityRouteBuilder";
 import { joinCities } from "@/lib/ai/multi-city-core";
 import { addIsoDaysOrThrow } from "@/lib/dates/iso-date";
@@ -45,11 +45,16 @@ export function useMultiCityRoute({
   setEndDate: (endDate: string) => void;
 }) {
   const arrivesAsRoute = enabled && deepLinked;
-  const [multiCityMode, setMultiCityMode] = useState(arrivesAsRoute);
+  const [multiCityMode, setMode] = useState(arrivesAsRoute);
   const [cityRows, setCityRows] = useState<RouteStop[]>(() => {
     const rows = freshCityRows();
     return arrivesAsRoute && linkedCity ? [{ ...rows[0], city: linkedCity }, ...rows.slice(1)] : rows;
   });
+
+  // The place typed before step 1's offered route was taken ("Thailand"): the
+  // route stands for it while on, and the switch gives it back when the
+  // traveller turns the route off, rather than the route's cities as one place.
+  const [routeFrom, setRouteFrom] = useState<string | null>(null);
 
   useEffect(() => {
     if (!enabled || !multiCityMode) return;
@@ -58,6 +63,35 @@ export function useMultiCityRoute({
     const total = legs.reduce((s, r) => s + r.nights, 0);
     if (startDate && total > 0) setEndDate(addIsoDaysOrThrow(startDate, total - 1));
   }, [enabled, multiCityMode, cityRows, startDate, setDestination, setEndDate]);
+
+  const resolve = (next: SetStateAction<boolean>) => (typeof next === "function" ? next(multiCityMode) : next);
+
+  /**
+   * The mode, as the page sets it (a request read as a route, a draft
+   * restored): turned off, an offered route's place is forgotten, since what
+   * the page puts in the destination next is another trip's.
+   */
+  const setMultiCityMode = (next: SetStateAction<boolean>) => {
+    const on = resolve(next);
+    setMode(on);
+    if (!on) setRouteFrom(null);
+  };
+
+  /** Step 1's switch: an offered route turned off gives back the place it stood for. */
+  const switchMultiCity = (next: SetStateAction<boolean>) => {
+    const on = resolve(next);
+    setMode(on);
+    if (on || routeFrom === null) return;
+    setDestination(routeFrom);
+    setRouteFrom(null);
+  };
+
+  /** The route step 1 offered for a place typed as a whole country or region, taken. */
+  const takeRoute = (rows: RouteStop[], place: string) => {
+    setCityRows(rows);
+    setMode(true);
+    setRouteFrom(place);
+  };
 
   /** Back to a single city and a new route (Start Over). */
   const resetRoute = () => {
@@ -68,8 +102,11 @@ export function useMultiCityRoute({
   return {
     multiCityMode,
     setMultiCityMode,
+    switchMultiCity,
     cityRows,
     setCityRows,
     resetRoute,
+    routeFrom,
+    takeRoute,
   };
 }

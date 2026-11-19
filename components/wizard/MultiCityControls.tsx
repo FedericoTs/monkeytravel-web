@@ -8,7 +8,7 @@ import { MultiCityRouteBuilder, type RouteStop } from "@/components/trips/MultiC
 /**
  * Above step 1's destination field: the route builder while multi-city is
  * on, or, on a long single-city trip, a one-tap offer to split it into
- * cities.
+ * cities (unless step 1 already offers a route with its cities, RouteOffer).
  */
 export function MultiCityRoute({
   multiCityMode,
@@ -17,6 +17,7 @@ export function MultiCityRoute({
   endDate,
   cityRows,
   setCityRows,
+  routeOffered = false,
 }: {
   multiCityMode: boolean;
   setMultiCityMode: (on: boolean) => void;
@@ -24,6 +25,8 @@ export function MultiCityRoute({
   endDate: string;
   cityRows: RouteStop[];
   setCityRows: (rows: RouteStop[]) => void;
+  /** Step 1 offers a route with its cities under the dates: the empty split isn't offered too. */
+  routeOffered?: boolean;
 }) {
   const t = useTranslations("trips");
   return (
@@ -31,6 +34,7 @@ export function MultiCityRoute({
       {/* 12+-day single-city sessions are usually multi-city trips the
           input didn't invite. One tap converts them. */}
       {!multiCityMode &&
+        !routeOffered &&
         startDate &&
         endDate &&
         tripSpanDays(startDate, endDate) >= 12 && (

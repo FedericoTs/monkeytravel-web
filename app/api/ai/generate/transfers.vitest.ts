@@ -105,4 +105,16 @@ describe("the JSON route's log of a trip through several cities", () => {
     expect(res.status).toBe(200);
     expect(logged.at(-1)).not.toHaveProperty("transfers");
   });
+
+  it("names the place a route offered on step 1 was taken for, on a trip through several cities only", async () => {
+    const legs = [{ city: "Brussels", nights: 1 }, { city: "Paris", nights: 1 }];
+    await post({ destination: "Brussels & Paris", destinations: legs, routeFrom: "  Benelux and France " });
+    expect(logged.at(-1)?.route_from).toBe("Benelux and France");
+    await post({ destination: "Brussels & Paris", destinations: legs });
+    expect(logged.at(-1)).not.toHaveProperty("route_from");
+    await post({ destination: "Brussels", routeFrom: "Belgium" });
+    expect(logged.at(-1)).not.toHaveProperty("route_from");
+    await post({ destination: "Brussels & Paris", destinations: legs, routeFrom: { place: "Belgium" } });
+    expect(logged.at(-1)).not.toHaveProperty("route_from");
+  });
 });

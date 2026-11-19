@@ -218,6 +218,9 @@ import { newTripTitle } from "@/lib/trips/title";
 import AiDisclaimer from "@/components/trip/AiDisclaimer";
 import { useTravelDistances } from "@/hooks/useTravelDistances";
 import { useMultiCityRoute } from "@/hooks/useMultiCityRoute";
+import { useRouteOffer } from "@/hooks/useRouteOffer";
+import { routeOfferAsk } from "@/lib/wizard/route-offer";
+import RouteOffer from "@/components/wizard/RouteOffer";
 import { isChosenTripIntent } from "@/lib/wizard/answers";
 
 // Upper bound for the wizard start date (see lib/dates/iso-date.ts).
@@ -479,8 +482,9 @@ export default function NewTripPage({
     () => (prefilledDestination ? { latitude: prefilledDestination.latitude, longitude: prefilledDestination.longitude } : null),
   );
   // The place name the coordinates belong to. A name typed after a pick keeps
-  // the old coordinates in state, so the plan only gets them while it matches.
-  const coordsPlaceRef = useRef<string | null>(prefilledDestination?.name ?? null);
+  // the old coordinates in state, so the plan only gets them while it matches,
+  // and only a place typed, not picked, is offered a route (RouteOffer).
+  const [coordsPlace, setCoordsPlace] = useState<string | null>(prefilledDestination?.name ?? null);
   // Anchored trips: fixed commitments (flights, weddings, booked nights) the
   // generated plan must build around. Collapsed AnchorEditor on step 1; sent
   // to /api/ai/generate, and carried into trip_meta.anchors at save via
@@ -502,7 +506,7 @@ export default function NewTripPage({
   // Multi-city: a route of city+nights rows, only surfaced in step 1 when
   // MULTI_CITY_ENABLED and mirrored into `destination`/`endDate` so the rest
   // of the wizard flow is untouched (hooks/useMultiCityRoute.ts).
-  const { multiCityMode, setMultiCityMode, cityRows, setCityRows, resetRoute } = useMultiCityRoute({
+  const { multiCityMode, setMultiCityMode, switchMultiCity, cityRows, setCityRows, resetRoute, routeFrom, takeRoute } = useMultiCityRoute({
     enabled: MULTI_CITY_ENABLED,
     deepLinked: searchParams?.get("multi") === "1",
     linkedCity: prefilledDestination?.name ?? null,
@@ -510,6 +514,22 @@ export default function NewTripPage({
     setDestination,
     setEndDate,
   });
+  // A destination typed as a whole country or region ("Thailand", 14 days):
+  // the bases most travellers use there, offered under the dates as a trip
+  // through several cities (lib/wizard/route-offer.ts).
+  const routeAsk =
+    step === 1
+      ? routeOfferAsk({
+          enabled: MULTI_CITY_ENABLED,
+          multiCityMode,
+          destination,
+          destinationProblem: destinationProblem(destination),
+          picked: destinationCoords !== null && coordsPlace === destination,
+          startDate,
+          endDate,
+        })
+      : null;
+  const routeOffer = useRouteOffer(routeAsk, startDate, locale);
   // Popular-destination pills: real demand-ranked, reordered by season with the
   // month the server rendered with, so both sides of hydration agree and the
   // chips never move after mount. `plannedStat` is an honest, aggregate
@@ -1140,7 +1160,7 @@ export default function NewTripPage({
     trackFieldInteraction("destination_pill");
     setDestination(place.name);
     setDestinationCoords(place.coords);
-    coordsPlaceRef.current = place.name;
+    setCoordsPlace(place.name);
     trackDestinationSelected({ destination: place.name, source: "popular" });
     let datesAutofilled = false;
     if (!startDate && !endDate && !(MULTI_CITY_ENABLED && multiCityMode)) {
@@ -1189,7 +1209,7 @@ export default function NewTripPage({
     setDestination(placeName);
     if (place?.coordinates) {
       setDestinationCoords(place.coordinates);
-      coordsPlaceRef.current = placeName;
+      setCoordsPlace(placeName);
     }
     setStartDate(dates.start);
     setEndDate(dates.end);
@@ -1257,7 +1277,7 @@ export default function NewTripPage({
       filledAs = place ? (place.fullText.length <= DESTINATION_MAX_LENGTH ? place.fullText : place.mainText) : fill.destination;
       setDestination(filledAs);
       setDestinationCoords(place?.coordinates ?? null);
-      if (place?.coordinates) coordsPlaceRef.current = filledAs;
+      if (place?.coordinates) setCoordsPlace(filledAs);
     }
     keepDetails(fill);
     setRequestFilled({ destination: filledAs, capped: fill.capped });
@@ -1314,7 +1334,7 @@ export default function NewTripPage({
     if (prediction.coordinates) {
       setDestinationCoords(prediction.coordinates);
       // The text a picked suggestion puts in the field (DestinationAutocomplete).
-      coordsPlaceRef.current = prediction.fullText;
+      setCoordsPlace(prediction.fullText);
     }
     // Track destination selection
     trackDestinationSelected({
@@ -1433,7 +1453,8 @@ export default function NewTripPage({
         requirements,
         locale,
         fresh: opts.fresh,
-        coordinates: destinationCoords && coordsPlaceRef.current === destination ? destinationCoords : null,
+        coordinates: destinationCoords && coordsPlace === destination ? destinationCoords : null,
+        routeFrom: MULTI_CITY_ENABLED && multiCityMode ? routeFrom : null,
       });
       reportGenerationAsks({ anchored: request.isAnchored, anchors, mustDos, startDate, endDate });
       // Each try streams its days into GenerationProgress as they arrive.
@@ -1940,6 +1961,7 @@ export default function NewTripPage({
                 endDate={endDate}
                 cityRows={cityRows}
                 setCityRows={setCityRows}
+                routeOffered={routeOffer !== null}
               />
             )}
 
@@ -1979,7 +2001,7 @@ export default function NewTripPage({
                 stays adjacent to what it controls. The ?multi=1 deep link and
                 the sync effect key off state, not DOM position. */}
             {MULTI_CITY_ENABLED && (
-              <MultiCityToggle multiCityMode={multiCityMode} setMultiCityMode={setMultiCityMode} />
+              <MultiCityToggle multiCityMode={multiCityMode} setMultiCityMode={switchMultiCity} />
             )}
 
             {/* Dates — shown immediately below destination */}
@@ -2000,6 +2022,15 @@ export default function NewTripPage({
               effectiveMaxTripDays={effectiveMaxTripDays}
               handleFlexibleDates={handleFlexibleDates}
             />
+
+            {routeOffer && routeAsk && (
+              <RouteOffer
+                place={routeAsk.place}
+                days={routeAsk.days}
+                route={routeOffer}
+                onTake={() => takeRoute(routeOffer, routeAsk.place)}
+              />
+            )}
 
             {/* Where they're staying: one small link until opened. A stay is in
                 one city, so a trip through several has none. */}
