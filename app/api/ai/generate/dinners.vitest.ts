@@ -60,11 +60,13 @@ const plan = () => ({
 });
 vi.mock("@/lib/gemini", () => ({ generateItinerary: async () => plan() }));
 vi.mock("@/lib/ai/multi-city", () => ({ validateLegs: () => {}, generateMultiCityItinerary: async () => plan() }));
+const dinnerQuestions: string[] = [];
 vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/ai/gemini-call")>()),
   genAI: {
     getGenerativeModel: () => ({
       generateContent: async (question: string) => {
+        if (question.startsWith("Name one real restaurant for dinner")) dinnerQuestions.push(question);
         const answer = question.startsWith("Name one real restaurant for dinner")
           ? { dinners: [{ n: 1, name: "Gion Nanba", description: "Seasonal kaiseki.", location: "Gion", coordinates: { lat: 35.0029, lng: 135.7751 } }] }
           : { places: [] };
@@ -98,5 +100,7 @@ describe("the JSON route", () => {
       "15:00 Gion",
       "18:30 Gion Nanba",
     ]);
+    // The plan's own places to eat are named, so the answer isn't one of them.
+    expect(dinnerQuestions.at(-1)).toContain("None the plan already has: Vermillion Cafe.");
   });
 });

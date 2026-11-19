@@ -119,6 +119,8 @@ describe("a plan with a full day left without dinner", () => {
     expect(dinnerQuestions).toHaveLength(1);
     expect(dinnerQuestions[0]).toContain("1. Kyoto, Japan, 2027-04-06: the day ends at Gion (35.00370, 135.77880)");
     expect(dinnerQuestions[0]).toContain("a special, upscale");
+    // The plan's own places to eat are named, so the answer isn't one of them (it would be turned away).
+    expect(dinnerQuestions[0]).toContain("None the plan already has: Okonomiyaki Kiraku; Gion Karyo; Vermillion Cafe; Honke Owariya.");
     await vi.waitFor(() => expect(logged.find((row) => row.status === 200)).toBeTruthy());
     expect(logged.find((row) => row.status === 200)?.metadata?.dinners).toEqual({ missing: 1, added: 1 });
   });

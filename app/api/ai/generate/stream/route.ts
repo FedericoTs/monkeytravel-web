@@ -37,7 +37,7 @@ import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/genera
 import { knownPlacesFor, knownPlacesUsed, type KnownPlace } from "@/lib/ai/known-places";
 import { keepOffClosingDays } from "@/lib/ai/closing-days";
 import { keepInsideHours } from "@/lib/ai/visit-hours";
-import { askForDinners, daysWithoutDinner, withDinners } from "@/lib/ai/dinners";
+import { askForDinners, daysWithoutDinner, placesToEat, withDinners } from "@/lib/ai/dinners";
 import { swapClosedStops } from "@/lib/ai/closed-swaps";
 import { withoutLongClosures } from "@/lib/ai/long-closures";
 import { keepMustDos } from "@/lib/ai/must-dos";
@@ -376,6 +376,7 @@ export async function POST(request: NextRequest) {
         budgetTier: params.budgetTier,
         diets: profilePreferences.dietaryPreferences,
         language: userLanguage,
+        taken: placesToEat(finalItinerary.days),
       });
       const openDays = await keepOffClosingDays(finalItinerary, params.destination, undefined, undefined, (days, stuck) =>
         swapClosedStops(params.destination, days, stuck, userLanguage)
