@@ -18,7 +18,7 @@ import type {
   FormattedCurrency,
 } from "./types";
 import { FAHRENHEIT_COUNTRIES, IMPERIAL_COUNTRIES } from "./types";
-import { currencyForLocale } from "./currency-guess";
+import { currencyForCountry, currencyForLocale, followsCountry } from "./currency-guess";
 import { formatTemperature, formatDistance } from "./conversions";
 import {
   getExchangeRates,
@@ -115,6 +115,48 @@ function savePreferences(prefs: LocalePreferences): void {
   }
 }
 
+// The country a visitor is in, as the server sees it (app/api/locale/country), kept a day.
+const COUNTRY_STORAGE_KEY = "monkeytravel-visitor-country";
+const COUNTRY_KEPT_MS = 24 * 60 * 60 * 1000;
+
+/** The country kept from an earlier look while it is fresh (null: none found), or undefined when there is none to use. */
+function keptCountry(): string | null | undefined {
+  try {
+    const kept = JSON.parse(localStorage.getItem(COUNTRY_STORAGE_KEY) ?? "null") as { country?: unknown; at?: unknown } | null;
+    if (!kept || typeof kept.at !== "number" || Date.now() - kept.at >= COUNTRY_KEPT_MS) return undefined;
+    return typeof kept.country === "string" ? kept.country : null;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Asks the server which country the visitor is in, and keeps the answer a day. Null when it can't tell. */
+async function lookUpCountry(): Promise<string | null> {
+  let country: string | null = null;
+  try {
+    const response = await fetch("/api/locale/country", { cache: "no-store" });
+    const answer = response.ok ? ((await response.json()) as { country?: unknown }).country : null;
+    country = typeof answer === "string" && /^[A-Z]{2}$/.test(answer) ? answer : null;
+  } catch {
+    return null;
+  }
+  try {
+    localStorage.setItem(COUNTRY_STORAGE_KEY, JSON.stringify({ country, at: Date.now() }));
+  } catch {
+    // localStorage might not be available
+  }
+  return country;
+}
+
+/**
+ * Detected preferences with the currency of the country the visitor is in, where the browser's language
+ * says little about it (lib/locale/currency-guess.ts followsCountry) and the rates convert that currency.
+ */
+function withCountryCurrency(prefs: LocalePreferences, country: string | null): LocalePreferences {
+  const currency = followsCountry(prefs.locale) ? currencyForCountry(country) : null;
+  return currency && currency !== prefs.preferredCurrency ? { ...prefs, preferredCurrency: currency } : prefs;
+}
+
 // Create context with default values
 const LocaleContext = createContext<LocaleContextValue | null>(null);
 
@@ -138,18 +180,33 @@ export function LocaleProvider({ children }: LocaleProviderProps) {
 
   // Initialize preferences on mount (client-side only)
   useEffect(() => {
+    let alive = true;
     // First, check for saved preferences
     const saved = loadSavedPreferences();
     if (saved?.isManualOverride) {
       // User has manually set preferences, use those
       setPreferences(saved);
     } else {
-      // Auto-detect from browser
+      // Auto-detect from browser, with the country the visitor is in where the language says little of it.
       const detected = detectLocalePreferences();
-      setPreferences(detected);
-      savePreferences(detected);
+      const kept = keptCountry();
+      const shown = kept === undefined ? detected : withCountryCurrency(detected, kept);
+      setPreferences(shown);
+      savePreferences(shown);
+      if (kept === undefined && followsCountry(detected.locale)) {
+        void lookUpCountry().then((country) => {
+          const located = withCountryCurrency(detected, country);
+          // A currency chosen meanwhile stays.
+          if (!alive || located === detected || loadSavedPreferences()?.isManualOverride) return;
+          setPreferences(located);
+          savePreferences(located);
+        });
+      }
     }
     setIsInitialized(true);
+    return () => {
+      alive = false;
+    };
   }, []);
 
   // Load exchange rates on mount
