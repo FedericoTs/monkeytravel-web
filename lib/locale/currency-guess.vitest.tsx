@@ -149,6 +149,16 @@ describe("a visitor's prices", () => {
     expect(askedCountry).not.toHaveBeenCalled();
   });
 
+  // The country was kept while the browser was in English (United States); it is in German now.
+  it("follow such a language even with a country kept from before", async () => {
+    localStorage.setItem("monkeytravel-visitor-country", JSON.stringify({ country: "IN", at: Date.now() }));
+    serverSays("IN");
+    browser("de-DE");
+    show();
+    await waitFor(() => expect(screen.getByText("EUR")).toBeTruthy());
+    expect(askedCountry).not.toHaveBeenCalled();
+  });
+
   it("keep a currency the visitor chose", async () => {
     localStorage.setItem(
       "monkeytravel-locale-prefs",
