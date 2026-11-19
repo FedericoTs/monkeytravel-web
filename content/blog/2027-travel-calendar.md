@@ -4,7 +4,7 @@ slug: "2027-travel-calendar"
 description: "Where to go in every month of 2027, with the dates that shape the year: the total solar eclipse on 2 August, Santiago's Holy Year, the Women's World Cup in Brazil, the Rugby and Cricket World Cups, and the 2027 long weekends in the UK, US, Spain, Italy and Brazil."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-11-06"
+updatedAt: "2026-11-19"
 category: "Seasonal Travel"
 tags: ["seasonal", "monthly travel guide", "trip planning"]
 image: "/images/blog/2027-travel-calendar.jpg"
@@ -54,7 +54,7 @@ Use solar viewers that meet ISO 12312-2 for the partial phases. NASA says the na
 
 ### Santiago de Compostela's Holy Year, all of 2027
 
-Santiago holds a Holy Year whenever 25 July, the feast of St James, falls on a Sunday, as it does in 2027. The last one was 2021–22 and the next is 2032. The archdiocese presented the jubilee motto on 24 September 2026. The Holy Door opens on 31 December 2026, according to Santiago's tourist office, at 17:00 on the cathedral's calendar or around noon according to its dean, so check the hour nearer the time. Our [Camino guide for 2027](/blog/camino-de-santiago-2027) has routes, rules and crowds month by month. Book Camino and city beds early, above all around Sunday 25 July.
+Santiago holds a Holy Year whenever 25 July, the feast of St James, falls on a Sunday, as it does in 2027. The last one was 2021–22 and the next is 2032. The archdiocese presented the jubilee motto on 24 September 2026. The Holy Door opens on 31 December 2026, according to Santiago's tourist office, with a ceremony from 11:30 on the cathedral's calendar. Our [Camino guide for 2027](/blog/camino-de-santiago-2027) has routes, rules and crowds month by month. Book Camino and city beds early, above all around Sunday 25 July.
 
 ### FIFA Women's World Cup, 24 June to 25 July, Brazil
 
@@ -490,7 +490,7 @@ The 2026 list also gave federal staff 28 October (Public Servants' Day) and the 
 - **Plan around two Easters.** Western Easter is 28 March and Orthodox Easter 2 May, so Spain and Italy peak in late March and Greece in late April.
 - **Watch other countries' holidays.** Golden Week, Kurban Bayramı, Obon and Thanksgiving week fill transport and hotels in their own countries.
 - **Buy proper eclipse glasses.** Use ISO 12312-2 viewers for the partial phases, and never behind binoculars, a camera or a telescope.
-- **Recheck what is not out yet.** Brazil's federal list usually appears at the end of December; Christmas market dates, Loy Krathong, Seville's final Feria dates and the Holy Door ceremony come later.
+- **Recheck what is not out yet.** Brazil's federal list usually appears at the end of December; Christmas market dates, Loy Krathong and Seville's final Feria dates come later.
 
 ## Plan Your 2027 Trips in 30 Seconds
 

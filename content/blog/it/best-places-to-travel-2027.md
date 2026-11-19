@@ -4,7 +4,7 @@ slug: "best-places-to-travel-2027"
 description: "Quindici mete in cui è il 2027 stesso il motivo per partire: l'eclissi totale di Sole del 2 agosto su Luxor e sullo Stretto di Gibilterra, tre Mondiali, un Anno Santo Compostelano, due Capitali europee della cultura, i 200 anni dalla morte di Beethoven e il ritorno dell'Altare di Pergamo."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-11-06"
+updatedAt: "2026-11-19"
 category: "Seasonal Travel"
 tags: ["migliori destinazioni", "pianificazione viaggi", "stagionale"]
 image: "/images/blog/best-places-to-travel-2027.jpg"
@@ -143,7 +143,7 @@ Il 2027 è Anno Santo Compostelano, fa di Liepāja ed Évora due Capitali europe
 
 ## 8. Santiago de Compostela e il Cammino — un Anno Santo
 
-**Perché il 2027:** l'Anno Santo si celebra ogni volta che il 25 luglio, festa di San Giacomo, cade di domenica; il [sito ufficiale del Cammino](https://www.caminodesantiago.gal/en/discover/origins-and-evolution/the-compostela-holy-year) della Galizia indica il 2027 come il prossimo, dopo il 2010 e il 2021–22. La Porta Santa della cattedrale, sul retro dell'edificio, in Praza da Quintana, si apre il 31 dicembre 2026 e resta aperta fino al 31 dicembre 2027, secondo l'[ufficio del turismo di Santiago](https://www.santiagoturismo.com/compostela2027). L'ora non è definita: le 17:00 nel [calendario della cattedrale](https://catedraldesantiago.es/liturgia/), verso mezzogiorno secondo il suo decano (secondo [El Correo Gallego](https://www.elcorreogallego.es/santiago/2026/09/24/santiago-prepara-ano-santo-xacobeo-2027-134639233.html)). La cattedrale ha annunciato il motto: «Al ver la estrella, se llenaron de inmensa alegría» ([Catedral de Santiago](https://catedraldesantiago.es/al-ver-la-estrella-se-llenaron-de-inmensa-alegria-sera-el-lema-para-el-ano-santo-compostelano-2027/)).
+**Perché il 2027:** l'Anno Santo si celebra ogni volta che il 25 luglio, festa di San Giacomo, cade di domenica; il [sito ufficiale del Cammino](https://www.caminodesantiago.gal/en/discover/origins-and-evolution/the-compostela-holy-year) della Galizia indica il 2027 come il prossimo, dopo il 2010 e il 2021–22. La Porta Santa della cattedrale, sul retro dell'edificio, in Praza da Quintana, si apre il 31 dicembre 2026 e resta aperta fino al 31 dicembre 2027, secondo l'[ufficio del turismo di Santiago](https://www.santiagoturismo.com/compostela2027). Il [calendario della cattedrale](https://catedraldesantiago.es/liturgia/) fissa la cerimonia della Porta Santa alle 11:30, prima del mezzogiorno di cui aveva parlato il suo decano (secondo [El Correo Gallego](https://www.elcorreogallego.es/santiago/2026/09/24/santiago-prepara-ano-santo-xacobeo-2027-134639233.html)). La cattedrale ha annunciato il motto: «Al ver la estrella, se llenaron de inmensa alegría» ([Catedral de Santiago](https://catedraldesantiago.es/al-ver-la-estrella-se-llenaron-de-inmensa-alegria-sera-el-lema-para-el-ano-santo-compostelano-2027/)).
 
 **Quando andare:** domenica 25 luglio è il momento clou. Maggio, giugno e settembre ormai hanno quasi la stessa gente di luglio e agosto, secondo i [dati dell'Ufficio del Pellegrino](https://oficinadelperegrino.com/estadisticas-nueva/). Per avere spazio sul cammino, vai tra novembre e inizio marzo. La nostra [guida al Cammino per il 2027](/blog/camino-de-santiago-2027) ha percorsi, regole e affluenza mese per mese.
 
@@ -269,7 +269,7 @@ Il sorteggio della Coppa del Mondo di cricket chiude alle 23:59 SAST del 21 nove
 
 ### Quando inizia e quando finisce l'Anno Santo Compostelano 2027?
 
-La Porta Santa si apre il 31 dicembre 2026 e si chiude il 31 dicembre 2027, secondo l'ufficio del turismo di Santiago. L'ora di apertura non è definita: le 17:00 nel calendario della cattedrale, verso mezzogiorno secondo il suo decano. È Anno Santo perché il 25 luglio 2027, festa di San Giacomo, cade di domenica.
+La Porta Santa si apre il 31 dicembre 2026 e si chiude il 31 dicembre 2027, secondo l'ufficio del turismo di Santiago. La cerimonia di apertura inizia alle 11:30, secondo il calendario della cattedrale. È Anno Santo perché il 25 luglio 2027, festa di San Giacomo, cade di domenica.
 
 ### Quali sono le Capitali europee della cultura 2027?
 

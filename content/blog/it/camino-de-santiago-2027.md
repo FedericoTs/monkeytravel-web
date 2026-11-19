@@ -1,10 +1,10 @@
 ---
 title: "Cammino di Santiago 2027: percorsi dell'Anno Santo Compostelano, affluenza, regole e posti letto"
 slug: "camino-de-santiago-2027"
-description: "Organizza il Cammino di Santiago nell'Anno Santo Compostelano 2027: date della Porta Santa e orario di apertura ancora incerto, numeri ufficiali dei pellegrini per mese, dieci opzioni di percorso in base ai giorni, regole della Compostela, cosa prenotare per primo, costi giornalieri e itinerari di 6 e 12 giorni."
+description: "Organizza il Cammino di Santiago nell'Anno Santo Compostelano 2027: date della Porta Santa e apertura alle 11:30, numeri ufficiali dei pellegrini per mese, dieci opzioni di percorso in base ai giorni, regole della Compostela, cosa prenotare per primo, costi giornalieri e itinerari di 6 e 12 giorni."
 author: "Emanuela P."
 publishedAt: "2026-11-06"
-updatedAt: "2026-11-06"
+updatedAt: "2026-11-19"
 category: "Seasonal Travel"
 tags: ["stagionale","migliori destinazioni","pianificazione viaggi"]
 image: "/images/blog/camino-de-santiago-2027.jpg"
@@ -48,9 +48,9 @@ Un Anno Santo cambia più la cattedrale che il cammino. La Porta Santa (Puerta S
 
 ## Porta Santa Santiago 2027: quando apre?
 
-La data è fissata. L'ora no. Il 24 settembre il decano della cattedrale ha detto che l'apertura del 31 dicembre 2026 si sposta a circa mezzogiorno, invece delle consuete 17:00 (secondo [El Correo Gallego](https://www.elcorreogallego.es/santiago/2026/09/24/santiago-prepara-ano-santo-xacobeo-2027-134639233.html), [COPE](https://www.cope.es/emisoras/galicia/a-coruna-provincia/santiago/noticias/ano-santo-27-madruga-puerta-santa-abrira-31-diciembre-mediodia-20260924_3443167.html) e [Religión Digital](https://www.religiondigital.org/diocesis/puerta-santa-catedral-santiago-adelantara-xacobeo-2027_1_1467526.html)).
+Il 31 dicembre 2026, con una cerimonia solenne dalle 11:30. Il 19 novembre il [calendario liturgico](https://catedraldesantiago.es/liturgia/) della cattedrale riportava: "A partir de las 11:30 h, ceremonia solemne de la Puerta Santa. A continuación, Misa Estacional, presidida por el Arzobispo." Dopo la cerimonia c'è la messa stazionale, presieduta dall'arcivescovo.
 
-Il 6 novembre il [calendario liturgico](https://catedraldesantiago.es/liturgia/) della cattedrale riportava ancora: "A las 17:00 h apertura solemne de la Puerta Santa." La [nota dell'Arcidiocesi](https://archicompostela.org/una-estrella-para-nuestro-tiempo-el-arzobispo-situa-la-alegria-de-caminar-con-esperanza-en-el-centro-del-ano-santo-compostelano-2027-bajo-el-lema-al-ver-la-estrella-se-llenaron-de-inmensa-a/) sull'evento del 24 settembre non indica alcun orario. Quindi regolati su mezzogiorno, tieni libera tutta la giornata e ricontrolla la pagina della cattedrale a dicembre. L'ultima apertura, nel 2020, [è iniziata alle 16:30](https://catedraldesantiago.es/ceremonia-de-apertura-de-la-puerta-santa-e-inicio-del-ano-jubilar-compostelano-2021/).
+È prima di qualsiasi orario indicato finora. Il 24 settembre il decano della cattedrale aveva parlato di circa mezzogiorno (secondo [El Correo Gallego](https://www.elcorreogallego.es/santiago/2026/09/24/santiago-prepara-ano-santo-xacobeo-2027-134639233.html), [COPE](https://www.cope.es/emisoras/galicia/a-coruna-provincia/santiago/noticias/ano-santo-27-madruga-puerta-santa-abrira-31-diciembre-mediodia-20260924_3443167.html) e [Religión Digital](https://www.religiondigital.org/diocesis/puerta-santa-catedral-santiago-adelantara-xacobeo-2027_1_1467526.html)), e il 6 novembre lo stesso calendario indicava ancora le 17:00. L'ultima apertura, nel 2020, [è iniziata alle 16:30](https://catedraldesantiago.es/ceremonia-de-apertura-de-la-puerta-santa-e-inicio-del-ano-jubilar-compostelano-2021/). Se vuoi esserci, arriva a Santiago il giorno prima invece che quella mattina.
 
 L'ora di chiusura del 31 dicembre 2027 non è stata annunciata. Nel 2022 la cattedrale [annunciò la cerimonia di chiusura per le 16:30, con l'ingresso dalla porta interrotto alle 15:00](https://catedraldesantiago.es/ceremonia-de-clausura-del-ano-santo-compostelano-2021-2022/), quindi non programmare un arrivo all'ultimo minuto.
 
@@ -295,7 +295,7 @@ Nessuna autorità fissa i tempi per prenotare, quindi questo è un nostro consig
 
 ### Quando inizia e finisce l'Anno Santo Compostelano 2027?
 
-Dal 31 dicembre 2026 al 31 dicembre 2027, secondo l'ufficio del turismo di Santiago. L'ora di apertura resta incerta: intorno a mezzogiorno secondo il decano, le 17:00 sul calendario della cattedrale.
+Dal 31 dicembre 2026 al 31 dicembre 2027, secondo l'ufficio del turismo di Santiago. La cerimonia della Porta Santa inizia alle 11:30 del 31 dicembre 2026, secondo il calendario della cattedrale.
 
 ### La Compostela cambia in un Anno Santo?
 

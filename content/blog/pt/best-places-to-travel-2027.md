@@ -4,7 +4,7 @@ slug: "best-places-to-travel-2027"
 description: "Quinze lugares onde o próprio 2027 é o motivo para ir: o eclipse solar total de 2 de agosto sobre Luxor e o Estreito de Gibraltar, três Copas do Mundo, um Ano Santo Compostelano, duas Capitais Europeias da Cultura, os 200 anos da morte de Beethoven e a volta do Altar de Pérgamo."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-11-06"
+updatedAt: "2026-11-19"
 category: "Seasonal Travel"
 tags: ["melhores destinos", "planejamento de viagem", "sazonal"]
 image: "/images/blog/best-places-to-travel-2027.jpg"
@@ -143,7 +143,7 @@ Na segunda-feira, 2 de agosto de 2027, a sombra da Lua cruza o Estreito de Gibra
 
 ## 8. Santiago de Compostela e o Caminho — um Ano Santo
 
-**Por que 2027:** há Ano Santo sempre que o 25 de julho, dia de São Tiago, cai num domingo; o [site oficial do Caminho](https://www.caminodesantiago.gal/en/discover/origins-and-evolution/the-compostela-holy-year), do governo da Galícia, aponta 2027 como o próximo, depois de 2010 e 2021–22. A Porta Santa da catedral, nos fundos do edifício, na Praza da Quintana, abre em 31 de dezembro de 2026 e fica aberta até 31 de dezembro de 2027, segundo o [escritório de turismo de Santiago](https://www.santiagoturismo.com/compostela2027). O horário não está definido: 17:00 no [calendário da catedral](https://catedraldesantiago.es/liturgia/), por volta do meio-dia segundo o deão (segundo o [El Correo Gallego](https://www.elcorreogallego.es/santiago/2026/09/24/santiago-prepara-ano-santo-xacobeo-2027-134639233.html)). A catedral anunciou o lema: "Al ver la estrella, se llenaron de inmensa alegría" ([Catedral de Santiago](https://catedraldesantiago.es/al-ver-la-estrella-se-llenaron-de-inmensa-alegria-sera-el-lema-para-el-ano-santo-compostelano-2027/)).
+**Por que 2027:** há Ano Santo sempre que o 25 de julho, dia de São Tiago, cai num domingo; o [site oficial do Caminho](https://www.caminodesantiago.gal/en/discover/origins-and-evolution/the-compostela-holy-year), do governo da Galícia, aponta 2027 como o próximo, depois de 2010 e 2021–22. A Porta Santa da catedral, nos fundos do edifício, na Praza da Quintana, abre em 31 de dezembro de 2026 e fica aberta até 31 de dezembro de 2027, segundo o [escritório de turismo de Santiago](https://www.santiagoturismo.com/compostela2027). O [calendário da catedral](https://catedraldesantiago.es/liturgia/) marca a cerimônia da Porta Santa para as 11:30, antes do meio-dia de que o deão tinha falado (segundo o [El Correo Gallego](https://www.elcorreogallego.es/santiago/2026/09/24/santiago-prepara-ano-santo-xacobeo-2027-134639233.html)). A catedral anunciou o lema: "Al ver la estrella, se llenaron de inmensa alegría" ([Catedral de Santiago](https://catedraldesantiago.es/al-ver-la-estrella-se-llenaron-de-inmensa-alegria-sera-el-lema-para-el-ano-santo-compostelano-2027/)).
 
 **Quando ir:** o domingo, 25 de julho, é o ponto alto. Maio, junho e setembro já têm quase tanta gente quanto julho e agosto, pelos [números do Escritório do Peregrino](https://oficinadelperegrino.com/estadisticas-nueva/). Para ter espaço na trilha, vá entre novembro e o início de março. Nosso [guia do Caminho para 2027](/blog/camino-de-santiago-2027) traz rotas, regras e movimento mês a mês.
 
@@ -269,7 +269,7 @@ O sorteio da Copa do Mundo de Críquete fecha às 23:59 SAST de 21 de novembro d
 
 ### Quando começa e termina o Ano Santo de Santiago em 2027?
 
-A Porta Santa abre em 31 de dezembro de 2026 e fecha em 31 de dezembro de 2027, segundo o escritório de turismo de Santiago. O horário de abertura não está definido: 17:00 no calendário da catedral, por volta do meio-dia segundo o deão. É Ano Santo porque o 25 de julho de 2027, dia de São Tiago, cai num domingo.
+A Porta Santa abre em 31 de dezembro de 2026 e fecha em 31 de dezembro de 2027, segundo o escritório de turismo de Santiago. A cerimônia de abertura começa às 11:30, segundo o calendário da catedral. É Ano Santo porque o 25 de julho de 2027, dia de São Tiago, cai num domingo.
 
 ### Quais cidades são Capitais Europeias da Cultura em 2027?
 

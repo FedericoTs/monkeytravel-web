@@ -1,10 +1,10 @@
 ---
 title: "Camino de Santiago 2027: Holy Year Routes, Crowds, Rules and Beds"
 slug: "camino-de-santiago-2027"
-description: "Plan the Camino de Santiago in the 2027 Holy Year: Holy Door dates and the unresolved opening time, official pilgrim numbers by month, ten route options by days, Compostela rules, what to book first, daily costs, and 6-day and 12-day plans."
+description: "Plan the Camino de Santiago in the 2027 Holy Year: Holy Door dates and the 11:30 opening, official pilgrim numbers by month, ten route options by days, Compostela rules, what to book first, daily costs, and 6-day and 12-day plans."
 author: "Emanuela P."
 publishedAt: "2026-11-06"
-updatedAt: "2026-11-06"
+updatedAt: "2026-11-19"
 category: "Seasonal Travel"
 tags: ["seasonal","best destinations","trip planning"]
 image: "/images/blog/camino-de-santiago-2027.jpg"
@@ -48,9 +48,9 @@ A Holy Year changes the cathedral more than the path. The Holy Door (Puerta Sant
 
 ## When does the Holy Door open?
 
-The date is agreed. The hour is not. On 24 September the cathedral's dean said the opening on 31 December 2026 moves to around noon instead of the usual 17:00 (reported by [El Correo Gallego](https://www.elcorreogallego.es/santiago/2026/09/24/santiago-prepara-ano-santo-xacobeo-2027-134639233.html), [COPE](https://www.cope.es/emisoras/galicia/a-coruna-provincia/santiago/noticias/ano-santo-27-madruga-puerta-santa-abrira-31-diciembre-mediodia-20260924_3443167.html) and [Religión Digital](https://www.religiondigital.org/diocesis/puerta-santa-catedral-santiago-adelantara-xacobeo-2027_1_1467526.html)).
+On 31 December 2026, with a solemn ceremony from 11:30. On 19 November the cathedral's own [liturgical calendar](https://catedraldesantiago.es/liturgia/) read: "A partir de las 11:30 h, ceremonia solemne de la Puerta Santa. A continuación, Misa Estacional, presidida por el Arzobispo." The Stational Mass, led by the archbishop, follows the ceremony.
 
-On 6 November the cathedral's own [liturgical calendar](https://catedraldesantiago.es/liturgia/) still read: "A las 17:00 h apertura solemne de la Puerta Santa." The [Archdiocese's note](https://archicompostela.org/una-estrella-para-nuestro-tiempo-el-arzobispo-situa-la-alegria-de-caminar-con-esperanza-en-el-centro-del-ano-santo-compostelano-2027-bajo-el-lema-al-ver-la-estrella-se-llenaron-de-inmensa-a/) on the 24 September event gives no time. So plan for noon, keep the whole day free and recheck the cathedral page in December. The last opening, in 2020, [began at 16:30](https://catedraldesantiago.es/ceremonia-de-apertura-de-la-puerta-santa-e-inicio-del-ano-jubilar-compostelano-2021/).
+That is earlier than any hour given before. On 24 September the cathedral's dean spoke of around noon (reported by [El Correo Gallego](https://www.elcorreogallego.es/santiago/2026/09/24/santiago-prepara-ano-santo-xacobeo-2027-134639233.html), [COPE](https://www.cope.es/emisoras/galicia/a-coruna-provincia/santiago/noticias/ano-santo-27-madruga-puerta-santa-abrira-31-diciembre-mediodia-20260924_3443167.html) and [Religión Digital](https://www.religiondigital.org/diocesis/puerta-santa-catedral-santiago-adelantara-xacobeo-2027_1_1467526.html)), and on 6 November the same calendar still said 17:00. The last opening, in 2020, [began at 16:30](https://catedraldesantiago.es/ceremonia-de-apertura-de-la-puerta-santa-e-inicio-del-ano-jubilar-compostelano-2021/). If you want to be there, arrive in Santiago the day before rather than that morning.
 
 The closing hour on 31 December 2027 is not announced. In 2022 the cathedral [announced the closing ceremony for 16:30, with entry through the door cut at 15:00](https://catedraldesantiago.es/ceremonia-de-clausura-del-ano-santo-compostelano-2021-2022/), so don't plan a last-minute arrival.
 
@@ -295,7 +295,7 @@ No authority sets booking windows, so this is our advice.
 
 ### When does the 2027 Holy Year start and end?
 
-From 31 December 2026 to 31 December 2027, according to Santiago's tourist office. The opening hour is unresolved: around noon according to the dean, 17:00 on the cathedral's calendar.
+From 31 December 2026 to 31 December 2027, according to Santiago's tourist office. The Holy Door ceremony starts at 11:30 on 31 December 2026, according to the cathedral's calendar.
 
 ### Is the Compostela different in a Holy Year?
 
