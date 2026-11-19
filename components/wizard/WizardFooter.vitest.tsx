@@ -155,8 +155,18 @@ describe("Continue on a whole trip typed as the destination", () => {
     expect(button.getAttribute("aria-busy")).toBe("true");
   });
 
-  it("goes on as before when the text can go on as it is, or when nothing is offered to be read", () => {
-    const ready = continueButton({ canProceed: true, readOffered: true });
+  // "5 days in Madrid, 4 days in Seville, 3 days in Granada", with the dates picked, could go on as typed, and would be
+  // planned as one place named by the whole sentence: the cities' days mixed up, and no ride between them.
+  it("reads it too when it could go on as typed", () => {
+    const { button, handleContinue, onReadRequest } = continueButton({ canProceed: true, readOffered: true });
+    expect(button.disabled).toBe(false);
+    fireEvent.click(button);
+    expect(onReadRequest).toHaveBeenCalledTimes(1);
+    expect(handleContinue).not.toHaveBeenCalled();
+  });
+
+  it("goes on as before when nothing is offered to be read", () => {
+    const ready = continueButton({ canProceed: true, readOffered: false });
     fireEvent.click(ready.button);
     expect(ready.handleContinue).toHaveBeenCalledTimes(1);
     expect(ready.onReadRequest).not.toHaveBeenCalled();

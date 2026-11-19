@@ -57,8 +57,9 @@ export default function DestinationField({
   /**
    * Fills step 1 in from the request; the words go to the next step's notes as
    * well, and only there ("kept") when no place could be read from them.
+   * ("unread" is Continue's alone: a text it keeps as typed.)
    */
-  onReadRequest?: () => Promise<"filled" | "kept">;
+  onReadRequest?: () => Promise<"filled" | "kept" | "unread">;
 }) {
   const t = useTranslations("trips");
   const [movedNote, setMovedNote] = useState(false);
