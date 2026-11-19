@@ -31,6 +31,8 @@ test.describe("the planner's ways back on a phone", () => {
     // From the keyboard, as a screen reader user would.
     await footerBack.press("Enter");
     await expect(page.getByRole("heading", { name: "Set your travel style" })).toHaveCount(0);
-    await expect(page.getByRole("group", { name: "Popular right now" })).toBeVisible();
+    // Step 1 again: its destination field, with the place picked.
+    await expect(page.getByRole("combobox").first()).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Continue/ })).toBeVisible();
   });
 });
