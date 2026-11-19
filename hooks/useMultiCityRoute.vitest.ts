@@ -88,4 +88,61 @@ describe("useMultiCityRoute", () => {
       { city: "", nights: 2 },
     ]);
   });
+
+  const thailand = [
+    { city: "Bangkok", nights: 3 },
+    { city: "Chiang Mai", nights: 4 },
+    { city: "Phuket", nights: 7 },
+  ];
+
+  it("takes an offered route: its cities planned in order, the place it stands for kept", () => {
+    const { props, hook } = route();
+    act(() => hook.result.current.takeRoute(thailand, "Thailand"));
+    expect(hook.result.current.multiCityMode).toBe(true);
+    expect(hook.result.current.cityRows).toEqual(thailand);
+    expect(hook.result.current.routeFrom).toBe("Thailand");
+    expect(props.setDestination).toHaveBeenLastCalledWith("Bangkok, Chiang Mai & Phuket");
+    expect(props.setEndDate).toHaveBeenLastCalledWith("2027-05-23");
+  });
+
+  it("gives the typed place back when the offered route is switched off", () => {
+    const { props, hook } = route();
+    act(() => hook.result.current.takeRoute(thailand, "Thailand"));
+    act(() => hook.result.current.switchMultiCity((on) => !on));
+    expect(hook.result.current.multiCityMode).toBe(false);
+    expect(props.setDestination).toHaveBeenLastCalledWith("Thailand");
+    expect(hook.result.current.routeFrom).toBeNull();
+    // Switched on and off again, the route no longer stands for a typed place.
+    act(() => hook.result.current.switchMultiCity(true));
+    act(() => hook.result.current.switchMultiCity(false));
+    expect(props.setDestination).not.toHaveBeenLastCalledWith("Thailand");
+  });
+
+  it("forgets the typed place, without putting it back, when the page turns the route off for another trip", () => {
+    const { props, hook } = route();
+    act(() => hook.result.current.takeRoute(thailand, "Thailand"));
+    act(() => hook.result.current.setMultiCityMode(false));
+    expect(hook.result.current.multiCityMode).toBe(false);
+    expect(hook.result.current.routeFrom).toBeNull();
+    expect(props.setDestination).not.toHaveBeenLastCalledWith("Thailand");
+    act(() => hook.result.current.switchMultiCity(true));
+    act(() => hook.result.current.switchMultiCity(false));
+    expect(props.setDestination).not.toHaveBeenLastCalledWith("Thailand");
+  });
+
+  it("switches like a plain setter when no route was offered", () => {
+    const { hook } = route();
+    act(() => hook.result.current.switchMultiCity((on) => !on));
+    expect(hook.result.current.multiCityMode).toBe(true);
+    act(() => hook.result.current.setMultiCityMode((on) => !on));
+    expect(hook.result.current.multiCityMode).toBe(false);
+  });
+
+  it("forgets the typed place on Start Over", () => {
+    const { props, hook } = route();
+    act(() => hook.result.current.takeRoute(thailand, "Thailand"));
+    act(() => hook.result.current.resetRoute());
+    expect(hook.result.current.routeFrom).toBeNull();
+    expect(props.setDestination).not.toHaveBeenLastCalledWith("Thailand");
+  });
 });

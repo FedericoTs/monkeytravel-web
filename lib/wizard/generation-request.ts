@@ -18,6 +18,8 @@ export interface GenerationRequest {
     /** Where they're staying, in their words; the server reads it with lib/trips/stay.ts. */
     stay?: string;
     stayCoords?: { latitude: number; longitude: number };
+    /** The place typed before step 1's offered route was taken ("Thailand"); logged with the plan. */
+    routeFrom?: string;
   };
   /** Multi-city and anchored trips come back as one merged JSON body, not a stream. */
   stream: boolean;
@@ -45,6 +47,8 @@ export function generationRequest(
     fresh?: boolean;
     /** Where the destination is, when it was picked from a list; the server works out its sunrise and sunset. */
     coordinates?: { latitude: number; longitude: number } | null;
+    /** The place a route offered on step 1 was taken for (hooks/useMultiCityRoute.ts). */
+    routeFrom?: string | null;
   }
 ): GenerationRequest {
   const { destination, startDate, endDate, budgetTier, pace, vibes, mustDos, travelStyle, tripIntent, anchors, dietary, stay } = answers;
@@ -81,6 +85,7 @@ export function generationRequest(
       ...(!isMultiCity && stay?.coordinates
         ? { stayCoords: { latitude: stay.coordinates.lat, longitude: stay.coordinates.lng } }
         : {}),
+      ...(isMultiCity && extra.routeFrom ? { routeFrom: extra.routeFrom } : {}),
     },
     stream: !isMultiCity && !isAnchored,
     isMultiCity,
