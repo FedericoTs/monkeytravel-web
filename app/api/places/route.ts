@@ -7,9 +7,7 @@ const GALLERY_SEARCH_FIELD_MASK =
 const DESTINATION_SEARCH_FIELD_MASK =
   "places.id,places.displayName,places.formattedAddress,places.location,places.photos";
 import { NextRequest } from "next/server";
-import { cacheAdminDb } from "@/lib/supabase/cache-admin";
 import { createClient } from "@/lib/supabase/server";
-import crypto from "crypto";
 import { deduplicatedFetch, generateKey } from "@/lib/api/request-dedup";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
@@ -18,15 +16,8 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { withPhotoIndex } from "@/lib/places/heal-dedupe";
 import { destinationPhotos } from "@/lib/images/destination-photos";
 import { readJsonBody } from "@/lib/api/json-body";
-import { logReadError } from "@/lib/supabase/log-read-error";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
-
-// Cache duration for destination covers and place searches. A cold entry
-// bills a paid Text Search Pro and these results barely change, so the TTL is
-// long, like lib/cache's place_details TTL. Covers are re-fetchable, so a
-// stale hero photo is harmless.
-const CACHE_DURATION_DAYS = 180;
 
 interface PlacePhoto {
   name: string;
@@ -68,102 +59,6 @@ interface PlaceResult {
  */
 function placePhotoUrl(photoName: string, w: number, h: number): string {
   return `/api/places/photo?name=${encodeURIComponent(photoName)}&w=${w}&h=${h}`;
-}
-
-/**
- * Destination results cached before gallery URLs carried a photo index get
- * their tile position instead (the cover is index 0, tile k is k + 1), so their
- * dead names also heal to distinct photos. URLs that have an index keep it.
- */
-function withGalleryIndexes(result: unknown): unknown {
-  const gallery = (result as { galleryPhotos?: unknown } | null)?.galleryPhotos;
-  if (!Array.isArray(gallery)) return result;
-  return {
-    ...(result as object),
-    galleryPhotos: gallery.map((p: { url: string; thumbnailUrl: string }, k: number) => ({
-      ...p,
-      url: withPhotoIndex(p.url, k + 1),
-      thumbnailUrl: withPhotoIndex(p.thumbnailUrl, k + 1),
-    })),
-  };
-}
-
-/**
- * Generate cache key hash for a query
- */
-function generateCacheKey(query: string, type: string): string {
-  const normalized = query.toLowerCase().trim();
-  return crypto.createHash("md5").update(`${type}:${normalized}`).digest("hex");
-}
-
-/**
- * Check cache for existing place data
- */
-async function getFromCache(cacheKey: string): Promise<unknown | null> {
-  try {
-    // Service role: the public write policies on this table are being dropped,
-    // and reads move with the writes so there is a single client to reason
-    // about. Null means no service key — treat as a miss, never throw.
-    const db = cacheAdminDb();
-    if (!db) return null;
-
-    const { data } = logReadError("places cache", await db
-      .from("google_places_cache")
-      .select("*")
-      .eq("place_id", cacheKey)
-      .gt("expires_at", new Date().toISOString())
-      .single());
-
-    if (!data) return null;
-
-    // Update hit count asynchronously
-    db
-      .from("google_places_cache")
-      .update({
-        hit_count: (data.hit_count || 0) + 1,
-        last_accessed_at: new Date().toISOString(),
-      })
-      .eq("id", data.id)
-      .then(() => {});
-
-    return data.data;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Store result in cache
- */
-async function saveToCache(cacheKey: string, cacheType: string, data: unknown): Promise<void> {
-  try {
-    const db = cacheAdminDb();
-    if (!db) return;
-
-    const expiresAt = new Date(Date.now() + CACHE_DURATION_DAYS * 24 * 60 * 60 * 1000);
-
-    const { error } = await db.from("google_places_cache").upsert(
-      {
-        place_id: cacheKey,
-        cache_type: cacheType,
-        data,
-        request_hash: cacheKey, // Required field - use cacheKey as hash
-        cached_at: new Date().toISOString(),
-        expires_at: expiresAt.toISOString(),
-        hit_count: 0,
-        last_accessed_at: new Date().toISOString(),
-      },
-      { onConflict: "place_id" }
-    );
-
-    if (error) {
-      console.error("[Places Cache] Save error:", error.message, error.details);
-    } else {
-      console.log("[Places Cache] Saved:", cacheKey.substring(0, 16) + "...");
-    }
-  } catch (error) {
-    console.error("[Places Cache] Save exception:", error);
-  }
 }
 
 /**
@@ -243,18 +138,6 @@ export async function POST(request: NextRequest) {
       });
       return errors.internal("Google Places API key not configured", "Places Search");
     }
-
-    // Check cache first
-    const cacheKey = generateCacheKey(query, "search");
-    const cachedResult = await getFromCache(cacheKey);
-
-    if (cachedResult) {
-      console.log("[Places Search] Cache HIT for:", query);
-      await logPlacesApiRequest("/places:searchText", { cacheHit: true, userId: user?.id });
-      return apiSuccess(cachedResult);
-    }
-
-    console.log("[Places Search] Cache MISS for:", query);
 
     // Use Text Search to find the place with request deduplication
     // This prevents duplicate concurrent API calls for the same query
@@ -340,10 +223,8 @@ export async function POST(request: NextRequest) {
       openingHours: place.currentOpeningHours?.weekdayDescriptions,
     };
 
-    // Save to cache and log API usage. Awaited so the write completes before
-    // the serverless function freezes after sending the response (fire-and-
-    // forget writes are dropped intermittently on Vercel).
-    await saveToCache(cacheKey, "search", result);
+    // Google's answer is shown, never kept: its terms allow storing only place IDs and,
+    // for 30 days, coordinates.
     await logPlacesApiRequest("/places:searchText", {
       responseTimeMs: Date.now() - startTime,
       userId: user?.id,
@@ -453,26 +334,6 @@ export async function GET(request: NextRequest) {
       return errors.internal("Google Places API key not configured", "Places Destination");
     }
 
-    // Check cache first. v3 entries store our own proxy URLs
-    // (`/api/places/photo?name=...`): Google's photo URLs, which v1 and v2
-    // stored, 504 in the browser.
-    // The key collapses case and whitespace, so "Tokyo", "tokyo" and
-    // "  Tokyo " share one cached cover (each miss is a paid Text Search).
-    // The country suffix stays, or same-name cities (Portland OR vs ME) would
-    // collide.
-    const normalizedDestinationKey = destination.toLowerCase().trim().replace(/\s+/g, " ");
-    const cacheKey = generateCacheKey(normalizedDestinationKey, "destination_v3");
-    const cachedResult = await getFromCache(cacheKey);
-
-    if (cachedResult) {
-      console.log("[Places Destination] Cache HIT for:", destination);
-      await logPlacesApiRequest("/places:searchText (destination)", {
-        fieldMask: DESTINATION_SEARCH_FIELD_MASK, cacheHit: true, userId: user?.id });
-      return apiSuccess(withGalleryIndexes(cachedResult));
-    }
-
-    console.log("[Places Destination] Cache MISS for:", destination);
-
     // Search for the destination (city/landmark) with request deduplication
     const dedupKey = generateKey("places_destination", { destination: destination.toLowerCase().trim() });
 
@@ -557,9 +418,7 @@ export async function GET(request: NextRequest) {
       description: place.editorialSummary?.text,
     };
 
-    // Save to cache and log API usage. Awaited so the write isn't dropped
-    // when the serverless function freezes after sending the response.
-    await saveToCache(cacheKey, "destination", result);
+    // Google's answer is shown, never kept (as for the search above).
     await logPlacesApiRequest("/places:searchText (destination)", {
         fieldMask: DESTINATION_SEARCH_FIELD_MASK,
       responseTimeMs: Date.now() - startTime,
