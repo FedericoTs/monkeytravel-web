@@ -153,6 +153,7 @@
       "nextYear": "Next year",
       "chooseMonth": "Choose a month",
       "maxDaysLimit": "Trips can be up to {days} days",
+      "maxDaysOrRoute": "Up to {days} days in one place, or {route} across several cities",
       "addDates": "Add your travel dates",
       "quickHint": "Tap a length, or open the calendar for exact dates",
       "presetWeekend": "Weekend",
