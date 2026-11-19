@@ -2275,8 +2275,7 @@
   },
   "authPrompt": {
     "title": "Salva questo piano",
-    "titleFor": "Salva il tuo piano per {destination}",
-    "subtitle": "Durante il viaggio, ogni giorno si apre sul tuo telefono e i tuoi amici possono unirsi. Un tocco con Google, o un codice via email. Gratis, senza password.",
+    "subtitle": "Il tuo piano per {destination} è pronto. Un tocco con Google, o un codice via email. Gratis, senza password.",
     "benefits": {
       "aiPowered": "Modifica e rigenera qualsiasi giorno",
       "saveEdit": "Salva e accedi da qualsiasi dispositivo",

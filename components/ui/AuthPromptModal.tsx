@@ -99,13 +99,8 @@ export default function AuthPromptModal({
   const locale = useLocale();
   const t = useTranslations("common.authPrompt");
   const atLimit = reason === "generation_limit";
-  const title = atLimit
-    ? t("generationLimit.title")
-    : destination?.trim()
-      ? t("titleFor", { destination: destination.trim() })
-      : t("title");
-  // What an account gives, then how: the offer, before the two ways in.
-  const subtitle = atLimit ? t("generationLimit.subtitle") : t("subtitle");
+  const title = atLimit ? t("generationLimit.title") : t("title");
+  const subtitle = atLimit ? t("generationLimit.subtitle") : t("subtitle", { destination });
   const checkInbox = atLimit ? t("generationLimit.checkInbox") : t("magicLink.checkInbox");
   const tButtons = useTranslations("common.buttons");
   // Reuse the login page's already-translated OAuth strings (en/es/it/pt)
