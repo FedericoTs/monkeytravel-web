@@ -184,4 +184,66 @@ test.describe("Continue on a whole trip typed as the destination", () => {
     await expect(page.getByText("Add a destination to continue")).toBeVisible();
     await expect(page.getByRole("combobox").first()).toHaveValue("");
   });
+
+  // Dates picked on the calendar first: next month's 10th to 21st, never in the past whatever day the test runs.
+  // With them, the text below could go on as typed, and went on: planned as one place named by the whole sentence.
+  async function pickDates(page: Page) {
+    await page.goto("/trips/new");
+    await acceptEssentialOnly(page);
+    await page.getByRole("button", { name: /Check-in/ }).first().click();
+    await page.getByRole("button", { name: "Next month" }).click();
+    await page.getByRole("button", { name: "10", exact: true }).first().click();
+    await page.getByRole("button", { name: "21", exact: true }).first().click();
+  }
+
+  async function typeAfterDates(page: Page, text: string, reading: unknown) {
+    const asked: unknown[] = [];
+    await page.route("**/api/wizard/read-request", async (route) => {
+      asked.push(route.request().postDataJSON());
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ reading }) });
+    });
+    await page.route("**/api/destinations/search", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ predictions: [] }) })
+    );
+    await pickDates(page);
+    const field = page.getByRole("combobox").first();
+    await field.fill(text);
+    await field.press("Escape");
+    await expect(page.getByRole("button", { name: "Fill in from what I wrote" })).toBeVisible();
+    return asked;
+  }
+
+  test("reads it too when it could go on as typed, and its places become a route", async ({ page }) => {
+    await isolate(page);
+    const asked = await typeAfterDates(page, "5 days in Madrid, 4 days in Seville, 3 days in Granada", {
+      places: [
+        { name: "Madrid", days: 5 },
+        { name: "Seville", days: 4 },
+        { name: "Granada", days: 3 },
+      ],
+      days: 12,
+      startDate: null,
+      endDate: null,
+      month: null,
+      who: null,
+      vibes: [],
+      budget: null,
+    });
+    await page.getByTestId("wizard-continue").click();
+    await expect(page.getByRole("textbox", { name: "City 1" })).toHaveValue("Madrid", { timeout: 15_000 });
+    await expect(page.getByRole("textbox", { name: "City 3" })).toHaveValue("Granada");
+    await expect(page.getByRole("spinbutton", { name: "Nights in city 2" })).toHaveValue("4");
+    expect(asked).toHaveLength(1);
+  });
+
+  test("goes on as typed when it could, and nothing could be read from it", async ({ page }) => {
+    await isolate(page);
+    const { streamed } = await stubGeneration(page);
+    const text = "Ocracoke Island with one day at the lighthouse";
+    const asked = await typeAfterDates(page, text, null);
+    await generate(page);
+    await expect.poll(() => streamed.length).toBe(1);
+    expect(streamed[0].destination).toBe(text);
+    expect(asked).toHaveLength(1);
+  });
 });
