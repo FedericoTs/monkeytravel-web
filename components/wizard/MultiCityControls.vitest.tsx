@@ -49,6 +49,11 @@ describe("MultiCityRoute", () => {
     expect(screen.queryByRole("button")).toBeNull();
   });
 
+  it("doesn't offer an empty split while step 1 offers a route with its cities", () => {
+    route({ routeOffered: true });
+    expect(screen.queryByRole("button", { name: /longTripNudge/ })).toBeNull();
+  });
+
   it("shows the route builder, and no offer, while multi-city is on", () => {
     route({ multiCityMode: true });
     expect(screen.getByText("wizard.multiCity.routeLabel")).toBeTruthy();

@@ -23,6 +23,7 @@
  *   closed-swaps                | gemini-3.6-flash       | An open place for a sight shut on every date of a trip
  *   dinners                     | gemini-3.5-flash-lite  | A real restaurant for a full day the plan left without dinner
  *   transfers                   | gemini-3.5-flash-lite  | How travellers make each hop of a trip through several cities
+ *   route-plan                  | gemini-3.5-flash-lite  | The bases of a trip typed as a whole country or region
  *
  * Env override:
  *   GEMINI_MODEL_OVERRIDE — when set, ALL purposes resolve to that model.
@@ -47,7 +48,8 @@ export type GeminiPurpose =
   | "request-reading"
   | "closed-swaps"
   | "dinners"
-  | "transfers";
+  | "transfers"
+  | "route-plan";
 
 export type GeminiModelId =
   | "gemini-2.5-flash"
@@ -87,6 +89,9 @@ const PURPOSE_TO_MODEL: Record<GeminiPurpose, GeminiModelId> = {
   // The way and the ride time of each hop between the cities of a trip
   // (lib/ai/transfer-question.ts): the plans' own model knows them.
   transfers: "gemini-3.5-flash-lite",
+  // The bases of a trip typed as a whole country or region, in order with their
+  // days (lib/ai/route-plan.ts): the plans' own model knows the usual routes.
+  "route-plan": "gemini-3.5-flash-lite",
 };
 
 const ALLOWED_OVERRIDES = new Set<string>([

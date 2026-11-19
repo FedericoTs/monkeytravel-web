@@ -120,6 +120,16 @@ describe("generationRequest", () => {
     expect(route.body).not.toHaveProperty("destinationCoords");
   });
 
+  it("names the place a route offered on step 1 was taken for, on a trip through several cities only", () => {
+    const legs = [
+      { city: "Bangkok", nights: 3 },
+      { city: "Chiang Mai", nights: 4 },
+    ];
+    expect(generationRequest(answers, { ...extra, legs, routeFrom: "Thailand" }).body.routeFrom).toBe("Thailand");
+    expect(generationRequest(answers, { ...extra, legs, routeFrom: null }).body).not.toHaveProperty("routeFrom");
+    expect(generationRequest(answers, { ...extra, routeFrom: "Thailand" }).body).not.toHaveProperty("routeFrom");
+  });
+
   it("plans a route with one filled leg as a one-city trip", () => {
     const { body, isMultiCity } = generationRequest(answers, { ...extra, legs: [{ city: "Rome", nights: 3 }] });
     expect(body).not.toHaveProperty("destinations");

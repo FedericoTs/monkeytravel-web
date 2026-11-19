@@ -132,6 +132,12 @@
       "endsOn": "ends {date}",
       "longTripNudge": "Planning {days} days? Trips this long usually work better as multiple stops — tap to split your route into cities."
     },
+    "routeOffer": {
+      "title": "A route through {place}, {days} days",
+      "stop": "{city} · {nights, plural, one {# night} other {# nights}}",
+      "take": "Plan this route",
+      "keep": "Or continue with {place} as one place."
+    },
     "datePicker": {
       "checkInLabel": "Check-in",
       "checkOutLabel": "Check-out",
