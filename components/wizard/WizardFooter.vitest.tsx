@@ -107,6 +107,42 @@ describe("the footer's main button", () => {
   });
 });
 
+// On a phone the footer's way back shows only its arrow: the word stays for screen readers, so it keeps its name.
+describe("the footer's way back", () => {
+  it("keeps its name on a phone, the arrow left out of it, and goes back a step", () => {
+    const setStep = vi.fn();
+    const { getByRole } = render(
+      <NextIntlClientProvider locale="en" messages={{ trips: TRIPS.en }} onError={() => {}}>
+        <WizardFooter
+          footerRef={createRef()}
+          step={2}
+          setStep={setStep}
+          totalSteps={2}
+          expressTrip={false}
+          canProceed={() => true}
+          footerStateB={false}
+          step1Block={null}
+          effectiveMaxTripDays={14}
+          isAuthenticated={false}
+          handleExpressPlan={vi.fn(async () => {})}
+          expressBusy={false}
+          handleFlexibleDates={vi.fn()}
+          setDatesPencilled={vi.fn()}
+          handleContinue={vi.fn()}
+          handleGenerate={vi.fn(async () => {})}
+        />
+      </NextIntlClientProvider>
+    );
+    const back = getByRole("button", { name: TRIPS.en.wizard.back });
+    const word = [...back.querySelectorAll("span")].find((s) => s.textContent === TRIPS.en.wizard.back)!;
+    expect(word.className.split(/\s+/)).toContain("sr-only");
+    expect(word.className.split(/\s+/)).not.toContain("hidden");
+    expect(back.querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
+    fireEvent.click(back);
+    expect(setStep).toHaveBeenCalledWith(1);
+  });
+});
+
 // A whole trip typed as the destination that can't go on as typed ("… a show at 21:30") kept Continue greyed out
 // with no word of why, the dates set and nothing left to do.
 describe("Continue on a whole trip typed as the destination", () => {

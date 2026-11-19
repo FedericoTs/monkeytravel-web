@@ -24,10 +24,10 @@ export default function WizardHeader({
           href={isAuthenticated ? "/trips" : "/"}
           className="flex items-center gap-1.5 text-slate-600 hover:text-slate-900 px-2 py-1.5 -ml-2 rounded-lg hover:bg-slate-100 transition-colors"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg aria-hidden="true" className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          <span className="hidden sm:inline">{t("wizard.back")}</span>
+          <span className="sr-only sm:not-sr-only">{t("wizard.back")}</span>
         </Link>
         <div className="flex items-center gap-2">
           {Array.from({ length: totalSteps }).map((_, i) => (

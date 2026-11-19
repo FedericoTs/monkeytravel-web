@@ -100,10 +100,10 @@ export default function WizardFooter({
         onClick={() => setStep(step - 1)}
         className="flex items-center gap-2 px-4 py-3 sm:py-2.5 text-slate-600 hover:text-slate-900 font-medium rounded-lg hover:bg-slate-100 active:bg-slate-200 transition-colors min-h-[44px]"
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg aria-hidden="true" className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
-        <span className="hidden sm:inline">{t("wizard.back")}</span>
+        <span className="sr-only sm:not-sr-only">{t("wizard.back")}</span>
       </button>
     ) : (
       <div />
