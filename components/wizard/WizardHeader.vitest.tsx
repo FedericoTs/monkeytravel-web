@@ -25,6 +25,15 @@ describe("WizardHeader", () => {
     expect(screen.getByRole("link", { name: "wizard.back" }).getAttribute("href")).toBe("/trips");
   });
 
+  // On a phone only the arrow shows: the word stays for screen readers, so the way back keeps its name.
+  it("keeps its name on a phone, the arrow left out of it", () => {
+    const { container } = render(<WizardHeader isAuthenticated={false} step={1} totalSteps={2} />);
+    const word = screen.getByText("wizard.back");
+    expect(word.className.split(/\s+/)).toContain("sr-only");
+    expect(word.className.split(/\s+/)).not.toContain("hidden");
+    expect(container.querySelector("header a svg")?.getAttribute("aria-hidden")).toBe("true");
+  });
+
   it("shows the steps reached so far", () => {
     const { container } = render(<WizardHeader isAuthenticated={null} step={2} totalSteps={3} />);
     const bars = [...container.querySelectorAll("header .rounded-full")];
