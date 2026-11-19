@@ -4,7 +4,7 @@ slug: "best-places-to-travel-2027"
 description: "Fifteen places where 2027 itself is the reason to go: the 2 August total eclipse over Luxor and the Strait of Gibraltar, three World Cups, a Compostela Holy Year, two Capitals of Culture, Beethoven's 200th and the Pergamon Altar's return."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-11-06"
+updatedAt: "2026-11-19"
 category: "Seasonal Travel"
 tags: ["best destinations", "trip planning", "seasonal"]
 image: "/images/blog/best-places-to-travel-2027.jpg"
@@ -143,7 +143,7 @@ On Monday 2 August 2027 the Moon's shadow crosses the Strait of Gibraltar in mid
 
 ## 8. Santiago de Compostela and the Camino — a Holy Year
 
-**Why 2027:** a Holy Year is celebrated whenever 25 July, the feast of St James, falls on a Sunday; Galicia's [official Camino site](https://www.caminodesantiago.gal/en/discover/origins-and-evolution/the-compostela-holy-year) names 2027 as the next, after 2010 and 2021–22. The cathedral's Holy Door, at the back of the building on Praza da Quintana, opens on 31 December 2026 and stays open until 31 December 2027, according to [Santiago's tourist office](https://www.santiagoturismo.com/compostela2027). The hour isn't settled: 17:00 on the [cathedral's calendar](https://catedraldesantiago.es/liturgia/), around noon according to its dean (reported by [El Correo Gallego](https://www.elcorreogallego.es/santiago/2026/09/24/santiago-prepara-ano-santo-xacobeo-2027-134639233.html)). The cathedral has announced the motto, "Al ver la estrella, se llenaron de inmensa alegría" ([Catedral de Santiago](https://catedraldesantiago.es/al-ver-la-estrella-se-llenaron-de-inmensa-alegria-sera-el-lema-para-el-ano-santo-compostelano-2027/)).
+**Why 2027:** a Holy Year is celebrated whenever 25 July, the feast of St James, falls on a Sunday; Galicia's [official Camino site](https://www.caminodesantiago.gal/en/discover/origins-and-evolution/the-compostela-holy-year) names 2027 as the next, after 2010 and 2021–22. The cathedral's Holy Door, at the back of the building on Praza da Quintana, opens on 31 December 2026 and stays open until 31 December 2027, according to [Santiago's tourist office](https://www.santiagoturismo.com/compostela2027). The [cathedral's calendar](https://catedraldesantiago.es/liturgia/) sets the Holy Door ceremony for 11:30, earlier than the noon its dean had spoken of (reported by [El Correo Gallego](https://www.elcorreogallego.es/santiago/2026/09/24/santiago-prepara-ano-santo-xacobeo-2027-134639233.html)). The cathedral has announced the motto, "Al ver la estrella, se llenaron de inmensa alegría" ([Catedral de Santiago](https://catedraldesantiago.es/al-ver-la-estrella-se-llenaron-de-inmensa-alegria-sera-el-lema-para-el-ano-santo-compostelano-2027/)).
 
 **When to go:** Sunday 25 July is the high point. May, June and September are now about as busy as July and August, on the [Pilgrim's Office's own numbers](https://oficinadelperegrino.com/estadisticas-nueva/). For room on the trail, go between November and early March. Our [Camino guide for 2027](/blog/camino-de-santiago-2027) has routes, rules and crowds month by month.
 
@@ -269,7 +269,7 @@ The Cricket World Cup ballot closes at 23:59 SAST on 21 November 2026, and the R
 
 ### When does the 2027 Holy Year in Santiago start and end?
 
-The Holy Door opens on 31 December 2026 and closes on 31 December 2027, according to Santiago's tourist office. The opening hour isn't settled: 17:00 on the cathedral's calendar, around noon according to its dean. It is a Holy Year because 25 July 2027, the feast of St James, falls on a Sunday.
+The Holy Door opens on 31 December 2026 and closes on 31 December 2027, according to Santiago's tourist office. The opening ceremony starts at 11:30, according to the cathedral's calendar. It is a Holy Year because 25 July 2027, the feast of St James, falls on a Sunday.
 
 ### Which cities are European Capitals of Culture in 2027?
 

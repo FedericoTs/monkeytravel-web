@@ -4,7 +4,7 @@ slug: "2027-travel-calendar"
 description: "Onde viajar em cada mês de 2027, com as datas que marcam o ano: o eclipse solar total de 2 de agosto, o Ano Santo de Santiago de Compostela, a Copa do Mundo Feminina no Brasil, as Copas do Mundo de rúgbi e de críquete e os feriados prolongados de 2027 no Reino Unido, nos Estados Unidos, na Espanha, na Itália e no Brasil."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-11-06"
+updatedAt: "2026-11-19"
 category: "Seasonal Travel"
 tags: ["sazonal", "guia mensal de viagens", "planejamento de viagem"]
 image: "/images/blog/2027-travel-calendar.jpg"
@@ -54,7 +54,7 @@ Use visores solares que atendam à norma ISO 12312-2 nas fases parciais. A NASA 
 
 ### O Ano Santo de Santiago de Compostela, 2027 inteiro
 
-Santiago tem Ano Santo sempre que o 25 de julho, dia de São Tiago, cai num domingo, como acontece em 2027. O último foi em 2021–22 e o próximo será em 2032. A arquidiocese apresentou o lema do jubileu em 24 de setembro de 2026. A Porta Santa abre em 31 de dezembro de 2026, segundo o escritório de turismo de Santiago, às 17:00 no calendário da catedral ou por volta do meio-dia segundo o deão, então confira o horário mais perto da data. Nosso [guia do Caminho para 2027](/blog/camino-de-santiago-2027) traz rotas, regras e movimento mês a mês. Reserve cedo a hospedagem no Caminho e na cidade, sobretudo em torno do domingo, 25 de julho.
+Santiago tem Ano Santo sempre que o 25 de julho, dia de São Tiago, cai num domingo, como acontece em 2027. O último foi em 2021–22 e o próximo será em 2032. A arquidiocese apresentou o lema do jubileu em 24 de setembro de 2026. A Porta Santa abre em 31 de dezembro de 2026, segundo o escritório de turismo de Santiago, com uma cerimônia a partir das 11:30 no calendário da catedral. Nosso [guia do Caminho para 2027](/blog/camino-de-santiago-2027) traz rotas, regras e movimento mês a mês. Reserve cedo a hospedagem no Caminho e na cidade, sobretudo em torno do domingo, 25 de julho.
 
 ### Copa do Mundo Feminina da FIFA, de 24 de junho a 25 de julho, Brasil
 
@@ -490,7 +490,7 @@ A lista de 2026 também deu aos servidores federais o 28 de outubro (Dia do Serv
 - **Planeje em torno de duas Páscoas.** A Páscoa ocidental é em 28 de março e a ortodoxa em 2 de maio, então Espanha e Itália têm o pico no fim de março, e a Grécia, no fim de abril.
 - **Fique de olho nos feriados de outros países.** Golden Week, Kurban Bayramı, Obon e a semana de Ação de Graças lotam transportes e hotéis nos próprios países.
 - **Compre óculos de eclipse certificados.** Use visores ISO 12312-2 nas fases parciais e nunca com binóculo, câmera ou telescópio.
-- **Confira de novo o que ainda não saiu.** A lista federal do Brasil costuma sair no fim de dezembro; as datas dos mercados de Natal, o Loy Krathong, as datas finais da Feria de Sevilha e a cerimônia da Porta Santa vêm depois.
+- **Confira de novo o que ainda não saiu.** A lista federal do Brasil costuma sair no fim de dezembro; as datas dos mercados de Natal, o Loy Krathong e as datas finais da Feria de Sevilha vêm depois.
 
 ## Planeje suas viagens de 2027 em 30 segundos
 

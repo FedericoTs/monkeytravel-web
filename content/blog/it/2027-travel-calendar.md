@@ -4,7 +4,7 @@ slug: "2027-travel-calendar"
 description: "Dove andare in ogni mese del 2027, con le date che segnano l'anno: l'eclissi totale di Sole del 2 agosto, l'Anno Santo di Santiago, i Mondiali femminili in Brasile, i Mondiali di rugby e di cricket, e i ponti e le festività del 2027 nel Regno Unito, negli Stati Uniti, in Spagna, in Italia e in Brasile."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-11-06"
+updatedAt: "2026-11-19"
 category: "Seasonal Travel"
 tags: ["stagionale", "guida mensile ai viaggi", "pianificazione viaggi"]
 image: "/images/blog/2027-travel-calendar.jpg"
@@ -54,7 +54,7 @@ Per le fasi parziali usa filtri solari conformi alla norma ISO 12312-2. La NASA 
 
 ### L'Anno Santo di Santiago de Compostela, tutto il 2027
 
-A Santiago è Anno Santo (o Giacobeo) ogni volta che il 25 luglio, festa di San Giacomo, cade di domenica, come succede nel 2027. L'ultimo è stato quello del 2021–22 e il prossimo sarà nel 2032. L'arcidiocesi ha presentato il motto del giubileo il 24 settembre 2026. La Porta Santa si apre il 31 dicembre 2026, secondo l'ufficio del turismo di Santiago, alle 17:00 nel calendario della cattedrale o verso mezzogiorno secondo il suo decano, quindi ricontrolla l'ora più avanti. La nostra [guida al Cammino per il 2027](/blog/camino-de-santiago-2027) ha percorsi, regole e affluenza mese per mese. Prenota presto i posti letto lungo il Cammino e in città, soprattutto intorno a domenica 25 luglio.
+A Santiago è Anno Santo (o Giacobeo) ogni volta che il 25 luglio, festa di San Giacomo, cade di domenica, come succede nel 2027. L'ultimo è stato quello del 2021–22 e il prossimo sarà nel 2032. L'arcidiocesi ha presentato il motto del giubileo il 24 settembre 2026. La Porta Santa si apre il 31 dicembre 2026, secondo l'ufficio del turismo di Santiago, con una cerimonia dalle 11:30 secondo il calendario della cattedrale. La nostra [guida al Cammino per il 2027](/blog/camino-de-santiago-2027) ha percorsi, regole e affluenza mese per mese. Prenota presto i posti letto lungo il Cammino e in città, soprattutto intorno a domenica 25 luglio.
 
 ### Mondiali di calcio femminile FIFA, dal 24 giugno al 25 luglio, Brasile
 
@@ -490,7 +490,7 @@ L'elenco del 2026 dava ai dipendenti federali anche il 28 ottobre (Giornata del 
 - **Organizzati intorno a due Pasque.** La Pasqua occidentale è il 28 marzo e quella ortodossa il 2 maggio, quindi Spagna e Italia hanno il picco a fine marzo e la Grecia a fine aprile.
 - **Tieni d'occhio le feste degli altri Paesi.** Golden Week, Kurban Bayramı, Obon e la settimana del Thanksgiving riempiono trasporti e hotel nei rispettivi Paesi.
 - **Compra occhiali per eclissi a norma.** Usa filtri ISO 12312-2 per le fasi parziali, e mai dietro un binocolo, una fotocamera o un telescopio.
-- **Ricontrolla ciò che non è ancora uscito.** Il calendario federale brasiliano di solito esce a fine dicembre; le date dei mercatini di Natale, il Loy Krathong, le date definitive della Feria di Siviglia e la cerimonia della Porta Santa arrivano più tardi.
+- **Ricontrolla ciò che non è ancora uscito.** Il calendario federale brasiliano di solito esce a fine dicembre; le date dei mercatini di Natale, il Loy Krathong e le date definitive della Feria di Siviglia arrivano più tardi.
 
 ## Pianifica i tuoi viaggi del 2027 in 30 secondi
 
