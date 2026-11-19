@@ -14,8 +14,36 @@ describe("a name with two writing systems in one word", () => {
     }
   });
 
+  it("is caught in every writing system of the places planned, not only the East Asian ones", () => {
+    for (const name of [
+      "วังagi Restaurant (Wang Sai Seafood)",
+      "Hauz Khasगांव",
+      "Souk el-Attarineالعطارين",
+      "Arbatский Pub",
+      "Plakaτaverna",
+      "Tbilisiთბილისი",
+      "Sinhalaආහාර Cafe",
+      "Phsarផ្សារ Market",
+      "Shukשוק HaCarmel",
+    ]) {
+      expect(gluedName(name), name).toBe(true);
+    }
+  });
+
   it("isn't a name that only carries its own script apart", () => {
-    for (const name of ["Gyeongbokgung Palace (경복궁)", "Ichiran Ramen 一蘭", "Tsukiji Outer Market", "Café de Flore", "N Seoul Tower", "Bar 1号"]) {
+    for (const name of [
+      "Gyeongbokgung Palace (경복궁)",
+      "Ichiran Ramen 一蘭",
+      "Tsukiji Outer Market",
+      "Café de Flore",
+      "N Seoul Tower",
+      "Bar 1号",
+      "Wat Pho (วัดโพธิ์)",
+      "Red Fort लाल क़िला",
+      "Plaka Taverna Ψαράς",
+      "Café Pushkin Пушкинъ",
+      "Shuk HaCarmel שוק הכרמל",
+    ]) {
       expect(gluedName(name), name).toBe(false);
     }
   });
