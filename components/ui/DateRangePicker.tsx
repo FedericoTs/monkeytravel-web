@@ -26,8 +26,13 @@ interface DateRangePickerProps {
   onEndDateChange: (date: string) => void;
   maxDays?: number;
   /**
+   * One place's limit when the days may run past it (a country a route can
+   * take): the line under the days names it, not maxDays. Defaults to maxDays.
+   */
+  placeMaxDays?: number;
+  /**
    * The longest trip through several cities, where the planner offers one:
-   * the line under the days names it beside maxDays when it is longer.
+   * the line under the days names it beside one place's limit when it is longer.
    */
   routeMaxDays?: number;
   minDate?: string;
@@ -142,6 +147,7 @@ export default function DateRangePicker({
   onStartDateChange,
   onEndDateChange,
   maxDays = 14,
+  placeMaxDays = maxDays,
   routeMaxDays,
   minDate,
   className = "",
@@ -623,8 +629,8 @@ export default function DateRangePicker({
                   click disabled cells (Wave-1 replays: repeated dead clicks). */}
               {!selectingStart && startDate && (
                 <p className="mt-3 text-xs text-slate-500 text-center">
-                  {routeMaxDays && routeMaxDays > maxDays
-                    ? t("maxDaysOrRoute", { days: maxDays, route: routeMaxDays })
+                  {routeMaxDays && routeMaxDays > placeMaxDays
+                    ? t("maxDaysOrRoute", { days: placeMaxDays, route: routeMaxDays })
                     : t("maxDaysLimit", { days: maxDays })}
                 </p>
               )}

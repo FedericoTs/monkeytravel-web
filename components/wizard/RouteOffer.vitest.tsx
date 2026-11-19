@@ -46,6 +46,16 @@ describe("RouteOffer", () => {
     expect(onTake).not.toHaveBeenCalled();
   });
 
+  // Three weeks fit a route, not one place: keeping one place shortens the trip, and the button says to how long.
+  it("names one place's days on the button when the trip is longer than one place takes", () => {
+    const onKeep = vi.fn();
+    render(<RouteOffer place="Vietnam" days={18} route={ROUTE} onTake={() => {}} onKeep={onKeep} keepDays={14} />);
+    expect(screen.getByText('wizard.routeOffer.title {"place":"Vietnam","days":18}')).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: 'wizard.routeOffer.keepFor {"place":"Vietnam","days":14}' }));
+    expect(onKeep).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("button", { name: /wizard\.routeOffer\.keep \{/ })).toBeNull();
+  });
+
   // On a phone the offer arrives under the fixed Continue bar.
   const arriving = (bottom: number) => {
     vi.spyOn(window, "innerHeight", "get").mockReturnValue(812);

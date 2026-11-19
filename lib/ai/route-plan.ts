@@ -14,13 +14,17 @@ import { getModelForPurpose, thinkingConfigFor } from "@/lib/ai/model-router";
 import { geminiCostUsd, recordGeminiUsage } from "@/lib/ai/gemini-cost";
 import { LANGUAGE_NAMES, type SupportedLanguage } from "@/lib/ai/language";
 import { readRoute, type RouteStop } from "@/lib/ai/assistant/route";
+import { MAX_CITIES } from "@/lib/ai/multi-city-core";
 import { isSameDestination } from "@/lib/trips/sameDestination";
+import { ROUTE_STOP_NIGHTS_MAX } from "@/lib/trips/request-limits";
 
 const SCHEMA: ResponseSchema = {
   type: SchemaType.OBJECT,
   properties: {
     stops: {
       type: SchemaType.ARRAY,
+      // No more bases than a trip through several cities takes (readRoute turns a longer list down whole).
+      maxItems: String(MAX_CITIES),
       items: {
         type: SchemaType.OBJECT,
         properties: {
@@ -60,7 +64,7 @@ export function routeQuestion(place: string, days: number, month: number | null,
     "Answer the bases they'd stay in, in order, each with its days:",
     `- When it is one city, town, island, resort or park that travellers see from one base in ${days} days, answer it alone, with all ${days} days.`,
     "- When it names several places, they are the bases, in its order.",
-    `- Otherwise it is a country or a region: answer the 2 to 5 bases most travellers use for ${days} days there, in the order they'd go, right for that season. No going back and forth, at least 2 days in each.`,
+    `- Otherwise it is a country or a region: answer the 2 to 5 bases most travellers use for ${days} days there, in the order they'd go, right for that season. No going back and forth, at least 2 days and at most ${ROUTE_STOP_NIGHTS_MAX} in each.`,
     `- The days add up to ${days}. Each base is a city, town or island, named as Google Maps names it in ${LANGUAGE_NAMES[language]}, with its country.`,
   ].join("\n");
 }

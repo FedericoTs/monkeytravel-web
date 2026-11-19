@@ -21,6 +21,7 @@ export default function WizardFooter({
   footerStateB,
   step1Block,
   effectiveMaxTripDays,
+  routeMaxDays,
   isAuthenticated,
   handleExpressPlan,
   expressBusy,
@@ -44,6 +45,8 @@ export default function WizardFooter({
   /** What still keeps step 1 from going on (lib/wizard/step1-gate.ts). */
   step1Block: Step1Blocker | null;
   effectiveMaxTripDays: number;
+  /** The longest trip through several cities, when the planner offers them: too many days for one place names it. */
+  routeMaxDays?: number;
   isAuthenticated: boolean | null;
   handleExpressPlan: () => Promise<void>;
   expressBusy: boolean;
@@ -75,7 +78,9 @@ export default function WizardFooter({
       <p aria-live="polite" className="mb-2 text-center text-xs font-medium text-slate-500 sm:text-left">
         {footerStateB
           ? t("wizard.step1.hintFlexibleDefault", { days: 5 })
-          : t(STEP1_HINT[step1Block ?? "dates"], { days: effectiveMaxTripDays })}
+          : step1Block === "too_many_days" && routeMaxDays && routeMaxDays > effectiveMaxTripDays
+            ? t("wizard.datePicker.maxDaysOrRoute", { days: effectiveMaxTripDays, route: routeMaxDays })
+            : t(STEP1_HINT[step1Block ?? "dates"], { days: effectiveMaxTripDays })}
       </p>
     )}
     {/* Once step 1 is complete, the hint slot frees up — reinforce the

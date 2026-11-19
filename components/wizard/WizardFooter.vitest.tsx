@@ -17,7 +17,7 @@ const LOCALES = Object.keys(TRIPS) as Locale[];
 const BLOCKERS: Step1Blocker[] = ["short", "long", "chars", "too_many_days", "dates", "past"];
 
 /** The hint step 1's footer gives for `block`, as a traveller reads it. */
-function hint(locale: Locale, block: Step1Blocker, readOffered = false): string {
+function hint(locale: Locale, block: Step1Blocker, readOffered = false, routeMaxDays?: number): string {
   const { container, unmount } = render(
     <NextIntlClientProvider locale={locale} messages={{ trips: TRIPS[locale] }} onError={() => {}}>
       <WizardFooter
@@ -30,6 +30,7 @@ function hint(locale: Locale, block: Step1Blocker, readOffered = false): string 
         footerStateB={false}
         step1Block={block}
         effectiveMaxTripDays={14}
+        routeMaxDays={routeMaxDays}
         isAuthenticated={false}
         handleExpressPlan={vi.fn(async () => {})}
         expressBusy={false}
@@ -57,6 +58,18 @@ describe("step 1's footer", () => {
     expect(hint("es", "past")).toBe("El viaje tiene que empezar hoy o más adelante");
     expect(hint("it", "past")).toBe("Il viaggio deve iniziare oggi o più avanti");
     expect(hint("pt", "past")).toBe("A viagem precisa começar hoje ou depois");
+  });
+
+  // Dates a country could take as a route (up to 21), held at one place's 14 until a route is there to plan.
+  it("names the longer trip through several cities when one place can't take the days", () => {
+    expect(hint("en", "too_many_days", false, 21)).toBe("Up to 14 days in one place, or 21 across several cities");
+    expect(hint("en", "too_many_days")).toBe("Trips can be up to 14 days");
+    expect(hint("en", "too_many_days", false, 14)).toBe("Trips can be up to 14 days");
+    for (const locale of LOCALES) {
+      expect(hint(locale, "too_many_days", false, 21), locale).toMatch(/14.*21/);
+    }
+    // Only too many days names it.
+    expect(hint("en", "past", false, 21)).toBe("Your trip has to start today or later");
   });
 
   it("has words for every blocker in every language", () => {

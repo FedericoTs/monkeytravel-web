@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { maxTripStartDate, addIsoDaysOrThrow } from "@/lib/dates/iso-date";
+import { maxTripStartDate, addIsoDays, addIsoDaysOrThrow } from "@/lib/dates/iso-date";
 import { formatDateRange } from "@/lib/datetime";
 import { localTodayISO } from "@/lib/utils/date-local";
 import { useSearchParams } from "next/navigation";
@@ -219,7 +219,7 @@ import AiDisclaimer from "@/components/trip/AiDisclaimer";
 import { useTravelDistances } from "@/hooks/useTravelDistances";
 import { useMultiCityRoute } from "@/hooks/useMultiCityRoute";
 import { useRouteOffer } from "@/hooks/useRouteOffer";
-import { routeOfferAsk } from "@/lib/wizard/route-offer";
+import { routeOfferAsk, routePlace, stepOneMaxDays } from "@/lib/wizard/route-offer";
 import RouteOffer from "@/components/wizard/RouteOffer";
 import { isChosenTripIntent } from "@/lib/wizard/answers";
 
@@ -517,23 +517,22 @@ export default function NewTripPage({
   // A destination typed as a whole country or region ("Thailand", 14 days):
   // the bases most travellers use there, offered under the dates as a trip
   // through several cities (lib/wizard/route-offer.ts).
-  const routeAsk =
-    step === 1
-      ? routeOfferAsk({
-          enabled: MULTI_CITY_ENABLED,
-          multiCityMode,
-          destination,
-          destinationProblem: destinationProblem(destination),
-          picked: destinationCoords !== null && coordsPlace === destination,
-          startDate,
-          endDate,
-        })
-      : null;
+  const routeState = {
+    enabled: MULTI_CITY_ENABLED,
+    multiCityMode,
+    destination,
+    destinationProblem: destinationProblem(destination),
+    picked: destinationCoords !== null && coordsPlace === destination,
+  };
+  const routeAsk = step === 1 ? routeOfferAsk({ ...routeState, startDate, endDate }) : null;
   const routeOffer = useRouteOffer(routeAsk, startDate, locale);
   // The offered route is what Continue plans; one place is the traveller's choice, kept for that place.
   const routeAskPlace = routeAsk ? routeAsk.place.toLowerCase() : null;
   const [onePlaceFor, setOnePlaceFor] = useState<string | null>(null);
   const routeShown = routeOffer !== null && routeAsk !== null && onePlaceFor !== routeAskPlace;
+  // A place a route may still take: its dates may run past one place's limit, to a route's.
+  const typedRoutePlace = routePlace(routeState);
+  const mayRoute = typedRoutePlace !== null && onePlaceFor !== typedRoutePlace.toLowerCase();
   // Popular-destination pills: real demand-ranked, reordered by season with the
   // month the server rendered with, so both sides of hydration agree and the
   // chips never move after mount. `plannedStat` is an honest, aggregate
@@ -1114,8 +1113,10 @@ export default function NewTripPage({
       : 0;
   const effectiveMaxTripDays =
     multiCityLegCount > 1 ? MAX_TRIP_DAYS_MULTI : MAX_TRIP_DAYS;
+  // The dates of a country typed may run to a route's length; Continue takes them past one place's with the route shown.
+  const stepOneDays = stepOneMaxDays({ routeLegs: multiCityLegCount, mayRoute, routeShown });
   // What still keeps step 1 from going on (lib/wizard/step1-gate.ts).
-  const step1Block = step1Blocker(destination, startDate, endDate, effectiveMaxTripDays, localTodayISO());
+  const step1Block = step1Blocker(destination, startDate, endDate, stepOneDays.gate, localTodayISO());
   // A request the server refused as invalid fails the same way on every retry:
   // the error box says what to change and takes the traveller back to it.
   const errorFix = error && classifyGenerationFailure(error) === "validation" ? validationFix(error) : null;
@@ -2039,6 +2040,7 @@ export default function NewTripPage({
               datesPencilled={datesPencilled}
               setDatesPencilled={setDatesPencilled}
               effectiveMaxTripDays={effectiveMaxTripDays}
+              datesMaxDays={stepOneDays.dates}
               routeMaxDays={MULTI_CITY_ENABLED ? MAX_TRIP_DAYS_MULTI : undefined}
               handleFlexibleDates={handleFlexibleDates}
             />
@@ -2049,7 +2051,12 @@ export default function NewTripPage({
                 days={routeAsk.days}
                 route={routeOffer}
                 onTake={() => takeRoute(routeOffer, routeAsk.place)}
-                onKeep={() => setOnePlaceFor(routeAskPlace)}
+                keepDays={routeAsk.days > MAX_TRIP_DAYS ? MAX_TRIP_DAYS : undefined}
+                onKeep={() => {
+                  setOnePlaceFor(routeAskPlace);
+                  // One place holds fewer days than the route: kept for its most, from the same start.
+                  if (routeAsk.days > MAX_TRIP_DAYS) setEndDate(addIsoDays(startDate, MAX_TRIP_DAYS - 1) ?? endDate);
+                }}
               />
             )}
 
@@ -2119,7 +2126,8 @@ export default function NewTripPage({
           canProceed={canProceed}
           footerStateB={footerStateB}
           step1Block={step1Block}
-          effectiveMaxTripDays={effectiveMaxTripDays}
+          effectiveMaxTripDays={stepOneDays.gate}
+          routeMaxDays={MULTI_CITY_ENABLED ? MAX_TRIP_DAYS_MULTI : undefined}
           isAuthenticated={isAuthenticated}
           handleExpressPlan={handleExpressPlan}
           expressBusy={expressBusy}

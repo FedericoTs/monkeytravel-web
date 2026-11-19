@@ -137,7 +137,8 @@
       "stop": "{city} · {nights, plural, one {# night} other {# nights}}",
       "continues": "Continue plans this route.",
       "take": "Change the route",
-      "keep": "Plan {place} as one place"
+      "keep": "Plan {place} as one place",
+      "keepFor": "Plan {place} as one place, {days} days"
     },
     "datePicker": {
       "checkInLabel": "Check-in",
