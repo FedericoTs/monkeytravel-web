@@ -15,7 +15,7 @@ vi.mock("next-intl", () => ({
 
 import DateRangePicker from "./DateRangePicker";
 
-function Picker({ routeMaxDays }: { routeMaxDays?: number }) {
+function Picker({ routeMaxDays, maxDays = 14, placeMaxDays }: { routeMaxDays?: number; maxDays?: number; placeMaxDays?: number }) {
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
   return (
@@ -25,7 +25,8 @@ function Picker({ routeMaxDays }: { routeMaxDays?: number }) {
       onStartDateChange={setStart}
       onEndDateChange={setEnd}
       minDate="2026-10-14"
-      maxDays={14}
+      maxDays={maxDays}
+      placeMaxDays={placeMaxDays}
       routeMaxDays={routeMaxDays}
     />
   );
@@ -41,6 +42,14 @@ afterEach(cleanup);
 describe("the line under the days while the end date is picked", () => {
   it("names the longer trip through several cities when the planner offers one", () => {
     render(<Picker routeMaxDays={21} />);
+    pickStart();
+    expect(screen.getByText('maxDaysOrRoute {"days":14,"route":21}')).toBeTruthy();
+    expect(screen.queryByText(/^maxDaysLimit/)).toBeNull();
+  });
+
+  // A country typed, which a route may take: the days run to the route's 21, and one place still stops at 14.
+  it("names one place's limit beside the route's when the days may run to the route's", () => {
+    render(<Picker maxDays={21} placeMaxDays={14} routeMaxDays={21} />);
     pickStart();
     expect(screen.getByText('maxDaysOrRoute {"days":14,"route":21}')).toBeTruthy();
     expect(screen.queryByText(/^maxDaysLimit/)).toBeNull();

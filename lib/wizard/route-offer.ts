@@ -5,18 +5,12 @@
  */
 import type { RouteStop } from "@/components/trips/MultiCityRouteBuilder";
 import { tripSpanDays } from "@/lib/dates/iso-date";
-import { MAX_TRIP_DAYS } from "@/lib/trips/request-limits";
+import { MAX_TRIP_DAYS, MAX_TRIP_DAYS_MULTI } from "@/lib/trips/request-limits";
 
 /** Shorter trips stay in one place: a route needs a few days in each base. */
 export const ROUTE_OFFER_MIN_DAYS = 5;
 
-/**
- * The place and length to ask a route for, or null when step 1 offers none: a
- * place picked from the suggestions (a city, a town or an island), a trip
- * through several cities already, a destination step 1 won't take, no dates
- * yet, or a trip too short to move.
- */
-export function routeOfferAsk(state: {
+type RoutePlaceState = {
   /** Multi-city planning is switched on for the site. */
   enabled: boolean;
   multiCityMode: boolean;
@@ -25,15 +19,44 @@ export function routeOfferAsk(state: {
   destinationProblem: string | null;
   /** The destination is the text a picked suggestion put in the field. */
   picked: boolean;
-  startDate: string;
-  endDate: string;
-}): { place: string; days: number } | null {
+};
+
+/**
+ * The destination as a route may be asked for it, whatever the dates, or null:
+ * a place picked from the suggestions (a city, a town or an island), a trip
+ * through several cities already, or a destination step 1 won't take.
+ */
+export function routePlace(state: RoutePlaceState): string | null {
   if (!state.enabled || state.multiCityMode || state.picked || state.destinationProblem !== null) return null;
-  const place = state.destination.replace(/\s+/g, " ").trim();
+  return state.destination.replace(/\s+/g, " ").trim() || null;
+}
+
+/**
+ * The place and length to ask a route for, or null when step 1 offers none: no
+ * place a route may be asked for (routePlace), no dates yet, a trip too short
+ * to move, or longer than a trip through several cities may be.
+ */
+export function routeOfferAsk(state: RoutePlaceState & { startDate: string; endDate: string }): { place: string; days: number } | null {
+  const place = routePlace(state);
   if (!place || !state.startDate || !state.endDate) return null;
   const days = tripSpanDays(state.startDate, state.endDate);
-  if (!(days >= ROUTE_OFFER_MIN_DAYS && days <= MAX_TRIP_DAYS)) return null;
+  if (!(days >= ROUTE_OFFER_MIN_DAYS && days <= MAX_TRIP_DAYS_MULTI)) return null;
   return { place, days };
+}
+
+/**
+ * The most days step 1 takes: `dates`, what the calendar lets through, and
+ * `gate`, what Continue goes on with. A trip through several cities runs to its
+ * own limit. The dates of a place a route may still take (a country typed, not
+ * kept as one place) run there too, but one place's limit holds Continue until
+ * the route is shown, since Continue then plans it.
+ */
+export function stepOneMaxDays(state: { routeLegs: number; mayRoute: boolean; routeShown: boolean }): { dates: number; gate: number } {
+  if (state.routeLegs > 1) return { dates: MAX_TRIP_DAYS_MULTI, gate: MAX_TRIP_DAYS_MULTI };
+  return {
+    dates: state.mayRoute ? MAX_TRIP_DAYS_MULTI : MAX_TRIP_DAYS,
+    gate: state.routeShown ? MAX_TRIP_DAYS_MULTI : MAX_TRIP_DAYS,
+  };
 }
 
 /** How long the page waits for a route before offering none. */

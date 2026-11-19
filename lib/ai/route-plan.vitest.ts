@@ -55,4 +55,9 @@ describe("routeQuestion", () => {
     expect(routeQuestion("Japan", 10, null, "en")).toContain('10 days to "Japan", and wants');
     expect(routeQuestion("Japan", 10, 13, "en")).toContain('10 days to "Japan", and wants');
   });
+
+  // A base longer than the planner takes turns the whole route down (readRoute).
+  it("asks for no base longer than a trip through several cities may stay in one", () => {
+    expect(routeQuestion("Vietnam", 21, 3, "en")).toContain("at least 2 days and at most 10 in each");
+  });
 });
