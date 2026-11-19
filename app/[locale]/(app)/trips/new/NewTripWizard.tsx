@@ -2020,6 +2020,7 @@ export default function NewTripPage({
               datesPencilled={datesPencilled}
               setDatesPencilled={setDatesPencilled}
               effectiveMaxTripDays={effectiveMaxTripDays}
+              routeMaxDays={MULTI_CITY_ENABLED ? MAX_TRIP_DAYS_MULTI : undefined}
               handleFlexibleDates={handleFlexibleDates}
             />
 

@@ -106,6 +106,17 @@ test.describe("a whole country typed as the destination", () => {
     await expect(page.getByRole("combobox").first()).toHaveValue("Thailand");
   });
 
+  test("the date limit names the longer trip a route can take", async ({ page }) => {
+    await isolate(page);
+    await page.goto("/trips/new");
+    await acceptEssentialOnly(page);
+    await page.getByRole("button", { name: /Check-in/ }).first().click();
+    // Next month's 20th is never in the past, whatever day the test runs.
+    await page.getByRole("button", { name: "Next month" }).click();
+    await page.getByRole("button", { name: "20", exact: true }).first().click();
+    await expect(page.getByText("Up to 14 days in one place, or 21 across several cities")).toBeVisible();
+  });
+
   test("stays one place when no route comes back", async ({ page }) => {
     await isolate(page);
     const { streamed } = await stubGeneration(page);

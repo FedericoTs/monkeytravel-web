@@ -153,6 +153,7 @@
       "nextYear": "Ano seguinte",
       "chooseMonth": "Escolher o mês",
       "maxDaysLimit": "As viagens podem durar até {days} dias",
+      "maxDaysOrRoute": "Até {days} dias em um só lugar, ou {route} em várias cidades",
       "addDates": "Adicione as datas da viagem",
       "quickHint": "Toque numa duração ou abra o calendário para datas exatas",
       "presetWeekend": "Fim de semana",
