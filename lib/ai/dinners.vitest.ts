@@ -49,6 +49,13 @@ describe("the full days without dinner", () => {
     delete noPin[1].activities[2].coordinates;
     expect(daysWithoutDinner(noPin, "Kyoto")[0].after).toBe("Lunch");
   });
+
+  // A pin far from its day becomes the placeholder (lib/trip/coordinate-fallback.ts): no place to have dinner near.
+  it("skip a last place whose pin is the placeholder of no location", () => {
+    const placeholder = plan();
+    placeholder[1].activities[2].coordinates = at(48.006, 10.006);
+    expect(daysWithoutDinner(placeholder, "Kyoto")[0].after).toBe("Lunch");
+  });
 });
 
 describe("a dinner answered", () => {

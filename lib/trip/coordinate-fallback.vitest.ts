@@ -50,6 +50,19 @@ describe("validateAndFixCoordinates", () => {
     });
   });
 
+  // The Sagrada Família pinned near Madrid, on a Barcelona day: the stops around it show the pin is wrong.
+  it("makes a pin farther than 300 km from every other stop of its day no location, and keeps the rest", () => {
+    const boqueria = activity("Boqueria", { lat: 41.382, lng: 2.172 });
+    const rambla = activity("La Rambla", { lat: 41.381, lng: 2.173 });
+    const sagrada = activity("Sagrada Familia", { lat: 40.354, lng: -3.714 });
+    const [fixed] = validateAndFixCoordinates([day(sagrada, boqueria, rambla)], "Barcelona");
+    const pin = fixed.activities[0].coordinates!;
+    expect(isPlaceholderPoint(pin.lat, pin.lng)).toBe(true);
+    expect(fixed.activities[0].name).toBe("Sagrada Familia");
+    expect(fixed.activities[1]).toBe(boqueria);
+    expect(fixed.activities[2]).toBe(rambla);
+  });
+
   it("leaves the days it is given as they were", () => {
     const original = [day(activity("a"), activity("b", { lat: 1, lng: 2 }))];
     const copy = structuredClone(original);

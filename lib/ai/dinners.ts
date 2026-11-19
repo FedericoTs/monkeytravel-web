@@ -15,6 +15,7 @@ import { LANGUAGE_NAMES, type SupportedLanguage } from "@/lib/ai/language";
 import { activityOf, held } from "@/lib/ai/must-dos";
 import { nameTokens } from "@/lib/ai/assistant/saved-activities";
 import { isMealStop } from "@/lib/trip/pace";
+import { isRealPoint } from "@/lib/trip/placeholder-point";
 import { haversineKm } from "@/lib/map/geo";
 import { formatMinutesToTime } from "@/lib/datetime/format";
 import type { Activity, BudgetTier } from "@/types";
@@ -56,7 +57,8 @@ export function daysWithoutDinner(days: Day[], destination: string): DinnerWante
     const stops = day.activities ?? [];
     if (i === 0 || i === days.length - 1 || !day.date || stops.length === 0 || stops.some(isEveningMeal)) return [];
     const last = [...stops]
-      .filter((s) => s.name && minutesOf(s.start_time) !== null && s.type !== "transport" && s.coordinates)
+      // Dinner goes near a place that is where its pin says: not the placeholder of a stop with no location.
+      .filter((s) => s.name && minutesOf(s.start_time) !== null && s.type !== "transport" && isRealPoint(s.coordinates))
       .sort((a, b) => (minutesOf(a.start_time) ?? 0) - (minutesOf(b.start_time) ?? 0))
       .at(-1);
     if (!last?.name || !last.coordinates) return [];
