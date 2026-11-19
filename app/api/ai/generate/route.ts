@@ -27,7 +27,7 @@ import {
 } from "@/lib/ai/multi-city";
 import { generateAnchoredItinerary, validateAnchors } from "@/lib/ai/anchored";
 import { knownPlacesFor } from "@/lib/ai/known-places";
-import { keepOffClosingDays } from "@/lib/ai/closing-days";
+import { keepOffClosingDays, keepOffClosingDaysByCity } from "@/lib/ai/closing-days";
 import { keepInsideHours } from "@/lib/ai/visit-hours";
 import { askForDinners, daysWithoutDinner, withDinners } from "@/lib/ai/dinners";
 import { swapClosedStops } from "@/lib/ai/closed-swaps";
@@ -231,14 +231,18 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
 
     // No stop on a day it's shut (lib/ai/closing-days.ts), and one shut on every
     // date it could go to swapped for an open place (lib/ai/closed-swaps.ts). A
-    // multi-city or anchored trip keeps its order: its cities and commitments fix the days.
-    if (!isMultiCity && !isAnchored) {
-      itinerary = (
-        await keepOffClosingDays(itinerary, params.destination, undefined, undefined, (days, stuck) =>
-          swapClosedStops(params.destination, days, stuck, userLanguage)
+    // multi-city trip settles each city's own days, its route kept; an anchored
+    // trip keeps its order: its commitments fix the days.
+    const closing = isMultiCity
+      ? await keepOffClosingDaysByCity(itinerary, params.destination, undefined, undefined, (city) => (days, stuck) =>
+          swapClosedStops(city, days, stuck, userLanguage)
         )
-      ).itinerary;
-    }
+      : !isAnchored
+        ? await keepOffClosingDays(itinerary, params.destination, undefined, undefined, (days, stuck) =>
+            swapClosedStops(params.destination, days, stuck, userLanguage)
+          )
+        : null;
+    if (closing) itinerary = closing.itinerary;
 
     // Each visit to a place of known hours inside them (lib/ai/visit-hours.ts).
     // Visits trade slots within their own day, so a multi-city or anchored
@@ -306,6 +310,20 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         ...(namesIn.glued > 0 ? { names: { glued: namesIn.glued, renamed: namesIn.renamed } } : {}),
         // The hops between cities, how many were answered, and how many cards took the answer.
         ...(transfers ? { transfers } : {}),
+        // Stops on a day they're shut before and after the closing step, as the stream logs them.
+        ...(closing && closing.asked > 0
+          ? {
+              closing_days: {
+                asked: closing.asked,
+                known: closing.known,
+                shut_before: closing.shutBefore,
+                shut_after: closing.shutAfter,
+                stops_moved: closing.stopsMoved,
+                swapped: closing.swapped,
+                ...(closing.leftShut.length > 0 ? { left: closing.leftShut.slice(0, 5) } : {}),
+              },
+            }
+          : {}),
         ...(generationId ? { generation_id: generationId } : {}),
       },
     });

@@ -27,6 +27,7 @@ import {
   askClosingDays,
   holidayDatesToAsk,
   keepOffClosingDays,
+  keepOffClosingDaysByCity,
   moveShutStops,
   orderAroundClosings,
   placesToAsk,
@@ -507,5 +508,83 @@ describe("a plan kept off its closing days", () => {
     expect(reword).not.toHaveBeenCalled();
     expect(result.itinerary).toBe(plan);
     expect(result.reworded).toBe(0);
+  });
+});
+
+// Trips through several cities skipped the step, since their days follow the route, so their sights could stay on
+// days they shut. Each city's own days are settled now, the route kept.
+describe("a trip through several cities", () => {
+  type Stop = { name: string; type: string; start_time?: string; duration_minutes?: number; transport_mode?: string };
+  const cityDay = (n: number, date: string, city: string, stops: Stop[]) => ({ day_number: n, date, city, theme: `theme ${n}`, activities: stops });
+  const train = (to: string): Stop => ({ name: `Train to ${to}`, type: "transport", start_time: "08:30", duration_minutes: 120, transport_mode: "train" });
+  const sight = (name: string, start_time = "11:00"): Stop => ({ name, type: "museum", start_time, duration_minutes: 120 });
+  const reword = vi.fn(async <T extends WordDay>(days: T[], _moves: Move[], _destination: string) => ({ days, costUsd: 0.0001, reworded: 0 }));
+  const asReword = reword as unknown as NonNullable<Parameters<typeof keepOffClosingDaysByCity>[3]>;
+  const closedOn = (entries: Array<[string, string[]]>) => vi.fn(async () => ({ closings: closings(entries), shutDates: new Map(), costUsd: 0.0004 }));
+  const cities = (days: Array<{ city?: string }>) => days.map((d) => d.city);
+
+  it("orders each city's days around their closing days, and keeps the route", async () => {
+    // Seville on Sunday 29 and Monday 30 November, Granada on Tuesday 1 December.
+    const plan = {
+      days: [
+        cityDay(1, "2026-11-29", "Seville", [sight("Plaza de España")]),
+        cityDay(2, "2026-11-30", "Seville", [sight("Museo de Bellas Artes")]),
+        cityDay(3, "2026-12-01", "Granada", [train("Granada"), sight("Alhambra", "12:30")]),
+      ],
+    };
+    const ask = closedOn([["Museo de Bellas Artes", ["Monday"]]]);
+    const result = await keepOffClosingDaysByCity(plan, "Seville & Granada", ask, asReword, undefined, modelOnly);
+    expect(names(result.itinerary.days)).toEqual(["Museo de Bellas Artes", "Plaza de España", "Train to Granada+Alhambra"]);
+    expect(cities(result.itinerary.days)).toEqual(["Seville", "Seville", "Granada"]);
+    expect(result.itinerary.days.map((d) => d.date)).toEqual(["2026-11-29", "2026-11-30", "2026-12-01"]);
+    expect(result).toMatchObject({ asked: 3, shutBefore: 1, shutAfter: 0, leftShut: [] });
+    // One question for the whole trip, under its name.
+    expect(ask).toHaveBeenCalledTimes(1);
+    expect(ask.mock.calls[0]).toEqual(["Seville & Granada", ["Plaza de España", "Museo de Bellas Artes", "Alhambra"], []]);
+    // Each city's moved days re-worded in that city.
+    expect(reword.mock.calls.at(-1)?.[2]).toBe("Seville");
+  });
+
+  it("moves a place only to another day of its own city, and never moves a city's arrival day", async () => {
+    // Seville on Sunday 29 November; Granada on Monday 30 (the train) and Tuesday 1 December.
+    const plan = {
+      days: [
+        cityDay(1, "2026-11-29", "Seville", [sight("Real Alcázar")]),
+        cityDay(2, "2026-11-30", "Granada", [train("Granada"), sight("Alhambra", "11:00")]),
+        cityDay(3, "2026-12-01", "Granada", [sight("Albaicín", "10:00")]),
+      ],
+    };
+    const ask = closedOn([["Alhambra", ["Monday"]], ["Real Alcázar", ["Sunday"]]]);
+    const result = await keepOffClosingDaysByCity(plan, "Seville & Granada", ask, asReword, undefined, modelOnly);
+    // The arrival day stays first in Granada; the Alhambra goes to Tuesday, its own city's open day.
+    expect(names(result.itinerary.days)).toEqual(["Real Alcázar", "Train to Granada", "Albaicín+Alhambra"]);
+    // Seville has no other day: its Sunday sight stays, and never goes to Granada.
+    expect(result).toMatchObject({ shutBefore: 2, shutAfter: 1, stopsMoved: 1, leftShut: ["Real Alcázar (2026-11-29)"] });
+  });
+
+  it("swaps a place shut on every day of its city, asking in that city", async () => {
+    const plan = {
+      days: [
+        cityDay(1, "2026-11-30", "Seville", [sight("Museo de Bellas Artes")]),
+        cityDay(2, "2026-12-01", "Granada", [train("Granada"), sight("Alhambra", "12:30")]),
+      ],
+    };
+    const swaps: string[] = [];
+    const swapIn = (city: string) =>
+      vi.fn(async (days: WordDay[], stuck: StuckStop[]) => {
+        swaps.push(`${city}: ${stuck.map((s) => s.name).join(", ")}`);
+        return { days, swapped: stuck.length, costUsd: 0.0003 };
+      });
+    const result = await keepOffClosingDaysByCity(plan, "Seville & Granada", closedOn([["Museo de Bellas Artes", ["Monday"]]]), asReword, swapIn, modelOnly);
+    expect(swaps).toEqual(["Seville: Museo de Bellas Artes"]);
+    expect(result.swapped).toBe(1);
+    expect(result.costUsd).toBeCloseTo(0.0007, 10);
+  });
+
+  it("leaves a trip whose places are all open as it was", async () => {
+    const plan = { days: [cityDay(1, "2026-11-29", "Seville", [sight("Plaza de España")]), cityDay(2, "2026-11-30", "Granada", [train("Granada")])] };
+    const result = await keepOffClosingDaysByCity(plan, "Seville & Granada", closedOn([]), asReword, undefined, modelOnly);
+    expect(result.itinerary).toBe(plan);
+    expect(result).toMatchObject({ shutBefore: 0, shutAfter: 0, stopsMoved: 0, swapped: 0 });
   });
 });
