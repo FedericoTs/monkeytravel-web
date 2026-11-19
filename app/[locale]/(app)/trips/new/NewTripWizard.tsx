@@ -530,6 +530,10 @@ export default function NewTripPage({
         })
       : null;
   const routeOffer = useRouteOffer(routeAsk, startDate, locale);
+  // The offered route is what Continue plans; one place is the traveller's choice, kept for that place.
+  const routeAskPlace = routeAsk ? routeAsk.place.toLowerCase() : null;
+  const [onePlaceFor, setOnePlaceFor] = useState<string | null>(null);
+  const routeShown = routeOffer !== null && routeAsk !== null && onePlaceFor !== routeAskPlace;
   // Popular-destination pills: real demand-ranked, reordered by season with the
   // month the server rendered with, so both sides of hydration agree and the
   // chips never move after mount. `plannedStat` is an honest, aggregate
@@ -1880,6 +1884,13 @@ export default function NewTripPage({
     if (result === "unread" || (result === "filled" && filledStep1Ref.current)) handleContinue();
   };
 
+  // Continue with a route shown under the dates plans that route, as it says: a
+  // country typed as one place jumps across it with no ride between its days.
+  const handleContinueWithRoute = () => {
+    if (step === 1 && routeShown && routeOffer && routeAsk) takeRoute(routeOffer, routeAsk.place);
+    handleContinue();
+  };
+
   // Wizard form
   return (
     <div className="min-h-screen bg-[var(--background)]">
@@ -2032,12 +2043,13 @@ export default function NewTripPage({
               handleFlexibleDates={handleFlexibleDates}
             />
 
-            {routeOffer && routeAsk && (
+            {routeShown && routeOffer && routeAsk && (
               <RouteOffer
                 place={routeAsk.place}
                 days={routeAsk.days}
                 route={routeOffer}
                 onTake={() => takeRoute(routeOffer, routeAsk.place)}
+                onKeep={() => setOnePlaceFor(routeAskPlace)}
               />
             )}
 
@@ -2113,7 +2125,7 @@ export default function NewTripPage({
           expressBusy={expressBusy}
           handleFlexibleDates={handleFlexibleDates}
           setDatesPencilled={setDatesPencilled}
-          handleContinue={handleContinue}
+          handleContinue={handleContinueWithRoute}
           handleGenerate={handleGenerate}
           readOffered={requestLike}
           onReadRequest={() => void handleReadAndContinue()}

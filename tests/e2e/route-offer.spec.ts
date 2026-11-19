@@ -72,15 +72,15 @@ async function generate(page: Page) {
 }
 
 test.describe("a whole country typed as the destination", () => {
-  test("is offered the usual route under the dates, and one tap plans the trip through its cities", async ({ page }) => {
+  test("is offered the usual route under the dates, and one tap opens it in the route builder", async ({ page }) => {
     await isolate(page);
     const { json, streamed } = await stubGeneration(page);
     const asked = await typeCountry(page, ROUTE);
 
-    await expect(page.getByText("A route through Thailand, 7 days")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText("Your route through Thailand, 7 days")).toBeVisible({ timeout: 15_000 });
     expect(asked).toEqual([{ place: "Thailand", days: 7, startDate: "2027-03-10", locale: "en" }]);
     await expect(page.getByText("Bangkok · 3 nights")).toBeVisible();
-    await page.getByRole("button", { name: "Plan this route" }).click();
+    await page.getByRole("button", { name: "Change the route" }).click();
 
     await expect(page.getByRole("textbox", { name: "City 1" })).toHaveValue("Bangkok");
     await expect(page.getByRole("textbox", { name: "City 2" })).toHaveValue("Chiang Mai");
@@ -101,7 +101,7 @@ test.describe("a whole country typed as the destination", () => {
   test("gets the country back when the route is switched off", async ({ page }) => {
     await isolate(page);
     await typeCountry(page, ROUTE);
-    await page.getByRole("button", { name: "Plan this route" }).click({ timeout: 15_000 });
+    await page.getByRole("button", { name: "Change the route" }).click({ timeout: 15_000 });
     await page.getByRole("switch", { name: "Toggle multi-city planning" }).click();
     await expect(page.getByRole("combobox").first()).toHaveValue("Thailand");
   });
@@ -117,12 +117,36 @@ test.describe("a whole country typed as the destination", () => {
     await expect(page.getByText("Up to 14 days in one place, or 21 across several cities")).toBeVisible();
   });
 
+  // The route under the dates is what Continue plans: a country left as one place jumps across it with no ride.
+  test("Continue plans the route it shows", async ({ page }) => {
+    await isolate(page);
+    const { json, streamed } = await stubGeneration(page);
+    await typeCountry(page, ROUTE);
+    await expect(page.getByText("Continue plans this route.")).toBeVisible({ timeout: 15_000 });
+    await generate(page);
+    await expect.poll(() => json.length).toBe(1);
+    expect(streamed).toHaveLength(0);
+    expect(json[0]).toMatchObject({ destinations: ROUTE, routeFrom: "Thailand", startDate: "2027-03-10", endDate: "2027-03-16" });
+  });
+
+  test("plans the country as one place when the traveller says so", async ({ page }) => {
+    await isolate(page);
+    const { json, streamed } = await stubGeneration(page);
+    await typeCountry(page, ROUTE);
+    await page.getByRole("button", { name: "Plan Thailand as one place" }).click({ timeout: 15_000 });
+    await expect(page.getByText("Your route through Thailand, 7 days")).toHaveCount(0);
+    await generate(page);
+    await expect.poll(() => streamed.length).toBe(1);
+    expect(json).toHaveLength(0);
+    expect(streamed[0].destination).toBe("Thailand");
+  });
+
   test("stays one place when no route comes back", async ({ page }) => {
     await isolate(page);
     const { streamed } = await stubGeneration(page);
     const asked = await typeCountry(page, []);
     await expect.poll(() => asked.length, { timeout: 15_000 }).toBe(1);
-    await expect(page.getByRole("button", { name: "Plan this route" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Change the route" })).toHaveCount(0);
     await generate(page);
     await expect.poll(() => streamed.length).toBe(1);
     expect(streamed[0].destination).toBe("Thailand");
