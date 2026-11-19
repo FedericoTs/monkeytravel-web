@@ -1,4 +1,5 @@
 import type { ItineraryDay } from "@/types";
+import { farPins } from "./far-pins";
 import { PLACEHOLDER_POINT } from "./placeholder-point";
 
 /**
@@ -45,7 +46,9 @@ const DESTINATION_COORDINATES: Record<string, { lat: number; lng: number }> = {
 
 /**
  * Validate and fix coordinates for all activities in the itinerary
- * If coordinates are missing, uses destination-based fallback with small random offset
+ * If coordinates are missing, uses destination-based fallback with small random offset.
+ * A pin farther than FAR_PIN_KM from every other stop of a day with no ride (lib/trip/far-pins.ts)
+ * is no location: it becomes the placeholder, which no map pins and no route measures.
  *
  * Exported for the assistant's apply_draft path (app/api/ai/assistant) so
  * bulk-revised days get the same coordinate backfill as generated ones.
@@ -69,43 +72,50 @@ export function validateAndFixCoordinates(days: ItineraryDay[], destination: str
 
   let fixedCount = 0;
 
-  const fixedDays = days.map(day => ({
-    ...day,
-    activities: day.activities.map((activity, idx) => {
-      // Check if coordinates are valid
-      const hasValidCoords =
-        activity.coordinates &&
-        typeof activity.coordinates.lat === "number" &&
-        typeof activity.coordinates.lng === "number" &&
-        !isNaN(activity.coordinates.lat) &&
-        !isNaN(activity.coordinates.lng) &&
-        activity.coordinates.lat >= -90 &&
-        activity.coordinates.lat <= 90 &&
-        activity.coordinates.lng >= -180 &&
-        activity.coordinates.lng <= 180;
+  const fixedDays = days.map(day => {
+    const far = farPins(day.activities);
+    return {
+      ...day,
+      activities: day.activities.map((activity, idx) => {
+        if (far.has(idx)) {
+          fixedCount++;
+          return { ...activity, coordinates: { lat: PLACEHOLDER_POINT.lat + idx * 0.003, lng: PLACEHOLDER_POINT.lng + idx * 0.003 } };
+        }
+        // Check if coordinates are valid
+        const hasValidCoords =
+          activity.coordinates &&
+          typeof activity.coordinates.lat === "number" &&
+          typeof activity.coordinates.lng === "number" &&
+          !isNaN(activity.coordinates.lat) &&
+          !isNaN(activity.coordinates.lng) &&
+          activity.coordinates.lat >= -90 &&
+          activity.coordinates.lat <= 90 &&
+          activity.coordinates.lng >= -180 &&
+          activity.coordinates.lng <= 180;
 
-      if (hasValidCoords) {
-        return activity;
-      }
+        if (hasValidCoords) {
+          return activity;
+        }
 
-      // Coordinates are missing or invalid - apply fallback
-      // Generate a small random offset (within ~1-2km of city center)
-      // This spreads out activities on the map rather than stacking them
-      const offsetLat = (Math.random() - 0.5) * 0.02 + (idx * 0.003);
-      const offsetLng = (Math.random() - 0.5) * 0.02 + (idx * 0.003);
+        // Coordinates are missing or invalid - apply fallback
+        // Generate a small random offset (within ~1-2km of city center)
+        // This spreads out activities on the map rather than stacking them
+        const offsetLat = (Math.random() - 0.5) * 0.02 + (idx * 0.003);
+        const offsetLng = (Math.random() - 0.5) * 0.02 + (idx * 0.003);
 
-      const fixedActivity = {
-        ...activity,
-        coordinates: {
-          lat: destCoords.lat + offsetLat,
-          lng: destCoords.lng + offsetLng,
-        },
-      };
-      fixedCount++;
+        const fixedActivity = {
+          ...activity,
+          coordinates: {
+            lat: destCoords.lat + offsetLat,
+            lng: destCoords.lng + offsetLng,
+          },
+        };
+        fixedCount++;
 
-      return fixedActivity;
-    }),
-  }));
+        return fixedActivity;
+      }),
+    };
+  });
 
   if (fixedCount > 0) {
     console.log(`[Gemini] Fixed ${fixedCount} activities with missing coordinates for ${destination}`);

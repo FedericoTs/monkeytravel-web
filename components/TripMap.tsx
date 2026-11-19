@@ -20,6 +20,7 @@ import {
   midpoint,
 } from "@/lib/map/geo";
 import { isRealPoint } from "@/lib/trip/placeholder-point";
+import { farPins } from "@/lib/trip/far-pins";
 import { formatDuration } from "@/lib/datetime/duration";
 import { legsToLabel } from "@/lib/map/route-labels";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -218,10 +219,12 @@ function TripMapInner({
 
       // Step 1: Collect activities, prioritize existing coordinates
       for (const day of days) {
-        for (const activity of day.activities) {
+        // A pin far from every other stop of its day, on a day with no ride, is in the wrong place: pinned, it pulled the map out of the city.
+        const far = farPins(day.activities);
+        for (const [index, activity] of day.activities.entries()) {
           // If activity already has coordinates, use them directly (no API call needed!)
           // A placeholder point is no location: pinned, it pulled the map out to Europe.
-          if (isRealPoint(activity.coordinates)) {
+          if (isRealPoint(activity.coordinates) && !far.has(index)) {
             mappedActivities.push({
               ...activity,
               dayNumber: day.day_number,
