@@ -28,6 +28,7 @@ export default function TripDatesField({
   datesPencilled,
   setDatesPencilled,
   effectiveMaxTripDays,
+  datesMaxDays = effectiveMaxTripDays,
   routeMaxDays,
   handleFlexibleDates,
 }: {
@@ -48,6 +49,11 @@ export default function TripDatesField({
   datesPencilled: boolean;
   setDatesPencilled: (pencilled: boolean) => void;
   effectiveMaxTripDays: number;
+  /**
+   * The most days the dates may span, when more than one place's: a country typed
+   * runs to a route's limit, and the picker's line still names one place's.
+   */
+  datesMaxDays?: number;
   /** The longest trip through several cities, when the planner offers them: the date picker's limit line names it. */
   routeMaxDays?: number;
   handleFlexibleDates: () => void;
@@ -104,7 +110,8 @@ export default function TripDatesField({
             setDatesPencilled(false);
             setEndDate(d);
           }}
-          maxDays={effectiveMaxTripDays}
+          maxDays={datesMaxDays}
+          placeMaxDays={effectiveMaxTripDays}
           routeMaxDays={routeMaxDays}
           minDate={localTodayISO()}
         />

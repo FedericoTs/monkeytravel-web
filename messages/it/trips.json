@@ -137,7 +137,8 @@
       "stop": "{city} · {nights, plural, one {# notte} other {# notti}}",
       "continues": "Continuando, si pianifica questo percorso.",
       "take": "Cambia il percorso",
-      "keep": "Pianifica {place} come un solo luogo"
+      "keep": "Pianifica {place} come un solo luogo",
+      "keepFor": "Pianifica {place} come un solo luogo, {days} giorni"
     },
     "datePicker": {
       "checkInLabel": "Check-in",

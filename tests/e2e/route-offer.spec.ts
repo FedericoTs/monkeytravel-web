@@ -54,6 +54,38 @@ async function typeCountry(page: Page, route: unknown[]) {
   return asked;
 }
 
+const ROUTE_18 = [
+  { city: "Hanoi", nights: 5 },
+  { city: "Hoi An", nights: 6 },
+  { city: "Ho Chi Minh City", nights: 7 },
+];
+
+/** Days from the first to the last date, both counted. */
+const span = (start: string, end: string) => Math.round((Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / 86_400_000) + 1;
+
+/** "Vietnam" typed, and on the calendar the 1st to the 18th of next month: longer than one place may be. */
+async function typeLongTrip(page: Page, route: unknown[]) {
+  const asked: Array<{ place: string; days: number }> = [];
+  await page.route("**/api/wizard/route-plan", async (r) => {
+    asked.push(r.request().postDataJSON());
+    await r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ route }) });
+  });
+  await page.route("**/api/destinations/search", (r) =>
+    r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ predictions: [] }) })
+  );
+  await page.goto("/trips/new");
+  await acceptEssentialOnly(page);
+  const field = page.getByRole("combobox").first();
+  await field.fill("Vietnam");
+  await field.press("Escape");
+  await page.getByRole("button", { name: /Check-in/ }).first().click();
+  // Next month's days are never in the past, whatever day the test runs.
+  await page.getByRole("button", { name: "Next month" }).click();
+  await page.getByRole("button", { name: "1", exact: true }).first().click();
+  await page.getByRole("button", { name: "18", exact: true }).first().click();
+  return asked;
+}
+
 async function generate(page: Page) {
   // Pressed until step 2 shows: right after a change the footer's button can be busy for a moment.
   const travelStyle = page.getByRole("heading", { name: "Set your travel style" });
@@ -139,6 +171,33 @@ test.describe("a whole country typed as the destination", () => {
     await expect.poll(() => streamed.length).toBe(1);
     expect(json).toHaveLength(0);
     expect(streamed[0].destination).toBe("Thailand");
+  });
+
+  // One place stops at 14 days; a route through a country goes to 21, so a country typed may take more.
+  test("is offered the route for all the days when they are more than one place takes, and Continue plans it", async ({ page }) => {
+    await isolate(page);
+    const { json, streamed } = await stubGeneration(page);
+    const asked = await typeLongTrip(page, ROUTE_18);
+    await expect(page.getByText("Your route through Vietnam, 18 days")).toBeVisible({ timeout: 15_000 });
+    expect(asked[asked.length - 1]).toMatchObject({ place: "Vietnam", days: 18 });
+    await generate(page);
+    await expect.poll(() => json.length).toBe(1);
+    expect(streamed).toHaveLength(0);
+    expect(json[0]).toMatchObject({ destinations: ROUTE_18, routeFrom: "Vietnam" });
+    expect(span(json[0].startDate, json[0].endDate)).toBe(18);
+  });
+
+  test("planned as one place instead, a longer trip keeps one place's 14 days", async ({ page }) => {
+    await isolate(page);
+    const { json, streamed } = await stubGeneration(page);
+    await typeLongTrip(page, ROUTE_18);
+    await page.getByRole("button", { name: "Plan Vietnam as one place, 14 days" }).click({ timeout: 15_000 });
+    await expect(page.getByText("Your route through Vietnam", { exact: false })).toHaveCount(0);
+    await generate(page);
+    await expect.poll(() => streamed.length).toBe(1);
+    expect(json).toHaveLength(0);
+    expect(streamed[0].destination).toBe("Vietnam");
+    expect(span(streamed[0].startDate, streamed[0].endDate)).toBe(14);
   });
 
   test("stays one place when no route comes back", async ({ page }) => {

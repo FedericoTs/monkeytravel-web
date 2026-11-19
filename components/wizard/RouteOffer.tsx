@@ -33,6 +33,7 @@ export default function RouteOffer({
   route,
   onTake,
   onKeep,
+  keepDays,
 }: {
   /** The destination as typed ("Thailand"). */
   place: string;
@@ -42,6 +43,8 @@ export default function RouteOffer({
   onTake: () => void;
   /** Plans the place as typed, as one place: the route is no longer what Continue plans. */
   onKeep: () => void;
+  /** One place's most days, when the trip is longer: keeping one place shortens it to them, and the button says so. */
+  keepDays?: number;
 }) {
   const t = useTranslations("trips");
   const ref = useRef<HTMLDivElement>(null);
@@ -80,7 +83,7 @@ export default function RouteOffer({
           onClick={onKeep}
           className="inline-flex min-h-[40px] items-center text-sm text-slate-700 underline underline-offset-2 hover:text-[var(--foreground)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--foreground)]"
         >
-          {t("wizard.routeOffer.keep", { place })}
+          {keepDays ? t("wizard.routeOffer.keepFor", { place, days: keepDays }) : t("wizard.routeOffer.keep", { place })}
         </button>
       </div>
     </div>
