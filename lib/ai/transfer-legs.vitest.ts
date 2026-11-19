@@ -477,13 +477,14 @@ describe("a sight the arrival day can't hold", () => {
   it("goes to another day of the city at its own time, the stops after it later", () => {
     const merged = trip([firstDay(), secondDay()]);
     expect(timed(merged.days[1])).toEqual(["08:30 Train to Agra", "11:30 Pinch of Spice", "13:30 Agra Fort", "16:30 Mehtab Bagh", "19:00 Esphahan"]);
+    // Lunch keeps its hour: it goes ahead of the tomb that would have pushed it past 13:30.
     expect(timed(merged.days[2])).toEqual([
       "08:00 Taj Mahal",
-      "11:20 Itimad-ud-Daulah",
-      "13:40 Joney's Place",
-      "15:30 Kinari Bazaar",
-      "17:50 Akbar's Tomb",
-      "20:10 Dasaprakash",
+      "11:30 Joney's Place",
+      "13:20 Itimad-ud-Daulah",
+      "15:40 Kinari Bazaar",
+      "18:00 Akbar's Tomb",
+      "20:20 Dasaprakash",
     ]);
     expect(merged.days[2].activities[2].time_slot).toBe("afternoon");
   });

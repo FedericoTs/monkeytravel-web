@@ -5,6 +5,7 @@
  */
 import { determineTimeSlot } from "@/lib/utils/activity-id";
 import { formatMinutesToTime } from "@/lib/datetime/format";
+import { isMealStop } from "@/lib/trip/pace";
 
 export type TimedStop = { name?: string; type?: string; start_time?: string; duration_minutes?: number; time_slot?: string };
 type DayOfStops = { activities?: TimedStop[] };
@@ -15,6 +16,8 @@ const LATEST_START = 22 * 60;
 const BETWEEN_MINUTES = 20;
 /** A stop's length when the plan gives none. */
 const DEFAULT_MINUTES = 90;
+/** How far past its hour a meal may be pushed before it goes ahead of the stop pushing it. */
+const MEAL_SLACK_MINUTES = 90;
 
 const minutesOf = (time?: string): number | null => {
   const m = /^(\d{1,2}):(\d{2})/.exec(time ?? "");
@@ -22,35 +25,72 @@ const minutesOf = (time?: string): number | null => {
 };
 
 /**
- * The day with `stop` put in at its own time, and from there each stop moved
- * later when it would start before the one ahead of it ends, with a short walk
- * between. Null when that would start a stop after the evening, or move a
- * dated event: the day has no room.
+ * The stops from `at` on, each moved later when it would start before the one
+ * ahead of it ends, with a short walk between. Past `through`, the first stop
+ * that needn't move ends it: the rest of the day stays as the plan had it.
+ * Null when a stop would start after the evening, or a dated event would move.
  */
-export function withStopAt<T extends DayOfStops>(day: T, stop: TimedStop): T | null {
-  const stops = [...(day.activities ?? [])];
-  const own = minutesOf(stop.start_time);
-  const later = stops.findIndex((other) => {
-    const start = minutesOf(other.start_time);
-    return own !== null && start !== null && start > own;
-  });
-  const at = later === -1 ? stops.length : later;
-  stops.splice(at, 0, stop);
-  for (let i = Math.max(at, 1); i < stops.length; i++) {
-    const ahead = stops[i - 1];
+function makeRoom(stops: TimedStop[], at: number, through: number): TimedStop[] | null {
+  const out = [...stops];
+  for (let i = Math.max(at, 1); i < out.length; i++) {
+    const ahead = out[i - 1];
     const aheadStart = minutesOf(ahead.start_time);
-    const start = minutesOf(stops[i].start_time);
+    const start = minutesOf(out[i].start_time);
     if (aheadStart === null || start === null) break;
     const earliest = aheadStart + (ahead.duration_minutes || DEFAULT_MINUTES) + BETWEEN_MINUTES;
     if (start >= earliest) {
-      if (i > at) break;
+      if (i > through) break;
       continue;
     }
-    if (earliest > LATEST_START || stops[i].type === "event") return null;
+    if (earliest > LATEST_START || out[i].type === "event") return null;
     const time = formatMinutesToTime(earliest);
-    stops[i] = { ...stops[i], start_time: time, time_slot: determineTimeSlot(time) };
+    out[i] = { ...out[i], start_time: time, time_slot: determineTimeSlot(time) };
   }
-  return { ...day, activities: stops };
+  return out;
+}
+
+/**
+ * The day with `stop` put in at its own time, and from there each stop moved
+ * later when it would start before the one ahead of it ends, with a short walk
+ * between. A meal that would be pushed well past its hour goes ahead of the
+ * stops pushing it instead, as few as it takes: lunch between two sights
+ * rather than at four. Null when that would start a stop after the evening,
+ * or move a dated event: the day has no room.
+ */
+export function withStopAt<T extends DayOfStops>(day: T, stop: TimedStop): T | null {
+  let order = [...(day.activities ?? [])];
+  const own = minutesOf(stop.start_time);
+  const later = order.findIndex((other) => {
+    const start = minutesOf(other.start_time);
+    return own !== null && start !== null && start > own;
+  });
+  const at = later === -1 ? order.length : later;
+  order.splice(at, 0, stop);
+  let made = makeRoom(order, at, at);
+  if (!made) return null;
+
+  for (let k = at + 1; k < made.length; k++) {
+    const hour = minutesOf(order[k].start_time);
+    if (!isMealStop(order[k]) || hour === null) continue;
+    const lateBy = (stops: TimedStop[], i: number) => (minutesOf(stops[i].start_time) ?? hour) - hour;
+    if (lateBy(made, k) <= MEAL_SLACK_MINUTES) continue;
+    // One stop earlier at a time, never past the stop put in or another meal (a dated event it would
+    // move leaves no room: makeRoom says so).
+    for (let j = k - 1; j > at; j--) {
+      if (isMealStop(order[j])) break;
+      const tried = [...order];
+      const [meal] = tried.splice(k, 1);
+      tried.splice(j, 0, meal);
+      const room = makeRoom(tried, at, k);
+      if (!room) break;
+      if (lateBy(room, j) <= MEAL_SLACK_MINUTES) {
+        order = tried;
+        made = room;
+        break;
+      }
+    }
+  }
+  return { ...day, activities: made };
 }
 
 /** The time a day's stops take, a stop with no length counted as an hour and a half. */
