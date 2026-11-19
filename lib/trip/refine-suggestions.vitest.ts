@@ -78,6 +78,18 @@ describe("deriveRefineSuggestions", () => {
     expect(s.find((x) => x.key === "lightDay")?.params.day).toBe(2);
   });
 
+  it("doesn't call a day empty when its few stops fill it: a long ride between cities, a full-day tour", () => {
+    const ride = { ...act("Train to Chiang Mai", "transport", false, "08:30"), duration_minutes: 690, transport_mode: "train" } as Activity;
+    const tour = { ...act("Full-day boat tour", "tour", false, "08:00"), duration_minutes: 480 } as Activity;
+    const full = [act("A"), act("B"), act("Dinner", "restaurant")];
+    const s = deriveRefineSuggestions([day(1, full), day(2, [ride, act("Night market", "market", false, "20:20")]), day(3, [tour]), day(4, full)]);
+    expect(s.find((x) => x.key === "lightDay")).toBeUndefined();
+    // A short ride with one stop after it still reads as a light day.
+    const hop = { ...ride, duration_minutes: 90 } as Activity;
+    const after = deriveRefineSuggestions([day(1, full), day(2, [hop, act("Old town")])]);
+    expect(after.find((x) => x.key === "lightDay")?.params.day).toBe(2);
+  });
+
   it("never suggests changing a fully-anchored day — that's the traveller's own", () => {
     const s = deriveRefineSuggestions([
       day(1, [act("Wedding", "attraction", true)]),
