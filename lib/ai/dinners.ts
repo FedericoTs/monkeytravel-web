@@ -33,6 +33,8 @@ const DINNER_MINUTES = 90;
 const NEAR_KM = 5;
 /** At most this many days in one question. */
 const MAX_DAYS = 10;
+/** At most this many of the plan's own places to eat named in the question. */
+const MAX_TAKEN = 40;
 const TIMEOUT_MS = 8000;
 
 const minutesOf = (time?: string): number | null => {
@@ -99,14 +101,35 @@ const BUDGET_WORDS: Record<BudgetTier, string> = {
   premium: "a special, upscale",
 };
 
+/** The places to eat the plan holds already, once each: a dinner named again would be turned away (withDinners). */
+export function placesToEat(days: Day[]): string[] {
+  const names = new Map<string, string>();
+  for (const stop of days.flatMap((day) => day.activities ?? [])) {
+    const name = stop.name?.trim();
+    if (name && isMealStop(stop) && !names.has(name.toLowerCase())) names.set(name.toLowerCase(), name);
+  }
+  return [...names.values()].slice(0, MAX_TAKEN);
+}
+
+type DinnerOptions = { budgetTier?: BudgetTier; diets?: string[]; language: SupportedLanguage; taken?: string[] };
+
+/** The question: the evenings, where each day ends, the budget and diets, and the places the plan already eats at. */
+export function dinnerQuestion(wanted: DinnerWanted[], opts: DinnerOptions): string {
+  return [
+    "Name one real restaurant for dinner on each of these evenings, within a short walk or ride of the place the day ends at, open for dinner on that date:",
+    ...wanted.map((w, i) => `${i + 1}. ${w.city}, ${w.date}: the day ends at ${w.after} (${w.at.lat.toFixed(5)}, ${w.at.lng.toFixed(5)})`),
+    "",
+    `Each one ${BUDGET_WORDS[opts.budgetTier ?? "balanced"]}${opts.diets?.length ? `, with good choices for a ${opts.diets.join(" and ")} diet` : ""}, and a different restaurant each evening.`,
+    ...(opts.taken?.length ? [`None the plan already has: ${opts.taken.join("; ")}.`] : []),
+    `Write each name as Google Maps shows it, its exact coordinates, and the description (about 20 words: what to eat there and why) in ${LANGUAGE_NAMES[opts.language]}.`,
+  ].join("\n");
+}
+
 /**
  * One dinner for each day without one, as the model sees them. No answer when there is nothing to ask, no key, or
  * the question fails or takes too long: the days then stay as they were.
  */
-export async function askForDinners(
-  wanted: DinnerWanted[],
-  opts: { budgetTier?: BudgetTier; diets?: string[]; language: SupportedLanguage }
-): Promise<{ answer: DinnerAnswer; costUsd: number }> {
+export async function askForDinners(wanted: DinnerWanted[], opts: DinnerOptions): Promise<{ answer: DinnerAnswer; costUsd: number }> {
   if (wanted.length === 0 || !process.env.GOOGLE_AI_API_KEY) return { answer: {}, costUsd: 0 };
   const modelName = getModelForPurpose("dinners");
   const model = genAI.getGenerativeModel({
@@ -118,15 +141,8 @@ export async function askForDinners(
       thinkingConfig: thinkingConfigFor(modelName),
     },
   });
-  const question = [
-    "Name one real restaurant for dinner on each of these evenings, within a short walk or ride of the place the day ends at, open for dinner on that date:",
-    ...wanted.map((w, i) => `${i + 1}. ${w.city}, ${w.date}: the day ends at ${w.after} (${w.at.lat.toFixed(5)}, ${w.at.lng.toFixed(5)})`),
-    "",
-    `Each one ${BUDGET_WORDS[opts.budgetTier ?? "balanced"]}${opts.diets?.length ? `, with good choices for a ${opts.diets.join(" and ")} diet` : ""}, and a different restaurant each evening.`,
-    `Write each name as Google Maps shows it, its exact coordinates, and the description (about 20 words: what to eat there and why) in ${LANGUAGE_NAMES[opts.language]}.`,
-  ].join("\n");
   try {
-    const result = await withTimeout(model.generateContent(question), TIMEOUT_MS, "Dinners");
+    const result = await withTimeout(model.generateContent(dinnerQuestion(wanted, opts)), TIMEOUT_MS, "Dinners");
     const usage = result.response.usageMetadata;
     recordGeminiUsage(modelName, usage);
     return { answer: JSON.parse(result.response.text()) as DinnerAnswer, costUsd: geminiCostUsd(modelName, usage) };

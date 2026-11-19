@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { daysWithoutDinner, withDinners, type DinnerAnswer } from "@/lib/ai/dinners";
+import { daysWithoutDinner, dinnerQuestion, placesToEat, withDinners, type DinnerAnswer } from "@/lib/ai/dinners";
 
 type Stop = { name: string; type: string; start_time: string; duration_minutes: number; coordinates?: { lat: number; lng: number } };
 const at = (lat: number, lng: number) => ({ lat, lng });
@@ -101,5 +101,38 @@ describe("a dinner answered", () => {
     fed[1].activities.push(stop("19:00", "Pontocho dinner", "restaurant"));
     expect(withDinners(fed, wanted, { dinners: [gionDinner] }).added).toBe(0);
     expect(withDinners(plan(), wanted, {}).days).toEqual(plan());
+  });
+});
+
+describe("the plan's own places to eat", () => {
+  it("are its restaurants, cafes and bars, once each, in the plan's order", () => {
+    const days = [
+      day("2027-04-05", [stop("09:00", "Kinkaku-ji", "attraction"), stop("12:30", "Okonomiyaki Kiraku", "restaurant")]),
+      day("2027-04-06", [stop("08:30", "% Arabica", "cafe"), stop("12:30", "OKONOMIYAKI KIRAKU", "restaurant"), stop("20:00", "Bar K6", "bar")]),
+      day("2027-04-07", [stop("09:00", "Nijo Castle", "landmark"), { ...stop("12:30", "", "restaurant") }]),
+    ];
+    expect(placesToEat(days)).toEqual(["Okonomiyaki Kiraku", "% Arabica", "Bar K6"]);
+  });
+
+  it("are at most forty", () => {
+    const many = [day("2027-04-05", Array.from({ length: 45 }, (_, i) => stop("12:30", `Place ${i}`, "restaurant")))];
+    expect(placesToEat(many)).toHaveLength(40);
+    expect(placesToEat(many)[39]).toBe("Place 39");
+  });
+});
+
+describe("the dinner question", () => {
+  const wanted = daysWithoutDinner(plan(), "Kyoto");
+
+  it("names the plan's own places to eat, so the answer is none of them", () => {
+    const q = dinnerQuestion(wanted, { language: "en", taken: ["Okonomiyaki Kiraku", "Bar K6"] });
+    expect(q).toContain("None the plan already has: Okonomiyaki Kiraku; Bar K6.");
+    expect(q).toContain("1. Kyoto, 2027-04-06: the day ends at Gion (35.00370, 135.77880)");
+    expect(q).toContain("in English.");
+  });
+
+  it("says nothing of them when the plan has none", () => {
+    expect(dinnerQuestion(wanted, { language: "en", taken: [] })).not.toContain("None the plan already has");
+    expect(dinnerQuestion(wanted, { language: "en" })).not.toContain("None the plan already has");
   });
 });

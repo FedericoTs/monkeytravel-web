@@ -29,7 +29,7 @@ import { generateAnchoredItinerary, validateAnchors } from "@/lib/ai/anchored";
 import { knownPlacesFor } from "@/lib/ai/known-places";
 import { keepOffClosingDays, keepOffClosingDaysByCity } from "@/lib/ai/closing-days";
 import { keepInsideHours } from "@/lib/ai/visit-hours";
-import { askForDinners, daysWithoutDinner, withDinners } from "@/lib/ai/dinners";
+import { askForDinners, daysWithoutDinner, placesToEat, withDinners } from "@/lib/ai/dinners";
 import { swapClosedStops } from "@/lib/ai/closed-swaps";
 import { withoutLongClosures } from "@/lib/ai/long-closures";
 import { keepMustDos } from "@/lib/ai/must-dos";
@@ -259,6 +259,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       budgetTier: params.budgetTier,
       diets: profilePreferences.dietaryPreferences,
       language: userLanguage,
+      taken: placesToEat(itinerary.days),
     });
     itinerary = { ...itinerary, days: withDinners(itinerary.days, dinnersWanted, dinnersAsked.answer).days };
 
