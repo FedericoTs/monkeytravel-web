@@ -137,9 +137,13 @@ export function estimateTransfer(distanceKm: number | null, byRail = true): Tran
       distanceKm: km,
     };
   }
+  return flightOver(km);
+}
+
+/** A flight of `km` on the straight line: cruise time, and check-in, security and transfers. */
+function flightOver(km: number): TransferEstimate {
   return {
     mode: "flight",
-    // Cruise time + check-in/security/transfers overhead.
     durationMinutes: roundTo10((km / 750) * 60 + OVERHEAD.flight),
     estimatedCost: costOf("flight", km),
     distanceKm: km,
@@ -163,6 +167,12 @@ const SPEEDS: Record<KnownHop["mode"], [number, number]> = {
 };
 /** No flight between places closer than this. */
 const SHORTEST_FLIGHT_KM = 100;
+/**
+ * A train or bus longer than this, between places at least FLOWN_FROM_KM apart, is flown: the question asks for the
+ * flight then (lib/ai/transfer-question.ts), and an answer that keeps the day-long ride loses the arrival day.
+ */
+const LONG_LAND_MINUTES = 360;
+const FLOWN_FROM_KM = 400;
 
 /**
  * The hop as answered, when the answer can be right for the line between the two places: a ride of ten minutes to
@@ -181,6 +191,8 @@ function fromAnswer(hop: KnownHop | undefined, from: LatLng | null, to: LatLng |
     if (speed < slowest || speed > fastest) return null;
     if (hop.mode === "train" && !railJoins(from!, to!)) return null;
     if (hop.mode === "flight" && km < SHORTEST_FLIGHT_KM) return null;
+    // A drive stays as answered: a road trip keeps its road.
+    if ((hop.mode === "train" || hop.mode === "bus") && hop.minutes > LONG_LAND_MINUTES && km >= FLOWN_FROM_KM) return flightOver(km);
   }
   return {
     mode,
