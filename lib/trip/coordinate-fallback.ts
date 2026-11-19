@@ -47,7 +47,7 @@ const DESTINATION_COORDINATES: Record<string, { lat: number; lng: number }> = {
 /**
  * Validate and fix coordinates for all activities in the itinerary
  * If coordinates are missing, uses destination-based fallback with small random offset.
- * A pin farther than FAR_PIN_KM from every other stop of its day (lib/trip/far-pins.ts)
+ * A pin farther than FAR_PIN_KM from every other stop of a day with no ride (lib/trip/far-pins.ts)
  * is no location: it becomes the placeholder, which no map pins and no route measures.
  *
  * Exported for the assistant's apply_draft path (app/api/ai/assistant) so
@@ -73,7 +73,7 @@ export function validateAndFixCoordinates(days: ItineraryDay[], destination: str
   let fixedCount = 0;
 
   const fixedDays = days.map(day => {
-    const far = farPins(day.activities.map((activity) => activity.coordinates));
+    const far = farPins(day.activities);
     return {
       ...day,
       activities: day.activities.map((activity, idx) => {

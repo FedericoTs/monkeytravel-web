@@ -1,14 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { FAR_PIN_KM, farPins } from "./far-pins";
+import { FAR_PIN_KM, farPins, isRide } from "./far-pins";
 import { PLACEHOLDER_POINT } from "./placeholder-point";
 
 // Real places: three in Barcelona, one in Madrid (~505 km away), Tokyo (~10,000 km).
-const BOQUERIA = { lat: 41.382, lng: 2.172 };
-const RAMBLA = { lat: 41.381, lng: 2.173 };
-const BATLLO = { lat: 41.392, lng: 2.165 };
-const MADRID = { lat: 40.354, lng: -3.714 };
-const TOKYO = { lat: 35.714, lng: 139.777 };
-const MONTSERRAT = { lat: 41.593, lng: 1.837 };
+const at = (lat: number, lng: number) => ({ coordinates: { lat, lng } });
+const BOQUERIA = at(41.382, 2.172);
+const RAMBLA = at(41.381, 2.173);
+const BATLLO = at(41.392, 2.165);
+const MADRID = at(40.354, -3.714);
+const TOKYO = at(35.714, 139.777);
+const MONTSERRAT = at(41.593, 1.837);
 
 describe("farPins", () => {
   it("is the stop farther than 300 km from every other stop of its day", () => {
@@ -22,7 +23,7 @@ describe("farPins", () => {
   });
 
   it("keeps a day split in two places that each have stops", () => {
-    expect(farPins([BOQUERIA, RAMBLA, MADRID, { lat: 40.415, lng: -3.707 }])).toEqual(new Set());
+    expect(farPins([BOQUERIA, RAMBLA, MADRID, at(40.415, -3.707)])).toEqual(new Set());
   });
 
   it("judges only against at least two stops that stay", () => {
@@ -32,14 +33,34 @@ describe("farPins", () => {
   });
 
   it("counts only stops with a real pin, by their place in the day", () => {
-    expect(farPins([null, BOQUERIA, undefined, { ...PLACEHOLDER_POINT }, RAMBLA, { lat: 0, lng: 0 }, MADRID])).toEqual(new Set([6]));
-    expect(farPins([BOQUERIA, { ...PLACEHOLDER_POINT }, MADRID])).toEqual(new Set());
+    const placeholder = { coordinates: { ...PLACEHOLDER_POINT } };
+    expect(farPins([{}, BOQUERIA, { coordinates: null }, placeholder, RAMBLA, at(0, 0), MADRID])).toEqual(new Set([6]));
+    expect(farPins([BOQUERIA, placeholder, MADRID])).toEqual(new Set());
   });
 
   it("measures the distance, not a difference of degrees", () => {
     // ~290 km due north of Barcelona: under the limit, kept.
-    expect(farPins([{ lat: 43.99, lng: 2.17 }, BOQUERIA, RAMBLA])).toEqual(new Set());
+    expect(farPins([at(43.99, 2.17), BOQUERIA, RAMBLA])).toEqual(new Set());
     // ~310 km: over it.
-    expect(farPins([{ lat: 44.17, lng: 2.17 }, BOQUERIA, RAMBLA])).toEqual(new Set([0]));
+    expect(farPins([at(44.17, 2.17), BOQUERIA, RAMBLA])).toEqual(new Set([0]));
+  });
+
+  // Munich in the morning, the train, dinner in Berlin; or a cruise's docking with the day's stops ashore.
+  it("keeps every pin of a day with a ride: it is in two places", () => {
+    const munich = [at(48.177, 11.556), at(48.14, 11.558)];
+    const berlin = at(52.52, 13.4);
+    expect(farPins([...munich, berlin])).toEqual(new Set([2]));
+    expect(farPins([munich[0], { ...munich[1], type: "transport" }, berlin])).toEqual(new Set());
+    expect(farPins([{ ...munich[0], type: "Transportation" }, munich[1], berlin])).toEqual(new Set());
+    expect(farPins([...munich, { coordinates: null, transport_mode: "train" }, berlin])).toEqual(new Set());
+  });
+});
+
+describe("isRide", () => {
+  it("is the card between two cities, or a stop the plan calls transport", () => {
+    expect(isRide({ transport_mode: "flight" })).toBe(true);
+    for (const type of ["transport", "Transportation", "travel", "transfer"]) expect(isRide({ type }), type).toBe(true);
+    for (const type of ["attraction", "restaurant", "accommodation", undefined, null]) expect(isRide({ type }), String(type)).toBe(false);
+    expect(isRide({ transport_mode: null })).toBe(false);
   });
 });

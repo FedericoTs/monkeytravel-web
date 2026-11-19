@@ -63,6 +63,15 @@ describe("validateAndFixCoordinates", () => {
     expect(fixed.activities[2]).toBe(rambla);
   });
 
+  // Munich, the train, dinner in Berlin: the far stop is the evening after the ride.
+  it("keeps every pin of a day with a ride", () => {
+    const bmw = activity("BMW Welt", { lat: 48.177, lng: 11.556 });
+    const train = { ...activity("Train to Berlin", { lat: 48.14, lng: 11.558 }), type: "transport" } as Activity;
+    const dinner = activity("Dinner in Mitte", { lat: 52.52, lng: 13.4 });
+    const [fixed] = validateAndFixCoordinates([day(bmw, train, dinner)], "Munich");
+    expect(fixed.activities).toEqual([bmw, train, dinner]);
+  });
+
   it("leaves the days it is given as they were", () => {
     const original = [day(activity("a"), activity("b", { lat: 1, lng: 2 }))];
     const copy = structuredClone(original);

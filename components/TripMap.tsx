@@ -219,8 +219,8 @@ function TripMapInner({
 
       // Step 1: Collect activities, prioritize existing coordinates
       for (const day of days) {
-        // A pin far from every other stop of its day is in the wrong place: pinned, it pulled the map out of the city.
-        const far = farPins(day.activities.map((activity) => activity.coordinates));
+        // A pin far from every other stop of its day, on a day with no ride, is in the wrong place: pinned, it pulled the map out of the city.
+        const far = farPins(day.activities);
         for (const [index, activity] of day.activities.entries()) {
           // If activity already has coordinates, use them directly (no API call needed!)
           // A placeholder point is no location: pinned, it pulled the map out to Europe.

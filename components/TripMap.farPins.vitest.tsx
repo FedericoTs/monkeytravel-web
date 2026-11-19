@@ -73,6 +73,17 @@ describe("a stop pinned far from the rest of its day", () => {
     expect(fitted).toContainEqual({ lat: 41.382, lng: 2.172 });
   });
 
+  it("keeps it on a day with a ride, which is in two places", async () => {
+    await show([
+      {
+        day_number: 1,
+        date: "2027-05-10",
+        activities: [stop("BMW Welt", 48.177, 11.556), { ...stop("Train to Berlin", 48.14, 11.558), type: "transport" }, stop("Dinner in Mitte", 52.52, 13.4)],
+      },
+    ] as unknown as ItineraryDay[]);
+    expect(fitted).toContainEqual({ lat: 52.52, lng: 13.4 });
+  });
+
   it("keeps it when its day has stops near it", async () => {
     await show([
       {
