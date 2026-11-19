@@ -398,6 +398,23 @@ describe("the way travellers make a hop, as answered", () => {
     expect(buildJourneyStops(merged.days, "it").map((s) => s.transitFromPrev)).toEqual([undefined, "AUTOBUS · 3h", "VOLO · 3h 40m"]);
   });
 
+  it("flies a train or bus of more than six hours between places far apart, as the question itself asks", () => {
+    const BANGKOK = { lat: 13.7563, lng: 100.5018 };
+    const CHIANG_MAI = { lat: 18.7883, lng: 98.9853 };
+    // About 580 km on a straight line: under an hour in the air, the airport around it, the afternoon left.
+    for (const answer of [{ mode: "train", minutes: 780 }, { mode: "bus", minutes: 600 }] as Known[]) {
+      const card = leg(BANGKOK, CHIANG_MAI, "Chiang Mai", answer);
+      expect(card, JSON.stringify(answer)).toMatchObject({ transport_mode: "flight", name: "Flight to Chiang Mai", estimated_cost: { amount: 107 } });
+      expect(card.duration_minutes).toBeLessThanOrEqual(210);
+    }
+    // Six hours or less stays as answered, and a drive always does: a road trip keeps its road.
+    expect(leg(BANGKOK, CHIANG_MAI, "Chiang Mai", { mode: "train", minutes: 360 })).toMatchObject({ transport_mode: "train", duration_minutes: 390 });
+    expect(leg(BANGKOK, CHIANG_MAI, "Chiang Mai", { mode: "car", minutes: 600 })).toMatchObject({ transport_mode: "ground", duration_minutes: 630 });
+    // A long bus between places closer than 400 km stays a bus: mountain roads, no airport.
+    const SAPA = { lat: 22.3364, lng: 103.8438 };
+    expect(leg(HANOI, SAPA, "Sapa", { mode: "bus", minutes: 420 })).toMatchObject({ transport_mode: "bus", duration_minutes: 450 });
+  });
+
   it("keeps the estimate when the answer can't be right for the line between the two places", () => {
     const estimate = leg(BRUSSELS, PARIS, "Paris");
     for (const wrong of [
