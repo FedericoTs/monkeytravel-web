@@ -53,14 +53,15 @@ export default function WizardFooter({
   handleGenerate: () => Promise<void>;
   /** Step 1's text is a whole trip, offered to be read: that offer says what to do, so no hint here. */
   readOffered?: boolean;
-  /** Reads that whole trip into step 1, and goes on once it has filled it: what Continue does while it can't go on as it is. */
+  /** Reads that whole trip into step 1, and goes on once it has filled it: what Continue does while one is offered. */
   onReadRequest?: () => void;
   /** The whole trip is being read. */
   readingRequest?: boolean;
 }) {
   const t = useTranslations("trips");
-  // A whole trip that can't go on as typed: Continue reads it, rather than standing greyed out with nothing said.
-  const readsFirst = step === 1 && readOffered && !canProceed() && Boolean(onReadRequest);
+  // A whole trip typed as the destination: Continue reads it. One that can't go on as typed would stand greyed out
+  // with nothing said, and one that can would be planned as a single place named by the whole sentence.
+  const readsFirst = step === 1 && readOffered && Boolean(onReadRequest);
   return (
   <div
     ref={footerRef}

@@ -1245,7 +1245,8 @@ export default function NewTripPage({
   // Whether the last reading filled step 1 enough to go on (handleReadAndContinue).
   const filledStep1Ref = useRef(false);
 
-  const handleReadRequest = async (): Promise<"filled" | "kept"> => {
+  // keepText: the text could go on as typed, so when no place can be read from it, it stays as it is ("unread").
+  const handleReadRequest = async (opts: { keepText?: boolean } = {}): Promise<"filled" | "kept" | "unread"> => {
     const text = destination.trim();
     setReadingRequest(true);
     trackFieldInteraction("read_request");
@@ -1253,6 +1254,10 @@ export default function NewTripPage({
     const reading = await fetchReading(text, locale, today);
     const chosen = startDate && endDate && !flexibleDates ? { start: startDate, end: endDate } : null;
     const fill = reading ? fillOf(reading, { today, multiCity: MULTI_CITY_ENABLED, chosen }) : null;
+    if (opts.keepText && !fill?.destination) {
+      setReadingRequest(false);
+      return "unread";
+    }
     setRequirements((prev) => withNote(prev, text));
     // The time, who's going, vibes and budget, for the place filled in or picked next.
     const keepDetails = (f: NonNullable<typeof fill>) => {
@@ -1869,11 +1874,14 @@ export default function NewTripPage({
     setStep(step + 1);
   };
 
-  // Continue pressed on a whole trip that can't go on as typed: read it, and go
-  // on when what it filled in completes step 1. A place with no dates stays for them.
+  // Continue pressed on a whole trip typed as the destination: read it, and go on
+  // when what it filled in completes step 1. A place with no dates stays for them,
+  // and a route stays to be seen. A text that could go on as typed and names no
+  // place that can be read goes on as typed.
   const handleReadAndContinue = async () => {
     if (readingRequest) return;
-    if ((await handleReadRequest()) === "filled" && filledStep1Ref.current) handleContinue();
+    const result = await handleReadRequest({ keepText: canProceed() });
+    if (result === "unread" || (result === "filled" && filledStep1Ref.current)) handleContinue();
   };
 
   // Continue with a route shown under the dates plans that route, as it says: a
