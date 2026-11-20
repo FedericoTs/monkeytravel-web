@@ -457,7 +457,7 @@ A Oktoberfest 2026 vai de 19 de setembro a 4 de outubro. O fim de semana final (
 
 ---
 
-## Novembro: folhagem de Tóquio, trópicos pré-feriado e o mês mais tranquilo da Europa
+## Novembro: folhagem de Tóquio, trópicos pré-feriado e um dos meses mais tranquilos da Europa
 
 Novembro é o segredo mais bem guardado do calendário de viagens. As multidões de verão são uma lembrança, a enxurrada de feriados de dezembro ainda não começou, os voos caem ~30% em relação ao pico, e os hotéis por toda a Europa e a Ásia cortam tarifas agressivamente. Novembro exige precisão — alguns destinos estão escorregando para as estações chuvosa ou fria. Os lugares certos estão no seu pico absoluto.
 
@@ -591,4 +591,4 @@ Sim, com ressalvas. O Ciclo Solar 25 atingiu o pico por volta do fim de 2024 ao 
 
 ### Devo contratar seguro-viagem para 2026?
 
-Para viagens fora das temporadas de furacões e tufões, é opcional. Para viagens que coincidem com essas janelas — Caribe/Costa do Golfo de maio a novembro, Japão e Filipinas de agosto a outubro, travessias do Atlântico de julho a outubro — é obrigatório. Apólices que cobrem interrupção de viagem e atrasos de voo costumam custar de 5% a 8% do gasto total da viagem. O único ano em que eu insistiria no seguro independentemente do destino é quando os voos de longa distância são reservados com mais de 4 meses de antecedência e o custo da viagem é significativo (qualquer coisa acima de $3.000 por pessoa). O custo do seguro é ofuscado pelo que um único voo cancelado na alta temporada pode fazer com uma reserva não reembolsável.
+Para viagens fora das temporadas de furacões e tufões, é opcional. Para viagens que coincidem com essas janelas — Caribe/Costa do Golfo de junho a novembro, Japão e Filipinas de agosto a outubro, travessias do Atlântico de julho a outubro — é obrigatório. Apólices que cobrem interrupção de viagem e atrasos de voo costumam custar de 5% a 8% do gasto total da viagem. O único ano em que eu insistiria no seguro independentemente do destino é quando os voos de longa distância são reservados com mais de 4 meses de antecedência e o custo da viagem é significativo (qualquer coisa acima de $3.000 por pessoa). O custo do seguro é ofuscado pelo que um único voo cancelado na alta temporada pode fazer com uma reserva não reembolsável.

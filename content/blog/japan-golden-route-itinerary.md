@@ -4,7 +4,7 @@ slug: "japan-golden-route-itinerary"
 description: "The Tokyo–Kyoto–Osaka corridor is the classic first Japan trip for a reason. How to split 10–14 days between the three cities, a day-by-day skeleton, why the JR Pass math stopped working in 2023, when to go, and realistic daily budgets in yen."
 author: "Emanuela P."
 publishedAt: "2026-07-06"
-updatedAt: '2026-08-25'
+updatedAt: '2026-11-20'
 category: "Destination Guides"
 tags: ["itinerary", "japan", "asia", "multi-city trip", "week-long trip"]
 image: "/images/blog/japan-golden-route-itinerary.jpg"
@@ -88,7 +88,7 @@ The pass pays only when you stack several long hauls into one week — continuin
 
 **Autumn — November.** Kyoto's foliage peaks mid-to-late November with 10–17°C walking weather and dry, sharp skies. For a first Golden Route this is arguably the best window: the same color payoff as spring, calmer trains, hotels still bookable in September.
 
-**Avoid Golden Week and Obon.** Golden Week runs April 29 – May 6 in 2026; Obon peaks around August 13–16. These are Japan's two domestic travel surges: long-distance trains sell out and rates spike nationwide. Smaller cautions: mid-June to mid-July is the rainy season, and August runs above 35°C in all three cities.
+**Avoid Golden Week and Obon.** Golden Week runs April 29 – May 6 in 2026; Obon peaks around August 13–16. These are Japan's two domestic travel surges: long-distance trains sell out and rates spike nationwide. Smaller cautions: early June to mid-July is the rainy season, and August runs above 35°C in all three cities.
 
 **The sleeper window: December–February.** Cold, dry and clear — the year's best Fuji visibility from the train, the lowest rates, temple gardens with nobody in frame. The JNTO calendar at [japan.travel](https://www.japan.travel/en/) lists the winter illuminations worth an evening.
 

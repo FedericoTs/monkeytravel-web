@@ -4,7 +4,7 @@ slug: "honeymoon-planning-guide"
 description: "Destinos para la luna de miel y consejos de planificación para 2026, organizados por niveles de presupuesto — desde viajes poco conocidos de 2.000 $ hasta escapadas únicas en la vida de más de 15.000 $. Precios reales, opciones temporada a temporada y los errores de planificación que arruinan el Día 1."
 author: "Francesca A."
 publishedAt: "2026-05-06"
-updatedAt: "2026-05-06"
+updatedAt: "2026-11-20"
 category: "Trip Planning"
 tags: ["viajes románticos", "planificación de viajes"]
 image: "/images/blog/honeymoon-planning-guide.jpg"
@@ -132,7 +132,7 @@ Este es el nivel que la mayoría de parejas debería reservar. Es la franja de p
 
 **Por qué es romántico:** el único lugar que combina genuinamente playa, ruinas mayas y baño en cenotes en un solo pueblo. La franja de hoteles eco-chic de la carretera de la playa es sobre lo que se construye realmente la reputación de Tulum — bungalows con techo de palapa, duchas al aire libre y camas con dosel en la jungla. El amanecer en las ruinas sobre el acantilado es una de las experiencias más cinematográficas de México.
 
-**Mejor temporada:** noviembre a abril. Seco, cómodo, sin huracanes. **Peor:** agosto–octubre — temporada de huracanes; los eco-hoteles (con sus duchas al aire libre y techos de palapa) son exactamente el diseño equivocado para tormentas tropicales.
+**Mejor temporada:** noviembre a abril. Seco, cómodo, pasado el pico de huracanes. **Peor:** agosto–octubre — el pico de la temporada de huracanes; los eco-hoteles (con sus duchas al aire libre y techos de palapa) son exactamente el diseño equivocado para tormentas tropicales.
 
 **Coste realista de 7 noches (2 personas, vuelos desde EE. UU.):** 4.800–7.200 $. Eco-hotel en la carretera de la playa 250–400 $/noche ahora, excursiones de día a cenotes 30–50 $, cenas en restaurante de jungla 60–100 $ para dos.
 
@@ -218,7 +218,7 @@ Aquí es donde los destinos se ganan su reputación. Piscinas infinitas sobre ac
 
 **Por qué es romántico:** los Pitons gemelos elevándose verticalmente desde el Caribe son el paisaje más dramático de la región. Santa Lucía te da selva tropical más playas volcánicas más lujo serio de resort a precios que no son del todo nivel Maldivas. Suites al aire libre en propiedades como Ladera no tienen cuarta pared — solo la jungla y los Pitons.
 
-**Mejor temporada:** diciembre a mayo. **Peor:** agosto–octubre (temporada de huracanes).
+**Mejor temporada:** diciembre a mayo. **Peor:** agosto–octubre (el pico de la temporada de huracanes).
 
 **Coste realista de 7 noches (2 personas, vuelos desde la costa este de EE. UU.):** 7.500–12.000 $. Resort boutique en Soufrière 500–900 $/noche, día en catamarán con snorkel 200 $/pareja, volcán drive-in 20 $.
 

@@ -94,7 +94,7 @@ The rate difference is what people look for, but it is not the only one.
 
 1. **Look at Saturdays, not months.** Find the exact changeover dates for the property you want and think in weeks, not months.
 2. **Aim for the week straddling the boundary.** The last week of low, or the first of mid, gives you nearly the high-season holiday at a fraction of the rate.
-3. **Check what is open** before booking off-season, especially on islands and in small towns. The saving is not worth a closed village.
+3. **Check what is open** before booking off-season, especially on islands and in small towns. The saving is not worth a closed village. For Spain and the rest of the world, our [low season 2027 guide](/blog/low-season-travel) has the cheapest months.
 
 ---
 

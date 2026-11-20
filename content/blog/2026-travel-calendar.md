@@ -461,7 +461,7 @@ Oktoberfest 2026 runs September 19 to October 4. The final weekend (October 2-4)
 
 ---
 
-## November: Tokyo Foliage, Pre-Holiday Tropics, and Europe's Quietest Month
+## November: Tokyo Foliage, Pre-Holiday Tropics, and One of Europe's Quietest Months
 
 November is the travel calendar's best-kept secret. Summer crowds are a memory, December holiday surge hasn't started, flights drop ~30% from peak, and hotels across Europe and Asia slash rates aggressively. November requires precision — some destinations are sliding into rainy or cold seasons. The right places are at their absolute peak.
 
@@ -595,4 +595,4 @@ Yes, with caveats. Solar Cycle 25 peaked around late 2024 to early 2025 and elev
 
 ### Should I buy travel insurance for 2026?
 
-For trips outside hurricane and typhoon seasons, it's optional. For trips overlapping those windows — Caribbean/Gulf Coast May through November, Japan and Philippines August through October, Atlantic crossings July through October — it's mandatory. Policies covering trip interruption and flight delays typically run 5-8% of total trip spend. The single year where I'd insist on insurance regardless of destination is when long-haul flights are booked 4+ months ahead and the trip cost is significant (anything over $3,000 per person). The cost of insurance is dwarfed by what one cancelled flight in peak season can do to a non-refundable booking.
+For trips outside hurricane and typhoon seasons, it's optional. For trips overlapping those windows — Caribbean/Gulf Coast June through November, Japan and Philippines August through October, Atlantic crossings July through October — it's mandatory. Policies covering trip interruption and flight delays typically run 5-8% of total trip spend. The single year where I'd insist on insurance regardless of destination is when long-haul flights are booked 4+ months ahead and the trip cost is significant (anything over $3,000 per person). The cost of insurance is dwarfed by what one cancelled flight in peak season can do to a non-refundable booking.

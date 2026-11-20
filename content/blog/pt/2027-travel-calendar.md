@@ -4,7 +4,7 @@ slug: "2027-travel-calendar"
 description: "Onde viajar em cada mês de 2027, com as datas que marcam o ano: o eclipse solar total de 2 de agosto, o Ano Santo de Santiago de Compostela, a Copa do Mundo Feminina no Brasil, as Copas do Mundo de rúgbi e de críquete e os feriados prolongados de 2027 no Reino Unido, nos Estados Unidos, na Espanha, na Itália e no Brasil."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-11-19"
+updatedAt: "2026-11-20"
 category: "Seasonal Travel"
 tags: ["sazonal", "guia mensal de viagens", "planejamento de viagem"]
 image: "/images/blog/2027-travel-calendar.jpg"
@@ -171,7 +171,7 @@ Com a Páscoa em março, abril começa em média temporada; a pressão fica no m
 **Holanda.** O Keukenhof abre de 18 de março a 9 de maio, os campos de bulbos costumam atingir o auge a partir de meados de abril, e os carros alegóricos de flores do Bloemencorso vão de Noordwijk a Haarlem no sábado, 17 de abril, com máximas de cerca de 13 °C.
 **A contrapartida:** o Dia do Rei, na terça-feira, 27 de abril, lota Amsterdã, e os dias mais movimentados do Keukenhof esgotam.
 
-**Sevilha.** A cidade escolheu a quarta-feira, 14 de abril, a quarta-feira da Feria, como feriado municipal de 2027. Com o formato de segunda a domingo que Sevilha retomou em 2025, isso coloca a Feria de Abril de 13 a 18 de abril, com o alumbrado na noite da segunda-feira, 12 de abril, quando as luzes se acendem à meia-noite (confira antes de reservar), e tardes de cerca de 23 °C.
+**Sevilha.** A prefeitura propôs a quarta-feira, 14 de abril, a quarta-feira da Feria, como feriado municipal de 2027 (segundo a imprensa; a lista definitiva é publicada pela Junta de Andalucía). Com o formato de segunda a domingo que Sevilha retomou em 2025, isso coloca a Feria de Abril de 13 a 18 de abril, com o alumbrado na noite da segunda-feira, 12 de abril, quando as luzes se acendem à meia-noite (confira antes de reservar), e tardes de cerca de 23 °C.
 **A contrapartida:** a maioria das casetas é privada, e os preços na semana da Feria ficam muito acima de um abril normal.
 
 **Tailândia.** O Songkran transforma o país numa guerra de água da terça-feira, 13, à quinta-feira, 15 de abril, do fosso de Chiang Mai à Silom Road, em Bangkok, enquanto as ilhas do Golfo vivem seu período mais seco.
@@ -520,7 +520,7 @@ O ano de 2027 inteiro, porque o 25 de julho, dia de São Tiago, cai num domingo.
 
 ### Qual é o mês mais barato para viajar em 2027?
 
-Para viagens curtas a cidades do Hemisfério Norte, janeiro depois do Dia de Reis, quando os preços de fim de ano caem. Para praias europeias, setembro depois da primeira semana, quando as férias escolares já acabaram e o mar está no ponto mais quente. Novembro, fora da semana de Ação de Graças nos EUA, é o outro mês de bons preços.
+Para viagens curtas a cidades do Hemisfério Norte, janeiro depois do Dia de Reis, quando os preços de fim de ano caem. Para praias europeias, setembro depois da primeira semana tem o melhor custo-benefício, com as férias escolares já encerradas e o mar no ponto mais quente, mas na Espanha os preços dos hotéis continuam caindo em outubro e chegam ao mínimo em janeiro e fevereiro. Novembro, fora da semana de Ação de Graças nos EUA, é o outro mês de bons preços. Os meses mais baratos da Espanha, região por região e com os preços oficiais dos hotéis, estão no nosso [guia da baixa temporada 2027](/blog/low-season-travel).
 
 ## Fontes
 

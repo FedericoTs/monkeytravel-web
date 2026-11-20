@@ -4,7 +4,7 @@ slug: "honeymoon-planning-guide"
 description: "Destinos de lua de mel e conselhos de planejamento para 2026, organizados por faixa de orçamento — de viagens pouco conhecidas de US$ 2 mil a escapadas únicas na vida de mais de US$ 15 mil. Preços reais, escolhas estação por estação e os erros de planejamento que arruínam o Dia 1."
 author: "Francesca A."
 publishedAt: "2026-05-06"
-updatedAt: "2026-05-06"
+updatedAt: "2026-11-20"
 category: "Trip Planning"
 tags: ["viagens românticas", "planejamento de viagem"]
 image: "/images/blog/best-honeymoon-destinations-2026.jpg"
@@ -126,7 +126,7 @@ Esta é a faixa que a maioria dos casais deveria reservar. É a faixa de preço 
 
 **Por que é romântico:** o único lugar que genuinamente combina praia, ruínas maias e mergulho em cenotes numa única cidade. A faixa de hotéis eco-chic na estrada da praia é sobre o que a reputação de Tulum é de fato construída — bangalôs com teto de palapa, chuveiros ao ar livre e camas com dossel na selva. O nascer do sol nas ruínas à beira do penhasco é uma das experiências mais cinematográficas do México.
 
-**Melhor estação:** novembro a abril. Seco, confortável, sem furacões. **Pior:** agosto–outubro — temporada de furacões; os eco-hotéis (com seus chuveiros ao ar livre e tetos de palapa) são exatamente o design errado para tempestades tropicais.
+**Melhor estação:** novembro a abril. Seco, confortável, depois do pico dos furacões. **Pior:** agosto–outubro — o pico da temporada de furacões; os eco-hotéis (com seus chuveiros ao ar livre e tetos de palapa) são exatamente o design errado para tempestades tropicais.
 
 **Custo realista de 7 noites (2 pessoas, voos dos EUA):** US$ 4.800–7.200. Eco-hotel na estrada da praia US$ 250–400/noite atualmente, passeios de um dia aos cenotes US$ 30–50, jantares em restaurantes na selva US$ 60–100 para dois.
 
@@ -212,7 +212,7 @@ Esta é a faixa que a maioria dos casais deveria reservar. É a faixa de preço 
 
 **Por que é romântico:** os Pitons gêmeos erguendo-se verticalmente do Caribe são a paisagem mais dramática da região. Santa Lúcia oferece floresta tropical, mais praias vulcânicas, mais luxo sério de resort a preços que não chegam ao nível das Maldivas. Suítes ao ar livre em propriedades como o Ladera não têm a quarta parede — só a selva e os Pitons.
 
-**Melhor estação:** dezembro a maio. **Pior:** agosto–outubro (temporada de furacões).
+**Melhor estação:** dezembro a maio. **Pior:** agosto–outubro (o pico da temporada de furacões).
 
 **Custo realista de 7 noites (2 pessoas, voos da Costa Leste dos EUA):** US$ 7.500–12.000. Resort boutique em Soufrière US$ 500–900/noite, dia de catamarã com snorkel US$ 200/casal, vulcão drive-in US$ 20.
 

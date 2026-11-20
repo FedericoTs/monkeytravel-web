@@ -4,7 +4,7 @@ slug: "best-honeymoon-destinations-2026"
 description: "Doze destinos de lua de mel para 2026 — bangalôs sobre a água nas Maldivas, a caldera de Santorini, vilas em Bali, cenotes em Tulum, balsas no Lago de Como — avaliados com custos reais, a estação certa, a atividade romântica âncora e o filtro honesto do 'pule este se' que a maioria das listas deixa de fora."
 author: "Francesca A."
 publishedAt: "2026-05-30"
-updatedAt: "2026-05-30"
+updatedAt: "2026-11-20"
 category: "Trip Planning"
 tags: ["viagens românticas", "melhores destinos"]
 image: "/images/blog/best-honeymoon-destinations-2026.jpg"
@@ -103,7 +103,7 @@ Os pores do sol na caldera não são superestimados. Ver o sol se pôr no Egeu a
 
 O único destino de lua de mel que combina praia, ruínas maias e nado em cenotes de água doce em uma única cidade. A faixa de hotéis eco-chic na estrada da praia — bangalôs com teto de palapa e chuveiros ao ar livre, camas de dossel na selva, sem Wi-Fi por design em algumas propriedades — é onde se construiu a reputação de Tulum. O nascer do sol nas ruínas maias à beira do penhasco com vista para o Caribe é uma das experiências mais cinematográficas do México. Tulum ficou caro; a experiência ainda justifica o preço para casais que querem especificamente essa estética.
 
-**Melhor época para visitar:** de novembro a abril — seco, confortável, sem furacões. Evite de agosto a outubro — temporada de furacões, e os hotéis eco (chuveiros ao ar livre, tetos de palapa) têm exatamente o design errado para tempestades tropicais.
+**Melhor época para visitar:** de novembro a abril — seco, confortável, depois do pico dos furacões. Evite de agosto a outubro — o pico da temporada de furacões, e os hotéis eco (chuveiros ao ar livre, tetos de palapa) têm exatamente o design errado para tempestades tropicais.
 
 **Âncora romântica:** uma manhã nas ruínas de Tulum à beira do penhasco na abertura (8h), depois nado em cenotes no Gran Cenote ou em Dos Ojos à tarde, depois jantar em um dos restaurantes na selva da estrada da praia (o Hartwood continua sendo o ícone).
 
@@ -231,7 +231,7 @@ O trem expresso mais lento do mundo (o Glacier Express) cruzando 291 pontes e 91
 
 Os Pitons gêmeos erguendo-se verticalmente do Caribe são a paisagem mais dramática da região — nenhuma outra ilha caribenha tem esse tipo de drama vertical. Santa Lúcia te dá floresta tropical mais praias vulcânicas mais luxo de resort de respeito a preços que não chegam ao nível das Maldivas, mas entregam algo próximo do romance das Maldivas. Suítes ao ar livre em propriedades como Ladera e Jade Mountain não têm a quarta parede — só a selva e os Pitons.
 
-**Melhor época para visitar:** de dezembro a maio. Evite agosto-outubro (temporada de furacões).
+**Melhor época para visitar:** de dezembro a maio. Evite agosto-outubro (o pico da temporada de furacões).
 
 **Âncora romântica:** uma manhã de catamarã com snorkel, terminando na Sugar Beach (a praia de areia branca bem entre os dois Pitons), seguida de um jantar ao pôr do sol no restaurante do seu resort com os Pitons à vista.
 

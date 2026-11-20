@@ -192,6 +192,7 @@ export const POSTS: Record<string, { c: string[]; d?: string[] }> = {
   // --- Seasonal Travel ---
   "2026-travel-calendar":                  { c: ["seasonal", "monthly-guide", "trip-planning"] },
   "alta-e-bassa-stagione-2026":            { c: ["seasonal", "monthly-guide", "italy", "europe", "trip-planning"] },
+  "low-season-travel":                     { c: ["seasonal", "budget-travel", "shoulder-season", "trip-planning"] },
   "best-fall-foliage-destinations":        { c: ["seasonal", "autumn-travel", "nature-travel", "best-destinations"] },
   "best-christmas-markets-europe-2026":     { c: ["seasonal", "winter-travel", "europe", "best-destinations", "trip-planning"] },
   "best-places-to-see-northern-lights":    { c: ["seasonal", "winter-travel", "nature-travel", "best-destinations", "europe"] },

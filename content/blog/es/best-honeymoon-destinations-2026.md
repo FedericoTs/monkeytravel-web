@@ -4,7 +4,7 @@ slug: "best-honeymoon-destinations-2026"
 description: "Doce destinos de luna de miel para 2026 — bungalós sobre el agua en Maldivas, la caldera de Santorini, villas en Bali, cenotes en Tulum, ferris en el lago de Como — valorados con costes reales, la estación correcta, la actividad romántica que ancla el viaje y el filtro honesto del «sáltatelo si» que casi ninguna lista incluye."
 author: "Francesca A."
 publishedAt: "2026-05-30"
-updatedAt: "2026-08-17"
+updatedAt: "2026-11-20"
 category: "Trip Planning"
 tags: ["viajes románticos", "mejores destinos"]
 image: "/images/blog/best-honeymoon-destinations-2026.jpg"
@@ -102,7 +102,7 @@ Los atardeceres sobre la caldera no están sobrevalorados. Ver el sol caer en el
 
 El único destino de luna de miel que combina playa, ruinas mayas y baño en cenotes de agua dulce en un mismo pueblo. La franja de hoteles eco-chic de la carretera de la playa — bungalós con techo de palapa y duchas al aire libre, camas con dosel en la selva, en algunas propiedades ningún wifi por decisión propia — es donde se construyó la fama de Tulum. El amanecer en las ruinas mayas sobre el acantilado, con el Caribe delante, es una de las escenas más cinematográficas de México. Tulum se ha puesto caro; la experiencia todavía justifica el precio para las parejas que quieren exactamente esa estética.
 
-**Mejor época para ir:** de noviembre a abril: seco, cómodo, sin huracanes. Evita de agosto a octubre: temporada de huracanes, y los hoteles eco (duchas al aire libre, techos de palapa) son justo el diseño equivocado para una tormenta tropical.
+**Mejor época para ir:** de noviembre a abril: seco, cómodo, pasado el pico de huracanes. Evita de agosto a octubre: el pico de la temporada de huracanes, y los hoteles eco (duchas al aire libre, techos de palapa) son justo el diseño equivocado para una tormenta tropical.
 
 **Ancla romántica:** una mañana en las ruinas de Tulum sobre el acantilado nada más abrir (8:00), cenotes por la tarde en Gran Cenote o Dos Ojos y cena en uno de los restaurantes de selva de la carretera de la playa (Hartwood sigue siendo el icono).
 
@@ -230,7 +230,7 @@ El tren expreso más lento del mundo (el Glacier Express) cruzando 291 puentes y
 
 Los dos Pitons alzándose en vertical desde el Caribe son el paisaje más dramático de la región: ninguna otra isla caribeña tiene ese tipo de verticalidad. Santa Lucía te da selva tropical, playas volcánicas y lujo hotelero serio a precios que no llegan al nivel de Maldivas pero se acercan mucho a su romanticismo. Las suites al aire libre de propiedades como Ladera y Jade Mountain no tienen cuarta pared: solo la selva y los Pitons.
 
-**Mejor época para ir:** de diciembre a mayo. Evita agosto-octubre (temporada de huracanes).
+**Mejor época para ir:** de diciembre a mayo. Evita agosto-octubre (el pico de la temporada de huracanes).
 
 **Ancla romántica:** una mañana de catamarán con snorkel que termina en Sugar Beach (la playa de arena blanca que queda justo entre los dos Pitons), y después cena al atardecer en el restaurante de tu hotel con los Pitons a la vista.
 

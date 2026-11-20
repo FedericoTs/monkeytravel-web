@@ -4,7 +4,7 @@ slug: "2027-travel-calendar"
 description: "Dove andare in ogni mese del 2027, con le date che segnano l'anno: l'eclissi totale di Sole del 2 agosto, l'Anno Santo di Santiago, i Mondiali femminili in Brasile, i Mondiali di rugby e di cricket, e i ponti e le festività del 2027 nel Regno Unito, negli Stati Uniti, in Spagna, in Italia e in Brasile."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-11-19"
+updatedAt: "2026-11-20"
 category: "Seasonal Travel"
 tags: ["stagionale", "guida mensile ai viaggi", "pianificazione viaggi"]
 image: "/images/blog/2027-travel-calendar.jpg"
@@ -171,7 +171,7 @@ Con la Pasqua a marzo, aprile si apre in media stagione; la pressione si concent
 **Paesi Bassi.** Il Keukenhof è aperto dal 18 marzo al 9 maggio, i campi di bulbi di solito raggiungono il massimo da metà aprile, e i carri fioriti del Bloemencorso sfilano da Noordwijk a Haarlem sabato 17 aprile, con massime intorno ai 13 °C.
 **Il compromesso:** il Koningsdag (la Festa del Re), martedì 27 aprile, riempie Amsterdam, e i giorni di punta del Keukenhof vanno esauriti.
 
-**Siviglia.** La città ha scelto mercoledì 14 aprile, il mercoledì di Feria, come festa locale del 2027. Con il formato da lunedì a domenica che Siviglia ha ripristinato nel 2025, la Feria de Abril cade quindi dal 13 al 18 aprile e si apre con l'alumbrado nella notte di lunedì 12 aprile, quando le luci si accendono a mezzanotte (verifica prima di prenotare), con pomeriggi intorno ai 23 °C.
+**Siviglia.** Il comune ha proposto mercoledì 14 aprile, il mercoledì di Feria, come festa locale del 2027 (secondo la stampa; l'elenco definitivo lo pubblica la Junta de Andalucía). Con il formato da lunedì a domenica che Siviglia ha ripristinato nel 2025, la Feria de Abril cade quindi dal 13 al 18 aprile e si apre con l'alumbrado nella notte di lunedì 12 aprile, quando le luci si accendono a mezzanotte (verifica prima di prenotare), con pomeriggi intorno ai 23 °C.
 **Il compromesso:** quasi tutte le casetas sono private, e i prezzi nella settimana della Feria sono molto più alti di un aprile normale.
 
 **Thailandia.** Da martedì 13 a giovedì 15 aprile il Songkran trasforma il Paese in una battaglia d'acqua, dal fossato di Chiang Mai a Silom Road a Bangkok, mentre le isole del Golfo sono nel loro periodo più secco.
@@ -520,7 +520,7 @@ Per tutto il 2027, perché il 25 luglio, festa di San Giacomo, cade di domenica.
 
 ### Qual è il mese più economico per viaggiare nel 2027?
 
-Per i city break nell'emisfero nord, gennaio dopo l'Epifania, quando i prezzi delle feste crollano. Per le spiagge europee, settembre dopo la prima settimana, quando le vacanze scolastiche sono finite e il mare è alla temperatura più alta dell'anno. L'altro mese conveniente è novembre, fuori dalla settimana del Thanksgiving americano.
+Per i city break nell'emisfero nord, gennaio dopo l'Epifania, quando i prezzi delle feste crollano. Per le spiagge europee, settembre dopo la prima settimana offre il miglior rapporto qualità-prezzo, con le vacanze scolastiche finite e il mare alla temperatura più alta dell'anno, anche se in Spagna i prezzi degli hotel continuano a scendere a ottobre e toccano il minimo a gennaio e febbraio. L'altro mese conveniente è novembre, fuori dalla settimana del Thanksgiving americano. I mesi più economici in Spagna, regione per regione e con i prezzi ufficiali degli hotel, sono nella nostra [guida alla bassa stagione 2027](/blog/low-season-travel).
 
 ## Fonti
 
