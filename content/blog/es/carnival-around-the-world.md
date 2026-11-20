@@ -4,7 +4,7 @@ slug: "carnival-around-the-world"
 description: "El Martes de Carnaval de 2027 cae el 9 de febrero y el Miércoles de Ceniza, el 10. Aquí tienes 17 carnavales con fechas de 2027 verificadas en la fuente cuando ya están publicadas, del Sambódromo de Río y el J'Ouvert de Trinidad a Venecia, Binche y Basilea, con entradas, clima, normas de seguridad y contrapartidas sinceras."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-10-05"
+updatedAt: "2026-11-20"
 category: "Seasonal Travel"
 tags: ["estacional", "viajes de invierno", "mejores destinos", "planificación de viajes"]
 image: "/images/blog/carnival-around-the-world.jpg"
@@ -150,7 +150,7 @@ En febrero la media es de 13 °C de máxima y 6 °C de mínima (Météo-France 1
 
 Santa Cruz de Tenerife ha retrasado dos semanas su carnaval de calle de 2027, a los días del 19 al 28 de febrero (después del Miércoles de Ceniza), porque su recinto ferial estaba reservado hasta el 6 de enero. El programa incluye la gala de elección de la Reina el miércoles 17 de febrero a las 21:30, la cabalgata inaugural el viernes 19 a las 19:30, el Carnaval de Día el domingo 21 y el sábado 27, el Coso Apoteósico el martes 23 a las 16:00 (festivo local) y los fuegos artificiales de clausura el domingo 28 a las 20:00. Las entradas de las galas suelen agotarse rápido; los desfiles y las fiestas de calle son gratis. La línea 20 de guagua (autobús) une el aeropuerto de Tenerife Norte con Santa Cruz por 2,65 €. En febrero la media es de 21 °C de máxima y 15 °C de mínima (AEMET 1981–2010, vía la OMM).
 
-Cádiz mantiene sus fechas de siempre, del 4 al 14 de febrero de 2027: del jueves anterior al Miércoles de Ceniza al domingo siguiente. Su corazón es el concurso oficial (COAC) en el Gran Teatro Falla, donde *coros*, *comparsas*, *chirigotas* y *cuartetos* compiten con coplas satíricas; Planomato sitúa la final de adultos el viernes 5 de febrero. Después, las calles se llenan de disfraces caseros. La línea C-1 de Renfe va del aeropuerto de Jerez a Cádiz en unos 57 minutos. En febrero la media es de 17 °C de máxima y 11 °C de mínima (AEMET 1981–2010, vía la OMM).
+Cádiz mantiene sus fechas de siempre, del 4 al 14 de febrero de 2027: del jueves anterior al Miércoles de Ceniza al domingo siguiente. Su corazón es el concurso oficial (COAC) en el Gran Teatro Falla, donde *coros*, *comparsas*, *chirigotas* y *cuartetos* compiten con coplas satíricas; según el calendario que el Ayuntamiento publicó el 8 de noviembre de 2026, la final de adultos es el viernes 5 de febrero. Después, las calles se llenan de disfraces caseros. La línea C-1 de Renfe va del aeropuerto de Jerez a Cádiz en unos 57 minutos. En febrero la media es de 17 °C de máxima y 11 °C de mínima (AEMET 1981–2010, vía la OMM). Las fechas de 2027 de todos los grandes carnavales de España están en nuestra [guía del carnaval en España](/blog/carnival-in-spain).
 
 **La contrapartida:** las fechas tardías de Tenerife impiden combinarlo con los carnavales del 9 de febrero, y el humor de Cádiz vive en letras en español cantadas a toda velocidad.
 
@@ -288,7 +288,7 @@ Cobran el Sambódromo de Río, los corsos y las batallas de flores de Niza, los 
 - [Aena: aeropuerto de Tenerife Norte en autobús](https://www.aena.es/en/tenerife-norte-ciudad-de-la-laguna/how-to-get-here/bus.html)
 - [Ayuntamiento de Cádiz: Carnaval](https://institucional.cadiz.es/area/Carnaval/103)
 - [Ayuntamiento de Cádiz: El Carnaval en la Calle](https://institucional.cadiz.es/area/El-Carnaval-en-la-Calle/192)
-- [Planomato: fechas del COAC 2027 en Cádiz](https://planomato.com/es/jerez-de-la-frontera/n/carnaval-cadiz-cartel-fechas-coac)
+- [Ayuntamiento de Cádiz: calendario del COAC 2027](https://transparencia.cadiz.es/el-coro-un-coro-increible-abrira-el-coac-2027-el-proximo-8-de-enero/)
 - [Aena: aeropuerto de Jerez en tren](https://www.aena.es/en/jerez/getting-there/trains.html)
 - [koeln.de: cuándo es el carnaval](https://www.koeln.de/karneval/wann-ist-karneval/)
 - [koeln.de: Rosenmontagszug](https://www.koeln.de/karneval/rosenmontagszug-koeln)

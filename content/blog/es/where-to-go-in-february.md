@@ -63,7 +63,7 @@ Febrero es el motivo para ir a Tanzania y no a Kenia. Las manadas de ñus se con
 El festival de la nieve de Sapporo llena principios de febrero con escultura monumental de hielo, y la nieve sigue a plena profundidad en Niseko, Furano y las estaciones de Tohoku. Añade los monos de Jigokudani, el hielo a la deriva de la costa de Ojotsk y pueblos de onsen bajo un metro de nieve: Japón hace el invierno mejor que nadie.
 
 **Coste real:** $120–180/día; la semana del festival en Sapporo es la excepción y se comporta como cualquier fiesta grande.
-**La contrapartida:** principios de febrero es la ventana más concurrida de la temporada japonesa y se solapa con los viajes de Año Nuevo Lunar de toda Asia. De mediados a finales de mes hay la misma nieve con bastante menos gente.
+**La contrapartida:** principios de febrero es la ventana más concurrida de la temporada japonesa y se solapa con los viajes de Año Nuevo Lunar de toda Asia. De mediados a finales de mes hay la misma nieve con bastante menos gente. Para los Alpes y las semanas de vacaciones escolares de febrero que conviene evitar allí, consulta [dónde esquiar este invierno](/blog/where-to-ski-this-winter).
 
 ## 4. Islandia — Auroras y luz suficiente para aprovecharlas
 

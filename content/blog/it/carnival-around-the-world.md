@@ -4,7 +4,7 @@ slug: "carnival-around-the-world"
 description: "Il Martedì grasso 2027 cade il 9 febbraio e il Mercoledì delle Ceneri il 10. Ecco 17 carnevali con le date 2027 verificate alla fonte quando già pubblicate, dal Sambodromo di Rio e il J'Ouvert di Trinidad a Venezia, Binche e Basilea, con biglietti, meteo, regole di sicurezza e compromessi onesti."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-10-05"
+updatedAt: "2026-11-20"
 category: "Seasonal Travel"
 tags: ["stagionale", "viaggi invernali", "migliori destinazioni", "pianificazione viaggi"]
 image: "/images/blog/carnival-around-the-world.jpg"
@@ -150,7 +150,7 @@ A febbraio la media è di 13 °C di massima e 6 °C di minima (Météo-France 19
 
 Santa Cruz de Tenerife ha spostato di due settimane il suo carnevale di strada 2027, al 19–28 febbraio (dopo il Mercoledì delle Ceneri), perché il quartiere fieristico era prenotato fino al 6 gennaio. Il programma prevede la gala di elezione della Regina mercoledì 17 febbraio alle 21:30, la cabalgata inaugurale venerdì 19 alle 19:30, il Carnaval de Día domenica 21 e sabato 27, la sfilata del Coso Apoteósico martedì 23 alle 16:00 (festa locale) e i fuochi d'artificio di chiusura domenica 28 alle 20:00. Le gala di solito vanno esaurite in fretta; sfilate e feste di strada sono gratuite. L'autobus 20 collega l'aeroporto di Tenerife Nord con Santa Cruz per 2,65 €. A febbraio la media è di 21 °C di massima e 15 °C di minima (AEMET 1981–2010 tramite l'OMM).
 
-Cadice mantiene le date consuete, dal 4 al 14 febbraio 2027: dal giovedì prima del Mercoledì delle Ceneri alla domenica successiva. Il cuore è il concorso ufficiale (COAC) al Gran Teatro Falla, dove *coros*, *comparsas*, *chirigotas* e *cuartetos* gareggiano con canzoni satiriche; Planomato colloca la finale per adulti venerdì 5 febbraio. Poi le strade si riempiono di costumi fatti in casa. La linea C-1 di Renfe va dall'aeroporto di Jerez a Cadice in circa 57 minuti. A febbraio la media è di 17 °C di massima e 11 °C di minima (AEMET 1981–2010 tramite l'OMM).
+Cadice mantiene le date consuete, dal 4 al 14 febbraio 2027: dal giovedì prima del Mercoledì delle Ceneri alla domenica successiva. Il cuore è il concorso ufficiale (COAC) al Gran Teatro Falla, dove *coros*, *comparsas*, *chirigotas* e *cuartetos* gareggiano con canzoni satiriche; secondo il calendario pubblicato dal comune l'8 novembre 2026, la finale per adulti è venerdì 5 febbraio. Poi le strade si riempiono di costumi fatti in casa. La linea C-1 di Renfe va dall'aeroporto di Jerez a Cadice in circa 57 minuti. A febbraio la media è di 17 °C di massima e 11 °C di minima (AEMET 1981–2010 tramite l'OMM). Le date 2027 di tutti i grandi carnevali spagnoli sono nella nostra [guida al Carnevale in Spagna](/blog/carnival-in-spain).
 
 **Il compromesso:** le date tardive di Tenerife non si combinano con i carnevali del 9 febbraio, e l'umorismo di Cadice vive in testi cantati in spagnolo a gran velocità.
 
@@ -288,7 +288,7 @@ Si paga per il Sambodromo di Rio, i corsi e le battaglie di fiori di Nizza, i co
 - [Aena: aeroporto di Tenerife Nord in autobus](https://www.aena.es/en/tenerife-norte-ciudad-de-la-laguna/how-to-get-here/bus.html)
 - [Ayuntamiento de Cádiz: Carnaval](https://institucional.cadiz.es/area/Carnaval/103)
 - [Ayuntamiento de Cádiz: El Carnaval en la Calle](https://institucional.cadiz.es/area/El-Carnaval-en-la-Calle/192)
-- [Planomato: date del COAC 2027 a Cadice](https://planomato.com/es/jerez-de-la-frontera/n/carnaval-cadiz-cartel-fechas-coac)
+- [Ayuntamiento de Cádiz: calendario del COAC 2027](https://transparencia.cadiz.es/el-coro-un-coro-increible-abrira-el-coac-2027-el-proximo-8-de-enero/)
 - [Aena: aeroporto di Jerez in treno](https://www.aena.es/en/jerez/getting-there/trains.html)
 - [koeln.de: quando è carnevale](https://www.koeln.de/karneval/wann-ist-karneval/)
 - [koeln.de: Rosenmontagszug](https://www.koeln.de/karneval/rosenmontagszug-koeln)

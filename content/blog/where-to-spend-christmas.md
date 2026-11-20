@@ -4,7 +4,7 @@ slug: "where-to-spend-christmas"
 description: "Fourteen places for 20–27 December 2026, from Rovaniemi and Québec City to Sydney and Oaxaca, with the event dates organisers have published, national weather normals, what closes on 24–26 December and what to book first."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-10-05"
+updatedAt: "2026-11-20"
 category: "Seasonal Travel"
 tags: ["seasonal", "winter travel", "best destinations", "trip planning"]
 image: "/images/blog/where-to-spend-christmas.jpg"
@@ -30,7 +30,7 @@ Weather figures are climate normals, mostly for 1991–2020, so they describe a 
 | Destination | Why at Christmas | Key 2026/27 date(s) | Dec high / low | Cost marker and vibe |
 |---|---|---|---|---|
 | Rovaniemi, Finland | Santa Claus Village, snow nearly every year | Santa's send-off 23 Dec (2026 details pending) | −4.9 / −10.6 °C (23 / 13 °F) | Santa photo €40; families |
-| Zermatt, Switzerland | Car-free village, skiing to 3,883 m | Lift season 1 Nov 2026 – 3 May 2027 | 1.5 / −6.3 °C (35 / 21 °F) | Day pass from CHF 89 (€96); skiers |
+| Zermatt, Switzerland | Car-free village, skiing to 3,883 m | Lift season 1 Nov 2026 – 2 May 2027 | 1.5 / −6.3 °C (35 / 21 °F) | Day pass from CHF 89 (€96); skiers |
 | Québec City, Canada | Old Québec under snow | German market 19 Nov – 23 Dec | −3.3 / −11.4 °C (26 / 11 °F) | Markets free; French-speaking |
 | Sapporo, Japan | Deep snow, street illuminations | Odori lights and Munich market to 25 Dec | 2.0 / −4.0 °C (36 / 25 °F) | TV Tower ¥1,200 (€7); 25 Dec is a workday |
 | New York, USA | The tree, the rink, the Rockettes | Tree lit 2 Dec; Spectacular to 4 Jan | 6.8 / 1.0 °C (44 / 34 °F) | Rockettes from $55 (€49); crowds |
@@ -60,13 +60,13 @@ The airport is 3 km from the village, and VR's Santa Claus Express sleeper runs 
 
 ## 2. Zermatt, Switzerland — car-free and snow-sure
 
-Zermatt solves the snow question with altitude. Its pistes climb to 3,883 m and the lift company sells skiing 365 days a year. The 2026/27 winter season runs from 1 November 2026 to 3 May 2027, with the Sunnegga-Rothorn and Gornergrat areas opening on 28 November, so Christmas week sits well inside it.
+Zermatt solves the snow question with altitude. Its pistes climb to 3,883 m and the lift company sells skiing 365 days a year. The 2026/27 winter season runs from 1 November 2026 to 2 May 2027, with the Sunnegga-Rothorn and Gornergrat areas opening on 28 November, so Christmas week sits well inside it.
 
 MeteoSwiss normals for the Zermatt station (1,638 m, 1991–2020) give December highs of 1.5 °C (35 °F), lows of −6.3 °C (21 °F), frost on 30 nights out of 31 and 82.6 hours of sunshine.
 
 The village is car-free. Drivers park at Täsch and take the shuttle train, which leaves every 20 minutes and takes 12; direct trains run every half hour, about three and a half hours from Zurich Airport and four from Geneva or Basel.
 
-A one-day Zermatt lift pass starts at CHF 89 (about €96), but that floor price applies only from 1 to 27 November 2026 and from 19 April 2027. Check hotel terms early: Mont Cervin Palace's conditions let it bill 100% of the booked services if you leave early, and it sets cancellation fees by travel period and length of stay. If you are staying on for New Year, our guide to [New Year's Eve in the snow](/blog/new-years-eve-in-the-snow) picks up from here.
+A one-day Zermatt lift pass starts at CHF 89 (about €96), but over Christmas and New Year, from 19 December 2026 to 3 January 2027, the starting price is CHF 100. Check hotel terms early: Mont Cervin Palace's conditions let it bill 100% of the booked services if you leave early, and it sets cancellation fees by travel period and length of stay. If you are staying on for New Year, our guide to [New Year's Eve in the snow](/blog/new-years-eve-in-the-snow) picks up from here.
 
 **The trade-off:** snow certainty costs money. The CHF 89 floor price does not apply in Christmas week, and strict hotel terms leave little room to change plans.
 

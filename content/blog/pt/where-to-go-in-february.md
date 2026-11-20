@@ -63,7 +63,7 @@ Fevereiro é o motivo para ir à Tanzânia e não ao Quênia. As manadas de gnus
 O festival da neve de Sapporo enche o início de fevereiro com escultura monumental de gelo, e a neve continua na profundidade máxima em Niseko, Furano e nas estações de esqui de Tohoku. Junte os macacos de Jigokudani, o gelo à deriva na costa de Okhotsk e as vilas de onsen sob um metro de neve: o Japão faz o inverno melhor do que ninguém.
 
 **Custos reais:** $120–180/dia; a semana do festival em Sapporo é a exceção e se comporta como qualquer festa grande.
-**A contrapartida:** o início de fevereiro é a janela mais concorrida da temporada de esqui japonesa e se sobrepõe às viagens de Ano Novo Lunar de toda a Ásia. De meados a fim do mês há a mesma neve com bastante menos gente.
+**A contrapartida:** o início de fevereiro é a janela mais concorrida da temporada de esqui japonesa e se sobrepõe às viagens de Ano Novo Lunar de toda a Ásia. De meados a fim do mês há a mesma neve com bastante menos gente. Para os Alpes e as semanas de férias escolares de fevereiro que convém evitar por lá, veja [onde esquiar neste inverno](/blog/where-to-ski-this-winter).
 
 ## 4. Islândia — Auroras, e luz suficiente para aproveitá-las
 

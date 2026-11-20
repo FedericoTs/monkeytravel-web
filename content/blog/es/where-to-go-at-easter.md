@@ -46,7 +46,7 @@ Cada fecha, hora y precio de esta guía se comprobó el 7 de noviembre de 2026 e
 
 ## ¿Cuándo es la Semana Santa de 2027?
 
-El Domingo de Pascua es el 28 de marzo de 2027 ([USCCB](https://bible.usccb.org/bible/readings/032827.cfm)), ocho días antes que en 2026. El Domingo de Ramos es el 21 de marzo, el Jueves Santo el 25, el Viernes Santo el 26 y el Lunes de Pascua el 29, las fechas que recogen las listas de festivos del Reino Unido y de España que verás más abajo. El Viernes de Dolores, el viernes anterior al Domingo de Ramos, es el 19 de marzo. La Cuaresma empieza el Miércoles de Ceniza, 10 de febrero, el día después del martes de Carnaval; nuestra [guía del Carnaval 2027](/blog/carnival-around-the-world) tiene las fechas ciudad por ciudad.
+El Domingo de Pascua es el 28 de marzo de 2027 ([USCCB](https://bible.usccb.org/bible/readings/032827.cfm)), ocho días antes que en 2026. El Domingo de Ramos es el 21 de marzo, el Jueves Santo el 25, el Viernes Santo el 26 y el Lunes de Pascua el 29, las fechas que recogen las listas de festivos del Reino Unido y de España que verás más abajo. El Viernes de Dolores, el viernes anterior al Domingo de Ramos, es el 19 de marzo. La Cuaresma empieza el Miércoles de Ceniza, 10 de febrero, el día después del martes de Carnaval; nuestra [guía del Carnaval 2027](/blog/carnival-around-the-world) tiene las fechas ciudad por ciudad, y la [guía del carnaval en España](/blog/carnival-in-spain), las de cada carnaval español.
 
 La Pascua ortodoxa es el domingo 2 de mayo de 2027 ([Iglesia Ortodoxa en América](https://www.oca.org/saints/lives/2027/05/02)), así que la Semana Santa griega va del 26 de abril al 1 de mayo.
 

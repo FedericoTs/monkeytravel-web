@@ -46,7 +46,7 @@ Cada data, horário e preço deste guia foi conferido em 7 de novembro de 2026 n
 
 ## Quando é a Páscoa de 2027?
 
-O Domingo de Páscoa é em 28 de março de 2027 ([USCCB](https://bible.usccb.org/bible/readings/032827.cfm)), oito dias antes que em 2026. O Domingo de Ramos é em 21 de março, a Quinta-Feira Santa em 25, a Sexta-Feira Santa em 26 e a Segunda-Feira de Páscoa em 29 de março, as datas das listas de feriados do Reino Unido e da Espanha mais abaixo. O Viernes de Dolores (Sexta-Feira das Dores), a sexta-feira antes do Domingo de Ramos, é em 19 de março. A Quaresma começa na Quarta-Feira de Cinzas, 10 de fevereiro, o dia seguinte à terça-feira de Carnaval; nosso [guia do Carnaval 2027](/blog/carnival-around-the-world) traz as datas cidade por cidade.
+O Domingo de Páscoa é em 28 de março de 2027 ([USCCB](https://bible.usccb.org/bible/readings/032827.cfm)), oito dias antes que em 2026. O Domingo de Ramos é em 21 de março, a Quinta-Feira Santa em 25, a Sexta-Feira Santa em 26 e a Segunda-Feira de Páscoa em 29 de março, as datas das listas de feriados do Reino Unido e da Espanha mais abaixo. O Viernes de Dolores (Sexta-Feira das Dores), a sexta-feira antes do Domingo de Ramos, é em 19 de março. A Quaresma começa na Quarta-Feira de Cinzas, 10 de fevereiro, o dia seguinte à terça-feira de Carnaval; nosso [guia do Carnaval 2027](/blog/carnival-around-the-world) traz as datas cidade por cidade, e o [guia do Carnaval na Espanha](/blog/carnival-in-spain), as datas espanholas.
 
 A Páscoa ortodoxa é no domingo, 2 de maio de 2027 ([Igreja Ortodoxa na América](https://www.oca.org/saints/lives/2027/05/02)), então a Semana Santa grega vai de 26 de abril a 1º de maio.
 

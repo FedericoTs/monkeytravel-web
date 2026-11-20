@@ -46,7 +46,7 @@ Ogni data, orario e prezzo di questa guida è stato verificato il 7 novembre 202
 
 ## Quando è Pasqua 2027?
 
-La domenica di Pasqua è il 28 marzo 2027 ([USCCB](https://bible.usccb.org/bible/readings/032827.cfm)), otto giorni prima che nel 2026. La Domenica delle Palme è il 21 marzo, il Giovedì Santo il 25, il Venerdì Santo il 26 e il Lunedì dell'Angelo (Pasquetta) il 29, le date che trovi più sotto nei calendari dei festivi di Regno Unito e Spagna. Il Viernes de Dolores, il venerdì che precede la Domenica delle Palme, è il 19 marzo. La Quaresima comincia il Mercoledì delle Ceneri, 10 febbraio, il giorno dopo il martedì grasso; la nostra [guida al Carnevale 2027](/blog/carnival-around-the-world) ha le date città per città.
+La domenica di Pasqua è il 28 marzo 2027 ([USCCB](https://bible.usccb.org/bible/readings/032827.cfm)), otto giorni prima che nel 2026. La Domenica delle Palme è il 21 marzo, il Giovedì Santo il 25, il Venerdì Santo il 26 e il Lunedì dell'Angelo (Pasquetta) il 29, le date che trovi più sotto nei calendari dei festivi di Regno Unito e Spagna. Il Viernes de Dolores, il venerdì che precede la Domenica delle Palme, è il 19 marzo. La Quaresima comincia il Mercoledì delle Ceneri, 10 febbraio, il giorno dopo il martedì grasso; la nostra [guida al Carnevale 2027](/blog/carnival-around-the-world) ha le date città per città, e quella sul [Carnevale in Spagna](/blog/carnival-in-spain) le date spagnole.
 
 La Pasqua ortodossa è domenica 2 maggio 2027 ([Chiesa ortodossa in America](https://www.oca.org/saints/lives/2027/05/02)), quindi la Settimana Santa greca va dal 26 aprile al 1° maggio.
 

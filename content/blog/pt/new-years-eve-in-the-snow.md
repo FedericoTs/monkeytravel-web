@@ -4,7 +4,7 @@ slug: "new-years-eve-in-the-snow"
 description: "15 lugares com neve para o Réveillon 2027, conferidos nas páginas oficiais: shows de esqui com tochas em Méribel, St. Anton e Alta Badia, cabanas para ver a aurora na Lapônia, um refúgio nas Dolomitas a 2.752 m, trenó à noite, preços de passe 2026/27 e regras de segurança."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-10-05"
+updatedAt: "2026-11-20"
 category: "Seasonal Travel"
 tags: ["sazonal", "viagem de inverno", "viagem na natureza", "melhores destinos"]
 image: "/images/blog/new-years-eve-in-the-snow.jpg"
@@ -23,7 +23,7 @@ Este guia é para quem quer passar o Réveillon 2027, a virada de 2026 para 2027
 
 Todas as datas, preços e regras foram conferidos em 4 de outubro de 2026 na página oficial da estação, da operadora ou do órgão responsável; os números da imprensa estão sinalizados. Quando a programação de Ano-Novo deste ano não foi publicada, avisamos e damos a da temporada passada. Os horários de luz do dia são cálculos do Observatório Naval dos Estados Unidos (USNO) para 31 de dezembro de 2026, e as conversões usam as taxas de câmbio do Banco Central Europeu de 2 de outubro de 2026.
 
-Para virar o ano numa cidade, veja [onde passar o Réveillon](/blog/where-to-spend-new-years-eve); para a semana anterior, [onde passar o Natal](/blog/where-to-spend-christmas).
+Para virar o ano numa cidade, veja [onde passar o Réveillon](/blog/where-to-spend-new-years-eve); para a semana anterior, [onde passar o Natal](/blog/where-to-spend-christmas). Para a temporada 2026-2027 inteira, das datas de abertura às semanas mais baratas, veja [onde esquiar neste inverno](/blog/where-to-ski-this-winter).
 
 | Destino | Por que nessa época | Data(s)-chave 2026/27 | Clima típico | Custo aproximado / estilo |
 |---|---|---|---|---|
@@ -69,7 +69,7 @@ St. Anton é parada do Railjet, com sete trens diretos por dia de Viena e de Zur
 
 ## 3. Zermatt — primeiro a neve confiável, depois a festa
 
-Zermatt é a escolha quando a cobertura de neve importa mais que a programação. A temporada 2026/27 começa em 1º de novembro, as áreas de Sunnegga-Rothorn e Gornergrat abrem em 28 de novembro e dá para esquiar até 3 de maio de 2027, com teleféricos que chegam a 3.883 m. Os preços são dinâmicos: o dia a partir de CHF 89 (cerca de 96 €), seis dias a partir de CHF 384 (cerca de 414 €), ou CHF 432 (cerca de 466 €) incluindo Cervinia, com as tarifas mais baixas em novembro.
+Zermatt é a escolha quando a cobertura de neve importa mais que a programação. A temporada 2026/27 começa em 1º de novembro, as áreas de Sunnegga-Rothorn e Gornergrat abrem em 28 de novembro e dá para esquiar até 2 de maio de 2027, com teleféricos que chegam a 3.883 m. Os preços são dinâmicos: o dia a partir de CHF 89 (cerca de 96 €), seis dias a partir de CHF 384 (cerca de 414 €), ou CHF 432 (cerca de 466 €) incluindo Cervinia, com as tarifas mais baixas em novembro.
 
 O Réveillon aqui é por sua conta: em 4 de outubro de 2026, o calendário de eventos da Zermatt Tourism não trazia nada para 31 de dezembro, então monte a noite em torno de uma reserva em restaurante. Foi também no Valais, em Crans-Montana, que um incêndio num bar matou 41 pessoas na virada para 2026; desde 1º de abril de 2026, as regras suíças proíbem artefatos pirotécnicos, como as velas de faísca de garrafa, em ambientes fechados abertos ao público. Em 31 de dezembro o sol nasce às 08:11 e se põe às 16:53 (USNO).
 

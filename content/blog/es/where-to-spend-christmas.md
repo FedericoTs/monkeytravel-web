@@ -4,7 +4,7 @@ slug: "where-to-spend-christmas"
 description: "Catorce destinos para el 20–27 de diciembre de 2026, de Rovaniemi y la ciudad de Quebec a Sídney y Oaxaca, con las fechas de eventos que han publicado los organizadores, las normales climatológicas de cada servicio meteorológico nacional, qué cierra del 24 al 26 de diciembre y qué reservar primero."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-10-05"
+updatedAt: "2026-11-20"
 category: "Seasonal Travel"
 tags: ["estacional", "viajes de invierno", "mejores destinos", "planificación de viajes"]
 image: "/images/blog/where-to-spend-christmas.jpg"
@@ -30,7 +30,7 @@ Los datos de clima son normales climatológicas, casi todas del periodo 1991–2
 | Destino | Por qué en Navidad | Fecha(s) clave 2026/27 | Máx. / mín. en diciembre | Precio de referencia y ambiente |
 |---|---|---|---|---|
 | Rovaniemi, Finlandia | Santa Claus Village, nieve casi todos los años | Despedida de Papá Noel 23 dic (detalles de 2026 pendientes) | −4,9 / −10,6 °C | Foto con Papá Noel 40 €; familias |
-| Zermatt, Suiza | Pueblo sin coches, esquí hasta 3.883 m | Temporada de remontes 1 nov 2026 – 3 may 2027 | 1,5 / −6,3 °C | Forfait de un día desde 89 CHF (96 €); esquiadores |
+| Zermatt, Suiza | Pueblo sin coches, esquí hasta 3.883 m | Temporada de remontes 1 nov 2026 – 2 may 2027 | 1,5 / −6,3 °C | Forfait de un día desde 89 CHF (96 €); esquiadores |
 | Ciudad de Quebec, Canadá | El Viejo Quebec bajo la nieve | Mercado alemán 19 nov – 23 dic | −3,3 / −11,4 °C | Mercados gratis; francófona |
 | Sapporo, Japón | Nieve abundante, calles iluminadas | Luces de Odori y mercado de Múnich hasta el 25 dic | 2,0 / −4,0 °C | TV Tower 1.200 ¥ (7 €); el 25 dic es laborable |
 | Nueva York, EE. UU. | El árbol, la pista de hielo, las Rockettes | Encendido del árbol 2 dic; Spectacular hasta el 4 ene | 6,8 / 1,0 °C | Rockettes desde 55 $ (49 €); multitudes |
@@ -60,13 +60,13 @@ El aeropuerto está a 3 km de la aldea, y el tren nocturno Santa Claus Express d
 
 ## 2. Zermatt, Suiza — sin coches y con nieve asegurada
 
-Zermatt resuelve la cuestión de la nieve con altitud. Sus pistas suben hasta 3.883 m y la empresa de remontes vende esquí los 365 días del año. La temporada de invierno 2026/27 va del 1 de noviembre de 2026 al 3 de mayo de 2027, y las zonas de Sunnegga-Rothorn y Gornergrat abren el 28 de noviembre, así que la semana de Navidad queda de lleno dentro.
+Zermatt resuelve la cuestión de la nieve con altitud. Sus pistas suben hasta 3.883 m y la empresa de remontes vende esquí los 365 días del año. La temporada de invierno 2026/27 va del 1 de noviembre de 2026 al 2 de mayo de 2027, y las zonas de Sunnegga-Rothorn y Gornergrat abren el 28 de noviembre, así que la semana de Navidad queda de lleno dentro.
 
 Las normales de MeteoSwiss para la estación de Zermatt (1.638 m, 1991–2020) dan para diciembre máximas de 1,5 °C, mínimas de −6,3 °C, helada en 30 de las 31 noches y 82,6 horas de sol.
 
 Zermatt es un pueblo sin coches. Quien llega conduciendo deja el coche en Täsch y toma el tren lanzadera, que sale cada 20 minutos y tarda 12; los trenes directos salen cada media hora y tardan unas tres horas y media desde el aeropuerto de Zúrich y cuatro desde Ginebra o Basilea.
 
-El forfait (pase de remontes) de un día en Zermatt cuesta desde 89 CHF (unos 96 €), pero ese precio mínimo solo se aplica del 1 al 27 de noviembre de 2026 y a partir del 19 de abril de 2027. Revisa pronto las condiciones del hotel: las del Mont Cervin Palace le permiten cobrar el 100 % de los servicios reservados si te vas antes, y el hotel fija los gastos de cancelación según el periodo del viaje y la duración de la estancia. Si te quedas para Nochevieja, nuestra guía de [Nochevieja en la nieve](/blog/new-years-eve-in-the-snow) sigue desde aquí.
+El forfait (pase de remontes) de un día en Zermatt cuesta desde 89 CHF (unos 96 €), pero en Navidad y Fin de Año, del 19 de diciembre de 2026 al 3 de enero de 2027, el precio de partida es de 100 CHF. Revisa pronto las condiciones del hotel: las del Mont Cervin Palace le permiten cobrar el 100 % de los servicios reservados si te vas antes, y el hotel fija los gastos de cancelación según el periodo del viaje y la duración de la estancia. Si te quedas para Nochevieja, nuestra guía de [Nochevieja en la nieve](/blog/new-years-eve-in-the-snow) sigue desde aquí.
 
 **La contrapartida:** la nieve segura se paga. El precio mínimo de 89 CHF no se aplica en la semana de Navidad, y unas condiciones hoteleras estrictas dejan poco margen para cambiar de planes.
 

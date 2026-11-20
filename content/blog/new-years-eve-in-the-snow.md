@@ -4,7 +4,7 @@ slug: "new-years-eve-in-the-snow"
 description: "15 snowy places for New Year's Eve 2026, checked on official pages: torchlit ski shows in Méribel, St. Anton and Alta Badia, Lapland aurora cabins, a Dolomites hut at 2,752 m, night sledging, 2026/27 lift prices and safety rules."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-10-05"
+updatedAt: "2026-11-20"
 category: "Seasonal Travel"
 tags: ["seasonal", "winter travel", "nature travel", "best destinations"]
 image: "/images/blog/new-years-eve-in-the-snow.jpg"
@@ -23,7 +23,7 @@ This guide is for anyone who wants 31 December somewhere cold and white: a resor
 
 Every date, price and rule was read on the resort's, operator's or authority's own page on 4 October 2026; press figures are marked. Where a 2026 New Year programme isn't published, we say so and give last season's. Daylight times are US Naval Observatory (USNO) calculations for 31 December 2026, and conversions use European Central Bank rates of 2 October 2026.
 
-For a city at midnight, see [where to spend New Year's Eve](/blog/where-to-spend-new-years-eve); for the week before, [where to spend Christmas](/blog/where-to-spend-christmas).
+For a city at midnight, see [where to spend New Year's Eve](/blog/where-to-spend-new-years-eve); for the week before, [where to spend Christmas](/blog/where-to-spend-christmas). For the whole 2026-27 season, from opening dates to the cheapest weeks, see [where to ski this winter](/blog/where-to-ski-this-winter).
 
 | Destination | Why then | Key 2026/27 date(s) | Typical weather | Rough cost / vibe |
 |---|---|---|---|---|
@@ -69,7 +69,7 @@ St. Anton is a Railjet stop with seven direct trains a day from Vienna and from 
 
 ## 3. Zermatt — snow security first, party second
 
-Zermatt is the pick when snow cover matters more than a programme. The 2026/27 season starts on 1 November, the Sunnegga-Rothorn and Gornergrat areas follow on 28 November, and skiing runs to 3 May 2027, with lifts reaching 3,883 m. Prices are dynamic: a day from CHF 89 (about €96), six days from CHF 384 (about €414), or CHF 432 (about €466) including Cervinia, with the lowest rates in November.
+Zermatt is the pick when snow cover matters more than a programme. The 2026/27 season starts on 1 November, the Sunnegga-Rothorn and Gornergrat areas follow on 28 November, and skiing runs to 2 May 2027, with lifts reaching 3,883 m. Prices are dynamic: a day from CHF 89 (about €96), six days from CHF 384 (about €414), or CHF 432 (about €466) including Cervinia, with the lowest rates in November.
 
 New Year's Eve is unscripted: Zermatt Tourism's events calendar listed nothing for 31 December on 4 October 2026, so build the night around a restaurant booking. Valais is also where a bar fire in Crans-Montana killed 41 people on the night of 31 December 2025 to 1 January 2026; since 1 April 2026 Swiss rules ban pyrotechnics such as bottle sparklers in indoor venues open to the public. The sun is up from 08:11 to 16:53 on 31 December (USNO).
 
