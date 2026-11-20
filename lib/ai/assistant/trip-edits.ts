@@ -11,6 +11,7 @@
 
 import type { AssistTurn } from "./edit-prompt";
 import type { DayEdit } from "./edit-validation";
+import type { AssistantAllowance } from "./allowance";
 import { assistTrip, type Corrected } from "./engine";
 import { lengthUnchangedNote, ownerAddsDaysReply, waitingKeptNote } from "@/lib/ai/assistant/honesty";
 import type { DisplayCurrency } from "@/lib/ai/assistant/plan-costs";
@@ -204,6 +205,8 @@ export async function proposeTripEdits(input: {
    * on it ("add the others too") keeps it, and one that turns it down undoes it.
    */
   waiting?: WaitingChange;
+  /** The traveller's own assistant messages, for questions about the assistant itself. */
+  allowance?: AssistantAllowance;
 }): Promise<TripEditProposal | null> {
   const { canAddDays, waiting, ...ask } = input;
   const current = input.days.length;

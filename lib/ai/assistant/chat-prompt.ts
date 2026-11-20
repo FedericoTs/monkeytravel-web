@@ -2,6 +2,7 @@ import type { SupportedLanguage } from "@/lib/ai/language";
 import { chatLanguageInstruction, replyLanguageRule } from "@/lib/ai/assistant/chat-language";
 import type { AssistantMessage } from "@/lib/ai/assistant/thread";
 import { ACTIVITY_TYPES } from "@/lib/trip/activity-type";
+import { allowanceRule, type AssistantAllowance } from "@/lib/ai/assistant/allowance";
 import type { ItineraryDay, StructuredAssistantResponse } from "@/types";
 
 /** What the trip assistant's chat model is told about the trip. */
@@ -56,7 +57,7 @@ export function describeChange(action: NonNullable<StructuredAssistantResponse["
 
 
 // Build system prompt for structured responses
-export function buildSystemPrompt(tripContext: TripContext): string {
+export function buildSystemPrompt(tripContext: TripContext, allowance?: AssistantAllowance): string {
   return `You are MonkeyTravel's AI assistant - concise, helpful, and action-oriented.
 
 TRIP CONTEXT:
@@ -117,7 +118,8 @@ GUIDELINES:
 - Use cards to show structured info instead of long text
 - For tips/advice, use tip cards with appropriate icons
 - For comparisons, use comparison cards with pros/cons
-- Keep the trip's existing style and budget level in mind`;
+- Keep the trip's existing style and budget level in mind
+- ${allowanceRule(allowance)}`;
 }
 
 /**
@@ -168,13 +170,15 @@ export function chatPrompt(input: {
   turn: string;
   thread: AssistantMessage[];
   message: string;
+  /** The traveller's own assistant messages, for questions about the assistant itself. */
+  allowance?: AssistantAllowance;
 }): string {
-  const { tripContext, language, turn, thread, message } = input;
+  const { tripContext, language, turn, thread, message, allowance } = input;
   const history = thread
     .slice(-4)
     .map((m) => `${m.role === "user" ? "User" : "Assistant"}: ${m.content}`)
     .join("\n");
-  return `${buildSystemPrompt(tripContext)}${chatLanguageInstruction(language) + replyLanguageRule(language)}
+  return `${buildSystemPrompt(tripContext, allowance)}${chatLanguageInstruction(language) + replyLanguageRule(language)}
 ${turn}
 ${history ? `\nRecent conversation:\n${history}\n` : ""}
 User: ${message}

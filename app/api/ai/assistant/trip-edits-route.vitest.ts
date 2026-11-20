@@ -246,6 +246,17 @@ describe("trip-page assistant: free-form edits", () => {
     expect(savedAssistantMessage().guarded).toBe(true);
   });
 
+  it("tells the engine and the chat the traveller's own messages left, as the counter shows them", async () => {
+    proposeTripEdits.mockResolvedValue({ reply: "You have 8 messages left.", revisedDays: [], summary: "", meta });
+    await send("how many free questions do I get?");
+    expect(proposeTripEdits).toHaveBeenCalledWith(
+      expect.objectContaining({ allowance: { left: 8, limit: 10, period: "monthly", renews: "2026-10-17T00:00:00Z" } }),
+    );
+    proposeTripEdits.mockRejectedValue(new Error("model overloaded"));
+    await send("how many free questions do I get?");
+    expect(String(chatCalls.mock.calls.at(-1)?.[0])).toContain("8 of 10 messages left this month");
+  });
+
   it("uses the engine's answer when nothing needs to change", async () => {
     proposeTripEdits.mockResolvedValue({ reply: "Which nights would you like?", revisedDays: [], summary: "", meta });
     const { json } = await send("add nightclubs");
