@@ -4,7 +4,7 @@ slug: "japan-golden-route-itinerary"
 description: "Il corridoio Tokyo–Kyoto–Osaka è il classico primo viaggio in Giappone, e c'è un motivo. Come dividere 10–14 giorni tra le tre città, uno scheletro giorno per giorno, perché i conti del JR Pass non tornano più dal 2023, quando andare e budget giornalieri realistici in yen."
 author: "Emanuela P."
 publishedAt: "2026-07-06"
-updatedAt: '2026-08-25'
+updatedAt: '2026-11-20'
 category: "Destination Guides"
 tags: ["itinerario", "giappone", "asia", "viaggio multi-città", "viaggio di una settimana"]
 image: "/images/blog/japan-golden-route-itinerary.jpg"
@@ -88,7 +88,7 @@ Il pass ripaga solo quando accumuli parecchie tratte lunghe in una settimana —
 
 **Autunno — novembre.** Il fogliame di Kyoto raggiunge il picco tra metà e fine novembre, con 10–17°C per camminare e cieli secchi e nitidi. Per una prima Golden Route è probabilmente la finestra migliore: la stessa resa di colore della primavera, treni più calmi, hotel ancora prenotabili a settembre.
 
-**Evita la Golden Week e l'Obon.** La Golden Week va dal 29 aprile al 6 maggio nel 2026; l'Obon culmina attorno al 13–16 agosto. Sono le due grandi ondate di viaggi interni del Giappone: i treni a lunga percorrenza si esauriscono e le tariffe schizzano in tutto il paese. Avvertenze minori: da metà giugno a metà luglio è stagione delle piogge, e agosto supera i 35°C in tutte e tre le città.
+**Evita la Golden Week e l'Obon.** La Golden Week va dal 29 aprile al 6 maggio nel 2026; l'Obon culmina attorno al 13–16 agosto. Sono le due grandi ondate di viaggi interni del Giappone: i treni a lunga percorrenza si esauriscono e le tariffe schizzano in tutto il paese. Avvertenze minori: da inizio giugno a metà luglio è stagione delle piogge, e agosto supera i 35°C in tutte e tre le città.
 
 **La finestra sottovalutata: dicembre–febbraio.** Freddo, secco e limpido — la migliore visibilità del Fuji dal treno di tutto l'anno, le tariffe più basse, giardini dei templi senza nessuno nell'inquadratura. Il calendario della JNTO su [japan.travel](https://www.japan.travel/en/) elenca le illuminazioni invernali che valgono una serata.
 

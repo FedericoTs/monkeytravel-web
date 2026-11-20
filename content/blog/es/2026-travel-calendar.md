@@ -463,7 +463,7 @@ El Oktoberfest 2026 va del 19 de septiembre al 4 de octubre. El último fin de s
 
 ---
 
-## Noviembre: follaje de Tokio, trópicos prefiesta y el mes más tranquilo de Europa
+## Noviembre: follaje de Tokio, trópicos prefiesta y uno de los meses más tranquilos de Europa
 
 Noviembre es el secreto mejor guardado del calendario de viajes. Las multitudes de verano son un recuerdo, el aluvión navideño aún no ha empezado, los vuelos caen ~30% desde el pico, y los hoteles por toda Europa y Asia rebajan agresivamente. Noviembre requiere precisión — algunos destinos están deslizándose hacia temporadas lluviosas o frías. Los sitios correctos están en su pico absoluto.
 
@@ -597,4 +597,4 @@ Sí, con matices. El Ciclo Solar 25 alcanzó su pico a finales de 2024-principio
 
 ### ¿Debería contratar seguro de viaje para 2026?
 
-Para viajes fuera de temporadas de huracanes y tifones, es opcional. Para viajes que se solapen con esas ventanas — Caribe/Costa del Golfo de mayo a noviembre, Japón y Filipinas de agosto a octubre, cruces atlánticos de julio a octubre — es obligatorio. Las pólizas que cubren interrupción de viaje y retrasos de vuelos suelen costar un 5-8% del gasto total del viaje. El único año en el que insistiría en seguro independientemente del destino es cuando los vuelos largos están reservados con más de 4 meses de antelación y el coste del viaje es significativo (cualquier cosa por encima de 3.000 $ por persona). El coste del seguro queda empequeñecido por lo que un vuelo cancelado en temporada alta puede hacerle a una reserva no reembolsable.
+Para viajes fuera de temporadas de huracanes y tifones, es opcional. Para viajes que se solapen con esas ventanas — Caribe/Costa del Golfo de junio a noviembre, Japón y Filipinas de agosto a octubre, cruces atlánticos de julio a octubre — es obligatorio. Las pólizas que cubren interrupción de viaje y retrasos de vuelos suelen costar un 5-8% del gasto total del viaje. El único año en el que insistiría en seguro independientemente del destino es cuando los vuelos largos están reservados con más de 4 meses de antelación y el coste del viaje es significativo (cualquier cosa por encima de 3.000 $ por persona). El coste del seguro queda empequeñecido por lo que un vuelo cancelado en temporada alta puede hacerle a una reserva no reembolsable.

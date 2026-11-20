@@ -4,7 +4,7 @@ slug: "2027-travel-calendar"
 description: "Dónde viajar cada mes de 2027, con las fechas que marcan el año: el eclipse total de sol del 2 de agosto, el Año Santo Compostelano, el Mundial femenino en Brasil, los Mundiales de rugby y de críquet, y los puentes y festivos de 2027 en Reino Unido, Estados Unidos, España, Italia y Brasil."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-11-19"
+updatedAt: "2026-11-20"
 category: "Seasonal Travel"
 tags: ["estacional", "guía mensual de viajes", "planificación de viajes"]
 image: "/images/blog/2027-travel-calendar.jpg"
@@ -171,7 +171,7 @@ Con la Semana Santa en marzo, abril empieza en temporada media; la presión se c
 **Países Bajos.** Keukenhof abre del 18 de marzo al 9 de mayo, los campos de bulbos suelen estar en su mejor momento desde mediados de abril, y las carrozas de flores del Bloemencorso van de Noordwijk a Haarlem el sábado 17 de abril, con máximas de unos 13 °C.
 **La contrapartida:** el Día del Rey, el martes 27 de abril, llena Ámsterdam, y los días de más afluencia de Keukenhof se agotan.
 
-**Sevilla.** La ciudad ha elegido el miércoles 14 de abril, el miércoles de Feria, como festivo local de 2027. Con el formato de lunes a domingo que Sevilla recuperó en 2025, eso sitúa la Feria de Abril del 13 al 18 de abril, con el alumbrado en la noche del lunes 12 de abril, cuando las luces se encienden a medianoche (compruébalo antes de reservar), y tardes de unos 23 °C.
+**Sevilla.** El ayuntamiento ha propuesto el miércoles 14 de abril, el miércoles de Feria, como festivo local de 2027 (según la prensa; la Junta publica la lista definitiva). Con el formato de lunes a domingo que Sevilla recuperó en 2025, eso sitúa la Feria de Abril del 13 al 18 de abril, con el alumbrado en la noche del lunes 12 de abril, cuando las luces se encienden a medianoche (compruébalo antes de reservar), y tardes de unos 23 °C.
 **La contrapartida:** la mayoría de las casetas son privadas, y los precios de la semana de Feria están muy por encima de los de un abril normal.
 
 **Tailandia.** Songkran convierte el país en una batalla de agua del martes 13 al jueves 15 de abril, del foso de Chiang Mai a Silom Road en Bangkok, mientras las islas del golfo viven su tramo más seco.
@@ -520,7 +520,7 @@ Todo 2027, porque el 25 de julio, festividad de Santiago Apóstol, cae en doming
 
 ### ¿Cuál es el mes más barato para viajar en 2027?
 
-Para escapadas urbanas en el hemisferio norte, enero después de Reyes, cuando caen los precios de las fiestas. Para las playas europeas, septiembre a partir de la primera semana, cuando han terminado las vacaciones escolares y el mar está en su punto más cálido. Noviembre, fuera de la semana de Acción de Gracias en EE. UU., es el otro mes de buenos precios.
+Para escapadas urbanas en el hemisferio norte, enero después de Reyes, cuando caen los precios de las fiestas. Para las playas europeas, septiembre a partir de la primera semana ofrece la mejor relación calidad-precio, con las vacaciones escolares terminadas y el mar en su punto más cálido, aunque los precios de los hoteles en España siguen bajando en octubre y tocan fondo en enero y febrero. Noviembre, fuera de la semana de Acción de Gracias en EE. UU., es el otro mes de buenos precios. Los meses más baratos de España, región por región y con los precios hoteleros oficiales, están en nuestra [guía de la temporada baja 2027](/blog/low-season-travel).
 
 ## Fuentes
 

@@ -94,7 +94,7 @@ La diferencia de tarifa es lo que se busca, pero no es lo único.
 
 1. **Mira los sábados, no los meses.** Busca las fechas exactas de cambio de franja del alojamiento que te interesa y razona por semanas.
 2. **Apunta a la semana frontera.** La última de baja, o la primera de media, te da casi las vacaciones de alta a una fracción del precio.
-3. **Comprueba qué está abierto** antes de reservar fuera de temporada, sobre todo en islas y pueblos pequeños. El ahorro no compensa un pueblo cerrado.
+3. **Comprueba qué está abierto** antes de reservar fuera de temporada, sobre todo en islas y pueblos pequeños. El ahorro no compensa un pueblo cerrado. Para España y el resto del mundo, nuestra [guía de la temporada baja 2027](/blog/low-season-travel) tiene los meses más baratos.
 
 ---
 

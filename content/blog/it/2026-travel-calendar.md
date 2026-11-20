@@ -463,7 +463,7 @@ L'Oktoberfest 2026 va dal 19 settembre al 4 ottobre. L'ultimo weekend (2-4 ottob
 
 ---
 
-## Novembre: foliage di Tokyo, tropici pre-feste, e il mese più tranquillo d'Europa
+## Novembre: foliage di Tokyo, tropici pre-feste, e uno dei mesi più tranquilli d'Europa
 
 Novembre è il segreto meglio custodito del calendario di viaggio. Le folle estive sono un ricordo, l'impennata natalizia non è ancora iniziata, i voli scendono di ~30% rispetto al picco, e gli hotel in tutta Europa e Asia tagliano aggressivamente le tariffe. Novembre richiede precisione — alcune destinazioni stanno scivolando in stagioni piovose o fredde. I posti giusti sono al loro picco assoluto.
 
@@ -597,4 +597,4 @@ Sì, con riserve. Il Ciclo Solare 25 ha raggiunto il picco tra fine 2024 e inizi
 
 ### Devo comprare l'assicurazione di viaggio per il 2026?
 
-Per viaggi fuori dalle stagioni di uragani e tifoni, è opzionale. Per viaggi che si sovrappongono a quelle finestre — Caraibi/Costa del Golfo da maggio a novembre, Giappone e Filippine da agosto a ottobre, attraversamenti atlantici da luglio a ottobre — è obbligatoria. Le polizze che coprono interruzione del viaggio e ritardi dei voli costano tipicamente il 5-8% della spesa totale del viaggio. L'unico anno in cui insisterei sull'assicurazione indipendentemente dalla destinazione è quando i voli a lungo raggio sono prenotati con oltre 4 mesi di anticipo e il costo del viaggio è significativo (qualunque cosa oltre i 3.000 $ a persona). Il costo dell'assicurazione è messo in ombra da quello che un volo cancellato in alta stagione può fare a una prenotazione non rimborsabile.
+Per viaggi fuori dalle stagioni di uragani e tifoni, è opzionale. Per viaggi che si sovrappongono a quelle finestre — Caraibi/Costa del Golfo da giugno a novembre, Giappone e Filippine da agosto a ottobre, attraversamenti atlantici da luglio a ottobre — è obbligatoria. Le polizze che coprono interruzione del viaggio e ritardi dei voli costano tipicamente il 5-8% della spesa totale del viaggio. L'unico anno in cui insisterei sull'assicurazione indipendentemente dalla destinazione è quando i voli a lungo raggio sono prenotati con oltre 4 mesi di anticipo e il costo del viaggio è significativo (qualunque cosa oltre i 3.000 $ a persona). Il costo dell'assicurazione è messo in ombra da quello che un volo cancellato in alta stagione può fare a una prenotazione non rimborsabile.

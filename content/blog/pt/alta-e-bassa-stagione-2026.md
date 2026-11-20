@@ -94,7 +94,7 @@ A diferença de tarifa é o que se procura, mas não é a única.
 
 1. **Olhe os sábados, não os meses.** Ache as datas exatas de troca de faixa da hospedagem que você quer e raciocine por semanas.
 2. **Mire a semana de fronteira.** A última de baixa, ou a primeira de média, entrega quase a viagem de alta por uma fração da tarifa.
-3. **Confira o que está aberto** antes de reservar fora de temporada, sobretudo em ilhas e cidades pequenas. A economia não compensa uma cidade fechada.
+3. **Confira o que está aberto** antes de reservar fora de temporada, sobretudo em ilhas e cidades pequenas. A economia não compensa uma cidade fechada. Para a Espanha e o resto do mundo, nosso [guia da baixa temporada 2027](/blog/low-season-travel) traz os meses mais baratos.
 
 ---
 

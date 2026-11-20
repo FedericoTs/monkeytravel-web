@@ -4,7 +4,7 @@ slug: "japan-golden-route-itinerary"
 description: "O corredor Tóquio–Kyoto–Osaka é o clássico da primeira viagem ao Japão por um bom motivo. Como dividir 10–14 dias entre as três cidades, um esqueleto dia a dia, por que a conta do JR Pass parou de fechar em 2023, quando ir e orçamentos diários realistas em ienes."
 author: "Emanuela P."
 publishedAt: "2026-07-06"
-updatedAt: '2026-08-25'
+updatedAt: '2026-11-20'
 category: "Destination Guides"
 tags: ["roteiro", "japão", "ásia", "viagem multicidade", "viagem de uma semana"]
 image: "/images/blog/japan-golden-route-itinerary.jpg"
@@ -88,7 +88,7 @@ O passe só compensa quando você empilha vários trechos longos numa semana —
 
 **Outono — novembro.** A folhagem de Kyoto atinge o pico entre meados e o fim de novembro, com 10–17°C para caminhar e céu seco e nítido. Para uma primeira Rota Dourada, é possivelmente a melhor janela: o mesmo espetáculo de cores da primavera, trens mais calmos, hotéis ainda reserváveis em setembro.
 
-**Evite a Golden Week e o Obon.** A Golden Week vai de 29 de abril a 6 de maio em 2026; o Obon tem pico por volta de 13–16 de agosto. São os dois grandes picos de viagem doméstica do Japão: os trens de longa distância esgotam e as tarifas disparam no país inteiro. Avisos menores: de meados de junho a meados de julho é a estação das chuvas, e agosto passa dos 35°C nas três cidades.
+**Evite a Golden Week e o Obon.** A Golden Week vai de 29 de abril a 6 de maio em 2026; o Obon tem pico por volta de 13–16 de agosto. São os dois grandes picos de viagem doméstica do Japão: os trens de longa distância esgotam e as tarifas disparam no país inteiro. Avisos menores: do início de junho a meados de julho é a estação das chuvas, e agosto passa dos 35°C nas três cidades.
 
 **A janela esquecida: dezembro–fevereiro.** Frio, seco e limpo — a melhor visibilidade do Fuji do trem no ano inteiro, as tarifas mais baixas, jardins de templo sem ninguém no enquadramento. O calendário da JNTO em [japan.travel](https://www.japan.travel/en/) lista as iluminações de inverno que valem uma noite.
 

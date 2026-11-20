@@ -4,7 +4,7 @@ slug: "honeymoon-planning-guide"
 description: "Honeymoon destinations and planning advice for 2026, organized by budget tier — from $2k under-the-radar trips to $15k+ once-in-a-lifetime escapes. Real prices, season-by-season picks, and the planning mistakes that ruin Day 1."
 author: "Francesca A."
 publishedAt: "2026-05-06"
-updatedAt: "2026-05-06"
+updatedAt: "2026-11-20"
 category: "Trip Planning"
 tags: ["romantic travel", "trip planning"]
 image: "/images/blog/best-honeymoon-destinations-2026.jpg"
@@ -125,7 +125,7 @@ This is the tier most couples should book. It's the price range where your money
 
 **Why romantic:** The only place that genuinely combines beach, Mayan ruins, and cenote swimming in a single town. The eco-chic hotel strip on the beach road is what Tulum's reputation is actually built on — palapa-roofed bungalows with outdoor showers and four-poster beds in the jungle. Sunrise at the cliffside ruins is one of the most cinematic experiences in Mexico.
 
-**Best season:** November through April. Dry, comfortable, no hurricanes. **Worst:** August–October — hurricane season; the eco hotels (with their open-air showers and palapa roofs) are exactly the wrong design for tropical storms.
+**Best season:** November through April. Dry, comfortable, past the hurricane peak. **Worst:** August–October — the peak of hurricane season; the eco hotels (with their open-air showers and palapa roofs) are exactly the wrong design for tropical storms.
 
 **Realistic 7-night cost (2 people, flights from US):** $4,800–$7,200. Beach-road eco-hotel $250–$400/night now, cenote day trips $30–$50, jungle restaurant dinners $60–$100 for two.
 
@@ -211,7 +211,7 @@ This is where the destinations earn their reputations. Cliffside infinity pools,
 
 **Why romantic:** The twin Pitons rising vertically out of the Caribbean are the most dramatic landscape in the region. St Lucia gives you rainforest plus volcanic beaches plus serious resort luxury at prices that aren't quite Maldives-level. Open-air suites at properties like Ladera have no fourth wall — just the jungle and the Pitons.
 
-**Best season:** December through May. **Worst:** August–October (hurricane season).
+**Best season:** December through May. **Worst:** August–October (the peak of hurricane season).
 
 **Realistic 7-night cost (2 people, flights from US East Coast):** $7,500–$12,000. Soufriere boutique resort $500–$900/night, catamaran day with snorkeling $200/couple, drive-in volcano $20.
 

@@ -4,7 +4,7 @@ slug: "2027-travel-calendar"
 description: "Where to go in every month of 2027, with the dates that shape the year: the total solar eclipse on 2 August, Santiago's Holy Year, the Women's World Cup in Brazil, the Rugby and Cricket World Cups, and the 2027 long weekends in the UK, US, Spain, Italy and Brazil."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-11-19"
+updatedAt: "2026-11-20"
 category: "Seasonal Travel"
 tags: ["seasonal", "monthly travel guide", "trip planning"]
 image: "/images/blog/2027-travel-calendar.jpg"
@@ -171,7 +171,7 @@ With Easter in March, April opens in shoulder season; the pressure sits in mid-m
 **The Netherlands.** Keukenhof is open from 18 March to 9 May, the bulb fields usually peak from mid-April, and the Bloemencorso's flower floats roll from Noordwijk to Haarlem on Saturday 17 April, in highs around 13°C (55°F).
 **The trade-off:** King's Day on Tuesday 27 April fills Amsterdam, and Keukenhof's busiest days sell out.
 
-**Seville.** The city has chosen Wednesday 14 April, the Wednesday of Feria, as a 2027 local holiday. With the Monday-to-Sunday format Seville restored in 2025, that puts the Feria de Abril on 13–18 April, opening with the alumbrado on the night of Monday 12 April, when the lights go on at midnight (check before booking), with afternoons around 23°C (73°F).
+**Seville.** The city council has proposed Wednesday 14 April, the Wednesday of Feria, as a 2027 local holiday (reported by the press; the regional government publishes the final list). With the Monday-to-Sunday format Seville restored in 2025, that puts the Feria de Abril on 13–18 April, opening with the alumbrado on the night of Monday 12 April, when the lights go on at midnight (check before booking), with afternoons around 23°C (73°F).
 **The trade-off:** most casetas are private, and Feria week prices run far above a normal April.
 
 **Thailand.** Songkran turns the country into a water fight from Tuesday 13 to Thursday 15 April, from Chiang Mai's moat to Bangkok's Silom Road, while the Gulf islands are in their driest stretch.
@@ -520,7 +520,7 @@ All of 2027, because 25 July, the feast of St James, falls on a Sunday. The Holy
 
 ### What is the cheapest month to travel in 2027?
 
-For Northern Hemisphere city breaks, January after Epiphany, when holiday prices fall away. For European beaches, September after the first week, when school holidays have ended and the sea is at its warmest. November, outside US Thanksgiving week, is the other value month.
+For Northern Hemisphere city breaks, January after Epiphany, when holiday prices fall away. For European beaches, September after the first week is the best value, with school holidays over and the sea at its warmest, though Spain's hotel prices keep falling into October and are lowest in January and February. November, outside US Thanksgiving week, is the other value month. For Spain's cheapest months region by region, from official hotel prices, see our [low season 2027 guide](/blog/low-season-travel).
 
 ## Sources
 

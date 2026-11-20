@@ -4,7 +4,7 @@ slug: "honeymoon-planning-guide"
 description: "Destinazioni per la luna di miele e consigli di pianificazione per il 2026, organizzati per fasce di budget — dai viaggi sottotraccia da 2.000 $ alle fughe uniche nella vita da oltre 15.000 $. Prezzi reali, scelte stagione per stagione e gli errori di pianificazione che rovinano il Giorno 1."
 author: "Francesca A."
 publishedAt: "2026-05-06"
-updatedAt: "2026-05-06"
+updatedAt: "2026-11-20"
 category: "Trip Planning"
 tags: ["viaggi romantici", "pianificazione viaggi"]
 image: "/images/blog/honeymoon-planning-guide.jpg"
@@ -132,7 +132,7 @@ Questa è la fascia che la maggior parte delle coppie dovrebbe prenotare. È la 
 
 **Perché è romantica:** l'unico posto che combina davvero spiaggia, rovine maya e nuotata in cenote in un'unica cittadina. La striscia di hotel eco-chic sulla strada della spiaggia è su cui è davvero costruita la reputazione di Tulum — bungalow con tetto di palapa, docce all'aperto e letti a baldacchino nella giungla. L'alba alle rovine sulla scogliera è una delle esperienze più cinematografiche del Messico.
 
-**Stagione migliore:** da novembre ad aprile. Asciutto, comodo, niente uragani. **Peggiore:** agosto–ottobre — stagione degli uragani; gli eco-hotel (con le loro docce aperte e tetti di palapa) sono esattamente il design sbagliato per le tempeste tropicali.
+**Stagione migliore:** da novembre ad aprile. Asciutto, comodo, passato il picco degli uragani. **Peggiore:** agosto–ottobre — il picco della stagione degli uragani; gli eco-hotel (con le loro docce aperte e tetti di palapa) sono esattamente il design sbagliato per le tempeste tropicali.
 
 **Costo realistico per 7 notti (2 persone, voli dagli USA):** 4.800–7.200 $. Eco-hotel sulla strada della spiaggia 250–400 $/notte oggi, gite ai cenote 30–50 $, cene in ristoranti nella giungla 60–100 $ per due.
 
@@ -218,7 +218,7 @@ Qui le destinazioni si guadagnano la loro reputazione. Piscine a sfioro sulla sc
 
 **Perché è romantica:** i Pitons gemelli che si alzano verticali dal mare dei Caraibi sono il paesaggio più drammatico della regione. Saint Lucia ti dà foresta pluviale più spiagge vulcaniche più vero lusso da resort a prezzi non del tutto da Maldive. Suite open-air in strutture come Ladera non hanno la quarta parete — solo la giungla e i Pitons.
 
-**Stagione migliore:** da dicembre a maggio. **Peggiore:** agosto–ottobre (stagione degli uragani).
+**Stagione migliore:** da dicembre a maggio. **Peggiore:** agosto–ottobre (il picco della stagione degli uragani).
 
 **Costo realistico per 7 notti (2 persone, voli dalla East Coast USA):** 7.500–12.000 $. Boutique resort a Soufrière 500–900 $/notte, giornata in catamarano con snorkeling 200 $/coppia, vulcano drive-in 20 $.
 

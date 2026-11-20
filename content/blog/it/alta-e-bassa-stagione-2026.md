@@ -93,7 +93,7 @@ La differenza di listino è quella che si cerca, ma non è l'unica.
 
 1. **Guarda i sabati, non i mesi.** Trova le date esatte di cambio fascia della struttura che ti interessa e ragiona per settimane, non per mesi.
 2. **Punta alla settimana a cavallo del confine.** L'ultima di bassa o la prima di media danno quasi la stessa vacanza dell'alta a una frazione del prezzo.
-3. **Verifica cosa è aperto** prima di prenotare fuori stagione, soprattutto su isole e località piccole. Il risparmio non vale un paese chiuso.
+3. **Verifica cosa è aperto** prima di prenotare fuori stagione, soprattutto su isole e località piccole. Il risparmio non vale un paese chiuso. Per la Spagna e il resto del mondo, la nostra [guida alla bassa stagione 2027](/blog/low-season-travel) ha i mesi più economici.
 
 ---
 
