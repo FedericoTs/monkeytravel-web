@@ -5,6 +5,7 @@
  */
 import "server-only";
 import { cacheAdminDb } from "@/lib/supabase/cache-admin";
+import { logReadError } from "@/lib/supabase/log-read-error";
 import { haversineKm } from "@/lib/map/geo";
 import { foldText } from "./destination-key";
 
@@ -50,7 +51,9 @@ export function chooseCityPoints(found: CityCandidate[][], cities: string[]): Ar
   });
 }
 
-type Db = { rpc: (fn: string, args: { q: string; lim: number }) => PromiseLike<{ data: unknown; error: unknown }> };
+type Db = {
+  rpc: (fn: string, args: { q: string; lim: number }) => PromiseLike<{ data: unknown; error: { message: string; code?: string } | null }>;
+};
 
 /** The cities' points (chooseCityPoints). A city the lookup fails for, or every city without a database, is null. */
 export async function cityPointsFor(cities: string[], db: Db | null = cacheAdminDb()): Promise<Array<Point | null>> {
@@ -60,7 +63,7 @@ export async function cityPointsFor(cities: string[], db: Db | null = cacheAdmin
       const q = foldText(city).replace(/[%_]/g, " ").replace(/\s+/g, " ").trim();
       if (q.length < 2) return [];
       try {
-        const { data } = await db.rpc("search_geo_cities", { q, lim: 8 });
+        const { data } = logReadError("city points", await db.rpc("search_geo_cities", { q, lim: 8 }));
         return Array.isArray(data) ? (data as CityCandidate[]) : [];
       } catch {
         return [];
