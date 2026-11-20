@@ -22,6 +22,9 @@ import { logReadError } from "@/lib/supabase/log-read-error";
 import { OAuthButtons } from "@/components/auth/OAuthButtons";
 import { AuthField, AuthPage, AuthPageLoading, AuthSubmitButton } from "@/components/auth/AuthPage";
 
+// A trip's own page: /trips/<id>, not the list, the wizard, a template or the editor.
+const PRIVATE_TRIP_PATH = /^\/trips\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/?$/i;
+
 function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -44,6 +47,10 @@ function LoginForm() {
   // Signing in on the way to a page (a trip, an invite, a shared trip) goes
   // back there, skipping the first-visit detours below.
   const hasDestination = returnsToPage(safeNextOrDefault(searchParams.get("redirect"), ""));
+  // A private trip's own address sends a signed-out visitor here: its owner on
+  // another device, or someone the owner pasted the address to, who can't open
+  // it even with an account. "Welcome back" fit neither.
+  const opensPrivateTrip = PRIVATE_TRIP_PATH.test(splitLocalePrefix(redirect).rest.split(/[?#]/)[0]);
   const errorParam = searchParams.get("error");
   // /auth/callback now sends a stable code instead of prose. The most common
   // one by far is link_wrong_device_or_expired: a signup confirmation opened on
@@ -196,11 +203,19 @@ function LoginForm() {
   return (
     <AuthPage>
       <h1 className="text-2xl font-bold text-slate-900 mb-2">
-        {t("title")}
+        {t(opensPrivateTrip ? "tripTitle" : "title")}
       </h1>
-      <p className="text-slate-600 mb-6">
-        {t("subtitle")}
+      <p className={`text-slate-600 ${opensPrivateTrip ? "mb-3" : "mb-6"}`}>
+        {t(opensPrivateTrip ? "tripSubtitle" : "subtitle")}
       </p>
+      {opensPrivateTrip && (
+        <div className="text-sm text-slate-600 mb-6">
+          <p>{t("tripNote")}</p>
+          <Link href="/trips/new" className="inline-block mt-1 font-medium text-slate-900 underline underline-offset-2">
+            {t("tripPlanOwn")}
+          </Link>
+        </div>
+      )}
 
       {(error || errorParam) && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4" role="alert">
