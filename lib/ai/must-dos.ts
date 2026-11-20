@@ -134,6 +134,7 @@ const SCHEMA: ResponseSchema = {
           must_do: { type: SchemaType.INTEGER, description: "Its number in the list" },
           day_number: { type: SchemaType.INTEGER },
           replaces: { type: SchemaType.STRING, description: "The exact name of the activity it takes the place of, or empty" },
+          whole_day: { type: SchemaType.BOOLEAN, description: "True for a day trip that takes the day's other sights' place" },
           activity: ACTIVITY,
         },
         required: ["must_do", "day_number", "activity"],
@@ -153,7 +154,7 @@ const SCHEMA: ResponseSchema = {
 
 /** What the model answers: each entry is checked before it goes in (withMustDos). */
 export interface MustDoAnswer {
-  added?: Array<{ must_do?: unknown; day_number?: unknown; replaces?: unknown; activity?: Record<string, unknown> }>;
+  added?: Array<{ must_do?: unknown; day_number?: unknown; replaces?: unknown; whole_day?: unknown; activity?: Record<string, unknown> }>;
 }
 
 const TIMEOUT_MS = 8000;
@@ -189,7 +190,7 @@ export async function askForMustDos(
     "The plan:",
     ...days.map(dayLine),
     "",
-    `For each one, give one activity on the day where it fits best: near that day's other places${cities ? ", on a day in its city" : ""}, at the right time of day (a dish or a place to eat at lunch or dinner), at a start time when that day is free, or in place of one activity of that day that matters less ("replaces", its exact name; never a fixed one). Use the real place: a misspelled or partial name means the most likely real one, and a chain, a dish or a kind of activity means its best real place nearest that day's other places. Leave one out when the plan already has it under another name, or when it can't be done on this trip (too far away, closed on these dates).`,
+    `For each one, give one activity on the day where it fits best: near that day's other places${cities ? ", on a day in its city" : ""}, at the right time of day (a dish or a place to eat at lunch or dinner), at a start time when that day is free, or in place of one activity of that day that matters less ("replaces", its exact name; never a fixed one). Use the real place: a misspelled or partial name means the most likely real one, and a chain, a dish or a kind of activity means its best real place nearest that day's other places. These come first: the traveller asked for them by name, and the plan's own picks make way for them. A day trip that needs most of a day (a boat to an island, a ski day, a town further out) gets a whole day of its city even when that day is full: set whole_day true, run it from the morning to the late afternoon, on a day that is not the trip's first or last and has no ride, and that day's other sights make way. Never leave one out because a day is full or because it takes a whole day. Leave one out only when the plan already has it under another name, or when it can't be done on this trip at all (further than a day's return trip, closed on these dates).`,
     `Write each name as Google Maps shows it, and the description (about 25 words) and tips in ${LANGUAGE_NAMES[language]}.`,
   ].join("\n");
   try {
@@ -235,6 +236,20 @@ function overlap(a: Activity, b: Activity): number {
   return Math.min(s + (a.duration_minutes || 60), t + (b.duration_minutes || 60)) - Math.max(s, t);
 }
 
+/** An answer this long, marked whole_day, is a day trip that takes its day. */
+const WHOLE_DAY_MINUTES = 240;
+
+/**
+ * Whether a day trip may take day `at`: not the trip's first or last day, no ride that day, and its city keeps
+ * another day of its own (on a trip through several cities; any other day on a trip to one place).
+ */
+function mayTakeWholeDay(days: Day[], at: number): boolean {
+  if (at <= 0 || at >= days.length - 1) return false;
+  const day = days[at];
+  if (day.activities.some((a) => a.type === "transport" || Boolean((a as { transport_mode?: string }).transport_mode))) return false;
+  return days.some((d, i) => i !== at && d.city === day.city);
+}
+
 /**
  * The plan's days with the answer's activities in. Each is checked first: on
  * a day of the plan, a real place with a time, not one the plan already has,
@@ -257,7 +272,13 @@ export function withMustDos<D extends Day>(days: D[], missing: string[], answer:
     const replaced = gone
       ? day.activities.find((a) => a.name?.trim().toLowerCase() === gone && !isLockedActivity(a) && a.type !== "transport")
       : undefined;
-    const rest = day.activities.filter((a) => a !== replaced);
+    // A day trip (marked, or long) takes its day where it may; one marked for a day it may not take stays out.
+    const wholeDay = (activity.duration_minutes || 0) >= WHOLE_DAY_MINUTES && mayTakeWholeDay(out, at);
+    if (entry.whole_day === true && !wholeDay) continue;
+    // A whole day: the day's other stops in the trip's hours make way, but a fixed one (which then keeps it out).
+    const rest = wholeDay
+      ? day.activities.filter((a) => isLockedActivity(a) || overlap(a, activity) <= 0)
+      : day.activities.filter((a) => a !== replaced);
     if (rest.some((a) => overlap(a, activity) > 30)) continue;
     const activities = [...rest, activity].sort((a, b) => (minutesOf(a.start_time) ?? 0) - (minutesOf(b.start_time) ?? 0));
     if (day.city) {
