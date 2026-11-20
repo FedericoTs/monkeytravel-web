@@ -46,7 +46,7 @@ Every date, time and price below was checked on 7 November 2026, on the organise
 
 ## When is Easter 2027?
 
-Easter Sunday is 28 March 2027 ([USCCB](https://bible.usccb.org/bible/readings/032827.cfm)), eight days earlier than in 2026. Palm Sunday is 21 March, Holy Thursday 25 March, Good Friday 26 March and Easter Monday 29 March, the dates in the UK and Spanish holiday lists below. Viernes de Dolores, the Friday before Palm Sunday, is 19 March. Lent begins on Ash Wednesday, 10 February, the day after Carnival Tuesday; our [Carnival 2027 guide](/blog/carnival-around-the-world) has the dates city by city.
+Easter Sunday is 28 March 2027 ([USCCB](https://bible.usccb.org/bible/readings/032827.cfm)), eight days earlier than in 2026. Palm Sunday is 21 March, Holy Thursday 25 March, Good Friday 26 March and Easter Monday 29 March, the dates in the UK and Spanish holiday lists below. Viernes de Dolores, the Friday before Palm Sunday, is 19 March. Lent begins on Ash Wednesday, 10 February, the day after Carnival Tuesday; our [Carnival 2027 guide](/blog/carnival-around-the-world) has the dates city by city, and our [carnival in Spain guide](/blog/carnival-in-spain) has Spain's.
 
 Orthodox Easter (Pascha) is Sunday 2 May 2027 ([Orthodox Church in America](https://www.oca.org/saints/lives/2027/05/02)), so Greek Holy Week runs 26 April to 1 May.
 

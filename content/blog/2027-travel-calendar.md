@@ -138,7 +138,7 @@ Lunar New Year (Saturday 6 February) and Carnival Tuesday (the 9th) share one we
 
 **Avoid in February:** Brazil in Carnival week unless Carnival is the reason; Vietnam and Taiwan in the three or four days around New Year, when many businesses close; and northern Laos and Thailand late in the month, when burning-season haze starts.
 
-**The full month guide:** [where to go in February](/blog/where-to-go-in-february), with [where to celebrate Lunar New Year](/blog/lunar-new-year-where-to-celebrate) and [Carnival 2027 around the world](/blog/carnival-around-the-world).
+**The full month guide:** [where to go in February](/blog/where-to-go-in-february), with [where to celebrate Lunar New Year](/blog/lunar-new-year-where-to-celebrate), [Carnival 2027 around the world](/blog/carnival-around-the-world) and [carnival in Spain](/blog/carnival-in-spain).
 
 ## March 2027 — Blossom, Holi and an early Easter
 

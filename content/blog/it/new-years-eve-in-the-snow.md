@@ -4,7 +4,7 @@ slug: "new-years-eve-in-the-snow"
 description: "15 posti innevati per il Capodanno 2027, verificati sulle pagine ufficiali: fiaccolate e skishow a Méribel, St. Anton e Alta Badia, baite per l'aurora in Lapponia, un rifugio sulle Dolomiti a 2.752 m, slittino in notturna, prezzi degli skipass 2026/27 e regole di sicurezza."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-10-05"
+updatedAt: "2026-11-20"
 category: "Seasonal Travel"
 tags: ["stagionale", "viaggi invernali", "viaggi nella natura", "migliori destinazioni"]
 image: "/images/blog/new-years-eve-in-the-snow.jpg"
@@ -23,7 +23,7 @@ Questa guida è per chi vuole passare il Capodanno 2027, cioè la notte tra il 3
 
 Tutte le date, i prezzi e le regole sono stati verificati il 4 ottobre 2026 sulle pagine ufficiali di località, operatori e autorità; i dati di stampa sono segnalati. Dove il programma di Capodanno di quest'anno non è pubblicato lo diciamo, e riportiamo quello della scorsa stagione. Gli orari di luce sono calcoli dello US Naval Observatory (USNO) per il 31 dicembre 2026, e le conversioni usano i tassi di cambio della Banca centrale europea del 2 ottobre 2026.
 
-Se a mezzanotte vuoi una città, leggi [dove passare il Capodanno](/blog/where-to-spend-new-years-eve); per la settimana prima, [dove passare il Natale](/blog/where-to-spend-christmas).
+Se a mezzanotte vuoi una città, leggi [dove passare il Capodanno](/blog/where-to-spend-new-years-eve); per la settimana prima, [dove passare il Natale](/blog/where-to-spend-christmas). Per tutta la stagione 2026-2027, dalle date di apertura alle settimane più economiche, leggi [dove sciare quest'inverno](/blog/where-to-ski-this-winter).
 
 | Destinazione | Perché in quei giorni | Date chiave 2026/27 | Meteo tipico | Costo indicativo / atmosfera |
 |---|---|---|---|---|
@@ -69,7 +69,7 @@ St. Anton è una fermata del Railjet, con sette treni diretti al giorno da Vienn
 
 ## 3. Zermatt — prima la neve sicura, poi la festa
 
-Zermatt è la scelta giusta quando l'innevamento conta più del programma. La stagione 2026/27 inizia il 1° novembre, le aree di Sunnegga-Rothorn e Gornergrat seguono il 28 novembre e si scia fino al 3 maggio 2027, con impianti che arrivano a 3.883 m. I prezzi sono dinamici: un giorno da CHF 89 (circa 96 €), sei giorni da CHF 384 (circa 414 €), oppure CHF 432 (circa 466 €) con Cervinia inclusa, e le tariffe più basse sono quelle di novembre.
+Zermatt è la scelta giusta quando l'innevamento conta più del programma. La stagione 2026/27 inizia il 1° novembre, le aree di Sunnegga-Rothorn e Gornergrat seguono il 28 novembre e si scia fino al 2 maggio 2027, con impianti che arrivano a 3.883 m. I prezzi sono dinamici: un giorno da CHF 89 (circa 96 €), sei giorni da CHF 384 (circa 414 €), oppure CHF 432 (circa 466 €) con Cervinia inclusa, e le tariffe più basse sono quelle di novembre.
 
 Il Capodanno qui è tutto da inventare: al 4 ottobre 2026 il calendario eventi di Zermatt Tourism non riportava nulla per il 31 dicembre, quindi costruisci la serata attorno a una prenotazione al ristorante. Ed è sempre nel Vallese, a Crans-Montana, che l'incendio di un bar ha ucciso 41 persone nella notte tra il 31 dicembre 2025 e il 1° gennaio 2026; dal 1° aprile 2026 le norme svizzere vietano gli articoli pirotecnici, come le fontanelle da bottiglia, nei locali al chiuso aperti al pubblico. Il 31 dicembre il sole sorge alle 08:11 e tramonta alle 16:53 (USNO).
 

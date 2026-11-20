@@ -215,6 +215,7 @@ export const POSTS: Record<string, { c: string[]; d?: string[] }> = {
   "epiphany-around-the-world":             { c: ["seasonal", "winter-travel", "best-destinations", "europe"] },
   "lunar-new-year-where-to-celebrate":     { c: ["seasonal", "winter-travel", "best-destinations", "asia"] },
   "carnival-around-the-world":             { c: ["seasonal", "winter-travel", "best-destinations", "trip-planning"] },
+  "carnival-in-spain":                     { c: ["seasonal", "winter-travel", "best-destinations", "trip-planning"] },
   "solar-eclipse-2027":                    { c: ["seasonal", "best-destinations", "trip-planning"] },
   "camino-de-santiago-2027":               { c: ["seasonal", "best-destinations", "trip-planning"] },
   "where-to-go-at-easter":                 { c: ["seasonal", "spring-travel", "best-destinations", "trip-planning"] },
@@ -224,6 +225,7 @@ export const POSTS: Record<string, { c: string[]; d?: string[] }> = {
   "where-to-spend-christmas":              { c: ["seasonal", "winter-travel", "best-destinations", "trip-planning"] },
   "where-to-spend-new-years-eve":          { c: ["seasonal", "winter-travel", "best-destinations", "trip-planning"] },
   "new-years-eve-in-the-snow":             { c: ["seasonal", "winter-travel", "nature-travel", "best-destinations"] },
+  "where-to-ski-this-winter":              { c: ["seasonal", "winter-travel", "best-destinations", "budget-travel", "europe"] },
 
   // --- Travel Tips ---
   "chatgpt-vs-ai-trip-planners":           { c: ["ai-trip-planner", "comparison", "travel-technology"] },

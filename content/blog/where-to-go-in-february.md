@@ -63,7 +63,7 @@ February is the reason to go to Tanzania rather than Kenya. The wildebeest herds
 Sapporo's snow festival fills early February with monumental ice sculpture, and the powder is still at full depth on Niseko, Furano and the Tohoku resorts. Add the Jigokudani snow monkeys, drift ice off the Okhotsk coast, and onsen towns under a metre of snow — Japan does winter better than anywhere.
 
 **Cost reality:** $120–180/day; the snow-festival week in Sapporo is the exception and behaves like a festival everywhere else does.
-**The trade-off:** early February is the busiest window of the Japanese ski season and overlaps Lunar New Year travel from across Asia. Mid-to-late February has the same snow with noticeably fewer people.
+**The trade-off:** early February is the busiest window of the Japanese ski season and overlaps Lunar New Year travel from across Asia. Mid-to-late February has the same snow with noticeably fewer people. For the Alps, and the February school-holiday weeks to avoid there, see [where to ski this winter](/blog/where-to-ski-this-winter).
 
 ## 4. Iceland — Aurora, and Enough Daylight to Use It
 

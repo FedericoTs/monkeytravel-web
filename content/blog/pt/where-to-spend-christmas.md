@@ -4,7 +4,7 @@ slug: "where-to-spend-christmas"
 description: "Catorze destinos para 20 a 27 de dezembro de 2026, de Rovaniemi e da Cidade de Quebec a Sydney e Oaxaca, com as datas de eventos que os organizadores publicaram, as normais climatológicas dos serviços meteorológicos nacionais, o que fecha de 24 a 26 de dezembro e o que reservar primeiro."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-10-05"
+updatedAt: "2026-11-20"
 category: "Seasonal Travel"
 tags: ["sazonal", "viagem de inverno", "melhores destinos", "planejamento de viagem"]
 image: "/images/blog/where-to-spend-christmas.jpg"
@@ -30,7 +30,7 @@ Os números de clima são normais climatológicas, quase sempre do período 1991
 | Destino | Por que no Natal | Data(s)-chave 2026/27 | Máx. / mín. em dezembro | Preço de referência e perfil |
 |---|---|---|---|---|
 | Rovaniemi, Finlândia | Santa Claus Village, neve quase todo ano | Despedida do Papai Noel 23 dez (detalhes de 2026 pendentes) | −4,9 / −10,6 °C | Foto com o Papai Noel 40 €; famílias |
-| Zermatt, Suíça | Vilarejo sem carros, esqui até 3.883 m | Temporada dos teleféricos 1º nov 2026 – 3 mai 2027 | 1,5 / −6,3 °C | Passe de esqui de um dia a partir de CHF 89 (96 €); esquiadores |
+| Zermatt, Suíça | Vilarejo sem carros, esqui até 3.883 m | Temporada dos teleféricos 1º nov 2026 – 2 mai 2027 | 1,5 / −6,3 °C | Passe de esqui de um dia a partir de CHF 89 (96 €); esquiadores |
 | Cidade de Quebec, Canadá | O Vieux-Québec sob a neve | Mercado alemão 19 nov – 23 dez | −3,3 / −11,4 °C | Mercados grátis; cidade francófona |
 | Sapporo, Japão | Neve alta, iluminação nas ruas | Luzes de Odori e mercado de Munique até 25 dez | 2,0 / −4,0 °C | TV Tower ¥ 1.200 (7 €); 25 dez é dia útil |
 | Nova York, Estados Unidos | A árvore, a pista de patinação, as Rockettes | Árvore acesa em 2 dez; Spectacular até 4 jan | 6,8 / 1,0 °C | Rockettes a partir de US$ 55 (49 €); multidões |
@@ -60,13 +60,13 @@ O aeroporto fica a 3 km da vila, e o trem noturno Santa Claus Express, da VR, sa
 
 ## 2. Zermatt, Suíça — sem carros e com neve garantida
 
-Zermatt resolve a questão da neve com altitude. As pistas sobem até 3.883 m e a empresa dos teleféricos vende esqui 365 dias por ano. A temporada de inverno 2026/27 vai de 1º de novembro de 2026 a 3 de maio de 2027, e as áreas de Sunnegga-Rothorn e Gornergrat abrem em 28 de novembro, então a semana do Natal fica bem dentro dela.
+Zermatt resolve a questão da neve com altitude. As pistas sobem até 3.883 m e a empresa dos teleféricos vende esqui 365 dias por ano. A temporada de inverno 2026/27 vai de 1º de novembro de 2026 a 2 de maio de 2027, e as áreas de Sunnegga-Rothorn e Gornergrat abrem em 28 de novembro, então a semana do Natal fica bem dentro dela.
 
 As normais da MeteoSwiss para a estação de Zermatt (1.638 m, 1991–2020) indicam em dezembro máximas de 1,5 °C, mínimas de −6,3 °C, geada em 30 das 31 noites e 82,6 horas de sol.
 
 O vilarejo é fechado para carros. Quem vai de carro estaciona em Täsch e pega o trem de conexão (shuttle), que sai a cada 20 minutos e leva 12; os trens diretos saem a cada meia hora e levam cerca de três horas e meia a partir do aeroporto de Zurique e quatro a partir de Genebra ou Basileia.
 
-O passe de esqui de um dia em Zermatt custa a partir de CHF 89 (cerca de 96 €), mas esse preço mínimo só vale de 1º a 27 de novembro de 2026 e a partir de 19 de abril de 2027. Confira cedo as condições do hotel: as do Mont Cervin Palace permitem cobrar 100% dos serviços reservados se você for embora antes, e o hotel define as multas de cancelamento conforme o período da viagem e a duração da estadia. Se for ficar para o Réveillon, nosso guia de [Réveillon na neve](/blog/new-years-eve-in-the-snow) continua daqui.
+O passe de esqui de um dia em Zermatt custa a partir de CHF 89 (cerca de 96 €), mas no Natal e no Réveillon, de 19 de dezembro de 2026 a 3 de janeiro de 2027, o preço inicial é de CHF 100. Confira cedo as condições do hotel: as do Mont Cervin Palace permitem cobrar 100% dos serviços reservados se você for embora antes, e o hotel define as multas de cancelamento conforme o período da viagem e a duração da estadia. Se for ficar para o Réveillon, nosso guia de [Réveillon na neve](/blog/new-years-eve-in-the-snow) continua daqui.
 
 **A contrapartida:** neve garantida custa caro. O preço mínimo de CHF 89 não vale na semana do Natal, e condições rígidas de hotel deixam pouca margem para mudar de planos.
 

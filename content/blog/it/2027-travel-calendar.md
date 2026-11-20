@@ -138,7 +138,7 @@ Il Capodanno lunare (sabato 6 febbraio) e il martedì grasso (il 9) cadono nella
 
 **Da evitare a febbraio:** il Brasile nella settimana di Carnevale, a meno che il motivo del viaggio non sia proprio il Carnevale; Vietnam e Taiwan nei tre o quattro giorni intorno al Capodanno, quando molte attività chiudono; e il nord del Laos e della Thailandia a fine mese, quando arriva la foschia della stagione dei roghi agricoli.
 
-**La guida completa del mese:** [dove andare a febbraio](/blog/where-to-go-in-february), con [dove festeggiare il Capodanno cinese](/blog/lunar-new-year-where-to-celebrate) e [il Carnevale 2027 nel mondo](/blog/carnival-around-the-world).
+**La guida completa del mese:** [dove andare a febbraio](/blog/where-to-go-in-february), con [dove festeggiare il Capodanno cinese](/blog/lunar-new-year-where-to-celebrate), [il Carnevale 2027 nel mondo](/blog/carnival-around-the-world) e [il Carnevale in Spagna](/blog/carnival-in-spain).
 
 ## Marzo 2027 — Fioriture, Holi e una Pasqua bassa
 

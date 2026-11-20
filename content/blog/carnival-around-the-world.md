@@ -4,7 +4,7 @@ slug: "carnival-around-the-world"
 description: "Carnival Tuesday 2027 is 9 February and Ash Wednesday is the 10th. Here are 17 carnivals with 2027 dates checked at the source where published, from Rio's Sambadrome and Trinidad's J'Ouvert to Venice, Binche and Basel, with tickets, weather, safety rules and honest trade-offs."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-10-05"
+updatedAt: "2026-11-20"
 category: "Seasonal Travel"
 tags: ["seasonal", "winter travel", "best destinations", "trip planning"]
 image: "/images/blog/carnival-around-the-world.jpg"
@@ -150,7 +150,7 @@ February averages 13°C (56°F) highs and 6°C (43°F) lows (Météo-France 1971
 
 Santa Cruz de Tenerife has pushed its 2027 street carnival two weeks later, to 19–28 February (after Ash Wednesday), because its fairground was booked until 6 January. The programme lists the Queen election gala on Wednesday 17 February at 21:30, the opening cabalgata on Friday 19 at 19:30, Carnaval de Día on Sunday 21 and Saturday 27, the Coso Apoteósico parade on Tuesday 23 at 16:00 (a local holiday), and closing fireworks on Sunday 28 at 20:00. Galas usually sell out fast; parades and street parties are free. Bus 20 links Tenerife North airport with Santa Cruz for €2.65. February averages 21°C (70°F) highs and 15°C (60°F) lows (AEMET 1981–2010 via the WMO).
 
-Cádiz keeps its usual slot, 4–14 February 2027: from the Thursday before Ash Wednesday to the following Sunday. Its heart is the official contest (COAC) at the Gran Teatro Falla, where *coros*, *comparsas*, *chirigotas* and *cuartetos* compete with satirical songs; Planomato reports the adult final for Friday 5 February. Then the streets fill with homemade costumes. Renfe's C-1 line runs from Jerez airport to Cádiz in about 57 minutes. February averages 17°C (62°F) highs and 11°C (51°F) lows (AEMET 1981–2010 via the WMO).
+Cádiz keeps its usual slot, 4–14 February 2027: from the Thursday before Ash Wednesday to the following Sunday. Its heart is the official contest (COAC) at the Gran Teatro Falla, where *coros*, *comparsas*, *chirigotas* and *cuartetos* compete with satirical songs; the council's calendar of 8 November 2026 puts the adult final on Friday 5 February. Then the streets fill with homemade costumes. Renfe's C-1 line runs from Jerez airport to Cádiz in about 57 minutes. February averages 17°C (62°F) highs and 11°C (51°F) lows (AEMET 1981–2010 via the WMO). Every big Spanish carnival's 2027 dates are in our [guide to carnival in Spain](/blog/carnival-in-spain).
 
 **The trade-off:** Tenerife's late dates rule out pairing it with the 9 February carnivals, and Cádiz's humour lives in fast Spanish lyrics.
 
@@ -288,7 +288,7 @@ Rio's Sambadrome, Nice's corsos and flower battles, Viareggio's parades, Tenerif
 - [Aena: Tenerife North airport by bus](https://www.aena.es/en/tenerife-norte-ciudad-de-la-laguna/how-to-get-here/bus.html)
 - [Ayuntamiento de Cádiz: Carnaval](https://institucional.cadiz.es/area/Carnaval/103)
 - [Ayuntamiento de Cádiz: El Carnaval en la Calle](https://institucional.cadiz.es/area/El-Carnaval-en-la-Calle/192)
-- [Planomato: Cádiz 2027 COAC dates](https://planomato.com/es/jerez-de-la-frontera/n/carnaval-cadiz-cartel-fechas-coac)
+- [Ayuntamiento de Cádiz: COAC 2027 calendar](https://transparencia.cadiz.es/el-coro-un-coro-increible-abrira-el-coac-2027-el-proximo-8-de-enero/)
 - [Aena: Jerez airport by train](https://www.aena.es/en/jerez/getting-there/trains.html)
 - [koeln.de: When is carnival](https://www.koeln.de/karneval/wann-ist-karneval/)
 - [koeln.de: Rosenmontagszug](https://www.koeln.de/karneval/rosenmontagszug-koeln)

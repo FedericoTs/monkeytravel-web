@@ -138,7 +138,7 @@ O Ano-Novo Lunar (sábado, 6 de fevereiro) e a terça-feira de Carnaval (dia 9) 
 
 **Evite em fevereiro:** o Brasil na semana de Carnaval, a não ser que o Carnaval seja o motivo da viagem; Vietnã e Taiwan nos três ou quatro dias em torno do Ano-Novo, quando muitos negócios fecham; e o norte do Laos e da Tailândia no fim do mês, quando começa a névoa seca da época das queimadas.
 
-**O guia completo do mês:** [onde viajar em fevereiro](/blog/where-to-go-in-february), com [onde comemorar o Ano-Novo Chinês](/blog/lunar-new-year-where-to-celebrate) e o [Carnaval 2027 pelo mundo](/blog/carnival-around-the-world).
+**O guia completo do mês:** [onde viajar em fevereiro](/blog/where-to-go-in-february), com [onde comemorar o Ano-Novo Chinês](/blog/lunar-new-year-where-to-celebrate), o [Carnaval 2027 pelo mundo](/blog/carnival-around-the-world) e o [Carnaval na Espanha](/blog/carnival-in-spain).
 
 ## Março de 2027 — Cerejeiras em flor, Holi e uma Páscoa cedo
 
