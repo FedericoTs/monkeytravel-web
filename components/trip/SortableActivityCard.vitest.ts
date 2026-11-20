@@ -26,6 +26,12 @@ describe("sameSortableCard", () => {
     expect(sameSortableCard(before, props({ dayOptions: [{ dayNumber: 1, count: 4 }] } as never))).toBe(false);
   });
 
+  it("renders again when its photo becomes, or stops being, the page's first", () => {
+    const before = props();
+    expect(sameSortableCard(before, { ...before, photoFirst: true })).toBe(false);
+    expect(sameSortableCard({ ...before, photoFirst: true }, { ...before, photoFirst: true })).toBe(true);
+  });
+
   it("renders again when the card's own activity changed", () => {
     const before = props();
     expect(sameSortableCard(before, props({ activity: { ...before.activity, start_time: "15:00" } }))).toBe(false);

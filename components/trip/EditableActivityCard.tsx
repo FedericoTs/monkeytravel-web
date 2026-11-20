@@ -25,6 +25,8 @@ export interface EditableActivityCardProps {
   index: number;
   currency?: string;
   showGallery?: boolean;
+  /** The page's first stop photo: fetched at once, ahead of the rest, since it is what the page waits on to look loaded. */
+  photoFirst?: boolean;
   isEditMode: boolean;
   onDelete: () => void;
   onUpdate: (updates: Partial<Activity>) => void;
@@ -87,6 +89,7 @@ function EditableActivityCard({
   index,
   currency = "USD",
   showGallery = true,
+  photoFirst = false,
   isEditMode,
   onDelete,
   onUpdate,
@@ -257,7 +260,8 @@ function EditableActivityCard({
             src={proxyImageUrl(activity.image_url) || activity.image_url}
             alt={activity.name}
             className="w-full h-full object-cover"
-            loading="lazy"
+            loading={photoFirst ? "eager" : "lazy"}
+            fetchPriority={photoFirst ? "high" : "auto"}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
           <div className="absolute bottom-2 left-2">

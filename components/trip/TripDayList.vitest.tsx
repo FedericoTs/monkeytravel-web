@@ -691,3 +691,35 @@ describe("a new render epoch", () => {
     expect(seen.mounts.count).toBe(2);
   });
 });
+
+describe("the page's first stop photo", () => {
+  const photoDays = (): ItineraryDay[] =>
+    [
+      { day_number: 1, theme: "Old town", activities: [place("a1"), { ...place("a2"), image_url: "/a2.jpg" }, { ...place("a3"), image_url: "/a3.jpg" }] },
+      { day_number: 2, theme: "Museums", activities: [{ ...place("b1"), image_url: "/b1.jpg" }] },
+    ] as unknown as ItineraryDay[];
+
+  // Lazily, it started seconds after the page: it is what the page waits on to look loaded.
+  it("is the first photo of the first day shown, fetched at once; every other card waits", () => {
+    handlers.timelineOf.mockImplementation((dayNumber: number) =>
+      (photoDays()[dayNumber - 1]?.activities ?? []).map((data, index) => ({ type: "activity", data, index }))
+    );
+    show({ days: photoDays() });
+    expect(seen.viewing.get("a2")?.photoFirst).toBe(true);
+    for (const id of ["a1", "a3", "b1"]) expect(seen.viewing.get(id)?.photoFirst, id).toBe(false);
+  });
+
+  it("is the same card while the trip is being edited", () => {
+    show({ days: photoDays(), ...editing });
+    expect(seen.sortable.get("a2")?.photoFirst).toBe(true);
+    for (const id of ["a1", "a3", "b1"]) expect(seen.sortable.get(id)?.photoFirst, id).toBe(false);
+  });
+
+  it("is on the day the slider picked when only that day shows", () => {
+    handlers.timelineOf.mockImplementation((dayNumber: number) =>
+      (photoDays()[dayNumber - 1]?.activities ?? []).map((data, index) => ({ type: "activity", data, index }))
+    );
+    show({ days: photoDays(), selectedDay: 2 } as Partial<Props>);
+    expect(seen.viewing.get("b1")?.photoFirst).toBe(true);
+  });
+});

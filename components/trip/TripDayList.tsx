@@ -267,9 +267,12 @@ function TripDay({
           }
         : null,
   });
+  // The first stop photo of the first day shown is fetched at once: lazily, it started seconds after the page.
+  const firstPhoto = firstShown ? day.activities.findIndex((a) => Boolean(a.image_url)) : -1;
   const cardProps = (activity: Activity, idx: number) => ({
     activity,
     index: idx,
+    photoFirst: idx === firstPhoto,
     currency,
     showGallery: true,
     currentDayIndex: dayIndex,
