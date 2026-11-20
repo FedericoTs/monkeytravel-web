@@ -11,6 +11,7 @@ import {
   withoutOtherCitiesPlaces,
   type CityLeg,
 } from "./multi-city-core";
+import { buildJourneyStops } from "./transfer-legs";
 
 function cityResult(
   name: string,
@@ -202,6 +203,64 @@ describe("mergeCityItineraries", () => {
     expect(() => mergeCityItineraries(legs, [results[0]], "2026-05-10")).toThrow(
       MultiCityError
     );
+  });
+});
+
+// A route through Thailand planned a full last day in the south and said nothing about the way back north.
+describe("mergeCityItineraries: the way back", () => {
+  const pinned = (name: string, days: number, lat: number, lng: number, cost = 0): GeneratedItinerary => {
+    const r = cityResult(name, days, { cost });
+    r.days = r.days.map((d) => ({
+      ...d,
+      activities: [
+        { time_slot: "afternoon", start_time: "15:00", duration_minutes: 120, name: `${name} sight`, type: "attraction", coordinates: { lat, lng } } as Activity,
+      ],
+    }));
+    return r;
+  };
+  const route: CityLeg[] = [
+    { city: "Bangkok", nights: 3 },
+    { city: "Chiang Mai", nights: 2 },
+    { city: "Krabi", nights: 2 },
+  ];
+  const cities = () => [pinned("Bangkok", 3, 13.75, 100.5, 300), pinned("Chiang Mai", 2, 18.79, 98.98, 200), pinned("Krabi", 2, 8.09, 98.91, 100)];
+  const lastDay = (it: GeneratedItinerary) => it.days[it.days.length - 1].activities;
+
+  it("ends a route that finishes far from its start with the way back to the first city, after the day's last stop", () => {
+    const day = lastDay(mergeCityItineraries(route, cities(), "2026-05-10"));
+    expect(day.map((a) => a.name)).toEqual(["Krabi sight", "Flight to Bangkok"]);
+    expect(day[1]).toMatchObject({ type: "transport", transport_mode: "flight", location: "Krabi", start_time: "17:30", time_slot: "evening" });
+    expect(day[1].description).toContain("where the trip began");
+  });
+  it("takes how travellers make the way back, as answered", () => {
+    const hops = [undefined, undefined, { mode: "flight" as const, minutes: 80 }];
+    const day = lastDay(mergeCityItineraries(route, cities(), "2026-05-10", { hops }));
+    expect(day[1]).toMatchObject({ name: "Flight to Bangkok", duration_minutes: 230 });
+  });
+  it("leaves the way back out of the trip's total: the way home may start where the trip ends", () => {
+    const merged = mergeCityItineraries(route, cities(), "2026-05-10");
+    const between = merged.days.flatMap((d) => d.activities).filter((a) => a.transport_mode && a.location !== "Krabi");
+    const rides = between.reduce((sum, a) => sum + (a.estimated_cost?.amount ?? 0), 0);
+    expect(between).toHaveLength(2);
+    expect(merged.trip_summary.total_estimated_cost).toBe(600 + rides);
+  });
+  it("names it in the trip's language", () => {
+    const day = lastDay(mergeCityItineraries(route, cities(), "2026-05-10", { language: "it" }));
+    expect(day[1].name).toBe("Volo per Bangkok");
+    expect(day[1].description).toContain("dove è iniziato il viaggio");
+  });
+  it("adds none when the route ends near its start, a city has no pin, or transfers are off", () => {
+    const near: CityLeg[] = [{ city: "Bangkok", nights: 2 }, { city: "Chiang Mai", nights: 2 }, { city: "Ayutthaya", nights: 2 }];
+    const nearby = [pinned("Bangkok", 2, 13.75, 100.5), pinned("Chiang Mai", 2, 18.79, 98.98), pinned("Ayutthaya", 2, 14.35, 100.57)];
+    expect(lastDay(mergeCityItineraries(near, nearby, "2026-05-10")).map((a) => a.name)).toEqual(["Ayutthaya sight"]);
+    const unpinned = cities();
+    unpinned[0] = cityResult("Bangkok", 3);
+    expect(lastDay(mergeCityItineraries(route, unpinned, "2026-05-10")).map((a) => a.name)).toEqual(["Krabi sight"]);
+    expect(lastDay(mergeCityItineraries(route, cities(), "2026-05-10", { insertTransfers: false })).map((a) => a.name)).toEqual(["Krabi sight"]);
+  });
+  it("keeps the route ribbon's stops as they were", () => {
+    const merged = mergeCityItineraries(route, cities(), "2026-05-10");
+    expect(buildJourneyStops(merged.days).map((s) => s.city)).toEqual(["Bangkok", "Chiang Mai", "Krabi"]);
   });
 });
 

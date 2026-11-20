@@ -153,7 +153,7 @@ describe("generateMultiCityItinerary", () => {
       const city = p.destination.trim();
       return city === "Brussels" ? [[["Grand-Place", 50.8467, 4.3525]]] : city === "Paris" ? [[["Louvre", 48.8606, 2.3376]]] : [[["Belem Tower", 38.6916, -9.216]]];
     };
-    hopsAnswer = [{ mode: "train", minutes: 82 }, { mode: "train", minutes: 30 }];
+    hopsAnswer = [{ mode: "train", minutes: 82 }, { mode: "train", minutes: 30 }, { mode: "flight", minutes: 155 }];
     const base = { budgetTier: "balanced", pace: "moderate", vibes: [], interests: [] } as unknown as Parameters<typeof generateMultiCityItinerary>[0];
     const reports: unknown[] = [];
     const plan = await generateMultiCityItinerary(
@@ -163,10 +163,13 @@ describe("generateMultiCityItinerary", () => {
       undefined,
       (report) => reports.push(report)
     );
-    expect(events).toEqual(["hops Brussels > Paris > Lisbon", "plan Brussels", "plan  Paris ", "plan Lisbon"]);
+    // The same question asks the way back from the last city to the first.
+    expect(events).toEqual(["hops Brussels > Paris > Lisbon > Brussels", "plan Brussels", "plan  Paris ", "plan Lisbon"]);
     expect(plan.days[1].activities[0]).toMatchObject({ name: "Train to Paris", duration_minutes: 110 });
     // A train from Paris to Lisbon in half an hour can't be right: the card keeps the estimate.
     expect(plan.days[2].activities[0]).toMatchObject({ name: "Flight to Lisbon" });
+    expect(plan.days[2].activities.at(-1)).toMatchObject({ name: "Flight to Brussels", duration_minutes: 310 });
+    // The report counts the hops between the cities, not the way back.
     expect(reports).toEqual([{ hops: 2, answered: 2, used: 1 }]);
     // No answer for the hop: its card is the estimate, and the report says so.
     hopsAnswer = [undefined];
@@ -174,6 +177,10 @@ describe("generateMultiCityItinerary", () => {
     const estimated = await generateMultiCityItinerary(base, [{ city: "Brussels", nights: 1 }, { city: "Paris", nights: 1 }], "2027-05-01", undefined, (r) => reports.push(r));
     expect(estimated.days[1].activities[0].duration_minutes).toBe(210);
     expect(reports).toEqual([{ hops: 1, answered: 0, used: 0 }]);
+    // A route that comes back to where it began asks no way back.
+    events.length = 0;
+    await generateMultiCityItinerary(base, [{ city: "Brussels", nights: 1 }, { city: "Paris", nights: 1 }, { city: "brussels ", nights: 1 }], "2027-05-01");
+    expect(events[0]).toBe("hops Brussels > Paris > brussels");
     placesFor = null;
   });
 });

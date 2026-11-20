@@ -5,6 +5,7 @@ import {
   buildTransferActivity,
   buildJourneyStops,
   dayWithTransfer,
+  dayWithWayBack,
   inRailRegion,
 } from "./transfer-legs";
 import { mergeCityItineraries, splitCities, type CityLeg } from "./multi-city-core";
@@ -522,5 +523,21 @@ describe("a sight the arrival day can't hold", () => {
     // A day that would end past ten at night has no room.
     const full = secondDay().map((s) => ({ ...s, duration_minutes: 200 }) as Activity);
     expect(trip([firstDay(), full]).days[2].activities.map((a) => a.name)).not.toContain("Taj Mahal");
+  });
+});
+
+describe("dayWithWayBack", () => {
+  const back = { time_slot: "morning", start_time: "08:30", duration_minutes: 200, name: "Flight to Bangkok", type: "transport", transport_mode: "flight" } as Activity;
+  const stop = (start_time: string, duration_minutes: number) =>
+    ({ time_slot: "afternoon", start_time, duration_minutes, name: `Stop at ${start_time}`, type: "attraction" }) as Activity;
+
+  it("leaves after the day's last stop, wherever it sits in the list", () => {
+    const day = dayWithWayBack(back, [stop("19:00", 90), stop("10:00", 60)]);
+    expect(day.at(-1)).toMatchObject({ name: "Flight to Bangkok", start_time: "21:00", time_slot: "evening" });
+  });
+  it("leaves at five on a day with no timed stops, and by half past eleven after a late one", () => {
+    expect(dayWithWayBack(back, []).at(-1)).toMatchObject({ start_time: "17:00", time_slot: "evening" });
+    expect(dayWithWayBack(back, [stop("12:00", 60)]).at(-1)).toMatchObject({ start_time: "13:30", time_slot: "afternoon" });
+    expect(dayWithWayBack(back, [stop("23:00", 60)]).at(-1)).toMatchObject({ start_time: "23:30" });
   });
 });

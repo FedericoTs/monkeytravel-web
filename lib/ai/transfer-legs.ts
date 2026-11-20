@@ -210,7 +210,12 @@ type TransferLocale = "en" | "es" | "it" | "pt";
 
 const LABELS: Record<
   TransferLocale,
-  Record<TransferMode, string> & { name: Record<TransferMode, (city: string) => string>; description: (from: string, to: string) => string }
+  Record<TransferMode, string> & {
+    name: Record<TransferMode, (city: string) => string>;
+    description: (from: string, to: string) => string;
+    /** The way back to the route's first city, at the end of its last day (buildWayBack). */
+    wayBack: (to: string) => string;
+  }
 > = {
   en: {
     train: "TRAIN",
@@ -227,6 +232,7 @@ const LABELS: Record<
     },
     description: (from, to) =>
       `Estimated transfer from ${from} to ${to} — times and prices are indicative, book ahead for the best fares.`,
+    wayBack: (to) => `Getting back to ${to}, where the trip began — times and prices are indicative, book ahead for the best fares.`,
   },
   it: {
     train: "TRENO",
@@ -243,6 +249,7 @@ const LABELS: Record<
     },
     description: (from, to) =>
       `Trasferimento stimato da ${from} a ${to} — orari e prezzi indicativi, prenota in anticipo per le tariffe migliori.`,
+    wayBack: (to) => `Per tornare a ${to}, dove è iniziato il viaggio — orari e prezzi indicativi, prenota in anticipo per le tariffe migliori.`,
   },
   es: {
     train: "TREN",
@@ -259,6 +266,7 @@ const LABELS: Record<
     },
     description: (from, to) =>
       `Traslado estimado de ${from} a ${to} — horarios y precios orientativos, reserva con antelación para las mejores tarifas.`,
+    wayBack: (to) => `Para volver a ${to}, donde empezó el viaje — horarios y precios orientativos, reserva con antelación para las mejores tarifas.`,
   },
   pt: {
     train: "TREM",
@@ -275,6 +283,7 @@ const LABELS: Record<
     },
     description: (from, to) =>
       `Traslado estimado de ${from} para ${to} — horários e preços indicativos, reserve com antecedência para as melhores tarifas.`,
+    wayBack: (to) => `Para voltar a ${to}, onde a viagem começou — horários e preços indicativos, reserve com antecedência para as melhores tarifas.`,
   },
 };
 
@@ -410,6 +419,32 @@ export function arrivalDay(transfer: Activity, activities: Activity[]): { activi
   }
   const order = (a: Activity) => minutesOf(a.start_time) ?? 24 * 60;
   return { activities: [transfer, ...kept, ...moved].sort((x, y) => order(x) - order(y)), left };
+}
+
+/** A route that ends at least this far from its first city closes with the way back to it. */
+export const WAY_BACK_KM = 300;
+
+/**
+ * The way back from a route's last city to its first, for the end of the last day, when the route ends WAY_BACK_KM
+ * or more from where it began: the flight home often leaves from the first city. Null when it ends nearer, or when
+ * either city has no pin to measure from.
+ */
+export function buildWayBack(opts: Parameters<typeof buildTransferActivity>[0]): Activity | null {
+  const from = middleOf(opts.fromDays);
+  const to = middleOf(opts.toDays);
+  if (!from || !to || haversineKm(from, to) < WAY_BACK_KM) return null;
+  return { ...buildTransferActivity(opts), description: LABELS[resolveLocale(opts.language)].wayBack(opts.toCity) };
+}
+
+/** The last day with the way back after its last stop, and its plan as it was. */
+export function dayWithWayBack(back: Activity, activities: Activity[]): Activity[] {
+  const ends = activities.flatMap((a) => {
+    const at = minutesOf(a.start_time);
+    return at === null ? [] : [at + (a.duration_minutes || 60)];
+  });
+  const leave = Math.min(ends.length > 0 ? Math.max(...ends) + ARRIVAL_BUFFER_MINUTES : 17 * 60, 23 * 60 + 30);
+  const timeSlot = leave < 12 * 60 ? "morning" : leave < 17 * 60 ? "afternoon" : "evening";
+  return [...activities, { ...back, start_time: formatMinutesToTime(leave), time_slot: timeSlot }];
 }
 
 export interface JourneyStopWithTransit {
