@@ -15,6 +15,8 @@ import { generateItinerary } from "@/lib/gemini";
 import { knownPlacesFor } from "./known-places";
 import { askForTransfers } from "./transfer-question";
 import { answeredTransfer } from "./transfer-legs";
+import { cityPointsFor } from "./city-points";
+import { daylightFor } from "./daylight";
 import {
   type CityLeg,
   addDaysISO,
@@ -57,17 +59,21 @@ export async function generateMultiCityItinerary(
   // How travellers make each hop, asked while the cities are planned: the
   // cards between them take the answer where it can be right.
   const transfersAsked = askForTransfers(legs.map((leg) => leg.city.trim()));
+  // Where each city is, for its own sunrise and sunset: a route sends no one
+  // place's coordinates.
+  const points = await cityPointsFor(legs.map((leg) => leg.city.trim()));
 
   // Derive each city's date sub-range from the cumulative nights so the legs
   // tile the trip with no gap or overlap.
   let cursor = 0;
-  const perCityParams: TripCreationParams[] = legs.map((leg) => {
+  const perCityParams: TripCreationParams[] = legs.map((leg, i) => {
     const cityStart = addDaysISO(tripStartDate, cursor);
     const cityEnd = addDaysISO(tripStartDate, cursor + leg.nights - 1);
     cursor += leg.nights;
+    const daylight = daylightFor(points[i], cityStart, cityEnd);
     // Each city's plan knows the whole route: a name that fits several places
     // (Córdoba, Mérida) or a misspelled one means the one on it.
-    return { ...base, destinations: legs, destination: leg.city, startDate: cityStart, endDate: cityEnd };
+    return { ...base, destinations: legs, destination: leg.city, startDate: cityStart, endDate: cityEnd, ...(daylight ? { daylight } : {}) };
   });
 
   // Parallel: wall-clock = slowest single city, not the sum. Each city starts
