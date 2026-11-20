@@ -9,8 +9,16 @@ const asked: Array<{ destination: string; mustDos?: string[] }> = [];
 const routes: Array<TripCreationParams["destinations"]> = [];
 /** A city's places for each of its days, when a test gives them. */
 let placesFor: ((p: TripCreationParams, call: number) => Array<Array<[string, number, number]>>) | null = null;
+/** The sunrise and sunset each city was planned with. */
+const daylights: Array<{ destination: string; daylight: TripCreationParams["daylight"] }> = [];
+/** Where the cities table puts each city, when a test says. */
+let pointsByCity: Record<string, { lat: number; lng: number }> = {};
+vi.mock("./city-points", () => ({
+  cityPointsFor: async (cities: string[]) => cities.map((c) => pointsByCity[c] ?? null),
+}));
 vi.mock("@/lib/gemini", () => ({
   generateItinerary: async (p: TripCreationParams, options: { knownPlaces?: unknown }) => {
+    daylights.push({ destination: p.destination, daylight: p.daylight });
     events.push(`plan ${p.destination}`);
     generated.push({ destination: p.destination, knownPlaces: options.knownPlaces });
     asked.push({ destination: p.destination, mustDos: p.mustDos });
@@ -45,8 +53,29 @@ vi.mock("./transfer-question", () => ({
 }));
 
 const { generateMultiCityItinerary } = await import("./multi-city");
+const { daylightFor } = await import("./daylight");
 
 describe("generateMultiCityItinerary", () => {
+  // A route sends no one place's coordinates, so its cities were planned with no sunrise or sunset, and a sunset
+  // stop could sit hours from the sun.
+  it("plans each city with its own sunrise and sunset, on its own dates, where the city is known", async () => {
+    pointsByCity = { Reykjavik: { lat: 64.15, lng: -21.94 }, Lisbon: { lat: 38.72, lng: -9.14 } };
+    daylights.length = 0;
+    const base = { budgetTier: "balanced", pace: "moderate", vibes: [], interests: [] } as unknown as Parameters<typeof generateMultiCityItinerary>[0];
+    await generateMultiCityItinerary(
+      base,
+      [{ city: "Reykjavik", nights: 2 }, { city: " Lisbon ", nights: 3 }, { city: "Nowhere", nights: 1 }],
+      "2027-06-01"
+    );
+    const of = (city: string) => daylights.find((d) => d.destination.trim() === city)?.daylight;
+    expect(of("Reykjavik")).toEqual(daylightFor({ lat: 64.15, lng: -21.94 }, "2027-06-01", "2027-06-02"));
+    expect(of("Lisbon")).toEqual(daylightFor({ lat: 38.72, lng: -9.14 }, "2027-06-03", "2027-06-05"));
+    expect(of("Lisbon")?.first.sunset).not.toEqual(of("Reykjavik")?.first.sunset);
+    expect(of("Nowhere")).toBeUndefined();
+    pointsByCity = {};
+    for (const list of [generated, asked, routes, events, daylights] as unknown[][]) list.length = 0;
+  });
+
   it("offers each city its own known places, for its own nights", async () => {
     const base = { budgetTier: "balanced", pace: "moderate", vibes: ["cultural"], interests: [] } as unknown as Parameters<
       typeof generateMultiCityItinerary
