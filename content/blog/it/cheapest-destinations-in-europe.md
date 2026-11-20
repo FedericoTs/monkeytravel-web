@@ -7,7 +7,7 @@ description: >-
   spenderai davvero.
 author: Francesca A.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-11-20'
 category: Budget Travel
 tags: ["viaggi economici", "migliori destinazioni", "europa"]
 image: /images/blog/cheapest-destinations-in-europe.jpg
@@ -182,7 +182,7 @@ Budapest e nelle liste dei viaggi economici da un decennio e i prezzi sono salit
 - Birra in un ruin bar: $2-3,50
 
 **Da non perdere:**
-- Terme Szechenyi — immergiti in sorgenti termali all'aperto dentro un palazzo neobarocco per $22
+- Terme Szechenyi — immergiti in sorgenti termali all'aperto dentro un palazzo neobarocco per 13.200 Ft dal lunedì al giovedì o 14.800 Ft dal venerdì alla domenica (biglietto giornaliero con armadietto, prezzi 2026)
 - I ruin bar del VII Distretto, specialmente Szimpla Kert — un labirinto di arte, cocktail e caos controllato
 - Camminare dal Castello di Buda al Bastione dei Pescatori all'alba — gratis e quasi deserto prima delle 8
 

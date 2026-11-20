@@ -7,7 +7,7 @@ description: >-
   gastarás realmente.
 author: Francesca A.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-11-20'
 category: Budget Travel
 tags: ["viajes económicos", "mejores destinos", "europa"]
 image: /images/blog/cheapest-destinations-in-europe.jpg
@@ -183,7 +183,7 @@ Budapest lleva una década en las listas de viajes económicos y los precios han
 - Cerveza en un bar en ruinas: $2-3,50
 
 **Puntos destacados:**
-- Baños Termales Széchenyi — sumérgete en aguas termales al aire libre dentro de un palacio neobarroco por $22
+- Baños Termales Széchenyi — sumérgete en aguas termales al aire libre dentro de un palacio neobarroco por 13.200 Ft de lunes a jueves o 14.800 Ft de viernes a domingo (entrada de día con taquilla, precios de 2026)
 - Los bares en ruinas del Distrito VII, especialmente Szimpla Kert — un laberinto de arte, cócteles y caos controlado
 - Caminar del Castillo de Buda al Bastión de los Pescadores al amanecer — gratis y casi vacío antes de las 8 AM
 

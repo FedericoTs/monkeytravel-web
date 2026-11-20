@@ -6,7 +6,7 @@ description: >-
   group trips actually work, with real costs and planning tips.
 author: Giuseppe G.
 publishedAt: '2026-02-18'
-updatedAt: '2026-02-18'
+updatedAt: '2026-11-20'
 category: Destination Guides
 tags: ["viajes en grupo", "mejores destinos"]
 image: /images/blog/group-trip-destinations-2026.jpg
@@ -75,7 +75,7 @@ El pueblo es lo bastante pequeño para explorarlo en bicicletas de alquiler (2 �
 
 Bares en ruinas, baños termales y una ribera del Danubio que rivaliza con París — a un tercio del precio. Cervezas artesanales a 2-3 €, cócteles a 5-6 €. Los apartamentos grupales cerca del Gran Mercado Central cuestan 85-120 €/noche.
 
-Los Baños Széchenyi (23 €/persona para el día completo) son la actividad grupal más democrática que existe — todo el mundo se remoja y charla. La Isla Margarita es gratis para correr por la mañana, el Castillo de Buda cubre a los turistas culturales, y la ruta de bares en ruinas vuelve a reunir a todos a medianoche.
+Los Baños Széchenyi (13.200 Ft por persona el día completo de lunes a jueves y 14.800 Ft de viernes a domingo, precios de 2026) son la actividad grupal más democrática que existe — todo el mundo se remoja y charla. La Isla Margarita es gratis para correr por la mañana, el Castillo de Buda cubre a los turistas culturales, y la ruta de bares en ruinas vuelve a reunir a todos a medianoche.
 
 ## Gama media (55-110 €/día por persona)
 

@@ -4,7 +4,7 @@ slug: "2026-travel-calendar"
 description: "Una guía mes a mes de dónde viajar en 2026 — construida sobre datos meteorológicos reales, patrones de afluencia y eventos estacionales, no sobre listas genéricas. Un solo pilar que cubre los 12 meses con rangos de presupuesto específicos y ventanas temporales precisas."
 author: "Emanuela P."
 publishedAt: "2026-05-06"
-updatedAt: "2026-10-02"
+updatedAt: "2026-11-20"
 category: "Seasonal Travel"
 tags: ["estacional", "guía mensual de viajes", "planificación de viajes"]
 image: "/images/blog/2026-travel-calendar.jpg"
@@ -73,7 +73,7 @@ Enero es el reset del año. Las tarifas aéreas post-festivos caen un 20-40% des
 
 ### Laponia, Finlandia — auroras boreales en un año de máximo solar
 
-La temporada 2025-2026 está cerca del pico del ciclo solar de 11 años, lo que significa que las auroras son estadísticamente más frecuentes e intensas que lo que volverán a serlo en otra década. La Laponia finlandesa ofrece un 65-75% de visibilidad de aurora en noches despejadas de enero — la probabilidad más alta de cualquier mes, ayudada por 18-20 horas de oscuridad.
+La temporada 2025-2026 está cerca del pico del ciclo solar de 11 años, lo que significa que las auroras son estadísticamente más frecuentes e intensas que lo que volverán a serlo en otra década. En noches oscuras y sin nubes, hay auroras más o menos la mitad de las noches en el centro de Laponia y el 75 % en Kilpisjärvi, según el Instituto Meteorológico de Finlandia, y enero suma 18-20 horas de oscuridad.
 
 - **Temp. media:** -15 a -6 °C
 - **Presupuesto diario:** 180-320 $/persona
@@ -128,7 +128,7 @@ Febrero en Egipto se acerca al ideal platónico del clima para visitar monumento
 
 ### Laponia (aún excelente) y Patagonia (pico de trekking)
 
-Si enero no funcionó para las auroras, febrero en la Laponia finlandesa es estadísticamente igual de fuerte, con un 70-80% de probabilidad de aurora en noches despejadas y ventanas diurnas notablemente más largas para trineos de huskies y safaris de renos. El W Trek de Torres del Paine en Patagonia alcanza su mejor mes meteorológico — vientos más estables que en enero, la luz otoñal que obsesiona a los fotógrafos. Las reservas de refugios para febrero hay que hacerlas 4-5 meses antes.
+Si enero no funcionó para las auroras, febrero es, según el Instituto Meteorológico de Finlandia, uno de los mejores meses para las auroras en la Laponia finlandesa, donde aparecen más o menos la mitad de las noches oscuras y despejadas en el centro de la región, y tiene ventanas diurnas notablemente más largas para trineos de huskies y safaris de renos. El W Trek de Torres del Paine en Patagonia alcanza su mejor mes meteorológico — vientos más estables que en enero, la luz otoñal que obsesiona a los fotógrafos. Las reservas de refugios para febrero hay que hacerlas 4-5 meses antes.
 
 **Evitar en febrero:** escapadas a ciudades de la Europa continental buscando calor. París y Roma son suaves pero grises, con menos luz diurna de la que sugieren los folletos. Guárdalas para marzo-abril o octubre. Evita también Bali si no soportas la lluvia — febrero está en el corazón de la temporada húmeda y las tormentas vespertinas pueden durar más que las habituales 1-2 horas.
 
@@ -204,7 +204,7 @@ Los Jardines de Keukenhof están abiertos del 19 de marzo al 10 de mayo de 2026,
 - **Lo que hace que abril sea el momento:** la mejor relación precio-condiciones de Europa Occidental.
 - **Consejo de iniciada:** sáltate los restaurantes a precio turístico de Alfama. Camina 10 minutos hasta Mouraria — el barrio más multicultural de Lisboa — para comer a mitad de precio.
 
-**Evitar en abril:** Bali durante Nyepi (Día del Silencio, cae a finales de marzo o a veces a principios de abril según el calendario lunar). Toda la isla se cierra — sin vuelos a Denpasar, sin internet, sin salir de tu alojamiento. Confirma las fechas antes de reservar.
+**Bali y el Nyepi:** en 2026, el Día del Silencio cayó el 19 de marzo, antes de abril; en 2027 cae el 8 de marzo. Toda la isla se cierra — sin vuelos a Denpasar, sin internet, sin salir de tu alojamiento. Confirma las fechas antes de reservar.
 
 **La guía completa del mes:** [dónde viajar en abril de 2027](/blog/where-to-go-in-april), con doce destinos.
 
@@ -225,7 +225,7 @@ La Costa Amalfitana en julio es uno de los tramos de carretera más congestionad
 
 ### Marrakech, Marruecos — última ventana antes del horno del verano
 
-Marrakech alcanza los 38-42 °C de junio a septiembre. Mayo se mueve entre los 18 y los 28 °C — lo bastante cálido para cenar al aire libre en Djemaa el-Fna sin el calor que te drena ya a las 10 de la mañana en verano. Cae entre las olas turísticas de Pascua y de verano, así que los precios están en mínimos primaverales. El Ramadán termina el 30 de abril en 2026, así que mayo es plenamente post-Ramadán y todos los restaurantes están abiertos.
+Marrakech alcanza los 38-42 °C de junio a septiembre. Mayo se mueve entre los 18 y los 28 °C — lo bastante cálido para cenar al aire libre en Djemaa el-Fna sin el calor que te drena ya a las 10 de la mañana en verano. Cae entre las olas turísticas de Pascua y de verano, así que los precios están en mínimos primaverales. En Marruecos, el Ramadán de 2026 terminó con el Eid al Fitr el 20 de marzo, así que mayo es plenamente post-Ramadán y todos los restaurantes están abiertos.
 
 - **Temp. media:** 18-28 °C
 - **Presupuesto diario:** 35-70 €/persona
@@ -593,7 +593,7 @@ Vuelos largos: 4-6 meses de antelación es el punto dulce consistente para rutas
 
 ### ¿Vale realmente la pena el viaje en la temporada de auroras de máximo solar en 2026?
 
-Sí, con matices. El Ciclo Solar 25 alcanzó su pico a finales de 2024-principios de 2025 y la actividad elevada continúa durante 2026, con intensidad decreciente año a año. Febrero de 2026 sigue siendo estadísticamente fuerte — la probabilidad de aurora en la Laponia finlandesa va del 70-80% en noches despejadas, que es la variable que más importa, más que la propia actividad solar. El viaje vale la pena hacerlo ahora en lugar de más tarde porque para 2028-2029, el mínimo solar volverá y la frecuencia de auroras caerá notablemente. Dentro de 2026, febrero ofrece el mejor equilibrio de noches largas y oscuras y ventanas diurnas razonables de actividad; enero es más oscuro pero más frío; marzo tiene más luz pero ventanas de aurora más cortas. Inari o Saariselkä, no Rovaniemi.
+Sí, con matices. El Ciclo Solar 25 alcanzó su pico a finales de 2024-principios de 2025 y la actividad elevada continúa durante 2026, con intensidad decreciente año a año. Febrero de 2026 sigue siendo estadísticamente fuerte — hay auroras más o menos la mitad de las noches oscuras y despejadas en el centro de Laponia y el 75 % en Kilpisjärvi, según el Instituto Meteorológico de Finlandia, y el cielo despejado importa más que la propia actividad solar. El viaje vale la pena hacerlo ahora en lugar de más tarde porque para 2028-2029, el mínimo solar volverá y la frecuencia de auroras caerá notablemente. Dentro de 2026, febrero ofrece el mejor equilibrio de noches largas y oscuras y ventanas diurnas razonables de actividad; enero es más oscuro pero más frío; marzo tiene más luz pero ventanas de aurora más cortas. Inari o Saariselkä, no Rovaniemi.
 
 ### ¿Debería contratar seguro de viaje para 2026?
 

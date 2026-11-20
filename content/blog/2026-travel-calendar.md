@@ -4,7 +4,7 @@ slug: "2026-travel-calendar"
 description: "A month-by-month guide to where to travel in 2026 — built on real weather data, crowd patterns, and seasonal events, not generic top-10 lists. One pillar covering all 12 months with specific budget ranges and timing windows."
 author: "Emanuela P."
 publishedAt: "2026-05-06"
-updatedAt: "2026-10-02"
+updatedAt: "2026-11-20"
 category: "Seasonal Travel"
 tags: ["seasonal", "monthly travel guide", "trip planning"]
 image: "/images/blog/trending-destinations-may-2026.jpg"
@@ -71,7 +71,7 @@ January is the year's reset. Post-holiday airfares drop 20-40% from their Decemb
 
 ### Lapland, Finland — Northern Lights in a Solar Maximum Year
 
-The 2025-2026 season sits near the peak of the 11-year solar cycle, which means aurora displays are statistically more frequent and more intense than they will be again for another decade. Finnish Lapland delivers 65-75% aurora visibility on clear January nights — the highest probability of any month, helped by 18-20 hours of darkness.
+The 2025-2026 season sits near the peak of the 11-year solar cycle, which means aurora displays are statistically more frequent and more intense than they will be again for another decade. On dark, cloudless nights, auroras appear on roughly half of nights in central Lapland and on 75% at Kilpisjärvi, by the Finnish Meteorological Institute's count, and January adds 18-20 hours of darkness.
 
 - **Avg temp:** -15 to -6°C (5-21°F)
 - **Daily budget:** $180-320/person
@@ -126,7 +126,7 @@ February in Egypt is close to the platonic ideal of sightseeing weather: Luxor a
 
 ### Lapland (still excellent) and Patagonia (peak trekking)
 
-If January didn't work for the aurora, February in Finnish Lapland is statistically as strong, with 70-80% aurora probability on clear nights and noticeably longer daytime activity windows for husky sledding and reindeer safaris. Patagonia's Torres del Paine W Trek hits its single best weather month — more stable winds than January, the autumn light photographers obsess over. Refugio bookings for February need to happen 4-5 months ahead.
+If January didn't work for the aurora, February is one of the Finnish Meteorological Institute's best months for auroras in Finnish Lapland, where they appear on roughly half of clear, dark nights in the central region, and it has noticeably longer daytime activity windows for husky sledding and reindeer safaris. Patagonia's Torres del Paine W Trek hits its single best weather month — more stable winds than January, the autumn light photographers obsess over. Refugio bookings for February need to happen 4-5 months ahead.
 
 **Avoid in February:** Mainland European city breaks for warmth. Paris and Rome are mild but grey, with shorter daylight than the brochures suggest. Save those for March-April or October. Also avoid Bali if you can't tolerate rain — February sits in the heart of the wet season and afternoon storms can run longer than the standard 1-2 hours.
 
@@ -202,7 +202,7 @@ Keukenhof Gardens is open March 19 to May 10, 2026, with the best tulip displays
 - **What makes April right:** Best price-to-conditions ratio in Western Europe.
 - **Insider tip:** Skip the tourist-priced restaurants in Alfama. Walk 10 minutes to Mouraria — Lisbon's most multicultural neighborhood — for meals at half the price.
 
-**Avoid in April:** Bali during Nyepi (Day of Silence, falls in late March or sometimes early April depending on the lunar calendar). The entire island shuts down — no flights into Denpasar, no internet, no leaving your accommodation. Confirm dates before booking.
+**Bali and Nyepi:** in 2026 the Day of Silence fell on 19 March, before April; in 2027 it falls on 8 March. The entire island shuts down — no flights into Denpasar, no internet, no leaving your accommodation. Confirm dates before booking.
 
 **The full month guide:** [where to go in April 2027](/blog/where-to-go-in-april), with twelve destinations.
 
@@ -223,7 +223,7 @@ The Amalfi Coast in July is one of the most congested stretches of road in Europ
 
 ### Marrakech, Morocco — Last Window Before the Summer Furnace
 
-Marrakech hits 38-42°C from June through September. May runs 18-28°C — warm enough for outdoor dining at Djemaa el-Fna without the heat that drains you by 10 AM in summer. Sits between the Easter and summer tourist surges, so prices are at their spring low. Ramadan ends April 30 in 2026, so May is fully post-Ramadan with all restaurants open.
+Marrakech hits 38-42°C from June through September. May runs 18-28°C — warm enough for outdoor dining at Djemaa el-Fna without the heat that drains you by 10 AM in summer. Sits between the Easter and summer tourist surges, so prices are at their spring low. In Morocco, Ramadan 2026 ended with Eid al-Fitr on 20 March, so May is fully post-Ramadan with all restaurants open.
 
 - **Avg temp:** 18-28°C (64-82°F)
 - **Daily budget:** EUR 35-70/person
@@ -591,7 +591,7 @@ Long-haul flights: 4-6 months ahead is the consistent sweet spot for transatlant
 
 ### Is the solar-maximum aurora season really worth the trip in 2026?
 
-Yes, with caveats. Solar Cycle 25 peaked around late 2024 to early 2025 and elevated activity continues through 2026, with declining intensity year over year. February 2026 is statistically still strong — Finnish Lapland aurora probability runs 70-80% on clear nights, which is the variable that matters more than solar activity itself. The trip is worth taking now rather than later because by 2028-2029, solar minimum will return and aurora frequency will drop noticeably. Within 2026, February delivers the best balance of long dark nights and reasonable daytime activity windows; January is darker but colder; March has more daylight but shorter aurora windows. Inari or Saariselkä, not Rovaniemi.
+Yes, with caveats. Solar Cycle 25 peaked around late 2024 to early 2025 and elevated activity continues through 2026, with declining intensity year over year. February 2026 is statistically still strong — auroras appear on roughly half of clear, dark nights in central Lapland and on 75% at Kilpisjärvi, by the Finnish Meteorological Institute's count, and clear skies matter more than solar activity itself. The trip is worth taking now rather than later because by 2028-2029, solar minimum will return and aurora frequency will drop noticeably. Within 2026, February delivers the best balance of long dark nights and reasonable daytime activity windows; January is darker but colder; March has more daylight but shorter aurora windows. Inari or Saariselkä, not Rovaniemi.
 
 ### Should I buy travel insurance for 2026?
 

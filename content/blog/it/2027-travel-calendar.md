@@ -138,7 +138,7 @@ Il Capodanno lunare (sabato 6 febbraio) e il martedì grasso (il 9) cadono nella
 
 **Da evitare a febbraio:** il Brasile nella settimana di Carnevale, a meno che il motivo del viaggio non sia proprio il Carnevale; Vietnam e Taiwan nei tre o quattro giorni intorno al Capodanno, quando molte attività chiudono; e il nord del Laos e della Thailandia a fine mese, quando arriva la foschia della stagione dei roghi agricoli.
 
-**La guida completa del mese:** [dove andare a febbraio](/blog/where-to-go-in-february), con [dove festeggiare il Capodanno cinese](/blog/lunar-new-year-where-to-celebrate), [il Carnevale 2027 nel mondo](/blog/carnival-around-the-world) e [il Carnevale in Spagna](/blog/carnival-in-spain).
+**La guida completa del mese:** [dove andare a febbraio](/blog/where-to-go-in-february), con [dove festeggiare il Capodanno cinese](/blog/lunar-new-year-where-to-celebrate), [il Carnevale 2027 nel mondo](/blog/carnival-around-the-world), [il Carnevale in Spagna](/blog/carnival-in-spain) e [i weekend di San Valentino 2027](/blog/valentines-day-getaways).
 
 ## Marzo 2027 — Fioriture, Holi e una Pasqua bassa
 
@@ -154,7 +154,7 @@ La domenica di Pasqua è il 28 marzo, quindi Settimana Santa e Holi cadono nell'
 **Il compromesso:** le piogge improvvise di marzo possono allagare siq e canyon; controlla le condizioni prima di qualsiasi escursione nei wadi.
 
 **Date chiave del 2027:**
-- Martedì 9 marzo: Eid al-Fitr previsto, a chiusura del Ramadan (la data può variare di un giorno da Paese a Paese).
+- Martedì 9 marzo: Eid al-Fitr previsto, a chiusura del Ramadan (la data può variare di un giorno da Paese a Paese; vedi [viaggiare durante il Ramadan](/blog/travel-during-ramadan)).
 - Mercoledì 17 marzo: San Patrizio, festivo in Irlanda del Nord.
 - Giovedì 18 marzo: apre il Keukenhof. Venerdì 19 marzo: apre GREEN×EXPO.
 - 21–27 marzo: Settimana Santa. Lunedì 22 marzo: Holi.

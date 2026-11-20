@@ -4,7 +4,7 @@ slug: "where-to-go-in-february"
 description: "Febbraio infila in 28 giorni più di quanto dovrebbe: il Carnevale di Rio, il Capodanno lunare in tutta l'Asia, la stagione dei parti nel Serengeti e le aurore islandesi con la luce che torna. È anche l'ultimo mese economico prima che partano i prezzi di primavera. Dodici mete dove febbraio è il motivo del viaggio, con costi reali e i compromessi che nessuno racconta."
 author: "Emanuela P."
 publishedAt: "2026-09-03"
-updatedAt: "2026-10-04"
+updatedAt: "2026-11-20"
 category: "Seasonal Travel"
 tags: ["stagionale", "guida mensile ai viaggi", "viaggi invernali", "migliori destinazioni"]
 image: "/images/blog/where-to-go-in-february.jpg"
@@ -135,7 +135,7 @@ Febbraio è in sordina il mese migliore della Nuova Zelanda. Il mare è al suo p
 - **Febbraio è l'ultimo mese economico al nord.** Marzo porta i prezzi delle vacanze scolastiche e dell'avvicinamento a Pasqua in Europa e Nord America. Se le tue date sono flessibili e la meta è settentrionale, febbraio batte marzo sul costo quasi sempre.
 - **Mese corto, coincidenze strette.** Febbraio ha 28 giorni e un numero fisso di posti a lungo raggio, e le settimane di festa se ne mangiano una quota sproporzionata. Prenota i voli interni in Brasile, Vietnam e Tanzania prima di quanto faresti in un mese normale.
 - **Controlla da che lato delle piogge sei.** Africa orientale, sud-est asiatico e Caraibi hanno divisioni regionali questo mese — la nostra [guida al monsone](/blog/monsoon-season-where-to-go-and-avoid) le mappa, e il [calendario viaggi 2027](/blog/2027-travel-calendar) mostra come febbraio si confronta con i mesi vicini.
-- **Due feste segnano febbraio 2027.** Il Capodanno cinese cade il 6 febbraio e il Carnevale culmina martedì 9; vedi [dove festeggiare il Capodanno cinese](/blog/lunar-new-year-where-to-celebrate) e [il Carnevale 2027 nel mondo](/blog/carnival-around-the-world) per date e prenotazioni.
+- **Quattro date segnano febbraio 2027.** Il Capodanno cinese cade il 6 febbraio, il Ramadan dovrebbe iniziare l'8, il Carnevale culmina martedì 9 e San Valentino cade domenica 14; vedi [dove festeggiare il Capodanno cinese](/blog/lunar-new-year-where-to-celebrate), [viaggiare durante il Ramadan](/blog/travel-during-ramadan), [il Carnevale 2027 nel mondo](/blog/carnival-around-the-world) e [i weekend di San Valentino 2027](/blog/valentines-day-getaways) per date e prenotazioni.
 
 ## Pianifica il tuo viaggio di febbraio in 30 secondi
 

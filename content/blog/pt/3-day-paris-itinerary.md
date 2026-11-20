@@ -7,7 +7,7 @@ description: >-
   perder tempo nem dinheiro.
 author: Francesca A.
 publishedAt: '2026-02-20'
-updatedAt: '2026-08-25'
+updatedAt: '2026-11-20'
 category: "Destination Guides"
 tags: ["roteiro", "guia da cidade", "europa", "viagem de fim de semana", "paris"]
 image: /images/blog/3-day-paris-itinerary.jpg
@@ -113,7 +113,7 @@ Caminhe ao longo dos **Quais de Seine** depois de escurecer. A Torre Eiffel cint
 
 O Louvre dispensa apresentações — mas precisa de estratégia. Com 380.000 objetos espalhados por 72.735 metros quadrados, é impossível ver tudo. Nem tente.
 
-- **Ingressos:** € 22 (entrada com horário marcado obrigatória, reserve em louvre.fr)
+- **Ingressos:** € 22 para cidadãos e residentes do Espaço Econômico Europeu e € 32 para os demais desde 14 de janeiro de 2026 (entrada com horário marcado obrigatória, reserve em louvre.fr)
 - **Horário:** 9h às 18h (até 21h às sextas-feiras). Fechado às terças.
 - **Tempo necessário:** 2 a 3 horas com foco
 

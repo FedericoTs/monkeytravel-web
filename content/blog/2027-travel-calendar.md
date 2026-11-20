@@ -138,7 +138,7 @@ Lunar New Year (Saturday 6 February) and Carnival Tuesday (the 9th) share one we
 
 **Avoid in February:** Brazil in Carnival week unless Carnival is the reason; Vietnam and Taiwan in the three or four days around New Year, when many businesses close; and northern Laos and Thailand late in the month, when burning-season haze starts.
 
-**The full month guide:** [where to go in February](/blog/where-to-go-in-february), with [where to celebrate Lunar New Year](/blog/lunar-new-year-where-to-celebrate), [Carnival 2027 around the world](/blog/carnival-around-the-world) and [carnival in Spain](/blog/carnival-in-spain).
+**The full month guide:** [where to go in February](/blog/where-to-go-in-february), with [where to celebrate Lunar New Year](/blog/lunar-new-year-where-to-celebrate), [Carnival 2027 around the world](/blog/carnival-around-the-world), [carnival in Spain](/blog/carnival-in-spain) and [Valentine's Day 2027 getaways](/blog/valentines-day-getaways).
 
 ## March 2027 — Blossom, Holi and an early Easter
 
@@ -154,7 +154,7 @@ Easter Sunday is 28 March, so Holy Week and Holi share the last week, and the fi
 **The trade-off:** sudden March rain can flood the siqs and canyons; check conditions before any wadi hike.
 
 **Key 2027 dates:**
-- Tuesday 9 March: Eid al-Fitr expected, ending Ramadan (the date can vary by a day between countries).
+- Tuesday 9 March: Eid al-Fitr expected, ending Ramadan (the date can vary by a day between countries; see [travelling during Ramadan](/blog/travel-during-ramadan)).
 - Wednesday 17 March: St Patrick's Day, a bank holiday in Northern Ireland.
 - Thursday 18 March: Keukenhof opens. Friday 19 March: GREEN×EXPO opens.
 - 21–27 March: Holy Week. Monday 22 March: Holi.

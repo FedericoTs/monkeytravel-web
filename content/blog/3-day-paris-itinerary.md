@@ -7,7 +7,7 @@ description: >-
   wasting time or money.
 author: Francesca A.
 publishedAt: '2026-02-20'
-updatedAt: '2026-08-25'
+updatedAt: '2026-11-20'
 category: Destination Guides
 tags: ["itinerary", "city guide", "europe", "weekend trip", "paris"]
 image: /images/blog/3-day-paris-itinerary.jpg
@@ -112,7 +112,7 @@ Walk along the **Quais de Seine** after dark. The Eiffel Tower sparkles on the h
 
 The Louvre needs no introduction — but it needs a strategy. With 380,000 objects across 72,735 square meters, you can't see everything. Don't try.
 
-- **Tickets:** €22 (timed entry required, book at louvre.fr)
+- **Tickets:** €22 for citizens and residents of the European Economic Area, €32 for everyone else since 14 January 2026 (timed entry required, book at louvre.fr)
 - **Hours:** 9:00 AM - 6:00 PM (until 9:00 PM on Fridays). Closed Tuesdays.
 - **Time needed:** 2-3 hours with focus
 

@@ -138,7 +138,7 @@ El Año Nuevo Lunar (sábado 6 de febrero) y el martes de Carnaval (el 9) caen e
 
 **Evita en febrero:** Brasil en la semana de Carnaval, salvo que el Carnaval sea el motivo; Vietnam y Taiwán en los tres o cuatro días en torno al Año Nuevo, cuando muchos negocios cierran; y el norte de Laos y Tailandia a final de mes, cuando empieza la calima de la temporada de quemas.
 
-**La guía completa del mes:** [dónde viajar en febrero](/blog/where-to-go-in-february), con [dónde celebrar el Año Nuevo Chino](/blog/lunar-new-year-where-to-celebrate), [el Carnaval 2027 en el mundo](/blog/carnival-around-the-world) y [el carnaval en España](/blog/carnival-in-spain).
+**La guía completa del mes:** [dónde viajar en febrero](/blog/where-to-go-in-february), con [dónde celebrar el Año Nuevo Chino](/blog/lunar-new-year-where-to-celebrate), [el Carnaval 2027 en el mundo](/blog/carnival-around-the-world), [el carnaval en España](/blog/carnival-in-spain) y [las escapadas de San Valentín 2027](/blog/valentines-day-getaways).
 
 ## Marzo de 2027 — Cerezos en flor, Holi y una Semana Santa temprana
 
@@ -154,7 +154,7 @@ El Domingo de Pascua cae el 28 de marzo, así que la Semana Santa y el Holi coin
 **La contrapartida:** las lluvias repentinas de marzo pueden inundar los desfiladeros y los cañones; comprueba las condiciones antes de cualquier ruta por un wadi.
 
 **Fechas clave de 2027:**
-- Martes 9 de marzo: Eid al-Fitr previsto, fin del Ramadán (la fecha puede variar un día entre países).
+- Martes 9 de marzo: Eid al-Fitr previsto, fin del Ramadán (la fecha puede variar un día entre países; consulta [viajar durante el Ramadán](/blog/travel-during-ramadan)).
 - Miércoles 17 de marzo: San Patricio, festivo en Irlanda del Norte.
 - Jueves 18 de marzo: abre Keukenhof. Viernes 19 de marzo: abre la GREEN×EXPO.
 - 21–27 de marzo: Semana Santa. Lunes 22 de marzo: Holi.

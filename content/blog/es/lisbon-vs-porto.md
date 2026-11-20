@@ -7,7 +7,7 @@ description: >-
   de viajero.
 author: Francesca A.
 publishedAt: '2026-04-15'
-updatedAt: '2026-04-15'
+updatedAt: '2026-11-20'
 category: Destination Guides
 tags: ["comparación", "guía de ciudad", "europa"]
 image: /images/blog/lisbon-vs-porto.jpg
@@ -240,9 +240,9 @@ Oporto es más fresca y lluviosa que Lisboa. Los veranos son confortables (22-27
 
 Lisboa está construida sobre siete colinas. Caminar es gratificante pero físicamente exigente — subirás calles empedradas empinadas regularmente. El tranvía 28 es icónico pero abarrotado; el metro cubre bien las partes llanas.
 
-- Billete sencillo de metro: 1,65 €
-- Abono diario (Viva Viagem 24h): 6,80 €
-- Metro al aeropuerto: 1,65 €
+- Billete sencillo de metro o Carris: 1,90 € (tarifa de 2026), más 0,50 € por la tarjeta reutilizable navegante
+- Billete de 24 horas (Carris y Metro): 7,25 €
+- Metro al aeropuerto: 1,90 €, la tarifa sencilla
 
 ### Oporto
 

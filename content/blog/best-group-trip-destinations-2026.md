@@ -6,7 +6,7 @@ description: >-
   group trips actually work, with real costs and planning tips.
 author: Giuseppe G.
 publishedAt: '2026-02-18'
-updatedAt: '2026-08-24'
+updatedAt: '2026-11-20'
 category: Destination Guides
 tags: ["group travel", "best destinations"]
 image: /images/blog/group-trip-destinations-2026.jpg
@@ -75,7 +75,7 @@ The town is small enough to explore on rented bicycles ($2/day). An Bang Beach i
 
 Ruin bars, thermal baths, and a Danube riverfront that rivals Paris — at a third of the price. Craft beers are $2-3, cocktails $5-6. Group apartments near the Great Market Hall run $90-130/night.
 
-Szechenyi Baths ($25/person for the full day) is the most democratic group activity possible — everyone soaks and chats. Margaret Island is free for morning runs, Buda Castle covers the sightseers, and the ruin bar crawl brings everyone back together by midnight.
+Szechenyi Baths (13,200 Ft a person for the day Monday to Thursday, 14,800 Ft Friday to Sunday, at 2026 prices) is the most democratic group activity possible — everyone soaks and chats. Margaret Island is free for morning runs, Buda Castle covers the sightseers, and the ruin bar crawl brings everyone back together by midnight.
 
 ## Mid-Range ($60-120/Day Per Person)
 

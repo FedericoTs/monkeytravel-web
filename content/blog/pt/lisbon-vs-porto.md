@@ -7,7 +7,7 @@ description: >-
   tipo de viajante.
 author: Francesca A.
 publishedAt: '2026-04-15'
-updatedAt: '2026-04-15'
+updatedAt: '2026-11-20'
 category: "Destination Guides"
 tags: ["comparação", "guia da cidade", "europa"]
 image: /images/blog/lisbon-vs-porto.jpg
@@ -241,9 +241,9 @@ O Porto é mais fresco e mais chuvoso que Lisboa. Os verões são confortáveis 
 
 Lisboa é construída sobre sete colinas. Caminhar é gratificante, mas fisicamente exigente — você vai subir ruas íngremes de paralelepípedo com frequência. O bonde 28 é icônico, mas lotado; o metrô cobre bem as partes planas da cidade. Um elevador (Elevador de Santa Justa) e vários funiculares ajudam com as ladeiras.
 
-- Bilhete único de metrô: €1,65
-- Passe diário (Viva Viagem 24h): €6,80
-- Metrô do aeroporto: €1,65
+- Bilhete avulso de metrô ou Carris: €1,90 (tarifa de 2026), mais €0,50 pelo cartão reutilizável navegante
+- Passe de 24 horas (Carris e Metrô): €7,25
+- Metrô do aeroporto: €1,90, a tarifa avulsa
 
 ### Porto
 

@@ -7,7 +7,7 @@ description: >-
   viaggiatore.
 author: Francesca A.
 publishedAt: '2026-04-15'
-updatedAt: '2026-04-15'
+updatedAt: '2026-11-20'
 category: Destination Guides
 tags: ["confronto", "guida città", "europa"]
 image: /images/blog/lisbon-vs-porto.jpg
@@ -240,9 +240,9 @@ Porto è più fresca e piovosa di Lisbona. Le estati sono confortevoli (22-27°C
 
 Lisbona è costruita su sette colli. Camminare è gratificante ma fisicamente impegnativo — salirai regolarmente strade acciottolate ripide. Il tram 28 è iconico ma affollato; la metro copre bene le parti pianeggianti.
 
-- Biglietto metro singolo: 1,65 €
-- Abbonamento giornaliero (Viva Viagem 24h): 6,80 €
-- Metro per l'aeroporto: 1,65 €
+- Biglietto singolo metro o Carris: 1,90 € (tariffa 2026), più 0,50 € per la carta ricaricabile navegante
+- Biglietto 24 ore (Carris e Metro): 7,25 €
+- Metro per l'aeroporto: 1,90 €, la tariffa singola
 
 ### Porto
 

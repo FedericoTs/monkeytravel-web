@@ -189,7 +189,7 @@ The Paixão de Cristo de Nova Jerusalém, in Pernambuco, runs 20–27 March 2027
 
 ### 14. Marrakech: warm and dry
 
-**Why now:** March averages 23.6°C by day and 10.3°C at night, with 35 mm of rain on about 5 days. Ramadan ends with Eid al-Fitr, expected on 9 or 10 March 2027 (the date depends on the moon), well before Holy Week, as our [2027 calendar](/blog/2027-travel-calendar) notes.
+**Why now:** March averages 23.6°C by day and 10.3°C at night, with 35 mm of rain on about 5 days. Ramadan ends with Eid al-Fitr, expected on 9 or 10 March 2027 (the date depends on the moon), well before Holy Week, as our [2027 calendar](/blog/2027-travel-calendar) notes; our guide to [travelling during Ramadan](/blog/travel-during-ramadan) has the details by country.
 
 **The trade-off:** cool nights, and no Easter ritual at all, which may be the point.
 
