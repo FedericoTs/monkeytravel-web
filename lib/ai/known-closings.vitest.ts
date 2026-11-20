@@ -186,6 +186,14 @@ describe("the list's entries", () => {
     expect(hoursOn(entry("Acropolis", "Athens"), "2027-01-28")).toEqual({ open: 480, close: 1020, lastEntry: 1000 });
   });
 
+  it("tell the Colosseum from the Square Colosseum across Rome, which keeps none of its hours", () => {
+    // Thursday 26 November 2026: the Colosseum's last entry is 15:30.
+    expect(hoursOn(entry("Colosseum", "Rome"), "2026-11-26")?.lastEntry).toBe(15 * 60 + 30);
+    expect(knownClosingFor("Colosseo", "Rome, Italy")).toBeDefined();
+    expect(knownClosingFor("Colosseo Quadrato (Palazzo della Civiltà Italiana)", "Rome, Italy")).toBeUndefined();
+    expect(knownClosingFor("Square Colosseum", "Rome")).toBeUndefined();
+  });
+
   it("tell a market from the park beside it, and a garden from the palace's open grounds", () => {
     expect(knownClosingFor("Chatuchak Weekend Market", "Bangkok")).toBeDefined();
     expect(knownClosingFor("Chatuchak Park", "Bangkok")).toBeUndefined();

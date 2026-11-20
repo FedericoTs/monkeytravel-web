@@ -402,6 +402,8 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
   },
   {
     names: /\bcolosse(?:um|o)\b|\bcoliseo\b|\bcoliseu\b|\broman forum\b|\bforo romano\b|\bf[oó]rum romano\b|\bpalatin(?:e|o) hill\b|\bmonte palatino\b/i,
+    // The Square Colosseum (Palazzo della Civiltà Italiana) in EUR is another building.
+    notNames: /\bquadrato\b|\bsquare colosseum\b/i,
     city: ROME,
     rules: [day("2026-12-25"), day("2027-01-01")],
     hours: [
