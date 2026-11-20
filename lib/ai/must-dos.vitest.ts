@@ -153,7 +153,77 @@ describe("keepMustDos", () => {
   });
 });
 
+// A day trip the traveller named (a boat to an island, a ski day) was left out: it fits no free hour and
+// replacing one stop isn't enough, so the answer said it couldn't fit without disrupting the plan.
+describe("withMustDos: a day trip asked for by name", () => {
+  const dinner = (time: string, name: string) => at(time, name, 40.84, 14.25, { type: "restaurant", duration_minutes: 90 });
+  const town = () => [
+    { day_number: 1, date: "2027-06-08", city: "Naples", activities: [at("09:00", "Naples Cathedral", 40.8525, 14.2597), dinner("19:00", "Trattoria del Porto")] },
+    {
+      day_number: 2,
+      date: "2027-06-09",
+      city: "Naples",
+      activities: [at("09:00", "Archaeological Museum", 40.8535, 14.2508), at("11:00", "Spaccanapoli", 40.8489, 14.2557), dinner("13:00", "Pizzeria al Vico"), at("15:00", "Castel dell'Ovo", 40.8283, 14.2475), dinner("19:00", "Osteria del Mare")],
+    },
+    { day_number: 3, date: "2027-06-10", city: "Naples", activities: [at("09:00", "Castel Sant'Elmo", 40.8436, 14.2386), dinner("19:00", "Friggitoria al Molo")] },
+  ];
+  const capri = (day = 2, extra: Record<string, unknown> = {}) => ({
+    must_do: 1,
+    day_number: day,
+    whole_day: true,
+    activity: { start_time: "08:30", duration_minutes: 480, name: "Capri boat day", type: "activity", description: "By boat from the harbour.", location: "Molo Beverello", coordinates: { lat: 40.5532, lng: 14.2222 }, ...extra },
+  });
+
+  it("takes a whole day of its city, and that day keeps what falls outside the trip's hours", () => {
+    const { days, added } = withMustDos(town(), ["Capri"], { added: [capri()] });
+    expect(added).toEqual(["Capri"]);
+    expect(named(days)[1]).toBe("2: 08:30 Capri boat day | 19:00 Osteria del Mare");
+    expect(named(days)[0]).toBe("1: 09:00 Naples Cathedral | 19:00 Trattoria del Porto");
+  });
+
+  it("never on the trip's first or last day, a day with a ride, or a city's only day", () => {
+    expect(withMustDos(town(), ["Capri"], { added: [capri(1)] }).added).toEqual([]);
+    expect(withMustDos(town(), ["Capri"], { added: [capri(3)] }).added).toEqual([]);
+    // Even when the first day's hours are free: it's the arrival day.
+    const light = town();
+    light[0].activities = [dinner("19:00", "Trattoria del Porto")];
+    expect(withMustDos(light, ["Capri"], { added: [capri(1)] }).added).toEqual([]);
+    const ride = town();
+    ride[1].activities.push(at("17:00", "Train to Rome", 40.853, 14.272, { type: "transport", transport_mode: "train" } as Partial<Activity>));
+    expect(withMustDos(ride, ["Capri"], { added: [capri()] }).added).toEqual([]);
+    const route = town().map((d, i) => ({ ...d, city: ["Rome", "Naples", "Florence"][i] }));
+    expect(withMustDos(route, ["Capri"], { added: [capri()] }).added).toEqual([]);
+  });
+
+  it("keeps out a day trip whose hours hold a fixed plan", () => {
+    const fixed = town();
+    fixed[1].activities[1] = { ...fixed[1].activities[1], locked: true };
+    expect(withMustDos(fixed, ["Capri"], { added: [capri()] }).added).toEqual([]);
+  });
+
+  it("keeps out a short trip marked as a whole day", () => {
+    expect(withMustDos(town(), ["Capri"], { added: [capri(2, { duration_minutes: 120 })] }).added).toEqual([]);
+  });
+
+  it("gives a long answer its day even when it isn't marked as a day trip", () => {
+    const unmarked = { ...capri(), whole_day: undefined, replaces: "Archaeological Museum" };
+    expect(named(withMustDos(town(), ["Capri"], { added: [unmarked] }).days)[1]).toBe("2: 08:30 Capri boat day | 19:00 Osteria del Mare");
+    // On a day it may not take, a long answer follows the usual rule, and here doesn't fit.
+    expect(withMustDos(town(), ["Capri"], { added: [{ ...unmarked, day_number: 1 }] }).added).toEqual([]);
+  });
+});
+
 describe("askForMustDos", () => {
+  it("lets a day trip take a whole day of its city", async () => {
+    vi.stubEnv("GOOGLE_AI_API_KEY", "test");
+    answer = async () => ({ response: { text: () => JSON.stringify({ added: [], left_out: [] }) } });
+    await askForMustDos("Tokyo", tokyo(), ["GALA Yuzawa"], "en");
+    const question = generateContent.mock.calls[0][0];
+    expect(question).toContain("whole_day");
+    expect(question).toContain("not the trip's first or last");
+    expect(question).toContain("Never leave one out because a day is full or because it takes a whole day");
+  });
+
   it("asks with the plan's days, times and fixed plans, in the plan's language", async () => {
     vi.stubEnv("GOOGLE_AI_API_KEY", "test");
     answer = async () => ({ response: { text: () => JSON.stringify({ added: [ichiran()], left_out: [] }) } });
