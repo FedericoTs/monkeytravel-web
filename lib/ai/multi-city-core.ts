@@ -11,7 +11,7 @@
  * actually calls Gemini lives in lib/ai/multi-city.ts.
  */
 import type { GeneratedItinerary, ItineraryDay } from "@/types";
-import { arrivalDay, buildTransferActivity, type KnownHop } from "./transfer-legs";
+import { arrivalDay, buildTransferActivity, buildWayBack, dayWithWayBack, type KnownHop } from "./transfer-legs";
 import { plannedMinutes, withStopAt } from "@/lib/trip/day-room";
 import { flightLink, hotelLinks } from "./booking-links";
 import { addIsoDays } from "@/lib/dates/iso-date";
@@ -263,7 +263,10 @@ export function mergeCityItineraries(
     language?: string;
     /** P4 escape hatch — defaults to inserting transfer legs. */
     insertTransfers?: boolean;
-    /** How travellers make each hop, as answered: hops[i] is the hop from legs[i] to legs[i + 1]. */
+    /**
+     * How travellers make each hop, as answered: hops[i] is the hop from legs[i] to legs[i + 1], and the one after
+     * the last city is the way back to the first.
+     */
     hops?: Array<KnownHop | undefined>;
   }
 ): GeneratedItinerary {
@@ -318,6 +321,24 @@ export function mergeCityItineraries(
     }
     mergedDays.push(...own);
     globalIndex += own.length;
+  }
+
+  // A route that ends far from where it began closes with the way back to its first city. It stays out of the
+  // trip's total: the way home may start where the trip ends.
+  const lastDay = mergedDays.length - 1;
+  if (insertTransfers && legs.length > 1 && lastDay >= 0) {
+    const back = buildWayBack({
+      fromCity: legs[legs.length - 1].city.trim(),
+      toCity: legs[0].city.trim(),
+      fromDays: results[results.length - 1].days ?? [],
+      toDays: results[0].days ?? [],
+      currency,
+      language: opts?.language,
+      known: opts?.hops?.[legs.length - 1],
+    });
+    if (back) {
+      mergedDays[lastDay] = { ...mergedDays[lastDay], activities: dayWithWayBack(back, mergedDays[lastDay].activities ?? []) };
+    }
   }
 
   const first = results[0];

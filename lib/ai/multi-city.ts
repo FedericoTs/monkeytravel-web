@@ -55,8 +55,11 @@ export async function generateMultiCityItinerary(
   validateLegs(legs);
 
   // How travellers make each hop, asked while the cities are planned: the
-  // cards between them take the answer where it can be right.
-  const transfersAsked = askForTransfers(legs.map((leg) => leg.city.trim()));
+  // cards between them take the answer where it can be right. The same
+  // question asks the way back to the first city, unless the route ends there.
+  const cities = legs.map((leg) => leg.city.trim());
+  const endsWhereItBegan = cities[cities.length - 1].toLowerCase() === cities[0].toLowerCase();
+  const transfersAsked = askForTransfers(endsWhereItBegan ? cities : [...cities, cities[0]]);
 
   // Derive each city's date sub-range from the cumulative nights so the legs
   // tile the trip with no gap or overlap.
@@ -109,7 +112,7 @@ export async function generateMultiCityItinerary(
   const cityDays = inTheirCities.results.map((r) => r.days ?? []);
   onTransfers?.({
     hops: legs.length - 1,
-    answered: hops.filter(Boolean).length,
+    answered: hops.slice(0, legs.length - 1).filter(Boolean).length,
     used: cityDays.slice(1).filter((days, i) => answeredTransfer(hops[i], cityDays[i], days)).length,
   });
 
