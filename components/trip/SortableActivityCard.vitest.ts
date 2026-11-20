@@ -28,7 +28,8 @@ describe("sameSortableCard", () => {
 
   it("renders again when its photo becomes, or stops being, the page's first", () => {
     const before = props();
-    expect(sameSortableCard(before, props({ photoFirst: true }))).toBe(false);
+    expect(sameSortableCard(before, { ...before, photoFirst: true })).toBe(false);
+    expect(sameSortableCard({ ...before, photoFirst: true }, { ...before, photoFirst: true })).toBe(true);
   });
 
   it("renders again when the card's own activity changed", () => {
