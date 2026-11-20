@@ -7,7 +7,7 @@ description: >-
   Detalhamento de gastos, melhores meses e o truque de reserva que economiza 30%.
 author: Francesca A.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-11-20'
 category: "Budget Travel"
 tags: ["viagem econômica", "melhores destinos", "europa"]
 image: /images/blog/cheapest-destinations-in-europe.jpg
@@ -229,7 +229,7 @@ Budapeste está nas listas de viagem econômica há uma década e os preços sub
 - Cerveja em um ruin bar: $2-3,50
 
 **Destaques:**
-- Banhos Termais Szechenyi — mergulhe em fontes termais ao ar livre dentro de um palácio neobarroco por $22
+- Banhos Termais Szechenyi — mergulhe em fontes termais ao ar livre dentro de um palácio neobarroco por 13.200 Ft de segunda a quinta ou 14.800 Ft de sexta a domingo (ingresso diário com armário, preços de 2026)
 - Os ruin bars do Distrito VII, especialmente o Szimpla Kert — um labirinto de arte, coquetéis e caos controlado
 - Caminhar do Castelo de Buda até o Bastião dos Pescadores ao amanhecer — gratuito e quase vazio antes das 8h
 

@@ -189,7 +189,7 @@ A Paixão de Cristo de Nova Jerusalém, em Pernambuco, acontece de 20 a 27 de ma
 
 ### 14. Marrakech: quente e seco
 
-**Por que nessa época:** em março, a média é de 23,6 °C de dia e 10,3 °C à noite, com 35 mm de chuva em cerca de 5 dias. O Ramadã termina com o Eid al-Fitr, previsto para 9 ou 10 de março de 2027 (a data depende da lua), bem antes da Semana Santa, como registra nosso [calendário de 2027](/blog/2027-travel-calendar).
+**Por que nessa época:** em março, a média é de 23,6 °C de dia e 10,3 °C à noite, com 35 mm de chuva em cerca de 5 dias. O Ramadã termina com o Eid al-Fitr, previsto para 9 ou 10 de março de 2027 (a data depende da lua), bem antes da Semana Santa, como registra nosso [calendário de 2027](/blog/2027-travel-calendar); nosso guia para [viajar durante o Ramadã](/blog/travel-during-ramadan) traz os detalhes por país.
 
 **A contrapartida:** noites frescas e nenhum ritual de Páscoa, o que talvez seja justamente a ideia.
 

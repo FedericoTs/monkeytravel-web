@@ -4,7 +4,7 @@ slug: "where-to-go-in-march"
 description: "Marzo es el punto de giro: los cerezos de Japón, el Holi el 22 de marzo, la Semana Santa llenando Andalucía, las semanas más tranquilas de la Patagonia y el suroeste americano antes del calor. Es también el mes en que llegan los precios de Semana Santa —el 28 de marzo en 2027—, así que las tres primeras semanas y la última son viajes distintos. Doce destinos con costes reales y las contrapartidas que nadie cuenta."
 author: "Emanuela P."
 publishedAt: "2026-09-03"
-updatedAt: "2026-10-04"
+updatedAt: "2026-11-20"
 category: "Seasonal Travel"
 tags: ["estacional", "guía mensual de viajes", "viajes de primavera", "temporada media", "mejores destinos"]
 image: "/images/blog/where-to-go-in-march.jpg"
@@ -84,7 +84,7 @@ Marzo es cuando Jordania está en su mejor momento: 20–24 °C en la cuenca de 
 Marzo pilla Marruecos entre el invierno y el horno: Marrakech entre 20 y 25 °C, el Alto Atlas todavía nevado pero con los puertos abriéndose, y los valles verdes por la lluvia de invierno. La costa atlántica —Essaouira, Taghazout— está ventosa y luminosa, y el sur desértico resulta cómodo en lugar de castigador.
 
 **Coste real:** $50–85/día; un riad con patio sigue siendo el alojamiento clásico de gama media.
-**La contrapartida:** es temporada media, así que el tiempo es cambiante: tardes cálidas, noches frías y alguna lluvia fuerte que convierte las pistas sin asfaltar en barro. El Ramadán puede caer en este periodo según el año; comprueba las fechas vigentes, porque los horarios y el servicio de restauración cambian bastante.
+**La contrapartida:** es temporada media, así que el tiempo es cambiante: tardes cálidas, noches frías y alguna lluvia fuerte que convierte las pistas sin asfaltar en barro. En 2027 el Ramadán debería durar hasta el 8 o el 9 de marzo, con el Eid al-Fitr el 9 o el 10, y durante el mes cambian bastante los horarios y el servicio de restauración: consulta [viajar durante el Ramadán](/blog/travel-during-ramadan).
 
 ## 7. Creta y el Peloponeso — Flores y ruinas vacías
 

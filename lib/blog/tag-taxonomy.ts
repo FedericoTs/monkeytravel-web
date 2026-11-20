@@ -214,6 +214,7 @@ export const POSTS: Record<string, { c: string[]; d?: string[] }> = {
   "where-to-go-in-september":              { c: ["seasonal", "monthly-guide", "autumn-travel", "shoulder-season", "best-destinations"] },
   "epiphany-around-the-world":             { c: ["seasonal", "winter-travel", "best-destinations", "europe"] },
   "lunar-new-year-where-to-celebrate":     { c: ["seasonal", "winter-travel", "best-destinations", "asia"] },
+  "travel-during-ramadan":                 { c: ["seasonal", "winter-travel", "best-destinations", "trip-planning"] },
   "carnival-around-the-world":             { c: ["seasonal", "winter-travel", "best-destinations", "trip-planning"] },
   "carnival-in-spain":                     { c: ["seasonal", "winter-travel", "best-destinations", "trip-planning"] },
   "solar-eclipse-2027":                    { c: ["seasonal", "best-destinations", "trip-planning"] },
@@ -243,6 +244,7 @@ export const POSTS: Record<string, { c: string[]; d?: string[] }> = {
   // --- Trip Planning ---
   "best-digital-nomad-destinations-2026":  { c: ["digital-nomad", "best-destinations", "trip-planning"] },
   "best-honeymoon-destinations-2026":      { c: ["romantic-travel", "best-destinations"] },
+  "valentines-day-getaways":               { c: ["seasonal", "romantic-travel", "best-destinations", "trip-planning"] },
   "best-wellness-retreats-2026":           { c: ["wellness-travel", "best-destinations"] },
   "group-travel-mistakes-to-avoid":        { c: ["group-travel", "trip-planning"] },
   "group-travel-statistics-2026":          { c: ["group-travel", "travel-data", "trip-planning"] },

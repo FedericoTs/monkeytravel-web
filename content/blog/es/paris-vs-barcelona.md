@@ -7,7 +7,7 @@ description: >-
   viajero.
 author: Francesca A.
 publishedAt: '2026-04-15'
-updatedAt: '2026-04-15'
+updatedAt: '2026-11-20'
 category: Destination Guides
 tags: ["comparación", "guía de ciudad", "europa", "barcelona"]
 image: /images/blog/paris-vs-barcelona.jpg
@@ -135,7 +135,7 @@ La escena gastronómica de Barcelona se basa en compartir. La cultura de las tap
 París tiene una de las mayores densidades de museos del mundo. Solo el Louvre podría consumir tres días enteros. Añade el Museo de Orsay, el Centro Pompidou, el Museo Rodin y el Museo de la Orangerie, y tienes una ciudad que podría funcionar enteramente como destino artístico.
 
 **Imprescindibles:**
-- **Louvre** — 22 €, cerrado los martes. Mínimo 3-4 horas.
+- **Louvre** — 22 € para ciudadanos y residentes del Espacio Económico Europeo y 32 € para el resto (desde el 14 de enero de 2026), cerrado los martes. Mínimo 3-4 horas.
 - **Museo de Orsay** — 16 €. La mejor colección impresionista del mundo.
 - **Sacré-Coeur y Montmartre** — Gratis. Artistas callejeros, vistas panorámicas.
 - **Notre-Dame** — Reabierta tras la restauración. Entrada gratuita a la catedral.

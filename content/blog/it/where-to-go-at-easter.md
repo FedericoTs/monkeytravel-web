@@ -189,7 +189,7 @@ La Paixão de Cristo di Nova Jerusalém, in Pernambuco, va in scena dal 20 al 27
 
 ### 14. Marrakech: caldo e asciutto
 
-**Perché in questo periodo:** a marzo la media è di 23,6 °C di giorno e 10,3 °C di notte, con 35 mm di pioggia in circa 5 giorni. Il Ramadan finisce con l'Eid al-Fitr, previsto il 9 o il 10 marzo 2027 (la data dipende dalla luna), ben prima della Settimana Santa, come ricorda il nostro [calendario 2027](/blog/2027-travel-calendar).
+**Perché in questo periodo:** a marzo la media è di 23,6 °C di giorno e 10,3 °C di notte, con 35 mm di pioggia in circa 5 giorni. Il Ramadan finisce con l'Eid al-Fitr, previsto il 9 o il 10 marzo 2027 (la data dipende dalla luna), ben prima della Settimana Santa, come ricorda il nostro [calendario 2027](/blog/2027-travel-calendar); la nostra guida per [viaggiare durante il Ramadan](/blog/travel-during-ramadan) ha i dettagli Paese per Paese.
 
 **Il compromesso:** notti fresche e nessun rito pasquale, che forse è proprio quello che cerchi.
 

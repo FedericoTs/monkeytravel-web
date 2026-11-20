@@ -6,7 +6,7 @@ description: >-
   vita notturna, spiagge, cultura e quale vince per ogni tipo di viaggiatore.
 author: Francesca A.
 publishedAt: '2026-04-15'
-updatedAt: '2026-04-15'
+updatedAt: '2026-11-20'
 category: Destination Guides
 tags: ["confronto", "guida città", "europa", "barcellona"]
 image: /images/blog/paris-vs-barcelona.jpg
@@ -134,7 +134,7 @@ La scena gastronomica di Barcellona si basa sulla condivisione. La cultura delle
 Parigi ha una delle più alte densità di musei al mondo. Il solo Louvre potrebbe consumare tre giorni interi. Aggiungi il Musée d'Orsay, il Centre Pompidou, il Musée Rodin e il Musée de l'Orangerie, e hai una città che potrebbe funzionare interamente come destinazione artistica.
 
 **Da non perdere:**
-- **Louvre** — 22 €, chiuso il martedì. Minimo 3-4 ore.
+- **Louvre** — 22 € per cittadini e residenti dello Spazio economico europeo, 32 € per tutti gli altri (dal 14 gennaio 2026), chiuso il martedì. Minimo 3-4 ore.
 - **Musée d'Orsay** — 16 €. La migliore collezione impressionista del mondo.
 - **Sacré-Coeur e Montmartre** — Gratis. Artisti di strada, viste panoramiche.
 - **Notre-Dame** — Riaperta dopo il restauro. Ingresso gratuito alla cattedrale.

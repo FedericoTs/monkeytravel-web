@@ -6,7 +6,7 @@ description: >-
   custos, romance e qual cidade vence para cada tipo de viajante.
 author: Francesca A.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-11-20'
 category: "Destination Guides"
 tags: ["comparação", "guia da cidade", "europa", "roma"]
 image: /images/blog/paris-vs-rome.jpg
@@ -107,7 +107,7 @@ As duas cidades poderiam consumir uma vida inteira de visitas a museus. Mas ofer
 Paris tem a densidade. Numa caminhada de 30 minutos, você pode visitar o Louvre, o Musée d'Orsay e o Musée de l'Orangerie — três dos maiores museus de arte do mundo.
 
 **Museus imperdíveis:**
-- **Louvre** — €22, fechado às terças. A Mona Lisa, a Vênus de Milo, a Vitória de Samotrácia. Reserve no mínimo 3-4 horas. Compre a entrada com horário marcado.
+- **Louvre** — €22 para cidadãos e residentes do Espaço Econômico Europeu, €32 para os demais (desde 14 de janeiro de 2026), fechado às terças. A Mona Lisa, a Vênus de Milo, a Vitória de Samotrácia. Reserve no mínimo 3-4 horas. Compre a entrada com horário marcado.
 - **Musée d'Orsay** — €16. A melhor coleção impressionista do mundo numa deslumbrante estação de trem reformada. Monet, Renoir, Van Gogh.
 - **Centre Pompidou** — €15. Arte moderna e contemporânea. O próprio edifício é a atração para muita gente.
 - **Musée de l'Orangerie** — €12,50. As Ninfeias de Monet nas salas ovais — uma experiência transcendente.

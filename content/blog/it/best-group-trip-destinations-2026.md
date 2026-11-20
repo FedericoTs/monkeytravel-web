@@ -9,7 +9,7 @@ description: >-
   organizzarsi.
 author: Giuseppe G.
 publishedAt: '2026-02-18'
-updatedAt: '2026-02-18'
+updatedAt: '2026-11-20'
 category: Destination Guides
 tags: ["viaggi di gruppo", "migliori destinazioni"]
 image: /images/blog/group-trip-destinations-2026.jpg
@@ -80,7 +80,7 @@ La città è abbastanza piccola da esplorare in bicicletta a noleggio (2€/gior
 
 Ruin bar, terme e un lungofiume sul Danubio che rivaleggia con Parigi — a un terzo del prezzo. Birre artigianali a 2-3€, cocktail a 5-6€. Appartamenti di gruppo vicino al Grande Mercato Coperto costano 80-120€/notte.
 
-Le Terme Szechenyi (23€/persona per l'intera giornata) sono l'attività di gruppo più democratica possibile — tutti a mollo a chiacchierare. L'Isola Margherita è gratis per la corsa mattutina, il Castello di Buda soddisfa i curiosi, e il giro dei ruin bar riunisce tutti a mezzanotte.
+Le Terme Szechenyi (13.200 Ft a persona per l'intera giornata dal lunedì al giovedì e 14.800 Ft dal venerdì alla domenica, prezzi 2026) sono l'attività di gruppo più democratica possibile — tutti a mollo a chiacchierare. L'Isola Margherita è gratis per la corsa mattutina, il Castello di Buda soddisfa i curiosi, e il giro dei ruin bar riunisce tutti a mezzanotte.
 
 ## Fascia Media (55-110€/Giorno a Persona)
 

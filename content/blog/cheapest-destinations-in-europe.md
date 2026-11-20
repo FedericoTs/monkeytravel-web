@@ -7,7 +7,7 @@ description: >-
   booking trick that saves 30%.
 author: Francesca A.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-11-20'
 category: Budget Travel
 tags: ["budget travel", "best destinations", "europe"]
 image: /images/blog/cheapest-destinations-in-europe.jpg
@@ -228,7 +228,7 @@ Budapest has been on budget travel lists for a decade and the prices have crept 
 - Beer at a ruin bar: $2-3.50
 
 **Highlights:**
-- Szechenyi Thermal Baths — soak in open-air hot springs inside a neo-baroque palace for $22
+- Szechenyi Thermal Baths — soak in open-air hot springs inside a neo-baroque palace for 13,200 Ft Monday to Thursday or 14,800 Ft Friday to Sunday (2026 day ticket with a locker)
 - The ruin bars of the VII District, especially Szimpla Kert — a labyrinth of art, cocktails, and controlled chaos
 - Walking from Buda Castle to the Fisherman's Bastion at sunrise — free and near-empty before 8 AM
 

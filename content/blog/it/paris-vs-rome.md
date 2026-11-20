@@ -6,7 +6,7 @@ description: >-
   romanticismo e quale città vince per ogni tipo di viaggiatore.
 author: Francesca A.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-11-20'
 category: Destination Guides
 tags: ["confronto", "guida città", "europa", "roma"]
 image: /images/blog/paris-vs-rome.jpg
@@ -107,7 +107,7 @@ Entrambe le città potrebbero consumare una vita intera di visite museali. Ma of
 Parigi ha la densità. In una passeggiata di 30 minuti, puoi visitare il Louvre, il Musée d'Orsay e il Musée de l'Orangerie — tre dei più grandi musei d'arte del mondo.
 
 **Musei imperdibili:**
-- **Louvre** — €22, chiuso il martedì. La Gioconda, la Venere di Milo, la Nike di Samotracia. Prevedi almeno 3-4 ore. Prenota l'ingresso con fascia oraria.
+- **Louvre** — €22 per cittadini e residenti dello Spazio economico europeo, €32 per tutti gli altri (dal 14 gennaio 2026), chiuso il martedì. La Gioconda, la Venere di Milo, la Nike di Samotracia. Prevedi almeno 3-4 ore. Prenota l'ingresso con fascia oraria.
 - **Musée d'Orsay** — €16. La migliore collezione impressionista del mondo in una splendida stazione ferroviaria riconvertita. Monet, Renoir, Van Gogh.
 - **Centre Pompidou** — €15. Arte moderna e contemporanea. L'edificio stesso è l'attrazione per molti.
 - **Musée de l'Orangerie** — €12,50. Le Ninfee di Monet nelle sale ovali — un'esperienza trascendentale.

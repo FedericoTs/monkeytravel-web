@@ -4,7 +4,7 @@ slug: "where-to-go-in-february"
 description: "Febrero mete en 28 días más de lo que debería: el Carnaval de Río, el Año Nuevo Lunar en toda Asia, la temporada de partos del Serengeti y las auroras de Islandia con la luz de vuelta. Es además el último mes barato antes de que empiecen los precios de primavera. Doce destinos donde febrero es el motivo del viaje, con costes reales y las contrapartidas que nadie cuenta."
 author: "Emanuela P."
 publishedAt: "2026-09-03"
-updatedAt: "2026-10-04"
+updatedAt: "2026-11-20"
 category: "Seasonal Travel"
 tags: ["estacional", "guía mensual de viajes", "viajes de invierno", "mejores destinos"]
 image: "/images/blog/where-to-go-in-february.jpg"
@@ -135,7 +135,7 @@ Febrero es discretamente el mejor mes de Nueva Zelanda. El mar está en su punto
 - **Febrero es el último mes barato en el norte.** Marzo trae los precios de las vacaciones escolares y la antesala de Semana Santa a Europa y Norteamérica. Si tus fechas son flexibles y el destino es del norte, febrero gana a marzo en coste casi siempre.
 - **Mes corto, conexiones justas.** Febrero tiene 28 días y un número fijo de plazas de larga distancia, y las semanas de fiesta se comen una parte desproporcionada. Reserva los vuelos internos de Brasil, Vietnam y Tanzania antes de lo que harías en un mes normal.
 - **Comprueba de qué lado de las lluvias estás.** África oriental, el sudeste asiático y el Caribe tienen divisiones regionales este mes — nuestra [guía del monzón](/blog/monsoon-season-where-to-go-and-avoid) las mapea, y el [calendario de viajes 2027](/blog/2027-travel-calendar) muestra cómo se compara febrero con los meses vecinos.
-- **Dos fiestas marcan febrero de 2027.** El Año Nuevo Chino cae el 6 de febrero y el Carnaval culmina el martes 9; consulta [dónde celebrar el Año Nuevo Chino](/blog/lunar-new-year-where-to-celebrate) y [el Carnaval 2027 en el mundo](/blog/carnival-around-the-world) para fechas y reservas.
+- **Cuatro fechas marcan febrero de 2027.** El Año Nuevo Chino cae el 6 de febrero, el Ramadán empieza previsiblemente el 8, el Carnaval culmina el martes 9 y San Valentín cae en domingo 14; consulta [dónde celebrar el Año Nuevo Chino](/blog/lunar-new-year-where-to-celebrate), [viajar durante el Ramadán](/blog/travel-during-ramadan), [el Carnaval 2027 en el mundo](/blog/carnival-around-the-world) y [escapadas de San Valentín 2027](/blog/valentines-day-getaways) para fechas y reservas.
 
 ## Planifica tu viaje de febrero en 30 segundos
 

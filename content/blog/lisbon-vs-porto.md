@@ -7,7 +7,7 @@ description: >-
   travelers.
 author: Francesca A.
 publishedAt: '2026-04-15'
-updatedAt: '2026-04-15'
+updatedAt: '2026-11-20'
 category: Destination Guides
 tags: ["comparison", "city guide", "europe"]
 image: /images/blog/lisbon-vs-porto.jpg
@@ -240,9 +240,9 @@ Porto is cooler and wetter than Lisbon. Summers are comfortable (22-27°C) but A
 
 Lisbon is built on seven hills. Walking is rewarding but physically demanding — you will climb steep cobblestone streets regularly. Tram 28 is iconic but crowded; the metro covers the flat parts of the city well. An elevator (Elevador de Santa Justa) and several funiculars help with the hills.
 
-- Single metro ticket: €1.65
-- Day pass (Viva Viagem 24h): €6.80
-- Airport metro: €1.65
+- Single Metro or Carris ticket: €1.90 (2026 fare), plus €0.50 for the reusable navegante card
+- Day pass (Carris and Metro, 24 hours): €7.25
+- Airport metro: €1.90, the single fare
 
 ### Porto
 

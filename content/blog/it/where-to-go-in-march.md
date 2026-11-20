@@ -4,7 +4,7 @@ slug: "where-to-go-in-march"
 description: "Marzo è il punto di svolta: i ciliegi giapponesi, l'Holi il 22 marzo, la Semana Santa che riempie l'Andalusia, le settimane più calme della Patagonia e il sud-ovest americano prima del caldo. È anche il mese in cui arrivano i prezzi di Pasqua — il 28 marzo nel 2027 — quindi le prime tre settimane e l'ultima sono viaggi diversi. Dodici mete con costi reali e i compromessi che nessuno racconta."
 author: "Emanuela P."
 publishedAt: "2026-09-03"
-updatedAt: "2026-10-04"
+updatedAt: "2026-11-20"
 category: "Seasonal Travel"
 tags: ["stagionale", "guida mensile ai viaggi", "viaggi di primavera", "mezza stagione", "migliori destinazioni"]
 image: "/images/blog/where-to-go-in-march.jpg"
@@ -84,7 +84,7 @@ Marzo è quando la Giordania dà il meglio: 20–24 °C nel bacino di Petra, fio
 Marzo prende il Marocco tra l'inverno e la fornace: Marrakech tra i 20 e i 25 °C, l'Alto Atlante ancora innevato ma con i valichi che si aprono, e le valli verdi per la pioggia invernale. La costa atlantica — Essaouira, Taghazout — è ventosa e luminosa, e il sud desertico è confortevole invece che punitivo.
 
 **Costi reali:** $50–85 al giorno; un riad con cortile resta l'alloggio classico di fascia media.
-**Il compromesso:** è mezza stagione, quindi il tempo è variabile: pomeriggi caldi, notti fredde e qualche pioggia forte che trasforma le piste sterrate in fango. Il Ramadan può cadere in questo periodo a seconda dell'anno; controlla le date attuali, perché orari e servizio di ristorazione cambiano parecchio.
+**Il compromesso:** è mezza stagione, quindi il tempo è variabile: pomeriggi caldi, notti fredde e qualche pioggia forte che trasforma le piste sterrate in fango. Nel 2027 il Ramadan dovrebbe durare fino all'8 o al 9 marzo, con l'Eid al-Fitr il 9 o il 10, e durante il mese orari e servizio di ristorazione cambiano parecchio: vedi [viaggiare durante il Ramadan](/blog/travel-during-ramadan).
 
 ## 7. Creta e il Peloponneso — Fiori e rovine vuote
 

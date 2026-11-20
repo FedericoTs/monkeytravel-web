@@ -4,7 +4,7 @@ slug: "where-to-go-in-february"
 description: "Fevereiro coloca em 28 dias mais do que devia: o Carnaval do Rio, o Ano Novo Lunar em toda a Ásia, a época de partos do Serengeti e as auroras da Islândia com a luz voltando. É também o último mês barato antes de começarem os preços de primavera. Doze destinos onde fevereiro é o motivo da viagem, com custos reais e os compromissos que ninguém conta."
 author: "Emanuela P."
 publishedAt: "2026-09-03"
-updatedAt: "2026-10-04"
+updatedAt: "2026-11-20"
 category: "Seasonal Travel"
 tags: ["sazonal", "guia mensal de viagens", "viagem de inverno", "melhores destinos"]
 image: "/images/blog/where-to-go-in-february.jpg"
@@ -135,7 +135,7 @@ Fevereiro é discretamente o melhor mês da Nova Zelândia. O mar está no seu p
 - **Fevereiro é o último mês barato no norte.** Março traz os preços das férias escolares e da aproximação da Páscoa à Europa e à América do Norte. Se as suas datas são flexíveis e o destino é do norte, fevereiro ganha de março no custo quase sempre.
 - **Mês curto, conexões apertadas.** Fevereiro tem 28 dias e um número fixo de lugares em voos de longa distância, e as semanas de festa comem uma fatia desproporcional. Reserve os voos internos no Brasil, Vietnã e Tanzânia antes do que faria num mês normal.
 - **Verifique de que lado das chuvas está.** África oriental, sudeste asiático e Caribe têm divisões regionais este mês — o nosso [guia da monção](/blog/monsoon-season-where-to-go-and-avoid) as mapeia, e o [calendário de viagens 2027](/blog/2027-travel-calendar) mostra como fevereiro se compara com os meses vizinhos.
-- **Duas festas marcam fevereiro de 2027.** O Ano-Novo Chinês cai em 6 de fevereiro e o Carnaval culmina na terça-feira, 9; veja [onde comemorar o Ano-Novo Chinês](/blog/lunar-new-year-where-to-celebrate) e [o Carnaval 2027 pelo mundo](/blog/carnival-around-the-world) para datas e reservas.
+- **Quatro datas marcam fevereiro de 2027.** O Ano-Novo Chinês cai em 6 de fevereiro, o Ramadã deve começar no dia 8, o Carnaval culmina na terça-feira, 9, e o Dia de São Valentim cai no domingo, 14; veja [onde comemorar o Ano-Novo Chinês](/blog/lunar-new-year-where-to-celebrate), [viajar durante o Ramadã](/blog/travel-during-ramadan), [o Carnaval 2027 pelo mundo](/blog/carnival-around-the-world) e [viagens para o Dia de São Valentim 2027](/blog/valentines-day-getaways) para datas e reservas.
 
 ## Planeje a sua viagem de fevereiro em 30 segundos
 

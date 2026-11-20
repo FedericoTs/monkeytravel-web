@@ -4,7 +4,7 @@ slug: "where-to-go-in-march"
 description: "March is the pivot: Japan's cherry blossom, Holi on 22 March, Semana Santa filling Andalusia, Patagonia's calmest weeks, and the desert Southwest before the heat. It is also the month Easter pricing arrives — on 28 March in 2027 — so the first three weeks and the last one are different trips. Twelve destinations with real daily costs and the trade-offs no one writes about."
 author: "Emanuela P."
 publishedAt: "2026-09-03"
-updatedAt: "2026-10-04"
+updatedAt: "2026-11-20"
 category: "Seasonal Travel"
 tags: ["seasonal", "monthly travel guide", "spring travel", "shoulder season", "best destinations"]
 image: "/images/blog/where-to-go-in-march.jpg"
@@ -84,7 +84,7 @@ March is when Jordan is at its best: 20–24°C in the Petra basin, wildflowers 
 March catches Morocco between winter and the furnace: Marrakech in the low-to-mid 20s°C, the High Atlas still snow-capped but the passes opening, and the valleys green from winter rain. The Atlantic coast — Essaouira, Taghazout — is windy and bright, and the desert south is comfortable rather than punishing.
 
 **Cost reality:** $50–85/day; a riad with a courtyard remains the classic mid-range stay.
-**The trade-off:** it is shoulder season, so the weather is changeable — warm afternoons, cold nights, and occasional heavy rain that turns unpaved routes into mud. Ramadan may also fall in this period in some years; check the current dates, as opening hours and restaurant service change significantly.
+**The trade-off:** it is shoulder season, so the weather is changeable — warm afternoons, cold nights, and occasional heavy rain that turns unpaved routes into mud. In 2027 Ramadan is expected to run until 8 or 9 March, with Eid al-Fitr on 9 or 10 March, and opening hours and restaurant service change during it: see [travelling during Ramadan](/blog/travel-during-ramadan).
 
 ## 7. Crete & the Peloponnese — Wildflowers and Empty Ruins
 

@@ -7,7 +7,7 @@ description: >-
   planejamento.
 author: Giuseppe G.
 publishedAt: '2026-02-18'
-updatedAt: '2026-02-18'
+updatedAt: '2026-11-20'
 category: "Destination Guides"
 tags: ["viagem em grupo", "melhores destinos"]
 image: /images/blog/group-trip-destinations-2026.jpg
@@ -77,7 +77,7 @@ A cidade é pequena o suficiente para explorar de bicicleta alugada (US$2/dia). 
 
 Ruin bars, banhos termais e uma orla do Danúbio que rivaliza com Paris — por um terço do preço. Cervejas artesanais por US$2-3, coquetéis por US$5-6. Apartamentos de grupo perto do Grande Mercado Central saem por US$90-130/noite.
 
-Os Banhos Szechenyi (US$25/pessoa pelo dia inteiro) são a atividade de grupo mais democrática possível — todo mundo de molho e batendo papo. A Ilha Margarida é gratuita para a corrida matinal, o Castelo de Buda atende a quem gosta de turistar, e a maratona de ruin bars reúne todo mundo de volta até a meia-noite.
+Os Banhos Szechenyi (13.200 Ft por pessoa pelo dia inteiro de segunda a quinta e 14.800 Ft de sexta a domingo, preços de 2026) são a atividade de grupo mais democrática possível — todo mundo de molho e batendo papo. A Ilha Margarida é gratuita para a corrida matinal, o Castelo de Buda atende a quem gosta de turistar, e a maratona de ruin bars reúne todo mundo de volta até a meia-noite.
 
 ## Faixa Intermediária (US$60-120/Dia por Pessoa)
 

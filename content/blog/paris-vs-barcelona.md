@@ -6,7 +6,7 @@ description: >-
   nightlife, beaches, culture, and which city wins for different travelers.
 author: Francesca A.
 publishedAt: '2026-04-15'
-updatedAt: '2026-04-15'
+updatedAt: '2026-11-20'
 category: Destination Guides
 tags: ["comparison", "city guide", "europe", "barcelona"]
 image: /images/blog/paris-vs-barcelona.jpg
@@ -134,7 +134,7 @@ Barcelona's food scene is built on sharing. Tapas culture means you order five s
 Paris has one of the highest museum densities in the world. The Louvre alone could consume three full days. Add the Musée d'Orsay, Centre Pompidou, Musée Rodin, and Musée de l'Orangerie, and you have a city that could function entirely as an art destination.
 
 **Must-visit:**
-- **Louvre** — €22, closed Tuesdays. Budget 3-4 hours minimum.
+- **Louvre** — €22 for citizens and residents of the European Economic Area, €32 for everyone else (since 14 January 2026), closed Tuesdays. Budget 3-4 hours minimum.
 - **Musée d'Orsay** — €16. The world's best Impressionist collection.
 - **Sacré-Coeur and Montmartre** — Free. Street artists, panoramic views.
 - **Notre-Dame** — Reopened after restoration. Free entry to the cathedral.

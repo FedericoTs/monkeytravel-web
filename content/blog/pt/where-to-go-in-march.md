@@ -4,7 +4,7 @@ slug: "where-to-go-in-march"
 description: "Março é o ponto de virada: as cerejeiras do Japão, o Holi em 22 de março, a Semana Santa enchendo a Andaluzia, as semanas mais calmas da Patagônia e o sudoeste americano antes do calor. É também o mês em que chegam os preços da Páscoa — no dia 28 de março em 2027 — por isso as três primeiras semanas e a última são viagens diferentes. Doze destinos com custos reais e os compromissos que ninguém conta."
 author: "Emanuela P."
 publishedAt: "2026-09-03"
-updatedAt: "2026-10-04"
+updatedAt: "2026-11-20"
 category: "Seasonal Travel"
 tags: ["sazonal", "guia mensal de viagens", "viagem de primavera", "meia-estação", "melhores destinos"]
 image: "/images/blog/where-to-go-in-march.jpg"
@@ -84,7 +84,7 @@ Março é quando a Jordânia está no seu melhor: 20–24 °C na bacia de Petra,
 Março encontra Marrocos entre o inverno e a fornalha: Marrakech entre 20 e 25 °C, o Alto Atlas ainda com neve mas com os desfiladeiros abrindo, e os vales verdes da chuva de inverno. A costa atlântica — Essaouira, Taghazout — está ventosa e luminosa, e o sul desértico está confortável em vez de castigador.
 
 **Custos reais:** $50–85/dia; um riad com pátio continua sendo a hospedagem clássica de faixa intermediária.
-**A contrapartida:** é meia-estação, por isso o tempo é variável: tardes quentes, noites frias e alguma chuva forte que transforma as pistas de terra em lama. O Ramadã pode cair neste período conforme o ano; verifique as datas em vigor, porque os horários e o funcionamento dos restaurantes mudam bastante.
+**A contrapartida:** é meia-estação, por isso o tempo é variável: tardes quentes, noites frias e alguma chuva forte que transforma as pistas de terra em lama. Em 2027 o Ramadã deve durar até 8 ou 9 de março, com o Eid al-Fitr em 9 ou 10 de março, e durante o mês os horários e o funcionamento dos restaurantes mudam bastante: veja [viajar durante o Ramadã](/blog/travel-during-ramadan).
 
 ## 7. Creta e o Peloponeso — Flores e ruínas vazias
 

@@ -7,7 +7,7 @@ description: >-
   diferentes tipos de viajante.
 author: Francesca A.
 publishedAt: '2026-04-15'
-updatedAt: '2026-04-15'
+updatedAt: '2026-11-20'
 category: "Destination Guides"
 tags: ["comparação", "guia da cidade", "europa", "barcelona"]
 image: /images/blog/paris-vs-barcelona.jpg
@@ -136,7 +136,7 @@ A cena gastronômica de Barcelona é construída em torno do compartilhar. A cul
 Paris tem uma das maiores densidades de museus do mundo. Só o Louvre poderia consumir três dias inteiros. Acrescente o Musée d'Orsay, o Centre Pompidou, o Musée Rodin e o Musée de l'Orangerie, e você tem uma cidade que poderia funcionar inteiramente como destino de arte.
 
 **Imperdíveis:**
-- **Louvre** — €22, fechado às terças. Reserve no mínimo 3-4 horas.
+- **Louvre** — €22 para cidadãos e residentes do Espaço Econômico Europeu, €32 para os demais (desde 14 de janeiro de 2026), fechado às terças. Reserve no mínimo 3-4 horas.
 - **Musée d'Orsay** — €16. A melhor coleção impressionista do mundo.
 - **Sacré-Cœur e Montmartre** — Grátis. Artistas de rua, vistas panorâmicas.
 - **Notre-Dame** — Reaberta após a restauração. Entrada gratuita na catedral.
