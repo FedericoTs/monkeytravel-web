@@ -156,6 +156,7 @@ export function sameSortableCard(prevProps: EditableActivityCardProps, nextProps
   if (prevProps.index !== nextProps.index) return false;
   if (prevProps.isEditMode !== nextProps.isEditMode) return false;
   if (prevProps.isRegenerating !== nextProps.isRegenerating) return false;
+  if (prevProps.photoFirst !== nextProps.photoFirst) return false;
   if (prevProps.currentDayIndex !== nextProps.currentDayIndex) return false;
   // Memoized upstream on the itinerary: a new identity means a day changed, and
   // the card's actions and the move sheet's counts must be this render's.
