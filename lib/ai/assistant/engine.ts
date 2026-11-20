@@ -67,6 +67,7 @@ import { alsoInTheirCity, daysOfCity, keepDayCities, placesAway, withoutPlacesAw
 import { type TravelTime, readTravelTimes, outsideTravelTimes, minutesOf, keepDepartureTime, withPlanDeparture } from "./travel-times";
 import { composeReply, type PlaceOnDay } from "./edit-reply";
 import { maxTripDays } from "./structural";
+import { offeredAgain } from "./ideas-rule";
 import { askForNames, gluedNames, renamesOf, withNames } from "@/lib/ai/one-script-names";
 import { resolveAiLanguage } from "@/lib/ai/language";
 
@@ -487,7 +488,8 @@ export type CorrectionRule =
   | "disliked_place"
   | "list_missing"
   | "twin_place"
-  | "claimed_change";
+  | "claimed_change"
+  | "turned_down";
 
 /** A rule a reply broke, and what the model is told for its one more try. */
 export interface Correction {
@@ -509,7 +511,7 @@ const said = (rule: CorrectionRule, text: string): Correction => ({ rule, text }
 
 /** What a reply got wrong that one more try may fix, and the rule it broke, or null. Pure; unit-tested. */
 export function correctionWithRule(
-  input: Pick<AssistInput, "message" | "history" | "days" | "canAddDays" | "startDate">,
+  input: Pick<AssistInput, "message" | "history" | "days" | "canAddDays" | "startDate"> & Partial<Pick<AssistInput, "destination">>,
   o: Pick<Outcome, "reply" | "edits" | "tripLength"> &
     Partial<Pick<Outcome, "travelTimes" | "elsewhere" | "lengthRefused" | "moreDays" | "lockedDays" | "overCap" | "wantsMore">>,
   /** Hold the reply to a list of places they asked to add (on by default). */
@@ -642,6 +644,12 @@ export function correctionWithRule(
   // currency request is the page's to answer, with no edits.
   if (!prepared && claimsItineraryChange(o.reply) && !currencyRequested(input.message)) {
     return said("claimed_change", `Your "reply" says the plan changes, but "edits" is empty. Put that change in "edits" now, or say plainly in "reply" that you couldn't make it.`);
+  }
+  // Places the traveller turned down, offered again under another question:
+  // "anything indoors?" after "none of those" brought the same ones back.
+  const again = offeredAgain(input, o);
+  if (again.length > 0) {
+    return said("turned_down", `The traveller turned these down earlier in this conversation: ${again.join(", ")}. Don't offer them again: offer other places, of another kind, that fit this trip, and end "reply" with one short question about what they'd enjoy.`);
   }
   return null;
 }

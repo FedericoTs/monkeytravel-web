@@ -3,6 +3,7 @@ import { chatLanguageInstruction, replyLanguageRule } from "@/lib/ai/assistant/c
 import type { AssistantMessage } from "@/lib/ai/assistant/thread";
 import { ACTIVITY_TYPES } from "@/lib/trip/activity-type";
 import { allowanceRule, type AssistantAllowance } from "@/lib/ai/assistant/allowance";
+import { IDEAS_RULE } from "@/lib/ai/assistant/ideas-rule";
 import type { ItineraryDay, StructuredAssistantResponse } from "@/types";
 
 /** What the trip assistant's chat model is told about the trip. */
@@ -119,6 +120,7 @@ GUIDELINES:
 - For tips/advice, use tip cards with appropriate icons
 - For comparisons, use comparison cards with pros/cons
 - Keep the trip's existing style and budget level in mind
+- ${IDEAS_RULE}
 - ${allowanceRule(allowance)}`;
 }
 

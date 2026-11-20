@@ -17,6 +17,7 @@ import type { ItineraryDay } from "@/types";
 import { ACTIVITY_TYPES } from "@/lib/trip/activity-type";
 import { SHORTEST_STOP_MINUTES } from "./edit-validation";
 import { allowanceRule, type AssistantAllowance } from "./allowance";
+import { IDEAS_RULE, turnedDown } from "./ideas-rule";
 
 // How a reply presents an edit that is still waiting to be saved, per language:
 // the model kept writing "I've added" / "Ho aggiunto" for an unsaved edit, and
@@ -193,7 +194,7 @@ function buildContext(days: ItineraryDay[], display?: DisplayCurrency, startDate
 const RECENT_TURNS = 6;
 const EARLIER_MESSAGES = 10;
 
-function buildHistory(history: AssistTurn[] | undefined): string {
+function buildHistory(history: AssistTurn[] | undefined, message: string): string {
   const all = history ?? [];
   const turns = all.slice(-RECENT_TURNS);
   if (turns.length === 0) return "";
@@ -205,10 +206,14 @@ function buildHistory(history: AssistTurn[] | undefined): string {
     .slice(-EARLIER_MESSAGES)
     .map((t) => `- ${t.text.slice(0, 400)}`);
   const said = earlier.length > 0 ? `\nEarlier, the traveller said (oldest first):\n${earlier.join("\n")}\n` : "";
-  const lines = turns.map((t) => `${t.role === "user" ? "Traveller" : "You"}: ${t.text.slice(0, 600)}`);
+  // A reply the traveller answered with "none of those" (or answers so now) is
+  // marked, so its places aren't offered again under another question.
+  const down = turnedDown(turns, message);
+  const lines = turns.map((t, i) => `${t.role === "user" ? "Traveller" : down[i] ? "You [turned down]" : "You"}: ${t.text.slice(0, 600)}`);
+  const downNote = down.some(Boolean) ? "The traveller turned down the places in your replies marked [turned down]: never offer any of them again.\n" : "";
   // Undo and Skip leave the conversation as it was: "already done" was the
   // answer to a request repeated after an Undo.
-  return `${said}\nConversation so far (oldest first):\n${lines.join("\n")}\nThe itinerary above is the plan as it is now. A change from earlier in the conversation that isn't in it was only offered, skipped or undone: if they ask for it, make it.\n`;
+  return `${said}\nConversation so far (oldest first):\n${lines.join("\n")}\n${downNote}The itinerary above is the plan as it is now. A change from earlier in the conversation that isn't in it was only offered, skipped or undone: if they ask for it, make it.\n`;
 }
 
 export function buildPrompt(input: AssistInput): string {
@@ -233,13 +238,14 @@ ${lengthLine}
 Currency: ${cur}
 Itinerary:
 ${buildContext(input.days, input.display, input.startDate)}
-${costLines(costs)}${unsaved}${buildHistory(input.history)}
+${costLines(costs)}${unsaved}${buildHistory(input.history, input.message)}
 Traveller's new message: "${input.message}"
 
 First work out what the traveller actually wants, the way a good travel agent would:
 - A statement about their trip asks you to fit the plan to it: "we have a car", "my hotel is near X", "we land at 11:00 on day 1", "my wife is vegetarian", "I'm travelling with my 70-year-old mother". Change every day it affects.
 - A limit on distance or time ("close to the wineries", "walkable", "no more than 20 minutes from the hotel") holds for the whole plan, not just the stop it mentions. Check every stop it touches on your first answer, and move the stay or the stops until they fit. Say in "reply" which stop still can't.
 - What they told you about their trip, in this message or earlier in the conversation, still holds unless they changed it: when they arrive and leave, who is travelling, a car, a diet, where they stay. Every day you edit or add must fit it. Their earlier requests were already answered: don't make them again unless asked.
+- ${IDEAS_RULE}
 - The trip's length above is counted from its dates and is always right. Never agree to another count, however sure they are: people often count the nights, or leave out the day they arrive. Say kindly how it's counted, day by day with the dates if they ask. Insisting on a count isn't asking to change it: add or remove days only when they ask for that.
 - A misspelled or partial name means the most likely real place near the destination ("aya sofya" is Hagia Sophia).
 - Ambiguous wording takes the meaning a travel agent would assume ("activities under 18" means suitable for under-18s). Ask one short question only when the readings would lead to very different plans.
