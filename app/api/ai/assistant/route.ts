@@ -29,6 +29,7 @@ import { pendingChangeFor } from "@/lib/ai/assistant/pending-change";
 import { prepareAddDay } from "@/lib/ai/assistant/add-day";
 import { prepareDraftChange } from "@/lib/ai/assistant/draft-change";
 import { chatPrompt, turnContext, type TripContext } from "@/lib/ai/assistant/chat-prompt";
+import { allowanceFrom } from "@/lib/ai/assistant/allowance";
 import { askChatModel } from "@/lib/ai/assistant/chat-model";
 import { appendTurn, assistantMessage, listThreads, openThread, readThread, userMessage } from "@/lib/ai/assistant/thread";
 import { askedTripDates, offerTripDates } from "@/lib/ai/assistant/trip-dates";
@@ -56,6 +57,9 @@ export async function POST(request: NextRequest) {
     // lib/trips/destination.ts. The AI assistant's quality depends on
     // this string being correct (it's passed into the AI's tripContext below).
     const destinationName = getTripDestination(trip);
+
+    // The traveller's own messages left, as the counter under the chat shows them.
+    const allowance = allowanceFrom(usageCheck);
 
     const tripContext: TripContext = {
       id: trip.id,
@@ -97,6 +101,7 @@ export async function POST(request: NextRequest) {
           display: readDisplayCurrency(body.display),
           canAddDays: assistantRole === "owner",
           waiting: readWaitingChange(body.waiting, itinerary.length),
+          allowance,
         });
       } catch (err) {
         // Out of credit, the chat is refused too.
@@ -158,6 +163,7 @@ export async function POST(request: NextRequest) {
       }),
       thread: conversation.messages,
       message,
+      allowance,
     });
 
     // The engine's own reply, when it prepared the change, or answered and

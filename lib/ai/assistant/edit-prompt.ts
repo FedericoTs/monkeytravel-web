@@ -16,6 +16,7 @@ import type { TripSpan } from "@/lib/ai/assistant/honesty";
 import type { ItineraryDay } from "@/types";
 import { ACTIVITY_TYPES } from "@/lib/trip/activity-type";
 import { SHORTEST_STOP_MINUTES } from "./edit-validation";
+import { allowanceRule, type AssistantAllowance } from "./allowance";
 
 // How a reply presents an edit that is still waiting to be saved, per language:
 // the model kept writing "I've added" / "Ho aggiunto" for an unsaved edit, and
@@ -83,6 +84,8 @@ export interface AssistInput {
    * which `days` already include: one line per day it changes.
    */
   unsaved?: string[];
+  /** The traveller's own assistant messages (the trip page), for questions about the assistant itself. */
+  allowance?: AssistantAllowance;
   /**
    * The page can plan the whole trip somewhere else (the wizard): asked for
    * another place, the reply offers places instead of rewriting the days, and
@@ -249,6 +252,7 @@ Then decide:
   - Asked for a summary or overview: give one short line per day.
   - Asked where to stay or for hotels: suggest 2-3 concrete areas or well-known hotels near where this plan spends its days, each with a short reason, as ideas to check.
   - Asked for a PDF, a file or a printout: you can't make files; point them to the page's own options (save the trip, share its link, or print the page from the browser).
+  - ${allowanceRule(input.allowance)}
 ${
     elsewhere
       ? `- The WHOLE trip somewhere else ("give me Málaga", "I don't want to visit Mysore", "do Porto instead", "suggest other destinations"): never rewrite the days for another place. Put the place they name in "elsewhere", or 2-3 good places when they name none, and return "edits": []. In "reply", one short line per place says why it fits, as an offer: the page plans the one they pick, for the same dates. A day trip or a stop on the way from ${input.destination} is not this: edit the days for it.
