@@ -78,6 +78,8 @@ export interface ItineraryDedupParams {
   tripIntent?: string;
   /** Where they're staying: two trips with different stays are different plans. */
   stay?: { name: string; coordinates?: { lat: number; lng: number } };
+  /** Places an earlier stay in the same city holds: a stay asked again without them is another plan. */
+  alreadyPlanned?: string[];
   profile?: object;
   /**
    * Anchored-trip segment brief (F1). Two anchored generations over the same
@@ -128,6 +130,7 @@ export function getItineraryDedupKey(params: ItineraryDedupParams): string {
     stay: params.stay,
     profile: params.profile,
     anchor: params.anchorBrief || "",
+    planned: params.alreadyPlanned || [],
   })}`;
 }
 

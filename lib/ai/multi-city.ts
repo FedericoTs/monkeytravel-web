@@ -24,6 +24,7 @@ import {
   addDaysISO,
   mergeCityItineraries,
   mustDosOfOtherCities,
+  returnStayRepeats,
   validateLegs,
   withoutOtherCitiesPlaces,
 } from "./multi-city-core";
@@ -99,6 +100,19 @@ export async function generateMultiCityItinerary(
     });
   const results = await Promise.all(perCityParams.map(generate));
 
+  // A city the route comes back to is planned twice at the same time, and its later stay repeated the earlier one's
+  // sights. Such a stay is asked once more, told what the earlier stay holds; an ask after this one keeps that.
+  const returns = returnStayRepeats(legs, results);
+  if (returns.length > 0) {
+    console.warn(`[multi-city] a later stay repeated an earlier one, asked again: ${returns.map((r) => cities[r.index]).join(", ")}`);
+    await Promise.all(
+      returns.map(async ({ index, earlier }) => {
+        perCityParams[index] = { ...perCityParams[index], alreadyPlanned: earlier };
+        results[index] = await generate(perCityParams[index], index);
+      }),
+    );
+  }
+
   // Each city keeps only its own places: a must-do of another city stays off its
   // days. A city that planned some anyway is asked once more, without the
   // must-dos the other cities hold, so its days aren't left short.
@@ -146,10 +160,12 @@ export async function generateMultiCityItinerary(
       `[multi-city] day-count mismatch: expected ${expectedDays}, got ${merged.days.length}`
     );
   }
+  // A city the route comes back to is one city.
+  const routeCities = new Set(cities);
   const taggedCities = new Set(merged.days.map((d) => d.city).filter(Boolean));
-  if (taggedCities.size !== legs.length) {
+  if (taggedCities.size !== routeCities.size) {
     console.warn(
-      `[multi-city] city-count mismatch: expected ${legs.length} cities, ${taggedCities.size} tagged`
+      `[multi-city] city-count mismatch: expected ${routeCities.size} cities, ${taggedCities.size} tagged`
     );
   }
 

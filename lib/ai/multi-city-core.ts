@@ -17,6 +17,8 @@ import { flightLink, hotelLinks } from "./booking-links";
 import { addIsoDays } from "@/lib/dates/iso-date";
 import { haversineKm } from "@/lib/map/geo";
 import { isRealPoint } from "@/lib/trip/placeholder-point";
+import { isMealStop } from "@/lib/trip/pace";
+import { isSameDestination } from "@/lib/trips/sameDestination";
 
 /**
  * A city's days with each sight its arrival day couldn't hold put into another of its days at the sight's own time,
@@ -240,6 +242,35 @@ export function mustDosOfOtherCities(mustDos: string[], results: GeneratedItiner
     const words = distinctWords(m);
     return words.length > 0 && names.some((n) => words.every((w) => n.has(w)));
   });
+}
+
+/** Not sights: going back to a restaurant, a ride, the place they stay. */
+const NOT_SIGHTS = new Set(["transport", "accommodation"]);
+
+/**
+ * The stays of a city the route comes back to that repeat a sight of an earlier stay there, each with every sight
+ * the earlier stays hold, for that stay to be asked again without them: the stays of a city are planned at the same
+ * time, so both can come back with the same sights. Two names are one sight when the words that tell it apart, the
+ * city's name aside, are the same either way round. Meals, rides and stays aren't counted. Pure.
+ */
+export function returnStayRepeats(legs: CityLeg[], results: GeneratedItinerary[]): Array<{ index: number; earlier: string[] }> {
+  const sightsOf = (r: GeneratedItinerary | undefined): string[] =>
+    (r?.days ?? [])
+      .flatMap((d) => d.activities ?? [])
+      .filter((a) => a.name?.trim() && !NOT_SIGHTS.has(String(a.type)) && !isMealStop(a))
+      .map((a) => a.name.trim());
+  const out: Array<{ index: number; earlier: string[] }> = [];
+  legs.forEach((leg, i) => {
+    const before = legs.slice(0, i).flatMap((l, j) => (isSameDestination(l.city, leg.city) ? [j] : []));
+    if (before.length === 0) return;
+    const cityWords = new Set(distinctWords(leg.city));
+    const key = (name: string) => distinctWords(name).filter((w) => !cityWords.has(w));
+    const same = (a: string[], b: string[]) => a.length > 0 && a.every((w) => b.includes(w)) && b.every((w) => a.includes(w));
+    const earlier = dedupeStrings(before.flatMap((j) => sightsOf(results[j])));
+    const keys = earlier.map(key);
+    if (sightsOf(results[i]).some((name) => keys.some((k) => same(key(name), k)))) out.push({ index: i, earlier });
+  });
+  return out;
 }
 
 /**

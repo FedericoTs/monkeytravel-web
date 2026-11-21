@@ -64,6 +64,7 @@ export async function generateItinerary(
     stay: params.stay,
     profile: params.profilePreferences,
     anchorBrief: options?.anchorBrief,
+    alreadyPlanned: params.alreadyPlanned,
   });
 
   // Wrap with deduplication to prevent duplicate concurrent requests

@@ -13,6 +13,8 @@ let placesFor: ((p: TripCreationParams, call: number) => Array<Array<[string, nu
 const daylights: Array<{ destination: string; daylight: TripCreationParams["daylight"] }> = [];
 /** What each city was told is on there. */
 const whatsOns: Array<{ destination: string; whatsOn: TripCreationParams["whatsOn"] }> = [];
+/** What each stay was told an earlier stay in its city already has. */
+const alreadyPlannedAsks: Array<{ destination: string; startDate: string; alreadyPlanned: TripCreationParams["alreadyPlanned"] }> = [];
 /** Where the cities table puts each city, when a test says. */
 let pointsByCity: Record<string, { lat: number; lng: number }> = {};
 vi.mock("./city-points", () => ({
@@ -22,6 +24,7 @@ vi.mock("@/lib/gemini", () => ({
   generateItinerary: async (p: TripCreationParams, options: { knownPlaces?: unknown }) => {
     daylights.push({ destination: p.destination, daylight: p.daylight });
     whatsOns.push({ destination: p.destination, whatsOn: p.whatsOn });
+    alreadyPlannedAsks.push({ destination: p.destination, startDate: p.startDate, alreadyPlanned: p.alreadyPlanned });
     events.push(`plan ${p.destination}`);
     generated.push({ destination: p.destination, knownPlaces: options.knownPlaces });
     asked.push({ destination: p.destination, mustDos: p.mustDos });
@@ -224,5 +227,40 @@ describe("generateMultiCityItinerary", () => {
     pointsByCity = {};
     placesFor = null;
     hopsAnswer = [];
+  });
+
+  // A route back to a city planned both stays at the same time, and the second came back with the first's sights.
+  it("asks a later stay that repeats an earlier stay in its city once more, told what that stay has", async () => {
+    alreadyPlannedAsks.length = 0;
+    placesFor = (p) => {
+      if (p.destination === "Porto") return [[["Livraria Lello", 41.1469, -8.6149]]];
+      if (p.startDate === "2027-05-01") return [[["Belém Tower", 38.6916, -9.216]], [["Alfama walk", 38.7114, -9.13]]];
+      return p.alreadyPlanned ? [[["Oceanário de Lisboa", 38.7635, -9.0938]]] : [[["Belém Tower", 38.6916, -9.216]]];
+    };
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const base = { budgetTier: "balanced", pace: "moderate", vibes: [], interests: [] } as unknown as Parameters<typeof generateMultiCityItinerary>[0];
+    const plan = await generateMultiCityItinerary(
+      base,
+      [{ city: "Lisbon", nights: 2 }, { city: "Porto", nights: 1 }, { city: "Lisbon", nights: 1 }],
+      "2027-05-01",
+    );
+    // Each stay once, then the later Lisbon stay again, told the earlier one's sights.
+    expect(alreadyPlannedAsks.map((a) => [a.destination, a.alreadyPlanned])).toEqual([
+      ["Lisbon", undefined],
+      ["Porto", undefined],
+      ["Lisbon", undefined],
+      ["Lisbon", ["Belém Tower", "Alfama walk"]],
+    ]);
+    expect(plan.days.at(-1)?.activities.filter((a) => a.type !== "transport").map((a) => a.name)).toEqual(["Oceanário de Lisboa"]);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("asked again: Lisbon"));
+    // Lisbon twice is one city, not a city missing from the plan.
+    expect(warn).not.toHaveBeenCalledWith(expect.stringContaining("city-count mismatch"));
+    // Stays with sights of their own are asked once each.
+    alreadyPlannedAsks.length = 0;
+    placesFor = (p) => (p.destination === "Porto" ? [[["Livraria Lello", 41.1469, -8.6149]]] : p.startDate === "2027-05-01" ? [[["Belém Tower", 38.6916, -9.216]]] : [[["Oceanário de Lisboa", 38.7635, -9.0938]]]);
+    await generateMultiCityItinerary(base, [{ city: "Lisbon", nights: 1 }, { city: "Porto", nights: 1 }, { city: "Lisbon", nights: 1 }], "2027-05-01");
+    expect(alreadyPlannedAsks).toHaveLength(3);
+    warn.mockRestore();
+    placesFor = null;
   });
 });

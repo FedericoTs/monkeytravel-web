@@ -7,6 +7,7 @@ import {
   mergeCityItineraries,
   MultiCityError,
   mustDosOfOtherCities,
+  returnStayRepeats,
   placesInOtherCities,
   withoutOtherCitiesPlaces,
   type CityLeg,
@@ -343,5 +344,59 @@ describe("withoutOtherCitiesPlaces", () => {
     expect(withoutOtherCitiesPlaces([busan]).dropped).toEqual([]);
     const blank = city("Seoul", [[place("Somewhere")]]);
     expect(withoutOtherCitiesPlaces([busan, blank]).dropped).toEqual([]);
+  });
+});
+
+describe("returnStayRepeats", () => {
+  const stop = (name: string, type = "attraction") => ({ name, type, time_slot: "morning", start_time: "10:00" }) as Activity;
+  const stay = (name: string, days: Activity[][]): GeneratedItinerary => ({
+    ...cityResult(name, days.length),
+    days: days.map((activities, i) => ({ day_number: i + 1, date: "2000-01-01", activities })),
+  });
+  const legs: CityLeg[] = [
+    { city: "Lisbon", nights: 2 },
+    { city: "Porto", nights: 2 },
+    { city: "lisbon", nights: 2 },
+  ];
+  const first = stay("Lisbon", [[stop("Belém Tower"), stop("Lunch at Pastéis de Belém", "restaurant")], [stop("Jerónimos Monastery"), stop("Alfama walk")]]);
+  const porto = stay("Porto", [[stop("Livraria Lello")], [stop("Ribeira walk")]]);
+
+  // The two stays of a city the route comes back to are planned at the same time, and came back with the same sights.
+  it("finds a later stay that repeats a sight of an earlier stay in its city, with all the earlier stay's sights", () => {
+    const again = stay("Lisbon", [[stop("Belem Tower Lisbon"), stop("Oceanário de Lisboa")], [stop("LX Factory")]]);
+    expect(returnStayRepeats(legs, [first, porto, again])).toEqual([
+      { index: 2, earlier: ["Belém Tower", "Jerónimos Monastery", "Alfama walk"] },
+    ]);
+  });
+
+  it("checks a third stay against both earlier stays in its city", () => {
+    const third: CityLeg[] = [...legs, { city: "Faro", nights: 1 }, { city: "Lisbon", nights: 1 }];
+    const second = stay("Lisbon", [[stop("LX Factory")]]);
+    const faro = stay("Faro", [[stop("Ria Formosa")]]);
+    expect(returnStayRepeats(third, [first, porto, second, faro, stay("Lisbon", [[stop("Belém Tower")]])])).toEqual([
+      { index: 4, earlier: ["Belém Tower", "Jerónimos Monastery", "Alfama walk", "LX Factory"] },
+    ]);
+  });
+
+  it("leaves a later stay with sights of its own, and counts no meal, ride or place to stay", () => {
+    const fresh = stay("Lisbon", [[stop("Oceanário de Lisboa"), stop("Lunch at Pastéis de Belém", "restaurant")], [stop("LX Factory")]]);
+    expect(returnStayRepeats(legs, [first, porto, fresh])).toEqual([]);
+    const ride = stay("Lisbon", [[stop("Train to Lisbon", "transport"), stop("Check in at the hotel", "accommodation"), stop("LX Factory")]]);
+    const withRide = stay("Lisbon", [[stop("Train to Lisbon", "transport"), stop("Check in at the hotel", "accommodation"), stop("Belém Tower")]]);
+    expect(returnStayRepeats(legs, [ride, porto, withRide])).toEqual([]);
+  });
+
+  it("doesn't take one sight for another that shares a word, nor a sight of another city", () => {
+    const tower = stay("Lisbon", [[stop("Vasco da Gama Tower")]]);
+    expect(returnStayRepeats(legs, [first, porto, tower])).toEqual([]);
+    // Two places, either way round: one name's words inside the other's isn't the same place.
+    const centre = stay("Lisbon", [[stop("Belém Cultural Centre")]]);
+    const belem = stay("Lisbon", [[stop("Belém Tower")]]);
+    expect(returnStayRepeats(legs, [centre, porto, belem])).toEqual([]);
+    expect(returnStayRepeats(legs, [belem, porto, centre])).toEqual([]);
+    // A stop named after the city alone is no sight.
+    expect(returnStayRepeats(legs, [stay("Lisbon", [[stop("Lisbon")]]), porto, stay("Lisbon", [[stop("lisbon")]])])).toEqual([]);
+    // The same name in two different cities is two places.
+    expect(returnStayRepeats([{ city: "Lisbon", nights: 2 }, { city: "Porto", nights: 2 }], [first, stay("Porto", [[stop("Belém Tower")]])])).toEqual([]);
   });
 });

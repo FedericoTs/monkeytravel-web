@@ -315,6 +315,16 @@ function routeLine({ destination, destinations }: Pick<TripCreationParams, "dest
   return `Route: ${cities.join(" → ")}. These days are in ${destination} only: the ${destination} on this route, ${where}. A name that fits several places, or a misspelled one, means the place that fits the route.`;
 }
 
+/**
+ * A second stay in a city the route comes back to: the places the first stay there holds, so this one plans others.
+ * Both stays were planned at the same time and came back with the same sights.
+ */
+function alreadyPlannedLine({ destination, alreadyPlanned }: Pick<TripCreationParams, "destination" | "alreadyPlanned">): string {
+  const names = (alreadyPlanned ?? []).map((n) => n.trim()).filter(Boolean);
+  if (names.length === 0) return "";
+  return `An earlier stay in ${destination} on this trip already has: ${names.join(", ")}. These days are another stay there: plan other places, none of these.`;
+}
+
 /** Where they're staying, so each day starts near it and ends a short ride from it. */
 function stayLine({ stay }: Pick<TripCreationParams, "stay">): string {
   if (!stay) return "";
@@ -450,6 +460,7 @@ ${knownPlaces.map((p) => `- ${p.name} (${p.type})`).join("\n")}
   const whatsOnLines = (params.whatsOn ?? []).map((line) => `- ${line}\n`).join("");
   const stay = stayLine(params);
   const route = routeLine(params);
+  const planned = alreadyPlannedLine(params);
   const closed = longClosuresLine(params);
   const days = daysLine(params.startDate, duration);
   // One city of a trip through several (lib/ai/multi-city): the must-dos are the
@@ -479,7 +490,7 @@ ${params.mustDos.map((m) => `- ${m}`).join("\n")}
 
 ## Travel Details
 - Dates: ${params.startDate} to ${params.endDate}
-${days ? `- ${days}\n` : ""}${route ? `- ${route}\n` : ""}- Duration: ${duration} days
+${days ? `- ${days}\n` : ""}${route ? `- ${route}\n` : ""}${planned ? `- ${planned}\n` : ""}- Duration: ${duration} days
 - Budget Tier: ${params.budgetTier}
 - Travel Pace: ${params.pace} — ${paceBudgetPromptClause(params.pace)}
 ${travellers ? `- ${travellers}\n` : ""}${daylight ? `- ${daylight}\n` : ""}${whatsOnLines}${stay ? `- ${stay}\n` : ""}${closed ? `- ${closed}\n` : ""}
@@ -494,5 +505,5 @@ ${
 ${anchorSection}${partSection}Generate the itinerary now, following the system rules and the Required Output schema exactly.${languageSection}`;
 }
 
-export { buildProfilePreferencesSection, buildSchedulingPreferencesSection, buildUserPrompt, daylightLine, routeLine, stayLine, travellersLine };
+export { alreadyPlannedLine, buildProfilePreferencesSection, buildSchedulingPreferencesSection, buildUserPrompt, daylightLine, routeLine, stayLine, travellersLine };
 export type { BuildPromptOptions };
