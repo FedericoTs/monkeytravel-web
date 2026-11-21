@@ -355,6 +355,11 @@ const memoryClaims = [
   "Your flight times for Mexico City on November 23rd and 27th, 2026, have been recorded. I've identified key considerations for your arrival and departure days to ensure smooth travel.",
   "I've noted that you'll be staying in Santa Maria for the entire trip, even though your flight arrives in Espargos.",
   "Noted! I'll keep that in mind.",
+  // "Noted that…" opens a reply the same way, with nothing kept.
+  "Noted that you are starting your trip from Toronto! You can change the trip's dates to match your flights.",
+  "Noted, that you fly in from Toronto.",
+  "Anotado que sales desde Toronto.",
+  "Annotato che parti da Toronto.",
   "He tomado nota de tu hotel en Santa Maria.",
   "Tu vuelo queda anotado.",
   "Ho preso nota del tuo volo.",
@@ -367,6 +372,8 @@ const notMemoryClaims = [
   "I can't keep that here, but you can add it with Edit Trip.",
   "Good to know! Santa Maria has the best beaches on Sal.",
   "Please note the check-in time on your booking.",
+  "Noted for its views, Calton Hill is best at sunset.",
+  "Notedly, the castle closes early in winter.",
 ];
 
 describe("claimsToRemember", () => {
