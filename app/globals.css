@@ -1305,6 +1305,31 @@ h1, h2, h3 {
   transform: translateX(0);
 }
 
+/* "Plan this trip for March" under each place a month's guide ranks
+   (lib/blog/place-plan-links.ts): a tappable pill, its words in the text
+   colour, the coral only its outline. */
+.blog-prose p.plan-place {
+  margin-top: -0.25rem;
+  margin-bottom: 1rem;
+}
+.blog-prose p.plan-place a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.5rem 1.1rem;
+  border: 2px solid var(--primary);
+  border-radius: 9999px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--foreground);
+  text-decoration: none;
+  transition: background-color 0.15s;
+}
+.blog-prose p.plan-place a:hover {
+  background-color: color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
 /* Navbar scroll-state styling — toggled via class by NavbarClient */
 nav[data-monkey-nav].monkey-nav-scrolled {
   background-color: rgba(255, 255, 255, 0.95);

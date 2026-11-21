@@ -38,3 +38,25 @@ describe("places to keep, from a link", () => {
     expect((await mustDosFor("x".repeat(MUST_DO_MAX_LENGTH + 5)))[0]).toHaveLength(MUST_DO_MAX_LENGTH);
   });
 });
+
+const monthFor = async (month?: string | string[]) => {
+  const page = await NewTripPage({ params: Promise.resolve({ locale: "en" }), searchParams: Promise.resolve({ month }) });
+  if (!isValidElement(page)) throw new Error("no element");
+  return (page.props as { prefilledTripShape: { month: number | null } }).prefilledTripShape.month;
+};
+
+describe("the month a link plans for", () => {
+  it("takes 1 to 12", async () => {
+    expect(await monthFor("1")).toBe(1);
+    expect(await monthFor("3")).toBe(3);
+    expect(await monthFor("12")).toBe(12);
+    expect(await monthFor(["10", "2"])).toBe(10);
+  });
+
+  it("drops anything else", async () => {
+    expect(await monthFor()).toBeNull();
+    for (const bad of ["0", "13", "march", "3.5", "-3", "03x", "", " 3"]) {
+      expect(await monthFor(bad), bad).toBeNull();
+    }
+  });
+});

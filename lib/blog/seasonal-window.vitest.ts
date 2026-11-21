@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { seasonalStayWindow } from "./seasonal-window";
+import { monthFromSlug, seasonalStayWindow } from "./seasonal-window";
 
 /**
  * The only thing that can really go wrong here is handing Hostelworld a date
@@ -51,5 +51,20 @@ describe("seasonalStayWindow", () => {
   it("handles a December read in late December by rolling to next year", () => {
     expect(seasonalStayWindow("where-to-go-in-december", on("2026-12-20")))
       .toEqual({ start: "2027-12-10", end: "2027-12-14" });
+  });
+});
+
+describe("monthFromSlug", () => {
+  it("reads the month a post is about, January as 1", () => {
+    expect(monthFromSlug("where-to-go-in-january")).toBe(1);
+    expect(monthFromSlug("where-to-go-in-march")).toBe(3);
+    expect(monthFromSlug("where-to-go-in-december")).toBe(12);
+  });
+
+  it("is null for a post about no single month", () => {
+    expect(monthFromSlug("monsoon-season-where-to-go-and-avoid")).toBeNull();
+    expect(monthFromSlug("maybe-visit-somewhere")).toBeNull();
+    // Object's own names are not months.
+    expect(monthFromSlug("constructor-tostring-guide")).toBeNull();
   });
 });

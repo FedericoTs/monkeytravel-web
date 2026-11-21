@@ -82,13 +82,18 @@ function parseTripShape(sp: SearchParams): PrefilledTripShape {
     .filter((v) => PREFILLABLE_VIBES.has(v))
     .slice(0, 3);
 
+  // The month a link plans for ("?month=3", from a month's guide): 1-12.
+  const rawMonth = one(sp.month);
+  const parsedMonth = rawMonth && /^\d{1,2}$/.test(rawMonth) ? Number(rawMonth) : Number.NaN;
+  const month = parsedMonth >= 1 && parsedMonth <= 12 ? parsedMonth : null;
+
   const mustDos = [sp.must ?? []]
     .flat()
     .map((name) => name.trim().slice(0, MUST_DO_MAX_LENGTH))
     .filter(Boolean)
     .slice(0, MUST_DOS_MAX);
 
-  return { days, budget, vibes, mustDos };
+  return { days, budget, vibes, mustDos, month };
 }
 
 /**
