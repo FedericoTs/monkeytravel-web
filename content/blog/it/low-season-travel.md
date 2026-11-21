@@ -4,7 +4,7 @@ slug: "low-season-travel"
 description: "Quando è la bassa stagione nel 2027? La Spagna mese per mese con i prezzi e l'occupazione degli hotel dell'INE per coste, isole, città e montagna, le feste, i ponti e le vacanze scolastiche 2027 che la interrompono, quanto si risparmia davvero e la bassa stagione in sette mete all'estero."
 author: "Emanuela P."
 publishedAt: "2026-11-20"
-updatedAt: "2026-11-20"
+updatedAt: "2026-11-21"
 category: "Seasonal Travel"
 tags: ["stagionale", "viaggi economici", "mezza stagione", "pianificazione viaggi"]
 image: "/images/blog/low-season-travel.jpg"
@@ -144,7 +144,7 @@ La bassa stagione si ferma con i ponti, le vacanze scolastiche e le grandi feste
 | 12–15 febbraio | Giorni senza scuola | Madrid |
 | 19–28 febbraio | Carnevale di strada | Santa Cruz de Tenerife |
 | 27 febbraio–1 marzo | Ponte (lunedì 1° marzo) | Andalusia, Baleari |
-| 15–19 marzo | Fallas; San José (San Giuseppe) venerdì 19 | Valencia; San José è festa anche in Galizia, a Madrid, in Murcia e in Navarra |
+| 15–19 marzo | [Fallas](/blog/fallas-and-feria-de-abril); San José (San Giuseppe) venerdì 19 | Valencia; San José è festa anche in Galizia, a Madrid, in Murcia e in Navarra |
 | 19 marzo–5 aprile | Settimana Santa e Pasqua (21–28 marzo) e vacanze scolastiche di Pasqua | Ovunque; niente scuola dal 19 al 29 marzo a Madrid, dal 20 al 29 marzo in Catalogna e dal 25 marzo al 5 aprile nella Comunità Valenciana |
 | Settimana del 14 aprile | Feria di Siviglia (prevista) | Siviglia |
 | 23–25 aprile | Ponte (venerdì 23 aprile) | Aragona, Castiglia e León |
@@ -158,7 +158,7 @@ La bassa stagione si ferma con i ponti, le vacanze scolastiche e le grandi feste
 | 4–8 dicembre | Giorno della Costituzione (lunedì 6) e Immacolata Concezione (mercoledì 8) | Ovunque; con un giorno di ferie (martedì 7) si hanno cinque giorni liberi |
 | Dal 22 dicembre | Vacanze scolastiche di Natale | Catalogna; le altre comunità non hanno ancora pubblicato l'anno scolastico 2027–28 |
 
-Fonti: [BOE](https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-21254); calendari scolastici di [Madrid](https://www.bocm.es/boletin/CM_Orden_BOCM/2026/06/04/BOCM-20260604-13.PDF), [Catalogna](https://web.gencat.cat/ca/ciutadania/serveis/educacio-formacio/calendari-escolar-catalunya) e [Comunità Valenciana](https://dogv.gva.es/datos/2026/06/18/pdf/2026_20810_es.pdf); date dei carnevali di [Cadice](https://institucional.cadiz.es/area/Carnaval/103) e di [Santa Cruz de Tenerife](https://carnavaldetenerife.com/programa-carnaval/); le Fallas dall'[ente del turismo della Comunità Valenciana](https://comunitatvalenciana.com/en/inspirate/valencia-en-fallas). Il comune di Siviglia ha proposto mercoledì 14 aprile, nella settimana della Feria, come festa locale 2027 (lo riporta [Andalucía Informa](https://andaluciainforma.es/?p=31926)). Le altre comunità fissano i propri calendari scolastici.
+Fonti: [BOE](https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-21254); calendari scolastici di [Madrid](https://www.bocm.es/boletin/CM_Orden_BOCM/2026/06/04/BOCM-20260604-13.PDF), [Catalogna](https://web.gencat.cat/ca/ciutadania/serveis/educacio-formacio/calendari-escolar-catalunya) e [Comunità Valenciana](https://dogv.gva.es/datos/2026/06/18/pdf/2026_20810_es.pdf); date dei carnevali di [Cadice](https://institucional.cadiz.es/area/Carnaval/103) e di [Santa Cruz de Tenerife](https://carnavaldetenerife.com/programa-carnaval/); le Fallas dall'[ente del turismo della Comunità Valenciana](https://comunitatvalenciana.com/en/inspirate/valencia-en-fallas). Il comune di Siviglia ha proposto mercoledì 14 aprile, nella settimana della Feria, come festa locale 2027 (lo riporta [Andalucía Informa](https://andaluciainforma.es/?p=31926)), e la Junta de Andalucía l'ha pubblicata nel [BOJA](https://www.juntadeandalucia.es/boja/2026/210/25) del 29 ottobre 2026. Le altre comunità fissano i propri calendari scolastici.
 
 Spiccano due cose. La Pasqua cade presto, quindi la prima metà di aprile ne è libera ovunque tranne nella Comunità Valenciana, dove le scuole restano chiuse fino al 5 aprile. E il 1° maggio cade di sabato, quindi niente ponte del Primo maggio.
 

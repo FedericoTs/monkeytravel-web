@@ -4,7 +4,7 @@ slug: "low-season-travel"
 description: "Quando é a baixa temporada em 2027? A Espanha mês a mês com os preços e a ocupação hoteleira do INE no litoral, nas ilhas, nas cidades e nas montanhas, os feriados e férias escolares de 2027 que a interrompem, quanto se economiza de verdade e a baixa temporada em sete destinos no exterior."
 author: "Emanuela P."
 publishedAt: "2026-11-20"
-updatedAt: "2026-11-20"
+updatedAt: "2026-11-21"
 category: "Seasonal Travel"
 tags: ["sazonal", "viagem econômica", "meia-estação", "planejamento de viagem"]
 image: "/images/blog/low-season-travel.jpg"
@@ -144,7 +144,7 @@ A baixa temporada para nos feriados prolongados, nas férias escolares e nas gra
 | 12–15 de fevereiro | Dias sem aula | Madri |
 | 19–28 de fevereiro | Carnaval de rua | Santa Cruz de Tenerife |
 | 27 de fevereiro–1º de março | Feriado prolongado (segunda-feira, 1º de março) | Andaluzia, Baleares |
-| 15–19 de março | Fallas; San José na sexta-feira, 19 | Valência; San José também é feriado na Galícia, em Madri, em Múrcia e em Navarra |
+| 15–19 de março | [Fallas](/blog/fallas-and-feria-de-abril); San José na sexta-feira, 19 | Valência; San José também é feriado na Galícia, em Madri, em Múrcia e em Navarra |
 | 19 de março–5 de abril | Semana Santa e Páscoa (21–28 de março) e férias escolares de Páscoa | Em toda a Espanha; sem aulas de 19 a 29 de março em Madri, de 20 a 29 de março na Catalunha e de 25 de março a 5 de abril na Comunidade Valenciana |
 | Semana de 14 de abril | Feria de Sevilha (prevista) | Sevilha |
 | 23–25 de abril | Feriado prolongado (sexta-feira, 23 de abril) | Aragão, Castela e Leão |
@@ -158,7 +158,7 @@ A baixa temporada para nos feriados prolongados, nas férias escolares e nas gra
 | 4–8 de dezembro | Dia da Constituição (segunda-feira, 6) e Imaculada Conceição (quarta-feira, 8) | Em toda a Espanha; um dia de folga (terça-feira, 7) rende cinco dias livres |
 | A partir de 22 de dezembro | Férias escolares de Natal | Catalunha; as outras comunidades ainda não publicaram o ano letivo 2027–28 |
 
-Fontes: [BOE](https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-21254); calendários escolares de [Madri](https://www.bocm.es/boletin/CM_Orden_BOCM/2026/06/04/BOCM-20260604-13.PDF), da [Catalunha](https://web.gencat.cat/ca/ciutadania/serveis/educacio-formacio/calendari-escolar-catalunya) e da [Comunidade Valenciana](https://dogv.gva.es/datos/2026/06/18/pdf/2026_20810_es.pdf); datas de carnaval de [Cádiz](https://institucional.cadiz.es/area/Carnaval/103) e de [Santa Cruz de Tenerife](https://carnavaldetenerife.com/programa-carnaval/); as Fallas, do [órgão de turismo da Comunidade Valenciana](https://comunitatvalenciana.com/en/inspirate/valencia-en-fallas). A prefeitura de Sevilha propôs a quarta-feira, 14 de abril, na semana da Feria, como feriado municipal de 2027 (segundo o [Andalucía Informa](https://andaluciainforma.es/?p=31926)). As outras comunidades definem os próprios calendários escolares.
+Fontes: [BOE](https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-21254); calendários escolares de [Madri](https://www.bocm.es/boletin/CM_Orden_BOCM/2026/06/04/BOCM-20260604-13.PDF), da [Catalunha](https://web.gencat.cat/ca/ciutadania/serveis/educacio-formacio/calendari-escolar-catalunya) e da [Comunidade Valenciana](https://dogv.gva.es/datos/2026/06/18/pdf/2026_20810_es.pdf); datas de carnaval de [Cádiz](https://institucional.cadiz.es/area/Carnaval/103) e de [Santa Cruz de Tenerife](https://carnavaldetenerife.com/programa-carnaval/); as Fallas, do [órgão de turismo da Comunidade Valenciana](https://comunitatvalenciana.com/en/inspirate/valencia-en-fallas). A prefeitura de Sevilha propôs a quarta-feira, 14 de abril, na semana da Feria, como feriado municipal de 2027 (segundo o [Andalucía Informa](https://andaluciainforma.es/?p=31926)), e a Junta de Andalucía o publicou no [BOJA](https://www.juntadeandalucia.es/boja/2026/210/25) de 29 de outubro de 2026. As outras comunidades definem os próprios calendários escolares.
 
 Duas coisas chamam a atenção. A Páscoa cai cedo, então a primeira quinzena de abril fica livre dela em todo lugar, menos na Comunidade Valenciana, onde as escolas continuam de férias até 5 de abril. E 1º de maio cai num sábado, então não há feriado prolongado do Dia do Trabalho.
 

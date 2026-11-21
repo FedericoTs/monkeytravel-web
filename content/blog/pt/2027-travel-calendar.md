@@ -4,7 +4,7 @@ slug: "2027-travel-calendar"
 description: "Onde viajar em cada mês de 2027, com as datas que marcam o ano: o eclipse solar total de 2 de agosto, o Ano Santo de Santiago de Compostela, a Copa do Mundo Feminina no Brasil, as Copas do Mundo de rúgbi e de críquete e os feriados prolongados de 2027 no Reino Unido, nos Estados Unidos, na Espanha, na Itália e no Brasil."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-11-20"
+updatedAt: "2026-11-21"
 category: "Seasonal Travel"
 tags: ["sazonal", "guia mensal de viagens", "planejamento de viagem"]
 image: "/images/blog/2027-travel-calendar.jpg"
@@ -171,7 +171,7 @@ Com a Páscoa em março, abril começa em média temporada; a pressão fica no m
 **Holanda.** O Keukenhof abre de 18 de março a 9 de maio, os campos de bulbos costumam atingir o auge a partir de meados de abril, e os carros alegóricos de flores do Bloemencorso vão de Noordwijk a Haarlem no sábado, 17 de abril, com máximas de cerca de 13 °C.
 **A contrapartida:** o Dia do Rei, na terça-feira, 27 de abril, lota Amsterdã, e os dias mais movimentados do Keukenhof esgotam.
 
-**Sevilha.** A prefeitura propôs a quarta-feira, 14 de abril, a quarta-feira da Feria, como feriado municipal de 2027 (segundo a imprensa; a lista definitiva é publicada pela Junta de Andalucía). Com o formato de segunda a domingo que Sevilha retomou em 2025, isso coloca a Feria de Abril de 13 a 18 de abril, com o alumbrado na noite da segunda-feira, 12 de abril, quando as luzes se acendem à meia-noite (confira antes de reservar), e tardes de cerca de 23 °C.
+**Sevilha.** A quarta-feira, 14 de abril, a quarta-feira da Feria, é um dos dois feriados municipais de Sevilha em 2027, publicados pela Junta de Andalucía no BOJA de 29 de outubro de 2026. Com o formato de segunda a domingo que Sevilha retomou em 2025, isso coloca a Feria de Abril de 13 a 18 de abril, com o alumbrado na noite da segunda-feira, 12 de abril, quando as luzes se acendem à meia-noite (confira antes de reservar), e tardes de cerca de 23 °C.
 **A contrapartida:** a maioria das casetas é privada, e os preços na semana da Feria ficam muito acima de um abril normal.
 
 **Tailândia.** O Songkran transforma o país numa guerra de água da terça-feira, 13, à quinta-feira, 15 de abril, do fosso de Chiang Mai à Silom Road, em Bangkok, enquanto as ilhas do Golfo vivem seu período mais seco.
@@ -581,7 +581,7 @@ Para viagens curtas a cidades do Hemisfério Norte, janeiro depois do Dia de Rei
 - [Office Holidays: Midsommar na Suécia](https://www.officeholidays.com/holidays/sweden/sweden-midsummer-day)
 - [Keukenhof: site oficial](https://keukenhof.nl/en/)
 - [Bloemencorso Bollenstreek: site oficial](https://bloemencorso-bollenstreek.nl/en/)
-- [Andalucía Informa: feriados municipais de Sevilha em 2027](https://andaluciainforma.es/actualidad/festivos-locales-de-sevilla-2027-14-abril-27-mayo/)
+- [BOJA: feriados municipais de Sevilha em 2027, 29 de outubro de 2026](https://www.juntadeandalucia.es/boja/2026/210/25)
 - [Vozpópuli: a Feria volta ao formato de segunda a domingo (2025)](https://www.vozpopuli.com/espana/andalucia/feria-abril-sevilla-2025-pescaito.html)
 - [Europa Press via Última Hora: a Feria de 2026 abre com o alumbrao](https://www.ultimahora.es/noticias/comunidades/2026/04/21/2613521/ciudad-efimera-feria-sevilla-prepara-tras-alumbrao-para-recibir-miles-visitantes.html)
 - [New Orleans Jazz & Heritage Festival: perguntas frequentes](https://www.nojazzfest.com/faq/)

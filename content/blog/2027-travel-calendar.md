@@ -4,7 +4,7 @@ slug: "2027-travel-calendar"
 description: "Where to go in every month of 2027, with the dates that shape the year: the total solar eclipse on 2 August, Santiago's Holy Year, the Women's World Cup in Brazil, the Rugby and Cricket World Cups, and the 2027 long weekends in the UK, US, Spain, Italy and Brazil."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-11-20"
+updatedAt: "2026-11-21"
 category: "Seasonal Travel"
 tags: ["seasonal", "monthly travel guide", "trip planning"]
 image: "/images/blog/2027-travel-calendar.jpg"
@@ -171,7 +171,7 @@ With Easter in March, April opens in shoulder season; the pressure sits in mid-m
 **The Netherlands.** Keukenhof is open from 18 March to 9 May, the bulb fields usually peak from mid-April, and the Bloemencorso's flower floats roll from Noordwijk to Haarlem on Saturday 17 April, in highs around 13°C (55°F).
 **The trade-off:** King's Day on Tuesday 27 April fills Amsterdam, and Keukenhof's busiest days sell out.
 
-**Seville.** The city council has proposed Wednesday 14 April, the Wednesday of Feria, as a 2027 local holiday (reported by the press; the regional government publishes the final list). With the Monday-to-Sunday format Seville restored in 2025, that puts the Feria de Abril on 13–18 April, opening with the alumbrado on the night of Monday 12 April, when the lights go on at midnight (check before booking), with afternoons around 23°C (73°F).
+**Seville.** Wednesday 14 April, the Wednesday of Feria, is one of Seville's two 2027 local holidays, published by the regional government in the BOJA of 29 October 2026. With the Monday-to-Sunday format Seville restored in 2025, that puts the Feria de Abril on 13–18 April, opening with the alumbrado on the night of Monday 12 April, when the lights go on at midnight (check before booking), with afternoons around 23°C (73°F).
 **The trade-off:** most casetas are private, and Feria week prices run far above a normal April.
 
 **Thailand.** Songkran turns the country into a water fight from Tuesday 13 to Thursday 15 April, from Chiang Mai's moat to Bangkok's Silom Road, while the Gulf islands are in their driest stretch.
@@ -581,7 +581,7 @@ For Northern Hemisphere city breaks, January after Epiphany, when holiday prices
 - [Office Holidays: Midsummer in Sweden](https://www.officeholidays.com/holidays/sweden/sweden-midsummer-day)
 - [Keukenhof: Official site](https://keukenhof.nl/en/)
 - [Bloemencorso Bollenstreek: Official site](https://bloemencorso-bollenstreek.nl/en/)
-- [Andalucía Informa: Seville's 2027 local holidays](https://andaluciainforma.es/actualidad/festivos-locales-de-sevilla-2027-14-abril-27-mayo/)
+- [BOJA: Seville's 2027 local holidays, 29 October 2026](https://www.juntadeandalucia.es/boja/2026/210/25)
 - [Vozpópuli: The Feria returns to its Monday-to-Sunday format (2025)](https://www.vozpopuli.com/espana/andalucia/feria-abril-sevilla-2025-pescaito.html)
 - [Europa Press via Última Hora: The 2026 Feria opens with the alumbrao](https://www.ultimahora.es/noticias/comunidades/2026/04/21/2613521/ciudad-efimera-feria-sevilla-prepara-tras-alumbrao-para-recibir-miles-visitantes.html)
 - [New Orleans Jazz & Heritage Festival: FAQ](https://www.nojazzfest.com/faq/)
