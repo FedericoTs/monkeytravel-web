@@ -236,6 +236,12 @@ export interface LocalDestinationPrediction {
 
 type CuratedPlace = { id: string; name: string; country: string; latitude: number | null; longitude: number | null };
 
+/**
+ * The smallest city from the city table that goes first for having the very name typed. Towns named like a country
+ * or a region people type ("Mexico", "Holland", "Cornwall") are smaller than this.
+ */
+const EXACT_NAME_MIN_POPULATION = 50_000;
+
 const placeKey = (p: { mainText: string; secondaryText?: string }) =>
   `${p.mainText.toLowerCase()}|${(p.secondaryText || "").toLowerCase()}`;
 
@@ -325,6 +331,8 @@ export async function POST(request: NextRequest) {
       return 0;
     });
 
+    // Each city table place's population, for the place typed by its name below.
+    const cityPopulation = new Map<string, number>();
     // GEO_CITIES LAYER — broaden with the population-ranked GeoNames table
     // (~69k cities, task #372). This supersedes Photon as the primary long-tail
     // + native-name + accented-name source: deterministic, population-ranked
@@ -349,12 +357,14 @@ export async function POST(request: NextRequest) {
               country_code: string;
               latitude: number | null;
               longitude: number | null;
+              population?: number | null;
             }>) {
               if (predictions.length >= limit) break;
               const countryName = codeToCountryName[g.country_code] || g.country_code;
               const key = `${g.name.toLowerCase()}|${countryName.toLowerCase()}`;
               if (seen.has(key)) continue;
               seen.add(key);
+              cityPopulation.set(`geo_${g.id}`, g.population ?? 0);
               predictions.push({
                 placeId: `geo_${g.id}`,
                 mainText: g.name,
@@ -378,6 +388,19 @@ export async function POST(request: NextRequest) {
           );
         }
       }
+    }
+
+    // A place named exactly what was typed goes first: "Nice" is Nice, not Venice, which only contains the letters,
+    // and "Bath" is Bath, not the bigger Bathinda. Enter takes the first row, so it must be the place typed. A city
+    // from the city table has to be a city of some size to go first, so a country typed as the destination ("Mexico")
+    // keeps its curated places ahead of a town of that name. The rest keep their order.
+    const typedName = normalizeForGeo(searchTerm);
+    const namedAsTyped = (p: LocalDestinationPrediction) =>
+      normalizeForGeo(p.mainText) === typedName &&
+      (!p.placeId.startsWith("geo_") || (cityPopulation.get(p.placeId) ?? 0) >= EXACT_NAME_MIN_POPULATION);
+    const asTyped = predictions.filter(namedAsTyped);
+    if (asTyped.length > 0) {
+      predictions.splice(0, predictions.length, ...asTyped, ...predictions.filter((p) => !namedAsTyped(p)));
     }
 
     // A misspelling of a curated place ("KUALUMPUR", "Tailand"), when nothing
