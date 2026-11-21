@@ -7,7 +7,7 @@ description: >-
   integrada.
 author: Enrico E.
 publishedAt: '2026-03-25'
-updatedAt: '2026-08-25'
+updatedAt: '2026-11-21'
 category: Destination Guides
 tags: ["itinerario", "guía de ciudad", "asia", "viaje de una semana", "seúl"]
 image: /images/blog/seoul-5-day-itinerary.jpg
@@ -365,8 +365,8 @@ Sí, pero ve con expectativas realistas. No es una excursión de aventura — es
 
 ### ¿Cuándo es la mejor época para ver los cerezos en Seúl?
 
-De finales de marzo a principios de abril. Los cerezos de Seúl florecen cuando la temperatura media de 5 días alcanza los 10°C, lo que suele ocurrir en la última semana de marzo y la primera semana de abril. El "camino de los cerezos" del Parque de Yeouido es el lugar más famoso. Reserva el alojamiento con 3-4 meses de antelación para esta ventana.
+Normalmente, a principios de abril. Según las medias de la Administración Meteorológica de Corea, el árbol oficial del centro de Seúl empieza a florecer el 8 de abril y alcanza la plena floración el 10 de abril, y los cerezos de Yunjung-ro, en Yeouido, empiezan a florecer el 6 de abril. Las últimas primaveras se han adelantado: entre 2021 y 2026, las primeras flores llegaron cada año entre el 24 de marzo y el 4 de abril (el 29 de marzo en 2026). El "camino de los cerezos" del Parque de Yeouido es el lugar más famoso; nuestra [guía de los cerezos en flor fuera de Japón](/blog/cherry-blossoms-beyond-japan) recoge los festivales de Seúl y del resto de Corea. Reserva el alojamiento con 3-4 meses de antelación para esta ventana.
 
 ---
 
-*Fuentes: [Korea Tourism Organization](https://english.visitkorea.or.kr/), [Seoul Metro](https://www.seoulmetro.co.kr/en/), [T-money](https://www.tmoney.co.kr/), [Kakao Map](https://map.kakao.com/), [USO Korea DMZ Tours](https://www.uso.org/korea), [Panmunjom Travel Center](http://www.panmunjomtour.com/), [Palacio Gyeongbokgung](https://www.royalpalace.go.kr/), [Korea Health Industry Development Institute — Turismo Médico](https://www.khidi.or.kr/mec), [Starfield Library COEX](https://www.starfield.co.kr/coexmall/)*
+*Fuentes: [Korea Tourism Organization](https://english.visitkorea.or.kr/), [Seoul Metro](https://www.seoulmetro.co.kr/en/), [T-money](https://www.tmoney.co.kr/), [Kakao Map](https://map.kakao.com/), [USO Korea DMZ Tours](https://www.uso.org/korea), [Panmunjom Travel Center](http://www.panmunjomtour.com/), [Palacio Gyeongbokgung](https://www.royalpalace.go.kr/), [Korea Health Industry Development Institute — Turismo Médico](https://www.khidi.or.kr/mec), [Starfield Library COEX](https://www.starfield.co.kr/coexmall/), [Administración Meteorológica de Corea](https://www.weather.go.kr/kma/flexer/html/press/2026/03/29/ATC202603291603412_b86c30ac-d966-46d4-94a2-02c312fb8a7f.hwp.files/Sections1.html)*

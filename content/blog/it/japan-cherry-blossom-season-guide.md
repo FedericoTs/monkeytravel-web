@@ -35,7 +35,7 @@ Ogni primavera, il Giappone si tinge di rosa. Milioni di ciliegi fioriscono lung
 
 Se stai pianificando un viaggio per vedere il sakura nel 2027, il tempismo è tutto. Arrivare troppo presto e vedrai rami spogli. Arrivare troppo tardi e i petali saranno già a terra. Questa guida copre esattamente quando e dove andare, come seguire le previsioni e come vivere l'hanami come i locali.
 
-Per sapere cosa vale la pena pianificare negli altri mesi, guarda il [calendario dei viaggi mese per mese](/blog/2027-travel-calendar).
+Per sapere cosa vale la pena pianificare negli altri mesi, guarda il [calendario dei viaggi mese per mese](/blog/2027-travel-calendar). Per i ciliegi in fiore in altri Paesi, dalla Corea e da Washington alla Valle del Jerte, in Spagna, leggi la nostra [guida ai ciliegi in fiore fuori dal Giappone](/blog/cherry-blossoms-beyond-japan).
 
 ## Quando Fioriscono i Ciliegi in Giappone?
 

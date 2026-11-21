@@ -33,7 +33,7 @@ Every spring, Japan turns pink. Millions of cherry trees bloom across the countr
 
 If you're planning a trip to see the sakura in 2027, timing is everything. Bloom too early and you'll see bare branches. Arrive too late and the petals are already on the ground. This guide covers exactly when and where to go, how to track the forecast, and how to experience hanami like the locals do.
 
-For what is worth planning around in every other month, see the [month-by-month travel calendar](/blog/2027-travel-calendar).
+For what is worth planning around in every other month, see the [month-by-month travel calendar](/blog/2027-travel-calendar). For cherry blossom outside Japan, from Korea and Washington DC to Spain's Jerte Valley, see our [guide to cherry blossoms beyond Japan](/blog/cherry-blossoms-beyond-japan).
 
 ## When Do Cherry Blossoms Bloom in Japan?
 

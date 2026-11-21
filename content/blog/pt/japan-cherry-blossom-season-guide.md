@@ -35,7 +35,7 @@ Toda primavera, o Japão fica cor-de-rosa. Milhões de cerejeiras florescem por 
 
 Se você está planejando uma viagem para ver as sakuras em 2027, o timing é tudo. Chegue cedo demais e verá galhos nus. Chegue tarde demais e as pétalas já estarão no chão. Este guia mostra exatamente quando e onde ir, como acompanhar a previsão e como vivenciar o hanami como os japoneses.
 
-Para saber o que vale a pena planejar nos outros meses, veja o [calendário de viagens mês a mês](/blog/2027-travel-calendar).
+Para saber o que vale a pena planejar nos outros meses, veja o [calendário de viagens mês a mês](/blog/2027-travel-calendar). Para ver cerejeiras em flor em outros países, da Coreia e de Washington ao Valle del Jerte, na Espanha, veja nosso [guia das cerejeiras em flor fora do Japão](/blog/cherry-blossoms-beyond-japan).
 
 ## Quando as Cerejeiras Florescem no Japão?
 

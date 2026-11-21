@@ -36,7 +36,7 @@ Cada primavera, Japón se tiñe de rosa. Millones de cerezos florecen a lo largo
 
 Si planeas un viaje para ver el sakura en 2027, el timing lo es todo. Llegar demasiado pronto y verás ramas desnudas. Llegar demasiado tarde y los pétalos ya estarán en el suelo. Esta guía cubre exactamente cuándo y dónde ir, cómo seguir el pronóstico y cómo vivir el hanami como los locales.
 
-Para saber qué merece la pena planificar en los demás meses, consulta el [calendario de viajes mes a mes](/blog/2027-travel-calendar).
+Para saber qué merece la pena planificar en los demás meses, consulta el [calendario de viajes mes a mes](/blog/2027-travel-calendar). Para ver cerezos en flor en otros países, de Corea y Washington al Valle del Jerte, consulta nuestra [guía de los cerezos en flor fuera de Japón](/blog/cherry-blossoms-beyond-japan).
 
 ## ¿Cuándo Florecen los Cerezos en Japón?
 

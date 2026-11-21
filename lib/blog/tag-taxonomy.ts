@@ -223,6 +223,7 @@ export const POSTS: Record<string, { c: string[]; d?: string[] }> = {
   "songkran-thailand":                     { c: ["seasonal", "spring-travel", "best-destinations", "trip-planning"] },
   "golden-week":                           { c: ["seasonal", "spring-travel", "shoulder-season", "best-destinations", "trip-planning"] },
   "where-to-see-tulips":                   { c: ["seasonal", "spring-travel", "best-destinations", "trip-planning"] },
+  "cherry-blossoms-beyond-japan":          { c: ["seasonal", "spring-travel", "multi-city-trip", "best-destinations", "trip-planning"] },
   "solar-eclipse-2027":                    { c: ["seasonal", "best-destinations", "trip-planning"] },
   "camino-de-santiago-2027":               { c: ["seasonal", "best-destinations", "trip-planning"] },
   "where-to-go-at-easter":                 { c: ["seasonal", "spring-travel", "best-destinations", "trip-planning"] },
