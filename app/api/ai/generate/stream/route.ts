@@ -38,6 +38,7 @@ import { knownPlacesFor, knownPlacesUsed, type KnownPlace } from "@/lib/ai/known
 import { keepOffClosingDays } from "@/lib/ai/closing-days";
 import { keepInsideHours } from "@/lib/ai/visit-hours";
 import { askForDinners, daysWithoutDinner, placesToEat, withDinners } from "@/lib/ai/dinners";
+import { askForReplacements, repeatedRestaurants, withReplacements } from "@/lib/ai/repeated-meals";
 import { swapClosedStops } from "@/lib/ai/closed-swaps";
 import { withoutLongClosures } from "@/lib/ai/long-closures";
 import { keepMustDos } from "@/lib/ai/must-dos";
@@ -373,12 +374,17 @@ export async function POST(request: NextRequest) {
       //     A full day the plan left without dinner gets one, asked for meanwhile
       //     so the plan isn't slower (lib/ai/dinners.ts).
       const dinnersWanted = daysWithoutDinner(finalItinerary.days, params.destination);
-      const dinnersAsked = askForDinners(dinnersWanted, {
+      const mealOptions = {
         budgetTier: params.budgetTier,
         diets: profilePreferences.dietaryPreferences,
         language: userLanguage,
         taken: placesToEat(finalItinerary.days),
-      });
+      };
+      const dinnersAsked = askForDinners(dinnersWanted, mealOptions);
+      //     A restaurant named again on a later day gets another, asked
+      //     for meanwhile too (lib/ai/repeated-meals.ts).
+      const repeatsWanted = repeatedRestaurants(finalItinerary.days, params.destination);
+      const repeatsAsked = askForReplacements(repeatsWanted, mealOptions);
       const openDays = await keepOffClosingDays(finalItinerary, params.destination, undefined, undefined, (days, stuck) =>
         swapClosedStops(params.destination, days, stuck, userLanguage)
       );
@@ -394,6 +400,11 @@ export async function POST(request: NextRequest) {
       const dinners = withDinners(finalItinerary.days, dinnersWanted, dinnerAnswer.answer);
       finalItinerary = { ...finalItinerary, days: dinners.days };
       generationCost += dinnerAnswer.costUsd;
+      // 5b'''. Then each repeated restaurant's replacement, in its place.
+      const repeatAnswer = await repeatsAsked;
+      const repeats = withReplacements(finalItinerary.days, repeatsWanted, repeatAnswer.answer);
+      finalItinerary = { ...finalItinerary, days: repeats.days };
+      generationCost += repeatAnswer.costUsd;
       if (!cacheHit) {
         try {
           // Zero Google at generation: Wikimedia photos and type-relevant stock
@@ -498,6 +509,7 @@ export async function POST(request: NextRequest) {
                   : {}),
                 // Full days the plan left without dinner, and how many got one.
                 ...(dinnersWanted.length > 0 ? { dinners: { missing: dinnersWanted.length, added: dinners.added } } : {}),
+                ...(repeatsWanted.length > 0 ? { repeated_restaurants: { found: repeatsWanted.length, replaced: repeats.replaced } } : {}),
                 ...(generationId ? { generation_id: generationId } : {}),
               },
             });

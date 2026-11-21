@@ -30,6 +30,7 @@ import { knownPlacesFor } from "@/lib/ai/known-places";
 import { keepOffClosingDays, keepOffClosingDaysByCity } from "@/lib/ai/closing-days";
 import { keepInsideHours } from "@/lib/ai/visit-hours";
 import { askForDinners, daysWithoutDinner, placesToEat, withDinners } from "@/lib/ai/dinners";
+import { askForReplacements, repeatedRestaurants, withReplacements } from "@/lib/ai/repeated-meals";
 import { swapClosedStops } from "@/lib/ai/closed-swaps";
 import { withoutLongClosures } from "@/lib/ai/long-closures";
 import { keepMustDos } from "@/lib/ai/must-dos";
@@ -254,15 +255,23 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     // trip keeps its days.
     itinerary = { ...itinerary, days: keepInsideHours(itinerary.days, params.destination).days };
 
-    // A full day the plan left without dinner gets one (lib/ai/dinners.ts).
+    // A full day the plan left without dinner gets one (lib/ai/dinners.ts), and
+    // a restaurant named again on a later day gets another (lib/ai/repeated-meals.ts):
+    // both asked at once, the dinners put in first.
     const dinnersWanted = daysWithoutDinner(itinerary.days, params.destination);
-    const dinnersAsked = await askForDinners(dinnersWanted, {
+    const repeatsWanted = repeatedRestaurants(itinerary.days, params.destination);
+    const mealOptions = {
       budgetTier: params.budgetTier,
       diets: profilePreferences.dietaryPreferences,
       language: userLanguage,
       taken: placesToEat(itinerary.days),
-    });
+    };
+    const [dinnersAsked, repeatsAsked] = await Promise.all([
+      askForDinners(dinnersWanted, mealOptions),
+      askForReplacements(repeatsWanted, mealOptions),
+    ]);
     itinerary = { ...itinerary, days: withDinners(itinerary.days, dinnersWanted, dinnersAsked.answer).days };
+    itinerary = { ...itinerary, days: withReplacements(itinerary.days, repeatsWanted, repeatsAsked.answer).days };
 
     // Assign activity images server-side (prevents a client race), cached
     // plans included: ZERO Google here. Every activity still gets an image — a
