@@ -74,6 +74,7 @@ jobs:
           tests/e2e/translated-page.spec.ts
           tests/e2e/backpacker-page.spec.ts
           tests/e2e/where-should-i-go.spec.ts
+          tests/e2e/month-guide-place-links.spec.ts
           tests/e2e/result-sky.spec.ts
           tests/e2e/daylight-request.spec.ts
           tests/e2e/stay-request.spec.ts

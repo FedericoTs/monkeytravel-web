@@ -186,7 +186,7 @@ const NAMED_ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quo
  * so the ids, the ToC and the JSON-LD list never carry the renderer's
  * "&#x26;".
  */
-function headingText(html: string): string {
+export function headingText(html: string): string {
   return html
     .replace(/<[^>]*>/g, "")
     .replace(/&(#x[0-9a-f]+|#[0-9]+|[a-z]+);/gi, (entity, ref: string) => {

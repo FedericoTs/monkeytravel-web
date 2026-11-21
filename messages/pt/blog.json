@@ -73,6 +73,7 @@
     "inlineCtaDescription": "A MonkeyTravel monta um plano dia a dia com lugares reais e preços — grátis, sem precisar de cadastro para testar.",
     "inlineCtaButton": "Gerar Meu Roteiro",
     "stickyCtaButton": "Planejar Esta Viagem Grátis →",
+    "planPlace": "Planeje esta viagem para {month}",
     "exploreDestinations": "Explore Estes Destinos",
     "moreFromRegion": "Mais de {region}",
     "relatedTools": "Planeje Sua Viagem com AI",

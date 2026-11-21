@@ -111,6 +111,12 @@ describe("tripPrefillForPost", () => {
     expect(tripPrefillForPost("travel-packing-checklist")).toEqual({});
   });
 
+  it("carries the month a month's guide is about", () => {
+    expect(tripPrefillForPost("where-to-go-in-march")).toEqual({ month: 3 });
+    expect(tripPrefillForPost("where-to-go-in-december").month).toBe(12);
+    expect(tripPrefillForPost("3-day-paris-itinerary").month).toBeUndefined();
+  });
+
   it("is empty for an unknown slug instead of throwing", () => {
     expect(tripPrefillForPost("not-a-real-post")).toEqual({});
   });
@@ -156,6 +162,13 @@ describe("tripsNewHrefForPost", () => {
     expect(tripsNewHrefForPost("passport-power-index-2026", null)).toBe("/trips/new");
   });
 
+  it("opens a month's guide on that month, with or without a place", () => {
+    expect(tripsNewHrefForPost("where-to-go-in-march", null)).toBe("/trips/new?month=3");
+    expect(tripsNewHrefForPost("where-to-go-in-october", "kyoto")).toBe(
+      "/trips/new?destination=kyoto&month=10",
+    );
+  });
+
   it("sends route articles to the route builder without a span", () => {
     expect(tripsNewHrefForPost("greek-island-hopping-itinerary", null)).toBe(
       "/trips/new?multi=1",
@@ -174,6 +187,12 @@ describe("tripsNewHrefForPost", () => {
         expect(Number.isInteger(n)).toBe(true);
         expect(n).toBeGreaterThanOrEqual(1);
         expect(n).toBeLessThanOrEqual(MAX_PREFILL_DAYS);
+      }
+      const month = qs.get("month");
+      if (month !== null) {
+        expect(Number.parseInt(month, 10)).toBeGreaterThanOrEqual(1);
+        expect(Number.parseInt(month, 10)).toBeLessThanOrEqual(12);
+        expect(qs.get("multi")).toBeNull();
       }
       const budget = qs.get("budget");
       if (budget !== null) {
