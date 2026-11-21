@@ -11,6 +11,7 @@
 import type { ChangeEvent } from "react";
 import { useTranslations } from "next-intl";
 import { ROUTE_STOP_NIGHTS_MAX } from "@/lib/trips/request-limits";
+import DestinationAutocomplete from "@/components/ui/DestinationAutocomplete";
 
 export interface RouteStop {
   city: string;
@@ -54,13 +55,15 @@ export function MultiCityRouteBuilder({
             <span className="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white">
               {i + 1}
             </span>
-            <input
-              type="text"
+            {/* Places as the destination box finds them: a pick is the place's own name, so day headings and the
+                cards between cities carry it, spelled right, not what was typed. */}
+            <DestinationAutocomplete
+              compact
               value={row.city}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => updateRow(i, { city: e.target.value })}
+              onChange={(city) => updateRow(i, { city })}
               placeholder={t("wizard.multiCity.cityPlaceholder", { number: i + 1 })}
-              aria-label={t("wizard.multiCity.cityPlaceholder", { number: i + 1 })}
-              className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-slate-900 focus:outline-none"
+              ariaLabel={t("wizard.multiCity.cityPlaceholder", { number: i + 1 })}
+              className="min-w-0 flex-1"
             />
             <div className="flex flex-none items-center gap-1.5">
               <input

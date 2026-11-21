@@ -114,8 +114,8 @@ test.describe("a whole country typed as the destination", () => {
     await expect(page.getByText("Bangkok · 3 nights")).toBeVisible();
     await page.getByRole("button", { name: "Change the route" }).click();
 
-    await expect(page.getByRole("textbox", { name: "City 1" })).toHaveValue("Bangkok");
-    await expect(page.getByRole("textbox", { name: "City 2" })).toHaveValue("Chiang Mai");
+    await expect(page.getByRole("combobox", { name: "City 1" })).toHaveValue("Bangkok");
+    await expect(page.getByRole("combobox", { name: "City 2" })).toHaveValue("Chiang Mai");
     await expect(page.getByRole("spinbutton", { name: "Nights in city 2" })).toHaveValue("4");
 
     await generate(page);

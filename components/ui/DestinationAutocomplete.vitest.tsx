@@ -263,6 +263,13 @@ describe("destination field (WAI-ARIA combobox)", () => {
     expect(document.activeElement).toBe(input);
   });
 
+  it("a pick writes the place with its country", async () => {
+    const { input } = renderField();
+    await type(input, "Lisbs");
+    fireEvent.click(await searchResults());
+    expect((input as HTMLInputElement).value).toBe("Lisbon, Portugal");
+  });
+
   it("no match: Enter continues with what was typed, like the panel's button", async () => {
     RESULTS["Zzyzx"] = [];
     const { input, onSelect } = renderField();
@@ -272,5 +279,60 @@ describe("destination field (WAI-ARIA combobox)", () => {
     await waitFor(() =>
       expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ mainText: "Zzyzx", source: "manual" }))
     );
+  });
+});
+
+function renderRowField() {
+  const onSelect = vi.fn();
+  function Harness() {
+    const [value, setValue] = useState("");
+    return <DestinationAutocomplete compact value={value} onChange={setValue} onSelect={onSelect} />;
+  }
+  render(<Harness />);
+  return { input: screen.getByRole("combobox") as HTMLInputElement, onSelect };
+}
+
+// A route's cities were plain text boxes: a slip in a name stayed on the day headings and the cards between cities.
+describe("a route row's field (compact)", () => {
+  it("a pick writes the place's own name, without its country", async () => {
+    const { input, onSelect } = renderRowField();
+    await type(input, "Lisbr");
+    fireEvent.click(await searchResults());
+    expect(input.value).toBe("Lisbon");
+    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ fullText: "Lisbon, Portugal" }));
+  });
+
+  it("opens no popular places on focus: they don't answer which city comes next", async () => {
+    const { input } = renderRowField();
+    act(() => input.focus());
+    await settle();
+    expect(screen.queryByRole("listbox")).toBeNull();
+    expect(screen.queryByText("Paris")).toBeNull();
+  });
+
+  // A route the planner offered or read fills every row at once: none of them is searched until someone types in it.
+  it("isn't searched when the planner filled it, only when someone types in it", async () => {
+    function Harness() {
+      const [value, setValue] = useState("Bangkok");
+      return <DestinationAutocomplete compact value={value} onChange={setValue} />;
+    }
+    render(<Harness />);
+    await settle();
+    const searches = () => vi.mocked(fetch).mock.calls.filter(([url]) => String(url).includes("/search")).length;
+    expect(searches()).toBe(0);
+    await type(screen.getByRole("combobox"), "Bangkok Noi");
+    await waitFor(() => expect(searches()).toBe(1));
+  });
+
+  it("with no match, keeps what was typed and opens no panel", async () => {
+    RESULTS["Qqzzk"] = [];
+    const { input } = renderRowField();
+    await type(input, "Qqzzk");
+    await waitFor(() =>
+      expect(vi.mocked(fetch).mock.calls.some(([, init]) => String(init?.body ?? "").includes("Qqzzk"))).toBe(true)
+    );
+    await settle();
+    expect(screen.queryByText("noResultsExciting")).toBeNull();
+    expect(input.value).toBe("Qqzzk");
   });
 });
