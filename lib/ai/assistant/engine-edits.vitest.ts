@@ -222,6 +222,21 @@ describe("composeReply", () => {
     expect(text).toMatch(/^I haven't changed your plan/);
   });
 
+  // "Noted" kept nothing: the planner remembers only the last few messages.
+  it("a detail said to be noted, with nothing prepared, becomes an honest reply", () => {
+    const text = composeReply({ ...base, reply: "I've noted that your trip starts from Toronto! Your flights will be part of the plan.", edits: [] });
+    expect(text).toMatch(/^I can't keep details like that here/);
+    const es = composeReply({ ...base, locale: "es", reply: "He tomado nota de tu aeropuerto de salida, Toronto.", edits: [] });
+    expect(es).toMatch(/^Aquí no puedo guardar datos como ese/);
+    // With a change prepared, a note about what it fits is fine.
+    const [d1] = validateEdits(trip(), { edits: [edit(1)], tripLength: null }, "EUR").edits;
+    expect(composeReply({ ...base, reply: "Noted: you land at 14:00, so Day 1 starts with lunch.", edits: [d1] })).toContain("Noted: you land at 14:00");
+    // An answer that keeps nothing and says nothing of a memory stays.
+    expect(composeReply({ ...base, reply: "The plan covers your days in Lisbon; tell me when you land.", edits: [] })).toBe(
+      "The plan covers your days in Lisbon; tell me when you land.",
+    );
+  });
+
   it("a promise with nothing prepared becomes an honest reply", () => {
     const text = composeReply({ ...base, reply: "I'll move the Vatican to Day 2 for you.", edits: [] });
     expect(text).toMatch(/^I haven't changed your plan/);

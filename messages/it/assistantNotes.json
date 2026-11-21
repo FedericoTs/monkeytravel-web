@@ -3,6 +3,7 @@
   "noProposal": "(Questa modifica non è pronta: non c'è niente da confermare. Chiedimela di nuovo indicando giorno e attività.)",
   "preparedChange": "Ho preparato questa modifica.",
   "wizardNothingChanged": "Non ho modificato il tuo piano: non sono riuscito a fare questa modifica. Prova a chiedermela giorno per giorno, per esempio \"rendi il giorno 3 più rilassato\".",
+  "wizardNothingKept": "Qui non posso conservare dati come questo, e ricordo solo gli ultimi messaggi. Per adattare il piano, dimmi cosa deve cambiare, per esempio \"arriviamo alle 14:00 il giorno 1\".",
   "tripDatesOffer": "(Le date del viaggio restano {current}: per cambiarle in {range}, tocca il pulsante qui sotto.)",
   "uncoveredDays": "(Questa modifica riguarda solo il giorno {covered}. Chiedimi il giorno {uncovered} se vuoi cambiare anche quello.)",
   "notAppliedLead": "Non ancora applicato: tocca \"Applica modifica\" qui sotto per aggiornare il tuo piano.",
