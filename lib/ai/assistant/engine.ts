@@ -577,15 +577,18 @@ export function correctionWithRule(
   const outside = outsideTravelTimes(timed, withPlanDeparture(o.travelTimes ?? [], input.days))[0];
   if (outside) {
     const late = outside.from !== null && minutesOf(outside.from) >= 22 * 60;
-    const when = [
-      outside.arrives &&
-        (late
-          ? `they arrive at ${outside.arrives}, too late for anything but getting to where they stay`
-          : `they arrive at ${outside.arrives}, so plan nothing before ${outside.from}`),
-      outside.leaves && `they leave at ${outside.leaves}, so everything must end by ${outside.until}`,
-    ]
-      .filter(Boolean)
-      .join(", and ");
+    // A day that leaves one place for another has its plans before the ride and after it.
+    const when = outside.journey
+      ? `they leave at ${outside.leaves} and arrive at ${outside.arrives}, so plan nothing between ${outside.until} and ${outside.from}`
+      : [
+          outside.arrives &&
+            (late
+              ? `they arrive at ${outside.arrives}, too late for anything but getting to where they stay`
+              : `they arrive at ${outside.arrives}, so plan nothing before ${outside.from}`),
+          outside.leaves && `they leave at ${outside.leaves}, so everything must end by ${outside.until}`,
+        ]
+          .filter(Boolean)
+          .join(", and ");
     return said("travel_times", `Day ${outside.day}: ${when}. ${outside.names.join(", ")} ${outside.names.length > 1 ? "don't" : "doesn't"} fit. Move what matters to a day with room, or leave it out, and say so in "reply".`);
   }
   const recent = [input.message, ...(input.history ?? []).slice(-2).map((t) => t.text)].join("\n");

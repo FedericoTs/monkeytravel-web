@@ -22,6 +22,7 @@
   "travelTimesLeaves": "(Controlla il giorno {day}: parti alle {leaves}, quindi i programmi dovrebbero finire entro le {until}, e il giorno ha ancora: {names}.)",
   "travelTimesLate": "(Controlla il giorno {day}: arrivi alle {arrives}, troppo tardi per altri programmi, e il giorno ha ancora: {names}.)",
   "travelTimesArrives": "(Controlla il giorno {day}: arrivi alle {arrives}, quindi i programmi dovrebbero iniziare dopo le {from}, e il giorno ha ancora: {names}.)",
+  "travelTimesBetween": "(Controlla il giorno {day}: viaggi dalle {leaves} alle {arrives}, quindi i programmi dovrebbero finire entro le {until} o iniziare dopo le {from}, e il giorno ha ancora: {names}.)",
   "ownerAddsDays": "Solo il proprietario del viaggio può aggiungere giorni, quindi il viaggio resta di {days, plural, =1 {# giorno} other {# giorni}}.",
   "ownerAddsDaysIdeas": "Idee per quei giorni, da proporgli:{list}",
   "pendingChangeNote": "Non ancora salvato: tocca \"{button}\" qui sotto per aggiornare il tuo viaggio.",
