@@ -11,7 +11,7 @@ image: "/images/blog/where-to-go-at-easter.jpg"
 imageAlt: "Nazarenos con túnica blanca y alto capirote azul, uno de ellos de rojo, pasan con varas plateadas ante el público en una soleada procesión de Semana Santa en Sevilla"
 readingTime: 18
 seo:
-  title: "Dónde viajar en Semana Santa 2027: 16 destinos y puentes"
+  title: "Semana Santa 2027: fechas y dónde viajar, 16 destinos"
   description: "La Semana Santa de 2027 cae pronto: Domingo de Pascua el 28 de marzo. 16 destinos de procesiones y escapadas, con puentes, tiempo, cierres y qué reservar."
   keywords: ["semana santa 2027", "dónde viajar en semana santa 2027", "puente de semana santa 2027", "carnaval y semana santa 2027", "procesiones semana santa 2027", "viernes santo 2027", "jueves santo 2027", "pascua 2027"]
 schema: "Article"
