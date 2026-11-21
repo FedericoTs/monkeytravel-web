@@ -3,10 +3,15 @@ import type { Diet } from "@/lib/trips/diet";
 import type { SeasonalContext, TripCreationParams } from "@/types";
 import type { WizardAnswers } from "./answers";
 import { isChosenTripIntent } from "./answers";
+import { tidyTypedPlace } from "./place-name";
 
-/** A route's filled rows (a city and at least one night), as the legs the server plans one by one. */
+/**
+ * A route's filled rows (a city and at least one night), as the legs the server
+ * plans one by one. A city typed in lower case is written the way the place is
+ * (lib/wizard/place-name.ts): it heads the plan's days and its transfer cards.
+ */
 export function routeLegs(rows: RouteStop[]): RouteStop[] {
-  return rows.filter((r) => r.city.trim() && r.nights > 0).map((r) => ({ city: r.city.trim(), nights: r.nights }));
+  return rows.filter((r) => r.city.trim() && r.nights > 0).map((r) => ({ city: tidyTypedPlace(r.city), nights: r.nights }));
 }
 
 export interface GenerationRequest {
