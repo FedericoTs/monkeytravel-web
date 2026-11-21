@@ -774,6 +774,16 @@ describe("travel times", () => {
 describe("buildPrompt", () => {
   const prompt = buildPrompt({ message: "we have a car", destination: "Lisbon", tripTitle: "Lisbon", days: [day(1, ["A"])], locale: "en" });
 
+  // "walk instead of driving" rewrote days for a change no edit can make: the page picks walking or a ride by
+  // distance (lib/utils/travel-estimation.ts).
+  it("answers how they get between stops instead of writing days for it", () => {
+    expect(prompt).toContain(
+      'How they get from one stop to the next (walking instead of driving, a bus, a tram, a car) is not in the plan, which holds only the stops: no edit can change it, so asking for it is a QUESTION, never a change, even with "instead". Write no day for it: no walking stop, no new times.',
+    );
+    expect(prompt).toContain("The page shows walking between stops under about 1 km apart and a ride for longer hops");
+    expect(prompt).toContain("offer to move stops closer together so more of each day is on foot");
+  });
+
   it("asks the model to read what the traveller means before acting", () => {
     expect(prompt).toContain("A statement about their trip asks you to fit the plan to it");
     expect(prompt).toContain('A short "yes", "ok", "do it" or "continue" answers your previous message');
