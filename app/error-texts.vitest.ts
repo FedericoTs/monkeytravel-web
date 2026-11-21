@@ -53,10 +53,14 @@ export function unwrittenInternalErrors(fileName: string, source: string): numbe
 
 describe("the text of a 500", () => {
   it("is written, never an error's own", () => {
-    const found = execSync("git ls-files app/api lib", { encoding: "utf8" })
+    // Only a file that calls errors.internal can hold one; the rest aren't parsed.
+    const callers = execSync("git ls-files app/api lib", { encoding: "utf8" })
       .split("\n")
       .filter((f) => /\.ts$/.test(f) && !/\.vitest\.ts$/.test(f) && !WRITTEN_WHERE_MADE.has(f))
-      .flatMap((file) => unwrittenInternalErrors(file, readFileSync(file, "utf8")).map((line) => `${file}:${line}`));
+      .map((file) => ({ file, src: readFileSync(file, "utf8") }))
+      .filter(({ src }) => src.includes("errors.internal"));
+    expect(callers.length).toBeGreaterThan(50);
+    const found = callers.flatMap(({ file, src }) => unwrittenInternalErrors(file, src).map((line) => `${file}:${line}`));
     expect(found, `errors.internal calls to give written text:\n${found.join("\n")}`).toEqual([]);
   }, 60_000);
 

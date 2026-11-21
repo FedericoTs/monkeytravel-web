@@ -43,6 +43,12 @@ function selectTexts(arg: ts.Expression | undefined): string[] {
   return []; // a constant such as TRIP_COLUMNS, checked against the grant above
 }
 
+/**
+ * A file can only hold a read the scan flags if it names the table, embeds it, or
+ * calls one of the shared checks; the rest aren't worth parsing.
+ */
+const MAY_READ_TRIPS = /["'`]trips["'`]|\btrips(?:![a-z_]+)?\s*\(|\bverifyTrip(?:Ownership|Access)\b/;
+
 const asksForStarOrToken = (text: string) => /(^|[\s,(])\*(\s*[,)]|\s*$)|\bshare_token\b/.test(text);
 const embedsStarOrToken = (text: string) => /\btrips(?:![a-z_]+)?\s*\(\s*(\*|[^)]*\bshare_token\b)/.test(text);
 
@@ -152,15 +158,18 @@ describe("a trip's share_token is readable by its owner and members only", () =>
   });
 
   it("no user-scoped query on trips asks for * or for the token", () => {
-    const offenders = ["app", "components", "hooks", "lib"]
+    const candidates = ["app", "components", "hooks", "lib"]
       .flatMap(sourceFiles)
       .filter((file) => !SERVICE_ROLE_READS.includes(path.normalize(file)))
-      .flatMap((file) => offendingReads(file));
-    expect(offenders).toEqual([]);
+      .map((file) => ({ file, src: read(file) }))
+      .filter(({ src }) => MAY_READ_TRIPS.test(src));
+    // The trips reads and checks run through well over a hundred files.
+    expect(candidates.length).toBeGreaterThan(100);
+    expect(candidates.flatMap(({ file, src }) => offendingReads(file, src))).toEqual([]);
   }, 30_000);
 
   it("the scan flags every shape the grant refuses, and nothing else", () => {
-    const flagged = (line: string) => offendingReads("probe.ts", line).length;
+    const flagged = (line: string) => (MAY_READ_TRIPS.test(line) ? offendingReads("probe.ts", line).length : 0);
     expect(flagged(`a.from("trips").select("*");`)).toBe(1);
     expect(flagged(`a.from("trips").select();`)).toBe(1);
     expect(flagged(`a.from("trips").select("*", { count: "exact", head: true }).eq("user_id", u);`)).toBe(1);
