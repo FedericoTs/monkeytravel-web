@@ -7,7 +7,7 @@ description: >-
   built in.
 author: Enrico E.
 publishedAt: '2026-03-25'
-updatedAt: '2026-08-25'
+updatedAt: '2026-11-21'
 category: Destination Guides
 tags: ["itinerary", "city guide", "asia", "week-long trip", "seoul"]
 image: /images/blog/seoul-5-day-itinerary.jpg
@@ -399,8 +399,8 @@ Yes, but go in with accurate expectations. It's not an adventure tour — it's a
 
 ### When is the best time to visit Seoul for cherry blossoms?
 
-Late March to early April. Seoul's cherry blossoms peak when the 5-day average temperature consistently hits 10°C (50°F), which typically falls in the last week of March through first week of April. Yeouido Park's "cherry blossom road" is the most famous spot. Hike Bugaksan or Namsan for blossoms with a city backdrop. Book accommodation 3-4 months in advance for this window — hotels fill up fast.
+Usually early April. On the Korea Meteorological Administration's averages, the official tree in central Seoul first flowers on 8 April and is in full bloom on 10 April, and the trees on Yeouido's Yunjung-ro first flower on 6 April. Recent springs have run earlier: first flowers came between 24 March and 4 April in every year from 2021 to 2026 (29 March in 2026). Yeouido Park's "cherry blossom road" is the most famous spot; our [cherry blossom guide beyond Japan](/blog/cherry-blossoms-beyond-japan) covers Seoul's festivals and the rest of Korea. Hike Bugaksan or Namsan for blossoms with a city backdrop. Book accommodation 3-4 months in advance for this window — hotels fill up fast.
 
 ---
 
-*Sources: [Korea Tourism Organization](https://english.visitkorea.or.kr/), [Seoul Metro](https://www.seoulmetro.co.kr/en/), [T-money Card](https://www.tmoney.co.kr/), [Kakao Map](https://map.kakao.com/), [USO Korea DMZ Tours](https://www.uso.org/korea), [Panmunjom Travel Center](http://www.panmunjomtour.com/), [Gyeongbokgung Palace](https://www.royalpalace.go.kr/), [Korea Health Industry Development Institute — Medical Tourism](https://www.khidi.or.kr/mec), [Starfield Library COEX](https://www.starfield.co.kr/coexmall/)*
+*Sources: [Korea Tourism Organization](https://english.visitkorea.or.kr/), [Seoul Metro](https://www.seoulmetro.co.kr/en/), [T-money Card](https://www.tmoney.co.kr/), [Kakao Map](https://map.kakao.com/), [USO Korea DMZ Tours](https://www.uso.org/korea), [Panmunjom Travel Center](http://www.panmunjomtour.com/), [Gyeongbokgung Palace](https://www.royalpalace.go.kr/), [Korea Health Industry Development Institute — Medical Tourism](https://www.khidi.or.kr/mec), [Starfield Library COEX](https://www.starfield.co.kr/coexmall/), [Korea Meteorological Administration](https://www.weather.go.kr/kma/flexer/html/press/2026/03/29/ATC202603291603412_b86c30ac-d966-46d4-94a2-02c312fb8a7f.hwp.files/Sections1.html)*

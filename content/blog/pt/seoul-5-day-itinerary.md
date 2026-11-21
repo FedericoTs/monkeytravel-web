@@ -7,7 +7,7 @@ description: >-
   já incluído.
 author: Enrico E.
 publishedAt: '2026-03-25'
-updatedAt: '2026-08-25'
+updatedAt: '2026-11-21'
 category: Destination Guides
 tags: ["roteiro", "guia da cidade", "ásia", "viagem de uma semana", "seul"]
 image: /images/blog/seoul-5-day-itinerary.jpg
@@ -400,8 +400,8 @@ Sim, mas vá com expectativas precisas. Não é um tour de aventura — é uma e
 
 ### Qual é a melhor época para visitar Seul para ver as cerejeiras?
 
-Do fim de março ao início de abril. As cerejeiras de Seul atingem o auge quando a temperatura média de 5 dias bate consistentemente nos 10 °C, o que costuma cair na última semana de março até a primeira semana de abril. A "estrada das cerejeiras" do Parque Yeouido é o ponto mais famoso. Suba a Bugaksan ou a Namsan para ver as flores com a cidade ao fundo. Reserve a hospedagem com 3-4 meses de antecedência para essa janela — os hotéis lotam rápido.
+Geralmente no início de abril. Pelas médias da Administração Meteorológica da Coreia, a árvore oficial do centro de Seul começa a florir em 8 de abril e chega à floração plena em 10 de abril, e as cerejeiras de Yunjung-ro, em Yeouido, começam a florir em 6 de abril. As últimas primaveras vieram mais cedo: de 2021 a 2026, as primeiras flores chegaram todo ano entre 24 de março e 4 de abril (29 de março em 2026). A "estrada das cerejeiras" do Parque Yeouido é o ponto mais famoso; nosso [guia das cerejeiras em flor fora do Japão](/blog/cherry-blossoms-beyond-japan) traz os festivais de Seul e do resto da Coreia. Suba a Bugaksan ou a Namsan para ver as flores com a cidade ao fundo. Reserve a hospedagem com 3-4 meses de antecedência para essa janela — os hotéis lotam rápido.
 
 ---
 
-*Fontes: [Korea Tourism Organization](https://english.visitkorea.or.kr/), [Seoul Metro](https://www.seoulmetro.co.kr/en/), [T-money Card](https://www.tmoney.co.kr/), [Kakao Map](https://map.kakao.com/), [USO Korea DMZ Tours](https://www.uso.org/korea), [Panmunjom Travel Center](http://www.panmunjomtour.com/), [Gyeongbokgung Palace](https://www.royalpalace.go.kr/), [Korea Health Industry Development Institute — Medical Tourism](https://www.khidi.or.kr/mec), [Starfield Library COEX](https://www.starfield.co.kr/coexmall/)*
+*Fontes: [Korea Tourism Organization](https://english.visitkorea.or.kr/), [Seoul Metro](https://www.seoulmetro.co.kr/en/), [T-money Card](https://www.tmoney.co.kr/), [Kakao Map](https://map.kakao.com/), [USO Korea DMZ Tours](https://www.uso.org/korea), [Panmunjom Travel Center](http://www.panmunjomtour.com/), [Gyeongbokgung Palace](https://www.royalpalace.go.kr/), [Korea Health Industry Development Institute — Medical Tourism](https://www.khidi.or.kr/mec), [Starfield Library COEX](https://www.starfield.co.kr/coexmall/), [Administração Meteorológica da Coreia](https://www.weather.go.kr/kma/flexer/html/press/2026/03/29/ATC202603291603412_b86c30ac-d966-46d4-94a2-02c312fb8a7f.hwp.files/Sections1.html)*

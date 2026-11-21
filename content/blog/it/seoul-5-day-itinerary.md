@@ -7,7 +7,7 @@ description: >-
   inclusa.
 author: Enrico E.
 publishedAt: '2026-03-25'
-updatedAt: '2026-08-25'
+updatedAt: '2026-11-21'
 category: Destination Guides
 tags: ["itinerario", "guida città", "asia", "viaggio di una settimana", "seul"]
 image: /images/blog/seoul-5-day-itinerary.jpg
@@ -367,8 +367,8 @@ Sì, ma vai con aspettative realistiche. Non è un tour d'avventura — è un'es
 
 ### Quando è il periodo migliore per vedere i ciliegi in fiore a Seul?
 
-Da fine marzo a inizio aprile. I ciliegi di Seul fioriscono quando la temperatura media di 5 giorni raggiunge i 10°C, il che solitamente avviene nell'ultima settimana di marzo e nella prima settimana di aprile. La "strada dei ciliegi" del Parco di Yeouido è il posto più famoso. Prenota l'alloggio con 3-4 mesi di anticipo per questa finestra.
+Di solito a inizio aprile. Secondo le medie dell'Agenzia meteorologica coreana, l'albero ufficiale del centro di Seul inizia a fiorire l'8 aprile ed è in piena fioritura il 10 aprile, mentre i ciliegi di Yunjung-ro, a Yeouido, iniziano a fiorire il 6 aprile. Le ultime primavere sono state più precoci: dal 2021 al 2026 i primi fiori sono arrivati ogni anno tra il 24 marzo e il 4 aprile (il 29 marzo nel 2026). La "strada dei ciliegi" del Parco di Yeouido è il posto più famoso; la nostra [guida ai ciliegi in fiore fuori dal Giappone](/blog/cherry-blossoms-beyond-japan) racconta i festival di Seul e del resto della Corea. Prenota l'alloggio con 3-4 mesi di anticipo per questa finestra.
 
 ---
 
-*Fonti: [Korea Tourism Organization](https://english.visitkorea.or.kr/), [Seoul Metro](https://www.seoulmetro.co.kr/en/), [T-money](https://www.tmoney.co.kr/), [Kakao Map](https://map.kakao.com/), [USO Korea DMZ Tours](https://www.uso.org/korea), [Panmunjom Travel Center](http://www.panmunjomtour.com/), [Palazzo Gyeongbokgung](https://www.royalpalace.go.kr/), [Korea Health Industry Development Institute — Turismo Medico](https://www.khidi.or.kr/mec), [Starfield Library COEX](https://www.starfield.co.kr/coexmall/)*
+*Fonti: [Korea Tourism Organization](https://english.visitkorea.or.kr/), [Seoul Metro](https://www.seoulmetro.co.kr/en/), [T-money](https://www.tmoney.co.kr/), [Kakao Map](https://map.kakao.com/), [USO Korea DMZ Tours](https://www.uso.org/korea), [Panmunjom Travel Center](http://www.panmunjomtour.com/), [Palazzo Gyeongbokgung](https://www.royalpalace.go.kr/), [Korea Health Industry Development Institute — Turismo Medico](https://www.khidi.or.kr/mec), [Starfield Library COEX](https://www.starfield.co.kr/coexmall/), [Agenzia meteorologica coreana](https://www.weather.go.kr/kma/flexer/html/press/2026/03/29/ATC202603291603412_b86c30ac-d966-46d4-94a2-02c312fb8a7f.hwp.files/Sections1.html)*
