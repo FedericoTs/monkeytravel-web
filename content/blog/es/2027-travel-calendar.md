@@ -147,7 +147,7 @@ El Domingo de Pascua cae el 28 de marzo, así que la Semana Santa y el Holi coin
 **Japón.** Según las normales 1991–2020 de la Agencia Meteorológica de Japón, los cerezos de Tokio alcanzan la plena floración el 31 de marzo y los de Kioto el 4 de abril, y la GREEN×EXPO de Yokohama abre el 19 de marzo con unos 600 cerezos.
 **La contrapartida:** la semana de la floración es de las más caras de Japón, y un febrero templado puede adelantar las fechas una semana.
 
-**Rajastán.** El Holi cae el 22 de marzo (el juego de colores puede moverse un día según la región), y marzo es el último mes cómodo: 28–32 °C ahora, 40 °C y más en mayo.
+**Rajastán.** El Holi cae el 22 de marzo (el juego de colores puede moverse un día según la región, y el festivo del Gobierno central de India es el martes 23 de marzo), y marzo es el último mes cómodo: 28–32 °C ahora, 40 °C y más en mayo. Nuestra [guía del Holi 2027](/blog/where-to-celebrate-holi) compara dónde y cuándo celebrarlo.
 **La contrapartida:** el Holi puede resultar abrumador en las grandes ciudades turísticas, sobre todo para quien viaja solo y para las mujeres; las celebraciones de los hoteles y las localidades pequeñas son más tranquilas.
 
 **Jordania.** La cuenca de Petra está a 20–24 °C, las flores silvestres cubren la reserva de Dana y los tramos más populares del Jordan Trail están en temporada.

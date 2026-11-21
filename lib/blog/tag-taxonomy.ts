@@ -219,6 +219,7 @@ export const POSTS: Record<string, { c: string[]; d?: string[] }> = {
   "carnival-around-the-world":             { c: ["seasonal", "winter-travel", "best-destinations", "trip-planning"] },
   "carnival-in-spain":                     { c: ["seasonal", "winter-travel", "best-destinations", "trip-planning"] },
   "fallas-and-feria-de-abril":             { c: ["seasonal", "spring-travel", "best-destinations", "trip-planning"] },
+  "where-to-celebrate-holi":               { c: ["seasonal", "spring-travel", "group-travel", "best-destinations", "trip-planning"] },
   "solar-eclipse-2027":                    { c: ["seasonal", "best-destinations", "trip-planning"] },
   "camino-de-santiago-2027":               { c: ["seasonal", "best-destinations", "trip-planning"] },
   "where-to-go-at-easter":                 { c: ["seasonal", "spring-travel", "best-destinations", "trip-planning"] },

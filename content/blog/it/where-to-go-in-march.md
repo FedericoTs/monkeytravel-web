@@ -53,7 +53,7 @@ La fioritura è il motivo per cui marzo è il mese più conteso del Giappone. To
 
 ## 2. Rajasthan e India del nord — Holi e le ultime settimane comode
 
-L'[Holi cade il 22 marzo 2027](https://www.drikpanchang.com/hindu-festivals/holi/holi.html) — il gioco dei colori può spostarsi di un giorno a seconda della regione — e il Rajasthan è il posto classico per viverlo. Marzo è anche l'ultimo mese prima che il caldo dell'India del nord diventi la caratteristica dominante: 28–32 °C adesso, oltre 40 °C a maggio.
+L'[Holi cade il 22 marzo 2027](https://www.drikpanchang.com/hindu-festivals/holi/holi.html) — il gioco dei colori può spostarsi di un giorno a seconda della regione — e il Rajasthan è il posto classico per viverlo. La nostra [guida a Holi 2027](/blog/where-to-celebrate-holi) mette a confronto dove festeggiarlo e in quale giorno. Marzo è anche l'ultimo mese prima che il caldo dell'India del nord diventi la caratteristica dominante: 28–32 °C adesso, oltre 40 °C a maggio.
 
 **Costi reali:** $35–60 al giorno — rapporto eccellente, anche se la settimana dell'Holi spinge in alto gli hotel di Jaipur e Udaipur.
 **Il compromesso:** l'Holi è rumoroso e, per chi viaggia da solo e in particolare per le donne, può risultare travolgente nelle grandi città turistiche. I paesi piccoli e le celebrazioni organizzate dagli hotel sono la versione più tranquilla, ed entrambe sono modi legittimi di viverlo.
