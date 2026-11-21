@@ -4,7 +4,7 @@ slug: "where-to-go-in-may"
 description: "May is the last shoulder month before summer pricing: Greece after Orthodox Easter on 2 May, Japan once Golden Week ends, Córdoba's patios, Peru's dry season and Chelsea on 18–22 May. The quiet weeks between its long weekends are where the value is. Twelve destinations with real daily costs and honest trade-offs."
 author: "Emanuela P."
 publishedAt: "2026-10-02"
-updatedAt: "2026-10-02"
+updatedAt: "2026-11-21"
 category: "Seasonal Travel"
 tags: ["seasonal", "monthly travel guide", "spring travel", "shoulder season", "best destinations"]
 image: "/images/blog/where-to-go-in-may.jpg"
@@ -42,10 +42,10 @@ The catch in 2027 is the calendar. Golden Week runs to 5 May, Orthodox Easter la
 
 ## 1. Japan — The Quiet Weeks After Golden Week
 
-Golden Week, Japan's biggest travel surge, runs from Thursday 29 April to Wednesday 5 May in 2027 ([Cabinet Office holiday list](https://www8.cao.go.jp/chosei/shukujitsu/gaiyou.html)). The day it ends, Japan opens into one of its best windows: fresh green maples, 20–25°C days, low humidity. Kyoto's [Aoi Matsuri](https://kyoto.travel/en/travel-inspiration/aoi-matsuri-festival/) falls on Saturday 15 May — 511 people in Heian-court dress, 36 horses and two ox-drawn carriages, leaving the Imperial Palace at 10:30 (a day later if it rains). Tokyo's Kanda Matsuri, held in full only in odd-numbered years, also lands in mid-May. Our [Golden Route itinerary](/blog/japan-golden-route-itinerary) links the two cities.
+Golden Week, one of Japan's busiest travel periods, runs from Thursday 29 April to Wednesday 5 May in 2027 ([Cabinet Office holiday list](https://www8.cao.go.jp/chosei/shukujitsu/gaiyou.html)). The day it ends, Japan opens into one of its best windows: fresh green maples, 20–25°C days, low humidity. Kyoto's [Aoi Matsuri](https://kyoto.travel/en/travel-inspiration/aoi-matsuri-festival/) falls on Saturday 15 May — 511 people in Heian-court dress, 36 horses and two ox-drawn carriages, leaving the Imperial Palace at 10:30 (a day later if it rains). Tokyo's Kanda Matsuri, held in full only in odd-numbered years, also lands in mid-May. Our [Golden Route itinerary](/blog/japan-golden-route-itinerary) links the two cities.
 
 **Cost reality:** $110–180/day — well below sakura or autumn-leaf prices.
-**The trade-off:** arrive in Golden Week unbooked and you meet full trains, full hotels and peak prices. Humidity builds through late May; the rainy season usually starts in early June.
+**The trade-off:** arrive in Golden Week unbooked and you meet full trains, full hotels and peak prices; our [Golden Week 2027 guide](/blog/golden-week) says what to book first, and by when. Humidity builds through late May; the rainy season usually starts in early June.
 
 ## 2. Greece — After Easter, the Islands Open
 
