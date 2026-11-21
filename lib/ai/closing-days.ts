@@ -40,9 +40,15 @@ type Day = WordDay;
 
 /**
  * The kinds of stop asked about. Gardens close on holidays (a botanical garden on Christmas Day) and so do shops (a
- * department store on New Year's Day); open-air parks come back open. Nature stops (a hike, a waterfall) are open.
+ * department store on New Year's Day); open-air parks come back open. Nature stops (a hike, a waterfall) are open,
+ * but a garden, zoo or aquarium can come typed as one too: those are asked by their name.
  */
 const ASKED = new Set(["museum", "landmark", "attraction", "market", "entertainment", "tour", "spa", "activity", "park", "shopping"]);
+/** A name with gates and opening days, without accents, lower case: a botanical garden, a zoo, an aquarium. */
+const GATED = /\b(?:botani\w*|gardens?|jardin\w*|giardin\w*|jardim\w*|\w*garten|gyoen|zoo|zoolog\w*|ac?quari\w*|arboret\w*|conservator\w*|hortus)\b/;
+const isAsked = (stop: { name?: string; type?: string }): boolean =>
+  ASKED.has(String(stop.type)) ||
+  (stop.type === "nature" && GATED.test((stop.name ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase()));
 /** At most this many places in one question. */
 const MAX_PLACES = 40;
 const TIMEOUT_MS = 5000;
@@ -55,7 +61,7 @@ export function placesToAsk(days: Day[]): string[] {
   for (const day of days) {
     for (const stop of day.activities ?? []) {
       const name = stop.name?.trim();
-      if (name && ASKED.has(String(stop.type)) && !places.has(placeKey(name))) places.set(placeKey(name), name);
+      if (name && isAsked(stop) && !places.has(placeKey(name))) places.set(placeKey(name), name);
     }
   }
   return [...places.values()].slice(0, MAX_PLACES);
