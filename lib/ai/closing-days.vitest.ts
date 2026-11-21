@@ -373,6 +373,40 @@ describe("the places asked about", () => {
     ];
     expect(placesToAsk(days)).toEqual(["Royal Botanic Garden", "Grand Department Store"]);
   });
+
+  // A botanical garden typed as a nature stop stayed on Christmas Day: the name says it has gates and holidays.
+  it("are a garden, zoo or aquarium typed as a nature stop, by its name in any language", () => {
+    const stops = [
+      "Jardín Botánico Municipal",
+      "City Zoo",
+      "Zoológico del Valle",
+      "Harbour Aquarium",
+      "Acquario Civico",
+      "Schlossgarten",
+      "Orto Botanico",
+      "Hillside Arboretum",
+      "Rose Gardens",
+      "Palace Gyoen",
+      "Jardins du Musée",
+      "Glasshouse Conservatory",
+      "Hortus Medicus",
+      "Giardino Pubblico",
+      "Jardim da Cidade",
+      // Open whatever the date, or a garden only inside another word.
+      "Cliff Path Walk",
+      "Waterfall Trail",
+      "Zoom Point Lookout",
+      "Gardena Valley Hike",
+    ];
+    // A café, a station or a hotel named after a garden or a zoo is not one.
+    const named = [
+      { name: "Garden Terrace Café", type: "cafe" },
+      { name: "Zoo Station", type: "transport" },
+      { name: "Hotel Jardín", type: "accommodation" },
+    ];
+    const days = [{ day_number: 1, date: "2026-12-25", activities: [...stops.map((name) => ({ name, type: "nature" })), ...named] }];
+    expect(placesToAsk(days)).toEqual(stops.slice(0, 15));
+  });
 });
 
 describe("the question", () => {
