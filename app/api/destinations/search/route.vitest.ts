@@ -14,6 +14,9 @@ const PLACES = [
   { id: "2", name: "Kuala Lumpur", country: "Malaysia", city: "Kuala Lumpur", latitude: 3.1, longitude: 101.7, rating: 4 },
   { id: "3", name: "Bangkok", country: "Thailand", city: "Bangkok", latitude: 13.7, longitude: 100.5, rating: 5 },
   { id: "4", name: "Phuket", country: "Thailand", city: "Phuket", latitude: 7.9, longitude: 98.4, rating: 4 },
+  { id: "5", name: "Venice", country: "Italy", city: "Venice", latitude: 45.4, longitude: 12.3, rating: 5 },
+  { id: "6", name: "Mexico City", country: "Mexico", city: "Mexico City", latitude: 19.4, longitude: -99.1, rating: 4 },
+  { id: "7", name: "Valencia", country: "Spain", city: "Valencia", latitude: 39.5, longitude: -0.4, rating: 4 },
 ];
 
 const s = vi.hoisted(() => ({
@@ -112,6 +115,34 @@ describe("a name spelled right", () => {
     expect((await search("Parma")).found).toEqual(["Parma, Italy"]);
     s.geo = [{ ...GEO_PARMA, name: "Pariss" }];
     expect((await search("Pariss")).found).toEqual(["Pariss, Italy"]);
+  });
+});
+
+// Enter takes the first row: "Nice" + Enter planned Venice, which only contains the letters, and "Bath" the bigger
+// Bathinda.
+describe("a place named exactly what was typed", () => {
+  const city = (id: number, name: string, country_code: string, population: number) => ({ id, name, country_code, latitude: 0, longitude: 0, population });
+
+  it("goes first, ahead of a curated place that only contains the letters and a bigger city that starts with them", async () => {
+    s.geo = [city(11, "Nice", "FR", 342669), city(12, "Nicetown-Tioga", "US", 30000)];
+    expect((await search("Nice")).found).toEqual(["Nice, France", "Venice, Italy", "Nicetown-Tioga, United States"]);
+    s.geo = [city(13, "Bathinda", "IN", 285813), city(14, "Bath", "GB", 88859), city(15, "Bathurst", "AU", 37000)];
+    expect((await search("bath")).found).toEqual(["Bath, United Kingdom", "Bathinda, India", "Bathurst, Australia"]);
+  });
+
+  it("is a city of some size: a country typed as the destination keeps its curated place ahead of a town of that name", async () => {
+    s.geo = [city(16, "Mexico", "PH", 43694)];
+    expect((await search("Mexico")).found).toEqual(["Mexico City, Mexico", "Mexico, Philippines"]);
+  });
+
+  it("keeps a curated place of that name ahead of a bigger city of the same name", async () => {
+    s.geo = [city(17, "Valencia", "VE", 1619470)];
+    expect((await search("Valencia")).found).toEqual(["Valencia, Spain", "Valencia, Venezuela"]);
+  });
+
+  it("leaves the order as it was when only part of a name is typed", async () => {
+    s.geo = [city(11, "Nice", "FR", 342669)];
+    expect((await search("nic")).found).toEqual(["Venice, Italy", "Nice, France"]);
   });
 });
 
