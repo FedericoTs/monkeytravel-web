@@ -363,7 +363,8 @@ const REMEMBER_PATTERNS: RegExp[] = [
   new RegExp(`${start}(?:i|we)(?:['’]ve|\\s+have)\\s+(?:noted|recorded|made\\s+a\\s+note|taken\\s+note)${end}`, "iu"),
   new RegExp(`${start}(?:i|we)(?:['’]ll|\\s+will)\\s+(?:keep|bear)\\s+(?:that|this|it|these|those)\\s+in\\s+mind${end}`, "iu"),
   new RegExp(`${start}(?:is|are)\\s+(?:now\\s+)?(?:noted|recorded|on\\s+file)${end}`, "iu"),
-  new RegExp(`^\\s*(?:noted|anotado|annotato)[!.,]`, "iu"),
+  // "Noted!" and "Noted that you fly in from Toronto", not "Noted for its views".
+  new RegExp(`^\\s*(?:noted|anotado|annotato)(?:[!.,]|\\s+(?:that|que|che)${end})`, "iu"),
   new RegExp(`${start}(?:he|hemos)\\s+tomado\\s+nota${end}`, "iu"),
   new RegExp(`${start}(?:queda|quedan|ha\\s+sido|han\\s+sido)\\s+(?:anotad|registrad)[oa]s?${end}`, "iu"),
   new RegExp(`${start}lo\\s+tendré\\s+en\\s+cuenta${end}`, "iu"),
