@@ -21,6 +21,7 @@
   "travelTimesLeaves": "(Confira o dia {day}: você parte às {leaves}, então os planos deveriam terminar até as {until}, e o dia ainda tem: {names}.)",
   "travelTimesLate": "(Confira o dia {day}: você chega às {arrives}, tarde demais para outros planos, e o dia ainda tem: {names}.)",
   "travelTimesArrives": "(Confira o dia {day}: você chega às {arrives}, então os planos deveriam começar depois das {from}, e o dia ainda tem: {names}.)",
+  "travelTimesBetween": "(Confira o dia {day}: você viaja das {leaves} às {arrives}, então os planos deveriam terminar até as {until} ou começar depois das {from}, e o dia ainda tem: {names}.)",
   "ownerAddsDays": "Só o proprietário da viagem pode adicionar dias, então a viagem continua com {days, plural, =1 {# dia} other {# dias}}.",
   "ownerAddsDaysIdeas": "Ideias para esses dias, para sugerir ao proprietário:{list}",
   "pendingChangeNote": "Ainda não salvo: toque em \"{button}\" abaixo para atualizar a sua viagem.",
