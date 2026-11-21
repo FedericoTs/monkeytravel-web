@@ -34,6 +34,22 @@ describe("routeLegs", () => {
       { city: "Venice", nights: 2 },
     ]);
   });
+
+  it("writes a city typed in lower case the way the place is written, and keeps one typed with capitals", () => {
+    expect(
+      routeLegs([
+        { city: "kyoto ", nights: 3 },
+        { city: "monaco di baviera", nights: 2 },
+        { city: "Osaka", nights: 2 },
+        { city: "brigton UK", nights: 1 },
+      ])
+    ).toEqual([
+      { city: "Kyoto", nights: 3 },
+      { city: "Monaco di Baviera", nights: 2 },
+      { city: "Osaka", nights: 2 },
+      { city: "brigton UK", nights: 1 },
+    ]);
+  });
 });
 
 describe("generationRequest", () => {
