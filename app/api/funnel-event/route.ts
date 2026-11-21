@@ -19,8 +19,9 @@ import { createRateLimiter } from "@/lib/api/rate-limit";
 import { writesTelemetry } from "@/lib/analytics/telemetry-env";
 import { readJsonBody } from "@/lib/api/json-body";
 
-// Which "plan your own" button on a trip page was pressed, so each can be read.
-const PLAN_OWN_SURFACES = ["shared_footer", "public_footer", "public_top", "after_vote", "page_footer", "bottom_bar", "match"] as const;
+// Which "plan your own" button was pressed, so each can be read: on a trip
+// page, a match result, or under a place in a month's guide.
+const PLAN_OWN_SURFACES = ["shared_footer", "public_footer", "public_top", "after_vote", "page_footer", "bottom_bar", "match", "article_place"] as const;
 
 const MATCH_SHARE_METHODS = ["native_image", "native_link", "whatsapp", "copy", "download"] as const;
 

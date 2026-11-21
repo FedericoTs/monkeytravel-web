@@ -38,18 +38,25 @@ export interface StayWindow {
 const pad = (n: number) => String(n).padStart(2, "0");
 
 /**
+ * The month a post is about, 1-12, from its slug: "where-to-go-in-march" is 3.
+ * Only a whole hyphen-delimited segment counts: "-may-" must not match inside
+ * a word, and "maybe" is not May. Null for a post about no single month.
+ */
+export function monthFromSlug(postSlug: string): number | null {
+  const segment = postSlug.split("-").find((s) => Object.hasOwn(MONTHS, s));
+  return segment === undefined ? null : MONTHS[segment] + 1;
+}
+
+/**
  * Returns a 4-night mid-month window for the month named in the slug, or null
  * when the post is not month-specific (e.g. the monsoon guide spans a season,
  * not a month — there is no honest single window, so it gets no stay CTA).
  */
 export function seasonalStayWindow(postSlug: string, now: Date = new Date()): StayWindow | null {
-  // Match "where-to-go-in-<month>" and any future "<month>-..." seasonal slug,
-  // but only as a whole hyphen-delimited segment: "-may-" must not match
-  // inside a word, and "maybe" is not May.
-  const segment = postSlug.split("-").find((s) => s in MONTHS);
-  if (!segment) return null;
+  const named = monthFromSlug(postSlug);
+  if (named === null) return null;
 
-  const month = MONTHS[segment];
+  const month = named - 1;
   const thisYear = now.getFullYear();
 
   // Compare against the END of the window, not the start: mid-October is still
