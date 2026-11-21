@@ -5,6 +5,8 @@ import type { ComponentProps, SetStateAction } from "react";
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string, values?: Record<string, unknown>) =>
     values ? `${key} ${JSON.stringify(values)}` : key,
+  // The route's cities search places in the site's language.
+  useLocale: () => "en",
 }));
 
 import { MultiCityRoute, MultiCityToggle } from "./MultiCityControls";
@@ -28,8 +30,15 @@ const route = (over: Partial<RouteProps> = {}) =>
     />
   );
 
-beforeEach(() => [setMultiCityMode, setCityRows].forEach((fn) => fn.mockClear()));
-afterEach(cleanup);
+beforeEach(() => {
+  [setMultiCityMode, setCityRows].forEach((fn) => fn.mockClear());
+  // The route's city fields load the popular places once; no network here.
+  vi.stubGlobal("fetch", vi.fn(async () => ({ json: async () => ({ predictions: [] }) })));
+});
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 describe("MultiCityRoute", () => {
   it("offers a 12-day single-city trip a split into cities", () => {
