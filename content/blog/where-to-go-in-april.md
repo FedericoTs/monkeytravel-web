@@ -63,10 +63,10 @@ With Holy Week over in March, April 2027 belongs to Seville's other great week: 
 
 ## 4. Thailand — Songkran in the Hottest Month
 
-[Songkran, the Thai New Year, runs 13–15 April 2027](https://www.officeholidays.com/countries/thailand/2027), Tuesday to Thursday, and for three days the country becomes a water fight. Chiang Mai's old-city moat is the most famous battlefield; in [Bangkok](/blog/bangkok-5-day-itinerary) it's Silom Road and Khao San. Beneath the water pistols it is still a family festival — temple visits, merit-making, water poured gently over elders' hands. Away from it, Koh Samui and the Gulf islands are in their driest stretch.
+[Songkran, the Thai New Year, runs 13–15 April 2027](https://www.officeholidays.com/countries/thailand/2027), Tuesday to Thursday, and for three days the country becomes a water fight. Chiang Mai's old-city moat is the most famous battlefield; in [Bangkok](/blog/bangkok-5-day-itinerary) it's Silom Road and Khao San. Beneath the water pistols it is still a family festival — temple visits, merit-making, water poured gently over elders' hands. Away from it, Koh Samui and the Gulf islands are in their driest stretch. Our [Songkran 2027 guide](/blog/songkran-thailand) has the dates city by city, the rules and when to book trains.
 
 **Cost reality:** $40–80/day; Bangkok and Chiang Mai hotels climb over Songkran, and buses and trains fill as Thais head home.
-**The trade-off:** this is the hottest month — Bangkok averages highs near 35°C — and northern burning-season smoke can linger into early April. You will be soaked every time you step outside: phones in dry bags, and this is not the week to rent a scooter.
+**The trade-off:** this is the hottest month — Bangkok averages highs near 35°C — and northern burning-season smoke can last into Songkran itself: on 14 April 2026 the government's air-pollution centre [reported PM2.5 above the safe limit](https://www.thestar.com.my/aseanplus/aseanplus-news/2026/04/14/pm25-engulfs-39-provinces-as-northern-thailand-enters-critical-stage) across most of the north, Chiang Mai included. You will be soaked every time you step outside: phones in dry bags, and this is not the week to rent a scooter.
 
 ## 5. Greece — Empty Ruins, Then Holy Week
 
@@ -152,7 +152,7 @@ Properly hot: Thailand (Bangkok averages around 35°C) and Costa Rica's Pacific 
 
 ### Which destinations should I avoid in April?
 
-Kenya and Tanzania are in the long rains, and some safari camps close. North India's plains push towards 40°C by the end of the month. Japan during Golden Week (29 April–5 May) is crowded and expensive. Small Greek islands before Orthodox Easter are often half shut, and northern Thailand and Laos can still be smoky from the burning season in early April.
+Kenya and Tanzania are in the long rains, and some safari camps close. North India's plains push towards 40°C by the end of the month. Japan during Golden Week (29 April–5 May) is crowded and expensive. Small Greek islands before Orthodox Easter are often half shut, and northern Thailand and Laos can still be smoky from the burning season well into April (in 2026, northern Thailand's PM2.5 was still above the safe limit on 14 April).
 
 ---
 
