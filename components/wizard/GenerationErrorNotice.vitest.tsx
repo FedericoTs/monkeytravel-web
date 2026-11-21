@@ -24,7 +24,10 @@ const notice = (over: Partial<Props> = {}) =>
     <GenerationErrorNotice error="Something odd happened" errorFix={null} effectiveMaxTripDays={14} onAction={vi.fn()} {...over} />
   );
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllEnvs();
+});
 
 describe("GenerationErrorNotice", () => {
   it("asks a refused request to edit the detail it names, with its day count or the limit", () => {
@@ -50,6 +53,7 @@ describe("GenerationErrorNotice", () => {
   });
 
   it("says the planner is out of service, with a retry for later and ready-made trips for now", () => {
+    vi.stubEnv("NEXT_PUBLIC_TEMPLATES_ENABLED", "true");
     const onAction = vi.fn();
     notice({ error: MODEL_OUTAGE_MESSAGE, onAction });
     expect(screen.getByText("generation.errorUnavailable")).toBeTruthy();
@@ -57,6 +61,14 @@ describe("GenerationErrorNotice", () => {
     expect(screen.getByRole("link", { name: "generation.browseTemplates" }).getAttribute("href")).toBe("/templates");
     fireEvent.click(screen.getByRole("button", { name: "generation.retry" }));
     expect(onAction).toHaveBeenCalledTimes(1);
+  });
+
+  it("offers only the retry when the planner is out of service and templates are hidden", () => {
+    vi.stubEnv("NEXT_PUBLIC_TEMPLATES_ENABLED", "false");
+    notice({ error: MODEL_OUTAGE_MESSAGE });
+    expect(screen.getByText("generation.errorUnavailable")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "generation.retry" })).toBeTruthy();
+    expect(screen.queryByRole("link")).toBeNull();
   });
 
   it.each([

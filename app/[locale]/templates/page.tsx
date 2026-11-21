@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import { permanentRedirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import TemplatesPageClient from "./TemplatesPageClient";
 import { ogImages } from "@/lib/seo/og-image";
 import { buildAlternates } from "@/lib/seo/canonical";
+import { templatesShown } from "@/lib/templates/shown";
+import { hiddenTemplateTarget } from "@/lib/templates/hidden-target";
 
 /**
  * Locale-aware metadata for /templates ("Curated Escapes").
@@ -38,6 +41,7 @@ export async function generateMetadata({
   };
 }
 
-export default function TemplatesPage() {
+export default async function TemplatesPage({ params }: { params: Promise<{ locale: string }> }) {
+  if (!templatesShown()) permanentRedirect(hiddenTemplateTarget((await params).locale));
   return <TemplatesPageClient />;
 }
