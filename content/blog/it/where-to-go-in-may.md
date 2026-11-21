@@ -4,7 +4,7 @@ slug: "where-to-go-in-may"
 description: "Maggio è l'ultimo mese di mezza stagione prima dei prezzi estivi: la Grecia dopo la Pasqua ortodossa del 2 maggio, il Giappone a Golden Week finita, i patios di Cordova, la stagione secca in Perù e Chelsea dal 18 al 22 maggio. Il valore sta nelle settimane tranquille tra un ponte e l'altro. Dodici mete con costi giornalieri reali e compromessi onesti."
 author: "Emanuela P."
 publishedAt: "2026-10-02"
-updatedAt: "2026-10-02"
+updatedAt: "2026-11-21"
 category: "Seasonal Travel"
 tags: ["stagionale", "guida mensile ai viaggi", "viaggi di primavera", "mezza stagione", "migliori destinazioni"]
 image: "/images/blog/where-to-go-in-may.jpg"
@@ -42,10 +42,10 @@ Il problema del 2027 è il calendario. La Golden Week dura fino al 5 maggio, la 
 
 ## 1. Giappone — Le settimane tranquille dopo la Golden Week
 
-La Golden Week, il più grande picco di viaggi del Giappone, va da giovedì 29 aprile a mercoledì 5 maggio nel 2027 ([calendario ufficiale delle festività](https://www8.cao.go.jp/chosei/shukujitsu/gaiyou.html)). Il giorno in cui finisce, il Giappone si apre su una delle sue finestre migliori: aceri di un verde nuovo, giornate da 20–25 °C, poca umidità. L'[Aoi Matsuri](https://kyoto.travel/en/travel-inspiration/aoi-matsuri-festival/) di Kyoto cade sabato 15 maggio: 511 persone in abiti della corte Heian, 36 cavalli e due carrozze trainate da buoi, in partenza dal Palazzo Imperiale alle 10:30 (il giorno dopo se piove). Anche il Kanda Matsuri di Tokyo, celebrato per intero solo negli anni dispari, cade a metà maggio. Il nostro [itinerario sulla Golden Route](/blog/japan-golden-route-itinerary) collega le due città.
+La Golden Week, uno dei periodi in cui si viaggia di più in Giappone, va da giovedì 29 aprile a mercoledì 5 maggio nel 2027 ([calendario ufficiale delle festività](https://www8.cao.go.jp/chosei/shukujitsu/gaiyou.html)). Il giorno in cui finisce, il Giappone si apre su una delle sue finestre migliori: aceri di un verde nuovo, giornate da 20–25 °C, poca umidità. L'[Aoi Matsuri](https://kyoto.travel/en/travel-inspiration/aoi-matsuri-festival/) di Kyoto cade sabato 15 maggio: 511 persone in abiti della corte Heian, 36 cavalli e due carrozze trainate da buoi, in partenza dal Palazzo Imperiale alle 10:30 (il giorno dopo se piove). Anche il Kanda Matsuri di Tokyo, celebrato per intero solo negli anni dispari, cade a metà maggio. Il nostro [itinerario sulla Golden Route](/blog/japan-golden-route-itinerary) collega le due città.
 
 **Costi reali:** $110–180 al giorno — ben sotto i prezzi della fioritura dei ciliegi o del foliage autunnale.
-**Il compromesso:** arriva durante la Golden Week senza prenotazioni e troverai treni pieni, hotel pieni e prezzi al massimo. L'umidità sale a fine maggio; la stagione delle piogge di solito inizia a inizio giugno.
+**Il compromesso:** arriva durante la Golden Week senza prenotazioni e troverai treni pieni, hotel pieni e prezzi al massimo; la nostra [guida alla Golden Week 2027](/blog/golden-week) dice cosa prenotare per primo e quando. L'umidità sale a fine maggio; la stagione delle piogge di solito inizia a inizio giugno.
 
 ## 2. Grecia — Dopo Pasqua, le isole aprono
 

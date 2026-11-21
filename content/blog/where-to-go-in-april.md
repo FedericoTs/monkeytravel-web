@@ -45,7 +45,7 @@ The 2027 version is unusually kind. Easter falls on 28 March, so Holy Week and i
 April opens with cherry blossom still on the trees in central Japan, then the front moves north. On the Japan Meteorological Agency's 1991–2020 normals, [full bloom arrives on 31 March in Tokyo and 4 April in Kyoto and Osaka](https://www.data.jma.go.jp/sakura/data/sakura004_07.html), 13 April in Sendai and 26 April in Aomori, Hirosaki Castle's prefecture; Hokkaido waits until May. So early April catches Kyoto at or just past its best, and late April still finds full bloom in Tohoku. The 2027 forecasts [arrive around February](https://www.japan-guide.com/sakura/); our [cherry blossom season guide](/blog/japan-cherry-blossom-season-guide) explains how to read them.
 
 **Cost reality:** $130–210/day — bloom weeks are among Japan's priciest.
-**The trade-off:** the month ends in a second rush. [Golden Week](https://www8.cao.go.jp/chosei/shukujitsu/gaiyou.html) starts with Shōwa Day on Thursday 29 April and runs to Children's Day on 5 May, and much of the country travels at once. Leave by the 28th or arrive after the 5th.
+**The trade-off:** the month ends in a second rush. [Golden Week](https://www8.cao.go.jp/chosei/shukujitsu/gaiyou.html) starts with Shōwa Day on Thursday 29 April and runs to Children's Day on 5 May, and much of the country travels at once. Leave by the 27th or arrive after the 5th; on JR East's lines to Tohoku, make that the 26th and after the 6th, because JR's busiest seat charges run from 28 April to 5 May on the Tokaido Shinkansen and from 27 April to 6 May on JR East. Our [Golden Week 2027 guide](/blog/golden-week) has the peak train days.
 
 ## 2. The Netherlands — Tulips, a Flower Parade and King's Day
 
