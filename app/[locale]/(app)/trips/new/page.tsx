@@ -36,6 +36,7 @@ type SearchParams = {
   budget?: string | string[];
   vibes?: string | string[];
   must?: string | string[];
+  month?: string | string[];
 };
 
 /** First value of a possibly-repeated query param. */
