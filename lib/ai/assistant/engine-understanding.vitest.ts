@@ -8,7 +8,7 @@ import { correctionFor, correctionWithRule } from "./engine";
 import { asksForFewerDays, asksForMoreDays, asksToAdd, keepsEverything, listedPlaces, talksAboutDayCount } from "./message-asks";
 import { keepSavedActivities, ownWords, takenOut } from "./saved-activities";
 import { outsideTravelTimes, readTravelTimes } from "./travel-times";
-import { asksToRemove, asksToTakeOut, replyLanguage, statedDayCounts } from "./honesty";
+import { asksToRemove, asksToTakeOut, replyLanguage, statedDayCounts, travelTimesNote } from "./honesty";
 
 /**
  * The trip assistant should understand what a traveller means and do what
@@ -723,6 +723,44 @@ describe("travel times", () => {
     ]);
     const [out] = outsideTravelTimes([firstDay], [{ day: 1, arrives: "23:00" }]);
     expect(out.names).toEqual(["Lunch at O Afonso (13:00)", "Dinner at Traça (20:00)"]);
+  });
+
+  // A day trip with its real bus times: the sight beside the stop just after the bus came in, and dinner before
+  // the bus back, were sent back as clashes, and the second try could do no better.
+  it("gives a bus or a train the minutes a stop needs, not an airport's", () => {
+    const dayTrip = planned(3, [["Sintra National Palace", "10:15", 90], ["Dinner at Tascantiga", "16:30", 90]]);
+    expect(outsideTravelTimes([dayTrip], [{ day: 3, arrives: "10:05", leaves: "18:40", by: "train" }])).toEqual([]);
+    expect(outsideTravelTimes([dayTrip], [{ day: 3, arrives: "10:05", leaves: "18:40", by: "bus" }])).toEqual([]);
+    expect(outsideTravelTimes([dayTrip], [{ day: 3, arrives: "10:05", leaves: "18:40", by: "boat" }])).toEqual([]);
+    // What starts before the train is in, or runs into the train back, still doesn't fit.
+    const clash = planned(3, [["Breakfast at Piriquita", "09:30", 60], ["Quinta da Regaleira", "17:00", 120]]);
+    expect(outsideTravelTimes([clash], [{ day: 3, arrives: "10:05", leaves: "18:40", by: "train" }])).toEqual([
+      { day: 3, arrives: "10:05", leaves: "18:40", from: "10:25", until: "18:10", names: ["Breakfast at Piriquita (09:30)", "Quinta da Regaleira (17:00)"] },
+    ]);
+  });
+
+  // "The bus leaves at 08:10 and arrives at 11:50": a day that leaves one place for another had no hour left that
+  // fit (plans after 12:35 and before 07:10), so every stop was sent back.
+  it("on a day that goes from one place to another, sends back only what it plans during the ride", () => {
+    const moving = planned(4, [
+      ["Breakfast at the hotel", "07:00", 30],
+      ["Coffee at Majestic Café", "08:00", 30],
+      ["University of Coimbra", "12:30", 90],
+      ["Dinner at Zé Manel dos Ossos", "19:00", 90],
+    ]);
+    const ride = [{ day: 4, leaves: "08:10", arrives: "11:50", by: "bus" }];
+    expect(outsideTravelTimes([moving], ride)).toEqual([
+      { day: 4, arrives: "11:50", leaves: "08:10", from: "12:10", until: "07:40", journey: true, names: ["Coffee at Majestic Café (08:00)"] },
+    ]);
+    expect(correctionFor({ message: "plan day 4 around the bus", days: [1, 2, 3, 4, 5].map((n) => day(n, [`Sight ${n}`])) }, { reply: "Done.", edits: [moving], travelTimes: ride })).toBe(
+      `Day 4: they leave at 08:10 and arrive at 11:50, so plan nothing between 07:40 and 12:10. Coffee at Majestic Café (08:00) doesn't fit. Move what matters to a day with room, or leave it out, and say so in "reply".`,
+    );
+    expect(travelTimesNote("en", { day: 4, arrives: "11:50", leaves: "08:10", from: "12:10", until: "07:40", journey: true, names: ["Coffee at Majestic Café (08:00)"] })).toBe(
+      "(Check Day 4: you travel from 08:10 to 11:50, so plans should end by 07:40 or start after 12:10, and the day still has: Coffee at Majestic Café (08:00).)",
+    );
+    // A day that arrives in the morning and leaves in the evening keeps its plans between the two.
+    const away = planned(4, [["University of Coimbra", "12:30", 90]]);
+    expect(outsideTravelTimes([away], [{ day: 4, arrives: "11:50", leaves: "18:00", by: "bus" }])).toEqual([]);
   });
 
   it("gives a train less time than a flight, and leaves days without a time alone", () => {

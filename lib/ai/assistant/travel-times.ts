@@ -16,12 +16,13 @@ export interface TravelTime {
   by?: string;
 }
 
-// Minutes from arriving to being free, and from setting off to the departure.
+// Minutes from arriving to being free, and from setting off to the departure. A train, bus or boat stops where the
+// day goes on: the sight beside the stop is fine minutes after it comes in, and the stop is a short walk away.
 const TRAVEL_MARGIN: Record<string, { after: number; before: number }> = {
   flight: { after: 90, before: 180 },
-  train: { after: 45, before: 60 },
-  bus: { after: 45, before: 60 },
-  boat: { after: 45, before: 60 },
+  train: { after: 20, before: 30 },
+  bus: { after: 20, before: 30 },
+  boat: { after: 20, before: 30 },
   car: { after: 30, before: 30 },
 };
 // The journey itself: getting from the airport, checking in, getting there.
@@ -45,6 +46,8 @@ export interface OutsideTravelTimes {
   from: string | null;
   /** Done by, to set off. */
   until: string | null;
+  /** They leave one place and arrive in another that day: what doesn't fit is what falls during the ride. */
+  journey?: true;
   /** The activities outside, with their start times. */
   names: string[];
 }
@@ -134,12 +137,16 @@ export function outsideTravelTimes(
     const margin = TRAVEL_MARGIN[t.by ?? ""] ?? TRAVEL_MARGIN.flight;
     const from = t.arrives ? minutesOf(t.arrives) + margin.after : 0;
     const until = t.leaves ? minutesOf(t.leaves) - margin.before : 24 * 60;
+    // Leaving before arriving: the day goes from one place to another, and only the ride is taken.
+    const journey = !!t.arrives && !!t.leaves && minutesOf(t.leaves) < minutesOf(t.arrives);
     const names = e.activities
       .filter((a) => a.type !== "transport" && a.type !== "accommodation" && !a.transport_mode && !JOURNEY.test(a.name))
       .filter((a) => {
         const start = minutesOf(a.start_time);
         if (Number.isNaN(start)) return false;
-        return start < from - TRAVEL_SLACK || start + (a.duration_minutes || 0) > until + TRAVEL_SLACK;
+        const end = start + (a.duration_minutes || 0);
+        if (journey) return start < from - TRAVEL_SLACK && end > until + TRAVEL_SLACK;
+        return start < from - TRAVEL_SLACK || end > until + TRAVEL_SLACK;
       })
       .map((a) => `${a.name} (${a.start_time})`);
     if (names.length === 0) return [];
@@ -149,6 +156,7 @@ export function outsideTravelTimes(
       leaves: t.leaves,
       from: t.arrives ? formatMinutesToTime(Math.min(from, 24 * 60 - 1)) : null,
       until: t.leaves ? formatMinutesToTime(Math.max(until, 0)) : null,
+      ...(journey ? { journey: true as const } : {}),
       names,
     }];
   });

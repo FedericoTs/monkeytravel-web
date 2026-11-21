@@ -536,10 +536,13 @@ export function daysNotAddedNote(language: string | undefined, days: number[]): 
  */
 export function travelTimesNote(
   language: string | undefined,
-  v: { day: number; arrives?: string; leaves?: string; from: string | null; until: string | null; names: string[] },
+  v: { day: number; arrives?: string; leaves?: string; from: string | null; until: string | null; journey?: true; names: string[] },
 ): string {
   const names = v.names.join(", ");
   const day = String(v.day);
+  if (v.journey) {
+    return note(language, "travelTimesBetween", { day, leaves: String(v.leaves), arrives: String(v.arrives), until: String(v.until), from: String(v.from), names });
+  }
   if (v.leaves) return note(language, "travelTimesLeaves", { day, leaves: v.leaves, until: String(v.until), names });
   if (v.from !== null && v.from >= "22:00") return note(language, "travelTimesLate", { day, arrives: String(v.arrives), names });
   return note(language, "travelTimesArrives", { day, arrives: String(v.arrives), from: String(v.from), names });
