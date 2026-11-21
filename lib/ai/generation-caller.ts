@@ -11,6 +11,7 @@ import { requestLocale, type SupportedLanguage } from "@/lib/ai/language";
 import { withTripDiet } from "@/lib/trips/diet";
 import { daylightFor, readCoordinates } from "@/lib/ai/daylight";
 import { whatsOn } from "@/lib/ai/whats-on";
+import { cityPointsFor } from "@/lib/ai/city-points";
 import { cleanStayName } from "@/lib/trips/stay";
 import type { TripCreationParams, UserProfilePreferences } from "@/types";
 import { isChosenTripIntent } from "@/lib/wizard/answers";
@@ -177,4 +178,22 @@ function withDaylight(body: Record<string, unknown>): Pick<TripCreationParams, "
 function withWhatsOn(body: Record<string, unknown>): Pick<TripCreationParams, "whatsOn"> {
   const on = whatsOn(readCoordinates(body.destinationCoords), body.startDate, body.endDate);
   return on.length > 0 ? { whatsOn: on } : {};
+}
+
+/**
+ * A one-place trip typed and not picked sends no point, so it had no sunrise
+ * and sunset and wasn't told what's on. Its point comes from the cities table
+ * a route's cities already use (lib/ai/city-points.ts), for a bare name only:
+ * "Paris, Texas" typed by hand would find Paris, France.
+ */
+export async function withTypedPlace(params: TripCreationParams, body: Record<string, unknown>): Promise<TripCreationParams> {
+  if (readCoordinates(body.destinationCoords)) return params;
+  if (Array.isArray(body.destinations) && body.destinations.length > 1) return params;
+  const name = typeof params.destination === "string" ? params.destination.trim() : "";
+  if (!name || name.includes(",")) return params;
+  const [point] = await cityPointsFor([name]);
+  if (!point) return params;
+  const daylight = daylightFor(point, params.startDate, params.endDate);
+  const on = whatsOn(point, params.startDate, params.endDate);
+  return { ...params, ...(daylight ? { daylight } : {}), ...(on.length > 0 ? { whatsOn: on } : {}) };
 }
