@@ -11,6 +11,8 @@ const routes: Array<TripCreationParams["destinations"]> = [];
 let placesFor: ((p: TripCreationParams, call: number) => Array<Array<[string, number, number]>>) | null = null;
 /** The sunrise and sunset each city was planned with. */
 const daylights: Array<{ destination: string; daylight: TripCreationParams["daylight"] }> = [];
+/** What each city was told is on there. */
+const whatsOns: Array<{ destination: string; whatsOn: TripCreationParams["whatsOn"] }> = [];
 /** Where the cities table puts each city, when a test says. */
 let pointsByCity: Record<string, { lat: number; lng: number }> = {};
 vi.mock("./city-points", () => ({
@@ -19,6 +21,7 @@ vi.mock("./city-points", () => ({
 vi.mock("@/lib/gemini", () => ({
   generateItinerary: async (p: TripCreationParams, options: { knownPlaces?: unknown }) => {
     daylights.push({ destination: p.destination, daylight: p.daylight });
+    whatsOns.push({ destination: p.destination, whatsOn: p.whatsOn });
     events.push(`plan ${p.destination}`);
     generated.push({ destination: p.destination, knownPlaces: options.knownPlaces });
     asked.push({ destination: p.destination, mustDos: p.mustDos });
@@ -74,6 +77,20 @@ describe("generateMultiCityItinerary", () => {
     expect(of("Nowhere")).toBeUndefined();
     pointsByCity = {};
     for (const list of [generated, asked, routes, events, daylights] as unknown[][]) list.length = 0;
+  });
+
+  it("tells each city what's on there, on its own dates", async () => {
+    pointsByCity = { Prague: { lat: 50.0755, lng: 14.4378 }, Bangkok: { lat: 13.7563, lng: 100.5018 } };
+    whatsOns.length = 0;
+    const base = { budgetTier: "balanced", pace: "moderate", vibes: [], interests: [] } as unknown as Parameters<typeof generateMultiCityItinerary>[0];
+    // Prague 20-22 December, then Bangkok 23-25 December.
+    await generateMultiCityItinerary(base, [{ city: "Prague", nights: 3 }, { city: "Bangkok", nights: 3 }, { city: "Nowhere", nights: 1 }], "2026-12-20");
+    const of = (city: string) => whatsOns.find((w) => w.destination === city)?.whatsOn;
+    expect(of("Prague")).toEqual([expect.stringMatching(/Christmas markets are open/)]);
+    expect(of("Bangkok")).toEqual([]);
+    expect(of("Nowhere")).toEqual([]);
+    pointsByCity = {};
+    for (const list of [generated, asked, routes, events, daylights, whatsOns] as unknown[][]) list.length = 0;
   });
 
   it("offers each city its own known places, for its own nights", async () => {

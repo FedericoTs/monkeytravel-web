@@ -17,6 +17,7 @@ import { askForTransfers } from "./transfer-question";
 import { answeredTransfer } from "./transfer-legs";
 import { cityPointsFor } from "./city-points";
 import { daylightFor } from "./daylight";
+import { whatsOn } from "./whats-on";
 import {
   type CityLeg,
   addDaysISO,
@@ -75,8 +76,17 @@ export async function generateMultiCityItinerary(
     cursor += leg.nights;
     const daylight = daylightFor(points[i], cityStart, cityEnd);
     // Each city's plan knows the whole route: a name that fits several places
-    // (Córdoba, Mérida) or a misspelled one means the one on it.
-    return { ...base, destinations: legs, destination: leg.city, startDate: cityStart, endDate: cityEnd, ...(daylight ? { daylight } : {}) };
+    // (Córdoba, Mérida) or a misspelled one means the one on it. And what is on
+    // there on its own dates (lib/ai/whats-on.ts).
+    return {
+      ...base,
+      destinations: legs,
+      destination: leg.city,
+      startDate: cityStart,
+      endDate: cityEnd,
+      ...(daylight ? { daylight } : {}),
+      whatsOn: whatsOn(points[i], cityStart, cityEnd),
+    };
   });
 
   // Parallel: wall-clock = slowest single city, not the sum. Each city starts

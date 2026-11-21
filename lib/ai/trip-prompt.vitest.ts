@@ -130,6 +130,31 @@ describe("where they're staying", () => {
   });
 });
 
+describe("what's on", () => {
+  const trip = (over: Partial<TripCreationParams> = {}): TripCreationParams => ({
+    destination: "Prague, Czechia",
+    startDate: "2026-12-08",
+    endDate: "2026-12-11",
+    budgetTier: "balanced",
+    pace: "moderate",
+    vibes: [],
+    interests: [],
+    ...over,
+  });
+  const markets = "Christmas markets are open (most of Europe's from late November to 23 or 24 December).";
+
+  it("gives the plan what's on at the place on its dates, with the trip's facts", () => {
+    const prompt = buildUserPrompt(trip({ whatsOn: [markets] }));
+    expect(prompt).toContain(`- ${markets}\n`);
+    expect(prompt.indexOf("Christmas markets")).toBeLessThan(prompt.indexOf("Traveler Preferences"));
+  });
+
+  it("isn't mentioned when nothing is on", () => {
+    expect(buildUserPrompt(trip())).not.toContain("Christmas");
+    expect(buildUserPrompt(trip({ whatsOn: [] }))).not.toContain("Christmas");
+  });
+});
+
 describe("daylight", () => {
   const trip = (over: Partial<TripCreationParams> = {}): TripCreationParams => ({
     destination: "Paris, France",

@@ -518,6 +518,12 @@ export interface TripCreationParams {
   /** Sunrise and sunset at the destination, worked out by the server (lib/ai/daylight.ts). */
   daylight?: TripDaylight;
   /**
+   * What is on at the destination on the trip's dates, worked out by the server
+   * (lib/ai/whats-on.ts). The shared plan pool has no dates, so a plan with it
+   * neither comes from the pool nor goes into it.
+   */
+  whatsOn?: string[];
+  /**
    * Where the traveller is staying, when they said (lib/trips/stay.ts). Each day
    * starts near it and ends a short ride from it, so a plan with it neither
    * comes from the shared cache nor goes into it. Single-city trips only.

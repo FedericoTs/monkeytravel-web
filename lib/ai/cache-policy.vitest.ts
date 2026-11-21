@@ -8,6 +8,12 @@ const trip = (over: Partial<TripCreationParams> = {}) =>
   ({ destination: "Lisbon, Portugal", startDate: "2026-11-01", endDate: "2026-11-03", vibes: [], budgetTier: "balanced", pace: "moderate", ...over }) as TripCreationParams;
 
 describe("cachePolicy", () => {
+  // The shared pool is keyed without dates: a plan told the Christmas markets are open would answer a July trip.
+  it("counts a plan told what's on at its dates as tailored", () => {
+    expect(cachePolicy(trip({ whatsOn: ["Christmas markets are open."] }), false, 3).tailored).toBe(true);
+    expect(cachePolicy(trip({ whatsOn: [] }), false, 3).tailored).toBe(false);
+  });
+
   it("counts a trip with must-dos or a diet as tailored", () => {
     expect(cachePolicy(trip(), false, 3).tailored).toBe(false);
     expect(cachePolicy(trip({ mustDos: ["Belém Tower"] }), false, 3).tailored).toBe(true);
