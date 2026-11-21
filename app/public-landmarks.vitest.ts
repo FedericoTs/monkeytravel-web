@@ -48,6 +48,12 @@ describe("navigations on the public pages", () => {
     expect(src).not.toMatch(/name: "Home"/);
     expect(src.match(/tCrumbs\("home"\)/g)).toHaveLength(2);
   });
+
+  it("says Home in the page's language on every public page's breadcrumb", () => {
+    for (const file of NAMED_NAVS) {
+      expect(read(file), file).not.toMatch(/>\s*Home\s*</);
+    }
+  });
 });
 
 describe("parts that sit inside an article's main area", () => {
