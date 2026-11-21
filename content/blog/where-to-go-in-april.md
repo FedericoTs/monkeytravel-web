@@ -49,7 +49,7 @@ April opens with cherry blossom still on the trees in central Japan, then the fr
 
 ## 2. The Netherlands — Tulips, a Flower Parade and King's Day
 
-[Keukenhof is open from 18 March to 9 May 2027](https://keukenhof.nl/en/), but the striped bulb fields between Leiden and Haarlem usually peak from mid-April — this is the month the Netherlands is built for. The [Bloemencorso Bollenstreek](https://bloemencorso-bollenstreek.nl/en/) runs 14–18 April, and its flower-covered floats roll 42 km from Noordwijk to Haarlem on Saturday 17 April. Then [King's Day falls on Tuesday 27 April](https://www.officeholidays.com/countries/netherlands/2027): the country in orange, street markets on every pavement, [Amsterdam](/destinations/amsterdam) at its loudest. Expect highs around 13°C.
+[Keukenhof is open from 18 March to 9 May 2027](https://keukenhof.nl/en/), but the striped bulb fields between Leiden and Haarlem usually peak from mid-April — this is the month the Netherlands is built for. The [Bloemencorso Bollenstreek](https://bloemencorso-bollenstreek.nl/en/) runs 14–18 April, and its flower-covered floats roll 42 km from Noordwijk to Haarlem on Saturday 17 April. Then [King's Day falls on Tuesday 27 April](https://www.officeholidays.com/countries/netherlands/2027): the country in orange, street markets on every pavement, [Amsterdam](/destinations/amsterdam) at its loudest. Expect highs around 14°C. Our [tulip season guide](/blog/where-to-see-tulips) has Keukenhof's prices by date and the other bulb regions.
 
 **Cost reality:** $120–190/day — Amsterdam hotels are among Europe's priciest; Leiden or Haarlem make cheaper bases.
 **The trade-off:** King's Day is brilliant if you came for it and a logistical wall if you didn't, and Keukenhof's busiest days sell out. Go on a weekday morning, and remember the fields are working farms: look from the road, don't walk in.
@@ -77,7 +77,7 @@ Greece in April is two trips. For most of the month the Acropolis, Delphi and My
 
 ## 6. Istanbul — Tulip Season on the Bosphorus
 
-The tulip was Ottoman long before it was Dutch, and every April Istanbul fills its parks with them for its tulip festival. The 2027 programme isn't announced yet, but the beds bloom through April: [Emirgan Park](https://goturkiye.com/istanbul/emirgan-park), above the Bosphorus, is the main venue, and Gülhane Park beside Topkapı the most central. The rest of the city is in its best walking weather, 8–17°C, and the Bosphorus ferries finally make sense on the open deck.
+The tulip was Ottoman long before it was Dutch, and every April Istanbul fills its parks with them for its tulip festival. The 2027 programme isn't announced yet, but the beds bloom through April: [Emirgan Park](https://goturkiye.com/istanbul/emirgan-park), above the Bosphorus, is the main venue, and Gülhane Park beside Topkapı the most central. Our [tulip season guide](/blog/where-to-see-tulips) has the 2026 festival dates and parks. The rest of the city is in its best walking weather, 8–17°C, and the Bosphorus ferries finally make sense on the open deck.
 
 **Cost reality:** $70–120/day; the big palace and museum tickets add up fast.
 **The trade-off:** April weather is changeable — a warm afternoon can follow a cold, wet morning off the Black Sea — and Emirgan and Gülhane are packed at weekends. Go on weekday mornings; our [three-day Istanbul itinerary](/blog/istanbul-3-day-itinerary) covers the rest.

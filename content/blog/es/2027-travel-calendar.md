@@ -168,7 +168,7 @@ El Domingo de Pascua cae el 28 de marzo, así que la Semana Santa y el Holi coin
 
 Con la Semana Santa en marzo, abril empieza en temporada media; la presión se concentra a mitad de mes y en una última semana que acumula la Semana Santa griega, el Día del Rey y la Golden Week.
 
-**Países Bajos.** Keukenhof abre del 18 de marzo al 9 de mayo, los campos de bulbos suelen estar en su mejor momento desde mediados de abril, y las carrozas de flores del Bloemencorso van de Noordwijk a Haarlem el sábado 17 de abril, con máximas de unos 13 °C.
+**Países Bajos.** Keukenhof abre del 18 de marzo al 9 de mayo, los campos de bulbos suelen estar en su mejor momento desde mediados de abril, y las carrozas de flores del Bloemencorso van de Noordwijk a Haarlem el sábado 17 de abril, con máximas de unos 14 °C.
 **La contrapartida:** el Día del Rey, el martes 27 de abril, llena Ámsterdam, y los días de más afluencia de Keukenhof se agotan.
 
 **Sevilla.** El miércoles 14 de abril, el miércoles de Feria, es una de las dos fiestas locales de Sevilla en 2027, publicadas por la Junta de Andalucía en el BOJA del 29 de octubre de 2026. Con el formato de lunes a domingo que Sevilla recuperó en 2025, eso sitúa la Feria de Abril del 13 al 18 de abril, con el alumbrado en la noche del lunes 12 de abril, cuando las luces se encienden a medianoche (compruébalo antes de reservar), y tardes de unos 23 °C.

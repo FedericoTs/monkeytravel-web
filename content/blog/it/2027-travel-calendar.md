@@ -168,7 +168,7 @@ La domenica di Pasqua è il 28 marzo, quindi Settimana Santa e Holi cadono nell'
 
 Con la Pasqua a marzo, aprile si apre in media stagione; la pressione si concentra a metà mese e nell'ultima settimana, che somma la Settimana Santa greca, il Koningsdag e la Golden Week.
 
-**Paesi Bassi.** Il Keukenhof è aperto dal 18 marzo al 9 maggio, i campi di bulbi di solito raggiungono il massimo da metà aprile, e i carri fioriti del Bloemencorso sfilano da Noordwijk a Haarlem sabato 17 aprile, con massime intorno ai 13 °C.
+**Paesi Bassi.** Il Keukenhof è aperto dal 18 marzo al 9 maggio, i campi di bulbi di solito raggiungono il massimo da metà aprile, e i carri fioriti del Bloemencorso sfilano da Noordwijk a Haarlem sabato 17 aprile, con massime intorno ai 14 °C.
 **Il compromesso:** il Koningsdag (la Festa del Re), martedì 27 aprile, riempie Amsterdam, e i giorni di punta del Keukenhof vanno esauriti.
 
 **Siviglia.** Mercoledì 14 aprile, il mercoledì di Feria, è una delle due feste locali di Siviglia nel 2027, pubblicate dalla Junta de Andalucía nel BOJA del 29 ottobre 2026. Con il formato da lunedì a domenica che Siviglia ha ripristinato nel 2025, la Feria de Abril cade quindi dal 13 al 18 aprile e si apre con l'alumbrado nella notte di lunedì 12 aprile, quando le luci si accendono a mezzanotte (verifica prima di prenotare), con pomeriggi intorno ai 23 °C.

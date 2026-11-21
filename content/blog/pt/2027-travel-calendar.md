@@ -168,7 +168,7 @@ O Domingo de Páscoa cai em 28 de março, então a Semana Santa e o Holi dividem
 
 Com a Páscoa em março, abril começa em média temporada; a pressão fica no meio do mês e numa última semana que junta a Semana Santa grega, o Dia do Rei e a Golden Week.
 
-**Holanda.** O Keukenhof abre de 18 de março a 9 de maio, os campos de bulbos costumam atingir o auge a partir de meados de abril, e os carros alegóricos de flores do Bloemencorso vão de Noordwijk a Haarlem no sábado, 17 de abril, com máximas de cerca de 13 °C.
+**Holanda.** O Keukenhof abre de 18 de março a 9 de maio, os campos de bulbos costumam atingir o auge a partir de meados de abril, e os carros alegóricos de flores do Bloemencorso vão de Noordwijk a Haarlem no sábado, 17 de abril, com máximas de cerca de 14 °C.
 **A contrapartida:** o Dia do Rei, na terça-feira, 27 de abril, lota Amsterdã, e os dias mais movimentados do Keukenhof esgotam.
 
 **Sevilha.** A quarta-feira, 14 de abril, a quarta-feira da Feria, é um dos dois feriados municipais de Sevilha em 2027, publicados pela Junta de Andalucía no BOJA de 29 de outubro de 2026. Com o formato de segunda a domingo que Sevilha retomou em 2025, isso coloca a Feria de Abril de 13 a 18 de abril, com o alumbrado na noite da segunda-feira, 12 de abril, quando as luzes se acendem à meia-noite (confira antes de reservar), e tardes de cerca de 23 °C.
