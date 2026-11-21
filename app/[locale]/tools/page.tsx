@@ -82,6 +82,7 @@ export default async function ToolsLandingPage({
   const tPassport = await getTranslations("passport");
   const tMatch = await getTranslations("match");
   const tA11y = await getTranslations("common.a11y");
+  const tCrumbs = await getTranslations("common.breadcrumbs");
 
   const tools = [
     {
@@ -160,7 +161,7 @@ export default async function ToolsLandingPage({
       <main className="flex-1 max-w-5xl mx-auto px-4 py-12 sm:py-16 w-full">
         <nav className="text-sm text-slate-500 mb-6" aria-label={tA11y("breadcrumb")}>
           <Link href="/" className="hover:text-slate-700">
-            Home
+            {tCrumbs("home")}
           </Link>
           <span className="mx-2">/</span>
           <span className="text-slate-900">{t("breadcrumb")}</span>

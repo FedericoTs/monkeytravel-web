@@ -29,7 +29,7 @@ const defaultLocale = "en";
 // content moves.
 const LASTMOD_HOMEPAGE = "2026-11-10";
 const LASTMOD_LANDING = "2026-11-18";
-const LASTMOD_TOOLS = "2026-11-07";
+const LASTMOD_TOOLS = "2026-11-21";
 const LASTMOD_EXPLORE = "2026-10-28";
 const LASTMOD_DESTINATIONS = "2026-11-07";
 const LASTMOD_LEGAL = "2026-11-07";
