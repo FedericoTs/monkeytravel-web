@@ -172,6 +172,10 @@ const PROPOSAL_PATTERNS: RegExp[] = [
   new RegExp(`(?:${SENTENCE_START}|,\\s*)pront[oaie]\\s+(?:da\\s+salvare|da\\s+applicare|a\\s+(?:scambiare|salvare|applicare))${end}`, "iu"),
   new RegExp(`${start}aqui\\s+(?:está|estão|vai|vão)\\s+(?:o|um|o\\s+seu|seu|os|uns|\\d+)\\s+(?:novos?\\s+dias?|dias?\\s+(?:novos?|extras?|adicionais))${end}`, "iu"),
   new RegExp(`(?:${SENTENCE_START}|,\\s*)pront[oa]s?\\s+para\\s+(?:salvar|aplicar|guardar|trocar)${end}`, "iu"),
+  // A change shown by its effect, or a plan said to be made for them: "Here's how walking instead of driving will
+  // affect your days" with nothing prepared, for what no change to the plan can do.
+  new RegExp(`${start}here(?:['’]s|\\s+is)\\s+how\\s+(?:your|the|this|these|that)\\s+(?:[${L}'’-]+\\s+){0,10}?(?:will|would)\\s+(?:affect|change|shape|impact|alter)${end}`, "iu"),
+  new RegExp(`${start}here(?:['’]s|\\s+is|\\s+are)\\s+(?:the|your)\\s+(?:plan|itinerary|trip|schedule|days?(?:\\s+\\d+)?)\\s+(?:tailored|adjusted|adapted|updated|revised|optimi[sz]ed|reworked|rearranged|changed)${end}`, "iu"),
 ];
 
 /** Does this reply say it comes with a proposed change? */
