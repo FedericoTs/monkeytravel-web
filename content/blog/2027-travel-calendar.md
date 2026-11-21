@@ -168,7 +168,7 @@ Easter Sunday is 28 March, so Holy Week and Holi share the last week, and the fi
 
 With Easter in March, April opens in shoulder season; the pressure sits in mid-month and in a last week that stacks Greek Holy Week, King's Day and Golden Week.
 
-**The Netherlands.** Keukenhof is open from 18 March to 9 May, the bulb fields usually peak from mid-April, and the Bloemencorso's flower floats roll from Noordwijk to Haarlem on Saturday 17 April, in highs around 13°C (55°F).
+**The Netherlands.** Keukenhof is open from 18 March to 9 May, the bulb fields usually peak from mid-April, and the Bloemencorso's flower floats roll from Noordwijk to Haarlem on Saturday 17 April, in highs around 14°C (57°F).
 **The trade-off:** King's Day on Tuesday 27 April fills Amsterdam, and Keukenhof's busiest days sell out.
 
 **Seville.** Wednesday 14 April, the Wednesday of Feria, is one of Seville's two 2027 local holidays, published by the regional government in the BOJA of 29 October 2026. With the Monday-to-Sunday format Seville restored in 2025, that puts the Feria de Abril on 13–18 April, opening with the alumbrado on the night of Monday 12 April, when the lights go on at midnight (check before booking), with afternoons around 23°C (73°F).
