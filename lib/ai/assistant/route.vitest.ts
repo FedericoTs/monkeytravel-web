@@ -5,7 +5,7 @@ import { planRoute, readRoute, routeLabel, routeRows } from "./route";
 const stop = (name: string, days: number, country = "Portugal") => ({ name, country, days });
 
 describe("readRoute: a route the page can plan", () => {
-  const current = ["Lisboa", "Porto"];
+  const current = [{ name: "Lisboa", days: 7 }, { name: "Porto", days: 7 }];
 
   it("takes a return to the first city, the days adding up to the trip's", () => {
     expect(readRoute([stop("Lisboa", 4), stop("Porto", 4), stop("Lisboa", 6)], 14, current)).toEqual([
@@ -30,7 +30,14 @@ describe("readRoute: a route the page can plan", () => {
 
   it("offers nothing when it is the plan's own route", () => {
     expect(readRoute([stop("Lisboa", 7), stop("Porto", 7)], 14, current)).toEqual([]);
-    expect(readRoute([stop("lisboa", 5), stop("PORTO", 9)], 14, current)).toEqual([]);
+    expect(readRoute([stop("lisboa", 7), stop("PORTO", 7)], 14, current)).toEqual([]);
+  });
+
+  // "We go back to Lisboa a day earlier" read the same places in the same order as the plan's own route, and was
+  // never offered.
+  it("offers days moved from one of its places to another", () => {
+    expect(readRoute([stop("lisboa", 5), stop("PORTO", 9)], 14, current)).toEqual([stop("lisboa", 5), stop("PORTO", 9)]);
+    expect(readRoute([stop("Lisboa", 8), stop("Porto", 6)], 14, current)).toEqual([stop("Lisboa", 8), stop("Porto", 6)]);
   });
 
   it("refuses names the destination field wouldn't take, and anything not a list of stops", () => {
@@ -58,7 +65,9 @@ describe("a route's other forms", () => {
 
   it("is read from a plan's days, one stop per stay", () => {
     const days = [..."LLLPPLL"].map((c) => ({ city: c === "L" ? "Lisboa, Portugal" : "Porto" }));
-    expect(planRoute(days)).toEqual(["Lisboa", "Porto", "Lisboa"]);
+    expect(planRoute(days)).toEqual([{ name: "Lisboa", days: 3 }, { name: "Porto", days: 2 }, { name: "Lisboa", days: 2 }]);
+    // A day with no city counts in the stay before it.
+    expect(planRoute([{ city: "Porto" }, {}, { city: "Lisboa" }])).toEqual([{ name: "Porto", days: 2 }, { name: "Lisboa", days: 1 }]);
     expect(planRoute([{}, {}])).toEqual([]);
   });
 });

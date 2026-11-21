@@ -109,7 +109,7 @@ export async function askForRoute(
  */
 export function routeFor(answer: unknown, place: string, days: number): RouteStop[] {
   const raw = answer && typeof answer === "object" ? (answer as { stops?: unknown }).stops : undefined;
-  const stops = readRoute(raw, days, [place]);
+  const stops = readRoute(raw, days, [{ name: place, days }]);
   const onePlace = !/[,&]/.test(place);
   if (onePlace && stops.some((s) => isSameDestination(s.name, place))) return [];
   return stops;
