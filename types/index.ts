@@ -537,6 +537,11 @@ export interface TripCreationParams {
    */
   destinations?: { city: string; nights: number }[];
   /**
+   * One stay of a city a route comes back to: the places its earlier stay there holds, for this stay to plan
+   * others (lib/ai/multi-city).
+   */
+  alreadyPlanned?: string[];
+  /**
    * Constraint-aware planning (F1, docs/CONSTRAINT_PLANNER_PLAN.md). When
    * present with ≥1 anchor, /api/ai/generate routes to the anchored planner
    * (lib/ai/anchored): deterministic segmentation around the anchors →

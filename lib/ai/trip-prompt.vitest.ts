@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildStaticChatHistory, buildUserPrompt, daylightLine, routeLine, stayLine } from "./trip-prompt";
+import { alreadyPlannedLine, buildStaticChatHistory, buildUserPrompt, daylightLine, routeLine, stayLine } from "./trip-prompt";
 import type { TripCreationParams } from "@/types";
 
 /**
@@ -270,5 +270,19 @@ describe("one city of a trip through several", () => {
     expect(routeLine(leg("Porto", ["Porto"]))).toBe("");
     expect(routeLine(leg("Faro", ["Lisbon", "Porto"]))).toBe("");
     expect(buildUserPrompt({ ...leg("Lisbon", ["Lisbon"]), destinations: undefined })).not.toContain("Route:");
+  });
+
+  // A route that comes back to a city plans both stays there at the same time, so the later one is told what the
+  // earlier one holds.
+  it("tells a later stay in a city what its earlier stay holds, and says nothing without one", () => {
+    const back = { ...leg("Lisbon", ["Lisbon", "Porto", "Lisbon"]), alreadyPlanned: ["Belém Tower", " Alfama walk ", ""] };
+    expect(alreadyPlannedLine(back)).toBe(
+      "An earlier stay in Lisbon on this trip already has: Belém Tower, Alfama walk. These days are another stay there: plan other places, none of these."
+    );
+    const details = buildUserPrompt(back).split("## Travel Details")[1].split("\n\n")[0];
+    expect(details).toContain("\n- An earlier stay in Lisbon on this trip already has: Belém Tower, Alfama walk.");
+    expect(alreadyPlannedLine(leg("Lisbon", ["Lisbon", "Porto", "Lisbon"]))).toBe("");
+    expect(alreadyPlannedLine({ ...back, alreadyPlanned: [" ", ""] })).toBe("");
+    expect(buildUserPrompt(leg("Lisbon", ["Lisbon", "Porto", "Lisbon"]))).not.toContain("An earlier stay");
   });
 });
