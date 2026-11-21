@@ -446,6 +446,8 @@ ${knownPlaces.map((p) => `- ${p.name} (${p.type})`).join("\n")}
 
   const travellers = travellersLine(params);
   const daylight = daylightLine(params);
+  // What is on there on these dates (lib/ai/whats-on.ts), one line each.
+  const whatsOnLines = (params.whatsOn ?? []).map((line) => `- ${line}\n`).join("");
   const stay = stayLine(params);
   const route = routeLine(params);
   const closed = longClosuresLine(params);
@@ -480,7 +482,7 @@ ${params.mustDos.map((m) => `- ${m}`).join("\n")}
 ${days ? `- ${days}\n` : ""}${route ? `- ${route}\n` : ""}- Duration: ${duration} days
 - Budget Tier: ${params.budgetTier}
 - Travel Pace: ${params.pace} — ${paceBudgetPromptClause(params.pace)}
-${travellers ? `- ${travellers}\n` : ""}${daylight ? `- ${daylight}\n` : ""}${stay ? `- ${stay}\n` : ""}${closed ? `- ${closed}\n` : ""}
+${travellers ? `- ${travellers}\n` : ""}${daylight ? `- ${daylight}\n` : ""}${whatsOnLines}${stay ? `- ${stay}\n` : ""}${closed ? `- ${closed}\n` : ""}
 ${travelStyleSection}${vibeSection}${seasonalSection}## Traveler Preferences
 - Interests: ${params.interests.length > 0 ? params.interests.join(", ") : "general sightseeing"}
 ${params.requirements ? `- Special Requirements: ${params.requirements}` : ""}

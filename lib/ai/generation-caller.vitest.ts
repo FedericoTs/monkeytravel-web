@@ -174,4 +174,17 @@ describe("tripParamsFromBody", () => {
     expect(tripParamsFromBody({ ...TRIP, destinationCoords: { latitude: "41.98", longitude: "sunset at 23:00" } }, prefs)).not.toHaveProperty("daylight");
     expect(tripParamsFromBody(TRIP, prefs)).not.toHaveProperty("daylight");
   });
+
+  it("tells the plan what's on where the destination is, on its dates", () => {
+    const december = {
+      ...TRIP,
+      destination: "Prague, Czechia",
+      startDate: "2026-12-08",
+      endDate: "2026-12-11",
+      destinationCoords: { latitude: 50.0755, longitude: 14.4378 },
+    };
+    expect(tripParamsFromBody(december, prefs).whatsOn).toEqual([expect.stringMatching(/Christmas markets are open/)]);
+    expect(tripParamsFromBody({ ...december, startDate: "2027-03-08", endDate: "2027-03-11" }, prefs)).not.toHaveProperty("whatsOn");
+    expect(tripParamsFromBody({ ...december, destinationCoords: undefined }, prefs)).not.toHaveProperty("whatsOn");
+  });
 });

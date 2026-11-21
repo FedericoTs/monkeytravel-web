@@ -10,6 +10,7 @@ import { loadUserContext } from "@/lib/ai/user-context";
 import { requestLocale, type SupportedLanguage } from "@/lib/ai/language";
 import { withTripDiet } from "@/lib/trips/diet";
 import { daylightFor, readCoordinates } from "@/lib/ai/daylight";
+import { whatsOn } from "@/lib/ai/whats-on";
 import { cleanStayName } from "@/lib/trips/stay";
 import type { TripCreationParams, UserProfilePreferences } from "@/types";
 import { isChosenTripIntent } from "@/lib/wizard/answers";
@@ -147,6 +148,7 @@ export function tripParamsFromBody(
     travelStyle: body.travelStyle === "backpacker" ? "backpacker" : "classic",
     ...(isChosenTripIntent(body.tripIntent) ? { tripIntent: body.tripIntent } : {}),
     ...withDaylight(body),
+    ...withWhatsOn(body),
     ...withStay(body),
     profilePreferences,
   };
@@ -169,4 +171,10 @@ function withStay(body: Record<string, unknown>): Pick<TripCreationParams, "stay
 function withDaylight(body: Record<string, unknown>): Pick<TripCreationParams, "daylight"> {
   const daylight = daylightFor(readCoordinates(body.destinationCoords), body.startDate, body.endDate);
   return daylight ? { daylight } : {};
+}
+
+/** What is on at the destination on the trip's dates, when the planner sent where it is. */
+function withWhatsOn(body: Record<string, unknown>): Pick<TripCreationParams, "whatsOn"> {
+  const on = whatsOn(readCoordinates(body.destinationCoords), body.startDate, body.endDate);
+  return on.length > 0 ? { whatsOn: on } : {};
 }

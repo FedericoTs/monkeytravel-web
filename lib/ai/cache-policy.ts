@@ -5,7 +5,11 @@ import type { GeneratedItinerary, TripCreationParams } from "@/types";
  * the JSON and the streaming generation routes.
  */
 export interface CachePolicy {
-  /** Must-dos, a diet, who's coming or where they're staying: a tailored plan is neither answered from the shared pool nor added to it. */
+  /**
+   * Must-dos, a diet, who's coming, where they're staying, or what's on at their dates: a tailored plan is neither
+   * answered from the shared pool nor added to it. The pool is keyed without dates, so a plan told the Christmas
+   * markets are open would otherwise answer a July trip.
+   */
   tailored: boolean;
   /** "Try Different Version": the plan on screen must not come back. */
   fresh: boolean;
@@ -16,7 +20,11 @@ export interface CachePolicy {
 export function cachePolicy(params: TripCreationParams, fresh: boolean, totalDays: number): CachePolicy {
   return {
     tailored: Boolean(
-      params.mustDos?.length || params.profilePreferences?.dietaryPreferences?.length || params.tripIntent || params.stay
+      params.mustDos?.length ||
+        params.profilePreferences?.dietaryPreferences?.length ||
+        params.tripIntent ||
+        params.stay ||
+        params.whatsOn?.length
     ),
     fresh,
     totalDays,
