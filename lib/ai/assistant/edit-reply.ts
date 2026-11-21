@@ -32,6 +32,8 @@ import {
   uncoveredDaysNote,
   wizardFallbackReply,
   wizardNothingChangedReply,
+  wizardNothingKeptReply,
+  claimsToRemember,
   withoutDanglingLead,
   elsewhereNote,
 } from "@/lib/ai/assistant/honesty";
@@ -149,6 +151,8 @@ export function composeReply(p: {
     if (p.lengthRefused || claimsItineraryChange(p.reply) || announcesProposal(p.reply)) {
       return wizardNothingChangedReply(locale);
     }
+    // "I've noted that your trip starts from Toronto" kept nothing: only the last few messages come back.
+    if (claimsToRemember(p.reply)) return wizardNothingKeptReply(locale);
     // "Here is the total…" with no total: give the plan's own figures instead,
     // unless figures came before an announcement that ends the reply.
     const missing = announcedButMissing(p.reply);

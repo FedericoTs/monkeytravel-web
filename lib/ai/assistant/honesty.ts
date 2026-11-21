@@ -272,6 +272,14 @@ export function wizardNothingChangedReply(language: string | undefined): string 
   return note(language, "wizardNothingChanged");
 }
 
+/**
+ * The planner assistant's reply when it said it noted a detail it cannot keep ("I've noted that your trip starts
+ * from Toronto") and prepared nothing: only the last few messages come back with the next one.
+ */
+export function wizardNothingKeptReply(language: string | undefined): string {
+  return note(language, "wizardNothingKept");
+}
+
 /** Places offered for the whole trip, under a reply that claimed the trip already moved. */
 export function elsewhereNote(language: string | undefined): string {
   return note(language, "elsewhereNote");
