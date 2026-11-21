@@ -4,8 +4,7 @@
  * its answer for the same place changes from one call to the next. For a listed place the list decides instead:
  * on a trip inside the window its dates were checked for, the model's answer for it is replaced by the trip's dates
  * the list shuts it on; on a later trip the list's dates are added to the model's answer. Places of any kind are
- * listed, gardens and markets too, which the question leaves out, and places open every day, so a wrong "closed"
- * from the model doesn't move them.
+ * listed, gardens and markets too, and places open every day, so a wrong "closed" from the model doesn't move them.
  */
 import type { Weekday } from "@/lib/ai/closing-days";
 import { isMealStop } from "@/lib/trip/pace";
