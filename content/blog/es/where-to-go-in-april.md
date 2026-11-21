@@ -63,10 +63,10 @@ Con la Semana Santa terminada en marzo, abril de 2027 es de la otra gran semana 
 
 ## 4. Tailandia — Songkran en el mes más caluroso
 
-[Songkran, el Año Nuevo tailandés, va del 13 al 15 de abril de 2027](https://www.officeholidays.com/countries/thailand/2027), de martes a jueves, y durante tres días el país se convierte en una batalla de agua. El foso de la ciudad vieja de Chiang Mai es el campo de batalla más famoso; en [Bangkok](/blog/bangkok-5-day-itinerary), Silom Road y Khao San. Bajo las pistolas de agua sigue siendo una fiesta familiar: visitas a los templos, ofrendas a los monjes y agua vertida con cuidado sobre las manos de los mayores. Lejos de la fiesta, Koh Samui y las islas del golfo están en su época más seca.
+[Songkran, el Año Nuevo tailandés, va del 13 al 15 de abril de 2027](https://www.officeholidays.com/countries/thailand/2027), de martes a jueves, y durante tres días el país se convierte en una batalla de agua. El foso de la ciudad vieja de Chiang Mai es el campo de batalla más famoso; en [Bangkok](/blog/bangkok-5-day-itinerary), Silom Road y Khao San. Bajo las pistolas de agua sigue siendo una fiesta familiar: visitas a los templos, ofrendas a los monjes y agua vertida con cuidado sobre las manos de los mayores. Lejos de la fiesta, Koh Samui y las islas del golfo están en su época más seca. Nuestra [guía de Songkran 2027](/blog/songkran-thailand) tiene las fechas ciudad por ciudad, las normas y cuándo reservar el tren.
 
 **Coste real:** $40–80/día; los hoteles de Bangkok y Chiang Mai suben en Songkran, y autobuses y trenes se llenan con los tailandeses que vuelven a casa.
-**La contrapartida:** es el mes más caluroso —Bangkok ronda máximas de 35 °C— y el humo de la temporada de quemas del norte puede alargarse hasta principios de abril. Te vas a empapar cada vez que salgas a la calle: el teléfono en una bolsa estanca, y no es la semana para alquilar una moto.
+**La contrapartida:** es el mes más caluroso —Bangkok ronda máximas de 35 °C— y el humo de la temporada de quemas del norte puede alargarse hasta el propio Songkran: el 14 de abril de 2026, el centro del Gobierno contra la contaminación del aire [registró niveles de PM2,5 por encima del límite seguro](https://www.thestar.com.my/aseanplus/aseanplus-news/2026/04/14/pm25-engulfs-39-provinces-as-northern-thailand-enters-critical-stage) en casi todo el norte, Chiang Mai incluida. Te vas a empapar cada vez que salgas a la calle: el teléfono en una bolsa estanca, y no es la semana para alquilar una moto.
 
 ## 5. Grecia — Ruinas vacías y después la Semana Santa
 
@@ -152,7 +152,7 @@ Calor de verdad: Tailandia (Bangkok ronda máximas de 35 °C) y la costa pacífi
 
 ### ¿Qué destinos conviene evitar en abril?
 
-Kenia y Tanzania están en las lluvias largas, y algunos campamentos de safari cierran. Las llanuras del norte de India se acercan a los 40 °C a final de mes. Japón en la Golden Week (29 de abril–5 de mayo) está lleno y caro. Las islas griegas pequeñas suelen estar medio cerradas antes de la Pascua ortodoxa, y el norte de Tailandia y Laos pueden seguir con humo de la temporada de quemas a principios de abril.
+Kenia y Tanzania están en las lluvias largas, y algunos campamentos de safari cierran. Las llanuras del norte de India se acercan a los 40 °C a final de mes. Japón en la Golden Week (29 de abril–5 de mayo) está lleno y caro. Las islas griegas pequeñas suelen estar medio cerradas antes de la Pascua ortodoxa, y el norte de Tailandia y Laos pueden seguir con humo de la temporada de quemas hasta bien entrado abril (en 2026, los niveles de PM2,5 del norte de Tailandia seguían por encima del límite seguro el 14 de abril).
 
 ---
 

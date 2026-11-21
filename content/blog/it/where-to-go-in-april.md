@@ -63,10 +63,10 @@ Con la Settimana Santa finita a marzo, aprile 2027 appartiene all'altra grande s
 
 ## 4. Thailandia — Songkran nel mese più caldo
 
-[Songkran, il Capodanno thailandese, va dal 13 al 15 aprile 2027](https://www.officeholidays.com/countries/thailand/2027), da martedì a giovedì, e per tre giorni il paese diventa una battaglia d'acqua. Il fossato della città vecchia di Chiang Mai è il campo di battaglia più famoso; a [Bangkok](/blog/bangkok-5-day-itinerary) sono Silom Road e Khao San. Sotto le pistole ad acqua resta una festa di famiglia: visite ai templi, offerte ai monaci, acqua versata con delicatezza sulle mani degli anziani. Lontano dalla festa, Koh Samui e le isole del Golfo sono nel loro periodo più secco.
+[Songkran, il Capodanno thailandese, va dal 13 al 15 aprile 2027](https://www.officeholidays.com/countries/thailand/2027), da martedì a giovedì, e per tre giorni il paese diventa una battaglia d'acqua. Il fossato della città vecchia di Chiang Mai è il campo di battaglia più famoso; a [Bangkok](/blog/bangkok-5-day-itinerary) sono Silom Road e Khao San. Sotto le pistole ad acqua resta una festa di famiglia: visite ai templi, offerte ai monaci, acqua versata con delicatezza sulle mani degli anziani. Lontano dalla festa, Koh Samui e le isole del Golfo sono nel loro periodo più secco. La nostra [guida al Songkran 2027](/blog/songkran-thailand) ha le date città per città, le regole e quando prenotare il treno.
 
 **Costi reali:** $40–80 al giorno; gli hotel di Bangkok e Chiang Mai salgono per Songkran, e autobus e treni si riempiono di thailandesi che tornano a casa.
-**Il compromesso:** è il mese più caldo — a Bangkok le massime medie sfiorano i 35 °C — e il fumo della stagione degli incendi agricoli al nord può durare fino a inizio aprile. Ti bagnerai ogni volta che metti piede fuori: telefono in una busta stagna, e non è la settimana per noleggiare lo scooter.
+**Il compromesso:** è il mese più caldo — a Bangkok le massime medie sfiorano i 35 °C — e il fumo della stagione degli incendi agricoli al nord può durare fino al Songkran: il 14 aprile 2026 il centro governativo contro l'inquinamento atmosferico [ha segnalato livelli di PM2,5 oltre il limite di sicurezza](https://www.thestar.com.my/aseanplus/aseanplus-news/2026/04/14/pm25-engulfs-39-provinces-as-northern-thailand-enters-critical-stage) in quasi tutto il nord, Chiang Mai compresa. Ti bagnerai ogni volta che metti piede fuori: telefono in una busta stagna, e non è la settimana per noleggiare lo scooter.
 
 ## 5. Grecia — Rovine vuote, poi la Settimana Santa
 
@@ -152,7 +152,7 @@ Caldo vero: la Thailandia (a Bangkok le massime medie sono intorno ai 35 °C) e 
 
 ### Quali mete evitare ad aprile?
 
-Kenya e Tanzania sono nella stagione delle grandi piogge, e alcuni campi safari chiudono. Le pianure dell'India del nord si avvicinano ai 40 °C a fine mese. Il Giappone durante la Golden Week (29 aprile–5 maggio) è affollato e caro. Le isole greche minori prima della Pasqua ortodossa sono spesso mezze chiuse, e il nord della Thailandia e il Laos possono avere ancora il fumo degli incendi agricoli a inizio aprile.
+Kenya e Tanzania sono nella stagione delle grandi piogge, e alcuni campi safari chiudono. Le pianure dell'India del nord si avvicinano ai 40 °C a fine mese. Il Giappone durante la Golden Week (29 aprile–5 maggio) è affollato e caro. Le isole greche minori prima della Pasqua ortodossa sono spesso mezze chiuse, e il nord della Thailandia e il Laos possono avere ancora il fumo degli incendi agricoli ad aprile inoltrato (nel 2026 il PM2,5 nel nord della Thailandia era ancora oltre il limite di sicurezza il 14 aprile).
 
 ---
 
