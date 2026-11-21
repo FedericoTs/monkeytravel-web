@@ -147,7 +147,7 @@ La domenica di Pasqua è il 28 marzo, quindi Settimana Santa e Holi cadono nell'
 **Giappone.** Secondo le medie 1991–2020 dell'Agenzia meteorologica giapponese, i ciliegi di Tokyo sono in piena fioritura il 31 marzo e quelli di Kyoto il 4 aprile, e GREEN×EXPO, a Yokohama, apre il 19 marzo con circa 600 ciliegi.
 **Il compromesso:** la settimana della fioritura è tra le più care in Giappone, e un febbraio mite può anticipare le date di una settimana.
 
-**Rajasthan.** Holi cade il 22 marzo (il lancio dei colori può slittare di un giorno a seconda della regione), e marzo è l'ultimo mese piacevole: 28–32 °C adesso, 40 °C e oltre a maggio.
+**Rajasthan.** Holi cade il 22 marzo (il lancio dei colori può slittare di un giorno a seconda della regione, e la festività del governo centrale indiano è martedì 23 marzo), e marzo è l'ultimo mese piacevole: 28–32 °C adesso, 40 °C e oltre a maggio. La nostra [guida a Holi 2027](/blog/where-to-celebrate-holi) mette a confronto dove festeggiarlo e in quale giorno.
 **Il compromesso:** nelle grandi città turistiche Holi può essere travolgente, soprattutto per chi viaggia da solo e per le donne; le feste negli hotel e i centri più piccoli sono più tranquilli.
 
 **Giordania.** La conca di Petra sta sui 20–24 °C, i fiori selvatici coprono la riserva di Dana e i tratti più frequentati del Jordan Trail sono in stagione.

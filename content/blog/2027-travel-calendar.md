@@ -147,7 +147,7 @@ Easter Sunday is 28 March, so Holy Week and Holi share the last week, and the fi
 **Japan.** On the Japan Meteorological Agency's 1991–2020 normals, Tokyo's cherry blossom is in full bloom on 31 March and Kyoto's on 4 April, and Yokohama's GREEN×EXPO opens on 19 March with around 600 cherry trees.
 **The trade-off:** bloom week is among Japan's priciest, and a warm February can pull the dates a week earlier.
 
-**Rajasthan.** Holi falls on 22 March (the colour play can shift a day by region), and March is the last comfortable month: 28–32°C (82–90°F) now, 40°C (104°F) and more by May.
+**Rajasthan.** Holi falls on 22 March (the colour play can shift a day by region, and India's central government holiday is Tuesday 23 March), and March is the last comfortable month: 28–32°C (82–90°F) now, 40°C (104°F) and more by May. Our [Holi 2027 guide](/blog/where-to-celebrate-holi) compares where to celebrate and on which day.
 **The trade-off:** Holi can overwhelm in the big tourist cities, especially for solo travellers and women; hotel celebrations and smaller towns are calmer.
 
 **Jordan.** Petra's basin sits at 20–24°C (68–75°F), wildflowers cover the Dana reserve, and the Jordan Trail's most popular sections are in season.

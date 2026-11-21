@@ -53,7 +53,7 @@ The blossom is why March is Japan's most contested month. Tokyo and Kyoto typica
 
 ## 2. Rajasthan & North India — Holi, and the Last Comfortable Weeks
 
-[Holi falls on 22 March in 2027](https://www.drikpanchang.com/hindu-festivals/holi/holi.html) — the colour play can shift a day either side by region — and Rajasthan is the classic place to be for it. March is also the last month before north Indian heat becomes the defining feature: 28–32°C days now, and 40°C+ by May.
+[Holi falls on 22 March in 2027](https://www.drikpanchang.com/hindu-festivals/holi/holi.html) — the colour play can shift a day either side by region — and Rajasthan is the classic place to be for it. Our [Holi 2027 guide](/blog/where-to-celebrate-holi) compares where to celebrate and on which day. March is also the last month before north Indian heat becomes the defining feature: 28–32°C days now, and 40°C+ by May.
 
 **Cost reality:** $35–60/day — outstanding value, though Holi week pushes Jaipur and Udaipur hotels up sharply.
 **The trade-off:** Holi is boisterous and, for solo travellers and women in particular, can be overwhelming in the big tourist cities. Smaller towns and organised hotel celebrations are the calmer version, and both are legitimate ways to see it.
