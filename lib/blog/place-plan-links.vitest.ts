@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { getPostBySlug } from "./api";
 import { placeOf, withPlacePlanLinks } from "./place-plan-links";
@@ -104,15 +106,16 @@ describe("withPlacePlanLinks", () => {
     }
   });
 
-  it("leaves almost no ranked place in the month guides without its link, and none in English", async () => {
+  // The guides' markdown itself: rendering all 48 pages made this the file's slowest test.
+  it("leaves almost no ranked place in the month guides without its link, and none in English", () => {
     const months = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
     const unlinked: string[] = [];
     let ranked = 0;
     for (const month of months) {
       for (const locale of ["en", "es", "it", "pt"]) {
-        const post = await getPostBySlug(`where-to-go-in-${month}`, locale);
-        if (!post) continue;
-        const places = post.content.split(/\r?\n/).filter((line) => /^## \d{1,2}\.\s.+\s[—–]\s/.test(line));
+        const dir = locale === "en" ? "" : locale;
+        const markdown = readFileSync(join(process.cwd(), "content", "blog", dir, `where-to-go-in-${month}.md`), "utf8");
+        const places = markdown.split(/\r?\n/).filter((line) => /^## \d{1,2}\.\s.+\s[—–]\s/.test(line));
         ranked += places.length;
         for (const line of places) {
           if (placeOf(line.slice(3)) === null) unlinked.push(`${locale}/${month}: ${line}`);
