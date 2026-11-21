@@ -200,4 +200,29 @@ describe("generateMultiCityItinerary", () => {
     expect(events[0]).toBe("hops Brussels > Paris > brussels");
     placesFor = null;
   });
+
+  // A city written at its longitude's mirror, in China: the card from the city before was a day-long flight that took
+  // its first day, and the trip closed with a flight back.
+  it("puts a city whose stops came back on the far side of the world back on the route before the cards between are made", async () => {
+    pointsByCity = { Flagstaff: { lat: 35.1983, lng: -111.6513 } };
+    placesFor = (p) =>
+      p.destination === "Sedona"
+        ? [[["Cathedral Rock", 34.82, -111.793], ["Chapel of the Holy Cross", 34.8325, -111.7667]]]
+        : [[["Lowell Observatory", 35.2029, 111.6646], ["Museum of Northern Arizona", 35.2347, 111.6655]]];
+    hopsAnswer = [{ mode: "car", minutes: 45 }, { mode: "car", minutes: 45 }];
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const base = { budgetTier: "balanced", pace: "moderate", vibes: [], interests: [] } as unknown as Parameters<typeof generateMultiCityItinerary>[0];
+    const plan = await generateMultiCityItinerary(base, [{ city: "Sedona", nights: 1 }, { city: "Flagstaff", nights: 1 }], "2027-05-01");
+    expect(plan.days[1].activities[0]).toMatchObject({ name: "Transfer to Flagstaff", transport_mode: "ground", duration_minutes: 80 });
+    // Its stops keep their day, and Flagstaff is under an hour from where the trip began: no way back after them.
+    expect(plan.days[1].activities.slice(1).map((a) => [a.name, a.coordinates?.lng])).toEqual([
+      ["Lowell Observatory", -111.6646],
+      ["Museum of Northern Arizona", -111.6655],
+    ]);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("Flagstaff"));
+    warn.mockRestore();
+    pointsByCity = {};
+    placesFor = null;
+    hopsAnswer = [];
+  });
 });

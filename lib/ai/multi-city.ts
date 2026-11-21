@@ -16,6 +16,7 @@ import { knownPlacesFor } from "./known-places";
 import { askForTransfers } from "./transfer-question";
 import { answeredTransfer } from "./transfer-legs";
 import { cityPointsFor } from "./city-points";
+import { unmirroredCities } from "./mirrored-cities";
 import { daylightFor } from "./daylight";
 import { whatsOn } from "./whats-on";
 import {
@@ -118,14 +119,20 @@ export async function generateMultiCityItinerary(
       }
     }
   }
+  // A city that came back at the mirror image of where it is goes back on the route before the cards between the
+  // cities are measured from its stops (lib/ai/mirrored-cities.ts).
+  const placed = unmirroredCities(inTheirCities.results, points);
+  if (placed.turned.length > 0) {
+    console.warn(`[multi-city] stops turned back from the far side of the world: ${placed.turned.map((i) => cities[i]).join(", ")}`);
+  }
   // Transfer-leg labels follow the same language the per-city generations
   // used — it rides on the generation options, not the base params.
   const { hops } = await transfersAsked;
-  const merged = mergeCityItineraries(legs, inTheirCities.results, tripStartDate, {
+  const merged = mergeCityItineraries(legs, placed.results, tripStartDate, {
     language: options?.language,
     hops,
   });
-  const cityDays = inTheirCities.results.map((r) => r.days ?? []);
+  const cityDays = placed.results.map((r) => r.days ?? []);
   onTransfers?.({
     hops: legs.length - 1,
     answered: hops.slice(0, legs.length - 1).filter(Boolean).length,
