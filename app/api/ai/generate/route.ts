@@ -17,7 +17,7 @@ import type { TripCreationParams, GeneratedItinerary } from "@/types";
 import { cacheItinerary, adjustItineraryDates } from "@/lib/ai/cache";
 import { cachePolicy, mayCachePlan, servableCachedPlan } from "@/lib/ai/cache-policy";
 import { generationQuotaReached, readGenerationPreflight } from "@/lib/ai/generation-preflight";
-import { readGenerationCaller, tripParamsFromBody } from "@/lib/ai/generation-caller";
+import { readGenerationCaller, tripParamsFromBody, withTypedPlace } from "@/lib/ai/generation-caller";
 import { recordAiOutcome } from "@/lib/ai/observability";
 import {
   generateMultiCityItinerary,
@@ -64,7 +64,8 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     const { supabase, user, isAnonymous, body, access, profilePreferences, userLanguage } = caller;
     console.log(`[AI Generate] User language: ${userLanguage} (anonymous=${isAnonymous})`);
 
-    const params = tripParamsFromBody(body, profilePreferences);
+    // A place typed and not picked gets its point from the cities table.
+    const params = await withTypedPlace(tripParamsFromBody(body, profilePreferences), body);
 
     // "Try Different Version": the traveller gets a new plan, not the one on
     // screen (lib/ai/cache-policy).

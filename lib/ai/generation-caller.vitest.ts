@@ -15,6 +15,14 @@ const s = vi.hoisted(() => ({
   anonToday: true,
   anonTodayAsked: 0,
 }));
+/** Where the cities table puts a place, when a test says, and each lookup asked of it. */
+const places = vi.hoisted(() => ({ points: {} as Record<string, { lat: number; lng: number }>, looked: [] as string[][] }));
+vi.mock("@/lib/ai/city-points", () => ({
+  cityPointsFor: async (cities: string[]) => {
+    places.looked.push(cities);
+    return cities.map((c) => places.points[c] ?? null);
+  },
+}));
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({ auth: { getUser: async () => ({ data: { user: s.user } }) } }),
@@ -39,7 +47,7 @@ vi.mock("@/lib/ai/user-context", () => ({
 }));
 vi.mock("@/lib/api-gateway", () => ({ checkApiAccess: async () => ({ allowed: false, message: "paused" }) }));
 
-import { readGenerationCaller, tripParamsFromBody } from "./generation-caller";
+import { readGenerationCaller, tripParamsFromBody, withTypedPlace } from "./generation-caller";
 
 const request = (body: string) =>
   new NextRequest("http://localhost/api/ai/generate", { method: "POST", headers: { "content-type": "application/json" }, body });
@@ -186,5 +194,50 @@ describe("tripParamsFromBody", () => {
     expect(tripParamsFromBody(december, prefs).whatsOn).toEqual([expect.stringMatching(/Christmas markets are open/)]);
     expect(tripParamsFromBody({ ...december, startDate: "2027-03-08", endDate: "2027-03-11" }, prefs)).not.toHaveProperty("whatsOn");
     expect(tripParamsFromBody({ ...december, destinationCoords: undefined }, prefs)).not.toHaveProperty("whatsOn");
+  });
+});
+
+// A place typed and not picked sends no point: it had no sunrise and sunset, and wasn't told what's on.
+describe("withTypedPlace", () => {
+  const prefs = { travelStyles: ["adventure"] };
+  const PRAGUE = { lat: 50.0755, lng: 14.4378 };
+  const december = { ...TRIP, destination: "Prague", startDate: "2026-12-08", endDate: "2026-12-11" };
+  const placed = (body: Record<string, unknown>) => withTypedPlace(tripParamsFromBody(body, prefs), body);
+
+  it("finds a bare name in the cities table, for its sun and what's on", async () => {
+    places.points = { Prague: PRAGUE };
+    places.looked.length = 0;
+    const params = await placed(december);
+    expect(places.looked).toEqual([["Prague"]]);
+    expect(params.daylight?.first.sunset).toMatch(/^1[56]:[0-5]\d$/);
+    expect(params.whatsOn).toEqual([expect.stringMatching(/Christmas markets are open/)]);
+  });
+
+  it("keeps a picked place's own point, and looks nothing up", async () => {
+    places.points = { Prague: { lat: 0.1, lng: 0.1 } };
+    places.looked.length = 0;
+    const picked = { ...december, destination: "Prague", destinationCoords: { latitude: PRAGUE.lat, longitude: PRAGUE.lng } };
+    const params = await placed(picked);
+    expect(places.looked).toEqual([]);
+    expect(params.whatsOn).toHaveLength(1);
+  });
+
+  it("doesn't guess for a name typed with its country, a route, or a name the table doesn't have", async () => {
+    places.points = { Prague: PRAGUE, Paris: { lat: 48.8566, lng: 2.3522 } };
+    places.looked.length = 0;
+    const route = [
+      { city: "Prague", nights: 2 },
+      { city: "Vienna", nights: 2 },
+    ];
+    for (const body of [
+      { ...december, destination: "Paris, Texas" },
+      { ...december, destination: "Prague & Vienna", destinations: route },
+      { ...december, destination: "Cantabria" },
+    ]) {
+      const params = await placed(body);
+      expect(params).not.toHaveProperty("daylight");
+      expect(params).not.toHaveProperty("whatsOn");
+    }
+    expect(places.looked).toEqual([["Cantabria"]]);
   });
 });

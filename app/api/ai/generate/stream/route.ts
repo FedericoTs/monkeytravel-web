@@ -19,7 +19,7 @@ import { sanitizeItinerary } from "@/lib/utils/sanitize";
 import { cacheItinerary, adjustItineraryDates } from "@/lib/ai/cache";
 import { cachePolicy, mayCachePlan, servableCachedPlan } from "@/lib/ai/cache-policy";
 import { generationQuotaReached, readGenerationPreflight } from "@/lib/ai/generation-preflight";
-import { readGenerationCaller, tripParamsFromBody } from "@/lib/ai/generation-caller";
+import { readGenerationCaller, tripParamsFromBody, withTypedPlace } from "@/lib/ai/generation-caller";
 import type { GeneratedItinerary } from "@/types";
 import {
   eventStreamFromGenerator,
@@ -95,7 +95,8 @@ export async function POST(request: NextRequest) {
   const caller = await readGenerationCaller(request, generationId);
   if ("refused" in caller) return caller.refused;
   const { supabase, user, isAnonymous, body, access, profilePreferences, userLanguage } = caller;
-  const params = tripParamsFromBody(body, profilePreferences);
+  // A place typed and not picked gets its point from the cities table.
+  const params = await withTypedPlace(tripParamsFromBody(body, profilePreferences), body);
 
   // "Try Different Version" (the wizard's Regenerate) asks for a NEW plan, not
   // the one on screen (lib/ai/cache-policy).
