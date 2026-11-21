@@ -774,6 +774,19 @@ describe("travel times", () => {
 describe("buildPrompt", () => {
   const prompt = buildPrompt({ message: "we have a car", destination: "Lisbon", tripTitle: "Lisbon", days: [day(1, ["A"])], locale: "en" });
 
+  // "Make day 3 trip to X" on a trip through several places came back as a new route with X as a stop.
+  it("tells a day trip on a trip through several places from a new route", () => {
+    const route = buildPrompt({
+      message: "make day 2 a trip to Sintra",
+      destination: "Lisbon & Porto",
+      tripTitle: "Portugal",
+      days: [{ ...day(1, ["A"]), city: "Lisbon" }, { ...day(2, ["B"]), city: "Lisbon" }, { ...day(3, ["C"]), city: "Porto" }] as ItineraryDay[],
+      locale: "en",
+      canPlanRoute: true,
+    });
+    expect(route).toContain(`A trip to a place nearby on one day ("make day 3 a trip to X", "trip to X on day 3") is a day trip and back, not a new stop: edit that day for it.`);
+  });
+
   // "walk instead of driving" rewrote days for a change no edit can make: the page picks walking or a ride by
   // distance (lib/utils/travel-estimation.ts).
   it("answers how they get between stops instead of writing days for it", () => {

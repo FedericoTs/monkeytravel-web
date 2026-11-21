@@ -51,7 +51,7 @@ export function routeQuestion(message: string, days: ItineraryDay[], startDate?:
     message,
     '"""',
     "",
-    "Does the message tell a different route for the trip: days moved from one city to another, a return to a city, another order, or a city added or dropped? What to do inside the cities (sights, meals, times, a day trip and back) is not a new route, and neither is a question.",
+    "Does the message tell a different route for the trip: days moved from one city to another, a return to a city, another order, or a city added or dropped? What to do inside the cities (sights, meals, times, a day trip and back) is not a new route, and neither is a question. A trip to a place nearby on one day (\"make day 3 a trip to X\", \"trip to X on day 3\", \"change day 2 to a trip from the city to X\") is a day trip and back: that day stays in its city.",
     `If it does, give the city every day should be in, from day 1 to day ${days.length}, in order, one entry per day, each as "City, Country". Keep a day's city exactly as written above when the message doesn't change it. A day they travel is in the city they arrive in. Name a new city as Google Maps names it in ${names}. If it doesn't, give no days.`,
   ].join("\n");
 }

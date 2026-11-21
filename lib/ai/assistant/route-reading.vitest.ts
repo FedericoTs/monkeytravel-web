@@ -38,6 +38,14 @@ describe("the question about the route", () => {
     expect(q).toContain("Google Maps names it in Portuguese");
   });
 
+  // "Make day 3 trip to X" on a trip through several places came back as a new route with X as a stop, and the
+  // whole plan was made again.
+  it("reads a trip to a place nearby on one day as a day trip, not a new route", () => {
+    expect(routeQuestion("make day 3 a trip to Sintra", trip, "2027-03-10")).toContain(
+      'A trip to a place nearby on one day ("make day 3 a trip to X", "trip to X on day 3", "change day 2 to a trip from the city to X") is a day trip and back: that day stays in its city.',
+    );
+  });
+
   it("dates days from the trip's start when they carry none", () => {
     const undated = trip.map(({ date: _date, ...d }) => d) as unknown as ItineraryDay[];
     expect(planDays(undated, "2027-03-10")[1]).toBe("Day 2 (2027-03-11): Lisboa");
