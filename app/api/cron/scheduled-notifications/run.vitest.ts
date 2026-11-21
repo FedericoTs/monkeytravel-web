@@ -987,3 +987,98 @@ describe("the day digest's button", () => {
     expect(verifyDayLink(id, daysFromNow(2), url.searchParams.get("k"))).toEqual({ ok: true });
   });
 });
+
+describe("on the trip's own clock", () => {
+  const TOKYO = { lat: 35.7148, lng: 139.7967 };
+  const HONOLULU = { lat: 21.2766, lng: -157.8266 };
+  const placed = (id: string, coordinates: { lat: number; lng: number } | null, extra: Record<string, unknown> = {}) => {
+    const day = { day_number: 1, title: "Day one", activities: [{ name: "First stop", ...(coordinates ? { coordinates } : {}) }] };
+    return trip(id, { start_date: "2027-03-17", end_date: "2027-03-20", itinerary: [day], day1: day, ...extra });
+  };
+  const stampedFor10March = (id: string, tripId: string, slot = "visa_check_7d", extra: Record<string, unknown> = {}) =>
+    due(id, tripId, slot, { scheduled_for: "2027-03-10T06:00:00.000Z", ...extra });
+  const at = async (iso: string) => {
+    vi.setSystemTime(new Date(iso));
+    return run();
+  };
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("goes at 07:00 in Tokyo, the evening before in UTC, and not an hour earlier", async () => {
+    trips = [placed("tokyo", TOKYO)];
+    rows = [stampedFor10March("row-t", "tokyo")];
+    // 06:30 on 10 March in Tokyo.
+    expect((await at("2027-03-09T21:30:00Z")).body).toMatchObject({ due: 0, waiting: 1, sent: 0 });
+    expect(row("row-t").status).toBe("pending");
+    // 07:05.
+    expect((await at("2027-03-09T22:05:00Z")).body).toMatchObject({ due: 1, sent: 1 });
+    expect(row("row-t").status).toBe("sent");
+  });
+
+  it("waits for the morning in Honolulu, where 06:00 UTC is the evening before", async () => {
+    trips = [placed("honolulu", HONOLULU)];
+    rows = [stampedFor10March("row-h", "honolulu")];
+    // 20:30 on 9 March in Honolulu: the old daily run would have sent it now.
+    expect((await at("2027-03-10T06:30:00Z")).body).toMatchObject({ due: 0, waiting: 1, sent: 0 });
+    expect(sends()).toEqual([]);
+    // 07:05 on 10 March.
+    expect((await at("2027-03-10T17:05:00Z")).body).toMatchObject({ due: 1, sent: 1 });
+  });
+
+  it("keeps its stamp where the trip's place isn't known", async () => {
+    trips = [placed("nowhere", null)];
+    rows = [stampedFor10March("row-n", "nowhere")];
+    expect((await at("2027-03-10T05:30:00Z")).body).toMatchObject({ due: 0, waiting: 1, sent: 0 });
+    expect((await at("2027-03-10T06:05:00Z")).body).toMatchObject({ due: 1, sent: 1 });
+  });
+
+  it("counts one email a day on the trip's own calendar", async () => {
+    trips = [placed("tokyo", TOKYO)];
+    rows = [
+      // Sent at 07:00 UTC on 9 March under the old schedule: 16:00 on 9 March in Tokyo.
+      due("row-before", "tokyo", "pack_early_14d", { status: "sent", sent_at: "2027-03-09T07:00:30.000Z", scheduled_for: "2027-03-03T06:00:00.000Z" }),
+      stampedFor10March("row-t", "tokyo"),
+    ];
+    // 07:05 on 10 March in Tokyo, still 9 March in UTC: a new day there.
+    expect((await at("2027-03-09T22:05:00Z")).body).toMatchObject({ sent: 1 });
+    expect(row("row-t").status).toBe("sent");
+  });
+
+  it("still sends a trip one email a day there", async () => {
+    trips = [placed("tokyo", TOKYO)];
+    rows = [
+      due("row-before", "tokyo", "pack_early_14d", { status: "sent", sent_at: "2027-03-09T21:10:00.000Z", scheduled_for: "2027-03-03T06:00:00.000Z" }),
+      stampedFor10March("row-t", "tokyo"),
+    ];
+    // 06:10 on 10 March in Tokyo had a send already; at 07:05 the other row waits for another day.
+    await at("2027-03-09T22:05:00Z");
+    expect(sends()).toEqual([]);
+    expect(row("row-t")).toMatchObject({ status: "suppressed", skipped_reason: "rate_limit_sibling_same_day" });
+  });
+
+  it("counts the UTC day after the trip, where the row keeps its stamp", async () => {
+    cameBack = true;
+    trips = [placed("tokyo", TOKYO)];
+    rows = [
+      // Another of the trip's emails went at 05:00 on 24 March in Tokyo, still 23 March in UTC.
+      due("row-before", "tokyo", "pack_early_14d", { status: "sent", sent_at: "2027-03-23T20:00:00.000Z", scheduled_for: "2027-03-03T06:00:00.000Z" }),
+      due("row-f", "tokyo", "followup_return_3d", { scheduled_for: "2027-03-24T06:00:00.000Z" }),
+    ];
+    await at("2027-03-24T06:05:00Z");
+    expect(row("row-f").status).toBe("sent");
+  });
+
+  it("reads far enough ahead for the zone furthest east", async () => {
+    trips = [placed("tokyo", TOKYO)];
+    rows = [stampedFor10March("row-t", "tokyo")];
+    await at("2027-03-09T12:00:00Z");
+    const select = queries.find((q) => q.table === "scheduled_notifications" && q.op === "select");
+    const ahead = select?.filters.find(([op, column]) => op === "lte" && column === "scheduled_for")?.[2];
+    expect(Date.parse(String(ahead)) - Date.parse("2027-03-09T12:00:00Z")).toBeGreaterThanOrEqual(13 * 3_600_000);
+  });
+});

@@ -87,7 +87,7 @@ async function runDigest(extra: Record<string, unknown> = {}, language = "en"): 
         if (q.op === "update") return { data: [{ id: "queue-row-1" }], error: null };
         return eqOf(q, "status") === "pending"
           ? {
-              data: [{ id: "queue-row-1", user_id: OWNER, trip_id: TRIP, slot: "in_trip_day_2", scheduled_for: new Date().toISOString() }],
+              data: [{ id: "queue-row-1", user_id: OWNER, trip_id: TRIP, slot: "in_trip_day_2", scheduled_for: new Date(Date.now() - 60_000).toISOString() }],
               error: null,
             }
           : { data: [], error: null };

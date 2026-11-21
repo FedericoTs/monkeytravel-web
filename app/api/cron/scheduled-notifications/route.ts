@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { isTripNotificationsEnabled } from "@/lib/notifications/scheduling";
 import { parseDigestDay, digestStaleReason } from "@/lib/notifications/digest";
 import { prioritizeDueRows, rateLimitWindowStart, staleReason } from "@/lib/notifications/queue";
+import { followsTripClock, localDayStart, LOOKAHEAD_HOURS, rowIsDue, zoneOfDayOne } from "@/lib/notifications/local-morning";
 import { stillPencilled } from "@/lib/trips/pencilled-dates";
 import { tripEmailLocale } from "@/lib/email/reminder-locale";
 import { retryTransient } from "@/lib/notifications/retry";
@@ -36,9 +37,11 @@ import { dispatchDayDigest } from "@/lib/notifications/day-digest-email";
  * slot's email (pre-trip reminder, in-trip day digest or post-trip followup)
  * for every row with `status='pending'` and `scheduled_for <= NOW()`.
  *
- * Schedule: once a day at 07:00 UTC (vercel.json). Every slot is stamped
- * 06:00 UTC so it is due at that day's run. The run must finish inside the
- * 60s function limit.
+ * Schedule: hourly (vercel.json). Every slot is stamped 06:00 UTC on its day;
+ * a reminder or day email goes out once it is 07:00 that day in its trip's
+ * zone, and what has no known zone, or comes after the trip, goes at its stamp
+ * (lib/notifications/local-morning.ts). The run must finish inside the 60s
+ * function limit.
  *
  * Auth: CRON_SECRET as a Bearer token, as in /api/cron/refresh-activity-index.
  * With no secret set the route 401s.
@@ -111,6 +114,19 @@ function sendCap(): number | null {
 /** A due row as read. A DB CHECK keeps trip_id null for FINISH_TRIP_SLOT only. */
 type DueRow = Omit<SlotRow, "trip_id"> & { trip_id: string | null };
 
+/**
+ * The zone of each trip whose rows follow its clock, from day one's first stop
+ * with coordinates. One read per run; a trip it can't read keeps its stamps.
+ */
+async function tripZones(svc: ReturnType<typeof createAdminClient>, rows: DueRow[]): Promise<Map<string, string | null>> {
+  const zones = new Map<string, string | null>();
+  const ids = [...new Set(rows.filter((r) => r.trip_id && followsTripClock(r.slot)).map((r) => r.trip_id as string))];
+  if (ids.length === 0) return zones;
+  const { data } = logReadError("cron/scheduled-notifs: trip zones", await svc.from("trips").select("id, day1:itinerary->0").in("id", ids));
+  for (const t of (Array.isArray(data) ? data : []) as { id: string; day1: unknown }[]) zones.set(t.id, zoneOfDayOne(t.day1));
+  return zones;
+}
+
 export async function GET(request: NextRequest) {
   const refused = refuseUnlessCron(request);
   if (refused) return refused;
@@ -135,16 +151,19 @@ export async function GET(request: NextRequest) {
   //    LIMIT caps the per-run blast radius. prioritizeDueRows() then moves
   //    the rows that cannot wait a day to the front: the order matters once
   //    a send cap is in play (see its note).
-  //    Retried on a transient failure: the cron runs once a day, so a failed
-  //    SELECT loses the whole run, and by the next run many rows are stale.
+  //    Retried on a transient failure: a failed SELECT loses the whole run,
+  //    and a row whose morning it was may be stale by its next chance.
   //    See lib/notifications/retry.ts.
+  //    Stamps up to LOOKAHEAD_HOURS ahead are read: east of Greenwich a trip's
+  //    07:00 comes before its 06:00 UTC stamp (lib/notifications/local-morning.ts).
+  const now = new Date();
   const { data: dueRowsRaw, error: dueErr } = await retryTransient(
     () =>
       svc
         .from("scheduled_notifications")
         .select("id, user_id, trip_id, slot, scheduled_for")
         .eq("status", "pending")
-        .lte("scheduled_for", new Date().toISOString())
+        .lte("scheduled_for", new Date(now.getTime() + LOOKAHEAD_HOURS * 3_600_000).toISOString())
         .order("scheduled_for", { ascending: true })
         .limit(MAX_ROWS_PER_RUN),
     {
@@ -161,11 +180,18 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const dueRows = prioritizeDueRows((dueRowsRaw ?? []) as DueRow[]);
+  // 2. Keep the rows whose moment has come: 07:00 on their day in their trip's
+  //    zone, or their stamp where the zone isn't known. The rest wait, untouched,
+  //    for a later hourly run.
+  const read = (dueRowsRaw ?? []) as DueRow[];
+  const zones = await tripZones(svc, read);
+  const dueRows = prioritizeDueRows(read.filter((row) => rowIsDue(row, zones.get(row.trip_id ?? "") ?? null, now)));
+  const notYet = read.length - dueRows.length;
   if (dueRows.length === 0) {
     return NextResponse.json({
       success: true,
       due: 0,
+      waiting: notYet,
       sent: 0,
       skipped: 0,
       failed: 0,
@@ -247,6 +273,7 @@ export async function GET(request: NextRequest) {
   console.log("[cron/scheduled-notifs]", {
     stage: "dispatch_scheduled",
     due: dueRows.length,
+    waiting: notYet,
     sent,
     skipped,
     failed,
@@ -257,6 +284,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     success: true,
     due: dueRows.length,
+    waiting: notYet,
     sent,
     skipped,
     failed,
@@ -453,11 +481,13 @@ async function processRow(
     }
   }
 
-  // 2b. Rate limit: 1 email per trip per calendar day (UTC). We check
-  //     sibling rows on the same trip whose status='sent' AND sent_at is
-  //     today. Calendar day, not rolling 24h: see rateLimitWindowStart.
+  // 2b. Rate limit: 1 email per trip per calendar day. We check sibling rows
+  //     on the same trip whose status='sent' AND sent_at is today. Calendar
+  //     day, not rolling 24h: see rateLimitWindowStart. The trip's own day
+  //     when the row follows its clock (localDayStart), the UTC day otherwise.
   //     Twin copies of one trip share the limit (rateLimitTripIds, above).
-  const since = rateLimitWindowStart(new Date());
+  const zone = followsTripClock(row.slot) ? zoneOfDayOne(Array.isArray(trip.itinerary) ? trip.itinerary[0] : null) : null;
+  const since = zone ? localDayStart(zone, new Date()) : rateLimitWindowStart(new Date());
   const { data: recent, error: recentErr } = await svc
     .from("scheduled_notifications")
     .select("id")

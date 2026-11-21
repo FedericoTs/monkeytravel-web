@@ -21,11 +21,16 @@ const PRE_TRIP_OFFSET_DAYS: Record<string, number> = {
   morning_of: 0,
 };
 
+/** A reminder sent before the trip, from "Two weeks to go" to "Travel day". */
+export function isPreTripSlot(slot: string): boolean {
+  return Object.hasOwn(PRE_TRIP_OFFSET_DAYS, slot);
+}
+
 /**
  * How many days late each pre-trip slot may still go out. TOLERANCE IS PER
- * SLOT, because grace is only defensible while the copy stays TRUE. The cron
- * runs once daily at 07:00 UTC against slots stamped 06:00, so a single missed
- * run puts a row 24h behind, and whether that matters depends on what the row
+ * SLOT, because grace is only defensible while the copy stays TRUE. A row goes
+ * on its morning (hourly runs, lib/notifications/local-morning.ts), so a day's
+ * outage puts it 24h behind, and whether that matters depends on what the row
  * says:
  *
  *   "Two weeks to go"          at 13 days   still true enough      -> 1 day
@@ -127,11 +132,13 @@ export function prioritizeDueRows<
 }
 
 /**
- * The rate limit is one email per trip per CALENDAR DAY (UTC), not per
- * rolling 24 hours. The cron runs once a day at 07:00 UTC, so a rolling
- * window would see yesterday's send (07:00:30) from today's run (07:00:20) as
+ * The rate limit is one email per trip per CALENDAR DAY, not per rolling 24
+ * hours. A trip's emails go at the same hour each day, so a rolling window
+ * would see yesterday's send (07:00:30) from today's run (07:00:20) as
  * "within 24h" and suppress today's row, starving the in-trip digests, which
- * are daily by design. Stale rows are still refused by staleReason.
+ * are daily by design. Stale rows are still refused by staleReason. This is
+ * the UTC day, for rows with no known zone; a row on its trip's clock counts
+ * the trip's own day (localDayStart in lib/notifications/local-morning.ts).
  */
 export function rateLimitWindowStart(now: Date): string {
   return new Date(

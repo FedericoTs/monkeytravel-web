@@ -58,7 +58,7 @@
     },
     {
       "path": "/api/cron/scheduled-notifications",
-      "schedule": "0 7 * * *"
+      "schedule": "0 * * * *"
     },
     {
       "path": "/api/cron/sync-resend-audience",

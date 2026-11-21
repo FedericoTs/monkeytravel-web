@@ -79,7 +79,7 @@ async function runReminder(slot: string, startsInDays: number, language: string,
         if (q.op === "update") return { data: [{ id: "queue-row-1" }], error: null };
         // The due row; the one-a-day check finds nothing sent today.
         return eqOf(q, "status") === "pending"
-          ? { data: [{ id: "queue-row-1", user_id: OWNER, trip_id: TRIP, slot, scheduled_for: new Date().toISOString() }], error: null }
+          ? { data: [{ id: "queue-row-1", user_id: OWNER, trip_id: TRIP, slot, scheduled_for: new Date(Date.now() - 60_000).toISOString() }], error: null }
           : { data: [], error: null };
       case "trips":
         // The trip itself, then its twin check (no other copy).
