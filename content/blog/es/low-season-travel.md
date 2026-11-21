@@ -4,7 +4,7 @@ slug: "low-season-travel"
 description: "¿Cuándo es la temporada baja en 2027? España mes a mes con los precios y la ocupación hotelera del INE en costas, islas, ciudades y montaña, los festivos, puentes y vacaciones escolares de 2027 que la interrumpen, cuánto se ahorra de verdad y la temporada baja en siete destinos fuera de España."
 author: "Emanuela P."
 publishedAt: "2026-11-20"
-updatedAt: "2026-11-20"
+updatedAt: "2026-11-21"
 category: "Seasonal Travel"
 tags: ["estacional", "viajes económicos", "temporada media", "planificación de viajes"]
 image: "/images/blog/low-season-travel.jpg"
@@ -144,7 +144,7 @@ La temporada baja se interrumpe en los puentes, las vacaciones escolares y las g
 | 12–15 de febrero | Días no lectivos | Madrid |
 | 19–28 de febrero | Carnaval de calle | Santa Cruz de Tenerife |
 | 27 de febrero–1 de marzo | Puente (lunes 1 de marzo) | Andalucía, Baleares |
-| 15–19 de marzo | Fallas; San José, el viernes 19 | Valencia; San José también es festivo en Galicia, Madrid, Murcia y Navarra |
+| 15–19 de marzo | [Fallas](/blog/fallas-and-feria-de-abril); San José, el viernes 19 | Valencia; San José también es festivo en Galicia, Madrid, Murcia y Navarra |
 | 19 de marzo–5 de abril | Semana Santa y Pascua (21–28 de marzo) y vacaciones escolares de Semana Santa | En toda España; no hay clase del 19 al 29 de marzo en Madrid, del 20 al 29 de marzo en Cataluña y del 25 de marzo al 5 de abril en la Comunitat Valenciana |
 | Semana del 14 de abril | Feria de Sevilla (prevista) | Sevilla |
 | 23–25 de abril | Puente (viernes 23 de abril) | Aragón, Castilla y León |
@@ -158,7 +158,7 @@ La temporada baja se interrumpe en los puentes, las vacaciones escolares y las g
 | 4–8 de diciembre | Día de la Constitución (lunes 6) e Inmaculada Concepción (miércoles 8) | En toda España; con un día de vacaciones (el martes 7) salen cinco días libres |
 | A partir del 22 de diciembre | Vacaciones escolares de Navidad | Cataluña; las demás comunidades aún no han publicado el curso 2027–28 |
 
-Fuentes: [BOE](https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-21254); calendarios escolares de [Madrid](https://www.bocm.es/boletin/CM_Orden_BOCM/2026/06/04/BOCM-20260604-13.PDF), [Cataluña](https://web.gencat.cat/ca/ciutadania/serveis/educacio-formacio/calendari-escolar-catalunya) y la [Comunitat Valenciana](https://dogv.gva.es/datos/2026/06/18/pdf/2026_20810_es.pdf); fechas de carnaval de [Cádiz](https://institucional.cadiz.es/area/Carnaval/103) y [Santa Cruz de Tenerife](https://carnavaldetenerife.com/programa-carnaval/); las Fallas, de [Turisme Comunitat Valenciana](https://comunitatvalenciana.com/en/inspirate/valencia-en-fallas). El Ayuntamiento de Sevilla propuso el miércoles 14 de abril, en semana de Feria, como festivo local de 2027 (según [Andalucía Informa](https://andaluciainforma.es/?p=31926)). Las demás comunidades fijan sus propios calendarios escolares.
+Fuentes: [BOE](https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-21254); calendarios escolares de [Madrid](https://www.bocm.es/boletin/CM_Orden_BOCM/2026/06/04/BOCM-20260604-13.PDF), [Cataluña](https://web.gencat.cat/ca/ciutadania/serveis/educacio-formacio/calendari-escolar-catalunya) y la [Comunitat Valenciana](https://dogv.gva.es/datos/2026/06/18/pdf/2026_20810_es.pdf); fechas de carnaval de [Cádiz](https://institucional.cadiz.es/area/Carnaval/103) y [Santa Cruz de Tenerife](https://carnavaldetenerife.com/programa-carnaval/); las Fallas, de [Turisme Comunitat Valenciana](https://comunitatvalenciana.com/en/inspirate/valencia-en-fallas). El Ayuntamiento de Sevilla propuso el miércoles 14 de abril, en semana de Feria, como festivo local de 2027 (según [Andalucía Informa](https://andaluciainforma.es/?p=31926)), y la Junta de Andalucía lo publicó en el [BOJA](https://www.juntadeandalucia.es/boja/2026/210/25) del 29 de octubre de 2026. Las demás comunidades fijan sus propios calendarios escolares.
 
 Dos cosas destacan. La Semana Santa cae pronto, así que la primera quincena de abril queda libre de ella en todas partes salvo en la Comunitat Valenciana, donde los colegios siguen de vacaciones hasta el 5 de abril. Y el 1 de mayo cae en sábado, así que no hay puente del 1 de mayo en ninguna parte.
 

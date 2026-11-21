@@ -4,7 +4,7 @@ slug: "low-season-travel"
 description: "When is low season in 2027? Spain month by month from INE's hotel prices and occupancy for coasts, islands, cities and mountains, the 2027 holidays and school breaks that interrupt it, how much cheaper it really is, and the low season in seven places abroad."
 author: "Emanuela P."
 publishedAt: "2026-11-20"
-updatedAt: "2026-11-20"
+updatedAt: "2026-11-21"
 category: "Seasonal Travel"
 tags: ["seasonal","budget travel","shoulder season","trip planning"]
 image: "/images/blog/low-season-travel.jpg"
@@ -144,7 +144,7 @@ Low season stops on long weekends, school holidays and big local fiestas, when S
 | 12–15 February | School days off | Madrid |
 | 19–28 February | Street carnival | Santa Cruz de Tenerife |
 | 27 February–1 March | Long weekend (Monday 1 March) | Andalusia, the Balearics |
-| 15–19 March | Fallas; San José on Friday 19 | Valencia; San José also in Galicia, Madrid, Murcia and Navarre |
+| 15–19 March | [Fallas](/blog/fallas-and-feria-de-abril); San José on Friday 19 | Valencia; San José also in Galicia, Madrid, Murcia and Navarre |
 | 19 March–5 April | Holy Week and Easter (21–28 March) and school Easter breaks | Everywhere; schools are off 19–29 March in Madrid, 20–29 March in Catalonia, 25 March–5 April in the Valencia region |
 | Week of 14 April | Seville's Feria (expected) | Seville |
 | 23–25 April | Long weekend (Friday 23 April) | Aragon, Castile and León |
@@ -158,7 +158,7 @@ Low season stops on long weekends, school holidays and big local fiestas, when S
 | 4–8 December | Constitution Day (Monday 6) and the Immaculate Conception (Wednesday 8) | Everywhere; one day of leave (Tuesday 7) gives five days off |
 | From 22 December | Christmas school holidays | Catalonia; other regions haven't published 2027–28 yet |
 
-Sources: [BOE](https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-21254); school calendars for [Madrid](https://www.bocm.es/boletin/CM_Orden_BOCM/2026/06/04/BOCM-20260604-13.PDF), [Catalonia](https://web.gencat.cat/ca/ciutadania/serveis/educacio-formacio/calendari-escolar-catalunya) and [Valencia](https://dogv.gva.es/datos/2026/06/18/pdf/2026_20810_es.pdf); carnival dates from [Cádiz](https://institucional.cadiz.es/area/Carnaval/103) and [Santa Cruz de Tenerife](https://carnavaldetenerife.com/programa-carnaval/); the Fallas from [Valencia's regional tourist board](https://comunitatvalenciana.com/en/inspirate/valencia-en-fallas). Seville's council proposed Wednesday 14 April, in Feria week, as a 2027 local holiday (reported by [Andalucía Informa](https://andaluciainforma.es/?p=31926)). Other regions set their own school calendars.
+Sources: [BOE](https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-21254); school calendars for [Madrid](https://www.bocm.es/boletin/CM_Orden_BOCM/2026/06/04/BOCM-20260604-13.PDF), [Catalonia](https://web.gencat.cat/ca/ciutadania/serveis/educacio-formacio/calendari-escolar-catalunya) and [Valencia](https://dogv.gva.es/datos/2026/06/18/pdf/2026_20810_es.pdf); carnival dates from [Cádiz](https://institucional.cadiz.es/area/Carnaval/103) and [Santa Cruz de Tenerife](https://carnavaldetenerife.com/programa-carnaval/); the Fallas from [Valencia's regional tourist board](https://comunitatvalenciana.com/en/inspirate/valencia-en-fallas). Seville's council proposed Wednesday 14 April, in Feria week, as a 2027 local holiday (reported by [Andalucía Informa](https://andaluciainforma.es/?p=31926)), and the regional government published it in the [BOJA](https://www.juntadeandalucia.es/boja/2026/210/25) of 29 October 2026. Other regions set their own school calendars.
 
 Two things stand out. Easter is early, so the first half of April is free of it everywhere except in the Valencia region, where schools stay off until 5 April. And 1 May falls on a Saturday, so there is no May Day long weekend at all.
 
