@@ -355,6 +355,24 @@ describe("the places asked about", () => {
     days[2].activities.push({ name: "Real Alcázar ", type: "attraction" }, { name: "El Rinconcillo", type: "restaurant" });
     expect(placesToAsk(days)).toEqual(["Real Alcázar", "Plaza de España", "Museo de Bellas Artes"]);
   });
+
+  // A botanical garden shut on Christmas Day and a department store shut on New Year's Day stayed on those days:
+  // gardens and shops were never asked about. A beach, a hike or a viewpoint walk is open whatever the date.
+  it("are its parks, gardens and shops too, not its nature stops", () => {
+    const days = [
+      {
+        day_number: 1,
+        date: "2026-12-25",
+        activities: [
+          { name: "Royal Botanic Garden", type: "park" },
+          { name: "Grand Department Store", type: "shopping" },
+          { name: "Cliff Path Walk", type: "nature" },
+          { name: "Old Town Beach", type: "beach" },
+        ],
+      },
+    ];
+    expect(placesToAsk(days)).toEqual(["Royal Botanic Garden", "Grand Department Store"]);
+  });
 });
 
 describe("the question", () => {

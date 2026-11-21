@@ -2,7 +2,7 @@
  * Plans put sights on days they're shut. Writing a whole plan, the model gets
  * weekly closing days wrong that it gets right when asked about one place at a
  * time. So once a plan is written, one short question asks on which weekdays
- * each of its sights and markets is shut, and the days are put in the order
+ * each of its sights, markets, gardens and shops is shut, and the days are put in the order
  * that leaves the fewest of them on such a day. Each date keeps its place and
  * number; the days' contents move. Meals are not asked about: the model's word
  * on a restaurant's closing day is unreliable.
@@ -38,15 +38,18 @@ export type ShutDates = Map<string, string[]>;
 
 type Day = WordDay;
 
-/** The kinds of stop asked about. */
-const ASKED = new Set(["museum", "landmark", "attraction", "market", "entertainment", "tour", "spa", "activity"]);
+/**
+ * The kinds of stop asked about. Gardens close on holidays (a botanical garden on Christmas Day) and so do shops (a
+ * department store on New Year's Day); open-air parks come back open. Nature stops (a hike, a waterfall) are open.
+ */
+const ASKED = new Set(["museum", "landmark", "attraction", "market", "entertainment", "tour", "spa", "activity", "park", "shopping"]);
 /** At most this many places in one question. */
 const MAX_PLACES = 40;
 const TIMEOUT_MS = 5000;
 
 const placeKey = (name: string) => name.trim().toLowerCase();
 
-/** The plan's sights and markets, each once, in plan order. */
+/** The plan's sights, markets, parks and shops, each once, in plan order. */
 export function placesToAsk(days: Day[]): string[] {
   const places = new Map<string, string>();
   for (const day of days) {
