@@ -94,8 +94,8 @@ test.describe("a whole trip typed as the destination", () => {
       budget: null,
     });
 
-    await expect(page.getByRole("textbox", { name: "City 1" })).toHaveValue("Rome");
-    await expect(page.getByRole("textbox", { name: "City 3" })).toHaveValue("Turin");
+    await expect(page.getByRole("combobox", { name: "City 1" })).toHaveValue("Rome");
+    await expect(page.getByRole("combobox", { name: "City 3" })).toHaveValue("Turin");
     await expect(page.getByRole("spinbutton", { name: "Nights in city 2" })).toHaveValue("2");
 
     await generate(page);
@@ -230,8 +230,8 @@ test.describe("Continue on a whole trip typed as the destination", () => {
       budget: null,
     });
     await page.getByTestId("wizard-continue").click();
-    await expect(page.getByRole("textbox", { name: "City 1" })).toHaveValue("Madrid", { timeout: 15_000 });
-    await expect(page.getByRole("textbox", { name: "City 3" })).toHaveValue("Granada");
+    await expect(page.getByRole("combobox", { name: "City 1" })).toHaveValue("Madrid", { timeout: 15_000 });
+    await expect(page.getByRole("combobox", { name: "City 3" })).toHaveValue("Granada");
     await expect(page.getByRole("spinbutton", { name: "Nights in city 2" })).toHaveValue("4");
     expect(asked).toHaveLength(1);
   });

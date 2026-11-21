@@ -151,6 +151,12 @@ interface DestinationAutocompleteProps {
    * A11y: marks the input as required for assistive tech.
    */
   ariaRequired?: boolean;
+  /**
+   * A small field in a row, such as one city of a route: it looks like the row's other fields, offers no popular
+   * places on focus and no panel when nothing matches (what was typed stays), and a pick writes the place's own
+   * name without its country.
+   */
+  compact?: boolean;
 }
 
 export default function DestinationAutocomplete({
@@ -164,6 +170,7 @@ export default function DestinationAutocomplete({
   ariaLabel,
   ariaLabelledBy,
   ariaRequired,
+  compact = false,
 }: DestinationAutocompleteProps) {
   const t = useTranslations("common.destinationSearch");
   // App locale (it/es/en/pt). Forwarded to the search API so the Photon
@@ -261,6 +268,8 @@ export default function DestinationAutocomplete({
   useEffect(() => {
     // Text too long to be a place (a request) isn't searched.
     if (debouncedValue.length < 3 || debouncedValue.length > DESTINATION_MAX_LENGTH) return;
+    // A row the planner filled (a route it offered or read) isn't searched: only what is typed in it.
+    if (compact && (typeof document === "undefined" || document.activeElement !== inputRef.current)) return;
     const controller = new AbortController();
     let cancelled = false;
 
@@ -339,7 +348,7 @@ export default function DestinationAutocomplete({
       // Enter's "results are current" check would wait for the next search.
       setIsLoading(false);
     };
-  }, [debouncedValue, searchLocal]);
+  }, [debouncedValue, searchLocal, compact]);
 
 
   // Handle selection - use local coordinates directly (no API calls)
@@ -354,7 +363,7 @@ export default function DestinationAutocomplete({
       justSelectedRef.current = true; // Prevent useEffect from re-searching
 
       // Immediately close dropdown and update input
-      onChange(prediction.fullText);
+      onChange(compact ? prediction.mainText : prediction.fullText);
       setIsOpen(false);
       setPredictions([]);
       setShowPopular(false);
@@ -374,7 +383,7 @@ export default function DestinationAutocomplete({
         justSelectedRef.current = false;
       }, 500);
     },
-    [onChange, onSelect]
+    [onChange, onSelect, compact]
   );
 
   // A request typed here is too long to be a place: the list stays closed,
@@ -496,7 +505,14 @@ export default function DestinationAutocomplete({
     <div className={`relative ${className}`}>
       {/* Input Container */}
       <div className="relative">
+        {/* A row's field: no icon, only a small spinner while it searches. */}
+        {compact && isLoading && (
+          <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+            <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-700 rounded-full animate-spin" />
+          </div>
+        )}
         {/* Search Icon */}
+        {!compact && (
         <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
           {isLoading ? (
             <div className="w-5 h-5 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" />
@@ -516,6 +532,7 @@ export default function DestinationAutocomplete({
             </svg>
           )}
         </div>
+        )}
 
         {/* Input Field */}
         <input
@@ -532,6 +549,8 @@ export default function DestinationAutocomplete({
             dismissedRef.current = false;
             // Show popular destinations when focusing on empty input
             if (!value || value.length < 3) {
+              // Not in a row: Paris and Tokyo don't answer which city comes next on a route.
+              if (compact) return;
               setShowPopular(true);
               setPredictions(popularDestinations);
               setSearchSource("popular");
@@ -561,14 +580,18 @@ export default function DestinationAutocomplete({
             listShown && highlightedIndex >= 0 ? optionId(highlightedIndex) : undefined
           }
           role="combobox"
-          className="w-full pl-12 pr-12 py-4 text-lg rounded-xl border border-slate-300 bg-white
+          className={
+            compact
+              ? "w-full min-w-0 rounded-lg border border-slate-300 bg-white py-2 pl-3 pr-8 text-sm text-slate-900 focus:border-slate-900 focus:outline-none"
+              : `w-full pl-12 pr-12 py-4 text-lg rounded-xl border border-slate-300 bg-white
                      focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20
                      outline-none transition-all duration-200
-                     placeholder:text-slate-500"
+                     placeholder:text-slate-500`
+          }
         />
 
         {/* Clear Button */}
-        {value && (
+        {value && !compact && (
           <button
             type="button"
             onClick={handleClear}
@@ -593,9 +616,14 @@ export default function DestinationAutocomplete({
       {listShown && (
         <div
           ref={dropdownRef}
-          className="absolute z-50 w-full mt-2 bg-white rounded-xl border border-slate-200
+          // A row's field is narrow on a phone: its list is wider, up to the screen's edge.
+          className={
+            compact
+              ? "absolute left-0 z-50 mt-1 w-72 max-w-[calc(100vw-5rem)] sm:w-full sm:min-w-72 bg-white rounded-xl border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden"
+              : `absolute z-50 w-full mt-2 bg-white rounded-xl border border-slate-200
                      shadow-xl shadow-slate-200/50 overflow-hidden
-                     animate-in fade-in slide-in-from-top-2 duration-150"
+                     animate-in fade-in slide-in-from-top-2 duration-150`
+          }
         >
           <div
             id={listboxId}
@@ -618,7 +646,7 @@ export default function DestinationAutocomplete({
                 tabIndex={-1}
                 onClick={() => handleSelect(prediction)}
                 onMouseEnter={() => setHighlightedIndex(index)}
-                className={`w-full px-4 py-3.5 flex items-center gap-3 text-left
+                className={`w-full ${compact ? "px-3 py-2.5" : "px-4 py-3.5"} flex items-center gap-3 text-left
                            transition-colors duration-100
                            ${
                              highlightedIndex === index
@@ -645,12 +673,14 @@ export default function DestinationAutocomplete({
                 </div>
 
                 {/* City Badge — the same on every row, so not part of its name */}
-                <span
-                  aria-hidden="true"
-                  className="flex-shrink-0 px-2 py-0.5 rounded-full bg-slate-100 text-xs font-medium text-slate-500"
-                >
-                  {t("cityBadge")}
-                </span>
+                {!compact && (
+                  <span
+                    aria-hidden="true"
+                    className="flex-shrink-0 px-2 py-0.5 rounded-full bg-slate-100 text-xs font-medium text-slate-500"
+                  >
+                    {t("cityBadge")}
+                  </span>
+                )}
               </button>
             ))}
           </div>
@@ -679,8 +709,8 @@ export default function DestinationAutocomplete({
         </div>
       )}
 
-      {/* No Results State — encouraging CTA to continue with typed destination */}
-      {open && !isLoading && predictions.length === 0 && debouncedValue.length >= 3 && (
+      {/* No Results State — encouraging CTA to continue with typed destination. A row's field keeps what was typed. */}
+      {!compact && open && !isLoading && predictions.length === 0 && debouncedValue.length >= 3 && (
         <div
           ref={dropdownRef}
           className="absolute z-50 w-full mt-2 bg-white rounded-xl border border-slate-200
