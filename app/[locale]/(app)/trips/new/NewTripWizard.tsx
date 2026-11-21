@@ -30,6 +30,8 @@ export interface PrefilledTripShape {
   vibes: string[];
   /** Places to keep, from Check my plan's "fix it". */
   mustDos: string[];
+  /** 1-12: the month a month's guide links for; dates are pencilled in then. */
+  month?: number | null;
 }
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { GeneratedItinerary, TripAnchor, TripStay, TripVibe, SeasonalContext, BudgetTier, TripPace } from "@/types";
@@ -274,7 +276,8 @@ function seasonalPopular(month: number, limit = 6): SeasonalPopular[] {
 // Free-text ?destination= fallback (page.tsx resolves known slugs): capitalized,
 // coords filled in by autocomplete on confirm.
 /** Where a link that fills in the trip's shape came from. */
-const prefillSource = (from: string | null | undefined) => (from === "trip" || from === "check" || from === "match" ? from : "article");
+const prefillSource = (from: string | null | undefined) =>
+  from === "trip" || from === "check" || from === "match" || from === "place" ? from : "article";
 
 function capitalizeFreeText(param: string | null | undefined): string {
   const trimmed = (param ?? "").trim().slice(0, 120);
@@ -661,8 +664,8 @@ export default function NewTripPage({
   // never typed.
   useEffect(() => {
     if (!prefilledTripShape) return;
-    const { days, budget, vibes, mustDos: mustDosToKeep } = prefilledTripShape;
-    if (!days && !budget && vibes.length === 0 && mustDosToKeep.length === 0) return;
+    const { days, budget, vibes, mustDos: mustDosToKeep, month = null } = prefilledTripShape;
+    if (!days && !budget && vibes.length === 0 && mustDosToKeep.length === 0 && !month) return;
 
     if (budget) setBudgetTier(budget);
     if (vibes.length > 0) setSelectedVibes(vibes as TripVibe[]);
@@ -672,23 +675,24 @@ export default function NewTripPage({
     // can't produce one. Resolve it exactly the way the "I'm flexible" button
     // does — start ~3 weeks out, span the article's length — and set the same
     // flexibleDates flag, so the UI openly shows the dates are a placeholder
-    // rather than something the reader chose.
+    // rather than something the reader chose. A month's guide pencils them in
+    // that month instead, as a typed "a week in March" does.
     //
     // Never in multi-city mode: there the end date is recomputed from the sum
     // of per-city nights, so a span set here would be overwritten anyway, and a
     // long single-city span heading into a one-city route is the documented way
     // to earn a 400 from the generate call.
     const isMultiDeeplink = MULTI_CITY_ENABLED && searchParams?.get("multi") === "1";
-    if (days && !isMultiDeeplink) {
-      const today = localTodayISO();
-      const start = addIsoDaysOrThrow(today, 21);
-      setStartDate(start);
-      setEndDate(addIsoDaysOrThrow(start, days - 1));
+    if ((days || month) && !isMultiDeeplink) {
+      const pencilled = pencilledDates({ days, month }, localTodayISO());
+      setStartDate(pencilled.start);
+      setEndDate(pencilled.end);
       setFlexibleDates(true);
     }
 
     posthog?.capture("wizard_prefilled_from_article", {
       prefilled_days: days ?? null,
+      prefilled_month: month,
       prefilled_budget: budget ?? null,
       prefilled_vibes: vibes,
       has_destination: Boolean(prefilledDestination || searchParams?.get("destination")),

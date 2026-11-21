@@ -36,6 +36,7 @@ type SearchParams = {
   budget?: string | string[];
   vibes?: string | string[];
   must?: string | string[];
+  month?: string | string[];
 };
 
 /** First value of a possibly-repeated query param. */
@@ -82,13 +83,18 @@ function parseTripShape(sp: SearchParams): PrefilledTripShape {
     .filter((v) => PREFILLABLE_VIBES.has(v))
     .slice(0, 3);
 
+  // The month a link plans for ("?month=3", from a month's guide): 1-12.
+  const rawMonth = one(sp.month);
+  const parsedMonth = rawMonth && /^\d{1,2}$/.test(rawMonth) ? Number(rawMonth) : Number.NaN;
+  const month = parsedMonth >= 1 && parsedMonth <= 12 ? parsedMonth : null;
+
   const mustDos = [sp.must ?? []]
     .flat()
     .map((name) => name.trim().slice(0, MUST_DO_MAX_LENGTH))
     .filter(Boolean)
     .slice(0, MUST_DOS_MAX);
 
-  return { days, budget, vibes, mustDos };
+  return { days, budget, vibes, mustDos, month };
 }
 
 /**
@@ -141,13 +147,16 @@ export default async function NewTripPage({
     }
   }
 
+  const tripShape = parseTripShape(sp);
+
   return (
     <NewTripWizard
       prefilledDestination={prefilledDestination}
-      prefilledTripShape={parseTripShape(sp)}
+      prefilledTripShape={tripShape}
       returningUser={trips.hasTrips}
       returningUserCheckedFor={trips.userId}
-      seasonMonth={new Date().getMonth() + 1}
+      // A link that plans for a month (a month's guide) gets the picks in season then.
+      seasonMonth={tripShape.month ?? new Date().getMonth() + 1}
     />
   );
 }

@@ -65,6 +65,12 @@ describe("client-fired funnel events", () => {
     expect((await post({ event_type: "trip_card_shared", kind: "poster", method: "whatsapp" })).status).toBe(400);
   });
 
+  it("records a plan pressed under a place in a month's guide", async () => {
+    const res = await post({ event_type: "plan_own_clicked", destination: "Rajasthan & North India", surface: "article_place" });
+    expect(res.status).toBe(204);
+    expect(inserted[0]?.metadata).toEqual({ destination: "Rajasthan & North India", referral_code: null, surface: "article_place" });
+  });
+
   it("records a plan pressed on a match result, with no trip to point to", async () => {
     const res = await post({ event_type: "plan_own_clicked", destination: "kyoto", surface: "match" });
     expect(res.status).toBe(204);

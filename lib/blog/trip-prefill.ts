@@ -1,4 +1,5 @@
 import type { BudgetTier } from "@/types";
+import { monthFromSlug } from "./seasonal-window";
 import { POSTS } from "./tag-taxonomy";
 
 /**
@@ -58,6 +59,11 @@ export interface TripPrefill {
   vibes?: PrefillVibe[];
   /** Open the wizard in multi-city route mode. */
   multi?: boolean;
+  /**
+   * 1-12: the month a month's guide ("where-to-go-in-march") is about. The
+   * wizard pencils in dates that month, as it does for "a week in March".
+   */
+  month?: number;
 }
 
 /**
@@ -166,6 +172,11 @@ export function tripPrefillForPost(slug: string): TripPrefill {
     if (days !== null) {
       prefill.days = Math.min(Math.max(days, 1), MAX_PREFILL_DAYS);
     }
+    // Same reason as the span: a route's dates come from its nights.
+    const month = monthFromSlug(slug);
+    if (month !== null) {
+      prefill.month = month;
+    }
   }
 
   if ((entry?.c ?? [])[0] === BUDGET_CONCEPT) {
@@ -204,6 +215,7 @@ export function tripsNewHrefForPost(
   if (prefill.days) qs.set("days", String(prefill.days));
   if (prefill.budget) qs.set("budget", prefill.budget);
   if (prefill.vibes?.length) qs.set("vibes", prefill.vibes.join(","));
+  if (prefill.month) qs.set("month", String(prefill.month));
 
   const s = qs.toString();
   return s ? `/trips/new?${s}` : "/trips/new";
