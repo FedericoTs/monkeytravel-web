@@ -33,12 +33,17 @@ export function routeRows(stops: RouteStop[]): Array<{ city: string; nights: num
   return stops.map((s) => ({ city: s.name, nights: s.days }));
 }
 
-/** The plan's cities in order, one per stay: a trip's days in Lisboa, then Porto, read [Lisboa, Porto]. */
-export function planRoute(days: Array<{ city?: string }>): string[] {
-  const out: string[] = [];
+/**
+ * The plan's stays in order, each with its days: three days in Lisboa, then two in Porto, read [Lisboa 3, Porto 2].
+ * A day with no city counts in the stay before it.
+ */
+export function planRoute(days: Array<{ city?: string }>): Array<{ name: string; days: number }> {
+  const out: Array<{ name: string; days: number }> = [];
   for (const d of days) {
     const city = (d.city ?? "").split(",")[0].trim();
-    if (city && (out.length === 0 || !isSameDestination(out[out.length - 1], city))) out.push(city);
+    const last = out[out.length - 1];
+    if (last && (!city || isSameDestination(last.name, city))) last.days++;
+    else if (city) out.push({ name: city, days: 1 });
   }
   return out;
 }
@@ -47,9 +52,10 @@ export function planRoute(days: Array<{ city?: string }>): string[] {
  * The route a reply offers that the page can plan, or none: 2 to MAX_CITIES
  * stops the destination field would accept, one after another in different
  * places, each 1 to ROUTE_STOP_NIGHTS_MAX days, the days adding up to the trip's
- * `length`, and not the plan's own route (`current`).
+ * `length`, and not the plan's own route (`current`): the same places with the same days. Days moved from one of
+ * its places to another ("back to Edinburgh a day earlier") are a new route.
  */
-export function readRoute(raw: unknown, length: number, current: string[]): RouteStop[] {
+export function readRoute(raw: unknown, length: number, current: Array<{ name: string; days: number }>): RouteStop[] {
   if (!Array.isArray(raw) || raw.length < 2 || raw.length > MAX_CITIES) return [];
   const text = (v: unknown) => (typeof v === "string" ? v.replace(/\s+/g, " ").trim() : "");
   const stops: RouteStop[] = [];
@@ -64,6 +70,6 @@ export function readRoute(raw: unknown, length: number, current: string[]): Rout
     stops.push(stop);
   }
   if (stops.reduce((sum, s) => sum + s.days, 0) !== length) return [];
-  const same = current.length === stops.length && stops.every((s, i) => isSameDestination(s.name, current[i]));
+  const same = current.length === stops.length && stops.every((s, i) => isSameDestination(s.name, current[i].name) && s.days === current[i].days);
   return same ? [] : stops;
 }
