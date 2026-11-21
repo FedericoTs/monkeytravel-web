@@ -147,13 +147,16 @@ export default async function NewTripPage({
     }
   }
 
+  const tripShape = parseTripShape(sp);
+
   return (
     <NewTripWizard
       prefilledDestination={prefilledDestination}
-      prefilledTripShape={parseTripShape(sp)}
+      prefilledTripShape={tripShape}
       returningUser={trips.hasTrips}
       returningUserCheckedFor={trips.userId}
-      seasonMonth={new Date().getMonth() + 1}
+      // A link that plans for a month (a month's guide) gets the picks in season then.
+      seasonMonth={tripShape.month ?? new Date().getMonth() + 1}
     />
   );
 }

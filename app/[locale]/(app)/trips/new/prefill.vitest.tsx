@@ -60,3 +60,22 @@ describe("the month a link plans for", () => {
     }
   });
 });
+
+describe("the picks' season", () => {
+  const seasonFor = async (month?: string) => {
+    const page = await NewTripPage({ params: Promise.resolve({ locale: "en" }), searchParams: Promise.resolve({ month }) });
+    if (!isValidElement(page)) throw new Error("no element");
+    return (page.props as { seasonMonth: number }).seasonMonth;
+  };
+
+  it("is the month a link plans for", async () => {
+    // Next month, so it can't be this month by chance.
+    const next = (new Date().getMonth() + 1) % 12 + 1;
+    expect(await seasonFor(String(next))).toBe(next);
+  });
+
+  it("is this month otherwise", async () => {
+    expect(await seasonFor()).toBe(new Date().getMonth() + 1);
+    expect(await seasonFor("13")).toBe(new Date().getMonth() + 1);
+  });
+});
