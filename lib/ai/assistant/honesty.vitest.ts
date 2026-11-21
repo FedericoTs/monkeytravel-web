@@ -244,6 +244,12 @@ const handedOver = [
   "Aquí tienes 7 días nuevos, listos para guardar.",
   "Ecco un nuovo giorno 6 con un corso di cucina.",
   "Ecco 7 nuovi giorni, pronti da salvare.",
+  // A change shown by its effect, or a plan said to be made for them, with nothing prepared: asked to walk instead
+  // of driving, which no change to the plan can do.
+  "Here's how your switch from driving to walking will affect your days, with shorter hops.",
+  "Here is how this change would shape your trip.",
+  "Here is the plan tailored for walking.",
+  "Here's your itinerary adjusted for a slower pace.",
 ];
 const offers = [
   "Certo, posso rimuovere la cena al Restaurace Mlejnice dal tuo itinerario del Giorno 2.",
@@ -267,6 +273,12 @@ const notOffers = [
   "Sua viagem está pronta para salvar quando quiser.",
   "Here's an extra day trip idea: Howth, 30 minutes by DART.",
   "Here's a new day-trip option if you want one: Glendalough.",
+  // Answers about how things work, and the plan as it is.
+  "Here's how the page shows the way between stops: walking under about 1 km, a ride for longer hops.",
+  "Here's how long the walk takes: about 20 minutes.",
+  "Here's how much walking would affect Day 2: about 10 minutes more.",
+  "Here's how the trip takes shape: the castle on Day 1, the gallery on Day 2.",
+  "Here is the plan for your first day: the castle, then lunch.",
 ];
 
 describe("announcesProposal", () => {
