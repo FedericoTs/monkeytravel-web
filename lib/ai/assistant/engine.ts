@@ -64,7 +64,7 @@ import {
   asksForEveryDay,
 } from "./message-asks";
 import { alsoInTheirCity, daysOfCity, keepDayCities, placesAway, withoutPlacesAway, type PlacesAway } from "./city-days";
-import { type TravelTime, readTravelTimes, outsideTravelTimes, minutesOf, keepDepartureTime, withPlanDeparture } from "./travel-times";
+import { type TravelTime, readTravelTimes, toldTravelTimes, outsideTravelTimes, minutesOf, keepDepartureTime, withPlanDeparture } from "./travel-times";
 import { composeReply, type PlaceOnDay } from "./edit-reply";
 import { maxTripDays } from "./structural";
 import { offeredAgain } from "./ideas-rule";
@@ -142,7 +142,8 @@ function readOutcome(input: AssistInput, obj: Record<string, unknown>, cur: stri
     canOfferRoute(input) && edits.length === 0 && checked.tripLength === undefined && elsewhere.length === 0
       ? readRoute(obj.route, input.days.length, planRoute(input.days))
       : [];
-  return { ...checked, edits, reply, moreDays, travelTimes: readTravelTimes(obj.travel_times, length), elsewhere, route };
+  const travelTimes = toldTravelTimes(readTravelTimes(obj.travel_times, length), told, length);
+  return { ...checked, edits, reply, moreDays, travelTimes, elsewhere, route };
 }
 
 /**
