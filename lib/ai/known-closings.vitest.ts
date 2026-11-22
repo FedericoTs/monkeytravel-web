@@ -522,6 +522,7 @@ describe("more of the most-planned sights", () => {
     expect(knownClosingFor("Pantheon", "Paris, France")?.source).toContain("paris-pantheon.fr");
     expect(knownClosingFor("Pantheon", "Rome, Italy")?.source).toContain("pantheonroma.com");
     expect(knownClosingFor("Panthéon & Latin Quarter walk", "Paris")).toBeUndefined();
+    expect(knownClosingFor("Evening walk past the Panthéon", "Paris")).toBeUndefined();
     expect(knownClosingFor("Prado Museum", "Madrid")).toBeDefined();
     expect(knownClosingFor("Paseo del Prado", "Madrid")).toBeUndefined();
     expect(knownClosingFor("Prado Restaurant", "Lisbon")).toBeUndefined();
