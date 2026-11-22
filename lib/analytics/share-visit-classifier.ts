@@ -19,12 +19,14 @@ export type SharedVisitVerdict =
   | "skip:owner";
 
 // Obvious crawlers / link-unfurlers only. Deliberately does NOT match
-// "whatsapp"/"telegram" — a human tapping a shared link opens it in the app's
-// in-app browser with a normal Chrome/Safari UA; the "WhatsApp"/"TelegramBot"
-// UA is the preview crawler. We accept a little unfurl inflation rather than
-// risk dropping the exact humans (chat-app openers) the crew loop targets.
+// "whatsapp"/"telegram" anywhere in the user agent: a human tapping a shared
+// link opens it in the app's in-app browser with a normal Chrome/Safari UA,
+// which may name the app, and those are the exact people the crew loop
+// targets. A user agent that STARTS with "WhatsApp/" is the app fetching the
+// link's preview, never a person's browser: counted, it made a link pasted
+// into a chat look opened.
 export const CRAWLER_UA_RE =
-  /(bot\b|crawl|spider|slurp|facebookexternalhit|bingpreview|headless|python-requests|curl\/|wget|lighthouse|monitoring|uptime)/i;
+  /(bot\b|crawl|spider|slurp|facebookexternalhit|bingpreview|headless|python-requests|curl\/|wget|lighthouse|monitoring|uptime|^whatsapp\/)/i;
 
 export interface SharedVisitInput {
   userAgent: string | null;
