@@ -21,6 +21,7 @@
  * nowhere to go (shut on every date of the trip) is swapped for an open place,
  * when the route asks for that (lib/ai/closed-swaps.ts).
  */
+import { easterSunday } from "@/lib/ai/easter";
 import { withClosingNotes, withKnownClosings } from "@/lib/ai/known-closings";
 import { SchemaType, type ResponseSchema } from "@/lib/ai/genai-compat";
 import { genAI, withTimeout } from "@/lib/ai/gemini-call";
@@ -69,7 +70,8 @@ export function placesToAsk(days: Day[]): string[] {
 
 /**
  * The plan's dates on which sights close for a holiday whatever their weekday:
- * Christmas to Epiphany, the first of May, and Thanksgiving (the fourth
+ * Christmas to Epiphany, the first of May, Easter Sunday (the Western and the
+ * Orthodox one: the Acropolis shuts on Greece's) and Thanksgiving (the fourth
  * Thursday of November). Each is asked about by its date.
  */
 export function holidayDatesToAsk(days: Day[]): string[] {
@@ -81,11 +83,33 @@ export function holidayDatesToAsk(days: Day[]): string[] {
 function isHolidayDate(date: string): boolean {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
   if (!m) return false;
-  const [year, month, dom] = [Number(m[1]), Number(m[2]), Number(m[3])];
-  if ((month === 12 && dom >= 24) || (month === 1 && dom <= 6) || (month === 5 && dom === 1)) return true;
-  if (month !== 11) return false;
+  const [month, dom] = [Number(m[2]), Number(m[3])];
+  return (month === 12 && dom >= 24) || (month === 1 && dom <= 6) || holidayName(date) !== null;
+}
+
+const NAMED_DAYS: Record<string, string> = {
+  "12-24": "Christmas Eve",
+  "12-25": "Christmas Day",
+  "12-26": "St Stephen's Day",
+  "12-31": "New Year's Eve",
+  "01-01": "New Year's Day",
+  "01-06": "Epiphany",
+  "05-01": "May Day",
+};
+
+/**
+ * The holiday a date is, as the question names it: told only the date and its weekday, the model passes over closures
+ * it knows (a museum shut on Christmas Day). None for the days between (27 to 30 December, 2 to 5 January).
+ */
+function holidayName(date: string): string | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+  if (!m) return null;
+  const year = Number(m[1]);
+  if (date === easterSunday(year, "western")) return "Easter Sunday";
+  if (date === easterSunday(year, "orthodox")) return "Orthodox Easter Sunday";
   const firstThursday = ((4 - new Date(Date.UTC(year, 10, 1)).getUTCDay() + 7) % 7) + 1;
-  return dom === firstThursday + 21;
+  if (m[2] === "11" && Number(m[3]) === firstThursday + 21) return "Thanksgiving Day in the United States";
+  return NAMED_DAYS[`${m[2]}-${m[3]}`] ?? null;
 }
 
 function schemaFor(dates: string[]): ResponseSchema {
@@ -138,7 +162,7 @@ export async function askClosingDays(
     ...(dates.length > 0
       ? [
           `Also, in "shutOn", the dates among these on which each place is closed to visitors, for a holiday or any other reason: ${dates
-            .map((date) => `${date} (${weekdayOf(date)})`)
+            .map((date) => `${date} (${[weekdayOf(date), holidayName(date)].filter(Boolean).join(", ")})`)
             .join(", ")}. Leave out a date when it is open that day.`,
         ]
       : []),
