@@ -111,8 +111,25 @@ describe("closures the official pages state for every year", () => {
     expect(shutOn("Castel Sant'Angelo", "Rome", days)).toEqual(["2027-12-25", "2028-01-01", "2028-05-01"]);
     // The Capitoline Museums open on New Year's Day.
     expect(shutOn("Capitoline Museums", "Rome", days)).toEqual(["2027-05-01", "2027-12-25", "2028-05-01"]);
+    // The Galleria Borghese's Monday is 1 May 2028.
+    expect(shutOn("Galleria Borghese", "Rome", days)).toEqual(["2027-12-25", "2028-01-01", "2028-05-01"]);
     expect(shutOn("Natural History Museum", "London", [...days, "2027-12-27"])).toEqual(["2027-12-24", "2027-12-25", "2027-12-26"]);
     expect(shutOn("Statue of Liberty", "New York", days)).toEqual(["2027-12-25"]);
+  });
+
+  it("shut Barcelona's Boqueria on its holidays, and New York's Whitney on Thanksgiving but not on its open December Tuesdays", () => {
+    const winter = ["2026-11-26", "2026-12-15", "2026-12-22", "2026-12-24", "2026-12-25", "2026-12-26", "2026-12-27", "2026-12-29", "2027-01-01", "2027-01-06"];
+    expect(shutOn("Mercat de la Boqueria", "Barcelona", winter)).toEqual(["2026-12-25", "2026-12-26", "2026-12-27", "2027-01-01", "2027-01-06"]);
+    expect(shutOn("Whitney Museum of American Art", "New York", winter)).toEqual(["2026-11-26", "2026-12-15", "2026-12-25"]);
+  });
+
+  it("shut the Acropolis on Orthodox Easter Sunday, whose date moves, and not on the Western one", () => {
+    // Western Easter 5 April 2026 and 28 March 2027; Orthodox 12 April 2026 and 2 May 2027; both 16 April 2028.
+    const days = ["2026-04-05", "2026-04-12", "2027-03-28", "2027-05-01", "2027-05-02", "2027-05-03", "2028-04-16"];
+    expect(shutOn("Acropolis of Athens", "Athens", days)).toEqual(["2026-04-12", "2027-05-01", "2027-05-02", "2028-04-16"]);
+    // The Ancient Agora below it keeps the same days; the Roman Agora isn't it.
+    expect(shutOn("Ancient Agora of Athens", "Athens", days)).toEqual(["2026-04-12", "2027-05-01", "2027-05-02", "2028-04-16"]);
+    expect(knownClosingFor("Roman Agora of Athens", "Athens")).toBeUndefined();
   });
 
   it("open a garden every day of its seasons, Mondays included, and shut its Mondays outside them", () => {

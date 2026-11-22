@@ -144,12 +144,15 @@ describe("holiday dates", () => {
     day(4, "2026-12-27", [["Montmartre", "landmark"]]),
   ];
 
-  it("are the plan's dates from Christmas Eve to Epiphany, the first of May and Thanksgiving", () => {
+  it("are the plan's dates from Christmas Eve to Epiphany, the first of May, Easter Sunday and Thanksgiving", () => {
     const span = (from: string, n: number) =>
       Array.from({ length: n }, (_, i) => day(i + 1, new Date(Date.parse(`${from}T00:00:00Z`) + i * 864e5).toISOString().slice(0, 10), []));
     expect(holidayDatesToAsk(span("2026-12-22", 4))).toEqual(["2026-12-24", "2026-12-25"]);
     expect(holidayDatesToAsk(span("2027-01-05", 3))).toEqual(["2027-01-05", "2027-01-06"]);
-    expect(holidayDatesToAsk(span("2027-04-29", 4))).toEqual(["2027-05-01"]);
+    // Easter Sunday moves: the Western one is 28 March 2027, the Orthodox one 2 May 2027, the day after May Day.
+    expect(holidayDatesToAsk(span("2027-04-29", 5))).toEqual(["2027-05-01", "2027-05-02"]);
+    expect(holidayDatesToAsk(span("2027-03-26", 4))).toEqual(["2027-03-28"]);
+    expect(holidayDatesToAsk(span("2026-04-04", 10))).toEqual(["2026-04-05", "2026-04-12"]);
     // Thanksgiving is the fourth Thursday of November: the 26th in 2026, the 25th in 2027.
     expect(holidayDatesToAsk(span("2026-11-18", 10))).toEqual(["2026-11-26"]);
     expect(holidayDatesToAsk(span("2027-11-24", 3))).toEqual(["2027-11-25"]);
@@ -437,7 +440,7 @@ describe("the question", () => {
     expect(JSON.stringify(modelConfig?.generationConfig?.responseSchema)).not.toContain("shutOn");
   });
 
-  it("asks about the holiday dates, by date and weekday, and keeps only the dates it asked about", async () => {
+  it("asks about the holiday dates, by date, weekday and holiday, and keeps only the dates it asked about", async () => {
     vi.stubEnv("GOOGLE_AI_API_KEY", "test-key");
     answer = async () => ({
       response: {
@@ -459,10 +462,32 @@ describe("the question", () => {
       ["louvre museum", ["2026-12-25"]],
       ["musée d'orsay", ["2026-12-26"]],
     ]);
-    expect(generateContent.mock.calls[0][0]).toContain("2026-12-25 (Friday), 2026-12-26 (Saturday)");
+    expect(generateContent.mock.calls[0][0]).toContain("2026-12-25 (Friday, Christmas Day), 2026-12-26 (Saturday, St Stephen's Day)");
     const schema = JSON.stringify(modelConfig?.generationConfig?.responseSchema);
     expect(schema).toContain('"shutOn"');
     expect(schema).toContain('"enum":["2026-12-25","2026-12-26"]');
+  });
+
+  it("names each holiday it asks about, and only the days that are one", async () => {
+    vi.stubEnv("GOOGLE_AI_API_KEY", "test-key");
+    answer = async () => ({
+      response: { text: () => JSON.stringify({ places: [] }), usageMetadata: { promptTokenCount: 100, candidatesTokenCount: 4 } },
+    });
+    const dates = ["2026-11-26", "2026-12-24", "2026-12-28", "2026-12-31", "2027-01-01", "2027-01-06", "2027-03-28", "2027-05-01", "2027-05-02"];
+    await askClosingDays("Athens", ["Acropolis Museum"], dates);
+    expect(generateContent.mock.calls[0][0]).toContain(
+      [
+        "2026-11-26 (Thursday, Thanksgiving Day in the United States)",
+        "2026-12-24 (Thursday, Christmas Eve)",
+        "2026-12-28 (Monday)",
+        "2026-12-31 (Thursday, New Year's Eve)",
+        "2027-01-01 (Friday, New Year's Day)",
+        "2027-01-06 (Wednesday, Epiphany)",
+        "2027-03-28 (Sunday, Easter Sunday)",
+        "2027-05-01 (Saturday, May Day)",
+        "2027-05-02 (Sunday, Orthodox Easter Sunday)",
+      ].join(", ")
+    );
   });
 
   it("is not asked without a key, and a failed one changes nothing", async () => {

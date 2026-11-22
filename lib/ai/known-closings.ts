@@ -7,6 +7,7 @@
  * listed, gardens and markets too, and places open every day, so a wrong "closed" from the model doesn't move them.
  */
 import type { Weekday } from "@/lib/ai/closing-days";
+import { easterSunday } from "@/lib/ai/easter";
 import { isMealStop } from "@/lib/trip/pace";
 
 /** Sunday first, as Date.getUTCDay() counts (closing-days.ts imports this file, so its own list isn't used here). */
@@ -32,6 +33,8 @@ type Rule =
   | { yearly: YearlySpan }
   /** Shut on Thanksgiving Day in the US, the fourth Thursday of November. */
   | { thanksgiving: true }
+  /** Shut on Easter Sunday, the Western churches' or the Orthodox churches', whose date moves each year. */
+  | { easter: "western" | "orthodox" }
   /** Shut on Sundays except the last Sunday of the month. */
   | { sundaysButLast: true };
 
@@ -416,11 +419,12 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
   {
     names: /\bgaller(?:ia|y|ie)\s+borghese\b|\bborghese gallery\b/i,
     city: ROME,
-    rules: [{ weekly: ["Monday"] }],
+    rules: [{ weekly: ["Monday"] }, yearly("12-25"), yearly("01-01")],
     hours: [
       { from: "01-01", to: "12-31", open: "09:00", close: "19:00", lastEntry: "17:45" },
     ],
-    source: "https://www.turismoroma.it/en/places/borghese-gallery",
+    hoursSource: "https://www.turismoroma.it/en/places/borghese-gallery",
+    source: "https://galleriaborghese.cultura.gov.it/visita/",
   },
   {
     names: /\bcapitoline museums?\b|\bmusei capitolini\b|\bmuseos capitolinos\b|\bmuseus capitolinos\b/i,
@@ -434,7 +438,8 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
     source: "https://www.museicapitolini.org/en/informazioni_pratiche/orari_e_indirizzi",
   },
   // Barcelona
-  { names: /\bboqueria\b|\bmercat de sant josep\b/i, city: BARCELONA, rules: [{ weekly: ["Sunday"] }], hours: [{ from: "01-01", to: "12-31", open: "08:00", close: "20:30" }], source: "https://ajuntament.barcelona.cat/memoriademocratica/en/detail/mercat-boqueria-sant-josep_92086009447" },
+  // The market's Christmas notices, the same each year: shut on Christmas Day, St Stephen's Day, New Year's Day and Epiphany.
+  { names: /\bboqueria\b|\bmercat de sant josep\b/i, city: BARCELONA, rules: [{ weekly: ["Sunday"] }, yearly("12-25", "12-26"), yearly("01-01"), yearly("01-06")], hours: [{ from: "01-01", to: "12-31", open: "08:00", close: "20:30" }], hoursSource: "https://ajuntament.barcelona.cat/memoriademocratica/en/detail/mercat-boqueria-sant-josep_92086009447", source: "https://www.boqueria.barcelona/boqueria-opening-hours-during-christmas-n-352-en" },
   { names: /\bpar(?:k|c|que) g[uü]ell\b/i, city: BARCELONA, rules: OPEN_EVERY_DAY, source: "https://parkguell.barcelona/en/planning-your-visit/prices-and-times" },
   { names: /\bsagrada fam[ií]lia\b/i, city: BARCELONA, rules: OPEN_EVERY_DAY, hours: [{ from: "12-25", to: "12-26", open: "09:00", close: "14:00" }, { from: "01-01", to: "01-01", open: "09:00", close: "14:00" }, { from: "01-06", to: "01-06", open: "09:00", close: "14:00" }, { from: "11-01", to: "02-29", days: ["Sunday"], open: "10:30", close: "18:00" }, { from: "11-01", to: "02-29", open: "09:00", close: "18:00" }, { from: "03-01", to: "03-31", days: ["Saturday"], open: "09:00", close: "18:00" }, { from: "03-01", to: "03-31", days: ["Sunday"], open: "10:30", close: "19:00" }, { from: "03-01", to: "03-31", open: "09:00", close: "19:00" }, { from: "10-01", to: "10-31", days: ["Saturday"], open: "09:00", close: "18:00" }, { from: "10-01", to: "10-31", days: ["Sunday"], open: "10:30", close: "19:00" }, { from: "10-01", to: "10-31", open: "09:00", close: "19:00" }, { from: "04-01", to: "09-30", days: ["Saturday"], open: "09:00", close: "18:00" }, { from: "04-01", to: "09-30", days: ["Sunday"], open: "10:30", close: "20:00" }, { from: "04-01", to: "09-30", open: "09:00", close: "20:00" }], source: "https://sagradafamilia.org/en/schedules-how-to-get" },
   // London
@@ -565,11 +570,11 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
   },
   // Athens
   {
-    // The site itself: the Acropolis Museum below it keeps other hours. Also shut on Easter Sunday, whose date moves.
+    // The site itself: the Acropolis Museum below it keeps other hours.
     names: /\bacropol(?:is|i|e)\b|\bacr[oó]pol(?:e|is)\b|\bparthenon\b|\bpartenone\b|\bparten[oó]n\b|ακρόπολη/i,
     notNames: /\bmuse(?:um|o|u)\b|μουσείο/i,
     city: ATHENS,
-    rules: [yearly("01-01"), yearly("03-25"), yearly("05-01"), yearly("12-25", "12-26")],
+    rules: [yearly("01-01"), yearly("03-25"), yearly("05-01"), { easter: "orthodox" }, yearly("12-25", "12-26")],
     hours: [
       { from: "04-01", to: "08-31", open: "08:00", close: "20:00", lastEntry: "19:40" },
       { from: "09-01", to: "09-15", open: "08:00", close: "19:30", lastEntry: "19:10" },
@@ -579,6 +584,13 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
       { from: "11-01", to: "03-31", open: "08:00", close: "17:00", lastEntry: "16:40" },
     ],
     source: "https://www.hh.gr/en/?p=1582",
+  },
+  {
+    names: /\bancient agora\b|\bagora of athens\b|\bathenian agora\b|\b[aá]gora (?:antigua|antica|antiga)\b|αρχαία αγορά/i,
+    notNames: /\broman agora\b|\b[aá]gora romana\b/i,
+    city: ATHENS,
+    rules: [yearly("01-01"), yearly("03-25"), yearly("05-01"), { easter: "orthodox" }, yearly("12-25", "12-26")],
+    source: "https://www.hh.gr/en/destinations/ancient-agora-athens/",
   },
   // Granada
   {
@@ -662,7 +674,9 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
   {
     names: /\bwhitney museum\b|\bthe whitney\b/i,
     city: NEW_YORK,
-    rules: [{ weekly: ["Tuesday"] }, yearly("12-25")],
+    rules: [{ weekly: ["Tuesday"] }, { thanksgiving: true }, yearly("12-25")],
+    // Open on the two Tuesdays before New Year.
+    openOn: ["2026-12-22", "2026-12-29"],
     hours: [
       { from: "12-24", to: "12-24", open: "10:30", close: "17:00" },
       { from: "12-31", to: "12-31", open: "10:30", close: "17:00" },
@@ -903,6 +917,7 @@ export function shutBy(entry: KnownClosing, date: string): boolean {
     if ("yearly" in rule) return inYearly(date, rule.yearly);
     if ("from" in rule) return date >= rule.from && date <= rule.to;
     if ("thanksgiving" in rule) return d.getUTCMonth() === 10 && weekdayOf(date) === "Thursday" && Math.ceil(d.getUTCDate() / 7) === 4;
+    if ("easter" in rule) return date === easterSunday(d.getUTCFullYear(), rule.easter);
     if ("sundaysButLast" in rule) return weekdayOf(date) === "Sunday" && d.getUTCMonth() === at(plusDays(date, 7)).getUTCMonth();
     return false;
   });
