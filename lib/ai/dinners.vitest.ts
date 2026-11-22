@@ -1,5 +1,14 @@
-import { describe, expect, it } from "vitest";
-import { daysWithoutDinner, dinnerQuestion, placesToEat, withDinners, type DinnerAnswer } from "@/lib/ai/dinners";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+// The model, as the dinner question meets it: each call takes the next answer in line.
+let answers: Array<() => Promise<{ response: { text: () => string; usageMetadata?: object } }>> = [];
+const generateContent = vi.fn((_question: string) => (answers.shift() ?? (() => Promise.reject(new Error("no answer"))))());
+vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/ai/gemini-call")>()),
+  genAI: { getGenerativeModel: () => ({ generateContent }) },
+}));
+
+import { askForDinners, daysWithoutDinner, dinnerQuestion, placesToEat, withDinners, type DinnerAnswer } from "@/lib/ai/dinners";
 
 type Stop = { name: string; type: string; start_time: string; duration_minutes: number; coordinates?: { lat: number; lng: number } };
 const at = (lat: number, lng: number) => ({ lat, lng });
@@ -134,5 +143,60 @@ describe("the dinner question", () => {
   it("says nothing of them when the plan has none", () => {
     expect(dinnerQuestion(wanted, { language: "en", taken: [] })).not.toContain("None the plan already has");
     expect(dinnerQuestion(wanted, { language: "en" })).not.toContain("None the plan already has");
+  });
+});
+
+// The model named a restaurant the plan already has, or one too far away, and those evenings stayed without dinner.
+// The question's answers vary, so it is asked twice at once.
+describe("the dinner question, asked", () => {
+  const says = (dinners: unknown[]) => () =>
+    Promise.resolve({ response: { text: () => JSON.stringify({ dinners }), usageMetadata: { promptTokenCount: 1000, candidatesTokenCount: 400 } } });
+  const fails = () => () => Promise.reject(new Error("timeout"));
+  const ask = () => {
+    const wanted = daysWithoutDinner(plan(), "Kyoto");
+    return askForDinners(wanted, { language: "en" }).then(({ answer }) => withDinners(plan(), wanted, answer));
+  };
+
+  beforeEach(() => {
+    vi.stubEnv("GOOGLE_AI_API_KEY", "test-key");
+    generateContent.mockClear();
+    answers = [];
+  });
+
+  it("is asked twice at once, and an evening the first answer couldn't fill takes the second's dinner", async () => {
+    // The first names a place the plan already has.
+    answers = [says([{ ...gionDinner, name: "Nijo Castle" }]), says([gionDinner])];
+    const { days, added } = await ask();
+    expect(generateContent).toHaveBeenCalledTimes(2);
+    expect(added).toBe(1);
+    expect(names(days[1])).toContain("18:30 Gion Karyo");
+    expect(names(days[1])).not.toContain("18:30 Nijo Castle");
+  });
+
+  it("keeps the first answer's dinner when both can go in", async () => {
+    answers = [says([gionDinner]), says([{ ...gionDinner, name: "Kikunoi Honten" }])];
+    const { days, added } = await ask();
+    expect(added).toBe(1);
+    expect(names(days[1])).toContain("18:30 Gion Karyo");
+    expect(names(days[1]).join(" ")).not.toContain("Kikunoi");
+  });
+
+  it("counts what both questions cost", async () => {
+    const wanted = daysWithoutDinner(plan(), "Kyoto");
+    answers = [says([gionDinner]), fails()];
+    const one = (await askForDinners(wanted, { language: "en" })).costUsd;
+    answers = [says([gionDinner]), says([gionDinner])];
+    const both = (await askForDinners(wanted, { language: "en" })).costUsd;
+    expect(one).toBeGreaterThan(0);
+    expect(both).toBeCloseTo(2 * one, 10);
+  });
+
+  it("still fills the evening when one of the two questions fails", async () => {
+    answers = [fails(), says([gionDinner])];
+    expect((await ask()).added).toBe(1);
+    answers = [says([gionDinner]), fails()];
+    expect((await ask()).added).toBe(1);
+    answers = [fails(), fails()];
+    expect((await ask()).added).toBe(0);
   });
 });

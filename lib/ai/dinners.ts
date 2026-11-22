@@ -126,8 +126,15 @@ export function dinnerQuestion(wanted: DinnerWanted[], opts: DinnerOptions): str
 }
 
 /**
- * One dinner for each day without one, as the model sees them. No answer when there is nothing to ask, no key, or
- * the question fails or takes too long: the days then stay as they were.
+ * How many times the question is asked, all at once. Its answers vary, and the model often names a restaurant the
+ * plan has or one too far away: a second answer fills evenings the first couldn't, with no wait added.
+ */
+const ASKS = 2;
+
+/**
+ * Dinners for the days without one, as the model sees them: every answer's, the first answer's first, so a later
+ * answer's dinner goes in only on an evening the earlier ones couldn't fill (withDinners). No answer when there is
+ * nothing to ask, no key, or every question fails or takes too long: the days then stay as they were.
  */
 export async function askForDinners(wanted: DinnerWanted[], opts: DinnerOptions): Promise<{ answer: DinnerAnswer; costUsd: number }> {
   if (wanted.length === 0 || !process.env.GOOGLE_AI_API_KEY) return { answer: {}, costUsd: 0 };
@@ -141,15 +148,23 @@ export async function askForDinners(wanted: DinnerWanted[], opts: DinnerOptions)
       thinkingConfig: thinkingConfigFor(modelName),
     },
   });
-  try {
-    const result = await withTimeout(model.generateContent(dinnerQuestion(wanted, opts)), TIMEOUT_MS, "Dinners");
-    const usage = result.response.usageMetadata;
-    recordGeminiUsage(modelName, usage);
-    return { answer: JSON.parse(result.response.text()) as DinnerAnswer, costUsd: geminiCostUsd(modelName, usage) };
-  } catch (err) {
-    console.warn("[dinners] not asked:", err instanceof Error ? err.message : String(err));
-    return { answer: {}, costUsd: 0 };
-  }
+  const question = dinnerQuestion(wanted, opts);
+  const askOnce = async (): Promise<{ answer: DinnerAnswer; costUsd: number }> => {
+    try {
+      const result = await withTimeout(model.generateContent(question), TIMEOUT_MS, "Dinners");
+      const usage = result.response.usageMetadata;
+      recordGeminiUsage(modelName, usage);
+      return { answer: JSON.parse(result.response.text()) as DinnerAnswer, costUsd: geminiCostUsd(modelName, usage) };
+    } catch (err) {
+      console.warn("[dinners] not asked:", err instanceof Error ? err.message : String(err));
+      return { answer: {}, costUsd: 0 };
+    }
+  };
+  const answers = await Promise.all(Array.from({ length: ASKS }, askOnce));
+  return {
+    answer: { dinners: answers.flatMap((a) => a.answer.dinners ?? []) },
+    costUsd: answers.reduce((sum, a) => sum + a.costUsd, 0),
+  };
 }
 
 /**
