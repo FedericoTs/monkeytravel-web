@@ -42,10 +42,17 @@ describe("shared-visit classifier", () => {
   });
 
   it("does not treat a chat app's in-app browser as a crawler", () => {
-    // The preview crawler says "WhatsApp/2.x"; the human who taps the link
-    // arrives with a normal mobile UA. Neither string is in the pattern.
+    // The human who taps the link arrives with a normal mobile browser, even one that names the app.
     expect(classifySharedVisit({ ...recipient, userAgent: IN_APP_ANDROID })).toBe("counted");
-    expect(CRAWLER_UA_RE.test("WhatsApp/2.24.10.85 A")).toBe(false);
+    expect(classifySharedVisit({ ...recipient, userAgent: `${IN_APP_ANDROID} WhatsApp/2.24.10.85`, secFetchDest: null })).toBe("counted");
+    expect(CRAWLER_UA_RE.test("Mozilla/5.0 (Linux; Android 14) Chrome/125.0 Mobile Safari/537.36 Telegram-Android/11.2")).toBe(false);
+  });
+
+  it("skips the preview WhatsApp fetches when a link is pasted into a chat", () => {
+    // Its user agent starts with the app's name, on a phone, on a computer and in the business app.
+    for (const userAgent of ["WhatsApp/2.24.10.85 A", "WhatsApp/2.23.20.0", "WhatsApp/2.2412.54 W", "whatsapp/2.24.9.78 i"]) {
+      expect(classifySharedVisit({ ...recipient, userAgent, secFetchDest: null })).toBe("skip:crawler");
+    }
   });
 
   it("skips the owner opening their own link", () => {
