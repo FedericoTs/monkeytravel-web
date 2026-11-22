@@ -40,6 +40,63 @@ describe("withStopAt", () => {
     ]);
   });
 
+  describe("asked to keep daytime sights in the day", () => {
+    const DAYTIME = { daytimeSights: true };
+
+    it("has no room when a sight would be pushed past the late afternoon, when it would be shut", () => {
+      const day = {
+        activities: [
+          stop("Tomb", "landmark", "09:00", 120),
+          stop("Lunch place", "restaurant", "11:30", 90),
+          stop("Bazaar", "market", "13:30", 120),
+          stop("Second tomb", "landmark", "16:00", 120),
+          stop("Dinner place", "restaurant", "19:00", 90),
+        ],
+      };
+      // The second tomb would start at six.
+      expect(withStopAt(day, MORNING_SIGHT, DAYTIME)).toBeNull();
+      // The stop put in is held to it too: after a long morning the museum would start at five.
+      const longMorning = { activities: [stop("Fort", "landmark", "08:00", 520)] };
+      expect(withStopAt(longMorning, stop("Museum", "museum", "10:00", 60), DAYTIME)).toBeNull();
+      // Half past four is still in time.
+      const untilFour = { activities: [stop("Fort", "landmark", "08:00", 490)] };
+      expect(timed(withStopAt(untilFour, stop("Museum", "museum", "10:00", 60), DAYTIME))).toEqual(["08:00 Fort", "16:30 Museum"]);
+      // And a sight planned for half past four is one of the day's: it isn't pushed on from there.
+      const atHalfPast = { activities: [stop("Museum", "museum", "16:30", 60)] };
+      expect(withStopAt(atHalfPast, stop("Fort", "landmark", "14:00", 180), DAYTIME)).toBeNull();
+    });
+
+    it("still pushes a show, shops, a meal or a sight the plan already had in the evening", () => {
+      const fort = stop("Fort", "landmark", "14:00", 180);
+      const show = {
+        activities: [stop("Lunch place", "restaurant", "12:30", 60), stop("Puppet show", "entertainment", "16:00", 120), stop("Dinner place", "restaurant", "19:00", 90)],
+      };
+      expect(timed(withStopAt(show, fort, DAYTIME))).toEqual(["12:30 Lunch place", "14:00 Fort", "17:20 Puppet show", "19:40 Dinner place"]);
+      const shops = { activities: [stop("Old town shops", "shopping", "16:00", 60)] };
+      expect(timed(withStopAt(shops, fort, DAYTIME))).toEqual(["14:00 Fort", "17:20 Old town shops"]);
+      const lateLunch = { activities: [stop("Late lunch", "restaurant", "15:30", 60)] };
+      expect(timed(withStopAt(lateLunch, fort, DAYTIME))).toEqual(["14:00 Fort", "17:20 Late lunch"]);
+      const sunset = { activities: [stop("Viewpoint", "attraction", "18:00", 60)] };
+      expect(timed(withStopAt(sunset, stop("Harbour cruise", "tour", "17:30", 90), DAYTIME))).toEqual(["17:30 Harbour cruise", "19:20 Viewpoint"]);
+    });
+
+    it("leaves a late lunch where it is when bringing it forward would push a sight past the late afternoon", () => {
+      const day = {
+        activities: [stop("Tomb", "landmark", "10:00", 150), stop("Lunch place", "restaurant", "12:30", 60), stop("Garden", "park", "15:00", 60)],
+      };
+      const fort = stop("Fort", "landmark", "09:00", 180);
+      // Lunch ahead of the tomb would start the garden at 16:40.
+      expect(timed(withStopAt(day, fort, DAYTIME))).toEqual(["09:00 Fort", "12:20 Tomb", "15:10 Lunch place", "16:30 Garden"]);
+      // Unasked, lunch keeps its hour and the garden goes later.
+      expect(timed(withStopAt(day, fort))).toEqual(["09:00 Fort", "12:30 Lunch place", "13:50 Tomb", "16:40 Garden"]);
+    });
+
+    it("is only for the caller that asks: without it a sight is pushed as before", () => {
+      const untilFive = { activities: [stop("Fort", "landmark", "08:00", 520)] };
+      expect(timed(withStopAt(untilFive, stop("Museum", "museum", "10:00", 60)))).toEqual(["08:00 Fort", "17:00 Museum"]);
+    });
+  });
+
   it("goes ahead of as few stops as it takes", () => {
     const day = {
       activities: [
