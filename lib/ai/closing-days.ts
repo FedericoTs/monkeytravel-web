@@ -25,13 +25,22 @@
  * (lib/ai/closed-swaps.ts).
  */
 import { easterSunday } from "@/lib/ai/easter";
-import { withClosingNotes, withKnownClosings } from "@/lib/ai/known-closings";
+import { withClosingNotes, withKnownClosings, type OpenHours } from "@/lib/ai/known-closings";
+import { insideHours, knownHoursFor } from "@/lib/ai/visit-hours";
 import { SchemaType, type ResponseSchema } from "@/lib/ai/genai-compat";
 import { genAI, withTimeout } from "@/lib/ai/gemini-call";
 import { getModelForPurpose, thinkingConfigFor } from "@/lib/ai/model-router";
 import { geminiCostUsd, recordGeminiUsage } from "@/lib/ai/gemini-cost";
 import { rewordMovedDays, type WordDay, type WordStop } from "@/lib/ai/moved-day-words";
-import { isDaytimeSight, keepsToTheDay, plannedMinutes, startsApart, withStopAt, type TimedStop as DayRoomStop } from "@/lib/trip/day-room";
+import {
+  isDaytimeSight,
+  keepsToTheDay,
+  plannedMinutes,
+  shortenedToFit,
+  startsApart,
+  withStopAt,
+  type TimedStop as DayRoomStop,
+} from "@/lib/trip/day-room";
 
 export const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
 export type Weekday = (typeof WEEKDAYS)[number];
@@ -312,6 +321,16 @@ const mayChangeDay = (stop: TimedStop) => isDaytimeSight(stop) && stop.type !== 
 /** No stop was named by the traveller. */
 const NONE_NAMED = () => false;
 
+/** The hours a stop's place keeps on a date, when the checked list knows them (lib/ai/visit-hours.ts). */
+type HoursOn = (stop: TimedStop, date: string | undefined) => OpenHours | null;
+const NO_HOURS: HoursOn = () => null;
+
+/** Whether a stop at its time keeps inside the hours its place keeps on a date: any time does when they aren't known. */
+function inItsHours(stop: TimedStop, date: string | undefined, hoursOn: HoursOn): boolean {
+  const m = /^(\d{1,2}):(\d{2})/.exec(stop.start_time ?? "");
+  return !m || insideHours(Number(m[1]) * 60 + Number(m[2]), stop.duration_minutes || 90, hoursOn(stop, date));
+}
+
 /** How many of a day's stops start later once one more was put in. */
 const startLater = (before: Day, after: Day) => (after.activities ?? []).filter((stop) => !(before.activities ?? []).includes(stop)).length - 1;
 
@@ -320,9 +339,17 @@ const startLater = (before: Day, after: Day) => (after.activities ?? []).filter(
  * takes the other's time on the other's day. Of the sights that `give` their place and make both days work, the one
  * whose trade moves the fewest other stops goes, the nearest in time to the stop among equals: a morning sight stays
  * a morning sight where it can. Only a sight of the day trades, at times that keep both in the day, so an evening
- * stop never trades with a morning one. None when no sight does.
+ * stop never trades with a morning one, and neither lands outside the hours its place keeps that day (`hoursOn`).
+ * With `fit`, the stop's visit is cut to the slot it takes when it is longer (shortenedToFit), so it pushes none of
+ * the stops after it and ends by its place's closing. None when no sight does.
  */
-function tradedDays<T extends Day>(home: T, at: number, away: T, gives: (other: TimedStop) => boolean): { from: T; into: T } | null {
+function tradedDays<T extends Day>(
+  home: T,
+  at: number,
+  away: T,
+  gives: (other: TimedStop) => boolean,
+  { fit = false, hoursOn = NO_HOURS }: { fit?: boolean; hoursOn?: HoursOn } = {}
+): { from: T; into: T } | null {
   const stop = (home.activities ?? [])[at] as TimedStop;
   const rest = { ...home, activities: (home.activities ?? []).filter((_, k) => k !== at) };
   const others = (away.activities ?? [])
@@ -331,9 +358,11 @@ function tradedDays<T extends Day>(home: T, at: number, away: T, gives: (other: 
   let best: { from: T; into: T; later: number } | null = null;
   for (const { other, k } of others) {
     const moved = { ...other, start_time: stop.start_time, time_slot: stop.time_slot };
-    const placed = { ...stop, start_time: other.start_time, time_slot: other.time_slot };
-    if (!mayChangeDay(other) || !gives(other) || !keepsToTheDay(moved) || (isDaytimeSight(placed) && !keepsToTheDay(placed))) continue;
     const without = { ...away, activities: (away.activities ?? []).filter((_, j) => j !== k) };
+    const whole = { ...stop, start_time: other.start_time, time_slot: other.time_slot };
+    const placed = fit && isDaytimeSight(whole) ? shortenedToFit(whole, without.activities ?? [], hoursOn(whole, away.date)?.close) : whole;
+    if (!placed || !mayChangeDay(other) || !gives(other) || !keepsToTheDay(moved) || (isDaytimeSight(placed) && !keepsToTheDay(placed))) continue;
+    if (!inItsHours(placed, away.date, hoursOn) || !inItsHours(moved, home.date, hoursOn)) continue;
     const into = withStopAt(without, placed, KEEPS_SHAPE);
     const from = into && withStopAt(rest, moved, KEEPS_SHAPE);
     if (!into || !from) continue;
@@ -353,7 +382,11 @@ function tradedDays<T extends Day>(home: T, at: number, away: T, gives: (other: 
  * A stop the traveller `named` (a must-do) is never the sight that gives its
  * place, and when nothing else gets it to a day it is open, it takes the place
  * of a sight they didn't ask for, which then stands on a day it may be shut:
- * better that one swapped for an open place than the one they named. Only
+ * better that one swapped for an open place than the one they named. When no
+ * slot takes its whole visit, it is cut to the slot it takes, never under an
+ * hour or half its visit: a shorter visit to a sight they asked for beats none.
+ * No trade puts a sight outside the hours its place keeps that day, when the
+ * checked list knows them (`hoursOn`). Only
  * the plan's sights are asked about, so a meal never moves. A stop with
  * nowhere to go stays where it is. A trip needs no more moves than it has
  * stops: past that count nothing moves.
@@ -362,7 +395,8 @@ export function moveShutStops<T extends Day>(
   days: T[],
   closings: Closings,
   shutDates: ShutDates,
-  named: (stop: TimedStop) => boolean = NONE_NAMED
+  named: (stop: TimedStop) => boolean = NONE_NAMED,
+  hoursOn: HoursOn = NO_HOURS
 ): { days: T[]; moved: number } {
   if ((closings.size === 0 && shutDates.size === 0) || days.length < 2) return { days, moved: 0 };
   let current = days;
@@ -390,18 +424,22 @@ export function moveShutStops<T extends Day>(
       }
       const home = current[d];
       for (const option of target ? [] : options) {
-        const trade = tradedDays(home, s, option.day, (other) => !named(other) && !stopShutOn(other, home.date, closings, shutDates));
+        const trade = tradedDays(home, s, option.day, (other) => !named(other) && !stopShutOn(other, home.date, closings, shutDates), { hoursOn });
         if (trade) {
           target = { i: option.i, ...trade };
           break;
         }
       }
-      for (const option of target || !named(stop) ? [] : options) {
-        const trade = tradedDays(home, s, option.day, (other) => !named(other));
-        if (trade) {
-          target = { i: option.i, ...trade };
-          break;
+      // Its whole visit on any open day first; cut to a slot only when none takes it.
+      for (const fit of target || !named(stop) ? [] : [false, true]) {
+        for (const option of options) {
+          const trade = tradedDays(home, s, option.day, (other) => !named(other), { fit, hoursOn });
+          if (trade) {
+            target = { i: option.i, ...trade };
+            break;
+          }
         }
+        if (target) break;
       }
       if (!target) {
         s++;
@@ -493,7 +531,8 @@ async function settleDays<D extends Day>(
   const moves = order.flatMap((from, slot) => (from === slot ? [] : [{ slot, from: days[from].date }]));
   const ordered = inOrder(days, order);
   const words = moves.length > 0 ? await reword(ordered, moves, destination) : { days: ordered, costUsd: 0, reworded: 0 };
-  const stops = moveShutStops(words.days, closings, shutDates, named);
+  // A trade keeps each sight inside the hours the checked list knows for it, in this city.
+  const stops = moveShutStops(words.days, closings, shutDates, named, (stop, date) => (date ? knownHoursFor(stop.name, destination, date) : null));
   const stuck = swap ? stopsStillShut(stops.days, closings, shutDates) : [];
   const swaps = swap && stuck.length > 0 ? await swap(stops.days, stuck) : { days: stops.days, swapped: 0, costUsd: 0 };
   return { days: swaps.days as D[], costUsd: words.costUsd + swaps.costUsd, reworded: words.reworded, stopsMoved: stops.moved, swapped: swaps.swapped };
