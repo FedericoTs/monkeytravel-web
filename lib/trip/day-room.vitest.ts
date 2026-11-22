@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { plannedMinutes, shortenedToFit, withStopAt, type TimedStop } from "./day-room";
+import { notBefore, plannedMinutes, shortenedToFit, withStopAt, type TimedStop } from "./day-room";
 
 const stop = (name: string, type: string, start_time: string, duration_minutes: number): TimedStop => ({
   name,
@@ -186,6 +186,21 @@ describe("withStopAt", () => {
     expect(withStopAt(late, MORNING_SIGHT)).toBeNull();
     const event = { activities: [stop("Show", "event", "10:00", 60), stop("Lunch place", "restaurant", "12:00", 60)] };
     expect(withStopAt(event, MORNING_SIGHT)).toBeNull();
+  });
+
+  describe("notBefore", () => {
+    it("starts a stop at the opening when it would start before it, in the right part of the day", () => {
+      expect(notBefore(stop("Tower", "landmark", "09:30", 180), 600)).toEqual({ ...stop("Tower", "landmark", "10:00", 180), time_slot: "morning" });
+      expect(notBefore(stop("Garden", "park", "11:30", 60), 13 * 60)).toEqual({ ...stop("Garden", "park", "13:00", 60), time_slot: "afternoon" });
+    });
+
+    it("leaves a stop that starts at or after the opening, with no opening, or with no time as it is", () => {
+      const tower = stop("Tower", "landmark", "10:00", 180);
+      expect(notBefore(tower, 600)).toBe(tower);
+      expect(notBefore(tower)).toBe(tower);
+      const untimed = { name: "Walk", type: "walk" };
+      expect(notBefore(untimed, 600)).toBe(untimed);
+    });
   });
 
   describe("shortenedToFit", () => {
