@@ -270,6 +270,100 @@ describe("a stop still shut after the reorder", () => {
     ]);
   });
 
+  // Both other days are full until the late afternoon: put in at 14:20 or 13:20, the museum would push the sight
+  // after it past half past four, when it would be shut.
+  const fullDays = () => {
+    const days = rome();
+    days[0].activities = [stop("Colosseum", "landmark", "09:00", 240), stop("Trattoria Luzzi", "restaurant", "13:30", 60), stop("Roman Forum", "attraction", "15:00", 120)];
+    days[2].activities = [stop("Borghese Gallery", "museum", "10:00", 240), stop("Villa Giulia", "museum", "15:00", 120)];
+    return days;
+  };
+
+  it("trades days with a sight of a full day, rather than push a sight into the evening", () => {
+    const full = fullDays();
+    (full[1].activities[0] as Timed).time_slot = "morning";
+    (full[2].activities[1] as Timed).time_slot = "afternoon";
+    const { days, moved } = moveShutStops(full, new Map(), capitolineShut);
+    expect(moved).toBe(1);
+    // The 26th's last sight takes the museum's morning on Christmas Day, where it is open.
+    expect(timed(days)).toEqual([
+      "09:00 Colosseum | 13:30 Trattoria Luzzi | 15:00 Roman Forum",
+      "10:00 Villa Giulia | 13:00 Pizzeria Remo",
+      "10:00 Borghese Gallery | 14:20 Capitoline Museums",
+    ]);
+    expect((days[1].activities[0] as Timed).time_slot).toBe("morning");
+    expect(shutStops(days, new Map(), capitolineShut)).toBe(0);
+    // With the afternoon free on the 26th, it moves there with no trade, as before.
+    const free = fullDays();
+    free[2].activities = [stop("Borghese Gallery", "museum", "10:00", 240)];
+    expect(timed(moveShutStops(free, new Map(), capitolineShut).days).slice(1)).toEqual(["13:00 Pizzeria Remo", "10:00 Borghese Gallery | 14:20 Capitoline Museums"]);
+  });
+
+  it("trades with the latest sight that is open on its day, never a meal, a fixed plan or a ride", () => {
+    // Villa Giulia is shut on Christmas Day too: the gallery before it goes instead.
+    const bothShut = shutDates([["Capitoline Museums", ["2026-12-25"]], ["Villa Giulia", ["2026-12-25"]]]);
+    expect(timed(moveShutStops(fullDays(), new Map(), bothShut).days).slice(1)).toEqual([
+      "10:00 Borghese Gallery | 14:20 Pizzeria Remo",
+      "10:00 Capitoline Museums | 15:00 Villa Giulia",
+    ]);
+    // The latest that makes room, that is: with either afternoon sight gone, the other would still start past half
+    // past four. The morning's gallery goes.
+    const afternoons = fullDays();
+    afternoons[2].activities = [stop("Borghese Gallery", "museum", "10:00", 240), stop("Villa Giulia", "museum", "14:30", 90), stop("MAXXI", "museum", "16:15", 45)];
+    expect(timed(moveShutStops(afternoons, new Map(), capitolineShut).days).slice(1)).toEqual([
+      "10:00 Borghese Gallery | 14:20 Pizzeria Remo",
+      "10:00 Capitoline Museums | 14:30 Villa Giulia | 16:15 MAXXI",
+    ]);
+    // Days whose only other stops are a booked tour, a day out by train and dinner have nothing to trade.
+    const fixed = fullDays();
+    fixed[0].activities = [{ ...stop("Vatican tour", "tour", "09:00", 450), locked: true } as Timed];
+    fixed[2].activities = [stop("Train to Orvieto and back", "transport", "09:00", 460), stop("Dinner at Roscioli", "restaurant", "19:00", 90)];
+    const { days: after, moved } = moveShutStops(fixed, new Map(), capitolineShut);
+    expect(moved).toBe(0);
+    expect(after).toBe(fixed);
+  });
+
+  it("trades a sight of the day at a time of the day: an evening stop and a morning one never change places", () => {
+    // Open on the 26th alone, where the afternoon would run into the concert.
+    const shut = shutDates([["Capitoline Museums", ["2026-12-24", "2026-12-25"]]]);
+    const days = rome();
+    days[2].activities = [
+      stop("Borghese Gallery", "museum", "10:00", 120),
+      stop("Villa Giulia", "museum", "13:00", 180),
+      stop("Gianicolo at sunset", "attraction", "17:00", 60),
+      stop("Christmas concert", "event", "18:30", 90),
+    ];
+    // Taking the sunset out would make room too: it stays in its evening, and the afternoon's museum goes.
+    expect(timed(moveShutStops(days, new Map(), shut).days).slice(1)).toEqual([
+      "10:00 Villa Giulia | 13:20 Pizzeria Remo",
+      "10:00 Borghese Gallery | 12:20 Capitoline Museums | 17:00 Gianicolo at sunset | 18:30 Christmas concert",
+    ]);
+    // An evening opening that is shut: the gallery won't take its seven o'clock.
+    const evening = rome();
+    evening[1].activities = [stop("Pizzeria Remo", "restaurant", "13:00", 60), stop("Capitoline Museums", "museum", "19:00", 40)];
+    evening[2].activities = [stop("Borghese Gallery", "museum", "14:00", 300), stop("Christmas concert", "event", "20:00", 90)];
+    const { days: after, moved } = moveShutStops(evening, new Map(), shut);
+    expect(moved).toBe(0);
+    expect(after).toBe(evening);
+  });
+
+  it("stays, to be swapped where it is, when no sight of an open day can take its place", () => {
+    // Every other sight of the trip is shut on Christmas Day as well.
+    const allShut = shutDates(
+      ["Capitoline Museums", "Colosseum", "Roman Forum", "Borghese Gallery", "Villa Giulia"].map((name) => [name, ["2026-12-25"]] as [string, string[]])
+    );
+    const days = fullDays();
+    const { days: after, moved } = moveShutStops(days, new Map(), allShut);
+    expect(moved).toBe(0);
+    expect(after).toBe(days);
+    expect(stopsStillShut(after, new Map(), allShut).map((s) => s.name)).toEqual(["Capitoline Museums"]);
+    // Or the one sight that could is so long that its new day's afternoon walk would start in the evening.
+    const long = rome();
+    long[1].activities = [stop("Capitoline Museums", "museum", "10:00", 120), stop("Pizzeria Remo", "restaurant", "13:00", 60), stop("Trastevere walk", "attraction", "14:30", 90)];
+    long[2].activities = [stop("Vatican Museums", "museum", "09:00", 440)];
+    expect(moveShutStops(long, new Map(), shutDates([["Capitoline Museums", ["2026-12-24", "2026-12-25"]]])).moved).toBe(0);
+  });
+
   it("never moves a dated event to make room", () => {
     const days = rome();
     days[0].activities = [stop("Christmas concert", "event", "10:30", 90)];
