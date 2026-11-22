@@ -355,6 +355,10 @@ const memoryClaims = [
   "Your flight times for Mexico City on November 23rd and 27th, 2026, have been recorded. I've identified key considerations for your arrival and departure days to ensure smooth travel.",
   "I've noted that you'll be staying in Santa Maria for the entire trip, even though your flight arrives in Espargos.",
   "Noted! I'll keep that in mind.",
+  // A promise about how the plan will be kept, with nothing changed.
+  "Since you don't have a car, I'll keep your itinerary reliant on trains, public transit, and walking.",
+  "I'll make sure your plan stays focused on public transport.",
+  "We will keep the trip car-free.",
   // "Noted that…" opens a reply the same way, with nothing kept.
   "Noted that you are starting your trip from Toronto! You can change the trip's dates to match your flights.",
   "Noted, that you fly in from Toronto.",
@@ -374,6 +378,8 @@ const notMemoryClaims = [
   "Please note the check-in time on your booking.",
   "Noted for its views, Calton Hill is best at sunset.",
   "Notedly, the castle closes early in winter.",
+  "I'll keep your plan as it is, since every stop is open that day.",
+  "Without a car, the trip relies on trains: the itinerary is built around the station.",
 ];
 
 describe("claimsToRemember", () => {
