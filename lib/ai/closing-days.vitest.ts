@@ -285,13 +285,14 @@ describe("a stop still shut after the reorder", () => {
     (full[2].activities[1] as Timed).time_slot = "afternoon";
     const { days, moved } = moveShutStops(full, new Map(), capitolineShut);
     expect(moved).toBe(1);
-    // The 26th's last sight takes the museum's morning on Christmas Day, where it is open.
+    // The 26th's last sight takes the museum's morning on Christmas Day, where it is open, and the museum its afternoon.
     expect(timed(days)).toEqual([
       "09:00 Colosseum | 13:30 Trattoria Luzzi | 15:00 Roman Forum",
       "10:00 Villa Giulia | 13:00 Pizzeria Remo",
-      "10:00 Borghese Gallery | 14:20 Capitoline Museums",
+      "10:00 Borghese Gallery | 15:00 Capitoline Museums",
     ]);
     expect((days[1].activities[0] as Timed).time_slot).toBe("morning");
+    expect((days[2].activities[1] as Timed).time_slot).toBe("afternoon");
     expect(shutStops(days, new Map(), capitolineShut)).toBe(0);
     // With the afternoon free on the 26th, it moves there with no trade, as before.
     const free = fullDays();
@@ -314,18 +315,55 @@ describe("a stop still shut after the reorder", () => {
       "10:00 Borghese Gallery | 14:20 Pizzeria Remo",
       "10:00 Capitoline Museums | 14:30 Villa Giulia | 16:15 MAXXI",
     ]);
-    // Days whose only other stops are a booked tour, a day out by train and dinner have nothing to trade.
+    // Days whose only other stops are booked visits, a day out by train and meals have nothing to trade: the booked
+    // tour would fit the museum's morning, and stays.
     const fixed = fullDays();
-    fixed[0].activities = [{ ...stop("Vatican tour", "tour", "09:00", 450), locked: true } as Timed];
+    fixed[0].activities = [
+      { ...stop("Vatican tour", "tour", "09:00", 150), locked: true } as Timed,
+      stop("Trattoria Luzzi", "restaurant", "12:00", 60),
+      { ...stop("St Peter's dome climb", "landmark", "14:00", 180), locked: true } as Timed,
+    ];
     fixed[2].activities = [stop("Train to Orvieto and back", "transport", "09:00", 460), stop("Dinner at Roscioli", "restaurant", "19:00", 90)];
     const { days: after, moved } = moveShutStops(fixed, new Map(), capitolineShut);
     expect(moved).toBe(0);
     expect(after).toBe(fixed);
   });
 
-  it("trades a sight of the day at a time of the day: an evening stop and a morning one never change places", () => {
+  it("trades with the sight whose going moves the fewest other stops, the nearest in time among equals", () => {
     // Open on the 26th alone, where the afternoon would run into the concert.
     const shut = shutDates([["Capitoline Museums", ["2026-12-24", "2026-12-25"]]]);
+    const days = rome();
+    days[2].activities = [
+      stop("Borghese Gallery", "museum", "10:00", 120),
+      stop("Villa Giulia", "museum", "12:30", 120),
+      stop("Villa Borghese gardens", "park", "15:00", 90),
+      stop("Christmas concert", "event", "17:00", 90),
+    ];
+    // Either museum could go with nothing else moved: the one at the Capitoline's own hour does, so both keep their morning.
+    expect(timed(moveShutStops(days, new Map(), shut).days).slice(1)).toEqual([
+      "10:00 Borghese Gallery | 13:00 Pizzeria Remo",
+      "10:00 Capitoline Museums | 12:30 Villa Giulia | 15:00 Villa Borghese gardens | 17:00 Christmas concert",
+    ]);
+    // A longer morning gallery would push lunch on its new day: the afternoon's museum goes instead, and nothing else moves.
+    days[2].activities = [
+      stop("Borghese Gallery", "museum", "10:00", 240),
+      stop("Villa Giulia", "museum", "14:30", 120),
+      stop("Gianicolo at sunset", "attraction", "17:00", 60),
+      stop("Christmas concert", "event", "18:30", 90),
+    ];
+    expect(timed(moveShutStops(days, new Map(), shut).days).slice(1)).toEqual([
+      "10:00 Villa Giulia | 13:00 Pizzeria Remo",
+      "10:00 Borghese Gallery | 14:30 Capitoline Museums | 17:00 Gianicolo at sunset | 18:30 Christmas concert",
+    ]);
+  });
+
+  it("trades a sight of the day at a time of the day: an evening stop and a morning one never change places", () => {
+    // Open on the 26th alone, where both museums are shut on Christmas Day too: only the sunset could give its place.
+    const shut = shutDates([
+      ["Capitoline Museums", ["2026-12-24", "2026-12-25"]],
+      ["Borghese Gallery", ["2026-12-25"]],
+      ["Villa Giulia", ["2026-12-25"]],
+    ]);
     const days = rome();
     days[2].activities = [
       stop("Borghese Gallery", "museum", "10:00", 120),
@@ -333,18 +371,29 @@ describe("a stop still shut after the reorder", () => {
       stop("Gianicolo at sunset", "attraction", "17:00", 60),
       stop("Christmas concert", "event", "18:30", 90),
     ];
-    // Taking the sunset out would make room too: it stays in its evening, and the afternoon's museum goes.
-    expect(timed(moveShutStops(days, new Map(), shut).days).slice(1)).toEqual([
-      "10:00 Villa Giulia | 13:20 Pizzeria Remo",
-      "10:00 Borghese Gallery | 12:20 Capitoline Museums | 17:00 Gianicolo at sunset | 18:30 Christmas concert",
-    ]);
+    // It stays in its evening, and the museum where it is.
+    expect(moveShutStops(days, new Map(), shut)).toEqual({ days, moved: 0 });
+    // Nor does a long visit take a slot it would overrun: five hours from half past three end at half past eight.
+    const overrun = rome();
+    overrun[1].activities = [stop("Pizzeria Remo", "restaurant", "13:00", 60), stop("Capitoline Museums", "museum", "15:30", 60)];
+    overrun[2].activities = [stop("Borghese Gallery", "museum", "10:00", 300), stop("Villa Giulia", "museum", "15:30", 120)];
+    const longShut = shutDates([["Capitoline Museums", ["2026-12-24", "2026-12-25"]], ["Villa Giulia", ["2026-12-25"]]]);
+    expect(moveShutStops(overrun, new Map(), longShut).moved).toBe(0);
     // An evening opening that is shut: the gallery won't take its seven o'clock.
     const evening = rome();
     evening[1].activities = [stop("Pizzeria Remo", "restaurant", "13:00", 60), stop("Capitoline Museums", "museum", "19:00", 40)];
     evening[2].activities = [stop("Borghese Gallery", "museum", "14:00", 300), stop("Christmas concert", "event", "20:00", 90)];
-    const { days: after, moved } = moveShutStops(evening, new Map(), shut);
+    const { days: after, moved } = moveShutStops(evening, new Map(), longShut);
     expect(moved).toBe(0);
     expect(after).toBe(evening);
+  });
+
+  it("never pushes a sight of the day it goes to into the evening", () => {
+    // The gallery is shut on Christmas Day too. In the next sight's slot the museum would start the last one at 17:40.
+    const shut = shutDates([["Capitoline Museums", ["2026-12-24", "2026-12-25"]], ["Borghese Gallery", ["2026-12-25"]]]);
+    const days = rome();
+    days[2].activities = [stop("Borghese Gallery", "museum", "10:00", 300), stop("MAXXI", "museum", "15:10", 60), stop("Villa Giulia", "museum", "16:20", 60)];
+    expect(moveShutStops(days, new Map(), shut)).toEqual({ days, moved: 0 });
   });
 
   it("stays, to be swapped where it is, when no sight of an open day can take its place", () => {
@@ -362,6 +411,95 @@ describe("a stop still shut after the reorder", () => {
     long[1].activities = [stop("Capitoline Museums", "museum", "10:00", 120), stop("Pizzeria Remo", "restaurant", "13:00", 60), stop("Trastevere walk", "attraction", "14:30", 90)];
     long[2].activities = [stop("Vatican Museums", "museum", "09:00", 440)];
     expect(moveShutStops(long, new Map(), shutDates([["Capitoline Museums", ["2026-12-24", "2026-12-25"]]])).moved).toBe(0);
+  });
+
+  // London over Christmas: the Tower and the V&A, both asked for by name, are open on the 27th alone, and so is
+  // everything else the plan holds.
+  const london = () => [
+    {
+      day_number: 1,
+      date: "2026-12-24",
+      activities: [stop("Tower of London", "landmark", "10:00", 180), stop("Lunch at Borough", "restaurant", "13:30", 60), stop("Tower Bridge", "landmark", "15:15", 60)],
+    },
+    {
+      day_number: 2,
+      date: "2026-12-25",
+      activities: [
+        stop("Victoria and Albert Museum", "museum", "10:00", 150),
+        stop("Christmas lunch", "restaurant", "13:00", 90),
+        stop("Natural History Museum", "museum", "15:00", 120),
+      ],
+    },
+    {
+      day_number: 3,
+      date: "2026-12-27",
+      activities: [
+        stop("National Gallery", "museum", "10:00", 150),
+        stop("Lunch in Soho", "restaurant", "12:30", 60),
+        stop("Old Royal Naval College", "landmark", "14:30", 120),
+        stop("A play at the Globe", "entertainment", "19:30", 150),
+      ],
+    },
+  ];
+  const overChristmas = shutDates(
+    ["Tower of London", "Tower Bridge", "Victoria and Albert Museum", "Natural History Museum", "National Gallery", "Old Royal Naval College"].map(
+      (name) => [name, ["2026-12-24", "2026-12-25"]] as [string, string[]]
+    )
+  );
+  const askedFor = (s: { name?: string }) => /tower of london|victoria and albert/i.test(s.name ?? "");
+
+  it("gives a sight the traveller asked for the one day it is open, in place of a sight they didn't", () => {
+    const { days, moved } = moveShutStops(london(), new Map(), overChristmas, askedFor);
+    expect(moved).toBe(2);
+    expect(timed(days)).toEqual([
+      // What gave its place stands where the asked-for sight was, to be swapped for somewhere open.
+      "10:00 Old Royal Naval College | 13:30 Lunch at Borough | 15:15 Tower Bridge",
+      "10:00 National Gallery | 13:00 Christmas lunch | 15:00 Natural History Museum",
+      // Each asked-for sight in the slot of the one that left: the day keeps its shape.
+      "10:00 Victoria and Albert Museum | 12:50 Lunch in Soho | 14:30 Tower of London | 19:30 A play at the Globe",
+    ]);
+    expect(stopsStillShut(days, new Map(), overChristmas).map((s) => s.name)).toEqual([
+      "Old Royal Naval College",
+      "Tower Bridge",
+      "National Gallery",
+      "Natural History Museum",
+    ]);
+  });
+
+  it("is told what was asked for by name through the whole step, on one city and on several", async () => {
+    const ask = async () => ({ closings: new Map(), shutDates: overChristmas, costUsd: 0 });
+    const words = (async (days: unknown[]) => ({ days, costUsd: 0, reworded: 0 })) as never;
+    const day27 = "10:00 Victoria and Albert Museum | 12:50 Lunch in Soho | 14:30 Tower of London | 19:30 A play at the Globe";
+    const one = await keepOffClosingDays({ days: london() }, "London", ask, words, undefined, modelOnly, askedFor);
+    expect(timed(one.itinerary.days)[2]).toBe(day27);
+    expect(one.stopsMoved).toBe(2);
+    const inOneCity = london().map((d) => ({ ...d, city: "London" }));
+    const several = await keepOffClosingDaysByCity({ days: inOneCity }, "London", ask, words, undefined, modelOnly, askedFor);
+    expect(timed(several.itinerary.days)[2]).toBe(day27);
+    // Told nothing, the step moves nothing.
+    expect((await keepOffClosingDays({ days: london() }, "London", ask, words, undefined, modelOnly)).stopsMoved).toBe(0);
+    expect((await keepOffClosingDaysByCity({ days: inOneCity }, "London", ask, words, undefined, modelOnly)).stopsMoved).toBe(0);
+  });
+
+  it("leaves every day as it is when nothing was asked for by name: none of them deserves the day more", () => {
+    const days = london();
+    const { days: after, moved } = moveShutStops(days, new Map(), overChristmas);
+    expect(moved).toBe(0);
+    expect(after).toBe(days);
+  });
+
+  it("never takes the place of a sight that was asked for too", () => {
+    const towerShut = shutDates([["Tower of London", ["2026-12-24", "2026-12-25"]]]);
+    const days = [
+      { day_number: 1, date: "2026-12-24", activities: [stop("Tower of London", "landmark", "10:00", 180), stop("Lunch at Borough", "restaurant", "13:30", 60)] },
+      { day_number: 2, date: "2026-12-27", activities: [stop("National Gallery", "museum", "10:00", 240), stop("Old Royal Naval College", "landmark", "15:20", 60)] },
+    ];
+    // Not asked for, the gallery, open on the 24th, trades places with the Tower.
+    const { days: traded, moved } = moveShutStops(days, new Map(), towerShut, (s) => /tower of london/i.test(s.name ?? ""));
+    expect(moved).toBe(1);
+    expect(timed(traded)).toEqual(["10:00 National Gallery | 14:20 Lunch at Borough", "10:00 Tower of London | 15:20 Old Royal Naval College"]);
+    // Asked for as well, it keeps its day, and the college's late slot would run the Tower past six.
+    expect(moveShutStops(days, new Map(), towerShut, (s) => /tower of london|national gallery/i.test(s.name ?? "")).moved).toBe(0);
   });
 
   it("never moves a dated event to make room", () => {

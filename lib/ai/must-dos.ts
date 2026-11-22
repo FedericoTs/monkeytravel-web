@@ -61,6 +61,19 @@ export function held(words: string[], names: string[][]): boolean {
 }
 
 /**
+ * Tells a stop the traveller asked for by name from the rest of the plan. The stop's name has to hold the must-do's
+ * whole name, a letter off allowed, not only the words that tell it apart: on a London trip those are "London" for
+ * the Tower of London, and every stop with London in its name would pass. A wish ("eat good food") or a kind alone
+ * ("museums") names none.
+ */
+export function askedByName(mustDos: string[] | undefined): (stop: { name?: string }) => boolean {
+  const asked = items(mustDos ?? [])
+    .filter((mustDo) => tellingWords(mustDo).length > 0)
+    .map((mustDo) => nameTokens(mustDo));
+  return (stop) => asked.some((words) => held(words, [nameTokens(stop.name ?? "")]));
+}
+
+/**
  * The must-dos no activity of the plan holds. One is held when an activity's
  * name has every word that tells it apart, a letter off allowed: "gyeongbukgung
  * palace" is Gyeongbokgung Palace. A wish has no such word and is never

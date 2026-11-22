@@ -15,7 +15,7 @@ vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
   genAI: { getGenerativeModel: () => ({ generateContent }) },
 }));
 
-import { askForMustDos, keepMustDos, missingMustDos, withMustDos, type MustDoAnswer } from "./must-dos";
+import { askedByName, askForMustDos, keepMustDos, missingMustDos, withMustDos, type MustDoAnswer } from "./must-dos";
 
 const at = (start_time: string, name: string, lat = 35.7148, lng = 139.7967, extra: Partial<Activity> = {}) =>
   ({ start_time, duration_minutes: 90, name, type: "attraction", description: "", location: "", coordinates: { lat, lng }, tips: [], booking_required: false, time_slot: "morning", ...extra }) as Activity;
@@ -65,6 +65,27 @@ describe("missingMustDos", () => {
       "Ichiran ramen",
       "Statue of Liberty",
     ]);
+  });
+});
+
+describe("askedByName", () => {
+  it("knows a stop by a must-do's whole name, a letter off allowed", () => {
+    const asked = askedByName(["Tower of London, Victoria and Albert Museum", "Gyeongbukgung palace"]);
+    expect(asked({ name: "Tower of London" })).toBe(true);
+    expect(asked({ name: "The Tower of London and the Crown Jewels" })).toBe(true);
+    expect(asked({ name: "Victoria and Albert Museum" })).toBe(true);
+    expect(asked({ name: "Gyeongbokgung Palace" })).toBe(true);
+    // On a London trip only "London" tells the Tower apart: the whole name is what was asked for.
+    expect(asked({ name: "London Eye" })).toBe(false);
+    expect(asked({ name: "Tower Bridge" })).toBe(false);
+    expect(asked({ name: "Natural History Museum" })).toBe(false);
+    expect(asked({})).toBe(false);
+  });
+
+  it("takes no stop for a wish, a kind alone, or no must-dos", () => {
+    expect(askedByName(["eat good food", "museums"])({ name: "British Museum" })).toBe(false);
+    expect(askedByName(undefined)({ name: "British Museum" })).toBe(false);
+    expect(askedByName([])({ name: "British Museum" })).toBe(false);
   });
 });
 
