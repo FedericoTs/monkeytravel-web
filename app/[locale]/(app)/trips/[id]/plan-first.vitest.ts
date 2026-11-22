@@ -33,6 +33,19 @@ describe("the saved trip page, plan first", () => {
     expect(SRC).toContain("const advisoryCoversCountry = coversWholeCountry(advisory);");
   });
 
+  // Owners stopped sending their trips once the card that asks sat under the days: the ask leads the chips.
+  it("leads the chips with the way to send the plan, one tap from the share window, for a trip never sent", () => {
+    const send = items.indexOf('id: "send"');
+    expect(send).toBeGreaterThan(items.indexOf('id: "advice"'));
+    expect(send).toBeLessThan(items.indexOf('id: "who"'));
+    expect(items).toMatch(
+      /if \(\s*leadsWithSendAsk\(\{\s*isOwner,\s*editing: isEditMode,\s*shared: crewSharingEnabled,\s*intent: trip\.meta\?\.trip_intent,\s*dismissed: sendAskDismissed,\s*\}\)\s*\) \{\s*stripItems\.push\(\{ id: "send", label: t\("detail\.crewCtaButton"\), onPress: openCrewShareModal \}\);/,
+    );
+    // The card under the days and the chip read the same "not again" from this browser.
+    expect(SRC).toContain("const [sendAskDismissed] = useSendAskDismissed(trip.id);");
+    expect(main).toContain("<CrewShareNudge tripId={trip.id} onShare={openCrewShareModal} />");
+  });
+
   it("tells a solo owner about editing in place under the first day, not above the plan", () => {
     const list = main.indexOf("<TripDayList");
     expect(main.slice(0, list)).not.toContain("detail.ambientEditHint");

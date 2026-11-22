@@ -3,7 +3,8 @@
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
-import { CrewShareNudge, CrewVotesSummary, useCrewVotes } from "@/components/trip/CrewVotes";
+import { CrewShareNudge, CrewVotesSummary, useCrewVotes, useSendAskDismissed } from "@/components/trip/CrewVotes";
+import { leadsWithSendAsk } from "@/lib/trips/crew-share";
 import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, CollaboratorRole, VoteType } from "@/types";
 import { ROLE_PERMISSIONS } from "@/types";
 import { getTripDestination } from "@/lib/trips/destination";
@@ -281,6 +282,7 @@ export default function TripDetailClient({
   // Crew Loop: for the owner, whether the trip is shared and the votes
   // friends cast through the link with no account.
   const { sharingEnabled: crewSharingEnabled, votes: crewVotes } = useCrewVotes(trip.id, isOwner);
+  const [sendAskDismissed] = useSendAskDismissed(trip.id);
   // Each increment remounts ShareButton (via key) with autoOpen on the SHARE
   // tab — the same autoOpen/initialTab prop mechanism the ?share=invite deep
   // link uses, without modifying ShareButton itself.
@@ -903,6 +905,18 @@ export default function TripDetailClient({
         advisory.advice === "all_parts" || advisory.advice === "essential_parts" ? tCommon("advisory.someAreas") : null,
       content: <TravelAdvisoryBanner advisory={advisory} />,
     });
+  }
+  // The way to send the plan, in sight without moving it: the card that asks sits under the days.
+  if (
+    leadsWithSendAsk({
+      isOwner,
+      editing: isEditMode,
+      shared: crewSharingEnabled,
+      intent: trip.meta?.trip_intent,
+      dismissed: sendAskDismissed,
+    })
+  ) {
+    stripItems.push({ id: "send", label: t("detail.crewCtaButton"), onPress: openCrewShareModal });
   }
   if (isOwner && participantsEnabled && !isEditMode) {
     stripItems.push({

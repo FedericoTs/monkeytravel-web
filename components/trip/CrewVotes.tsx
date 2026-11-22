@@ -89,12 +89,20 @@ export function CrewVotesSummary({ votes, onShare }: { votes: CrewVotes; onShare
 }
 
 /**
+ * Whether the owner waved away the ask to send this trip, in this browser (null until that is read), and the way to
+ * wave it away. The card under the days and the chip above them read the same answer.
+ */
+export function useSendAskDismissed(tripId: string): [boolean | null, () => void] {
+  return useStoredFlag(`crewCtaDismissed:${tripId}`, "1");
+}
+
+/**
  * Asks an owner who never shared the trip to send it to the people coming.
  * Dismissed per trip in this browser, and hidden until that is known.
  */
 export function CrewShareNudge({ tripId, onShare }: { tripId: string; onShare: () => void }) {
   const t = useTranslations("trips");
-  const [dismissed, dismiss] = useStoredFlag(`crewCtaDismissed:${tripId}`, "1");
+  const [dismissed, dismiss] = useSendAskDismissed(tripId);
   if (dismissed !== false) return null;
   return (
     <div className="relative my-6 p-4 bg-gradient-to-r from-violet-50 to-blue-50 border border-violet-200 rounded-xl">
