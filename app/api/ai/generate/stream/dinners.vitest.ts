@@ -116,7 +116,9 @@ describe("a plan with a full day left without dinner", () => {
     const days = await complete();
     expect(days[1]).toEqual(["09:00 Fushimi Inari", "12:30 Vermillion Cafe", "15:00 Gion", "18:30 Gion Nanba"]);
     expect(days[0]).toContain("19:00 Gion Karyo");
-    expect(dinnerQuestions).toHaveLength(1);
+    // The same question, asked twice at once: an evening the first answer can't fill takes the second's.
+    expect(dinnerQuestions).toHaveLength(2);
+    expect(dinnerQuestions[1]).toBe(dinnerQuestions[0]);
     expect(dinnerQuestions[0]).toContain("1. Kyoto, Japan, 2027-04-06: the day ends at Gion (35.00370, 135.77880)");
     expect(dinnerQuestions[0]).toContain("a special, upscale");
     // The plan's own places to eat are named, so the answer isn't one of them (it would be turned away).
