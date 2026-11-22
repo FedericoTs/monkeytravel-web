@@ -348,6 +348,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
                 asked: closing.asked,
                 known: closing.known,
                 shut_before: closing.shutBefore,
+                shut_listed: closing.shutListed,
                 shut_after: closing.shutAfter,
                 stops_moved: closing.stopsMoved,
                 swapped: closing.swapped,

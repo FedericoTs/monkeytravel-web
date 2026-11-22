@@ -778,7 +778,8 @@ describe("a plan kept off its closing days", () => {
       ["2026-12-24", "2026-12-25", "2026-12-26", "2026-12-27"]
     );
     expect(names(result.itinerary.days)[1]).toBe("Musée d'Orsay");
-    expect(result).toMatchObject({ shutBefore: 1, shutAfter: 0 });
+    // The model's word alone: nothing the checked list stands behind.
+    expect(result).toMatchObject({ shutBefore: 1, shutListed: 0, shutAfter: 0 });
   });
 
   it("hands the days it moved to be re-worded, with the dates they were written for", async () => {
@@ -852,6 +853,26 @@ describe("a trip through several cities", () => {
     expect(ask.mock.calls[0]).toEqual(["Seville & Granada", ["Plaza de España", "Museo de Bellas Artes", "Alhambra"], []]);
     // Each city's moved days re-worded in that city.
     expect(reword.mock.calls.at(-1)?.[2]).toBe("Seville");
+  });
+
+  it("counts apart the stops the checked list shuts, on a trip through several cities too", async () => {
+    const plan = {
+      days: [
+        cityDay(1, "2026-11-29", "Seville", [sight("Plaza de España")]),
+        cityDay(2, "2026-11-30", "Seville", [sight("Museo de Bellas Artes")]),
+        cityDay(3, "2026-12-01", "Granada", [train("Granada"), sight("Alhambra", "12:30")]),
+      ],
+    };
+    const ask = vi.fn(async () => ({ closings: new Map(), shutDates: shutDates([["Museo de Bellas Artes", ["2026-11-30"]]]), costUsd: 0 }));
+    // The model says so, the list says nothing.
+    expect(await keepOffClosingDaysByCity(plan, "Seville & Granada", ask, asReword, undefined, modelOnly)).toMatchObject({ shutBefore: 1, shutListed: 0 });
+    // The list says so itself.
+    const listSays = <A extends { closings: Map<string, unknown>; shutDates: Map<string, string[]> }>(answer: A) => ({
+      ...answer,
+      shutDates: new Map([...answer.shutDates, ["plaza de españa", ["2026-11-29"]]]),
+      known: 1,
+    });
+    expect(await keepOffClosingDaysByCity(plan, "Seville & Granada", ask, asReword, undefined, listSays as never)).toMatchObject({ shutBefore: 2, shutListed: 1 });
   });
 
   it("moves a place only to another day of its own city, and never moves a city's arrival day", async () => {
