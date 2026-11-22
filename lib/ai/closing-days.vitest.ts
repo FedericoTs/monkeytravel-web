@@ -466,10 +466,106 @@ describe("a stop still shut after the reorder", () => {
     ]);
   });
 
+  it("cuts a sight the traveller asked for to the slot it takes when no slot holds its whole visit", () => {
+    // The 27th is the V&A's one open day. Its morning holds the Tower, asked for too; in either afternoon slot the
+    // whole visit would push Tower Bridge past half past four, or run past six.
+    const days = london();
+    days[0].activities = [stop("Borough Market", "market", "10:00", 120)];
+    days[2].activities = [
+      stop("Tower of London", "landmark", "09:30", 150),
+      stop("Lunch in Wapping", "restaurant", "12:20", 60),
+      stop("Royal Observatory", "museum", "14:00", 90),
+      stop("Tower Bridge", "landmark", "15:50", 60),
+      stop("Dinner at the Grapes", "restaurant", "18:00", 90),
+    ];
+    const shut = shutDates(
+      ["Tower of London", "Victoria and Albert Museum", "Natural History Museum", "Royal Observatory", "Tower Bridge", "Borough Market"].map(
+        (name) => [name, ["2026-12-24", "2026-12-25"]] as [string, string[]]
+      )
+    );
+    const { days: after, moved } = moveShutStops(days, new Map(), shut, askedFor);
+    expect(moved).toBe(1);
+    expect(timed(after)[2]).toBe("09:30 Tower of London | 12:20 Lunch in Wapping | 14:00 Victoria and Albert Museum | 15:50 Tower Bridge | 18:00 Dinner at the Grapes");
+    // An hour and a half, ending a short walk before the bridge.
+    expect(after[2].activities[2].duration_minutes).toBe(90);
+    // The observatory stands in its place on Christmas Day, to be swapped.
+    expect(timed(after)[1]).toBe("10:00 Royal Observatory | 13:00 Christmas lunch | 15:00 Natural History Museum");
+    // A sight nobody named is never cut: told nothing, the step leaves the V&A where it is.
+    expect(moveShutStops(days, new Map(), shut)).toEqual({ days, moved: 0 });
+    // Nor is it cut past its place's closing: with the museum shutting at three, the slot leaves it under an hour.
+    const shutsAtThree = (stop: { name?: string }) => (/victoria and albert/i.test(stop.name ?? "") ? { open: 600, close: 900 } : null);
+    expect(moveShutStops(days, new Map(), shut, askedFor, shutsAtThree).moved).toBe(0);
+    // Shutting at a quarter past three, the visit is cut to end at its closing.
+    const quarterPast = (stop: { name?: string }) => (/victoria and albert/i.test(stop.name ?? "") ? { open: 600, close: 915 } : null);
+    const cut = moveShutStops(days, new Map(), shut, askedFor, quarterPast).days;
+    expect(cut[2].activities[2]).toMatchObject({ name: "Victoria and Albert Museum", start_time: "14:00", duration_minutes: 75 });
+  });
+
+  it("never trades a sight into a slot outside the hours its place keeps that day", () => {
+    // The gallery, open on the 24th, could take the Tower's morning and give it the 14:30 slot: the Tower closes at 16:30
+    // in winter, so that slot would run past it. With the Tower's hours known, no trade.
+    const days = [
+      { day_number: 1, date: "2026-12-24", activities: [stop("Tower of London", "landmark", "10:00", 150), stop("Lunch at Borough", "restaurant", "13:00", 60)] },
+      { day_number: 2, date: "2026-12-27", activities: [stop("Tate Modern", "museum", "10:00", 240), stop("National Gallery", "museum", "14:30", 150)] },
+    ];
+    // The Tate is shut on the 24th too, so only the gallery's afternoon slot is on offer. The hours that count are those
+    // of the day the Tower would go to, the 27th, not of the day it leaves.
+    const towerShut = shutDates([["Tower of London", ["2026-12-24"]], ["Tate Modern", ["2026-12-24"]]]);
+    const towerHours = (stop: { name?: string }, date?: string) =>
+      /tower of london/i.test(stop.name ?? "") ? (date === "2026-12-27" ? { open: 540, close: 990, lastEntry: 960 } : { open: 540, close: 1080 }) : null;
+    expect(moveShutStops(days, new Map(), towerShut, undefined, towerHours).moved).toBe(0);
+    // Hours not known, it trades as before.
+    expect(timed(moveShutStops(days, new Map(), towerShut).days)).toEqual(["10:00 National Gallery | 13:00 Lunch at Borough", "10:00 Tate Modern | 14:30 Tower of London"]);
+    // Nor does the sight that leaves land outside its own: the gallery shutting at noon can't take the Tower's morning.
+    const galleryNoon = (stop: { name?: string }) => (/national gallery/i.test(stop.name ?? "") ? { open: 600, close: 720 } : null);
+    expect(moveShutStops(days, new Map(), towerShut, undefined, galleryNoon).moved).toBe(0);
+  });
+
+  it("gives a named sight its whole visit when a slot takes it, pushing what must move a little", () => {
+    // The first London case: the V&A could be cut into the gallery's slot, but whole it only moves lunch on.
+    const { days } = moveShutStops(london(), new Map(), overChristmas, askedFor);
+    const va = days[2].activities.find((a) => a.name === "Victoria and Albert Museum");
+    expect(va?.duration_minutes).toBe(150);
+  });
+
+  it("keeps a trade inside the hours the checked list knows, through the whole step", async () => {
+    // London over Christmas with the real list: the Tower of London shut 24-26 December and closing at half past four
+    // in winter, the V&A shut 24-26 December and closing at a quarter to six.
+    // The model says the prison museum is shut on the 26th; the list decides the Tower.
+    const ask = async () => ({ closings: new Map(), shutDates: shutDates([["Clink Prison Museum", ["2026-12-26"]]]), costUsd: 0 });
+    const words = (async (days: unknown[]) => ({ days, costUsd: 0, reworded: 0 })) as never;
+    const plan = {
+      days: [
+        { day_number: 1, date: "2026-12-26", activities: [stop("Tower of London", "landmark", "10:00", 90), stop("Lunch at Borough", "restaurant", "13:30", 60)] },
+        {
+          day_number: 2,
+          date: "2026-12-27",
+          // A booked pantomime keeps this day on its date: only the stops can move. It is too full for one more.
+          activities: [
+            stop("Sky Garden", "attraction", "10:00", 60),
+            stop("Lunch in Wapping", "restaurant", "11:20", 60),
+            stop("Clink Prison Museum", "museum", "12:40", 150),
+            stop("Postal Museum", "museum", "15:30", 60),
+            stop("Christmas pantomime", "event", "19:00", 120),
+          ],
+        },
+      ],
+    };
+    // The museum's afternoon slot would move nothing, but the Tower shuts at half past four on a winter Sunday: it
+    // takes the Sky Garden's morning, and the stops after it start a little later.
+    const result = await keepOffClosingDays(plan, "London", ask, words, undefined, undefined, askedFor);
+    expect(timed(result.itinerary.days)).toEqual([
+      "10:00 Sky Garden | 13:30 Lunch at Borough",
+      "10:00 Tower of London | 11:50 Lunch in Wapping | 13:10 Clink Prison Museum | 16:00 Postal Museum | 19:00 Christmas pantomime",
+    ]);
+  });
+
   it("is told what was asked for by name through the whole step, on one city and on several", async () => {
     const ask = async () => ({ closings: new Map(), shutDates: overChristmas, costUsd: 0 });
     const words = (async (days: unknown[]) => ({ days, costUsd: 0, reworded: 0 })) as never;
-    const day27 = "10:00 Victoria and Albert Museum | 12:50 Lunch in Soho | 14:30 Tower of London | 19:30 A play at the Globe";
+    // Through the whole step the list's hours count: the Tower shuts at half past four on a winter Sunday, so it takes
+    // the gallery's morning, and the V&A the college's afternoon.
+    const day27 = "10:00 Tower of London | 13:20 Lunch in Soho | 14:40 Victoria and Albert Museum | 19:30 A play at the Globe";
     const one = await keepOffClosingDays({ days: london() }, "London", ask, words, undefined, modelOnly, askedFor);
     expect(timed(one.itinerary.days)[2]).toBe(day27);
     expect(one.stopsMoved).toBe(2);
@@ -498,8 +594,14 @@ describe("a stop still shut after the reorder", () => {
     const { days: traded, moved } = moveShutStops(days, new Map(), towerShut, (s) => /tower of london/i.test(s.name ?? ""));
     expect(moved).toBe(1);
     expect(timed(traded)).toEqual(["10:00 National Gallery | 14:20 Lunch at Borough", "10:00 Tower of London | 15:20 Old Royal Naval College"]);
-    // Asked for as well, it keeps its day, and the college's late slot would run the Tower past six.
-    expect(moveShutStops(days, new Map(), towerShut, (s) => /tower of london|national gallery/i.test(s.name ?? "")).moved).toBe(0);
+    // Asked for as well, the gallery keeps its morning: the Tower takes the college's late slot, cut to end by six.
+    const both = (s: { name?: string }) => /tower of london|national gallery/i.test(s.name ?? "");
+    const cut = moveShutStops(days, new Map(), towerShut, both).days;
+    expect(timed(cut)[1]).toBe("10:00 National Gallery | 15:20 Tower of London");
+    expect(cut[1].activities[1].duration_minutes).toBe(160);
+    // With the Tower's winter hours known (shut at half past four), that slot can't hold it: no trade.
+    const towerHours = (stop: { name?: string }) => (/tower of london/i.test(stop.name ?? "") ? { open: 540, close: 990, lastEntry: 960 } : null);
+    expect(moveShutStops(days, new Map(), towerShut, both, towerHours).moved).toBe(0);
   });
 
   it("never moves a dated event to make room", () => {

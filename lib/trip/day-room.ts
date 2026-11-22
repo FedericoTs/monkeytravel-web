@@ -29,6 +29,8 @@ const BETWEEN_MINUTES = 20;
 const DEFAULT_MINUTES = 90;
 /** How far past its hour a meal may be pushed before it goes ahead of the stop pushing it. */
 const MEAL_SLACK_MINUTES = 90;
+/** The shortest a visit may be cut to so it fits a slot: an hour, and never under half the visit. */
+const SHORTEST_MINUTES = 60;
 
 const minutesOf = (time?: string): number | null => {
   const m = /^(\d{1,2}):(\d{2})/.exec(time ?? "");
@@ -46,6 +48,22 @@ export const startsApart = (a: TimedStop, b: TimedStop): number => {
   const [one, other] = [minutesOf(a.start_time), minutesOf(b.start_time)];
   return one === null || other === null ? 0 : Math.abs(one - other);
 };
+
+/**
+ * `stop` with its visit cut to end a short walk before the first of `others` that starts after it, by the evening, and
+ * by `closesAt` (minutes after midnight) when its place's closing is known, when it doesn't fit as it is: an hour and
+ * half its length at least, in whole five minutes. The stop as it is when it fits; null when it can't.
+ */
+export function shortenedToFit<S extends TimedStop>(stop: S, others: TimedStop[], closesAt?: number): S | null {
+  const start = minutesOf(stop.start_time);
+  if (start === null) return null;
+  const length = stop.duration_minutes || DEFAULT_MINUTES;
+  const after = others.map((other) => minutesOf(other.start_time)).filter((time): time is number => time !== null && time > start);
+  const end = Math.min(LATEST_SIGHT_END, closesAt ?? LATEST_SIGHT_END, ...after.map((time) => time - BETWEEN_MINUTES));
+  if (start + length <= end) return stop;
+  const room = Math.floor((end - start) / 5) * 5;
+  return room >= Math.max(SHORTEST_MINUTES, length / 2) ? { ...stop, duration_minutes: room } : null;
+}
 
 /** Whether a time given to a sight keeps it in the day: in by the late afternoon, and over by the evening. */
 export const keepsToTheDay = (stop: TimedStop): boolean => {

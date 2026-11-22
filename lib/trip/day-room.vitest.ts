@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { plannedMinutes, withStopAt, type TimedStop } from "./day-room";
+import { plannedMinutes, shortenedToFit, withStopAt, type TimedStop } from "./day-room";
 
 const stop = (name: string, type: string, start_time: string, duration_minutes: number): TimedStop => ({
   name,
@@ -186,6 +186,36 @@ describe("withStopAt", () => {
     expect(withStopAt(late, MORNING_SIGHT)).toBeNull();
     const event = { activities: [stop("Show", "event", "10:00", 60), stop("Lunch place", "restaurant", "12:00", 60)] };
     expect(withStopAt(event, MORNING_SIGHT)).toBeNull();
+  });
+
+  describe("shortenedToFit", () => {
+    const museum = (start: string, minutes: number) => stop("V&A", "museum", start, minutes);
+
+    it("leaves a visit that fits as it is", () => {
+      const fits = museum("14:00", 90);
+      expect(shortenedToFit(fits, [stop("Tower Bridge", "landmark", "15:50", 60)])).toBe(fits);
+    });
+
+    it("cuts a visit to end a walk before the next stop, in whole five minutes", () => {
+      expect(shortenedToFit(museum("14:00", 150), [stop("Lunch", "restaurant", "12:30", 60), stop("Tower Bridge", "landmark", "15:52", 60)])).toEqual(
+        museum("14:00", 90)
+      );
+    });
+
+    it("cuts it by the evening when nothing follows", () => {
+      expect(shortenedToFit(museum("15:50", 150), [stop("Lunch", "restaurant", "12:30", 60)])).toEqual(museum("15:50", 130));
+      expect(shortenedToFit(museum("15:50", 150), [stop("Dinner", "restaurant", "19:30", 90)])).toEqual(museum("15:50", 130));
+    });
+
+    it("keeps an hour and half the visit at least, or gives up", () => {
+      // Half of three hours is ninety minutes: eighty-five isn't enough.
+      expect(shortenedToFit(museum("14:00", 180), [stop("Bridge", "landmark", "15:45", 60)])).toBeNull();
+      expect(shortenedToFit(museum("14:00", 180), [stop("Bridge", "landmark", "15:50", 60)])).toEqual(museum("14:00", 90));
+      // Half of a hundred minutes is fifty, but an hour is the least.
+      expect(shortenedToFit(museum("14:00", 100), [stop("Bridge", "landmark", "15:20", 60)])).toEqual(museum("14:00", 60));
+      expect(shortenedToFit(museum("14:00", 100), [stop("Bridge", "landmark", "15:15", 60)])).toBeNull();
+      expect(shortenedToFit({ name: "No time", type: "museum" }, [])).toBeNull();
+    });
   });
 
   it("counts a stop with no length as an hour and a half", () => {
