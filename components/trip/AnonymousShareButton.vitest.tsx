@@ -209,6 +209,24 @@ describe("AnonymousShareButton in a bar", () => {
     await waitFor(() => expect(panelOf(container)).toBeNull());
   });
 
+  it("stays open when the person closes a share sheet opened from the panel", async () => {
+    let asked = 0;
+    asPhone(async () => {
+      asked++;
+      if (asked > 1) throw new DOMException("closed", "AbortError");
+    });
+    const { container } = renderButton("share", { panel: "above" });
+    fireEvent.click(trigger());
+    await waitFor(() => expect(events.sent).toHaveLength(1));
+    fireEvent.click(trigger());
+    fireEvent.click(screen.getByRole("button", { name: copy.shareSendNative }));
+    await waitFor(() => expect(asked).toBe(2));
+    await new Promise((settled) => setTimeout(settled, 0));
+    // Nothing was sent: the buttons are still there.
+    expect(panelOf(container)).not.toBeNull();
+    expect(events.sent).toHaveLength(1);
+  });
+
   it("stays shut when the person closes the share sheet themselves", async () => {
     let asked = 0;
     asPhone(async () => {
