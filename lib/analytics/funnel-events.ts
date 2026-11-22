@@ -16,6 +16,7 @@
 import { cookies } from "next/headers";
 import { waitUntil } from "@vercel/functions";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logReadError } from "@/lib/supabase/log-read-error";
 import { logWriteError } from "@/lib/supabase/log-write-error";
 
 /** The event vocabulary, in step with the funnel_events CHECK (funnel-events.vitest.ts). */
@@ -79,10 +80,11 @@ export { CRAWLER_UA_RE } from "./share-visit-classifier";
  * Record a recipient visit to /shared/[token] — funnel_events.share_link_visited.
  * The CALLER decides whether the render is a visit (classifySharedVisit in
  * share-visit-classifier.ts: a document navigation, not a crawler, not the
- * owner, on a trip that has an owner) and calls this only for "counted";
+ * owner, on a trip somebody shared) and calls this only for "counted";
  * the same verdict gates the PostHog twin so the two counters stay
  * comparable. Router fetches, the owner and fleets on the demo trips are not
- * visits.
+ * visits; nor is a signed-out planner opening the link they made
+ * (madeThisShareLink).
  *
  * `crewAsk` records how the link was framed (?vote=1 = the crew ask) as
  * metadata.crew_ask, so recipients per shared trip can be read by framing.
@@ -103,5 +105,29 @@ export async function logSharedTripVisit(
     });
   } catch {
     // never break the render
+  }
+}
+
+/**
+ * Whether this browser made the trip's share link. A trip shared by a
+ * signed-out planner has no owner to tell from its recipients, so the session
+ * that made the link stands for one: the link's own row is read
+ * (share_link_created carries the sharer's session). False when it can't be
+ * told: no session cookie, or the read fails.
+ */
+export async function madeThisShareLink(tripId: string): Promise<boolean> {
+  try {
+    const sessionId = (await cookies()).get("mt_session_id")?.value;
+    if (!sessionId) return false;
+    const { data } = logReadError("share link's maker", await createAdminClient()
+      .from("funnel_events")
+      .select("id")
+      .eq("trip_id", tripId)
+      .eq("event_type", "share_link_created")
+      .eq("session_id", sessionId)
+      .limit(1));
+    return Array.isArray(data) && data.length > 0;
+  } catch {
+    return false;
   }
 }
