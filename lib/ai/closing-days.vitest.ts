@@ -315,9 +315,14 @@ describe("a stop still shut after the reorder", () => {
       "10:00 Borghese Gallery | 14:20 Pizzeria Remo",
       "10:00 Capitoline Museums | 14:30 Villa Giulia | 16:15 MAXXI",
     ]);
-    // Days whose only other stops are a booked tour, a day out by train and dinner have nothing to trade.
+    // Days whose only other stops are booked visits, a day out by train and meals have nothing to trade: the booked
+    // tour would fit the museum's morning, and stays.
     const fixed = fullDays();
-    fixed[0].activities = [{ ...stop("Vatican tour", "tour", "09:00", 450), locked: true } as Timed];
+    fixed[0].activities = [
+      { ...stop("Vatican tour", "tour", "09:00", 150), locked: true } as Timed,
+      stop("Trattoria Luzzi", "restaurant", "12:00", 60),
+      { ...stop("St Peter's dome climb", "landmark", "14:00", 180), locked: true } as Timed,
+    ];
     fixed[2].activities = [stop("Train to Orvieto and back", "transport", "09:00", 460), stop("Dinner at Roscioli", "restaurant", "19:00", 90)];
     const { days: after, moved } = moveShutStops(fixed, new Map(), capitolineShut);
     expect(moved).toBe(0);
