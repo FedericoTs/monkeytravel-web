@@ -105,7 +105,7 @@ describe("a plan with a sight on the day it shuts", () => {
     expect(order(done.itinerary.days)).toEqual(["2026-11-28 Real Alcázar", "2026-11-29 Museo de Bellas Artes", "2026-11-30 Plaza de España"]);
     await vi.waitFor(() => expect(logged.find((row) => row.status === 200)).toBeTruthy());
     expect(logged.find((row) => row.status === 200)?.metadata).toMatchObject({
-      closing_days: { asked: 3, known: 0, shut_before: 1, shut_after: 0, stops_moved: 0 },
+      closing_days: { asked: 3, known: 0, shut_before: 1, shut_listed: 0, shut_after: 0, stops_moved: 0 },
     });
   });
 

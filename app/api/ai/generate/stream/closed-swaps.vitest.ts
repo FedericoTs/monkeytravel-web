@@ -43,8 +43,9 @@ vi.mock("@/lib/images/activity", () => ({ fetchActivityImages: async () => {} })
 vi.mock("@/lib/trips/request-validation", () => ({ validateTripParams: () => ({ valid: true }) }));
 vi.mock("@/lib/ai/known-places", () => ({ knownPlacesFor: async () => [], knownPlacesUsed: () => 0 }));
 
-const DATES = ["2027-12-30", "2027-12-31", "2028-01-01"];
-// The plan the model writes: Thursday 30 December 2027 to Saturday 1 January 2028.
+const NEXT_SEASON = ["2027-12-30", "2027-12-31", "2028-01-01"];
+let DATES = NEXT_SEASON;
+// The plan the model writes: Thursday 30 December 2027 to Saturday 1 January 2028, unless a test says otherwise.
 const plan = () => ({
   destination: { name: "Tokyo", country: "Japan" },
   days: [["Tokyo National Museum", "museum"], ["Meiji Jingu", "landmark"], ["Senso-ji", "landmark"]].map(([name, type], i) => ({
@@ -112,6 +113,7 @@ beforeEach(() => {
   logged.length = 0;
   asked.length = 0;
   swapShut = false;
+  DATES = NEXT_SEASON;
   vi.spyOn(console, "log").mockImplementation(() => {});
 });
 
@@ -127,10 +129,22 @@ describe("a sight shut on every date of the trip", () => {
     expect(asked.some((q) => q.includes("1. Mori Art Museum") && q.includes("2027-12-30 (Thursday)"))).toBe(true);
     await vi.waitFor(() => expect(logged.find((row) => row.status === 200)).toBeTruthy());
     expect(logged.find((row) => row.status === 200)?.metadata).toMatchObject({
-      closing_days: { asked: 3, known: 3, shut_before: 1, shut_after: 0, stops_moved: 0, swapped: 1 },
+      // shut_listed 0: the list holds the museum's year-end closure for this season only, so on 30 December 2027 the
+      // closure is the model's word.
+      closing_days: { asked: 3, known: 3, shut_before: 1, shut_listed: 0, shut_after: 0, stops_moved: 0, swapped: 1 },
     });
     // Nothing left shut: no names.
     expect((logged.find((row) => row.status === 200)?.metadata?.closing_days as Record<string, unknown>).left).toBeUndefined();
+  });
+
+  it("counts the museum's closure as the list's own in the season the list was checked for", async () => {
+    // Monday 28 to Wednesday 30 December 2026: the museum's page shuts it from the 26th to the 31st.
+    DATES = ["2026-12-28", "2026-12-29", "2026-12-30"];
+    await complete();
+    await vi.waitFor(() => expect(logged.find((row) => row.status === 200)).toBeTruthy());
+    expect(logged.find((row) => row.status === 200)?.metadata).toMatchObject({
+      closing_days: { known: 3, shut_before: 1, shut_listed: 1, shut_after: 0, swapped: 1 },
+    });
   });
 
   it("keeps the closed sight when the place offered instead is shut that day too", async () => {

@@ -133,7 +133,7 @@ describe("the JSON route", () => {
     const legs = { destinations: [{ city: "Seville", nights: 2 }, { city: "Granada", nights: 1 }], destination: "Seville & Granada", startDate: "2026-11-29", endDate: "2026-12-01" };
     expect(await themes(legs)).toEqual(["Museo de Bellas Artes", "Plaza de España", "Alhambra"]);
     // The Alhambra is on the checked list (lib/ai/known-closings.ts), open that Tuesday.
-    expect(logged.at(-1)?.closing_days).toEqual({ asked: 3, known: 1, shut_before: 1, shut_after: 0, stops_moved: 0, swapped: 0 });
+    expect(logged.at(-1)?.closing_days).toEqual({ asked: 3, known: 1, shut_before: 1, shut_listed: 0, shut_after: 0, stops_moved: 0, swapped: 0 });
   });
 
   it("never puts a city's day on another city's dates", async () => {

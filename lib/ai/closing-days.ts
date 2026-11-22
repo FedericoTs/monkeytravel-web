@@ -48,6 +48,8 @@ export type Weekday = (typeof WEEKDAYS)[number];
 export type Closings = Map<string, Weekday[]>;
 /** A place's name, lower-cased, to the plan's dates (YYYY-MM-DD) it is shut on besides its weekdays. */
 export type ShutDates = Map<string, string[]>;
+/** The model saying nothing: what the checked list makes of a plan on its own. */
+const NO_ANSWER: { closings: Closings; shutDates: ShutDates } = { closings: new Map(), shutDates: new Map() };
 
 type Day = WordDay;
 
@@ -500,6 +502,8 @@ export async function keepOffClosingDays<T extends { days: Day[] }>(
   /** Stops whose closing days came from the checked list. */
   known: number;
   shutBefore: number;
+  /** Of shutBefore, the stops the checked list alone shuts on their day: the place's own page says so. */
+  shutListed: number;
   shutAfter: number;
   /** The stops still on a day they're shut at the end, as "name (date)": what a miss was. */
   leftShut: string[];
@@ -511,8 +515,9 @@ export async function keepOffClosingDays<T extends { days: Day[] }>(
   const answer = await ask(destination, places, holidayDatesToAsk(itinerary.days));
   // The sights on the checked list are decided by it, not by the model (lib/ai/known-closings.ts).
   const { closings, shutDates, known } = checked(answer, itinerary.days, destination);
+  const listed = checked(NO_ANSWER, itinerary.days, destination).shutDates;
   const settled = await settleDays(itinerary.days, closings, shutDates, destination, reword, swap, named);
-  return report(itinerary, settled, answer.costUsd, places.length, known, closings, shutDates, destination);
+  return report(itinerary, settled, answer.costUsd, places.length, known, closings, shutDates, listed, destination);
 }
 
 type Settled<D> = { days: D[]; costUsd: number; reworded: number; stopsMoved: number; swapped: number };
@@ -547,6 +552,7 @@ function report<T extends { days: Day[] }>(
   known: number,
   closings: Closings,
   shutDates: ShutDates,
+  listed: ShutDates,
   destination: string
 ) {
   // Each listed place shut on a date of the trip says so on the stop, with its official page.
@@ -557,6 +563,7 @@ function report<T extends { days: Day[] }>(
     asked,
     known,
     shutBefore: shutStops(itinerary.days, closings, shutDates),
+    shutListed: shutStops(itinerary.days, new Map(), listed),
     shutAfter: shutStops(days, closings, shutDates),
     leftShut: stopsStillShut(days, closings, shutDates).map((stop) => `${stop.name} (${stop.date})`),
     reworded: settled.reworded,
@@ -594,6 +601,7 @@ export async function keepOffClosingDaysByCity<T extends { days: Day[] }>(
   const places = placesToAsk(itinerary.days);
   const answer = await ask(destination, places, holidayDatesToAsk(itinerary.days));
   const { closings, shutDates, known } = checked(answer, itinerary.days, destination);
+  const listed = checked(NO_ANSWER, itinerary.days, destination).shutDates;
   const parts = cityRuns(itinerary.days);
   const runs = await Promise.all(
     parts.map((part) => settleDays(part.days, closings, shutDates, part.city || destination, reword, swapIn?.(part.city || destination), named))
@@ -607,5 +615,5 @@ export async function keepOffClosingDaysByCity<T extends { days: Day[] }>(
     stopsMoved: runs.reduce((sum, run) => sum + run.stopsMoved, 0),
     swapped: runs.reduce((sum, run) => sum + run.swapped, 0),
   };
-  return report(itinerary, settled, answer.costUsd, places.length, known, closings, shutDates, destination);
+  return report(itinerary, settled, answer.costUsd, places.length, known, closings, shutDates, listed, destination);
 }

@@ -309,6 +309,8 @@ describe("the list decides its places over the model's answer", () => {
     // Both are listed: the museum by its Mondays, the shrine as open every day.
     expect(result.known).toBe(2);
     expect(result.shutBefore).toBe(1);
+    // Counted as the list's own: the museum's page says it is shut that day.
+    expect(result.shutListed).toBe(1);
     expect(result.shutAfter).toBe(0);
     expect(result.itinerary.days[1].activities.map((a) => a.name)).toContain("Tokyo National Museum");
     // And says so on the stop, with the museum's own page; the shrine, open every day, says nothing.

@@ -494,6 +494,7 @@ export async function POST(request: NextRequest) {
                         asked: openDays.asked,
                         known: openDays.known,
                         shut_before: openDays.shutBefore,
+                        shut_listed: openDays.shutListed,
                         shut_after: openDays.shutAfter,
                         stops_moved: openDays.stopsMoved,
                         swapped: openDays.swapped,
