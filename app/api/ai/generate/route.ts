@@ -33,7 +33,7 @@ import { askForDinners, daysWithoutDinner, placesToEat, withDinners } from "@/li
 import { askForReplacements, repeatedRestaurants, withReplacements } from "@/lib/ai/repeated-meals";
 import { swapClosedStops } from "@/lib/ai/closed-swaps";
 import { withoutLongClosures } from "@/lib/ai/long-closures";
-import { keepMustDos } from "@/lib/ai/must-dos";
+import { askedByName, keepMustDos } from "@/lib/ai/must-dos";
 import { keepNamesInOneScript } from "@/lib/ai/one-script-names";
 import { inPlanCurrency } from "@/lib/ai/plan-currency";
 import type { TripAnchor } from "@/types";
@@ -238,14 +238,28 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     // No stop on a day it's shut (lib/ai/closing-days.ts), and one shut on every
     // date it could go to swapped for an open place (lib/ai/closed-swaps.ts). A
     // multi-city trip settles each city's own days, its route kept; an anchored
-    // trip keeps its order: its commitments fix the days.
+    // trip keeps its order: its commitments fix the days. A must-do keeps a day
+    // it is open before a sight nobody asked for does.
+    const named = askedByName(params.mustDos);
     const closing = isMultiCity
-      ? await keepOffClosingDaysByCity(itinerary, params.destination, undefined, undefined, (city) => (days, stuck) =>
-          swapClosedStops(city, days, stuck, userLanguage)
+      ? await keepOffClosingDaysByCity(
+          itinerary,
+          params.destination,
+          undefined,
+          undefined,
+          (city) => (days, stuck) => swapClosedStops(city, days, stuck, userLanguage),
+          undefined,
+          named
         )
       : !isAnchored
-        ? await keepOffClosingDays(itinerary, params.destination, undefined, undefined, (days, stuck) =>
-            swapClosedStops(params.destination, days, stuck, userLanguage)
+        ? await keepOffClosingDays(
+            itinerary,
+            params.destination,
+            undefined,
+            undefined,
+            (days, stuck) => swapClosedStops(params.destination, days, stuck, userLanguage),
+            undefined,
+            named
           )
         : null;
     if (closing) itinerary = closing.itinerary;

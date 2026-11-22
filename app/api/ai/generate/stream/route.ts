@@ -41,7 +41,7 @@ import { askForDinners, daysWithoutDinner, placesToEat, withDinners } from "@/li
 import { askForReplacements, repeatedRestaurants, withReplacements } from "@/lib/ai/repeated-meals";
 import { swapClosedStops } from "@/lib/ai/closed-swaps";
 import { withoutLongClosures } from "@/lib/ai/long-closures";
-import { keepMustDos } from "@/lib/ai/must-dos";
+import { askedByName, keepMustDos } from "@/lib/ai/must-dos";
 import { keepNamesInOneScript } from "@/lib/ai/one-script-names";
 import { tripSpanDays } from "@/lib/dates/iso-date";
 import { isModelOutOfCredit, MODEL_OUTAGE_MESSAGE } from "@/lib/ai/model-outage";
@@ -385,8 +385,15 @@ export async function POST(request: NextRequest) {
       //     for meanwhile too (lib/ai/repeated-meals.ts).
       const repeatsWanted = repeatedRestaurants(finalItinerary.days, params.destination);
       const repeatsAsked = askForReplacements(repeatsWanted, mealOptions);
-      const openDays = await keepOffClosingDays(finalItinerary, params.destination, undefined, undefined, (days, stuck) =>
-        swapClosedStops(params.destination, days, stuck, userLanguage)
+      const openDays = await keepOffClosingDays(
+        finalItinerary,
+        params.destination,
+        undefined,
+        undefined,
+        (days, stuck) => swapClosedStops(params.destination, days, stuck, userLanguage),
+        undefined,
+        // A must-do keeps a day it is open before a sight nobody asked for does.
+        askedByName(params.mustDos)
       );
       finalItinerary = openDays.itinerary;
       generationCost += openDays.costUsd;
