@@ -74,7 +74,8 @@ function CrewIcon() {
  * bar on phones. Both carry Start Over, Regenerate, the save state and Save,
  * and the way to share the plan before or after saving it. The phone bar keeps
  * the plan's screen: Share in sight above one row with the state and Save, the
- * rest behind More.
+ * rest behind More. Once a link is made, its controls open as a panel over the
+ * page, so neither bar grows.
  */
 export default function ResultActionBars({
   generatedItinerary,
@@ -263,7 +264,7 @@ export default function ResultActionBars({
                 in. Also hidden once a trip is saved — at that point the
                 owner-based share flow is the right one. */}
             {isAuthenticated === false && !savedTripId && (
-              <ShareButton {...share} />
+              <ShareButton {...share} panel="below" />
             )}
           </div>
         </div>
@@ -336,7 +337,7 @@ export default function ResultActionBars({
             resolving and must not flash a share button at someone who turns
             out to be signed in. */}
         {!savedTripId && !autoSaving && (isAuthenticated === false ? (
-          <ShareButton {...share} className="mb-2" />
+          <ShareButton {...share} panel="above" className="mb-2" />
         ) : (
           <button
             type="button"

@@ -126,7 +126,11 @@ describe("ResultActionBars", () => {
     expect(bar.getAllByRole("button", { name: "share" })).toHaveLength(1);
     expect(bar.getByText("wizard.result.mobileSaveNudge")).toBeTruthy();
     // Both carry the page's share (the bar's with its own spacing).
-    expect(shared.every((given) => JSON.stringify({ ...given, className: undefined }) === JSON.stringify(share))).toBe(true);
+    expect(shared.every((given) => JSON.stringify({ ...given, className: undefined, panel: undefined }) === JSON.stringify(share))).toBe(true);
+    // And ask for the link's controls as a panel, away from the bar: under the header, over the phone bar.
+    expect(new Set(shared.map((given) => `${given.panel}, spaced ${given.className ?? "as it is"}`))).toEqual(
+      new Set(["below, spaced as it is", "above, spaced mb-2"])
+    );
     expect(header.getByText("€900")).toBeTruthy();
 
     fireEvent.click(header.getByRole("button", { name: "wizard.result.saveTrip" }));

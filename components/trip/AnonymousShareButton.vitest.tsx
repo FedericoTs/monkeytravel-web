@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
+import enCommon from "@/messages/en/common.json";
 import enTrips from "@/messages/en/trips.json";
 import AnonymousShareButton from "./AnonymousShareButton";
 
@@ -50,13 +51,15 @@ function asPhone(share: (data: ShareData) => Promise<void>) {
   Object.defineProperty(navigator, "share", { configurable: true, value: vi.fn(share) });
 }
 
-function renderButton(mode: "crew" | "share" = "crew") {
-  render(
-    <NextIntlClientProvider locale="en" messages={{ trips: enTrips }}>
-      <AnonymousShareButton trip={trip} mode={mode} />
+function renderButton(mode: "crew" | "share" = "crew", more: Partial<React.ComponentProps<typeof AnonymousShareButton>> = {}) {
+  return render(
+    <NextIntlClientProvider locale="en" messages={{ trips: enTrips, common: enCommon }}>
+      <AnonymousShareButton trip={trip} mode={mode} {...more} />
     </NextIntlClientProvider>,
   );
 }
+/** The panel a bar's button opens, when it is open. */
+const panelOf = (container: HTMLElement) => container.querySelector<HTMLElement>("[data-share-panel]");
 
 beforeEach(() => {
   events.sent.length = 0;
@@ -118,5 +121,169 @@ describe("AnonymousShareButton", () => {
     fireEvent.click(screen.getByRole("button", { name: copy.shareAnonCta }));
     fireEvent.click(await screen.findByRole("button", { name: copy.shareSendWhatsapp }));
     expect(events.sent).toEqual([]);
+  });
+
+  it("with room for them, shows the link's controls in the button's place", async () => {
+    const { container } = renderButton("share");
+    fireEvent.click(screen.getByRole("button", { name: copy.shareAnonCta }));
+    expect(await screen.findByDisplayValue(SHARE_URL)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: copy.shareAnonCta })).toBeNull();
+    expect(panelOf(container)).toBeNull();
+  });
+});
+
+// In the header and the phone's bottom bar the link's controls would take the bar's room.
+describe("AnonymousShareButton in a bar", () => {
+  const trigger = (name: string = copy.shareAnonCta) => screen.getByRole("button", { name });
+
+  it("on a computer, copies the link and says so in a panel under the button, which stays", async () => {
+    const { container } = renderButton("share", { panel: "below", onKeep: () => {} });
+    fireEvent.click(trigger());
+    await waitFor(() => expect(panelOf(container)).not.toBeNull());
+    expect(clipboard.writeText).toHaveBeenCalledWith(SHARE_URL);
+    const panel = panelOf(container)!;
+    // Over the page, not in the bar's row.
+    expect(panel.className).toContain("absolute");
+    expect(panel.className).toContain("top-full");
+    expect(panel.getAttribute("data-share-panel")).toBe("below");
+    expect(panel.querySelector('[role="status"]')?.textContent).toBe(copy.shareAnonCopiedLine);
+    expect(screen.getByDisplayValue(SHARE_URL)).toBeTruthy();
+    expect(screen.getByRole("button", { name: copy.shareSendWhatsapp })).toBeTruthy();
+    expect(screen.getByRole("button", { name: copy.shareAnonKeepCta })).toBeTruthy();
+    expect(trigger().getAttribute("aria-expanded")).toBe("true");
+    expect(trigger().getAttribute("aria-controls")).toBe(panel.id);
+  });
+
+  it("closes on its close button, on Escape, on a press elsewhere and on the button, and opens again without the copied line", async () => {
+    const { container } = renderButton("share", { panel: "below" });
+    fireEvent.click(trigger());
+    await waitFor(() => expect(panelOf(container)).not.toBeNull());
+
+    fireEvent.click(screen.getByRole("button", { name: enCommon.buttons.close }));
+    expect(panelOf(container)).toBeNull();
+    expect(trigger().getAttribute("aria-expanded")).toBe("false");
+
+    fireEvent.click(trigger());
+    // Nothing was copied this time: the panel is named, with no claim.
+    expect(panelOf(container)!.querySelector('[role="status"]')?.textContent).toBe(copy.shareAnonCta);
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(panelOf(container)).toBeNull();
+
+    fireEvent.click(trigger());
+    fireEvent.pointerDown(panelOf(container)!);
+    expect(panelOf(container)).not.toBeNull();
+    fireEvent.pointerDown(document.body);
+    expect(panelOf(container)).toBeNull();
+
+    fireEvent.click(trigger());
+    fireEvent.click(trigger());
+    expect(panelOf(container)).toBeNull();
+    // One link for all of it.
+    expect(clipboard.writeText).toHaveBeenCalledTimes(1);
+  });
+
+  it("opens with no copied line when the browser kept the clipboard shut", async () => {
+    clipboard.writeText.mockRejectedValueOnce(new Error("blocked"));
+    const { container } = renderButton("share", { panel: "below" });
+    fireEvent.click(trigger());
+    await waitFor(() => expect(panelOf(container)).not.toBeNull());
+    expect(panelOf(container)!.querySelector('[role="status"]')?.textContent).toBe(copy.shareAnonCta);
+    expect(events.copied).toEqual([]);
+  });
+
+  it("on a phone, the share sheet is all there is: the bar stays as it was", async () => {
+    asPhone(async () => {});
+    const { container } = renderButton("share", { panel: "above" });
+    fireEvent.click(trigger());
+    await waitFor(() => expect(events.sent).toHaveLength(1));
+    expect(panelOf(container)).toBeNull();
+    expect(trigger().getAttribute("aria-expanded")).toBe("false");
+    // The button then opens the rest, over the bar.
+    fireEvent.click(trigger());
+    const panel = panelOf(container)!;
+    expect(panel.className).toContain("bottom-full");
+    expect(panel.querySelector('[role="status"]')?.textContent).toBe(copy.shareAnonCta);
+    // Sending from the panel gives the screen back.
+    fireEvent.click(screen.getByRole("button", { name: copy.shareSendNative }));
+    await waitFor(() => expect(events.sent).toHaveLength(2));
+    await waitFor(() => expect(panelOf(container)).toBeNull());
+  });
+
+  it("stays open when the person closes a share sheet opened from the panel", async () => {
+    let asked = 0;
+    asPhone(async () => {
+      asked++;
+      if (asked > 1) throw new DOMException("closed", "AbortError");
+    });
+    const { container } = renderButton("share", { panel: "above" });
+    fireEvent.click(trigger());
+    await waitFor(() => expect(events.sent).toHaveLength(1));
+    fireEvent.click(trigger());
+    fireEvent.click(screen.getByRole("button", { name: copy.shareSendNative }));
+    await waitFor(() => expect(asked).toBe(2));
+    await new Promise((settled) => setTimeout(settled, 0));
+    // Nothing was sent: the buttons are still there.
+    expect(panelOf(container)).not.toBeNull();
+    expect(events.sent).toHaveLength(1);
+  });
+
+  it("stays shut when the person closes the share sheet themselves", async () => {
+    let asked = 0;
+    asPhone(async () => {
+      asked++;
+      throw new DOMException("closed", "AbortError");
+    });
+    const { container } = renderButton("share", { panel: "above" });
+    fireEvent.click(trigger());
+    await waitFor(() => expect(asked).toBe(1));
+    await waitFor(() => expect(trigger().getAttribute("aria-expanded")).toBe("false"));
+    expect(panelOf(container)).toBeNull();
+    expect(events.sent).toEqual([]);
+  });
+
+  it("opens when the phone refuses its share sheet, with buttons for a fresh tap", async () => {
+    asPhone(async () => {
+      throw new DOMException("Not allowed", "NotAllowedError");
+    });
+    const { container } = renderButton("share", { panel: "above" });
+    fireEvent.click(trigger());
+    await waitFor(() => expect(panelOf(container)).not.toBeNull());
+    expect(screen.getByRole("button", { name: copy.shareSendNative })).toBeTruthy();
+    expect(screen.getByRole("button", { name: copy.shareSendWhatsapp })).toBeTruthy();
+    expect(clipboard.writeText).not.toHaveBeenCalled();
+  });
+
+  it("closes after WhatsApp opened, and stays when the browser blocked it", async () => {
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+    const { container } = renderButton("share", { panel: "below" });
+    fireEvent.click(trigger());
+    fireEvent.click(await screen.findByRole("button", { name: copy.shareSendWhatsapp }));
+    expect(panelOf(container)).not.toBeNull();
+    open.mockReturnValue({} as Window);
+    fireEvent.click(screen.getByRole("button", { name: copy.shareSendWhatsapp }));
+    expect(panelOf(container)).toBeNull();
+    expect(events.sent).toEqual([expect.objectContaining({ channel: "whatsapp" })]);
+  });
+
+  it("closes on the way to keeping the trip", async () => {
+    const onKeep = vi.fn();
+    const { container } = renderButton("share", { panel: "below", onKeep });
+    fireEvent.click(trigger());
+    await waitFor(() => expect(panelOf(container)).not.toBeNull());
+    fireEvent.click(screen.getByRole("button", { name: copy.shareAnonKeepCta }));
+    expect(onKeep).toHaveBeenCalledTimes(1);
+    expect(panelOf(container)).toBeNull();
+  });
+
+  it("starts shut on a link another button made, and shows the crew's votes on the button", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ tallies: { a: { up: 2, down: 1 } } }))));
+    const { container } = renderButton("crew", { panel: "above", existingShareUrl: SHARE_URL });
+    expect(panelOf(container)).toBeNull();
+    const button = screen.getByRole("button", { name: new RegExp(copy.shareCrewCta) });
+    await waitFor(() => expect(button.textContent).toContain("3"));
+    fireEvent.click(button);
+    expect(screen.getByDisplayValue(`${SHARE_URL}?vote=1`)).toBeTruthy();
+    expect(screen.getByRole("link").getAttribute("href")).toBe(`${SHARE_URL}?vote=1`);
+    expect(clipboard.writeText).not.toHaveBeenCalled();
   });
 });
