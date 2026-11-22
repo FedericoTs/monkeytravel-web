@@ -310,7 +310,10 @@
     "noPhotos": "No hay fotos disponibles",
     "regeneratingActivity": "Regenerando actividad con AI...",
     "savedInTrips": "{count, plural, one {En # viaje guardado} other {En # viajes guardados}}",
-    "unverified": "Sin verificar en Google Maps: comprueba que esté abierto antes de ir."
+    "unverified": "Sin verificar en Google Maps: comprueba que esté abierto antes de ir.",
+    "closedOn": "Cerrado {dates}",
+    "closedMoreDays": "{count, plural, one {# día más} other {# días más}}",
+    "closedSource": "Horario oficial"
   },
   "trip": {
     "cards": "Tarjetas",

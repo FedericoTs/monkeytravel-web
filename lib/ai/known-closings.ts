@@ -965,3 +965,38 @@ export function withKnownClosings(
   }
   return { closings, shutDates, known: covered.size };
 }
+
+/** What a stop shows of its listed closures: the trip's dates the list shuts it on, and the official page. */
+export type ClosingNote = { dates: string[]; source: string };
+
+/**
+ * The days with each listed stop's closures noted on it: the dates of its city's days (all the trip's on a trip to
+ * one place) the list shuts it on, with the list's official page. From the list alone, since the model's word on a
+ * closing day changes from one call to the next, and only on a trip whose dates all fall in the window the list was
+ * checked for. A stop the list shuts on none of those dates, and a meal, get no note. Pure: the days come back as
+ * they were when nothing is noted.
+ */
+export function withClosingNotes<D extends Day & { city?: string }>(days: D[], destination: string): D[] {
+  const all = days.map((d) => d.date).filter(isDate);
+  if (all.length === 0 || !all.every((date) => date >= CHECKED_FROM && date <= CHECKED_UNTIL)) return days;
+  const datesOf = (city: string | undefined) => days.filter((d) => (d.city ?? "") === (city ?? "")).map((d) => d.date).filter(isDate);
+  let changed = false;
+  const out = days.map((day) => {
+    const dates = datesOf(day.city);
+    let noted = false;
+    const activities = (day.activities ?? []).map((stop) => {
+      if (isMealStop(stop)) return stop;
+      const entry = knownClosingFor(stop.name, day.city || destination);
+      if (!entry) return stop;
+      const shut = dates.filter((date) => shutBy(entry, date));
+      if (shut.length === 0) return stop;
+      noted = true;
+      const closing: ClosingNote = { dates: shut, source: entry.source };
+      return { ...stop, closing };
+    });
+    if (!noted) return day;
+    changed = true;
+    return { ...day, activities };
+  });
+  return changed ? out : days;
+}

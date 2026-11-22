@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { keepOffClosingDays, type Weekday } from "@/lib/ai/closing-days";
-import { KNOWN_CLOSINGS, hoursOn, knownClosingFor, shutBy, withKnownClosings, type KnownClosing } from "@/lib/ai/known-closings";
+import { KNOWN_CLOSINGS, hoursOn, knownClosingFor, shutBy, withClosingNotes, withKnownClosings, type KnownClosing } from "@/lib/ai/known-closings";
 
 const entry = (name: string, destination: string) => {
   const found = knownClosingFor(name, destination);
@@ -294,6 +294,10 @@ describe("the list decides its places over the model's answer", () => {
     expect(result.shutBefore).toBe(1);
     expect(result.shutAfter).toBe(0);
     expect(result.itinerary.days[1].activities.map((a) => a.name)).toContain("Tokyo National Museum");
+    // And says so on the stop, with the museum's own page; the shrine, open every day, says nothing.
+    const museum = result.itinerary.days[1].activities.find((a) => a.name === "Tokyo National Museum") as { closing?: unknown };
+    expect(museum.closing).toEqual({ dates: ["2027-01-12"], source: "https://www.tnm.jp/modules/r_free_page/index.php?id=113&lang=en" });
+    expect(result.itinerary.days.flatMap((d) => d.activities).find((a) => a.name === "Meiji Jingu Shrine")).not.toHaveProperty("closing");
   });
 });
 
@@ -421,5 +425,55 @@ describe("a meal named after a listed place", () => {
     expect(merged.known).toBe(1);
     expect(merged.shutDates.get("armando al pantheon")).toBeUndefined();
     expect(merged.shutDates.get("pantheon")).toEqual(["2026-12-25"]);
+  });
+});
+
+// Plans moved sights off their closing days without a word, while a chat names each closure. The checked list says it
+// on the stop, with the official page: only the list, since the model's word on a closing day changes between calls.
+describe("closures said on the stop", () => {
+  const LOUVRE = "https://www.louvre.fr/en/visit/hours-admission";
+  const stop = (name: string, type = "museum") => ({ name, type });
+  const on = (date: string, names: string[], city?: string) => ({ date, ...(city ? { city } : {}), activities: names.map((n) => stop(n)) });
+
+  it("names the trip's dates a listed place is shut on, with its official page", () => {
+    // Monday 14 to Thursday 17 December 2026: the Louvre shuts on Tuesdays.
+    const days = [on("2026-12-14", ["Louvre Museum"]), on("2026-12-15", ["Canal Saint-Martin walk"]), on("2026-12-16", []), on("2026-12-17", [])];
+    const noted = withClosingNotes(days, "Paris");
+    expect(noted[0].activities[0]).toEqual({ name: "Louvre Museum", type: "museum", closing: { dates: ["2026-12-15"], source: LOUVRE } });
+    expect(noted[1].activities[0]).not.toHaveProperty("closing");
+  });
+
+  it("says nothing on a trip with none of its closing days, and gives the same days back", () => {
+    // Wednesday 16 to Friday 18 December.
+    const days = [on("2026-12-16", ["Louvre Museum"]), on("2026-12-17", []), on("2026-12-18", [])];
+    expect(withClosingNotes(days, "Paris")).toBe(days);
+  });
+
+  it("names a holiday too, and never a meal named after a sight", () => {
+    // Thursday 24 to Saturday 26 December.
+    const days = [24, 25, 26].map((d) => ({ date: `2026-12-${d}`, activities: [stop("Louvre Museum"), stop("Café du Louvre", "restaurant")] }));
+    const noted = withClosingNotes(days, "Paris");
+    expect(noted[0].activities[0]).toHaveProperty("closing", { dates: ["2026-12-25"], source: LOUVRE });
+    expect(noted[0].activities[1]).not.toHaveProperty("closing");
+  });
+
+  it("on a trip through several cities, counts only the dates of the stop's own city", () => {
+    // Rome on Monday 14 and Tuesday 15, Paris on Wednesday 16 and Thursday 17: the Louvre's Tuesday is a Rome day.
+    const days = [
+      on("2026-12-14", ["Trevi Fountain"], "Rome"),
+      on("2026-12-15", ["Villa Borghese"], "Rome"),
+      on("2026-12-16", ["Louvre Museum"], "Paris"),
+      on("2026-12-17", ["Sainte-Chapelle"], "Paris"),
+    ];
+    expect(withClosingNotes(days, "Rome & Paris")[2].activities[0]).not.toHaveProperty("closing");
+    // With the Tuesday in Paris, it is said.
+    const parisTuesday = [on("2026-12-14", ["Trevi Fountain"], "Rome"), on("2026-12-15", ["Louvre Museum"], "Paris"), on("2026-12-16", [], "Paris")];
+    // The day's own city finds the place, whatever the trip is called.
+    expect(withClosingNotes(parisTuesday, "Our grand tour")[1].activities[0]).toHaveProperty("closing", { dates: ["2026-12-15"], source: LOUVRE });
+  });
+
+  it("says nothing past the window the list was checked for", () => {
+    const days = [on("2027-06-15", ["Louvre Museum"]), on("2027-06-16", [])];
+    expect(withClosingNotes(days, "Paris")).toBe(days);
   });
 });

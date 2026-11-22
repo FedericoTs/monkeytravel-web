@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import UnverifiedNote from "@/components/trip/UnverifiedNote";
+import ClosingNote from "@/components/trip/ClosingNote";
 import { PhotoCredit } from "@/components/ui/PhotoCredit";
 import { formatDuration } from "@/lib/datetime/duration";
 import { useActivityPrice } from "@/lib/i18n/activity-price";
@@ -62,6 +63,11 @@ export default function SkyStop({ activity, currency, minutes, until }: { activi
       {activity.unverified && (
         <div className="mt-2 inline-block rounded-lg bg-white/90 px-2.5 py-1">
           <UnverifiedNote activity={activity} />
+        </div>
+      )}
+      {activity.closing && (
+        <div className="mt-2 inline-block rounded-lg bg-white/90 px-2.5 py-1">
+          <ClosingNote activity={activity} className="text-slate-700" />
         </div>
       )}
       {open && (
