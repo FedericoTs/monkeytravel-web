@@ -326,6 +326,7 @@
       "shareAnonCreating": "Criando o link...",
       "shareAnonCopy": "Copiar",
       "shareAnonCopied": "Copiado",
+      "shareAnonCopiedLine": "Link copiado. Cole em um chat ou em um e-mail.",
       "shareAnonError": "Não foi possível criar o link. Tente novamente.",
       "shareAnonHint": "Qualquer pessoa com o link pode ver e votar.",
       "shareAnonKeepPrompt": "Quer continuar editando?",

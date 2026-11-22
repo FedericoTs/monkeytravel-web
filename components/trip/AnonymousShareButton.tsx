@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { buildPendingClaim, shareAnonymousTrip, type PendingClaim } from "@/lib/trips/anonymous-claim-client";
 import { crewShareUrl, shareTokenFromUrl, totalVotes } from "@/lib/trips/crew-share";
@@ -66,7 +66,30 @@ interface Props {
    * to its ready state and shows the same link.
    */
   existingShareUrl?: string | null;
+  /**
+   * In a bar, where the link's controls would take the bar's room: they open
+   * as a panel over the page instead, "below" the button (the header) or
+   * "above" it (the phone's bottom bar), and the button stays as it was.
+   * Without it the controls take the button's place.
+   */
+  panel?: "above" | "below";
   className?: string;
+}
+
+const TRIGGER =
+  "flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-2.5 font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50";
+
+function ShareIcon() {
+  return (
+    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M8.684 13.342a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+      />
+    </svg>
+  );
 }
 
 export default function AnonymousShareButton({
@@ -75,13 +98,44 @@ export default function AnonymousShareButton({
   onKeep,
   existingShareUrl,
   mode = "share",
+  panel,
   className = "",
 }: Props) {
   const crew = mode === "crew";
   const t = useTranslations("trips");
+  const tButtons = useTranslations("common.buttons");
   const [state, setState] = useState<"idle" | "creating" | "ready" | "error">("idle");
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  // The panel a bar's button opens. It opens by itself only when the link was
+  // just made and there is something to say or do: the link is copied, or the
+  // phone's share sheet refused.
+  const [open, setOpen] = useState(false);
+  // The link went to the clipboard as it was made: the panel says so while it stays open.
+  const [autoCopied, setAutoCopied] = useState(false);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const panelId = useId();
+  const closePanel = useCallback(() => {
+    setOpen(false);
+    setAutoCopied(false);
+  }, []);
+
+  // Escape, or a press anywhere else, closes the panel.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closePanel();
+    };
+    const onPress = (event: PointerEvent) => {
+      if (boxRef.current && !boxRef.current.contains(event.target as Node)) closePanel();
+    };
+    window.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onPress);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onPress);
+    };
+  }, [open, closePanel]);
   // Votes cast on the link so far. The crew loop only closes if the planner
   // has a reason to come back: they send the link, friends vote without an
   // account, and this is what they see on return.
@@ -157,17 +211,21 @@ export default function AnonymousShareButton({
       ? t("wizard.result.shareCrewMessage", { destination: trip.destination, url })
       : t("wizard.result.shareAnonMessage", { destination: trip.destination, url });
 
-  async function sendNatively(url: string) {
+  /** "refused" when the phone wouldn't open its sheet (the tap that started it went stale): a fresh tap will. */
+  async function sendNatively(url: string): Promise<"sent" | "closed" | "refused"> {
     try {
       await navigator.share({ text: messageFor(url) });
       void captureAnonShareSent({ ...analyticsBase, channel: "native" });
-    } catch {
-      // Closed, or the tap that started it went stale: the buttons stay for a fresh tap.
+      return "sent";
+    } catch (err) {
+      return err instanceof DOMException && err.name === "AbortError" ? "closed" : "refused";
     }
   }
 
   function sendOnWhatsApp(url: string) {
-    if (openWhatsApp(messageFor(url))) void captureAnonShareSent({ ...analyticsBase, channel: "whatsapp" });
+    if (!openWhatsApp(messageFor(url))) return;
+    void captureAnonShareSent({ ...analyticsBase, channel: "whatsapp" });
+    closePanel();
   }
 
   async function handleShare() {
@@ -193,10 +251,15 @@ export default function AnonymousShareButton({
       void captureAnonShareCreated({ ...analyticsBase, trip_id: result.tripId });
       onShared?.(buildPendingClaim(result, trip));
       // A phone hands the link straight to its share sheet; elsewhere it is
-      // copied, and WhatsApp is one tap away below.
+      // copied, and WhatsApp is one tap away. In a bar the panel opens to say
+      // so, or to offer its buttons for a fresh tap when the sheet refused.
       const url = crewShareUrl(result.shareUrl, mode) ?? result.shareUrl;
-      if (canShareNatively()) void sendNatively(url);
-      else void copy(url, "auto");
+      if (canShareNatively()) {
+        if ((await sendNatively(url)) === "refused") setOpen(true);
+      } else {
+        setAutoCopied(await copy(url, "auto"));
+        setOpen(true);
+      }
     } catch (err) {
       setState("error");
       void captureAnonShareFailed({
@@ -206,7 +269,7 @@ export default function AnonymousShareButton({
     }
   }
 
-  async function copy(url: string, trigger: "auto" | "manual") {
+  async function copy(url: string, trigger: "auto" | "manual"): Promise<boolean> {
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
@@ -214,20 +277,24 @@ export default function AnonymousShareButton({
       // clipboard means the link never left the page.
       void captureAnonShareCopied({ ...analyticsBase, trigger });
       window.setTimeout(() => setCopied(false), 2200);
+      return true;
     } catch {
       /* clipboard blocked — the input below is selectable as the fallback */
+      return false;
     }
   }
 
+  const label = crew ? t("wizard.result.shareCrewCta") : t("wizard.result.shareAnonCta");
+
   if (effectiveState === "ready" && effectiveUrl) {
-    return (
-      <div className={`flex flex-col gap-2 ${className}`}>
+    const controls = (
+      <>
         <div className="flex items-center gap-2">
           <input
             readOnly
             value={effectiveUrl}
             onFocus={(e) => e.currentTarget.select()}
-            aria-label={crew ? t("wizard.result.shareCrewCta") : t("wizard.result.shareAnonCta")}
+            aria-label={label}
             className="flex-1 min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700"
           />
           <button
@@ -249,7 +316,7 @@ export default function AnonymousShareButton({
           {canShareNatively() && (
             <button
               type="button"
-              onClick={() => void sendNatively(effectiveUrl)}
+              onClick={() => void sendNatively(effectiveUrl).then((went) => went === "sent" && closePanel())}
               className="inline-flex min-h-[40px] items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium text-slate-800 hover:bg-slate-50"
             >
               {t("wizard.result.shareSendNative")}
@@ -283,6 +350,7 @@ export default function AnonymousShareButton({
               type="button"
               onClick={() => {
                 void captureAnonShareKeepClicked(analyticsBase);
+                closePanel();
                 onKeep();
               }}
               className="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-xl bg-[var(--primary)] px-4 text-sm font-semibold text-white transition-colors hover:bg-[var(--primary)]/90"
@@ -291,18 +359,55 @@ export default function AnonymousShareButton({
             </button>
           </div>
         )}
+      </>
+    );
+    if (!panel) return <div className={`flex flex-col gap-2 ${className}`}>{controls}</div>;
+    return (
+      <div ref={boxRef} className={`relative flex flex-col gap-1.5 ${className}`}>
+        <button type="button" onClick={() => (open ? closePanel() : setOpen(true))} aria-expanded={open} aria-controls={panelId} className={TRIGGER}>
+          <ShareIcon />
+          {label}
+          {crew && voteCount > 0 && (
+            <span aria-hidden="true" className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
+              🗳️ {voteCount}
+            </span>
+          )}
+        </button>
+        {open && (
+          <div
+            id={panelId}
+            role="group"
+            aria-label={label}
+            data-share-panel={panel}
+            className={`absolute z-50 ${panel === "below" ? "right-0 top-full mt-5 w-96 max-w-[calc(100vw-2rem)]" : "inset-x-0 bottom-full mb-5"}`}
+          >
+            <div className="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-3 text-left shadow-xl">
+              <div className="flex items-start justify-between gap-3">
+                <p role="status" className="text-sm font-semibold text-slate-800">
+                  {autoCopied ? t("wizard.result.shareAnonCopiedLine") : label}
+                </p>
+                <button
+                  type="button"
+                  onClick={closePanel}
+                  aria-label={tButtons("close")}
+                  className="-mr-1 -mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              {controls}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
-      <button
-        type="button"
-        onClick={handleShare}
-        disabled={effectiveState === "creating"}
-        className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-2.5 font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
-      >
+      <button type="button" onClick={handleShare} disabled={effectiveState === "creating"} className={TRIGGER}>
         {effectiveState === "creating" ? (
           <>
             <Spinner className="w-4 h-4" />
@@ -310,15 +415,8 @@ export default function AnonymousShareButton({
           </>
         ) : (
           <>
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8.684 13.342a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-              />
-            </svg>
-            {crew ? t("wizard.result.shareCrewCta") : t("wizard.result.shareAnonCta")}
+            <ShareIcon />
+            {label}
           </>
         )}
       </button>
