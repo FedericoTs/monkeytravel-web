@@ -494,3 +494,60 @@ describe("closures said on the stop", () => {
     expect(withClosingNotes(days, "Paris")).toBe(days);
   });
 });
+
+describe("more of the most-planned sights", () => {
+  const shutOn = (name: string, city: string, dates: string[]) => dates.filter((date) => shutBy(entry(name, city), date));
+  // Thursday 24 December 2026 to Wednesday 6 January 2027: Monday 28 and Tuesday 29 December among them.
+  const winter = ["2026-12-24", "2026-12-25", "2026-12-26", "2026-12-28", "2026-12-29", "2026-12-31", "2027-01-01", "2027-01-06"];
+
+  it("shut each on its own holidays and weekday", () => {
+    expect(shutOn("Panthéon", "Paris", winter)).toEqual(["2026-12-25", "2027-01-01"]);
+    expect(shutOn("Musée Carnavalet", "Paris", winter)).toEqual(["2026-12-25", "2026-12-28", "2027-01-01"]);
+    expect(shutOn("Tower of London", "London", winter)).toEqual(["2026-12-24", "2026-12-25", "2026-12-26", "2027-01-01"]);
+    expect(shutOn("Victoria and Albert Museum", "London", winter)).toEqual(["2026-12-24", "2026-12-25", "2026-12-26"]);
+    expect(shutOn("Camden Market", "London", winter)).toEqual(["2026-12-25"]);
+    expect(shutOn("National Museum of Scotland", "Edinburgh", winter)).toEqual(["2026-12-25"]);
+    expect(shutOn("Museu Picasso", "Barcelona", winter)).toEqual(["2026-12-25", "2026-12-28", "2027-01-01"]);
+    expect(shutOn("Casa Batlló", "Barcelona", winter)).toEqual([]);
+    expect(shutOn("Museo del Prado", "Madrid", winter)).toEqual(["2026-12-25", "2027-01-01"]);
+    expect(shutOn("Museo Nacional Centro de Arte Reina Sofía", "Madrid", winter)).toEqual([
+      "2026-12-24",
+      "2026-12-25",
+      "2026-12-29",
+      "2026-12-31",
+      "2027-01-01",
+      "2027-01-06",
+    ]);
+    expect(shutOn("Mercado de San Miguel", "Madrid", winter)).toEqual([]);
+    // Open on Thanksgiving, Thursday 26 November.
+    expect(shutOn("Chelsea Market", "New York", ["2026-11-26", ...winter])).toEqual(["2026-12-25"]);
+  });
+
+  it("keep their hours, the short days included", () => {
+    // Thursday 24 December 2026, Sunday 3 January, Tuesday 12 January, Friday 15 January and Monday 1 March 2027.
+    expect(hoursOn(entry("Museo del Prado", "Madrid"), "2026-12-24")).toEqual({ open: 600, close: 840, lastEntry: 810 });
+    expect(hoursOn(entry("Museo del Prado", "Madrid"), "2027-01-03")?.close).toBe(19 * 60);
+    expect(hoursOn(entry("Tower of London", "London"), "2027-01-12")).toEqual({ open: 540, close: 990, lastEntry: 960 });
+    expect(hoursOn(entry("Tower of London", "London"), "2027-03-01")).toEqual({ open: 600, close: 1050, lastEntry: 1020 });
+    expect(hoursOn(entry("Victoria and Albert Museum", "London"), "2027-01-15")?.close).toBe(22 * 60);
+    expect(hoursOn(entry("Panthéon", "Paris"), "2027-01-12")).toEqual({ open: 600, close: 1080, lastEntry: 1035 });
+    expect(hoursOn(entry("National Museum of Scotland", "Edinburgh"), "2027-01-01")?.open).toBe(12 * 60);
+    expect(hoursOn(entry("Museo Reina Sofía", "Madrid"), "2027-01-03")).toEqual({ open: 600, close: 870, lastEntry: 840 });
+  });
+
+  it("know them by the names plans give them, in their own city only", () => {
+    expect(knownClosingFor("Pantheon", "Paris, France")?.source).toContain("paris-pantheon.fr");
+    expect(knownClosingFor("Pantheon", "Rome, Italy")?.source).toContain("pantheonroma.com");
+    expect(knownClosingFor("Panthéon & Latin Quarter walk", "Paris")).toBeUndefined();
+    expect(knownClosingFor("Evening walk past the Panthéon", "Paris")).toBeUndefined();
+    expect(knownClosingFor("Prado Museum", "Madrid")).toBeDefined();
+    expect(knownClosingFor("Paseo del Prado", "Madrid")).toBeUndefined();
+    expect(knownClosingFor("Prado Restaurant", "Lisbon")).toBeUndefined();
+    expect(knownClosingFor("Torre de Londres", "Londres")).toBeDefined();
+    expect(knownClosingFor("Tower Bridge", "London")).toBeUndefined();
+    expect(knownClosingFor("V&A Museum", "London")).toBeDefined();
+    expect(knownClosingFor("Museo Picasso", "Barcelona")).toBeDefined();
+    expect(knownClosingFor("Musée Picasso", "Paris")).toBeUndefined();
+    expect(knownClosingFor("Museu Nacional Centro de Arte Reina Sofía", "Madri")).toBeDefined();
+  });
+});

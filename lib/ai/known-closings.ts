@@ -94,6 +94,7 @@ const NARA_KYOTO_OSAKA = /\bnara\b|奈良|\bkyoto\b|\bkioto\b|\bquioto\b|京都|
 const ATHENS = /\bathens\b|\batene\b|\batenas\b|αθήνα/i;
 const GRANADA = /\bgranada\b/i;
 const EDINBURGH = /\bedinburgh\b|\bedimburgo\b/i;
+const MADRID = /\bmadrid\b|\bmadri\b/i;
 /** Neuschwanstein is a day out from Munich or Füssen. */
 const BAVARIA = /\bm[uü]nchen\b|\bmunich\b|\bm[uú]nich\b|\bmunique\b|\bmonaco di baviera\b|\bf[uü]ssen\b|\bschwangau\b|\bbavaria\b|\bbaviera\b|\bbayern\b/i;
 const VIENNA = /\bvienna\b|\bwien\b|\bviena\b|\bvienne\b/i;
@@ -875,6 +876,129 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
     rules: [{ weekly: ["Friday"] }, ...INDIA_NATIONAL_HOLIDAYS],
     hours: [{ from: "01-01", to: "12-31", open: "10:30", close: "18:30" }],
     source: "https://govtmuseumchennai.org/",
+  },
+  // Paris
+  {
+    // Rome's Pantheon is listed above under Rome. The first working Monday of each month it opens at 12:00, which the
+    // hours below don't hold.
+    names: /\bpanth[eé]on\b|\bpante[oó]n\b|\bpante[aã]o\b/i,
+    notNames: /\bsorbonne\b|\bwalk\b|\bpaseo\b|\bpasseggiata\b|\bpasseio\b|\bquart(?:er|ier|iere)\b|\bbarrio\b|\bbairro\b|\barea\b/i,
+    city: PARIS,
+    rules: [yearly("01-01"), yearly("05-01"), yearly("12-25")],
+    hours: [
+      { from: "12-24", to: "12-24", open: "10:00", close: "17:00", lastEntry: "16:15" },
+      { from: "12-31", to: "12-31", open: "10:00", close: "17:00", lastEntry: "16:15" },
+      { from: "04-01", to: "09-30", open: "10:00", close: "18:30", lastEntry: "17:45" },
+      { from: "10-01", to: "03-31", open: "10:00", close: "18:00", lastEntry: "17:15" },
+    ],
+    source: "https://www.paris-pantheon.fr/en/visit/practical-information",
+  },
+  {
+    names: /\bcarnavalet\b/i,
+    city: PARIS,
+    rules: [{ weekly: ["Monday"] }, yearly("01-01"), yearly("05-01"), yearly("12-25")],
+    hours: [
+      { from: "12-24", to: "12-24", open: "10:00", close: "17:00" },
+      { from: "12-31", to: "12-31", open: "10:00", close: "17:00" },
+      { from: "01-01", to: "12-31", open: "10:00", close: "18:00", lastEntry: "17:15" },
+    ],
+    source: "https://www.carnavalet.paris.fr/visiter/informations-pratiques",
+  },
+  // London
+  {
+    names: /\btower of london\b|\btorre de londres\b|\btorre di londra\b/i,
+    city: LONDON,
+    rules: [yearly("12-24", "12-26"), yearly("01-01")],
+    hours: [
+      { from: "03-01", to: "10-31", days: ["Sunday", "Monday"], open: "10:00", close: "17:30", lastEntry: "17:00" },
+      { from: "03-01", to: "10-31", open: "09:00", close: "17:30", lastEntry: "17:00" },
+      { from: "11-01", to: "02-29", days: ["Sunday", "Monday"], open: "10:00", close: "16:30", lastEntry: "16:00" },
+      { from: "11-01", to: "02-29", open: "09:00", close: "16:30", lastEntry: "16:00" },
+    ],
+    // Historic Royal Palaces' own access guide: its hours page turns away automated reads.
+    source: "https://media.hrp.org.uk/media/qgtbo2vf/tower-of-london-access-guide.pdf",
+  },
+  {
+    names: /\bvictoria (?:and|&) albert\b|\bv ?& ?a (?:museum|south kensington)\b|\bmuseo victoria (?:y|e) alberto\b/i,
+    city: LONDON,
+    rules: [yearly("12-24", "12-26")],
+    hours: [
+      { from: "01-01", to: "12-31", days: ["Friday"], open: "10:00", close: "22:00" },
+      { from: "01-01", to: "12-31", open: "10:00", close: "17:45" },
+    ],
+    source: "https://www.vam.ac.uk/south-kensington/visit",
+  },
+  { names: /\bcamden (?:lock )?market\b|\bmercado de camden\b|\bmercato di camden\b/i, city: LONDON, rules: [yearly("12-25")], source: "https://camdenmarket.com/faqs/when-are-you-open" },
+  // Edinburgh
+  {
+    names: /\bnational museum of scotland\b|\bmuseo nacional de escocia\b|\bmuseo nazionale di scozia\b|\bmuseu nacional da esc[oó]cia\b/i,
+    city: EDINBURGH,
+    rules: [yearly("12-25")],
+    hours: [
+      { from: "12-26", to: "12-26", open: "12:00", close: "17:00" },
+      { from: "01-01", to: "01-01", open: "12:00", close: "17:00" },
+      { from: "01-01", to: "12-31", open: "10:00", close: "17:00" },
+    ],
+    source: "https://www.nms.ac.uk/national-museum-of-scotland",
+  },
+  // Barcelona
+  {
+    names: /\bmuse(?:u|o|um) picasso\b|\bpicasso museum\b|\bmus[eé]e picasso\b/i,
+    city: BARCELONA,
+    rules: [{ weekly: ["Monday"] }, yearly("01-01"), yearly("05-01"), yearly("06-24"), yearly("12-25")],
+    hours: [
+      { from: "12-24", to: "12-24", open: "10:00", close: "14:00", lastEntry: "13:30" },
+      { from: "12-31", to: "12-31", open: "10:00", close: "14:00", lastEntry: "13:30" },
+      { from: "01-01", to: "12-31", open: "10:00", close: "19:00", lastEntry: "18:30" },
+    ],
+    source: "https://museupicassobcn.cat/en/plan-your-visit/buy-tickets-and-opening-hours",
+  },
+  // Its own pages give three different sets of hours: none held here.
+  // No word boundary after the "ó": a boundary only follows a letter of a to z.
+  { names: /\bcasa batll[oó]/i, city: BARCELONA, rules: OPEN_EVERY_DAY, source: "https://www.casabatllo.es/en/visit/" },
+  // Madrid
+  {
+    names: /\bmuseo (?:nacional )?del prado\b|\bprado museum\b|\bmus[eé]e du prado\b|\bmuseu do prado\b|\bthe prado\b/i,
+    city: MADRID,
+    rules: [yearly("01-01"), yearly("05-01"), yearly("12-25")],
+    hours: [
+      { from: "12-24", to: "12-24", open: "10:00", close: "14:00", lastEntry: "13:30" },
+      { from: "12-31", to: "12-31", open: "10:00", close: "14:00", lastEntry: "13:30" },
+      { from: "01-06", to: "01-06", open: "10:00", close: "14:00", lastEntry: "13:30" },
+      { from: "01-01", to: "12-31", days: ["Sunday"], open: "10:00", close: "19:00", lastEntry: "18:30" },
+      { from: "01-01", to: "12-31", open: "10:00", close: "20:00", lastEntry: "19:30" },
+    ],
+    // The museum's own 2026 visitor plan: its website turns away automated reads.
+    source: "https://content3.cdnprado.net/doclinks/pdf/visita/plano/m/2026/plano_esp.pdf",
+  },
+  {
+    // 15 May and 9 November follow Madrid's holiday calendar, which the museum says can move them.
+    names: /\breina sof[ií]a\b|\bqueen sof[ií]a\b/i,
+    city: MADRID,
+    rules: [
+      { weekly: ["Tuesday"] },
+      yearly("01-01"),
+      yearly("01-06"),
+      yearly("05-01"),
+      yearly("05-15"),
+      yearly("11-09"),
+      yearly("12-24", "12-25"),
+      yearly("12-31"),
+    ],
+    hours: [
+      { from: "01-01", to: "12-31", days: ["Sunday"], open: "10:00", close: "14:30", lastEntry: "14:00" },
+      { from: "01-01", to: "12-31", open: "10:00", close: "21:00", lastEntry: "20:30" },
+    ],
+    source: "https://www.museoreinasofia.es/visita/horarios-tarifas/",
+  },
+  { names: /\bmercado de san miguel\b|\bsan miguel market\b/i, city: MADRID, rules: OPEN_EVERY_DAY, source: "https://mercadodesanmiguel.es/en/" },
+  // New York
+  {
+    names: /\bchelsea market\b/i,
+    city: NEW_YORK,
+    rules: [yearly("12-25")],
+    hours: [{ from: "01-01", to: "12-31", open: "07:00", close: "22:00" }],
+    source: "https://www.chelseamarket.com/visit",
   },
 ];
 
