@@ -96,3 +96,20 @@ export function totalVotes(tallies: VoteTallies | null | undefined): number {
   }
   return total;
 }
+
+/**
+ * Whether the saved trip page's chips start with the ask to send the plan to the people coming: for the owner of a
+ * trip never sent, once that is known. Not on a trip for one, not while editing (sharing is put away then), and not
+ * after they waved the ask away in this browser (unknown until the page has read that, so hidden until then).
+ */
+export function leadsWithSendAsk(trip: {
+  isOwner: boolean;
+  editing: boolean;
+  /** Whether the trip has a share link; null while that is being read. */
+  shared: boolean | null;
+  /** The answer to "Who's coming?", when there is one. */
+  intent: unknown;
+  dismissed: boolean | null;
+}): boolean {
+  return trip.isOwner && !trip.editing && trip.shared === false && trip.dismissed === false && trip.intent !== "solo";
+}

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { useEffect, useState } from "react";
 
@@ -79,6 +79,22 @@ describe("the trip page's strip", () => {
     expect(mounts.book).toBe(1);
     expect(mounts.ready).toBe(1);
     expect(screen.queryByTestId("card-ready")).toBeNull();
+  });
+
+  it("leads with a chip that acts on a tap: no card, nothing to open, the others as they were", () => {
+    const send = vi.fn();
+    render(<TripStrip label="Getting ready" items={[{ id: "send", label: "Send it to the people coming", onPress: send }, ...items()]} />);
+    const chips = screen.getAllByRole("button").filter((b) => b.dataset.testid?.startsWith("trip-strip-"));
+    expect(chips[0]).toBe(chip("send"));
+    expect(chip("send").textContent).toBe("Send it to the people coming");
+    expect(chip("send").hasAttribute("aria-expanded")).toBe(false);
+    expect(chip("send").hasAttribute("aria-controls")).toBe(false);
+    fireEvent.click(chip("who"));
+    fireEvent.click(chip("send"));
+    expect(send).toHaveBeenCalledTimes(1);
+    // The open card stays open: the action chip is no card of its own.
+    expect(chip("who").getAttribute("aria-expanded")).toBe("true");
+    expect(screen.getByTestId("card-who").closest("[hidden]")).toBeNull();
   });
 
   it("is nothing when the trip has no chip to show", () => {
