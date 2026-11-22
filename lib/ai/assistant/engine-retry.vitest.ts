@@ -1020,6 +1020,47 @@ describe("assistTrip on a day that doesn't fit when they leave", () => {
   });
 });
 
+// "Day 1 is a travel day from home: we set off at 10am" came back as leaving the trip at 10:00, so the day's lunch
+// and evening were flagged; told "leaving early", the model wrote 08:00 and the last day's breakfast was flagged.
+describe("assistTrip on the times a traveller gives", () => {
+  const threeDays = Array.from({ length: 3 }, (_, i) => day(i + 1));
+  const answered = (travel_times: unknown[], day_number: number, names: [string, string][]) => ({
+    response: {
+      text: () =>
+        JSON.stringify({
+          reply: "Done.",
+          travel_times,
+          edits: [{ day_number, activities: names.map(([name, start_time]) => ({ name, start_time, duration_minutes: 60 })) }],
+        }),
+    },
+  });
+
+  it("doesn't take setting off for the trip on the first day as the end of that day", async () => {
+    generateContent.mockResolvedValueOnce(
+      answered([{ day: 1, leaves: "10:00", by: "car" }], 1, [["Lunch at a diner on the way", "12:00"], ["Evening at the outlet mall", "16:00"]]),
+    );
+    const out = await run({ ...input, message: "Day 1 we drive from home. We set off at 10am, lunch on the way around noon.", days: threeDays });
+    expect(generateContent).toHaveBeenCalledTimes(1);
+    expect(out.reply).not.toContain("(Check Day");
+    expect(out.edits[0].activities.map((a) => a.name)).toEqual(["Lunch at a diner on the way", "Evening at the outlet mall"]);
+  });
+
+  it("holds no day to a time the traveller never gave", async () => {
+    generateContent.mockResolvedValueOnce(answered([{ day: 3, leaves: "08:00", by: "flight" }], 3, [["Breakfast by the pyramids", "07:00"]]));
+    const out = await run({ ...input, message: "We are arriving late on the first day and leaving early on the last", days: threeDays });
+    expect(generateContent).toHaveBeenCalledTimes(1);
+    expect(out.reply).not.toContain("(Check Day");
+  });
+
+  it("still holds the last day to a departure they gave as a time", async () => {
+    generateContent
+      .mockResolvedValueOnce(answered([{ day: 3, leaves: "08:00", by: "flight" }], 3, [["Breakfast by the pyramids", "07:00"]]))
+      .mockResolvedValueOnce(answered([{ day: 3, leaves: "08:00", by: "flight" }], 3, [["Transfer to the airport", "05:00"]]));
+    await run({ ...input, message: "Our flight home leaves at 8am on day 3", days: threeDays });
+    expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain("CORRECTION: Day 3: they leave at 08:00, so everything must end by 05:00.");
+  });
+});
+
 // 28 Nov to 6 Dec is 9 days and 8 nights. "Isn't it 8 days?" got "You're totally
 // right!", and "count, it's 8", twice, cut the trip to 8 days.
 describe("assistTrip on how long the trip is", () => {
