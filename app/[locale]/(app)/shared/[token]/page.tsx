@@ -6,8 +6,8 @@ import { createClient, signedInUserId } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { logSharedTripVisit } from "@/lib/analytics/funnel-events";
-import { classifySharedVisit } from "@/lib/analytics/share-visit-classifier";
+import { logSharedTripVisit, madeThisShareLink } from "@/lib/analytics/funnel-events";
+import { classifySharedVisit, sharedBySomeone } from "@/lib/analytics/share-visit-classifier";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { formatDateRange } from "@/lib/datetime";
 import type { ItineraryDay, TripMeta } from "@/types";
@@ -175,8 +175,8 @@ export default async function SharedTripPage({ params, searchParams }: PageProps
   // Record a recipient visit, the share loop's first measured hop
   // (funnel_events.share_link_visited + the PostHog crew_link_visited twin
   // below). One verdict feeds both sinks so they stay comparable; it skips
-  // crawlers, prefetches, non-document renders, the ownerless demo trips and
-  // owners. NOT fired in generateMetadata, which runs on the same request and
+  // crawlers, prefetches, non-document renders, the demo trips and owners.
+  // NOT fired in generateMetadata, which runs on the same request and
   // would double-count. Fire-and-forget; never blocks the render.
   const visitHeaders = await headers();
   const visitVerdict = classifySharedVisit({
@@ -185,13 +185,19 @@ export default async function SharedTripPage({ params, searchParams }: PageProps
     purpose: visitHeaders.get("purpose"),
     secPurpose: visitHeaders.get("sec-purpose"),
     isOwner,
-    tripHasOwner: !!trip.user_id,
+    tripWasShared: sharedBySomeone(trip),
   });
+  // A trip a signed-out planner shared has no owner to tell from its
+  // recipients: the browser that made the link is not one of them.
+  const isVisit: Promise<boolean> =
+    visitVerdict !== "counted"
+      ? Promise.resolve(false)
+      : trip.user_id
+        ? Promise.resolve(true)
+        : madeThisShareLink(trip.id as string).then((own) => !own);
   // In waitUntil, not floating: the function can be frozen once the page is
   // sent, and an unfinished write with it.
-  if (visitVerdict === "counted") {
-    waitUntil(logSharedTripVisit(trip.id as string, { crewAsk, day: sentDay }));
-  }
+  waitUntil(isVisit.then((visit) => (visit ? logSharedTripVisit(trip.id as string, { crewAsk, day: sentDay }) : undefined)));
 
   // PostHog twin of the funnel event above, gated by the same verdict.
   // Distinct id: the signed-in user id, else the mt_anon_voter cookie (ties
@@ -208,7 +214,7 @@ export default async function SharedTripPage({ params, searchParams }: PageProps
   //
   // Not awaited, in waitUntil like logSharedTripVisit; never blocks or breaks render.
   waitUntil((async () => {
-    if (visitVerdict !== "counted") return;
+    if (!(await isVisit)) return;
     try {
       const cookieStore = await cookies();
       const anonVoterId = cookieStore.get("mt_anon_voter")?.value;

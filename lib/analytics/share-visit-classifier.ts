@@ -5,7 +5,7 @@
  *
  * Why it exists: counted naively, most share_link_visited rows are not
  * recipients — cookieless non-document renders, scraper fleets on the
- * ownerless demo trips, and owners opening their own link.
+ * demo trips, and owners opening their own link.
  *
  * Pure: takes header values, never reads next/headers, so it is unit-tested
  * (share-visit-classifier.vitest.ts) the same way as page-view-classifier.ts.
@@ -15,7 +15,7 @@ export type SharedVisitVerdict =
   | "skip:crawler"
   | "skip:prefetch"
   | "skip:fetch"
-  | "skip:no-owner"
+  | "skip:demo"
   | "skip:owner";
 
 // Obvious crawlers / link-unfurlers only. Deliberately does NOT match
@@ -35,8 +35,16 @@ export interface SharedVisitInput {
   secPurpose: string | null;
   /** The viewer is the trip's owner, opening their own link. */
   isOwner: boolean;
-  /** The demo trips have no owner: nobody shares them, fleets crawl them. */
-  tripHasOwner: boolean;
+  /** Somebody shared the trip (sharedBySomeone). The demo trips are shared by nobody: fleets crawl them. */
+  tripWasShared: boolean;
+}
+
+/**
+ * Whether somebody shared a trip: it has an owner, or it still carries the claim a signed-out planner's browser
+ * holds for the trip they sent. The demo trips have neither.
+ */
+export function sharedBySomeone(trip: { user_id?: unknown; claim_token?: unknown }): boolean {
+  return Boolean(trip.user_id) || Boolean(trip.claim_token);
 }
 
 export function classifySharedVisit(input: SharedVisitInput): SharedVisitVerdict {
@@ -50,7 +58,7 @@ export function classifySharedVisit(input: SharedVisitInput): SharedVisitVerdict
   // does. Only a document request is a visit; a client that sends no fetch
   // metadata at all (older webviews) still counts.
   if (input.secFetchDest !== null && input.secFetchDest !== "document") return "skip:fetch";
-  if (!input.tripHasOwner) return "skip:no-owner";
+  if (!input.tripWasShared) return "skip:demo";
   if (input.isOwner) return "skip:owner";
   return "counted";
 }

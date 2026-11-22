@@ -1,6 +1,6 @@
 /** @vitest-environment node */
 import { describe, it, expect } from "vitest";
-import { classifySharedVisit, CRAWLER_UA_RE } from "./share-visit-classifier";
+import { classifySharedVisit, CRAWLER_UA_RE, sharedBySomeone } from "./share-visit-classifier";
 
 const IPHONE =
   "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.7 Mobile/15E148 Safari/604.1";
@@ -13,7 +13,7 @@ const recipient = {
   purpose: null,
   secPurpose: null,
   isOwner: false,
-  tripHasOwner: true,
+  tripWasShared: true,
 };
 
 describe("shared-visit classifier", () => {
@@ -52,14 +52,23 @@ describe("shared-visit classifier", () => {
     expect(classifySharedVisit({ ...recipient, isOwner: true })).toBe("skip:owner");
   });
 
-  it("skips the ownerless demo trips, whoever opens them", () => {
-    expect(classifySharedVisit({ ...recipient, tripHasOwner: false })).toBe("skip:no-owner");
-    expect(classifySharedVisit({ ...recipient, tripHasOwner: false, isOwner: true })).toBe("skip:no-owner");
+  it("skips the demo trips, which nobody shared, whoever opens them", () => {
+    expect(classifySharedVisit({ ...recipient, tripWasShared: false })).toBe("skip:demo");
+    expect(classifySharedVisit({ ...recipient, tripWasShared: false, isOwner: true })).toBe("skip:demo");
+  });
+
+  it("takes a trip as shared by someone when it has an owner, or the claim of the signed-out planner who sent it", () => {
+    expect(sharedBySomeone({ user_id: "owner-1", claim_token: null })).toBe(true);
+    // A signed-out planner's share: no owner yet, a claim their browser holds.
+    expect(sharedBySomeone({ user_id: null, claim_token: "a-claim" })).toBe(true);
+    // A demo trip: neither.
+    expect(sharedBySomeone({ user_id: null, claim_token: null })).toBe(false);
+    expect(sharedBySomeone({})).toBe(false);
   });
 
   it("reports the crawler verdict before any other", () => {
     expect(
-      classifySharedVisit({ ...recipient, userAgent: "Googlebot/2.1", secFetchDest: "empty", isOwner: true, tripHasOwner: false })
+      classifySharedVisit({ ...recipient, userAgent: "Googlebot/2.1", secFetchDest: "empty", isOwner: true, tripWasShared: false })
     ).toBe("skip:crawler");
   });
 });
