@@ -146,6 +146,11 @@ export interface Activity {
   tips: string[];
   booking_required: boolean;
   booking_url?: string;
+  /**
+   * The trip's dates the place is shut on, from the checked list of closing days (lib/ai/known-closings.ts), with
+   * the official page that says so. Only for a listed place shut on at least one of its city's trip dates.
+   */
+  closing?: { dates: string[]; source: string };
   official_website?: string;
   image_url?: string;
   /**

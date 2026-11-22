@@ -21,7 +21,7 @@
  * nowhere to go (shut on every date of the trip) is swapped for an open place,
  * when the route asks for that (lib/ai/closed-swaps.ts).
  */
-import { withKnownClosings } from "@/lib/ai/known-closings";
+import { withClosingNotes, withKnownClosings } from "@/lib/ai/known-closings";
 import { SchemaType, type ResponseSchema } from "@/lib/ai/genai-compat";
 import { genAI, withTimeout } from "@/lib/ai/gemini-call";
 import { getModelForPurpose, thinkingConfigFor } from "@/lib/ai/model-router";
@@ -378,7 +378,7 @@ export async function keepOffClosingDays<T extends { days: Day[] }>(
   // The sights on the checked list are decided by it, not by the model (lib/ai/known-closings.ts).
   const { closings, shutDates, known } = checked(answer, itinerary.days, destination);
   const settled = await settleDays(itinerary.days, closings, shutDates, destination, reword, swap);
-  return report(itinerary, settled, answer.costUsd, places.length, known, closings, shutDates);
+  return report(itinerary, settled, answer.costUsd, places.length, known, closings, shutDates, destination);
 }
 
 type Settled<D> = { days: D[]; costUsd: number; reworded: number; stopsMoved: number; swapped: number };
@@ -410,9 +410,11 @@ function report<T extends { days: Day[] }>(
   asked: number,
   known: number,
   closings: Closings,
-  shutDates: ShutDates
+  shutDates: ShutDates,
+  destination: string
 ) {
-  const days = settled.days;
+  // Each listed place shut on a date of the trip says so on the stop, with its official page.
+  const days = withClosingNotes(settled.days, destination);
   return {
     itinerary: days === itinerary.days ? itinerary : { ...itinerary, days },
     costUsd: askedUsd + settled.costUsd,
@@ -468,5 +470,5 @@ export async function keepOffClosingDaysByCity<T extends { days: Day[] }>(
     stopsMoved: runs.reduce((sum, run) => sum + run.stopsMoved, 0),
     swapped: runs.reduce((sum, run) => sum + run.swapped, 0),
   };
-  return report(itinerary, settled, answer.costUsd, places.length, known, closings, shutDates);
+  return report(itinerary, settled, answer.costUsd, places.length, known, closings, shutDates, destination);
 }
