@@ -788,10 +788,11 @@ describe("buildPrompt", () => {
   });
 
   // "walk instead of driving" rewrote days for a change no edit can make: the page picks walking or a ride by
-  // distance (lib/utils/travel-estimation.ts).
-  it("answers how they get between stops instead of writing days for it", () => {
+  // distance (lib/utils/travel-estimation.ts). And "we don't have a car" got "I'll keep your itinerary reliant on
+  // trains…", a promise with nothing changed.
+  it("answers how they get between stops instead of writing days for it, or promising to keep it", () => {
     expect(prompt).toContain(
-      'How they get from one stop to the next (walking instead of driving, a bus, a tram, a car) is not in the plan, which holds only the stops: no edit can change it, so asking for it is a QUESTION, never a change, even with "instead". Write no day for it: no walking stop, no new times.',
+      'How they get from one stop to the next (walking instead of driving, a bus, a tram, a car) is not in the plan, which holds only the stops: no edit can change it, so asking for it, or telling you how they get around ("we don\'t have a car", "trains and buses only"), is a QUESTION, never a change, even with "instead". Answer it, and never say you\'ll keep, remember or note it. Write no day for it: no walking stop, no new times.',
     );
     expect(prompt).toContain("The page shows walking between stops under about 1 km apart and a ride for longer hops");
     expect(prompt).toContain("offer to move stops closer together so more of each day is on foot");

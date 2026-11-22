@@ -362,6 +362,8 @@ const REMEMBER_PATTERNS: RegExp[] = [
   new RegExp(`${start}(?:has|have)\\s+been\\s+(?:noted|recorded|logged|registered)${end}`, "iu"),
   new RegExp(`${start}(?:i|we)(?:['’]ve|\\s+have)\\s+(?:noted|recorded|made\\s+a\\s+note|taken\\s+note)${end}`, "iu"),
   new RegExp(`${start}(?:i|we)(?:['’]ll|\\s+will)\\s+(?:keep|bear)\\s+(?:that|this|it|these|those)\\s+in\\s+mind${end}`, "iu"),
+  // "I'll keep your itinerary reliant on trains": a promise about every later answer, which no plan keeps.
+  new RegExp(`${start}(?:i|we)(?:['’]ll|\\s+will)\\s+(?:keep|make\\s+sure)\\s+(?:your|the)\\s+(?:itinerary|plan|trip)\\s+(?:stays\\s+|is\\s+)?(?:reliant|focused|based|centered|centred|built|limited|car-free)${end}`, "iu"),
   new RegExp(`${start}(?:is|are)\\s+(?:now\\s+)?(?:noted|recorded|on\\s+file)${end}`, "iu"),
   // "Noted!" and "Noted that you fly in from Toronto", not "Noted for its views".
   new RegExp(`^\\s*(?:noted|anotado|annotato)(?:[!.,]|\\s+(?:that|que|che)${end})`, "iu"),
