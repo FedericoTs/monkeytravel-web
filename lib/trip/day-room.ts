@@ -65,6 +65,14 @@ export function shortenedToFit<S extends TimedStop>(stop: S, others: TimedStop[]
   return room >= Math.max(SHORTEST_MINUTES, length / 2) ? { ...stop, duration_minutes: room } : null;
 }
 
+/** `stop` starting at `opens` (minutes after midnight) when it would start before then; as it is otherwise. */
+export function notBefore<S extends TimedStop>(stop: S, opens?: number): S {
+  const start = minutesOf(stop.start_time);
+  if (opens === undefined || start === null || start >= opens) return stop;
+  const time = formatMinutesToTime(opens);
+  return { ...stop, start_time: time, time_slot: determineTimeSlot(time) };
+}
+
 /** Whether a time given to a sight keeps it in the day: in by the late afternoon, and over by the evening. */
 export const keepsToTheDay = (stop: TimedStop): boolean => {
   const start = minutesOf(stop.start_time);

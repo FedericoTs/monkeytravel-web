@@ -501,6 +501,52 @@ describe("a stop still shut after the reorder", () => {
     expect(cut[2].activities[2]).toMatchObject({ name: "Victoria and Albert Museum", start_time: "14:00", duration_minutes: 75 });
   });
 
+  it("starts a named sight at its opening when the only slot for it begins earlier, cut to fit", () => {
+    // A real London plan: the Tower, asked for, is shut on the 24th; the 27th, a winter Sunday, holds the V&A (asked
+    // for too) at ten to twelve after an observatory at half past nine. The Tower opens at ten on Sundays.
+    const days = [
+      { day_number: 1, date: "2026-12-24", activities: [stop("Tower of London", "landmark", "10:00", 180), stop("Lunch at Borough", "restaurant", "13:30", 60)] },
+      {
+        day_number: 2,
+        date: "2026-12-27",
+        activities: [
+          stop("Royal Observatory", "museum", "09:30", 120),
+          stop("Victoria and Albert Museum", "museum", "11:50", 85),
+          stop("Lunch at the Grapes", "restaurant", "13:35", 75),
+          stop("National Gallery", "museum", "15:30", 120),
+          stop("Drinks at the Chandos", "bar", "18:30", 90),
+        ],
+      },
+    ];
+    const towerShut = shutDates([["Tower of London", ["2026-12-24"]], ["National Gallery", ["2026-12-24"]]]);
+    // Ten on a Sunday, nine on a weekday, as its winter hours go: the day it goes to is the one that counts.
+    const towerOpensAtTen = (stop: { name?: string }, date?: string) =>
+      /tower of london/i.test(stop.name ?? "") ? { open: date === "2026-12-27" ? 600 : 540, close: 990, lastEntry: 960 } : null;
+    const { days: after, moved } = moveShutStops(days, new Map(), towerShut, askedFor, towerOpensAtTen);
+    expect(moved).toBe(1);
+    expect(timed(after)[1]).toBe(
+      "10:00 Tower of London | 11:50 Victoria and Albert Museum | 13:35 Lunch at the Grapes | 15:30 National Gallery | 18:30 Drinks at the Chandos"
+    );
+    // From its opening to a short walk before the V&A: an hour and a half, half its visit.
+    expect(after[1].activities[0]).toMatchObject({ duration_minutes: 90, time_slot: "morning" });
+    // The observatory takes the Tower's morning on the 24th.
+    expect(timed(after)[0]).toBe("10:00 Royal Observatory | 13:30 Lunch at Borough");
+  });
+
+  it("starts the sight that leaves at its own opening too", () => {
+    // The gallery, open on the 24th, takes the Tower's slot at nine; it opens at ten.
+    const days = [
+      { day_number: 1, date: "2026-12-24", activities: [stop("Tower of London", "landmark", "09:00", 150), stop("Lunch at Borough", "restaurant", "13:00", 60)] },
+      { day_number: 2, date: "2026-12-27", activities: [stop("National Gallery", "museum", "10:00", 150), stop("Tate Modern", "museum", "14:00", 240)] },
+    ];
+    const towerShut = shutDates([["Tower of London", ["2026-12-24"]], ["Tate Modern", ["2026-12-24"]]]);
+    // At ten on the day it goes to, at nine on its own day.
+    const galleryAtTen = (stop: { name?: string }, date?: string) =>
+      /national gallery/i.test(stop.name ?? "") ? { open: date === "2026-12-24" ? 600 : 540, close: 1080 } : null;
+    const { days: after } = moveShutStops(days, new Map(), towerShut, undefined, galleryAtTen);
+    expect(timed(after)).toEqual(["10:00 National Gallery | 13:00 Lunch at Borough", "10:00 Tower of London | 14:00 Tate Modern"]);
+  });
+
   it("never trades a sight into a slot outside the hours its place keeps that day", () => {
     // The gallery, open on the 24th, could take the Tower's morning and give it the 14:30 slot: the Tower closes at 16:30
     // in winter, so that slot would run past it. With the Tower's hours known, no trade.

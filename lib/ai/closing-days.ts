@@ -35,6 +35,7 @@ import { rewordMovedDays, type WordDay, type WordStop } from "@/lib/ai/moved-day
 import {
   isDaytimeSight,
   keepsToTheDay,
+  notBefore,
   plannedMinutes,
   shortenedToFit,
   startsApart,
@@ -341,7 +342,8 @@ const startLater = (before: Day, after: Day) => (after.activities ?? []).filter(
  * takes the other's time on the other's day. Of the sights that `give` their place and make both days work, the one
  * whose trade moves the fewest other stops goes, the nearest in time to the stop among equals: a morning sight stays
  * a morning sight where it can. Only a sight of the day trades, at times that keep both in the day, so an evening
- * stop never trades with a morning one, and neither lands outside the hours its place keeps that day (`hoursOn`).
+ * stop never trades with a morning one, and neither lands outside the hours its place keeps that day (`hoursOn`): one
+ * whose new slot begins before its place opens starts at the opening.
  * With `fit`, the stop's visit is cut to the slot it takes when it is longer (shortenedToFit), so it pushes none of
  * the stops after it and ends by its place's closing. None when no sight does.
  */
@@ -359,9 +361,9 @@ function tradedDays<T extends Day>(
     .sort((a, b) => startsApart(a.other, stop) - startsApart(b.other, stop));
   let best: { from: T; into: T; later: number } | null = null;
   for (const { other, k } of others) {
-    const moved = { ...other, start_time: stop.start_time, time_slot: stop.time_slot };
+    const moved = notBefore({ ...other, start_time: stop.start_time, time_slot: stop.time_slot }, hoursOn(other, home.date)?.open);
     const without = { ...away, activities: (away.activities ?? []).filter((_, j) => j !== k) };
-    const whole = { ...stop, start_time: other.start_time, time_slot: other.time_slot };
+    const whole = notBefore({ ...stop, start_time: other.start_time, time_slot: other.time_slot }, hoursOn(stop, away.date)?.open);
     const placed = fit && isDaytimeSight(whole) ? shortenedToFit(whole, without.activities ?? [], hoursOn(whole, away.date)?.close) : whole;
     if (!placed || !mayChangeDay(other) || !gives(other) || !keepsToTheDay(moved) || (isDaytimeSight(placed) && !keepsToTheDay(placed))) continue;
     if (!inItsHours(placed, away.date, hoursOn) || !inItsHours(moved, home.date, hoursOn)) continue;
