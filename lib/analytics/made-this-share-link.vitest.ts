@@ -11,6 +11,7 @@ const cookieJar: Record<string, string> = {};
 const filters: Array<[string, unknown]> = [];
 let rows: unknown[] | null = [];
 let fails = false;
+let refused: { message: string } | null = null;
 
 vi.mock("next/headers", () => ({
   cookies: async () => ({ get: (name: string) => (name in cookieJar ? { value: cookieJar[name] } : undefined) }),
@@ -26,7 +27,7 @@ vi.mock("@/lib/supabase/admin", () => ({
       },
       limit: async () => {
         if (fails) throw new Error("no database");
-        return { data: rows, error: null };
+        return { data: refused ? null : rows, error: refused };
       },
     };
     return {
@@ -45,6 +46,7 @@ beforeEach(() => {
   filters.length = 0;
   rows = [];
   fails = false;
+  refused = null;
 });
 
 describe("madeThisShareLink", () => {
@@ -78,5 +80,15 @@ describe("madeThisShareLink", () => {
     fails = false;
     rows = null;
     expect(await madeThisShareLink("trip-1")).toBe(false);
+  });
+
+  it("says so in the log when the database refuses the read, and counts the visit", async () => {
+    cookieJar.mt_session_id = "session-of-the-sharer";
+    rows = [{ id: "event-1" }];
+    refused = { message: "permission denied" };
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(await madeThisShareLink("trip-1")).toBe(false);
+    expect(logged).toHaveBeenCalledWith("[share link's maker] read failed:", "permission denied");
+    logged.mockRestore();
   });
 });

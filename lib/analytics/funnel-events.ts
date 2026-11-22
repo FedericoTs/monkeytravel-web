@@ -16,6 +16,7 @@
 import { cookies } from "next/headers";
 import { waitUntil } from "@vercel/functions";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logReadError } from "@/lib/supabase/log-read-error";
 import { logWriteError } from "@/lib/supabase/log-write-error";
 
 /** The event vocabulary, in step with the funnel_events CHECK (funnel-events.vitest.ts). */
@@ -118,13 +119,13 @@ export async function madeThisShareLink(tripId: string): Promise<boolean> {
   try {
     const sessionId = (await cookies()).get("mt_session_id")?.value;
     if (!sessionId) return false;
-    const { data } = await createAdminClient()
+    const { data } = logReadError("share link's maker", await createAdminClient()
       .from("funnel_events")
       .select("id")
       .eq("trip_id", tripId)
       .eq("event_type", "share_link_created")
       .eq("session_id", sessionId)
-      .limit(1);
+      .limit(1));
     return Array.isArray(data) && data.length > 0;
   } catch {
     return false;
