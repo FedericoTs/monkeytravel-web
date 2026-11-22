@@ -205,6 +205,14 @@ describe("withStopAt", () => {
     it("cuts it by the evening when nothing follows", () => {
       expect(shortenedToFit(museum("15:50", 150), [stop("Lunch", "restaurant", "12:30", 60)])).toEqual(museum("15:50", 130));
       expect(shortenedToFit(museum("15:50", 150), [stop("Dinner", "restaurant", "19:30", 90)])).toEqual(museum("15:50", 130));
+      // By six even where the place stays open late (the V&A on a Friday, until ten).
+      expect(shortenedToFit(museum("15:50", 150), [], 22 * 60)).toEqual(museum("15:50", 130));
+    });
+
+    it("cuts it by its place's closing when that comes first", () => {
+      expect(shortenedToFit(museum("14:00", 150), [], 17 * 60 + 45)).toEqual(museum("14:00", 150));
+      expect(shortenedToFit(museum("14:00", 150), [], 16 * 60 + 30)).toEqual(museum("14:00", 150));
+      expect(shortenedToFit(museum("14:00", 150), [], 16 * 60)).toEqual(museum("14:00", 120));
     });
 
     it("keeps an hour and half the visit at least, or gives up", () => {
