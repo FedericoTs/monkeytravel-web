@@ -332,7 +332,8 @@ function tradedDays<T extends Day>(home: T, at: number, away: T, closings: Closi
  * its daytime sights keep to the day; when none has, the stop trades days
  * with a sight of a day it is open on (tradedDays). Only the plan's sights
  * are asked about, so a meal never moves. A stop with nowhere to go stays
- * where it is.
+ * where it is. Every move leaves a stop on a day it is open, so a trip needs
+ * no more of them than it has stops: past that count nothing moves.
  */
 export function moveShutStops<T extends Day>(
   days: T[],
@@ -342,11 +343,12 @@ export function moveShutStops<T extends Day>(
   if ((closings.size === 0 && shutDates.size === 0) || days.length < 2) return { days, moved: 0 };
   let current = days;
   let moved = 0;
+  const most = days.reduce((sum, day) => sum + (day.activities ?? []).length, 0);
   for (let d = 0; d < current.length; d++) {
     let s = 0;
     while (s < (current[d].activities ?? []).length) {
       const stop = (current[d].activities ?? [])[s] as TimedStop;
-      if (!stopShutOn(stop, current[d].date, closings, shutDates)) {
+      if (moved >= most || !stopShutOn(stop, current[d].date, closings, shutDates)) {
         s++;
         continue;
       }
