@@ -98,7 +98,7 @@ const NAMED_DAYS: Record<string, string> = {
 };
 
 /**
- * The holiday a date is, as the question names it: told only "2026-12-25 (Friday)", the model passes over closures
+ * The holiday a date is, as the question names it: told only the date and its weekday, the model passes over closures
  * it knows (a museum shut on Christmas Day). None for the days between (27 to 30 December, 2 to 5 January).
  */
 function holidayName(date: string): string | null {
