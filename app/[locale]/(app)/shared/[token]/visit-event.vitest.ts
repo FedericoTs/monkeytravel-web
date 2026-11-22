@@ -29,6 +29,8 @@ const ROW = {
 };
 
 const request = { headers: {} as Record<string, string>, cookies: {} as Record<string, string> };
+// The row the page reads, changed by a test for a trip of another kind.
+let row: Record<string, unknown> = ROW;
 
 vi.mock("next/headers", () => ({
   headers: async () => new Headers(request.headers),
@@ -36,7 +38,7 @@ vi.mock("next/headers", () => ({
 }));
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => {
-    const q = { select: () => q, eq: () => q, is: () => q, single: async () => ({ data: { ...ROW }, error: null }) };
+    const q = { select: () => q, eq: () => q, is: () => q, single: async () => ({ data: { ...row }, error: null }) };
     return { from: () => q };
   },
 }));
@@ -50,11 +52,12 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("./SharedTripView", () => ({ default: function SharedTripView() { return null; } }));
 vi.mock("@/components/explore/TripEngagementSection", () => ({ default: function TripEngagementSection() { return null; } }));
-vi.mock("@/lib/analytics/funnel-events", () => ({ logSharedTripVisit: vi.fn(async () => {}) }));
+vi.mock("@/lib/analytics/funnel-events", () => ({ logSharedTripVisit: vi.fn(async () => {}), madeThisShareLink: vi.fn(async () => false) }));
 vi.mock("@/lib/posthog/server", () => ({ captureServerEvent: vi.fn(async () => {}) }));
 
 const { default: SharedTripPage } = await import("./page");
 const { captureServerEvent } = await import("@/lib/posthog/server");
+const { logSharedTripVisit, madeThisShareLink } = await import("@/lib/analytics/funnel-events");
 
 async function visit() {
   await SharedTripPage({ params: Promise.resolve({ locale: "en", token: TOKEN }), searchParams: Promise.resolve({}) });
@@ -64,6 +67,9 @@ async function visit() {
 
 beforeEach(() => {
   vi.mocked(captureServerEvent).mockClear();
+  vi.mocked(logSharedTripVisit).mockClear();
+  vi.mocked(madeThisShareLink).mockReset().mockResolvedValue(false);
+  row = ROW;
   request.headers = { "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)", "sec-fetch-dest": "document" };
   request.cookies = { mt_anon_voter: "voter-cookie-1" };
 });
@@ -85,5 +91,52 @@ describe("a recipient's visit, in PostHog", () => {
     }
     expect(captureServerEvent).toHaveBeenCalledTimes(2);
     expect(JSON.stringify(vi.mocked(captureServerEvent).mock.calls)).not.toContain(TOKEN);
+  });
+});
+
+// Most links come from planners with no account: their trip has no owner, only the claim their browser holds.
+describe("a visit to a trip a signed-out planner shared", () => {
+  const SIGNED_OUT_SHARE = { ...ROW, user_id: null, claim_token: "a-claim", visibility: "private" };
+
+  it("is counted in both places when a friend opens it", async () => {
+    row = SIGNED_OUT_SHARE;
+    await visit();
+    expect(madeThisShareLink).toHaveBeenCalledExactlyOnceWith("trip-1");
+    expect(logSharedTripVisit).toHaveBeenCalledExactlyOnceWith("trip-1", { crewAsk: false, day: null });
+    expect(captureServerEvent).toHaveBeenCalledExactlyOnceWith("voter-cookie-1", "crew_link_visited", {
+      trip_id: "trip-1",
+      visitor_scope: "cookie",
+      crew_ask: false,
+    });
+  });
+
+  it("is not a visit when the browser that made the link opens it", async () => {
+    row = SIGNED_OUT_SHARE;
+    vi.mocked(madeThisShareLink).mockResolvedValue(true);
+    await visit();
+    expect(logSharedTripVisit).not.toHaveBeenCalled();
+    expect(captureServerEvent).not.toHaveBeenCalled();
+  });
+
+  it("leaves the demo trips, which nobody shared, uncounted, without a read", async () => {
+    row = { ...ROW, user_id: null, claim_token: null };
+    await visit();
+    expect(madeThisShareLink).not.toHaveBeenCalled();
+    expect(logSharedTripVisit).not.toHaveBeenCalled();
+    expect(captureServerEvent).not.toHaveBeenCalled();
+  });
+
+  it("asks nothing more of an owned trip: its owner is told apart by their account", async () => {
+    await visit();
+    expect(madeThisShareLink).not.toHaveBeenCalled();
+    expect(logSharedTripVisit).toHaveBeenCalledExactlyOnceWith("trip-1", { crewAsk: false, day: null });
+  });
+
+  it("doesn't count a crawler on a signed-out planner's trip, and doesn't read for it", async () => {
+    row = SIGNED_OUT_SHARE;
+    request.headers = { "user-agent": "facebookexternalhit/1.1" };
+    await visit();
+    expect(madeThisShareLink).not.toHaveBeenCalled();
+    expect(logSharedTripVisit).not.toHaveBeenCalled();
   });
 });
