@@ -109,6 +109,16 @@ export function keepDepartureTime<E extends Pick<DayEdit, "day_number" | "activi
   );
 }
 
+/**
+ * The travel times the plan is held to: those the traveller gave as a clock time. Told only "leaving early", the
+ * model writes a time of its own, and the plan was held to it. And on the first day of a longer trip, leaving alone
+ * is setting off for the trip ("we leave home at 10am"), not the end of their day there.
+ */
+export function toldTravelTimes(times: TravelTime[], told: string, length: number): TravelTime[] {
+  if (!TELLS_TIME.test(told)) return [];
+  return times.filter((t) => !(t.day === 1 && length > 1 && t.leaves && !t.arrives));
+}
+
 /** "travel_times" as the model wrote them, kept when the day and a time read. */
 export function readTravelTimes(raw: unknown, length: number): TravelTime[] {
   return (Array.isArray(raw) ? raw : []).flatMap((r) => {

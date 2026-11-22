@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { crewShareUrl, defaultShareFraming, framedShareUrl, shareTokenFromUrl, totalVotes } from "./crew-share";
+import { crewShareUrl, defaultShareFraming, framedShareUrl, leadsWithSendAsk, shareTokenFromUrl, totalVotes } from "./crew-share";
 
 const URL_BASE = "https://monkeytravel.app/en/shared/11111111-2222-3333-4444-555555555555";
 
@@ -109,5 +109,30 @@ describe("framedShareUrl", () => {
     expect(framedShareUrl(`${URL_BASE}?ref=ABC`, "crew")).toBe(`${URL_BASE}?ref=ABC&vote=1`);
     expect(framedShareUrl(`${URL_BASE}?ref=ABC`, "plain")).toBe(`${URL_BASE}?ref=ABC`);
     expect(framedShareUrl(null, "crew")).toBeNull();
+  });
+});
+
+describe("leadsWithSendAsk: the saved trip page's first chip", () => {
+  const owner = { isOwner: true, editing: false, shared: false, intent: "group", dismissed: false } as const;
+
+  it("asks the owner of a trip never sent, whoever is coming or when nobody said", () => {
+    for (const intent of ["group", "family", "couple", null, undefined]) expect(leadsWithSendAsk({ ...owner, intent })).toBe(true);
+  });
+
+  it("doesn't ask on a trip for one", () => {
+    expect(leadsWithSendAsk({ ...owner, intent: "solo" })).toBe(false);
+  });
+
+  it("waits until it is known the trip was never sent, and stops once it was", () => {
+    expect(leadsWithSendAsk({ ...owner, shared: null })).toBe(false);
+    expect(leadsWithSendAsk({ ...owner, shared: true })).toBe(false);
+  });
+
+  it("stays away from a collaborator, from editing, and from an owner who waved it away", () => {
+    expect(leadsWithSendAsk({ ...owner, isOwner: false })).toBe(false);
+    expect(leadsWithSendAsk({ ...owner, editing: true })).toBe(false);
+    expect(leadsWithSendAsk({ ...owner, dismissed: true })).toBe(false);
+    // Not known yet in this browser: hidden, as the card under the days is.
+    expect(leadsWithSendAsk({ ...owner, dismissed: null })).toBe(false);
   });
 });
