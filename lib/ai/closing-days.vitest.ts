@@ -549,6 +549,81 @@ describe("a stop still shut after the reorder", () => {
     expect(timed(moveShutStops(days, new Map(), vaShut).days)[1]).toBe("09:45 Victoria and Albert Museum | 13:00 Lunch in Soho");
   });
 
+  describe("a museum the plan had late in the day", () => {
+    // Shut on Boxing Day, the V&A would go in on the 27th at its own twenty past three, for two and a half hours,
+    // and push the Observatory from a quarter to five to ten past six, after it shuts.
+    const vaOnBoxingDay = { day_number: 1, date: "2026-12-26", activities: [stop("Victoria and Albert Museum", "museum", "15:20", 150)] };
+    const observatory = stop("Royal Observatory Greenwich", "museum", "16:45", 60);
+    const vaShut = shutDates([["Victoria and Albert Museum", ["2026-12-26"]]]);
+    const vaNamed = (s: { name?: string }) => /victoria and albert/i.test(s.name ?? "");
+    // Lunch at half past one leaves the V&A no other slot on the 27th, whole or cut.
+    const full27th = () => [
+      vaOnBoxingDay,
+      {
+        day_number: 2,
+        date: "2026-12-27",
+        activities: [
+          stop("Shakespeare's Globe", "attraction", "12:15", 60),
+          stop("The Anchor Bankside", "restaurant", "13:30", 90),
+          observatory,
+          stop("The Grapes", "restaurant", "19:30", 120),
+        ],
+      },
+    ];
+
+    it("isn't pushed into the evening to make room: the closed sight stays for the swap", () => {
+      expect(timed(moveShutStops(full27th(), new Map(), vaShut).days)).toEqual([
+        "15:20 Victoria and Albert Museum",
+        "12:15 Shakespeare's Globe | 13:30 The Anchor Bankside | 16:45 Royal Observatory Greenwich | 19:30 The Grapes",
+      ]);
+    });
+
+    it("is pushed on, last of all, for a sight the traveller named", () => {
+      expect(timed(moveShutStops(full27th(), new Map(), vaShut, vaNamed).days)).toEqual([
+        "",
+        "12:15 Shakespeare's Globe | 13:30 The Anchor Bankside | 15:20 Victoria and Albert Museum | 18:10 Royal Observatory Greenwich | 19:30 The Grapes",
+      ]);
+    });
+
+    it("is the only stop pushed for it: a sight the plan has in the day still never goes past it", () => {
+      // The Natural History Museum at four would start at ten past six, when it is shut. Dinner at half past five
+      // leaves the V&A no slot to trade into, whole or cut, so it stays for the swap.
+      const days = [
+        vaOnBoxingDay,
+        {
+          day_number: 2,
+          date: "2026-12-27",
+          activities: [
+            stop("Shakespeare's Globe", "attraction", "12:15", 60),
+            stop("The Anchor Bankside", "restaurant", "13:30", 90),
+            stop("Natural History Museum", "museum", "16:00", 90),
+            stop("The Grapes", "restaurant", "17:30", 90),
+          ],
+        },
+      ];
+      expect(timed(moveShutStops(days, new Map(), vaShut, vaNamed).days)[0]).toBe("15:20 Victoria and Albert Museum");
+    });
+
+    it("stays where it is when a trade gets the named sight in", () => {
+      const morning27th = (globeShut: boolean) => ({
+        days: [vaOnBoxingDay, { day_number: 2, date: "2026-12-27", activities: [stop("Shakespeare's Globe", "attraction", "10:00", 60), observatory] }],
+        shut: globeShut ? shutDates([["Victoria and Albert Museum", ["2026-12-26"]], ["Shakespeare's Globe", ["2026-12-26"]]]) : vaShut,
+      });
+      // The Globe, open on Boxing Day, trades places with it.
+      const open = morning27th(false);
+      expect(timed(moveShutStops(open.days, new Map(), open.shut, vaNamed).days)).toEqual([
+        "15:20 Shakespeare's Globe",
+        "10:00 Victoria and Albert Museum | 16:45 Royal Observatory Greenwich",
+      ]);
+      // Shut then too, the Globe still gives its place to the sight they named, then finds room after it.
+      const shut = morning27th(true);
+      expect(timed(moveShutStops(shut.days, new Map(), shut.shut, vaNamed).days)).toEqual([
+        "",
+        "10:00 Victoria and Albert Museum | 15:20 Shakespeare's Globe | 16:45 Royal Observatory Greenwich",
+      ]);
+    });
+  });
+
   it("starts the sight that leaves at its own opening too", () => {
     // The gallery, open on the 24th, takes the Tower's slot at nine; it opens at ten.
     const days = [
