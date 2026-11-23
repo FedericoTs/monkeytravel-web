@@ -311,6 +311,7 @@
     "regeneratingActivity": "Rigenerazione attività con AI...",
     "savedInTrips": "{count, plural, one {In # viaggio salvato} other {In # viaggi salvati}}",
     "unverified": "Non verificato su Google Maps: controlla che sia aperto prima di andare.",
+    "pickedBy": "Scelto da {name}",
     "closedOn": "Chiuso {dates}",
     "closedMoreDays": "{count, plural, one {un altro giorno} other {altri # giorni}}",
     "closedSource": "Orari ufficiali"
@@ -1280,7 +1281,20 @@
       "followingAlong": "segue il viaggio, non divide le spese",
       "notInExpensesYet": "non divide ancora le spese",
       "remove": "Rimuovi",
-      "planOwnLead": "Vai da un'altra parte?"
+      "planOwnLead": "Vai da un'altra parte?",
+      "fit": {
+        "title": "{name} non vuole perdersi",
+        "titleNoName": "Qualcuno che viene non vuole perdersi",
+        "button": "Aggiungi al piano",
+        "working": "Aggiungo…",
+        "added": "Aggiunto al piano: {list}.",
+        "noPlace": "Nessun posto adatto in questo viaggio per: {list}.",
+        "failed": "Non ha funzionato. Riprova tra un minuto.",
+        "busy": "Il piano si stava salvando. Riprova.",
+        "undo": "Annulla",
+        "undone": "Rimesso com'era.",
+        "undoFailed": "Impossibile annullare: il piano è cambiato nel frattempo."
+      }
     },
     "savedHero": {
       "aiTitle": "Itinerario generato dall'AI",

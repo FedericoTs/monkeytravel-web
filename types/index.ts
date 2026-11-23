@@ -167,6 +167,8 @@ export interface Activity {
    * open place to put instead: kept, and shown as not verified.
    */
   unverified?: boolean;
+  /** The first name of someone going who asked for this stop, when the owner fitted it in for them. */
+  picked_by?: string;
 }
 
 export interface DailyBudget {

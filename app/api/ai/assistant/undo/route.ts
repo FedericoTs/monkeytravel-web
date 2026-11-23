@@ -70,7 +70,8 @@ export async function POST(request: NextRequest) {
     // Only while the trip is as the change left it: putting the old copy back
     // over a later save would wipe that save.
     if (typeof expectedVersion === "number") write = write.eq("itinerary_version", expectedVersion);
-    const { data: written, error: updateError } = await write.select("id");
+    // itinerary_version: the page adopts the old copy at the version it was put back at, without a re-read.
+    const { data: written, error: updateError } = await write.select("id, itinerary_version");
 
     if (updateError) {
       console.error("[AI Assistant Undo] Database update failed:", updateError);
@@ -94,6 +95,7 @@ export async function POST(request: NextRequest) {
     return apiSuccess({
       success: true,
       restoredItinerary: previousItinerary,
+      itineraryVersion: (written[0] as { itinerary_version?: number }).itinerary_version,
     });
   } catch (error) {
     console.error("[AI Assistant Undo] Error:", error);
