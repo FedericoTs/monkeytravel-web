@@ -533,6 +533,22 @@ describe("a stop still shut after the reorder", () => {
     expect(timed(after)[0]).toBe("10:00 Royal Observatory | 13:30 Lunch at Borough");
   });
 
+  it("waits for the opening when it moves to a day with room, keeping its own time otherwise", () => {
+    // Christmas Day shut, the 27th free: the museum keeps its quarter to ten there unless its place opens later.
+    const days = [
+      { day_number: 1, date: "2026-12-25", activities: [stop("Victoria and Albert Museum", "museum", "09:45", 150)] },
+      { day_number: 2, date: "2026-12-27", activities: [stop("Lunch in Soho", "restaurant", "13:00", 60)] },
+    ];
+    const vaShut = shutDates([["Victoria and Albert Museum", ["2026-12-25"]]]);
+    const opensAtTen = (stop: { name?: string }, date?: string) =>
+      /victoria and albert/i.test(stop.name ?? "") && date === "2026-12-27" ? { open: 600, close: 1065 } : null;
+    const after = moveShutStops(days, new Map(), vaShut, undefined, opensAtTen).days;
+    expect(timed(after)[1]).toBe("10:00 Victoria and Albert Museum | 13:00 Lunch in Soho");
+    expect(after[1].activities[0]).toMatchObject({ time_slot: "morning", duration_minutes: 150 });
+    // Hours not known: its own time.
+    expect(timed(moveShutStops(days, new Map(), vaShut).days)[1]).toBe("09:45 Victoria and Albert Museum | 13:00 Lunch in Soho");
+  });
+
   it("starts the sight that leaves at its own opening too", () => {
     // The gallery, open on the 24th, takes the Tower's slot at nine; it opens at ten.
     const days = [
