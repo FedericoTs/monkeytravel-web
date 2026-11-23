@@ -366,6 +366,13 @@ function buildUserPrompt(params: TripCreationParams, options?: BuildPromptOption
     retro: "Retro Time Travel - vintage cafes, historic districts, nostalgia",
   };
 
+  // What the place is known for stays whatever the vibes: a "nature" trip to Agra still sees the Taj Mahal. A trip
+  // led by hidden gems is the exception.
+  const signatureLine =
+    params.vibes?.[0] === "offbeat"
+      ? ""
+      : `The vibes shape the trip around what ${params.destination} is known for, never instead of it: include its signature sights, the one or two places nearly every visitor comes to see (as the Taj Mahal is in Agra, or the Acropolis in Athens), each on a sensible day, unless the traveller asked to skip them. The vibes choose everything else.
+`;
   const vibeSection = params.vibes && params.vibes.length > 0
     ? `## Travel Vibes (${params.vibes.length} selected - PRIORITIZE THESE)
 ${params.vibes.map((v, i) => {
@@ -374,7 +381,7 @@ ${params.vibes.map((v, i) => {
 }).join("\n")}
 
 IMPORTANT: Blend these vibes throughout the itinerary. For fantasy vibes (wonderland, movie-magic, fairytale, retro), seek out unusual, photogenic, and story-worthy locations that match that aesthetic.
-`
+${signatureLine}`
     : "";
 
   // Backpacker Mode: when the traveller picked it in the wizard, inject a
