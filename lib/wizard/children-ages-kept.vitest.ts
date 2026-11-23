@@ -5,6 +5,7 @@ import type { SessionTripSnapshot } from "@/hooks/useSessionTripStack";
 import type { GeneratedItinerary } from "@/types";
 import { tripParamsFromBody } from "@/lib/ai/generation-caller";
 import { parseKeptPlan } from "@/lib/plans/kept-plan";
+import { insertTrip, type PersistInput } from "@/lib/trips/persistTrip";
 import { FRESH_ANSWERS, keptPlanOf, type WizardAnswers } from "./answers";
 import { applyDraft, applyKeptPlan, applySessionTrip, type KeptPlanTargets } from "./apply-draft";
 import { generationRequest } from "./generation-request";
@@ -13,8 +14,9 @@ import { generationRequest } from "./generation-request";
  * A family's children's ages travel with its plan through every place below,
  * as "Who's coming?" does. Each keeps the ages the wizard offers, once each and
  * youngest first, and drops anything else: a body, a stored draft or a tray
- * entry can hold any value. The plan itself (the request, the kept plan) holds
- * them only for a family; the wizard's own field gets back what was on screen.
+ * entry can hold any value. The plan itself (the request, the kept plan, the
+ * saved trip) holds them only for a family; the wizard's own field gets back
+ * what was on screen.
  */
 
 // What was sent or stored, and what a place keeps of it.
@@ -71,8 +73,23 @@ const sent = (a: WizardAnswers) =>
 
 const current = { pace: "moderate", vibes: [], budgetTier: "balanced", tripIntent: "solo" as const };
 
+/** The children's ages on the saved trip's row (trip_meta), from the answers the wizard saves with. */
+async function savedAges(v: unknown, tripIntent = "family"): Promise<unknown> {
+  const rows: Array<Record<string, unknown>> = [];
+  const client = {
+    rpc: (_fn: string, args: { p_row: Record<string, unknown> }) => {
+      rows.push(args.p_row);
+      return { single: async () => ({ data: { trip_id: "trip-1", reused: false }, error: null }) };
+    },
+  };
+  const input = { itinerary, formState: { ...trip, derivedInterests: [], travelStyle: "classic", tripIntent, childrenAges: v } } as unknown as PersistInput;
+  await insertTrip(client as never, input, "user-1");
+  return (rows[0].trip_meta as Record<string, unknown>).children_ages;
+}
+
 /** Where the plan itself carries the ages: only a family's. */
-const PLAN: Array<[string, (v: unknown, tripIntent?: string) => unknown]> = [
+const PLAN: Array<[string, (v: unknown, tripIntent?: string) => unknown | Promise<unknown>]> = [
+  ["the saved trip's row", savedAges],
   ["the request the wizard sends", (v, who) => sent(answers(v, who))],
   ["the generate request's body, read on the server", (v, who = "family") => tripParamsFromBody({ ...trip, tripIntent: who, childrenAges: v }, {}).childrenAges],
   ["a kept plan, made from the answers", (v, who) => keptPlanOf(answers(v, who), itinerary).childrenAges],
@@ -80,7 +97,7 @@ const PLAN: Array<[string, (v: unknown, tripIntent?: string) => unknown]> = [
 ];
 
 /** Where the wizard's field gets the ages back. None is an empty list: what was on screen is replaced. */
-const FIELD: Array<[string, (v: unknown, tripIntent?: string) => unknown]> = [
+const FIELD: Array<[string, (v: unknown, tripIntent?: string) => unknown | Promise<unknown>]> = [
   ["a restored draft's wizard field", (v, who) => {
     const to = targets();
     applyDraft(draft(v, who), to);
@@ -112,17 +129,17 @@ const none = (kept: unknown) => (kept === undefined ? [] : kept);
 
 describe("a family's children's ages as its plan carries them", () => {
   for (const [place, kept] of [...PLAN, ...FIELD]) {
-    it(`${place}: keeps the ages the wizard offers, once each and youngest first`, () => {
-      for (const [v, ages] of KEPT) expect(kept(v), JSON.stringify(v)).toEqual(ages);
+    it(`${place}: keeps the ages the wizard offers, once each and youngest first`, async () => {
+      for (const [v, ages] of KEPT) expect(await kept(v), JSON.stringify(v)).toEqual(ages);
     });
-    it(`${place}: drops anything else`, () => {
-      for (const v of DROPPED) expect(none(kept(v)), JSON.stringify(v)).toEqual([]);
+    it(`${place}: drops anything else`, async () => {
+      for (const v of DROPPED) expect(none(await kept(v)), JSON.stringify(v)).toEqual([]);
     });
   }
 
   for (const [place, kept] of PLAN) {
-    it(`${place}: holds none for anyone but a family`, () => {
-      for (const who of ["couple", "group", "solo", "unspecified"]) expect(kept(["under3"], who), who).toBeUndefined();
+    it(`${place}: holds none for anyone but a family`, async () => {
+      for (const who of ["couple", "group", "solo", "unspecified"]) expect(await kept(["under3"], who), who).toBeUndefined();
     });
   }
 });

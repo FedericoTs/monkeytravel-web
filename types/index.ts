@@ -276,6 +276,8 @@ export interface TripMeta {
    * different and the share prompt branches on that distinction.
    */
   trip_intent?: ChosenTripIntent;
+  /** A family's children's ages, youngest first, when they said on step 1. */
+  children_ages?: ChildAgeBand[];
   /**
    * Language the itinerary text is written in (Live Trip plan, Phase 1.3).
    * Stamped from the generation language at creation; every route that

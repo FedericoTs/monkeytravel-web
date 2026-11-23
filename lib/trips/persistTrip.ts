@@ -26,7 +26,7 @@ import type { PencilledDates } from "@/lib/trips/pencilled-dates";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { logWriteError } from "@/lib/supabase/log-write-error";
 import { tripSpanDays } from "@/lib/dates/iso-date";
-import { isChosenTripIntent, type ChosenTripIntent } from "@/lib/wizard/answers";
+import { familyAges, isChosenTripIntent, type ChildAgeBand, type ChosenTripIntent } from "@/lib/wizard/answers";
 
 export interface TripFormState {
   destination: string;
@@ -83,6 +83,8 @@ export interface TripFormState {
    * trip_intent means the user actively chose.
    */
   tripIntent?: ChosenTripIntent | "unspecified";
+  /** A family's children's ages, when they said; written as trip_meta.children_ages for a family's trip. */
+  childrenAges?: ChildAgeBand[];
   /**
    * The dates were pencilled in for the traveller ("flexible dates", a plan
    * from one sentence) rather than chosen. Written as trip_meta.dates_pencilled
@@ -160,6 +162,7 @@ function buildTripRow(
     : formState.locale
       ? resolveAiLanguage(formState.locale)
       : undefined;
+  const childrenAges = familyAges(formState.tripIntent, formState.childrenAges);
   const tripMeta = {
     // Provenance. See SaveOrigin — cheap to write, and it is what turns the
     // next duplicate-trip report into a query instead of an investigation.
@@ -214,6 +217,8 @@ function buildTripRow(
     ...(isChosenTripIntent(formState.tripIntent)
       ? { trip_intent: formState.tripIntent }
       : {}),
+    // The children's ages the plan was made for, on a family's trip only.
+    ...(childrenAges.length > 0 ? { children_ages: childrenAges } : {}),
     ...(formState.flexibleDates
       ? { dates_pencilled: { start: formState.startDate, end: formState.endDate } satisfies PencilledDates }
       : {}),
