@@ -78,6 +78,8 @@ describe("requests at the same moment", () => {
     ["what an earlier stay in the city holds", { alreadyPlanned: ["Pantheon"] }, {}],
     ["the children's ages", { tripIntent: "family", childrenAges: ["under3"] }, { tripIntent: "family", childrenAges: ["teen"] }],
     ["the children's ages, against none given", { tripIntent: "family", childrenAges: ["under3"] }, { tripIntent: "family" }],
+    ["the occasion", { occasion: { kind: "anniversary", date: "2027-05-02" } }, { occasion: { kind: "birthday", date: "2027-05-02" } }],
+    ["the occasion's day", { occasion: { kind: "birthday", date: "2027-05-02" } }, { occasion: { kind: "birthday", date: "2027-05-03" } }],
     // The first vibe leads the plan: the same vibes in another order are another plan.
     ["the order of the vibes", { vibes: ["romantic", "adventure"] }, { vibes: ["adventure", "romantic"] }],
     [

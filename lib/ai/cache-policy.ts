@@ -6,7 +6,7 @@ import type { GeneratedItinerary, TripCreationParams } from "@/types";
  */
 export interface CachePolicy {
   /**
-   * Must-dos, a diet, who's coming, where they're staying, or what's on at their dates: a tailored plan is neither
+   * Must-dos, a diet, who's coming, where they're staying, a special trip, or what's on at their dates: a tailored plan is neither
    * answered from the shared pool nor added to it. The pool is keyed without dates, so a plan told the Christmas
    * markets are open would otherwise answer a July trip.
    */
@@ -24,7 +24,8 @@ export function cachePolicy(params: TripCreationParams, fresh: boolean, totalDay
         params.profilePreferences?.dietaryPreferences?.length ||
         params.tripIntent ||
         params.stay ||
-        params.whatsOn?.length
+        params.whatsOn?.length ||
+        params.occasion
     ),
     fresh,
     totalDays,
