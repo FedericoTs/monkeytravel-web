@@ -14,7 +14,9 @@ import { whatsOn } from "@/lib/ai/whats-on";
 import { cityPointsFor } from "@/lib/ai/city-points";
 import { cleanStayName } from "@/lib/trips/stay";
 import type { TripCreationParams, UserProfilePreferences } from "@/types";
-import { childAgeBands, isChosenTripIntent } from "@/lib/wizard/answers";
+import { childAgeBands, isChosenTripIntent, isOccasion } from "@/lib/wizard/answers";
+import { isIsoDate } from "@/lib/trips/anonymous-share";
+import { addIsoDays, tripSpanDays } from "@/lib/dates/iso-date";
 
 // Anti-abuse: cap ANONYMOUS generations per IP/day (defense-in-depth on top of
 // the per-cookie limit, which a bot can reset by clearing cookies). Authenticated
@@ -149,6 +151,7 @@ export function tripParamsFromBody(
     travelStyle: body.travelStyle === "backpacker" ? "backpacker" : "classic",
     ...(isChosenTripIntent(body.tripIntent) ? { tripIntent: body.tripIntent } : {}),
     ...withChildrenAges(body),
+    ...withOccasion(body),
     ...withDaylight(body),
     ...withWhatsOn(body),
     ...withStay(body),
@@ -173,6 +176,19 @@ function withStay(body: Record<string, unknown>): Pick<TripCreationParams, "stay
 function withChildrenAges(body: Record<string, unknown>): Pick<TripCreationParams, "childrenAges"> {
   const bands = body.tripIntent === "family" ? childAgeBands(body.childrenAges) : [];
   return bands.length > 0 ? { childrenAges: bands } : {};
+}
+
+/**
+ * A special trip the planner offers, with the day of its evening: the one asked for when it is on the trip, or else
+ * the day before the last (the last, on a trip of one or two days). Fixed here, so each city of a route can tell
+ * whether the evening is its own.
+ */
+function withOccasion(body: Record<string, unknown>): Pick<TripCreationParams, "occasion"> {
+  const { occasion, occasionDate, startDate, endDate } = body;
+  if (!isOccasion(occasion) || !isIsoDate(startDate) || !isIsoDate(endDate) || endDate < startDate) return {};
+  const onTrip = isIsoDate(occasionDate) && occasionDate >= startDate && occasionDate <= endDate;
+  const date = onTrip ? occasionDate : tripSpanDays(startDate, endDate) >= 3 ? (addIsoDays(endDate, -1) ?? endDate) : endDate;
+  return { occasion: { kind: occasion, date } };
 }
 
 /** The sun at the destination, when the planner sent where it is. */

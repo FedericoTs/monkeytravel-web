@@ -98,6 +98,14 @@ describe("generateTripOutline", () => {
     expect(prompts[3]).toContain("Children's ages: under 3:");
   });
 
+  it("outlines a special trip's evening on its day", async () => {
+    answer = JSON.stringify({ days: [day(1, ["a"]), day(2, ["b"]), day(3, ["c"])] });
+    await generateTripOutline({ ...params, tripIntent: "couple", occasion: { kind: "anniversary", date: "2027-05-02" } }, 3);
+    expect(prompts[0]).toContain("Occasion: an anniversary on day 2 (2027-05-02).");
+    await generateTripOutline(params, 3);
+    expect(prompts[1]).not.toContain("Occasion:");
+  });
+
   it("outlines the days around where they're staying, when they said", async () => {
     answer = JSON.stringify({ days: [day(1, ["a"]), day(2, ["b"]), day(3, ["c"])] });
     await generateTripOutline({ ...params, stay: { name: "Memmo Alfama", coordinates: { lat: 38.7111, lng: -9.1306 } } }, 3);

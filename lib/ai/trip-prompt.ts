@@ -309,6 +309,28 @@ function travellersLine({ tripIntent, childrenAges }: Pick<TripCreationParams, "
   return `Travellers: ${TRAVELLERS[tripIntent]}`;
 }
 
+/**
+ * A special trip: a honeymoon's days, and the evening of any occasion in the city whose days hold it (on a trip
+ * through several, each city has its own dates). Only ever these fixed words.
+ */
+function occasionLine({ occasion, startDate, endDate }: Pick<TripCreationParams, "occasion" | "startDate" | "endDate">): string {
+  if (!occasion) return "";
+  const here = occasion.date >= startDate && occasion.date <= endDate;
+  const day = `day ${tripSpanDays(startDate, occasion.date)} (${occasion.date})`;
+  switch (occasion.kind) {
+    case "honeymoon":
+      return `Occasion: a honeymoon. Unhurried, romantic days: no early starts, time for the two of them (a garden, a long lunch, a spa or a boat), a sunset at a fine viewpoint.${here ? ` On ${day}, a special dinner at a celebrated table or one with a view, booked ahead.` : ""} Show this in what you choose.`;
+    case "anniversary":
+      return here
+        ? `Occasion: an anniversary on ${day}. That evening, a sunset at a fine viewpoint, then dinner at a celebrated table, booked ahead. Keep the other days as you would plan them, and mention the anniversary only that evening.`
+        : "";
+    case "birthday":
+      return here
+        ? `Occasion: a birthday on ${day}. That evening, a celebration dinner somewhere memorable, booked ahead, and that day one thing they would love most on this trip. Mention the birthday only that day.`
+        : "";
+  }
+}
+
 function daylightLine({ daylight }: Pick<TripCreationParams, "daylight">): string {
   if (!daylight) return "";
   const { first, last } = daylight;
@@ -472,6 +494,7 @@ ${knownPlaces.map((p) => `- ${p.name} (${p.type})`).join("\n")}
     : "";
 
   const travellers = travellersLine(params);
+  const occasion = occasionLine(params);
   const daylight = daylightLine(params);
   // What is on there on these dates (lib/ai/whats-on.ts), one line each.
   const whatsOnLines = (params.whatsOn ?? []).map((line) => `- ${line}\n`).join("");
@@ -510,7 +533,7 @@ ${params.mustDos.map((m) => `- ${m}`).join("\n")}
 ${days ? `- ${days}\n` : ""}${route ? `- ${route}\n` : ""}${planned ? `- ${planned}\n` : ""}- Duration: ${duration} days
 - Budget Tier: ${params.budgetTier}
 - Travel Pace: ${params.pace} — ${paceBudgetPromptClause(params.pace)}
-${travellers ? `- ${travellers}\n` : ""}${daylight ? `- ${daylight}\n` : ""}${whatsOnLines}${stay ? `- ${stay}\n` : ""}${closed ? `- ${closed}\n` : ""}
+${travellers ? `- ${travellers}\n` : ""}${occasion ? `- ${occasion}\n` : ""}${daylight ? `- ${daylight}\n` : ""}${whatsOnLines}${stay ? `- ${stay}\n` : ""}${closed ? `- ${closed}\n` : ""}
 ${travelStyleSection}${vibeSection}${seasonalSection}## Traveler Preferences
 - Interests: ${params.interests.length > 0 ? params.interests.join(", ") : "general sightseeing"}
 ${params.requirements ? `- Special Requirements: ${params.requirements}` : ""}
@@ -522,5 +545,15 @@ ${
 ${anchorSection}${partSection}Generate the itinerary now, following the system rules and the Required Output schema exactly.${languageSection}`;
 }
 
-export { alreadyPlannedLine, buildProfilePreferencesSection, buildSchedulingPreferencesSection, buildUserPrompt, daylightLine, routeLine, stayLine, travellersLine };
+export {
+  alreadyPlannedLine,
+  buildProfilePreferencesSection,
+  buildSchedulingPreferencesSection,
+  buildUserPrompt,
+  daylightLine,
+  occasionLine,
+  routeLine,
+  stayLine,
+  travellersLine,
+};
 export type { BuildPromptOptions };
