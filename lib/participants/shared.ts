@@ -50,6 +50,33 @@ export function normalizeEmail(value: unknown): string | null | false {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? v : false;
 }
 
+/** At most this many must-dos someone going adds to the trip, each this long at most (the column's check). */
+export const PICKS_MAX = 3;
+export const PICK_MAX_CHARS = 80;
+
+/**
+ * The must-dos someone going adds: each trimmed, single-spaced and bounded, empties and repeats dropped, three at
+ * most. Null when no list was sent, so a request that doesn't send them leaves them as they were; an empty list
+ * takes them back.
+ */
+export function normalizePicks(value: unknown): string[] | null {
+  if (!Array.isArray(value)) return null;
+  const picks: string[] = [];
+  for (const item of value) {
+    if (typeof item !== "string") continue;
+    const pick = item.replace(/\s+/g, " ").trim().slice(0, PICK_MAX_CHARS).trim();
+    if (!pick || picks.some((p) => p.toLowerCase() === pick.toLowerCase())) continue;
+    picks.push(pick);
+    if (picks.length === PICKS_MAX) break;
+  }
+  return picks;
+}
+
+/** A stored picks value's texts: none for anything but a list. */
+export function readPicks(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((p): p is string => typeof p === "string") : [];
+}
+
 /** "Ana Lima" → "AL", "ana" → "A", "Ana (mobile)" → "A", "" → "?" */
 export function initialsOf(name: string | null | undefined): string {
   // Only tokens that start with a letter or digit count — "(mobile)" or "-" do not.
@@ -79,6 +106,8 @@ export interface ParticipantsResponse {
     joined: boolean;
     display_name: string | null;
     has_email: boolean;
+    /** Their own must-dos for the trip, when they added any. Nobody else's are ever sent here. */
+    picks?: string[];
   };
 }
 
@@ -111,4 +140,15 @@ export interface OwnerParticipant {
   joined_at: string | null;
   /** The "I'm going" row Remove takes back. */
   participant_id: string | null;
+}
+
+/** Must-dos someone going through the share link added, as the owner sees them. */
+export interface OwnerPicks {
+  participant_id: string;
+  display_name: string | null;
+  picks: string[];
+  /** When they sent them. */
+  picks_at: string;
+  /** When the owner fitted them into the plan; null until then. */
+  picks_placed_at: string | null;
 }

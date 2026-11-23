@@ -1,6 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { PUBLIC_NAMES_MAX, type ParticipantsResponse } from "./shared";
+import { PUBLIC_NAMES_MAX, readPicks, type ParticipantsResponse } from "./shared";
 
 /**
  * What the recipient page shows about a trip's group, plus the viewer's own
@@ -15,7 +15,7 @@ export async function participantsSnapshot(
 ): Promise<ParticipantsResponse> {
   const { data: rows, error } = await admin
     .from("trip_participants")
-    .select("id, participant_cookie_id, user_id, display_name, email, joined_at, source")
+    .select("id, participant_cookie_id, user_id, display_name, email, joined_at, source, picks")
     .eq("trip_id", tripId)
     .is("left_at", null)
     .order("joined_at", { ascending: true });
@@ -30,6 +30,8 @@ export async function participantsSnapshot(
   const mine = userId
     ? (list.find((r) => r.user_id === userId) ?? list.find((r) => onThisBrowser(r) && !r.user_id))
     : list.find(onThisBrowser);
+  // Their own must-dos only: the list of who's going never carries anyone's.
+  const picks = readPicks(mine?.picks);
   return {
     count: list.length,
     participants: list.slice(0, PUBLIC_NAMES_MAX).map((r) => ({
@@ -43,6 +45,7 @@ export async function participantsSnapshot(
       joined: !!mine && mine.source !== "public",
       display_name: (mine?.display_name as string | null) ?? null,
       has_email: !!mine?.email,
+      ...(picks.length > 0 ? { picks } : {}),
     },
   };
 }
