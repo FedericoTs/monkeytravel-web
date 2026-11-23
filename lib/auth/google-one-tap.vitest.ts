@@ -8,7 +8,11 @@ import { GOOGLE_CLIENT_ID, LOAD_TIMEOUT_MS, loadGoogleId, makeNonce, offerOneTap
  * someone signed in to Google keep the plan with one tap on their own account, without leaving the page.
  */
 
-const fakeId = (): GoogleId & { initialize: ReturnType<typeof vi.fn> } => ({ initialize: vi.fn(), prompt: vi.fn(), cancel: vi.fn() });
+const fakeId = () => ({
+  initialize: vi.fn<(config: Record<string, unknown>) => void>(),
+  prompt: vi.fn<() => void>(),
+  cancel: vi.fn<() => void>(),
+});
 const withGoogle = (id: GoogleId | undefined) => {
   (window as unknown as { google?: unknown }).google = id ? { accounts: { id } } : undefined;
 };
