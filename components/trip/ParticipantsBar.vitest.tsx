@@ -147,3 +147,81 @@ describe("ParticipantsBar", () => {
     expect(countShown()).toBe("1");
   });
 });
+
+describe("the must-dos someone going adds", () => {
+  /** Answers every read with `before` and every write with `after`, and keeps what was written. */
+  function record(before: ParticipantsResponse, after: ParticipantsResponse) {
+    const posts: Record<string, unknown>[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: string, init?: RequestInit) => {
+        if (init?.method !== "POST") return new Response(JSON.stringify(before));
+        posts.push(JSON.parse(String(init.body)));
+        return new Response(JSON.stringify(after));
+      }),
+    );
+    return posts;
+  }
+  const open = async (token: string) => {
+    render(<ParticipantsBar shareToken={token} source="shared" crewAsk={false} tripTitle="Tokyo" onSaveForLater={() => {}} />);
+    await waitFor(() => expect(countShown()).toBe("1"));
+    fireEvent.click(screen.getByTestId("participants-join"));
+    return screen.findByTestId("participants-pick-0");
+  };
+
+  it("are asked for with the name once they're going, and sent with it in one go", async () => {
+    const posts = record(group(1, false), group(2, true));
+    const first = await open("token-picks");
+    expect(screen.getByText("share.participants.picksPrompt")).toBeTruthy();
+    // One box at a time: the next shows once the one before holds something.
+    expect(screen.queryByTestId("participants-pick-1")).toBeNull();
+    fireEvent.change(first, { target: { value: "teamLab Planets" } });
+    fireEvent.change(await screen.findByTestId("participants-pick-1"), { target: { value: "Ichiran ramen" } });
+    expect(screen.getByTestId("participants-pick-2")).toBeTruthy();
+    fireEvent.change(screen.getByTestId("participants-name"), { target: { value: "Bo" } });
+    fireEvent.click(screen.getByText("share.participants.save"));
+    await screen.findByPlaceholderText("share.participants.emailPlaceholder");
+    expect(posts).toEqual([
+      { source: "shared", locale: "en", action: "join" },
+      { source: "shared", locale: "en", action: "update", display_name: "Bo", picks: ["teamLab Planets", "Ichiran ramen"] },
+    ]);
+  });
+
+  it("never hide a pick that is still kept", async () => {
+    record(group(1, false), group(2, true));
+    const first = await open("token-picks-hide");
+    fireEvent.change(first, { target: { value: "teamLab Planets" } });
+    fireEvent.change(await screen.findByTestId("participants-pick-1"), { target: { value: "Ichiran ramen" } });
+    fireEvent.change(screen.getByTestId("participants-pick-2"), { target: { value: "Shibuya Sky" } });
+    fireEvent.change(screen.getByTestId("participants-pick-1"), { target: { value: "" } });
+    expect((screen.getByTestId("participants-pick-2") as HTMLInputElement).value).toBe("Shibuya Sky");
+  });
+
+  it("go without a name, and say where they went", async () => {
+    const nameless = { ...group(1, false), me: { joined: false, display_name: null, has_email: false } };
+    const posts = record(nameless, { ...group(2, true), me: { joined: true, display_name: null, has_email: true } });
+    const first = await open("token-picks-only");
+    fireEvent.change(first, { target: { value: "  Ghibli Museum  " } });
+    fireEvent.click(screen.getByText("share.participants.save"));
+    expect((await screen.findByTestId("participants-done")).textContent).toContain("share.participants.picksSent");
+    expect(posts.at(-1)).toEqual({ source: "shared", locale: "en", action: "update", picks: ["Ghibli Museum"] });
+  });
+
+  it("aren't said to be sent when only a name was", async () => {
+    const posts = record(group(1, false), { ...group(2, true), me: { joined: true, display_name: "Bo", has_email: true } });
+    await open("token-name-only");
+    fireEvent.change(screen.getByTestId("participants-name"), { target: { value: "Bo" } });
+    fireEvent.click(screen.getByText("share.participants.save"));
+    expect((await screen.findByTestId("participants-done")).textContent).not.toContain("share.participants.picksSent");
+    expect(posts.at(-1)).toEqual({ source: "shared", locale: "en", action: "update", display_name: "Bo" });
+  });
+
+  it("start from the ones they added before", async () => {
+    const back = { ...group(2, true), me: { joined: true, display_name: "Bo", has_email: true, picks: ["Ghibli Museum", "Shibuya Sky"] } };
+    record(group(1, false), back);
+    const first = await open("token-picks-back");
+    await waitFor(() => expect((first as HTMLInputElement).value).toBe("Ghibli Museum"));
+    expect((screen.getByTestId("participants-pick-1") as HTMLInputElement).value).toBe("Shibuya Sky");
+    expect(screen.getByTestId("participants-pick-2")).toBeTruthy();
+  });
+});
