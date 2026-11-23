@@ -61,6 +61,7 @@ export async function generateItinerary(
     requirements: params.requirements,
     travelStyle: params.travelStyle,
     tripIntent: params.tripIntent,
+    childrenAges: params.childrenAges,
     stay: params.stay,
     profile: params.profilePreferences,
     anchorBrief: options?.anchorBrief,

@@ -94,6 +94,8 @@ describe("generateTripOutline", () => {
     expect(prompts[1]).toContain("Travellers: friends travelling together.");
     await generateTripOutline(params, 3);
     expect(prompts[2]).not.toContain("Travellers:");
+    await generateTripOutline({ ...params, tripIntent: "family", childrenAges: ["under3"] }, 3);
+    expect(prompts[3]).toContain("Children's ages: under 3:");
   });
 
   it("outlines the days around where they're staying, when they said", async () => {

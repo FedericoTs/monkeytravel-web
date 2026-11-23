@@ -6,7 +6,7 @@ import { closuresFor, isClosedPlace, longClosuresLine } from "@/lib/ai/long-clos
 import { paceBudgetPromptClause } from "@/lib/trip/pace";
 import { ACTIVITY_TYPES } from "@/lib/trip/activity-type";
 import { addIsoDays, tripSpanDays } from "@/lib/dates/iso-date";
-import type { ChosenTripIntent } from "@/lib/wizard/answers";
+import type { ChildAgeBand, ChosenTripIntent } from "@/lib/wizard/answers";
 
 /**
  * The prompt a trip is generated with: the shared chat prefix every
@@ -288,8 +288,25 @@ const TRAVELLERS: Record<ChosenTripIntent, string> = {
   group: "friends travelling together. Favour places that suit a group: tables for several, shared dishes, activities that are fun together. Say when a group should book ahead. Show this in what you choose, and mention it only where it helps.",
 };
 
-function travellersLine({ tripIntent }: Pick<TripCreationParams, "tripIntent">): string {
-  return tripIntent ? `Travellers: ${TRAVELLERS[tripIntent]}` : "";
+/** What a family's children need, by the ages it gave. Only ever these fixed words. */
+const CHILDREN: Record<ChildAgeBand, string> = {
+  under3:
+    "under 3: keep a free stretch after lunch for a nap (about 13:30 to 15:30) and dinner by 18:30; choose places and routes that work with a stroller, and say when one has many steps or no lift.",
+  "3to6": "3 to 6: a playground or a park near each long visit, museums with something to touch or try, and dinner by 19:00.",
+  "7to12": "7 to 12: hands-on museums, zoos and aquariums, easy outdoor adventures; mention age or height limits where they apply.",
+  teen: "teenagers: no rest after lunch and dinner at the local time; at least one active or social thing a day (a bike ride, climbing, a food market, a show or a match) and some evenings out together.",
+};
+
+/** A family that gave its children's ages: the ages, not a toddler's day for everyone, set the pace. */
+const FAMILY_BY_AGE =
+  "a family with children. Plan for their ages, below. Don't plan bars or late nights as stops. Show this in what you choose, and mention it only where it helps.";
+
+function travellersLine({ tripIntent, childrenAges }: Pick<TripCreationParams, "tripIntent" | "childrenAges">): string {
+  if (!tripIntent) return "";
+  if (tripIntent === "family" && childrenAges?.length) {
+    return `Travellers: ${FAMILY_BY_AGE} Children's ages: ${childrenAges.map((band) => CHILDREN[band]).join(" ")}`;
+  }
+  return `Travellers: ${TRAVELLERS[tripIntent]}`;
 }
 
 function daylightLine({ daylight }: Pick<TripCreationParams, "daylight">): string {

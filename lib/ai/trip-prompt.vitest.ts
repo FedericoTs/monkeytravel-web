@@ -83,6 +83,29 @@ describe("who's coming", () => {
     expect(prompt).toContain("Don't plan bars or late nights as stops.");
   });
 
+  it("plans for the children's ages when the family gave them, and only for those", () => {
+    const prompt = buildUserPrompt(trip({ tripIntent: "family", childrenAges: ["under3", "teen"] }));
+    expect(prompt).toContain("Children's ages: under 3:");
+    expect(prompt).toContain("a free stretch after lunch for a nap");
+    expect(prompt).toContain("dinner by 18:30");
+    expect(prompt).toContain("stroller");
+    expect(prompt).toContain("teenagers:");
+    expect(prompt).not.toContain("3 to 6:");
+    expect(prompt).not.toContain("7 to 12:");
+    const middle = buildUserPrompt(trip({ tripIntent: "family", childrenAges: ["3to6", "7to12"] }));
+    expect(middle).toContain("Children's ages: 3 to 6:");
+    expect(middle).toContain("7 to 12:");
+    expect(middle).toContain("age or height limits");
+    // Teenagers alone don't get a toddler's day.
+    const teens = buildUserPrompt(trip({ tripIntent: "family", childrenAges: ["teen"] }));
+    expect(teens).toContain("no rest after lunch");
+    expect(teens).not.toContain("shorter days with a rest after lunch");
+    expect(teens).toContain("Don't plan bars or late nights as stops.");
+    // Without ages the family line stays as it was, and ages never reach anyone else's trip.
+    expect(buildUserPrompt(trip({ tripIntent: "family" }))).not.toContain("Children's ages");
+    expect(buildUserPrompt(trip({ tripIntent: "couple", childrenAges: ["under3"] }))).not.toContain("Children's ages");
+  });
+
   it.each(["solo", "couple", "family", "group"] as const)("asks for %s to show in the choices rather than in every tip", (tripIntent) => {
     expect(buildUserPrompt(trip({ tripIntent }))).toContain("Show this in what you choose, and mention it only where it helps.");
   });

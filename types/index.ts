@@ -1,5 +1,5 @@
 import type { SupportedLanguage } from "@/lib/ai/language";
-import type { ChosenTripIntent } from "@/lib/wizard/answers";
+import type { ChildAgeBand, ChosenTripIntent } from "@/lib/wizard/answers";
 // Bananas currency system types
 export * from './bananas';
 
@@ -520,6 +520,8 @@ export interface TripCreationParams {
    * so a plan with it neither comes from the shared cache nor goes into it.
    */
   tripIntent?: ChosenTripIntent;
+  /** The children's ages on a family trip (lib/wizard/answers.ts), youngest first: they shape the plan. */
+  childrenAges?: ChildAgeBand[];
   /** Sunrise and sunset at the destination, worked out by the server (lib/ai/daylight.ts). */
   daylight?: TripDaylight;
   /**
