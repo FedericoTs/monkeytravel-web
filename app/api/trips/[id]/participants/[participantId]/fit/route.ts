@@ -105,8 +105,14 @@ async function fit(_request: NextRequest, context: Ctx, geminiCost: GeminiCostMe
     if (picks.length === 0) return errors.notFound("No must-dos to fit");
     const name = typeof guest!.display_name === "string" && guest!.display_name.trim() ? guest!.display_name.trim() : null;
 
+    // Not noted, the plan stays as written and the picks are only offered again.
     const markPlaced = async () => {
-      await admin.from("trip_participants").update({ picks_placed_at: new Date().toISOString() }).eq("id", participantId).eq("trip_id", trip.id);
+      const { error } = await admin
+        .from("trip_participants")
+        .update({ picks_placed_at: new Date().toISOString() })
+        .eq("id", participantId)
+        .eq("trip_id", trip.id);
+      if (error) console.error("[Fit picks] could not note the picks as fitted:", error);
     };
 
     const days = (Array.isArray(trip.itinerary) ? trip.itinerary : []) as ItineraryDay[];
