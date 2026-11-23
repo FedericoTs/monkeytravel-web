@@ -118,15 +118,22 @@ function makeRoom(stops: TimedStop[], at: number, through: number, keepShape: bo
  * keepShape, a day also has no room when a daytime sight, the stop put in or
  * one it pushes, would start past the late afternoon or run into the evening,
  * when it would be shut, or when a meal would still be well past its hour.
+ * Given `place`, the stop goes in there in the day's order (lunch right after
+ * the visit it follows), not by its time.
  */
-export function withStopAt<T extends DayOfStops>(day: T, stop: TimedStop, { keepShape = false }: { keepShape?: boolean } = {}): T | null {
+export function withStopAt<T extends DayOfStops>(
+  day: T,
+  stop: TimedStop,
+  { keepShape = false }: { keepShape?: boolean } = {},
+  place?: number
+): T | null {
   let order = [...(day.activities ?? [])];
   const own = minutesOf(stop.start_time);
   const later = order.findIndex((other) => {
     const start = minutesOf(other.start_time);
     return own !== null && start !== null && start > own;
   });
-  const at = later === -1 ? order.length : later;
+  const at = place ?? (later === -1 ? order.length : later);
   order.splice(at, 0, stop);
   let made = makeRoom(order, at, at, keepShape);
   if (!made) return null;
