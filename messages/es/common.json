@@ -1293,7 +1293,8 @@
         "busy": "El plan se estaba guardando. Inténtalo de nuevo.",
         "undo": "Deshacer",
         "undone": "Vuelto a como estaba.",
-        "undoFailed": "No se pudo deshacer: el plan ha cambiado desde entonces."
+        "undoFailed": "No se pudo deshacer: el plan ha cambiado desde entonces.",
+        "waiting": "{count, plural, one {# cosa por añadir} other {# cosas por añadir}}"
       }
     },
     "savedHero": {

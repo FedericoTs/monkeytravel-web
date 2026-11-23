@@ -1293,7 +1293,8 @@
         "busy": "Il piano si stava salvando. Riprova.",
         "undo": "Annulla",
         "undone": "Rimesso com'era.",
-        "undoFailed": "Impossibile annullare: il piano è cambiato nel frattempo."
+        "undoFailed": "Impossibile annullare: il piano è cambiato nel frattempo.",
+        "waiting": "{count, plural, one {# cosa da aggiungere} other {# cose da aggiungere}}"
       }
     },
     "savedHero": {

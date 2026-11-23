@@ -11,7 +11,7 @@
  * through the link don't want to miss, with one button to add what the plan
  * doesn't hold yet, and Undo.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { missingMustDos } from "@/lib/ai/must-do-match";
 import { ItineraryWriteBlockedError } from "@/lib/trips/itinerary-sync";
@@ -48,6 +48,9 @@ async function loadGroup(tripId: string): Promise<Group> {
   }
 }
 
+/** Someone's picks were added to the plan since they last sent them. */
+const fittedSinceSent = (p: OwnerPicks) => p.picks_placed_at !== null && p.picks_placed_at >= p.picks_at;
+
 /** What adding someone's must-dos did, while its Undo is offered. */
 interface Fitted {
   participantId: string;
@@ -71,6 +74,8 @@ interface WhoIsGoingCardProps {
   runItineraryWrite?: <T>(task: () => Promise<T>) => Promise<T>;
   /** Takes a plan the server has stored, at the version it was stored at. */
   onItineraryChange?: (days: ItineraryDay[], version?: number | null) => void;
+  /** Told how many must-dos wait to be added, once the list is read and as the plan changes. */
+  onPicksWaiting?: (count: number) => void;
 }
 
 /** The payload of an apiSuccess answer, wrapped or not. */
@@ -87,6 +92,7 @@ export default function WhoIsGoingCard({
   itinerary,
   runItineraryWrite,
   onItineraryChange,
+  onPicksWaiting,
 }: WhoIsGoingCardProps) {
   // Messages are namespaced by file; share.participants.* lives in common.json.
   const t = useTranslations("common");
@@ -112,6 +118,18 @@ export default function WhoIsGoingCard({
   useEffect(() => {
     if (group) onCount?.(group.count);
   }, [group, onCount]);
+
+  // Must-dos the plan doesn't hold, from people whose picks weren't added since they sent them.
+  const waiting = useMemo(
+    () =>
+      group && itinerary
+        ? group.picks.filter((p) => !fittedSinceSent(p)).reduce((n, p) => n + missingMustDos(p.picks, itinerary).length, 0)
+        : null,
+    [group, itinerary],
+  );
+  useEffect(() => {
+    if (waiting !== null) onPicksWaiting?.(waiting);
+  }, [waiting, onPicksWaiting]);
 
   // A collaborator who is removed stays in the list under their role, so the
   // list is read again rather than guessed.
@@ -302,7 +320,7 @@ export default function WhoIsGoingCard({
         <div className="mt-4 space-y-3" data-testid="who-is-going-picks">
           {group!.picks.map((p) => {
             const missing = itinerary ? missingMustDos(p.picks, itinerary) : [];
-            const fittedAlready = p.picks_placed_at !== null && p.picks_placed_at >= p.picks_at;
+            const fittedAlready = fittedSinceSent(p);
             const result = fitted?.participantId === p.participant_id ? fitted : null;
             return (
               <div key={p.participant_id} className="rounded-xl bg-slate-50 p-3" data-testid="who-is-going-pick">
