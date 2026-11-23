@@ -18,6 +18,7 @@ import { LANGUAGE_NAMES, type SupportedLanguage } from "@/lib/ai/language";
 import { activityOf, held } from "@/lib/ai/must-dos";
 import { nameTokens } from "@/lib/ai/assistant/saved-activities";
 import { WEEKDAYS, askClosingDays, stopShutOn, type StuckStop } from "@/lib/ai/closing-days";
+import { withKnownClosings } from "@/lib/ai/known-closings";
 import { formatMinutesToTime } from "@/lib/datetime/format";
 import type { Activity } from "@/types";
 
@@ -209,9 +210,11 @@ export function withSwaps<D extends Day>(days: D[], offers: Offer[]): { days: D[
 /**
  * The days with the closed places swapped where the model offers an open one,
  * how many, and what the questions cost. Every offer is asked about as the
- * plan's places were (askClosingDays), on its closed place's date, and one shut
- * that day too is passed over for the next. When that check can't be asked, the
- * offers go in as answered.
+ * plan's places were (askClosingDays), on its closed place's date, and the
+ * checked list decides the places it holds, as it does for the plan's own
+ * (lib/ai/known-closings.ts); one shut that day too is passed over for the
+ * next. When that check can't be asked, the offers go in as answered, the
+ * list still deciding its places.
  */
 export async function swapClosedStops<D extends Day>(
   destination: string,
@@ -219,14 +222,18 @@ export async function swapClosedStops<D extends Day>(
   stuck: StuckStop[],
   language: SupportedLanguage,
   ask: typeof askForSwaps = askForSwaps,
-  check: typeof askClosingDays = askClosingDays
+  check: typeof askClosingDays = askClosingDays,
+  checked: typeof withKnownClosings = withKnownClosings
 ): Promise<{ days: D[]; swapped: number; costUsd: number }> {
   if (stuck.length === 0) return { days, swapped: 0, costUsd: 0 };
   const { answer, costUsd } = await ask(destination, days, stuck, language);
   const offers = offersOf(answer, stuck);
   if (offers.length === 0) return { days, swapped: 0, costUsd };
   const names = [...new Set(offers.map((o) => o.activity.name))];
-  const shut = await check(destination, names, [...new Set(offers.map((o) => o.closed.date))]);
+  const answered = await check(destination, names, [...new Set(offers.map((o) => o.closed.date))]);
+  // Each offer on the date it would take: the list's answer for the places it holds, the model's for the rest.
+  const offered = offers.map((o) => ({ date: o.closed.date, activities: [{ name: o.activity.name, type: o.activity.type }] }));
+  const shut = { ...answered, ...checked(answered, offered, destination) };
   const open = offers.filter((o) => !stopShutOn({ name: o.activity.name }, o.closed.date, shut.closings, shut.shutDates));
   return { ...withSwaps(days, open), costUsd: costUsd + shut.costUsd };
 }

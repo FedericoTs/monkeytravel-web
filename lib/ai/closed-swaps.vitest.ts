@@ -151,6 +151,31 @@ describe("swapClosedStops", () => {
     const ask = async () => ({ answer: answerOf(mori), costUsd: 0.0004 });
     expect((await swapClosedStops("Tokyo", tokyo(), [museum], "en", ask, allOpen)).swapped).toBe(1);
   });
+
+  // London on Saturday 26 December 2026: the Tate is shut. The checked list holds Borough Market, shut from the
+  // 25th to the 27th by its own page.
+  const tate: StuckStop = { day: 1, date: "2026-12-26", name: "Tate Modern", start_time: "15:30", duration_minutes: 150 };
+  const london = (date = "2026-12-26") => [{ day_number: 1, date, activities: [at("15:30", "Tate Modern")] }];
+  const market = place("Borough Market", { type: "market", location: "Southwark", coordinates: { lat: 51.5055, lng: -0.091 } });
+  const garden = place("Sky Garden", { type: "attraction", location: "City of London", coordinates: { lat: 51.5113, lng: -0.0836 } });
+
+  it("passes over an offer the checked list says is shut that day, whatever the model says", async () => {
+    const ask = async () => ({ answer: answerOf(market, garden), costUsd: 0.0004 });
+    const out = await swapClosedStops("London, United Kingdom", london(), [tate], "en", ask, allOpen);
+    expect(out.swapped).toBe(1);
+    expect(names(out.days)[0]).toBe("1: 15:30 150 Sky Garden");
+  });
+
+  it("takes an offer the checked list says is open, where the model wrongly said shut", async () => {
+    // Saturday 12 December: the market's page has it open; the model's answer shuts it.
+    const shutByTheModel = async () => ({ closings: new Map(), shutDates: new Map([["borough market", ["2026-12-12"]]]), costUsd: 0.0002 });
+    const ask = async () => ({ answer: answerOf(market), costUsd: 0.0004 });
+    const saturday = { ...tate, date: "2026-12-12" };
+    const out = await swapClosedStops("London, United Kingdom", london("2026-12-12"), [saturday], "en", ask, shutByTheModel);
+    expect(out.swapped).toBe(1);
+    expect(names(out.days)[0]).toBe("1: 15:30 150 Borough Market");
+    expect(out.costUsd).toBeCloseTo(0.0006, 10);
+  });
 });
 
 describe("askForSwaps", () => {
