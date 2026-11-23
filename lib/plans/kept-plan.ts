@@ -13,7 +13,7 @@ import { isIsoDate } from "@/lib/trips/anonymous-share";
 import { MAX_TRIP_DAYS_MULTI, MUST_DOS_MAX, MUST_DO_MAX_LENGTH, VIBES_MAX } from "@/lib/trips/request-limits";
 import { dietsFrom, type Diet } from "@/lib/trips/diet";
 import { readStay } from "@/lib/trips/stay";
-import { isChosenTripIntent, type ChosenTripIntent } from "@/lib/wizard/answers";
+import { familyAges, isChosenTripIntent, type ChildAgeBand, type ChosenTripIntent } from "@/lib/wizard/answers";
 
 
 export interface KeptPlan {
@@ -26,6 +26,8 @@ export interface KeptPlan {
   budgetTier?: BudgetTier;
   travelStyle?: "classic" | "backpacker";
   tripIntent?: ChosenTripIntent;
+  /** A family's children's ages, when they said. */
+  childrenAges?: ChildAgeBand[];
   flexibleDates?: boolean;
   mustDos?: string[];
   dietary?: Diet[];
@@ -124,6 +126,7 @@ export function parseKeptPlan(input: unknown): KeptPlan | null {
   const mustDos = strings(input.mustDos, MUST_DOS_MAX, MUST_DO_MAX_LENGTH);
   const dietary = dietsFrom(input.dietary);
   const stay = readStay(input.stay);
+  const childrenAges = familyAges(input.tripIntent, input.childrenAges);
   return {
     destination,
     startDate,
@@ -134,6 +137,7 @@ export function parseKeptPlan(input: unknown): KeptPlan | null {
     ...(budgetTier ? { budgetTier } : {}),
     ...(input.travelStyle === "backpacker" || input.travelStyle === "classic" ? { travelStyle: input.travelStyle } : {}),
     ...(isChosenTripIntent(input.tripIntent) ? { tripIntent: input.tripIntent } : {}),
+    ...(childrenAges.length > 0 ? { childrenAges } : {}),
     ...(input.flexibleDates === true ? { flexibleDates: true } : {}),
     ...(mustDos?.length ? { mustDos } : {}),
     ...(dietary.length ? { dietary } : {}),

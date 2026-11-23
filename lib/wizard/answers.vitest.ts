@@ -17,6 +17,7 @@ const answers: WizardAnswers = {
   mustDos: ["Belém tower"],
   dietary: ["vegan"],
   tripIntent: "group",
+  childrenAges: [],
   flexibleDates: true,
   stay: { name: "Memmo Alfama", coordinates: { lat: 38.7111, lng: -9.1306 } },
 };
@@ -48,9 +49,11 @@ describe("keptPlanOf", () => {
     });
   });
 
-  it("leaves out an unanswered intent, fixed dates, empty wishes and diets, and no stay", () => {
+  it("leaves out an unanswered intent, fixed dates, empty wishes and diets, no ages and no stay", () => {
     const plan = keptPlanOf({ ...answers, tripIntent: "unspecified", flexibleDates: false, mustDos: [], dietary: [], stay: null }, itinerary);
     expect(plan).not.toHaveProperty("tripIntent");
+    expect(plan).not.toHaveProperty("childrenAges");
+    expect(keptPlanOf({ ...answers, tripIntent: "family", childrenAges: [] }, itinerary)).not.toHaveProperty("childrenAges");
     expect(plan).not.toHaveProperty("flexibleDates");
     expect(plan).not.toHaveProperty("mustDos");
     expect(plan).not.toHaveProperty("dietary");

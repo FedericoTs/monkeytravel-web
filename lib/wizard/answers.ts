@@ -47,6 +47,11 @@ export function childAgeBands(value: unknown): ChildAgeBand[] {
   return CHILD_AGE_BANDS.filter((band) => value.includes(band));
 }
 
+/** The children's ages a plan is made for: a family's, as childAgeBands reads them; none for anyone else. */
+export function familyAges(tripIntent: unknown, ages: unknown): ChildAgeBand[] {
+  return tripIntent === "family" ? childAgeBands(ages) : [];
+}
+
 /**
  * Whether a value is an answer to "Who's coming?". Every place a plan carries
  * the answer keeps it only then: "unspecified", and any string from a request
@@ -73,6 +78,8 @@ export interface WizardAnswers {
   mustDos: string[];
   dietary: Diet[];
   tripIntent: TripIntent;
+  /** The children's ages, when a family said. They stay if the answer above changes, but a plan is made for them only while it's a family. */
+  childrenAges: ChildAgeBand[];
   flexibleDates: boolean;
   /** Where they're staying, when they said: the plan starts and ends each day near it. */
   stay: TripStay | null;
@@ -91,6 +98,7 @@ export const FRESH_ANSWERS: WizardAnswers = {
   mustDos: [],
   dietary: [],
   tripIntent: "unspecified",
+  childrenAges: [],
   flexibleDates: false,
   stay: null,
 };
@@ -107,6 +115,7 @@ export function tripFormState(
 export function keptPlanOf(answers: WizardAnswers, itinerary: GeneratedItinerary): KeptPlan {
   const { destination, startDate, endDate, pace, vibes, budgetTier, travelStyle, tripIntent, flexibleDates, mustDos, dietary, stay } =
     answers;
+  const childrenAges = familyAges(tripIntent, answers.childrenAges);
   return {
     destination,
     startDate,
@@ -117,6 +126,7 @@ export function keptPlanOf(answers: WizardAnswers, itinerary: GeneratedItinerary
     budgetTier,
     travelStyle,
     ...(isChosenTripIntent(tripIntent) ? { tripIntent } : {}),
+    ...(childrenAges.length > 0 ? { childrenAges } : {}),
     ...(flexibleDates ? { flexibleDates: true } : {}),
     ...(mustDos.length > 0 ? { mustDos } : {}),
     ...(dietary.length > 0 ? { dietary } : {}),

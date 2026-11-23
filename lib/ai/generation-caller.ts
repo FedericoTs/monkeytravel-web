@@ -14,7 +14,7 @@ import { whatsOn } from "@/lib/ai/whats-on";
 import { cityPointsFor } from "@/lib/ai/city-points";
 import { cleanStayName } from "@/lib/trips/stay";
 import type { TripCreationParams, UserProfilePreferences } from "@/types";
-import { childAgeBands, isChosenTripIntent } from "@/lib/wizard/answers";
+import { familyAges, isChosenTripIntent } from "@/lib/wizard/answers";
 
 // Anti-abuse: cap ANONYMOUS generations per IP/day (defense-in-depth on top of
 // the per-cookie limit, which a bot can reset by clearing cookies). Authenticated
@@ -171,7 +171,7 @@ function withStay(body: Record<string, unknown>): Pick<TripCreationParams, "stay
 
 /** The children's ages, on a family's trip only, as the fixed bands (never the request's own words). */
 function withChildrenAges(body: Record<string, unknown>): Pick<TripCreationParams, "childrenAges"> {
-  const bands = body.tripIntent === "family" ? childAgeBands(body.childrenAges) : [];
+  const bands = familyAges(body.tripIntent, body.childrenAges);
   return bands.length > 0 ? { childrenAges: bands } : {};
 }
 
