@@ -32,6 +32,7 @@ import { genAI, withTimeout } from "@/lib/ai/gemini-call";
 import { getModelForPurpose, thinkingConfigFor } from "@/lib/ai/model-router";
 import { geminiCostUsd, recordGeminiUsage } from "@/lib/ai/gemini-cost";
 import { rewordMovedDays, type WordDay, type WordStop } from "@/lib/ai/moved-day-words";
+import { askSeasonalClosings, placesForTheSeason, tripDates, withSeasonalClosings } from "@/lib/ai/seasonal-closings";
 import {
   isDaytimeSight,
   keepsToTheDay,
@@ -498,16 +499,21 @@ export async function keepOffClosingDays<T extends { days: Day[] }>(
   swap?: SwapStuck,
   checked: typeof withKnownClosings = withKnownClosings,
   /** Tells the stops the traveller asked for by name (lib/ai/must-dos.ts askedByName): they keep a day they are open. */
-  named?: (stop: WordStop) => boolean
+  named?: (stop: WordStop) => boolean,
+  /** Asks which places are shut for the whole trip, for the season (lib/ai/seasonal-closings.ts). */
+  askSeason: typeof askSeasonalClosings = askSeasonalClosings
 ): Promise<{
   itinerary: T;
   costUsd: number;
   asked: number;
   /** Stops whose closing days came from the checked list. */
   known: number;
+  /** Stops shut on their day by their own closing days, the season aside. */
   shutBefore: number;
   /** Of shutBefore, the stops the checked list alone shuts on their day: the place's own page says so. */
   shutListed: number;
+  /** Stops shut on their day by the season alone: not counted in shutBefore. */
+  seasonal: number;
   shutAfter: number;
   /** The stops still on a day they're shut at the end, as "name (date)": what a miss was. */
   leftShut: string[];
@@ -516,12 +522,17 @@ export async function keepOffClosingDays<T extends { days: Day[] }>(
   swapped: number;
 }> {
   const places = placesToAsk(itinerary.days);
-  const answer = await ask(destination, places, holidayDatesToAsk(itinerary.days));
+  const dates = tripDates(itinerary.days);
+  const [answer, season] = await Promise.all([
+    ask(destination, places, holidayDatesToAsk(itinerary.days)),
+    askSeason(destination, placesForTheSeason(itinerary.days), dates),
+  ]);
   // The sights on the checked list are decided by it, not by the model (lib/ai/known-closings.ts).
   const { closings, shutDates, known } = checked(answer, itinerary.days, destination);
   const listed = checked(NO_ANSWER, itinerary.days, destination).shutDates;
-  const settled = await settleDays(itinerary.days, closings, shutDates, destination, reword, swap, named);
-  return report(itinerary, settled, answer.costUsd, places.length, known, closings, shutDates, listed, destination);
+  const allShut = withSeasonalClosings(shutDates, season.shut, dates, destination);
+  const settled = await settleDays(itinerary.days, closings, allShut, destination, reword, swap, named);
+  return report(itinerary, settled, answer.costUsd + season.costUsd, places.length, known, closings, shutDates, allShut, listed, destination);
 }
 
 type Settled<D> = { days: D[]; costUsd: number; reworded: number; stopsMoved: number; swapped: number };
@@ -556,20 +567,24 @@ function report<T extends { days: Day[] }>(
   known: number,
   closings: Closings,
   shutDates: ShutDates,
+  /** shutDates with the places shut for the season shut on every date of the trip. */
+  allShut: ShutDates,
   listed: ShutDates,
   destination: string
 ) {
   // Each listed place shut on a date of the trip says so on the stop, with its official page.
   const days = withClosingNotes(settled.days, destination);
+  const shutBefore = shutStops(itinerary.days, closings, shutDates);
   return {
     itinerary: days === itinerary.days ? itinerary : { ...itinerary, days },
     costUsd: askedUsd + settled.costUsd,
     asked,
     known,
-    shutBefore: shutStops(itinerary.days, closings, shutDates),
+    shutBefore,
     shutListed: shutStops(itinerary.days, new Map(), listed),
-    shutAfter: shutStops(days, closings, shutDates),
-    leftShut: stopsStillShut(days, closings, shutDates).map((stop) => `${stop.name} (${stop.date})`),
+    seasonal: shutStops(itinerary.days, closings, allShut) - shutBefore,
+    shutAfter: shutStops(days, closings, allShut),
+    leftShut: stopsStillShut(days, closings, allShut).map((stop) => `${stop.name} (${stop.date})`),
     reworded: settled.reworded,
     stopsMoved: settled.stopsMoved,
     swapped: settled.swapped,
@@ -600,15 +615,21 @@ export async function keepOffClosingDaysByCity<T extends { days: Day[] }>(
   reword: typeof rewordMovedDays = rewordMovedDays,
   swapIn?: (city: string) => SwapStuck,
   checked: typeof withKnownClosings = withKnownClosings,
-  named?: (stop: WordStop) => boolean
+  named?: (stop: WordStop) => boolean,
+  askSeason: typeof askSeasonalClosings = askSeasonalClosings
 ): ReturnType<typeof keepOffClosingDays<T>> {
   const places = placesToAsk(itinerary.days);
-  const answer = await ask(destination, places, holidayDatesToAsk(itinerary.days));
+  const dates = tripDates(itinerary.days);
+  const [answer, season] = await Promise.all([
+    ask(destination, places, holidayDatesToAsk(itinerary.days)),
+    askSeason(destination, placesForTheSeason(itinerary.days), dates),
+  ]);
   const { closings, shutDates, known } = checked(answer, itinerary.days, destination);
   const listed = checked(NO_ANSWER, itinerary.days, destination).shutDates;
+  const allShut = withSeasonalClosings(shutDates, season.shut, dates, destination);
   const parts = cityRuns(itinerary.days);
   const runs = await Promise.all(
-    parts.map((part) => settleDays(part.days, closings, shutDates, part.city || destination, reword, swapIn?.(part.city || destination), named))
+    parts.map((part) => settleDays(part.days, closings, allShut, part.city || destination, reword, swapIn?.(part.city || destination), named))
   );
   // Settling returns a city's own days when nothing in them moved.
   const changed = runs.some((run, i) => run.days !== parts[i].days);
@@ -619,5 +640,5 @@ export async function keepOffClosingDaysByCity<T extends { days: Day[] }>(
     stopsMoved: runs.reduce((sum, run) => sum + run.stopsMoved, 0),
     swapped: runs.reduce((sum, run) => sum + run.swapped, 0),
   };
-  return report(itinerary, settled, answer.costUsd, places.length, known, closings, shutDates, listed, destination);
+  return report(itinerary, settled, answer.costUsd + season.costUsd, places.length, known, closings, shutDates, allShut, listed, destination);
 }
