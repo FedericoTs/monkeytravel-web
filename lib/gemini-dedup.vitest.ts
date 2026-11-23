@@ -78,8 +78,29 @@ describe("requests at the same moment", () => {
     ["what an earlier stay in the city holds", { alreadyPlanned: ["Pantheon"] }, {}],
     ["the children's ages", { tripIntent: "family", childrenAges: ["under3"] }, { tripIntent: "family", childrenAges: ["teen"] }],
     ["the children's ages, against none given", { tripIntent: "family", childrenAges: ["under3"] }, { tripIntent: "family" }],
+    // The first vibe leads the plan: the same vibes in another order are another plan.
+    ["the order of the vibes", { vibes: ["romantic", "adventure"] }, { vibes: ["adventure", "romantic"] }],
+    [
+      "the route a city is on",
+      { destination: "Rome", destinations: [{ city: "Rome", nights: 2 }, { city: "Florence", nights: 1 }] },
+      { destination: "Rome", destinations: [{ city: "Naples", nights: 1 }, { city: "Rome", nights: 2 }] },
+    ],
+    ["what is on", { whatsOn: ["Christmas market at Piazza Navona"] }, {}],
+    [
+      "the sun",
+      { daylight: { first: { sunrise: "07:12", sunset: "16:40" }, last: { sunrise: "07:14", sunset: "16:39" } } },
+      {},
+    ],
   ])("are two calls when %s differ", async (_, one, other) => {
     expect(await callsFor(trip(one), trip(other))).toBe(2);
+  });
+
+  it("are two calls in two languages, and one for two people asking the same", async () => {
+    await Promise.all([generateItinerary(trip(), { language: "es" }), generateItinerary(trip(), { language: "en" })]);
+    expect(prompts).toHaveLength(2);
+    prompts.length = 0;
+    await Promise.all([generateItinerary(trip(), { userId: "user-a" }), generateItinerary(trip(), { userId: "user-b" })]);
+    expect(prompts).toHaveLength(1);
   });
 });
 
