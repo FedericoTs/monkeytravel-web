@@ -380,7 +380,8 @@ function tradedDays<T extends Day>(
 /**
  * The days with each stop still shut on its day moved to another day of the
  * trip when it is open then: of those, the day with the least planned time
- * that has room for it, the nearest first among equals. A day has room while
+ * that has room for it, the nearest first among equals. It keeps its own
+ * time, or starts at its place's opening that day when that comes later. A day has room while
  * it keeps its shape; when none has, the stop trades places with a sight of a
  * day it is open on, one that is open on the stop's own day (tradedDays).
  * A stop the traveller `named` (a must-do) is never the sight that gives its
@@ -420,7 +421,8 @@ export function moveShutStops<T extends Day>(
         .sort((a, b) => plannedMinutes(a.day) - plannedMinutes(b.day) || Math.abs(a.i - d) - Math.abs(b.i - d));
       let target: { i: number; into: T; from: T } | null = null;
       for (const option of options) {
-        const into = withStopAt(option.day, stop, KEEPS_SHAPE);
+        // At its own time, or at its place's opening that day when that comes later.
+        const into = withStopAt(option.day, notBefore(stop, hoursOn(stop, option.day.date)?.open), KEEPS_SHAPE);
         if (into) {
           target = { i: option.i, into, from: { ...current[d], activities: (current[d].activities ?? []).filter((_, k) => k !== s) } };
           break;
