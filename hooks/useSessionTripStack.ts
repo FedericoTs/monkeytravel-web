@@ -29,6 +29,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { TripIntent } from "@/lib/posthog/events";
 import type { Diet } from "@/lib/trips/diet";
+import type { ChildAgeBand } from "@/lib/wizard/answers";
 import type { GeneratedItinerary, TripAnchor, TripStay } from "@/types";
 
 const STACK_KEY = "mt_session_trips";
@@ -52,6 +53,7 @@ export interface SessionTripSnapshot {
   mustDos?: string[];
   dietary?: Diet[];
   tripIntent?: TripIntent;
+  childrenAges?: ChildAgeBand[];
   flexibleDates?: boolean;
   stay?: TripStay | null;
   /**

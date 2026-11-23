@@ -4,9 +4,10 @@ import { stubGeneration } from "./generation-stub";
 /**
  * "Who's coming?" on step 1 offers four answers, two by two so they fit a
  * phone, and the one picked travels with the plan: in the request the planner
- * sends and in the funnel row for the generation. The generation is answered
- * by the test (generation-stub.ts), so no model is called; every write is
- * stubbed or blocked.
+ * sends and in the funnel row for the generation. A family is also asked the
+ * children's ages, which go with it. The generation is answered by the test
+ * (generation-stub.ts), so no model is called; every write is stubbed or
+ * blocked.
  */
 
 async function isolate(page: Page) {
@@ -41,7 +42,7 @@ const ANSWERS = ["Just me", "Couple", "Family", "With friends"];
 test.describe("wizard: who's coming", () => {
   test.use({ viewport: { width: 375, height: 812 } });
 
-  test("four answers fit a phone two by two, and Family travels with the plan", async ({ page }) => {
+  test("four answers fit a phone two by two, and Family travels with the plan, with the children's ages", async ({ page }) => {
     await isolate(page);
     const generation = await stubGeneration(page);
     const groupSizes: unknown[] = [];
@@ -72,10 +73,24 @@ test.describe("wizard: who's coming", () => {
     expect(couple.x).toBeGreaterThan(justMe.x);
     for (const box of boxes) expect(box.x + box.width).toBeLessThanOrEqual(375);
 
+    const ages = page.getByRole("group", { name: /How old are the children/ });
+    await expect(ages).toHaveCount(0);
     const familyButton = page.getByRole("button", { name: "Family", exact: true });
     await familyButton.click();
     await expect(familyButton).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByText("You'll be able to invite friends to vote")).toHaveCount(0);
+
+    // A family is asked the children's ages, several at once, inside the screen's width.
+    for (const name of ["Teens", "Under 3"]) {
+      const age = ages.getByRole("button", { name, exact: true });
+      await age.click();
+      await expect(age).toHaveAttribute("aria-pressed", "true");
+    }
+    await expect(ages.getByRole("button", { name: "3 to 6", exact: true })).toHaveAttribute("aria-pressed", "false");
+    for (const age of await ages.getByRole("button").all()) {
+      const box = (await age.boundingBox())!;
+      expect(box.x + box.width).toBeLessThanOrEqual(375);
+    }
 
     const pick = page.getByRole("group", { name: "Popular right now" }).getByRole("button").first();
     const place = (await pick.getAttribute("aria-label"))?.match(/^Start a trip to (.+) — /)?.[1];
@@ -93,6 +108,8 @@ test.describe("wizard: who's coming", () => {
     await expect(page.getByRole("heading", { level: 1, name: place })).toBeVisible({ timeout: 30_000 });
 
     expect([...generation.streamed, ...generation.json].map((r) => r.tripIntent)).toEqual(["family"]);
+    // Youngest first, whatever order they were tapped in.
+    expect([...generation.streamed, ...generation.json].map((r) => r.childrenAges)).toEqual([["under3", "teen"]]);
     await expect.poll(() => groupSizes).toEqual(["family"]);
   });
 

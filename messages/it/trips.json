@@ -180,6 +180,15 @@
       "family": "Famiglia",
       "withFriends": "Con amici",
       "withFriendsHint": "Potrai invitare i tuoi amici a votare dopo che avremo generato il viaggio.",
+      "ages": {
+        "label": "Quanti anni hanno i bambini?",
+        "optional": "(facoltativo)",
+        "under3": "Sotto i 3",
+        "3to6": "Da 3 a 6",
+        "7to12": "Da 7 a 12",
+        "teen": "Adolescenti",
+        "hint": "Puoi sceglierne più di una. Ogni giornata sarà pensata per la loro età."
+      },
       "destinationLabel": "Destinazione",
       "travelDatesLabel": "Date del viaggio",
       "checkin": "ARRIVO",

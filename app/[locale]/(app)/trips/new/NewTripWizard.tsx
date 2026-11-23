@@ -167,7 +167,7 @@ import {
   type GenerationReport,
 } from "@/lib/wizard/generation-reports";
 import { applyAnswers, applySessionTrip, type DraftTargets } from "@/lib/wizard/apply-draft";
-import { FRESH_ANSWERS, keptPlanOf, sessionTripOf, withNote, withUndatedItems, type WizardAnswers } from "@/lib/wizard/answers";
+import { FRESH_ANSWERS, keptPlanOf, sessionTripOf, withNote, withUndatedItems, type ChildAgeBand, type WizardAnswers } from "@/lib/wizard/answers";
 import { generationRequest, routeLegs } from "@/lib/wizard/generation-request";
 import {
   classifyGenerationFailure,
@@ -422,6 +422,8 @@ export default function NewTripPage({
     const who = searchParams?.get("who");
     return isChosenTripIntent(who) ? who : "unspecified";
   });
+  // A family's children's ages, asked under "Who's coming?" (TripOptions).
+  const [childrenAges, setChildrenAges] = useState<ChildAgeBand[]>([]);
 
   // Auth state comes from the single AuthProvider, not a local getUser()
   // listener. isAuthenticated is tri-state (null = loading, then true/false);
@@ -770,6 +772,7 @@ export default function NewTripPage({
       setTravelStyle,
       setAnchors,
       setTripIntent,
+      setChildrenAges,
       setFlexibleDates,
       setStay,
       setGeneratedItinerary: (plan: GeneratedItinerary) => {
@@ -821,10 +824,11 @@ export default function NewTripPage({
       mustDos,
       dietary,
       tripIntent,
+      childrenAges,
       flexibleDates,
       stay: tripStay,
     }),
-    [destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, anchors, mustDos, dietary, tripIntent, flexibleDates, tripStay]
+    [destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, anchors, mustDos, dietary, tripIntent, childrenAges, flexibleDates, tripStay]
   );
 
   // Keep a draft of the itinerary until the trip is saved, then none.
@@ -1975,6 +1979,8 @@ export default function NewTripPage({
               setTravelStyle={setTravelStyle}
               tripIntent={tripIntent}
               setTripIntent={setTripIntent}
+              childrenAges={childrenAges}
+              setChildrenAges={setChildrenAges}
             />
 
             {MULTI_CITY_ENABLED && (

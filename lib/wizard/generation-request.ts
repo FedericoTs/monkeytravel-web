@@ -2,7 +2,7 @@ import type { RouteStop } from "@/components/trips/MultiCityRouteBuilder";
 import type { Diet } from "@/lib/trips/diet";
 import type { SeasonalContext, TripCreationParams } from "@/types";
 import type { WizardAnswers } from "./answers";
-import { isChosenTripIntent } from "./answers";
+import { familyAges, isChosenTripIntent } from "./answers";
 import { tidyTypedPlace } from "./place-name";
 
 /**
@@ -59,6 +59,8 @@ export function generationRequest(
   const { destination, startDate, endDate, budgetTier, pace, vibes, mustDos, travelStyle, tripIntent, anchors, dietary, stay } = answers;
   const isMultiCity = extra.legs.length > 1;
   const isAnchored = !isMultiCity && anchors.length > 0;
+  // Ages picked before switching away from a family stay on screen, but don't go.
+  const childrenAges = familyAges(tripIntent, answers.childrenAges);
   // The stay travels as its words and its place (below), which the server reads back.
   const params: Omit<TripCreationParams, "stay"> = {
     destination,
@@ -73,6 +75,7 @@ export function generationRequest(
     ...(mustDos.length > 0 ? { mustDos } : {}),
     travelStyle,
     ...(isChosenTripIntent(tripIntent) ? { tripIntent } : {}),
+    ...(childrenAges.length > 0 ? { childrenAges } : {}),
     ...(isMultiCity ? { destinations: extra.legs } : {}),
     ...(isAnchored ? { anchors } : {}),
   };

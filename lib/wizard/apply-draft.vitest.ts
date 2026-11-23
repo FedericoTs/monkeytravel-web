@@ -28,6 +28,7 @@ const fullDraft: ItineraryDraft = {
   mustDos: ["Tram 28"],
   dietary: ["vegan", "not-a-diet"],
   tripIntent: "group",
+  childrenAges: ["under3", "teen"],
   flexibleDates: true,
   stay: { name: "  Memmo   Alfama ", coordinates: { lat: 38.7111, lng: -9.1306 } },
   savedAt: 1,
@@ -46,6 +47,7 @@ function targets() {
     setTravelStyle: vi.fn(),
     setAnchors: vi.fn(),
     setTripIntent: vi.fn(),
+    setChildrenAges: vi.fn(),
     setFlexibleDates: vi.fn(),
     setStay: vi.fn(),
     setGeneratedItinerary: vi.fn(),
@@ -69,6 +71,7 @@ describe("applyDraft", () => {
     expect(to.setTravelStyle).toHaveBeenCalledWith("backpacker");
     expect(to.setAnchors).toHaveBeenCalledWith(anchors);
     expect(to.setTripIntent).toHaveBeenCalledWith("group");
+    expect(to.setChildrenAges).toHaveBeenCalledWith(["under3", "teen"]);
     expect(to.setFlexibleDates).toHaveBeenCalledWith(true);
     expect(to.setStay).toHaveBeenCalledWith(STAY);
     expect(to.setGeneratedItinerary).toHaveBeenCalledWith(itinerary);
@@ -86,6 +89,7 @@ describe("applyDraft", () => {
       mustDos: ["Tram 28"],
       dietary: ["vegan"],
       tripIntent: "group",
+      childrenAges: ["under3", "teen"],
       flexibleDates: true,
       stay: STAY,
     });
@@ -115,12 +119,13 @@ describe("applyDraft", () => {
     expect(to.setAnchors).not.toHaveBeenCalled();
     expect(to.setMustDos).not.toHaveBeenCalled();
     expect(to.setTripIntent).not.toHaveBeenCalled();
+    expect(to.setChildrenAges).not.toHaveBeenCalled();
     expect(to.setFlexibleDates).not.toHaveBeenCalled();
     expect(to.setStay).not.toHaveBeenCalled();
     expect(to.setDietary).toHaveBeenCalledWith([]);
     const entry = to.registerRestore.mock.calls[0][0];
     expect(entry).toMatchObject({ travelStyle: "classic", dietary: [] });
-    for (const lacking of ["anchors", "mustDos", "tripIntent", "flexibleDates", "stay"]) expect(entry).not.toHaveProperty(lacking);
+    for (const lacking of ["anchors", "mustDos", "tripIntent", "childrenAges", "flexibleDates", "stay"]) expect(entry).not.toHaveProperty(lacking);
   });
 
   it("leaves out a stored stay that isn't one", () => {
@@ -167,6 +172,7 @@ describe("applyKeptPlan", () => {
     expect(to.setMustDos).toHaveBeenCalledWith(["Tram 28"]);
     expect(to.setDietary).toHaveBeenCalledWith(["vegan"]);
     expect(to.setStay).toHaveBeenCalledWith(STAY);
+    expect(to.setChildrenAges).toHaveBeenCalledWith([]);
     expect(to.setGeneratedItinerary).toHaveBeenCalledWith(itinerary);
     expect(to.registerRestore).toHaveBeenCalledWith({
       destination: "Lisbon, Portugal",
@@ -182,15 +188,24 @@ describe("applyKeptPlan", () => {
       mustDos: ["Tram 28"],
       dietary: ["vegan"],
       tripIntent: "group",
+      childrenAges: [],
       flexibleDates: true,
       stay: STAY,
     });
+  });
+
+  it("puts a family's children's ages on screen with its plan", () => {
+    const to = keptTargets();
+    applyKeptPlan({ ...plan, tripIntent: "family", childrenAges: ["3to6", "7to12"] }, to, current);
+    expect(to.setChildrenAges).toHaveBeenCalledWith(["3to6", "7to12"]);
+    expect(to.registerRestore).toHaveBeenCalledWith(expect.objectContaining({ tripIntent: "family", childrenAges: ["3to6", "7to12"] }));
   });
 
   it("replaces what the plan does not carry, where a draft would keep it", () => {
     const to = keptTargets();
     const bare: KeptPlan = { destination: "Porto", startDate: "2027-06-01", endDate: "2027-06-03", itinerary };
     applyKeptPlan(bare, to, current);
+    expect(to.setChildrenAges).toHaveBeenCalledWith([]);
     expect(to.setAnchors).toHaveBeenCalledWith([]);
     expect(to.setDestinationCoords).toHaveBeenCalledWith(null);
     expect(to.setMultiCityMode).toHaveBeenCalledWith(false);
@@ -225,6 +240,7 @@ describe("applyAnswers", () => {
     expect(to.setBudgetTier).toHaveBeenCalledWith("balanced");
     expect(to.setTravelStyle).toHaveBeenCalledWith("classic");
     expect(to.setTripIntent).toHaveBeenCalledWith("unspecified");
+    expect(to.setChildrenAges).toHaveBeenCalledWith([]);
     expect(to.setFlexibleDates).toHaveBeenCalledWith(false);
   });
 });
@@ -246,7 +262,8 @@ describe("applySessionTrip", () => {
     anchors,
     mustDos: ["Tram 28"],
     dietary: ["vegan"],
-    tripIntent: "group",
+    tripIntent: "family",
+    childrenAges: ["7to12"],
     flexibleDates: true,
     stay: STAY,
   };
@@ -264,7 +281,8 @@ describe("applySessionTrip", () => {
     expect(to.setAnchors).toHaveBeenCalledWith(anchors);
     expect(to.setMustDos).toHaveBeenCalledWith(["Tram 28"]);
     expect(to.setDietary).toHaveBeenCalledWith(["vegan"]);
-    expect(to.setTripIntent).toHaveBeenCalledWith("group");
+    expect(to.setTripIntent).toHaveBeenCalledWith("family");
+    expect(to.setChildrenAges).toHaveBeenCalledWith(["7to12"]);
     expect(to.setFlexibleDates).toHaveBeenCalledWith(true);
     expect(to.setStay).toHaveBeenCalledWith(STAY);
     expect(to.setGeneratedItinerary).toHaveBeenCalledWith(itinerary);
@@ -281,8 +299,9 @@ describe("applySessionTrip", () => {
 
   it("gives an older entry's missing answers a fresh wizard's values", () => {
     const to = trayTargets();
-    const { anchors: _a, mustDos: _m, dietary: _d, tripIntent: _t, flexibleDates: _f, travelStyle: _s, stay: _st, ...older } = entry;
+    const { anchors: _a, mustDos: _m, dietary: _d, tripIntent: _t, childrenAges: _c, flexibleDates: _f, travelStyle: _s, stay: _st, ...older } = entry;
     applySessionTrip(older, to);
+    expect(to.setChildrenAges).toHaveBeenCalledWith([]);
     expect(to.setStay).toHaveBeenCalledWith(null);
     expect(to.setTravelStyle).toHaveBeenCalledWith("classic");
     expect(to.setAnchors).toHaveBeenCalledWith([]);

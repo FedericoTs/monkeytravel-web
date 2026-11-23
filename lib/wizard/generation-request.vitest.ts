@@ -14,6 +14,7 @@ const answers: WizardAnswers = {
   mustDos: [],
   dietary: [],
   tripIntent: "solo",
+  childrenAges: [],
   flexibleDates: false,
   stay: null,
 };

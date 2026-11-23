@@ -5,8 +5,7 @@ import type { TripIntent } from "@/lib/posthog/events";
 import { dietsFrom, type Diet } from "@/lib/trips/diet";
 import { readStay } from "@/lib/trips/stay";
 import type { GeneratedItinerary, TripAnchor, TripStay, TripVibe, BudgetTier, TripPace } from "@/types";
-import { FRESH_ANSWERS, type WizardAnswers } from "./answers";
-import { isChosenTripIntent } from "./answers";
+import { FRESH_ANSWERS, childAgeBands, isChosenTripIntent, type ChildAgeBand, type WizardAnswers } from "./answers";
 
 /** Where a restored draft goes: the wizard's fields, and the session tray. */
 export interface DraftTargets {
@@ -21,6 +20,7 @@ export interface DraftTargets {
   setTravelStyle: (value: "classic" | "backpacker") => void;
   setAnchors: (value: TripAnchor[]) => void;
   setTripIntent: (value: TripIntent) => void;
+  setChildrenAges: (value: ChildAgeBand[]) => void;
   setFlexibleDates: (value: boolean) => void;
   setStay: (value: TripStay | null) => void;
   setGeneratedItinerary: (value: GeneratedItinerary) => void;
@@ -44,6 +44,7 @@ export function applyAnswers(answers: WizardAnswers, to: AnswerTargets): void {
   to.setMustDos(answers.mustDos);
   to.setDietary(answers.dietary);
   to.setTripIntent(answers.tripIntent);
+  to.setChildrenAges(answers.childrenAges);
   to.setFlexibleDates(answers.flexibleDates);
   to.setStay(answers.stay);
 }
@@ -66,6 +67,8 @@ export function applyDraft(draft: ItineraryDraft, to: DraftTargets): void {
   if (draft.travelStyle === "backpacker") to.setTravelStyle("backpacker");
   if (draft.anchors && draft.anchors.length > 0) to.setAnchors(draft.anchors);
   if (isChosenTripIntent(draft.tripIntent)) to.setTripIntent(draft.tripIntent);
+  const childrenAges = childAgeBands(draft.childrenAges);
+  if (childrenAges.length > 0) to.setChildrenAges(childrenAges);
   if (draft.flexibleDates) to.setFlexibleDates(true);
   const stay = readStay(draft.stay);
   if (stay) to.setStay(stay);
@@ -85,6 +88,7 @@ export function applyDraft(draft: ItineraryDraft, to: DraftTargets): void {
       ...(Array.isArray(draft.mustDos) ? { mustDos: draft.mustDos } : {}),
       dietary: dietsFrom(draft.dietary),
       ...(isChosenTripIntent(draft.tripIntent) ? { tripIntent: draft.tripIntent } : {}),
+      ...(childrenAges.length > 0 ? { childrenAges } : {}),
       ...(draft.flexibleDates ? { flexibleDates: true } : {}),
       ...(stay ? { stay } : {}),
     });
@@ -101,10 +105,10 @@ export interface KeptPlanTargets extends DraftTargets {
  * Put a kept plan opened from its link or step 1's list into the wizard, in
  * place of what is there. Unlike a draft, which fills a fresh wizard, a kept
  * plan replaces the trip on screen: a field it does not carry is reset (no
- * anchors, no coordinates, one city, classic style, fixed dates, no wishes or
- * diets) instead of kept. Pace, vibes, budget and who's coming keep the
- * wizard's values when the plan has none; `current` holds them for the tray
- * entry.
+ * anchors, no coordinates, one city, classic style, fixed dates, no wishes,
+ * diets or children's ages) instead of kept. Pace, vibes, budget and who's
+ * coming keep the wizard's values when the plan has none; `current` holds
+ * them for the tray entry.
  */
 export function applyKeptPlan(
   plan: KeptPlan,
@@ -119,6 +123,7 @@ export function applyKeptPlan(
   if (plan.budgetTier) to.setBudgetTier(plan.budgetTier);
   to.setTravelStyle(plan.travelStyle === "backpacker" ? "backpacker" : "classic");
   if (plan.tripIntent) to.setTripIntent(plan.tripIntent);
+  to.setChildrenAges(plan.childrenAges ?? []);
   to.setFlexibleDates(plan.flexibleDates === true);
   to.setMustDos(plan.mustDos ?? []);
   to.setDietary(plan.dietary ?? []);
@@ -141,6 +146,7 @@ export function applyKeptPlan(
     mustDos: plan.mustDos ?? [],
     dietary: plan.dietary ?? [],
     tripIntent: plan.tripIntent ?? current.tripIntent,
+    childrenAges: plan.childrenAges ?? [],
     flexibleDates: plan.flexibleDates === true,
     stay: plan.stay ?? null,
   });
@@ -165,6 +171,7 @@ export function applySessionTrip(trip: SessionTripSnapshot, to: KeptPlanTargets)
       mustDos: trip.mustDos ?? FRESH_ANSWERS.mustDos,
       dietary: dietsFrom(trip.dietary),
       tripIntent: trip.tripIntent ?? FRESH_ANSWERS.tripIntent,
+      childrenAges: childAgeBands(trip.childrenAges),
       flexibleDates: trip.flexibleDates === true,
       stay: readStay(trip.stay),
     },

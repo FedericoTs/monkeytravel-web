@@ -1,25 +1,32 @@
 "use client";
 
+import { useId } from "react";
 import { useTranslations } from "next-intl";
 import { captureTripIntentSelected, type TripIntent } from "@/lib/posthog/events";
+import { CHILD_AGE_BANDS, childAgeBands, type ChildAgeBand } from "@/lib/wizard/answers";
 
 /**
  * Step 1's optional answers, below the destination and dates: backpacker
- * mode, shown only while it is on so it can be switched off, and who's
- * coming.
+ * mode, shown only while it is on so it can be switched off, who's coming,
+ * and for a family the children's ages.
  */
 export default function TripOptions({
   travelStyle,
   setTravelStyle,
   tripIntent,
   setTripIntent,
+  childrenAges,
+  setChildrenAges,
 }: {
   travelStyle: "classic" | "backpacker";
   setTravelStyle: (style: "classic" | "backpacker") => void;
   tripIntent: TripIntent;
   setTripIntent: (intent: TripIntent) => void;
+  childrenAges: ChildAgeBand[];
+  setChildrenAges: (ages: ChildAgeBand[]) => void;
 }) {
   const t = useTranslations("trips");
+  const agesLabelId = useId();
   return (
     <>
     {/* Backpacker Mode toggle, shown only while the mode is already
@@ -107,6 +114,39 @@ export default function TripOptions({
               invite-after-generation already works. */}
           {t("wizard.step1.withFriendsHint")}
         </p>
+      )}
+      {/* A family's children's ages, several at once: the plan fits its
+          days to them (naps and early dinners, playgrounds, teen outings).
+          Kept youngest first whatever order they're tapped in. */}
+      {tripIntent === "family" && (
+        <div role="group" aria-labelledby={agesLabelId} className="mt-3">
+          <div id={agesLabelId} className="text-sm font-medium text-slate-700 mb-2">
+            {t("wizard.step1.ages.label")} <span className="font-normal text-slate-500">{t("wizard.step1.ages.optional")}</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {CHILD_AGE_BANDS.map((band) => {
+              const picked = childrenAges.includes(band);
+              return (
+                <button
+                  key={band}
+                  type="button"
+                  aria-pressed={picked}
+                  onClick={() =>
+                    setChildrenAges(picked ? childrenAges.filter((b) => b !== band) : childAgeBands([...childrenAges, band]))
+                  }
+                  className={`min-h-[44px] px-4 py-2 rounded-xl border-2 text-sm font-medium transition-all ${
+                    picked
+                      ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--foreground)]"
+                      : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                  }`}
+                >
+                  {t(`wizard.step1.ages.${band}`)}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-xs text-slate-500 mt-2">{t("wizard.step1.ages.hint")}</p>
+        </div>
       )}
     </div>
     </>

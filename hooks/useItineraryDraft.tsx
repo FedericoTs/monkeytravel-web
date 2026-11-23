@@ -49,6 +49,8 @@ export interface ItineraryDraft {
    * toward "unspecified" precisely where the evidence matters.
    */
   tripIntent?: ChosenTripIntent | "unspecified";
+  /** A family's children's ages from step 1, read back through childAgeBands (lib/wizard/answers.ts). */
+  childrenAges?: string[];
   /** Dates pencilled in rather than chosen; must survive the signup redirect like the rest. */
   flexibleDates?: boolean;
   /** Where they're staying, when they said (read back through lib/trips/stay.ts readStay). */

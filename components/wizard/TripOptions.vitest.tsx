@@ -13,6 +13,7 @@ import TripOptions from "./TripOptions";
 type Props = ComponentProps<typeof TripOptions>;
 const setTravelStyle = vi.fn();
 const setTripIntent = vi.fn();
+const setChildrenAges = vi.fn();
 const options = (over: Partial<Props> = {}) =>
   render(
     <TripOptions
@@ -20,12 +21,16 @@ const options = (over: Partial<Props> = {}) =>
       setTravelStyle={setTravelStyle}
       tripIntent="unspecified"
       setTripIntent={setTripIntent}
+      childrenAges={[]}
+      setChildrenAges={setChildrenAges}
       {...over}
     />
   );
 
-beforeEach(() => [captured, setTravelStyle, setTripIntent].forEach((fn) => fn.mockClear()));
+beforeEach(() => [captured, setTravelStyle, setTripIntent, setChildrenAges].forEach((fn) => fn.mockClear()));
 afterEach(cleanup);
+
+const ageButtons = () => screen.queryAllByRole("button").filter((b) => /wizard\.step1\.ages\./.test(b.textContent ?? ""));
 
 describe("TripOptions", () => {
   it("shows backpacker mode only while it is on, and switches it off", () => {
@@ -84,5 +89,41 @@ describe("TripOptions", () => {
     cleanup();
     options({ tripIntent: "solo" });
     expect(screen.queryByText("wizard.step1.withFriendsHint")).toBeNull();
+  });
+
+  it("asks a family how old the children are, and no one else", () => {
+    for (const tripIntent of ["unspecified", "solo", "couple", "group"] as const) {
+      options({ tripIntent, childrenAges: ["under3"] });
+      expect(screen.queryByRole("group", { name: /wizard\.step1\.ages\.label/ }), tripIntent).toBeNull();
+      expect(ageButtons(), tripIntent).toEqual([]);
+      cleanup();
+    }
+
+    options({ tripIntent: "family" });
+    expect(screen.getByRole("group", { name: /wizard\.step1\.ages\.label/ })).toBeTruthy();
+    expect(screen.getByText("wizard.step1.ages.hint")).toBeTruthy();
+    expect(ageButtons().map((b) => b.textContent)).toEqual([
+      "wizard.step1.ages.under3",
+      "wizard.step1.ages.3to6",
+      "wizard.step1.ages.7to12",
+      "wizard.step1.ages.teen",
+    ]);
+  });
+
+  it("shows the ages picked, several at once", () => {
+    options({ tripIntent: "family", childrenAges: ["under3", "teen"] });
+    expect(ageButtons().map((b) => b.getAttribute("aria-pressed"))).toEqual(["true", "false", "false", "true"]);
+  });
+
+  it("adds an age to those picked, youngest first, and takes one off", () => {
+    options({ tripIntent: "family", childrenAges: ["teen"] });
+    fireEvent.click(screen.getByRole("button", { name: "wizard.step1.ages.3to6" }));
+    expect(setChildrenAges).toHaveBeenLastCalledWith(["3to6", "teen"]);
+    cleanup();
+
+    options({ tripIntent: "family", childrenAges: ["under3", "7to12"] });
+    fireEvent.click(screen.getByRole("button", { name: "wizard.step1.ages.under3" }));
+    expect(setChildrenAges).toHaveBeenLastCalledWith(["7to12"]);
+    expect(setTripIntent).not.toHaveBeenCalled();
   });
 });
