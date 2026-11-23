@@ -14,7 +14,7 @@ import { whatsOn } from "@/lib/ai/whats-on";
 import { cityPointsFor } from "@/lib/ai/city-points";
 import { cleanStayName } from "@/lib/trips/stay";
 import type { TripCreationParams, UserProfilePreferences } from "@/types";
-import { isChosenTripIntent } from "@/lib/wizard/answers";
+import { childAgeBands, isChosenTripIntent } from "@/lib/wizard/answers";
 
 // Anti-abuse: cap ANONYMOUS generations per IP/day (defense-in-depth on top of
 // the per-cookie limit, which a bot can reset by clearing cookies). Authenticated
@@ -148,6 +148,7 @@ export function tripParamsFromBody(
     // Whitelisted, so untrusted strings can't flow into the AI system prompt.
     travelStyle: body.travelStyle === "backpacker" ? "backpacker" : "classic",
     ...(isChosenTripIntent(body.tripIntent) ? { tripIntent: body.tripIntent } : {}),
+    ...withChildrenAges(body),
     ...withDaylight(body),
     ...withWhatsOn(body),
     ...withStay(body),
@@ -166,6 +167,12 @@ function withStay(body: Record<string, unknown>): Pick<TripCreationParams, "stay
   if (!name || severalCities) return {};
   const coordinates = readCoordinates(body.stayCoords);
   return { stay: { name, ...(coordinates ? { coordinates } : {}) } };
+}
+
+/** The children's ages, on a family's trip only, as the fixed bands (never the request's own words). */
+function withChildrenAges(body: Record<string, unknown>): Pick<TripCreationParams, "childrenAges"> {
+  const bands = body.tripIntent === "family" ? childAgeBands(body.childrenAges) : [];
+  return bands.length > 0 ? { childrenAges: bands } : {};
 }
 
 /** The sun at the destination, when the planner sent where it is. */

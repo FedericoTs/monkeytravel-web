@@ -76,6 +76,8 @@ describe("requests at the same moment", () => {
     ["where they're staying", { stay: { name: "Trastevere" } }, { stay: { name: "Termini" } }],
     ["where they're staying, against no answer", { stay: { name: "Trastevere" } }, {}],
     ["what an earlier stay in the city holds", { alreadyPlanned: ["Pantheon"] }, {}],
+    ["the children's ages", { tripIntent: "family", childrenAges: ["under3"] }, { tripIntent: "family", childrenAges: ["teen"] }],
+    ["the children's ages, against none given", { tripIntent: "family", childrenAges: ["under3"] }, { tripIntent: "family" }],
   ])("are two calls when %s differ", async (_, one, other) => {
     expect(await callsFor(trip(one), trip(other))).toBe(2);
   });

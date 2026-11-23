@@ -76,6 +76,8 @@ export interface ItineraryDedupParams {
   requirements?: string;
   travelStyle?: string;
   tripIntent?: string;
+  /** A family's children's ages: a plan for a toddler isn't one for teenagers. */
+  childrenAges?: string[];
   /** Where they're staying: two trips with different stays are different plans. */
   stay?: { name: string; coordinates?: { lat: number; lng: number } };
   /** Places an earlier stay in the same city holds: a stay asked again without them is another plan. */
@@ -127,6 +129,7 @@ export function getItineraryDedupKey(params: ItineraryDedupParams): string {
     requirements: params.requirements,
     style: params.travelStyle,
     intent: params.tripIntent,
+    ages: params.childrenAges || [],
     stay: params.stay,
     profile: params.profile,
     anchor: params.anchorBrief || "",

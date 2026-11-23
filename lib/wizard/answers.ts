@@ -37,6 +37,16 @@ export function sharesAsGroup(intent: unknown): boolean {
   return intent === "group" || intent === "family";
 }
 
+/** The children's ages a family trip can carry, youngest first. */
+export const CHILD_AGE_BANDS = ["under3", "3to6", "7to12", "teen"] as const;
+export type ChildAgeBand = (typeof CHILD_AGE_BANDS)[number];
+
+/** The age bands in a value, once each and youngest first; none for anything that isn't a list of them. */
+export function childAgeBands(value: unknown): ChildAgeBand[] {
+  if (!Array.isArray(value)) return [];
+  return CHILD_AGE_BANDS.filter((band) => value.includes(band));
+}
+
 /**
  * Whether a value is an answer to "Who's coming?". Every place a plan carries
  * the answer keeps it only then: "unspecified", and any string from a request
