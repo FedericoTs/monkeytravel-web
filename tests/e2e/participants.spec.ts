@@ -150,7 +150,13 @@ test.describe("recipient → participant", () => {
     await page.addInitScript(() => localStorage.setItem("mt_ai_assistant_seen", String(Date.now())));
     await page.goto(`/trips/${TRIP_ID}`);
     await declineConsent(page);
-    await page.getByTestId("trip-strip-who").click();
+    // The chip says how many must-dos wait to be added before the card is opened (another run's guest may have left some).
+    const chip = page.getByTestId("trip-strip-who");
+    const waiting = async () =>
+      Number((await chip.textContent())?.match(/(\d+) (?:must-dos? to add|cosas? por añadir|cos[ae] da aggiungere|coisas? para adicionar)/)?.[1] ?? 0);
+    await expect.poll(waiting).toBeGreaterThanOrEqual(1);
+    const before = await waiting();
+    await chip.click();
     const card = page.getByTestId("who-is-going");
     const theirs = card.getByTestId("who-is-going-pick").filter({ hasText: name });
     await expect(theirs).toContainText(pick);
@@ -160,11 +166,13 @@ test.describe("recipient → participant", () => {
     // the page took the plan: the stop is on it, saying whose pick it is
     const label = page.getByText(new RegExp(`^(${name}'s pick|Elegido por ${name}|Scelto da ${name}|Escolha de ${name})$`));
     await expect(label.first()).toBeAttached();
+    await expect.poll(waiting).toBe(before - 1);
 
     // 4. Undo puts the plan back, and the must-do is offered again
     await theirs.getByRole("button", { name: /^(undo|deshacer|annulla|desfazer)$/i }).click();
     await expect(label).toHaveCount(0);
     await expect(theirs.getByRole("button", { name: /^(add to the plan|añadir al plan|aggiungi al piano|adicionar ao plano)$/i })).toBeVisible();
+    await expect.poll(waiting).toBe(before);
 
     // cleanup: the guest leaves the group
     const list = await request.get(`/api/trips/${TRIP_ID}/participants`);

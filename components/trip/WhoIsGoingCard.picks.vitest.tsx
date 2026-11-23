@@ -188,6 +188,24 @@ describe("what people going don't want to miss", () => {
     expect((await screen.findByRole("alert")).textContent).toBe("Save your changes first");
   });
 
+  it("tells the page how many must-dos wait to be added, and none once they're in", async () => {
+    const { run, adopt } = write();
+    const waiting = vi.fn();
+    serve([picksOf(), picksOf({ participant_id: "row-f", display_name: "Fi", picks: ["Lighthouse Point"], picks_placed_at: "2027-03-02T10:00:00Z" })], {
+      [FIT_CALL]: [fittedReply],
+    });
+    const { rerender } = render(
+      <WhoIsGoingCard tripId="trip-1" itinerary={PLAN} runItineraryWrite={run} onItineraryChange={adopt} onPicksWaiting={waiting} />,
+    );
+    // Bo's Granja La Cremosa: the garden is in the plan, and Fi's were already added.
+    await vi.waitFor(() => expect(waiting).toHaveBeenLastCalledWith(1));
+    fireEvent.click(await screen.findByRole("button", { name: "share.participants.fit.button" }));
+    await vi.waitFor(() => expect(waiting).toHaveBeenLastCalledWith(0));
+    // The page's plan holding it counts too.
+    rerender(<WhoIsGoingCard tripId="trip-1" itinerary={FITTED} runItineraryWrite={run} onItineraryChange={adopt} onPicksWaiting={waiting} />);
+    expect(waiting).toHaveBeenLastCalledWith(0);
+  });
+
   it("says when Undo is too late because the plan changed since", async () => {
     const { run, adopt } = write();
     serve([picksOf()], { [FIT_CALL]: [fittedReply], "POST /api/ai/assistant/undo": [{ status: 409, body: {} }] });

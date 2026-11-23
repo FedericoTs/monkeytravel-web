@@ -1293,7 +1293,8 @@
         "busy": "The plan was being saved just then. Try again.",
         "undo": "Undo",
         "undone": "Put back as it was.",
-        "undoFailed": "Couldn't undo: the plan has changed since."
+        "undoFailed": "Couldn't undo: the plan has changed since.",
+        "waiting": "{count, plural, one {# must-do to add} other {# must-dos to add}}"
       }
     },
     "savedHero": {
