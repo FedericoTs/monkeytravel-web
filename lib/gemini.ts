@@ -47,26 +47,8 @@ export async function generateItinerary(
   params: TripCreationParams,
   options?: GenerationOptions & { userId?: string }
 ): Promise<GeneratedItinerary> {
-  // Generate deduplication key from request parameters
-  const dedupKey = getItineraryDedupKey({
-    destination: params.destination,
-    startDate: params.startDate,
-    endDate: params.endDate,
-    budgetTier: params.budgetTier,
-    pace: params.pace,
-    vibes: params.vibes,
-    language: options?.language,
-    mustDos: params.mustDos,
-    interests: params.interests,
-    requirements: params.requirements,
-    travelStyle: params.travelStyle,
-    tripIntent: params.tripIntent,
-    childrenAges: params.childrenAges,
-    stay: params.stay,
-    profile: params.profilePreferences,
-    anchorBrief: options?.anchorBrief,
-    alreadyPlanned: params.alreadyPlanned,
-  });
+  // Two requests share a model call only when they would send it the same prompt.
+  const dedupKey = getItineraryDedupKey(buildUserPrompt(params, options));
 
   // Wrap with deduplication to prevent duplicate concurrent requests
   return withDeduplication(dedupKey, () =>
