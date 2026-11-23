@@ -3,6 +3,7 @@
 import { useState, memo } from "react";
 import { useTranslations } from "next-intl";
 import UnverifiedNote from "@/components/trip/UnverifiedNote";
+import PickedByNote from "@/components/trip/PickedByNote";
 import ClosingNote from "@/components/trip/ClosingNote";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import type { Activity } from "@/types";
@@ -185,6 +186,7 @@ function ActivityCard({
                   {activity.description}
                 </p>
                 <UnverifiedNote activity={activity} />
+                <PickedByNote activity={activity} />
                 <ClosingNote activity={activity} className="text-slate-500" />
 
                 {/* Location */}

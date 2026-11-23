@@ -52,7 +52,7 @@ function fakeSupabase() {
         if (refuseWrites || !versionOk) return { data: [], error: null };
         writes.push(values!);
         row = { ...row, ...(values as object), itinerary_version: row.itinerary_version + 1 };
-        return { data: [{ id: TRIP }], error: null };
+        return { data: [{ id: TRIP, itinerary_version: row.itinerary_version }], error: null };
       };
       return q;
     },
@@ -84,6 +84,11 @@ describe("POST /api/ai/assistant/undo", () => {
     const { status } = await undo({ previousItinerary: before, expectedVersion: 5 });
     expect(status).toBe(200);
     expect(row.itinerary).toEqual(before);
+  });
+
+  it("tells the page the version the old copy was put back at", async () => {
+    const { json } = await undo({ previousItinerary: before, expectedVersion: 5 });
+    expect((json.data ?? json).itineraryVersion).toBe(6);
   });
 
   it("refuses with 409 OUTDATED once a later save has moved the trip on, and writes nothing", async () => {

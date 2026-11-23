@@ -311,6 +311,7 @@
     "regeneratingActivity": "Regenerando actividad con AI...",
     "savedInTrips": "{count, plural, one {En # viaje guardado} other {En # viajes guardados}}",
     "unverified": "Sin verificar en Google Maps: comprueba que esté abierto antes de ir.",
+    "pickedBy": "Elegido por {name}",
     "closedOn": "Cerrado {dates}",
     "closedMoreDays": "{count, plural, one {# día más} other {# días más}}",
     "closedSource": "Horario oficial"
@@ -1280,7 +1281,20 @@
       "followingAlong": "solo sigue el viaje, no comparte gastos",
       "notInExpensesYet": "todavía no comparte gastos",
       "remove": "Quitar",
-      "planOwnLead": "¿Vas a otro sitio?"
+      "planOwnLead": "¿Vas a otro sitio?",
+      "fit": {
+        "title": "{name} no quiere perderse",
+        "titleNoName": "Alguien que viene no quiere perderse",
+        "button": "Añadir al plan",
+        "working": "Añadiendo…",
+        "added": "Añadido al plan: {list}.",
+        "noPlace": "No hay un buen hueco en este viaje para: {list}.",
+        "failed": "No ha funcionado. Inténtalo de nuevo en un minuto.",
+        "busy": "El plan se estaba guardando. Inténtalo de nuevo.",
+        "undo": "Deshacer",
+        "undone": "Vuelto a como estaba.",
+        "undoFailed": "No se pudo deshacer: el plan ha cambiado desde entonces."
+      }
     },
     "savedHero": {
       "aiTitle": "Itinerario generado por AI",

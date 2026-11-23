@@ -924,7 +924,17 @@ export default function TripDetailClient({
       label: tCommon("share.participants.whoIsGoing"),
       detail: goingCount === null ? null : tCommon("share.participants.going", { count: goingCount }),
       // The share ask is "send it to the people coming", not "get votes".
-      content: <WhoIsGoingCard tripId={trip.id} onShare={openCrewShareModal} onCount={setGoingCount} />,
+      // With the plan and its write queue: the card adds what people going don't want to miss.
+      content: (
+        <WhoIsGoingCard
+          tripId={trip.id}
+          onShare={openCrewShareModal}
+          onCount={setGoingCount}
+          itinerary={editedItinerary}
+          runItineraryWrite={runItineraryWrite}
+          onItineraryChange={adoptStoredItinerary}
+        />
+      ),
       keepMounted: true,
     });
   }
