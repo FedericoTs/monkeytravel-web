@@ -9,6 +9,7 @@
 import { hoursOn, knownClosingFor, type OpenHours } from "@/lib/ai/known-closings";
 import { determineTimeSlot } from "@/lib/utils/activity-id";
 import { isMealStop } from "@/lib/trip/pace";
+import { notBefore, shortenedToFit } from "@/lib/trip/day-room";
 
 type Stop = {
   name?: string;
@@ -106,7 +107,7 @@ export interface InsideHours<T> {
   checked: number;
   /** Of those, the ones the plan had outside their place's hours. */
   outside: number;
-  /** Visits that traded slots with another sight of their day. */
+  /** Visits that waited for their opening, or traded slots with another sight of their day. */
   moved: number;
   /** Visits cut to end at closing. */
   shortened: number;
@@ -144,6 +145,21 @@ export function keepInsideHours<T extends Day>(days: T[], destination: string, h
       const hours = hoursFor(stop.name, place, date);
       const start = minutesOf(stop.start_time);
       if (!hours || start === null || insideHours(start, lengthOf(stop), hours)) continue;
+      // Planned before its place opens: it waits for the opening, the least change to the day, when its visit, whole or
+      // cut to fit, still ends a walk before the next stop and no stop of the day comes in between.
+      if (start < hours.open) {
+        const others = stops.filter((_, k) => k !== i);
+        const between = others.some((other) => {
+          const at = minutesOf(other.start_time);
+          return at !== null && at >= start && at < hours.open;
+        });
+        const waited = between ? null : shortenedToFit(notBefore(stop, hours.open), others, hours.close);
+        if (waited) {
+          stops[i] = waited;
+          moved++;
+          continue;
+        }
+      }
       const j = tradeFor(stops, i, hours, place, date, hoursFor);
       if (j !== null) {
         stops = traded(stops, i, j);
