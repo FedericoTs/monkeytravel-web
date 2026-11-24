@@ -54,6 +54,23 @@ describe("kept generations in Upstash", () => {
     expect(kept).toBe(true);
   });
 
+  it("are found by the server that kept them when Upstash refuses", async () => {
+    set.mockRejectedValueOnce(new Error("ERR max requests limit exceeded"));
+    const id = newGenerationId();
+    await keepGeneration(id, "s1", plan);
+    expect(set).toHaveBeenCalledTimes(1);
+    expect(await findGeneration(id, "s1")).toEqual(plan);
+    expect(await findGeneration(id, "s2")).toBeNull();
+  });
+
+  it("are found in Upstash by another server", async () => {
+    const id = newGenerationId();
+    await keepGeneration(id, "s1", plan);
+    // Another server: nothing of it in memory.
+    (globalThis as { __keptGenerations?: Map<string, unknown> }).__keptGenerations?.clear();
+    expect(await findGeneration(id, "s1")).toEqual(plan);
+  });
+
   it("are never kept when too big for Upstash", async () => {
     await keepGeneration(newGenerationId(), "s1", { itinerary: "x".repeat(1_000_000) });
     expect(set).not.toHaveBeenCalled();

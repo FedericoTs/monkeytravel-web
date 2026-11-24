@@ -52,6 +52,9 @@ export interface SessionTripSnapshot {
   mustDos?: string[];
   dietary?: Diet[];
   tripIntent?: TripIntent;
+  /** When they arrive and leave, as the wizard had them (read back with isArrival / isDeparture). */
+  arrival?: string | null;
+  departure?: string | null;
   flexibleDates?: boolean;
   stay?: TripStay | null;
   /**

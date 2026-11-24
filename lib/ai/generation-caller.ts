@@ -14,7 +14,7 @@ import { whatsOn } from "@/lib/ai/whats-on";
 import { cityPointsFor } from "@/lib/ai/city-points";
 import { cleanStayName } from "@/lib/trips/stay";
 import type { TripCreationParams, UserProfilePreferences } from "@/types";
-import { childAgeBands, isChosenTripIntent, isOccasion } from "@/lib/wizard/answers";
+import { childAgeBands, isArrival, isChosenTripIntent, isDeparture, isOccasion } from "@/lib/wizard/answers";
 import { isIsoDate } from "@/lib/trips/anonymous-share";
 import { addIsoDays, tripSpanDays } from "@/lib/dates/iso-date";
 
@@ -152,6 +152,7 @@ export function tripParamsFromBody(
     ...(isChosenTripIntent(body.tripIntent) ? { tripIntent: body.tripIntent } : {}),
     ...withChildrenAges(body),
     ...withOccasion(body),
+    ...withTravelDays(body),
     ...withDaylight(body),
     ...withWhatsOn(body),
     ...withStay(body),
@@ -189,6 +190,19 @@ function withOccasion(body: Record<string, unknown>): Pick<TripCreationParams, "
   const onTrip = isIsoDate(occasionDate) && occasionDate >= startDate && occasionDate <= endDate;
   const date = onTrip ? occasionDate : tripSpanDays(startDate, endDate) >= 3 ? (addIsoDays(endDate, -1) ?? endDate) : endDate;
   return { occasion: { kind: occasion, date } };
+}
+
+/**
+ * When they arrive and leave, as the planner's fixed answers on the trip's first and last dates, fixed here before a
+ * route is split into its cities: never the request's own words.
+ */
+function withTravelDays(body: Record<string, unknown>): Pick<TripCreationParams, "arrival" | "departure"> {
+  const { arrival, departure, startDate, endDate } = body;
+  if (!isIsoDate(startDate) || !isIsoDate(endDate) || endDate < startDate) return {};
+  return {
+    ...(isArrival(arrival) ? { arrival: { when: arrival, date: startDate } } : {}),
+    ...(isDeparture(departure) ? { departure: { when: departure, date: endDate } } : {}),
+  };
 }
 
 /** The sun at the destination, when the planner sent where it is. */

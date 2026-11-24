@@ -74,12 +74,19 @@ test.describe("wizard: the assistant's edits", () => {
   test("an edit applies as it arrives, and Undo takes it back", async ({ page }) => {
     const asked: Array<Record<string, unknown>> = [];
     await stubAssistant(page, asked);
-    await restoreDraft(page);
+    await restoreDraft(page, { arrival: "evening", departure: "morning" });
 
     await ask(page);
     await expect.poll(() => firstDayKept(page)).toEqual(["Canal cruise"]);
     // The answers the plan was made with go along, so an edit keeps to them.
-    expect(asked[0].trip).toEqual({ tripIntent: draft.tripIntent, pace: draft.pace, budgetTier: draft.budgetTier, dietary: draft.dietary });
+    expect(asked[0].trip).toEqual({
+      tripIntent: draft.tripIntent,
+      pace: draft.pace,
+      budgetTier: draft.budgetTier,
+      dietary: draft.dietary,
+      arrival: "evening",
+      departure: "morning",
+    });
 
     await page.getByRole("button", { name: "Undo", exact: true }).click();
     await expect.poll(() => firstDayKept(page)).toEqual(originalDayOne);

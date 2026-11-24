@@ -20,9 +20,11 @@ import { logWriteError } from "@/lib/supabase/log-write-error";
 export const runtime = "nodejs";
 
 // A visitor produces at most a handful of these per page; the IP bucket is
-// the one that matters against a scripted caller rotating cookies.
-const ipLimiter = createRateLimiter("consent-event-ip", 120, 60 * 1000);
-const sessionLimiter = createRateLimiter("consent-event-session", 30, 60 * 1000);
+// the one that matters against a scripted caller rotating cookies. Counted on
+// each instance, not in Redis: these come with every page, and a count per
+// instance still stops a flood.
+const ipLimiter = createRateLimiter("consent-event-ip", 120, 60 * 1000, { shared: false });
+const sessionLimiter = createRateLimiter("consent-event-session", 30, 60 * 1000, { shared: false });
 
 export async function POST(request: NextRequest) {
   const ipCheck = await ipLimiter.check(request);

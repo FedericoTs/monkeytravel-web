@@ -26,7 +26,7 @@ import type { PencilledDates } from "@/lib/trips/pencilled-dates";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { logWriteError } from "@/lib/supabase/log-write-error";
 import { tripSpanDays } from "@/lib/dates/iso-date";
-import { isChosenTripIntent, type ChosenTripIntent } from "@/lib/wizard/answers";
+import { isArrival, isChosenTripIntent, isDeparture, type ChosenTripIntent } from "@/lib/wizard/answers";
 
 export interface TripFormState {
   destination: string;
@@ -83,6 +83,9 @@ export interface TripFormState {
    * trip_intent means the user actively chose.
    */
   tripIntent?: ChosenTripIntent | "unspecified";
+  /** When they arrive and leave, when they said; written as trip_meta.arrival / departure. */
+  arrival?: string | null;
+  departure?: string | null;
   /**
    * The dates were pencilled in for the traveller ("flexible dates", a plan
    * from one sentence) rather than chosen. Written as trip_meta.dates_pencilled
@@ -214,6 +217,9 @@ function buildTripRow(
     ...(isChosenTripIntent(formState.tripIntent)
       ? { trip_intent: formState.tripIntent }
       : {}),
+    // When they arrive and leave, as the plan was made for them: the first and last day.
+    ...(isArrival(formState.arrival) ? { arrival: formState.arrival } : {}),
+    ...(isDeparture(formState.departure) ? { departure: formState.departure } : {}),
     ...(formState.flexibleDates
       ? { dates_pencilled: { start: formState.startDate, end: formState.endDate } satisfies PencilledDates }
       : {}),

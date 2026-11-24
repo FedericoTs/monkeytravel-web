@@ -6,7 +6,7 @@ import { dietsFrom, type Diet } from "@/lib/trips/diet";
 import { readStay } from "@/lib/trips/stay";
 import type { GeneratedItinerary, TripAnchor, TripStay, TripVibe, BudgetTier, TripPace } from "@/types";
 import { FRESH_ANSWERS, type WizardAnswers } from "./answers";
-import { isChosenTripIntent } from "./answers";
+import { isArrival, isChosenTripIntent, isDeparture, type Arrival, type Departure } from "./answers";
 
 /** Where a restored draft goes: the wizard's fields, and the session tray. */
 export interface DraftTargets {
@@ -21,6 +21,8 @@ export interface DraftTargets {
   setTravelStyle: (value: "classic" | "backpacker") => void;
   setAnchors: (value: TripAnchor[]) => void;
   setTripIntent: (value: TripIntent) => void;
+  setArrival: (value: Arrival | null) => void;
+  setDeparture: (value: Departure | null) => void;
   setFlexibleDates: (value: boolean) => void;
   setStay: (value: TripStay | null) => void;
   setGeneratedItinerary: (value: GeneratedItinerary) => void;
@@ -44,6 +46,8 @@ export function applyAnswers(answers: WizardAnswers, to: AnswerTargets): void {
   to.setMustDos(answers.mustDos);
   to.setDietary(answers.dietary);
   to.setTripIntent(answers.tripIntent);
+  to.setArrival(answers.arrival);
+  to.setDeparture(answers.departure);
   to.setFlexibleDates(answers.flexibleDates);
   to.setStay(answers.stay);
 }
@@ -66,6 +70,8 @@ export function applyDraft(draft: ItineraryDraft, to: DraftTargets): void {
   if (draft.travelStyle === "backpacker") to.setTravelStyle("backpacker");
   if (draft.anchors && draft.anchors.length > 0) to.setAnchors(draft.anchors);
   if (isChosenTripIntent(draft.tripIntent)) to.setTripIntent(draft.tripIntent);
+  if (isArrival(draft.arrival)) to.setArrival(draft.arrival);
+  if (isDeparture(draft.departure)) to.setDeparture(draft.departure);
   if (draft.flexibleDates) to.setFlexibleDates(true);
   const stay = readStay(draft.stay);
   if (stay) to.setStay(stay);
@@ -85,6 +91,8 @@ export function applyDraft(draft: ItineraryDraft, to: DraftTargets): void {
       ...(Array.isArray(draft.mustDos) ? { mustDos: draft.mustDos } : {}),
       dietary: dietsFrom(draft.dietary),
       ...(isChosenTripIntent(draft.tripIntent) ? { tripIntent: draft.tripIntent } : {}),
+      ...(isArrival(draft.arrival) ? { arrival: draft.arrival } : {}),
+      ...(isDeparture(draft.departure) ? { departure: draft.departure } : {}),
       ...(draft.flexibleDates ? { flexibleDates: true } : {}),
       ...(stay ? { stay } : {}),
     });
@@ -119,6 +127,8 @@ export function applyKeptPlan(
   if (plan.budgetTier) to.setBudgetTier(plan.budgetTier);
   to.setTravelStyle(plan.travelStyle === "backpacker" ? "backpacker" : "classic");
   if (plan.tripIntent) to.setTripIntent(plan.tripIntent);
+  to.setArrival(plan.arrival ?? null);
+  to.setDeparture(plan.departure ?? null);
   to.setFlexibleDates(plan.flexibleDates === true);
   to.setMustDos(plan.mustDos ?? []);
   to.setDietary(plan.dietary ?? []);
@@ -141,6 +151,8 @@ export function applyKeptPlan(
     mustDos: plan.mustDos ?? [],
     dietary: plan.dietary ?? [],
     tripIntent: plan.tripIntent ?? current.tripIntent,
+    arrival: plan.arrival ?? null,
+    departure: plan.departure ?? null,
     flexibleDates: plan.flexibleDates === true,
     stay: plan.stay ?? null,
   });
@@ -165,6 +177,8 @@ export function applySessionTrip(trip: SessionTripSnapshot, to: KeptPlanTargets)
       mustDos: trip.mustDos ?? FRESH_ANSWERS.mustDos,
       dietary: dietsFrom(trip.dietary),
       tripIntent: trip.tripIntent ?? FRESH_ANSWERS.tripIntent,
+      arrival: isArrival(trip.arrival) ? trip.arrival : null,
+      departure: isDeparture(trip.departure) ? trip.departure : null,
       flexibleDates: trip.flexibleDates === true,
       stay: readStay(trip.stay),
     },
