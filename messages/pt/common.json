@@ -2715,6 +2715,10 @@
       "heading": "Dia da viagem",
       "body": "Chegou o dia. Seu plano de hoje em {destination} está a um toque de distância — abra sempre que precisar de direções, das paradas de hoje ou do que vem a seguir."
     },
+    "need_10d": {
+      "heading": "O que ainda falta para sua viagem a {destination}?",
+      "body": "Basta um toque. Assim sabemos o que melhorar antes da sua viagem."
+    },
     "needAsk": {
       "question": "Uma pergunta: o que ainda falta para esta viagem?",
       "stay": "Onde ficar",

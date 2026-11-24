@@ -2715,6 +2715,10 @@
       "heading": "Giorno di partenza",
       "body": "Ci siamo. Il programma di oggi per {destination} è a un tocco — aprilo quando ti servono indicazioni, orari o cosa fare dopo."
     },
+    "need_10d": {
+      "heading": "Cosa ti serve ancora per il tuo viaggio a {destination}?",
+      "body": "Basta un tocco. Così sappiamo cosa migliorare prima del tuo viaggio."
+    },
     "needAsk": {
       "question": "Una domanda: cosa ti serve ancora per questo viaggio?",
       "stay": "Dove dormire",

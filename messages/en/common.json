@@ -2715,6 +2715,10 @@
       "heading": "Travel day",
       "body": "Today's the day. Your {destination} plan for today is one tap away — open it whenever you need directions, today's stops, or what's next."
     },
+    "need_10d": {
+      "heading": "What do you still need for your trip to {destination}?",
+      "body": "One tap is enough. It tells us what to make better before your trip."
+    },
     "needAsk": {
       "question": "One question: what do you still need for this trip?",
       "stay": "Where to stay",
