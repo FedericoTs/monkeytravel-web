@@ -38,7 +38,7 @@ import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/genera
 import { knownPlacesFor, knownPlacesUsed, type KnownPlace } from "@/lib/ai/known-places";
 import { keepOffClosingDays } from "@/lib/ai/closing-days";
 import { keepInsideHours } from "@/lib/ai/visit-hours";
-import { askForDinners, daysWithoutDinner, placesToEat, withDinners } from "@/lib/ai/dinners";
+import { askForDinners, daysWithoutDinner, dinnersLeftTogether, placesToEat, withDinners } from "@/lib/ai/dinners";
 import { askForReplacements, repeatedRestaurants, withReplacements } from "@/lib/ai/repeated-meals";
 import { askForSights, repeatedSights, sightNames, withSightReplacements } from "@/lib/ai/repeated-sights";
 import { askForLunches, daysWithoutLunch, withLunches } from "@/lib/ai/lunches";
@@ -435,6 +435,7 @@ export async function POST(request: NextRequest) {
       const dinners = withDinners(finalItinerary.days, dinnersWanted, dinnerAnswer.answer);
       const movedDinnerAnswer = await movedDinnersAsked;
       const movedDinners = withDinners(dinners.days, movedDinnersWanted, movedDinnerAnswer.answer);
+      const dinnersLeft = dinnersLeftTogether(dinners.left, movedDinners.left);
       finalItinerary = { ...finalItinerary, days: movedDinners.days };
       generationCost += dinnerAnswer.costUsd + movedDinnerAnswer.costUsd;
       // 5b'''. Then each repeated restaurant's replacement, in its place.
@@ -562,6 +563,8 @@ export async function POST(request: NextRequest) {
                         missing: dinnersWanted.length + movedDinnersWanted.length,
                         added: dinners.added + movedDinners.added,
                         ...(movedDinnersWanted.length > 0 ? { after_move: movedDinnersWanted.length } : {}),
+                        // Why the days still without one have none (lib/ai/dinners.ts DinnerLeftOut).
+                        ...(Object.keys(dinnersLeft).length > 0 ? { left: dinnersLeft } : {}),
                       },
                     }
                   : {}),

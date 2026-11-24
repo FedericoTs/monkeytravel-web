@@ -65,6 +65,9 @@ const plan = () => ({
 vi.mock("@/lib/gemini", () => ({ generateItinerary: async () => plan() }));
 vi.mock("@/lib/ai/multi-city", () => ({ validateLegs: () => {}, generateMultiCityItinerary: async () => plan() }));
 const dinnerQuestions: string[] = [];
+// Where the answered restaurant is: near Gion, unless a test moves it.
+const GION = { lat: 35.0029, lng: 135.7751 };
+let answeredAt = GION;
 vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/ai/gemini-call")>()),
   genAI: {
@@ -72,7 +75,7 @@ vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
       generateContent: async (question: string) => {
         if (question.startsWith("Name one real restaurant for dinner")) dinnerQuestions.push(question);
         const answer = question.startsWith("Name one real restaurant for dinner")
-          ? { dinners: [{ n: 1, name: "Gion Nanba", description: "Seasonal kaiseki.", location: "Gion", coordinates: { lat: 35.0029, lng: 135.7751 } }] }
+          ? { dinners: [{ n: 1, name: "Gion Nanba", description: "Seasonal kaiseki.", location: "Gion", coordinates: answeredAt }] }
           : { places: [] };
         return { response: { text: () => JSON.stringify(answer), usageMetadata: { promptTokenCount: 80, candidatesTokenCount: 20 } } };
       },
@@ -83,19 +86,30 @@ vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
 const { POST } = await import("./route");
 
 beforeEach(() => {
+  logged.length = 0;
+  answeredAt = GION;
   vi.spyOn(console, "log").mockImplementation(() => {});
 });
 
+const legs = { destinations: [{ city: "Kyoto", nights: 2 }, { city: "Osaka", nights: 1 }] };
+const generate = () =>
+  POST(
+    new NextRequest("https://monkeytravel.app/api/ai/generate", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ destination: "Kyoto & Osaka", startDate: "2027-04-05", endDate: "2027-04-07", vibes: ["cultural"], ...legs }),
+    })
+  );
+
 describe("the JSON route", () => {
+  it("logs why a day is still without dinner: here the answer is in Osaka, far from Gion", async () => {
+    answeredAt = { lat: 34.6687, lng: 135.5013 };
+    expect((await generate()).status).toBe(200);
+    expect(logged.find((row) => row.status === 200)?.metadata?.dinners).toEqual({ missing: 1, added: 0, left: { far: 1 } });
+  });
+
   it("gives a full day without dinner one, after the place the day ends at", async () => {
-    const legs = { destinations: [{ city: "Kyoto", nights: 2 }, { city: "Osaka", nights: 1 }] };
-    const res = await POST(
-      new NextRequest("https://monkeytravel.app/api/ai/generate", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ destination: "Kyoto & Osaka", startDate: "2027-04-05", endDate: "2027-04-07", vibes: ["cultural"], ...legs }),
-      })
-    );
+    const res = await generate();
     expect(res.status).toBe(200);
     const days = (await res.json()).itinerary.days as Array<{ activities: Array<{ name: string; start_time: string }> }>;
     expect(days[1].activities.map((a) => `${a.start_time} ${a.name}`)).toEqual([

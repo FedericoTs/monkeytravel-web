@@ -92,7 +92,10 @@ vi.mock("@/lib/gemini", () => ({
 }));
 vi.mock("@/lib/ai/itinerary-text", () => ({ parseStreamedItinerary: (text: string) => JSON.parse(text) }));
 
-// The closing question: the museum is shut on Mondays. The dinners question: a restaurant near Metropol Parasol.
+// The closing question: the museum is shut on Mondays. The dinners question: a restaurant near Metropol Parasol,
+// unless a test moves it.
+const NEAR_PARASOL = { lat: 37.3929, lng: -5.9925 };
+let dinnerAt = NEAR_PARASOL;
 const dinnerQuestions: string[] = [];
 vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/ai/gemini-call")>()),
@@ -101,7 +104,7 @@ vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
       generateContent: async (question: string) => {
         if (question.startsWith("Name one real restaurant for dinner")) {
           dinnerQuestions.push(question);
-          const answer = { dinners: [{ n: 1, name: "Bar Antojo", description: "Andalusian tapas.", location: "Encarnación", coordinates: { lat: 37.3929, lng: -5.9925 }, cost_per_person_usd: 30 }] };
+          const answer = { dinners: [{ n: 1, name: "Bar Antojo", description: "Andalusian tapas.", location: "Encarnación", coordinates: dinnerAt, cost_per_person_usd: 30 }] };
           return { response: { text: () => JSON.stringify(answer), usageMetadata: { promptTokenCount: 7000, candidatesTokenCount: 20 } } };
         }
         const museum = question.split("\n").find((line) => line.includes("Bellas Artes"));
@@ -138,6 +141,7 @@ beforeEach(() => {
   logged.length = 0;
   dinnerQuestions.length = 0;
   days = DAYS;
+  dinnerAt = NEAR_PARASOL;
   vi.spyOn(console, "log").mockImplementation(() => {});
 });
 
@@ -161,6 +165,13 @@ describe("a day the closing days move into the middle of the trip", () => {
     const row = await planRow();
     expect(row.metadata?.dinners).toEqual({ missing: 1, added: 1, after_move: 1 });
     expect(row.costUsd).toBeGreaterThanOrEqual(0.014);
+  });
+
+  it("logs why the moved day still has no dinner when its answer is turned away: here, a restaurant in Cádiz", async () => {
+    dinnerAt = { lat: 36.5298, lng: -6.2927 };
+    const out = await complete();
+    expect(out[1]).toBe("2026-11-29: 10:00 Museo de Bellas Artes, 12:30 La Azotea, 14:30 Metropol Parasol");
+    expect((await planRow()).metadata?.dinners).toEqual({ missing: 1, added: 0, after_move: 1, left: { far: 1 } });
   });
 
   it("asks nothing more when no day moved", async () => {
