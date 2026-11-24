@@ -10,6 +10,10 @@ vi.mock("next-intl", () => ({
 vi.mock("@/components/trip/VibeSelector", () => ({ default: () => null }));
 
 import PreferencesStep from "./PreferencesStep";
+import type { Arrival, Departure } from "@/lib/wizard/answers";
+
+/** What the step last set when they arrive and leave. */
+const picked: { arrival?: Arrival | null; departure?: Departure | null } = {};
 
 afterEach(cleanup);
 
@@ -17,6 +21,8 @@ afterEach(cleanup);
 function Step({ initial = [] as string[] }) {
   const [mustDos, setMustDos] = useState<string[]>(initial);
   const [mustDoInput, setMustDoInput] = useState("");
+  const [arrival, setArrival] = useState<Arrival | null>(null);
+  const [departure, setDeparture] = useState<Departure | null>(null);
   return (
     <PreferencesStep
       destination="Lisbon"
@@ -36,6 +42,16 @@ function Step({ initial = [] as string[] }) {
       setPace={vi.fn()}
       requirements=""
       setRequirements={vi.fn()}
+      arrival={arrival}
+      setArrival={(value) => {
+        picked.arrival = value;
+        setArrival(value);
+      }}
+      departure={departure}
+      setDeparture={(value) => {
+        picked.departure = value;
+        setDeparture(value);
+      }}
     />
   );
 }
@@ -77,5 +93,34 @@ describe("the wishes on step 2", () => {
     fireEvent.blur(input());
     expect(wishes()).toEqual(["Tram 28"]);
     expect(input().value).toBe(",,");
+  });
+});
+
+describe("the first and last day", () => {
+  const arriving = () => screen.getByRole("combobox", { name: /wizard\.step2\.travelDays\.arriving/ }) as HTMLSelectElement;
+  const leaving = () => screen.getByRole("combobox", { name: /wizard\.step2\.travelDays\.leaving/ }) as HTMLSelectElement;
+
+  it("asks when they arrive and leave, any time unless they say", () => {
+    render(<Step />);
+    expect(screen.getByRole("group", { name: /wizard\.step2\.travelDays\.title/ })).toBeTruthy();
+    expect([...arriving().options].map((o) => o.value)).toEqual(["", "morning", "afternoon", "evening", "night"]);
+    expect([...leaving().options].map((o) => o.value)).toEqual(["", "morning", "afternoon", "evening"]);
+    expect(arriving().value).toBe("");
+    expect(leaving().value).toBe("");
+  });
+
+  it("keeps what they pick, and any time again clears it", () => {
+    render(<Step />);
+    fireEvent.change(arriving(), { target: { value: "evening" } });
+    expect(picked.arrival).toBe("evening");
+    expect(arriving().value).toBe("evening");
+    fireEvent.change(leaving(), { target: { value: "morning" } });
+    expect(picked.departure).toBe("morning");
+    // Each shows its own answer.
+    expect(leaving().value).toBe("morning");
+    expect(arriving().value).toBe("evening");
+    fireEvent.change(arriving(), { target: { value: "" } });
+    expect(picked.arrival).toBeNull();
+    expect(arriving().value).toBe("");
   });
 });

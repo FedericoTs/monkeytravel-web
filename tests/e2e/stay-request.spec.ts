@@ -17,7 +17,7 @@ async function pickPopular(page: Page) {
   await pick.click();
 }
 
-async function generate(page: Page) {
+async function generate(page: Page, onStep2?: () => Promise<void>) {
   // As in daylight-request.spec.ts: the footer's button, pressed until step 2 shows.
   const travelStyle = page.getByRole("heading", { name: "Set your travel style" });
   await expect(async () => {
@@ -25,6 +25,7 @@ async function generate(page: Page) {
     await page.getByTestId("wizard-continue").click({ timeout: 3_000 });
     await expect(travelStyle).toBeVisible({ timeout: 3_000 });
   }).toPass({ timeout: 30_000 });
+  await onStep2?.();
   const foodie = page.getByText("Foodie Journey", { exact: true }).filter({ visible: true }).first();
   const generateButton = page.getByRole("button", { name: "Generate Itinerary" });
   await expect(async () => {
@@ -78,5 +79,22 @@ test.describe("where they're staying, for the plan", () => {
     await expect.poll(() => streamed.length).toBe(1);
     expect(streamed[0].stay).toBe("an apartment near the Rossio");
     expect(streamed[0]).not.toHaveProperty("stayCoords");
+  });
+});
+
+test.describe("when they arrive and leave, for the plan", () => {
+  test("the first and last day's answers on step 2 go with the plan", async ({ page }) => {
+    await isolate(page);
+    const { streamed } = await stubGeneration(page);
+    await pickPopular(page);
+    await generate(page, async () => {
+      const arriving = page.getByRole("combobox", { name: "Arriving" });
+      const leaving = page.getByRole("combobox", { name: "Leaving" });
+      await expect(arriving).toHaveValue("");
+      await arriving.selectOption({ label: "In the evening" });
+      await leaving.selectOption({ label: "In the morning" });
+    });
+    await expect.poll(() => streamed.length).toBe(1);
+    expect(streamed[0]).toMatchObject({ arrival: "evening", departure: "morning" });
   });
 });

@@ -167,7 +167,7 @@ import {
   type GenerationReport,
 } from "@/lib/wizard/generation-reports";
 import { applyAnswers, applySessionTrip, type DraftTargets } from "@/lib/wizard/apply-draft";
-import { FRESH_ANSWERS, keptPlanOf, sessionTripOf, withNote, withUndatedItems, type WizardAnswers } from "@/lib/wizard/answers";
+import { FRESH_ANSWERS, keptPlanOf, sessionTripOf, withNote, withUndatedItems, type Arrival, type Departure, type WizardAnswers } from "@/lib/wizard/answers";
 import { generationRequest, routeLegs } from "@/lib/wizard/generation-request";
 import {
   classifyGenerationFailure,
@@ -422,6 +422,9 @@ export default function NewTripPage({
     const who = searchParams?.get("who");
     return isChosenTripIntent(who) ? who : "unspecified";
   });
+  // When they arrive on the first day and leave on the last, asked on step 2 (PreferencesStep).
+  const [arrival, setArrival] = useState<Arrival | null>(null);
+  const [departure, setDeparture] = useState<Departure | null>(null);
 
   // Auth state comes from the single AuthProvider, not a local getUser()
   // listener. isAuthenticated is tri-state (null = loading, then true/false);
@@ -770,6 +773,8 @@ export default function NewTripPage({
       setTravelStyle,
       setAnchors,
       setTripIntent,
+      setArrival,
+      setDeparture,
       setFlexibleDates,
       setStay,
       setGeneratedItinerary: (plan: GeneratedItinerary) => {
@@ -821,10 +826,12 @@ export default function NewTripPage({
       mustDos,
       dietary,
       tripIntent,
+      arrival,
+      departure,
       flexibleDates,
       stay: tripStay,
     }),
-    [destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, anchors, mustDos, dietary, tripIntent, flexibleDates, tripStay]
+    [destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, anchors, mustDos, dietary, tripIntent, arrival, departure, flexibleDates, tripStay]
   );
   // Who the plan is for, so the assistant's edits keep to it (the server keeps only what each may be).
   const assistantFacts = useMemo(
@@ -2124,6 +2131,10 @@ export default function NewTripPage({
             setPace={setPace}
             requirements={requirements}
             setRequirements={setRequirements}
+            arrival={arrival}
+            setArrival={setArrival}
+            departure={departure}
+            setDeparture={setDeparture}
           />
         )}
 

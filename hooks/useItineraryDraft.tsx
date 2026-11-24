@@ -49,6 +49,9 @@ export interface ItineraryDraft {
    * toward "unspecified" precisely where the evidence matters.
    */
   tripIntent?: ChosenTripIntent | "unspecified";
+  /** When they arrive and leave, as the wizard had them (read back with isArrival / isDeparture). */
+  arrival?: string | null;
+  departure?: string | null;
   /** Dates pencilled in rather than chosen; must survive the signup redirect like the rest. */
   flexibleDates?: boolean;
   /** Where they're staying, when they said (read back through lib/trips/stay.ts readStay). */

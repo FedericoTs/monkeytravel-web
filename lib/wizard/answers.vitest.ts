@@ -17,6 +17,8 @@ const answers: WizardAnswers = {
   mustDos: ["Belém tower"],
   dietary: ["vegan"],
   tripIntent: "group",
+  arrival: null,
+  departure: null,
   flexibleDates: true,
   stay: { name: "Memmo Alfama", coordinates: { lat: 38.7111, lng: -9.1306 } },
 };

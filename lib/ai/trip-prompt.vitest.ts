@@ -310,6 +310,52 @@ describe("one city of a trip through several", () => {
   });
 });
 
+describe("when they arrive and leave", () => {
+  const trip = (over: Partial<TripCreationParams> = {}): TripCreationParams => ({
+    destination: "Rome, Italy",
+    startDate: "2027-04-10",
+    endDate: "2027-04-13",
+    budgetTier: "balanced",
+    pace: "moderate",
+    vibes: ["cultural"],
+    interests: [],
+    ...over,
+  });
+  const arrive = (when: "morning" | "afternoon" | "evening" | "night") => ({ arrival: { when, date: "2027-04-10" } });
+  const leave = (when: "morning" | "afternoon" | "evening") => ({ departure: { when, date: "2027-04-13" } });
+
+  it("fits the first day to the arrival, in fixed words", () => {
+    expect(buildUserPrompt(trip(arrive("morning")))).toContain("- Travel days: They arrive on day 1 in the morning: start that day from about 11:00");
+    expect(buildUserPrompt(trip(arrive("afternoon")))).toContain("plan nothing before about 15:30 that day");
+    expect(buildUserPrompt(trip(arrive("evening")))).toContain("plan only dinner that day, from about 19:30");
+    expect(buildUserPrompt(trip(arrive("night")))).toContain("plan nothing that day but the arrival and the check-in");
+  });
+
+  it("fits the last day to the leaving, and says both in one line", () => {
+    expect(buildUserPrompt(trip(leave("morning")))).toContain(
+      "They leave on the last day in the morning: plan only breakfast and the way to the airport or station that day, nothing after about 09:30."
+    );
+    expect(buildUserPrompt(trip(leave("afternoon")))).toContain("plan that morning only, done by about 12:30");
+    expect(buildUserPrompt(trip(leave("evening")))).toContain("plan that day until about 16:00");
+    const both = buildUserPrompt(trip({ ...arrive("evening"), ...leave("morning") }));
+    expect(both).toContain("- Travel days: They arrive on day 1 in the evening: plan only dinner that day, from about 19:30, close to where they're staying. They leave on the last day in the morning:");
+  });
+
+  it("on a trip through several cities, tells the city that starts the trip the arrival and the one that ends it the leaving", () => {
+    const route = { destinations: [{ city: "Rome", nights: 2 }, { city: "Florence", nights: 2 }], ...arrive("evening"), ...leave("morning") };
+    const rome = buildUserPrompt(trip({ ...route, destination: "Rome", startDate: "2027-04-10", endDate: "2027-04-11" }));
+    expect(rome).toContain("They arrive on day 1 in the evening");
+    expect(rome).not.toContain("They leave");
+    const florence = buildUserPrompt(trip({ ...route, destination: "Florence", startDate: "2027-04-12", endDate: "2027-04-13" }));
+    expect(florence).toContain("They leave on the last day in the morning");
+    expect(florence).not.toContain("They arrive");
+  });
+
+  it("says nothing of them when they didn't say", () => {
+    expect(buildUserPrompt(trip())).not.toContain("Travel days:");
+  });
+});
+
 describe("the vibes and what the place is known for", () => {
   const trip = (vibes: TripVibe[], destination = "Agra, India"): TripCreationParams => ({
     destination,
