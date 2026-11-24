@@ -97,6 +97,22 @@ describe("the trip page's strip", () => {
     expect(screen.getByTestId("card-who").closest("[hidden]")).toBeNull();
   });
 
+  it("opens on the card a link names, and from there works as ever", () => {
+    render(<TripStrip label="Getting ready" items={items()} initialOpen="who" />);
+    expect(chip("who").getAttribute("aria-expanded")).toBe("true");
+    expect(screen.getByTestId("card-who").closest("[hidden]")).toBeNull();
+    expect(chip("ready").getAttribute("aria-expanded")).toBe("false");
+    expect(chip("book").getAttribute("aria-expanded")).toBe("false");
+    fireEvent.click(chip("who"));
+    expect(chip("who").getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("opens nothing when the link names no chip on this page", () => {
+    render(<TripStrip label="Getting ready" items={items()} initialOpen="nope" />);
+    for (const id of ["who", "ready", "book"]) expect(chip(id).getAttribute("aria-expanded")).toBe("false");
+    expect(screen.queryByTestId("card-ready")).toBeNull();
+  });
+
   it("is nothing when the trip has no chip to show", () => {
     const { container } = render(<TripStrip label="Getting ready" items={[]} />);
     expect(container.innerHTML).toBe("");

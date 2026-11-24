@@ -549,6 +549,81 @@ describe("a stop still shut after the reorder", () => {
     expect(timed(moveShutStops(days, new Map(), vaShut).days)[1]).toBe("09:45 Victoria and Albert Museum | 13:00 Lunch in Soho");
   });
 
+  describe("a museum the plan had late in the day", () => {
+    // Shut on Boxing Day, the V&A would go in on the 27th at its own twenty past three, for two and a half hours,
+    // and push the Observatory from a quarter to five to ten past six, after it shuts.
+    const vaOnBoxingDay = { day_number: 1, date: "2026-12-26", activities: [stop("Victoria and Albert Museum", "museum", "15:20", 150)] };
+    const observatory = stop("Royal Observatory Greenwich", "museum", "16:45", 60);
+    const vaShut = shutDates([["Victoria and Albert Museum", ["2026-12-26"]]]);
+    const vaNamed = (s: { name?: string }) => /victoria and albert/i.test(s.name ?? "");
+    // Lunch at half past one leaves the V&A no other slot on the 27th, whole or cut.
+    const full27th = () => [
+      vaOnBoxingDay,
+      {
+        day_number: 2,
+        date: "2026-12-27",
+        activities: [
+          stop("Shakespeare's Globe", "attraction", "12:15", 60),
+          stop("The Anchor Bankside", "restaurant", "13:30", 90),
+          observatory,
+          stop("The Grapes", "restaurant", "19:30", 120),
+        ],
+      },
+    ];
+
+    it("isn't pushed into the evening to make room: the closed sight stays for the swap", () => {
+      expect(timed(moveShutStops(full27th(), new Map(), vaShut).days)).toEqual([
+        "15:20 Victoria and Albert Museum",
+        "12:15 Shakespeare's Globe | 13:30 The Anchor Bankside | 16:45 Royal Observatory Greenwich | 19:30 The Grapes",
+      ]);
+    });
+
+    it("is pushed on, last of all, for a sight the traveller named", () => {
+      expect(timed(moveShutStops(full27th(), new Map(), vaShut, vaNamed).days)).toEqual([
+        "",
+        "12:15 Shakespeare's Globe | 13:30 The Anchor Bankside | 15:20 Victoria and Albert Museum | 18:10 Royal Observatory Greenwich | 19:30 The Grapes",
+      ]);
+    });
+
+    it("is the only stop pushed for it: a sight the plan has in the day still never goes past it", () => {
+      // The Natural History Museum at four would start at ten past six, when it is shut. Dinner at half past five
+      // leaves the V&A no slot to trade into, whole or cut, so it stays for the swap.
+      const days = [
+        vaOnBoxingDay,
+        {
+          day_number: 2,
+          date: "2026-12-27",
+          activities: [
+            stop("Shakespeare's Globe", "attraction", "12:15", 60),
+            stop("The Anchor Bankside", "restaurant", "13:30", 90),
+            stop("Natural History Museum", "museum", "16:00", 90),
+            stop("The Grapes", "restaurant", "17:30", 90),
+          ],
+        },
+      ];
+      expect(timed(moveShutStops(days, new Map(), vaShut, vaNamed).days)[0]).toBe("15:20 Victoria and Albert Museum");
+    });
+
+    it("stays where it is when a trade gets the named sight in", () => {
+      const morning27th = (globeShut: boolean) => ({
+        days: [vaOnBoxingDay, { day_number: 2, date: "2026-12-27", activities: [stop("Shakespeare's Globe", "attraction", "10:00", 60), observatory] }],
+        shut: globeShut ? shutDates([["Victoria and Albert Museum", ["2026-12-26"]], ["Shakespeare's Globe", ["2026-12-26"]]]) : vaShut,
+      });
+      // The Globe, open on Boxing Day, trades places with it.
+      const open = morning27th(false);
+      expect(timed(moveShutStops(open.days, new Map(), open.shut, vaNamed).days)).toEqual([
+        "15:20 Shakespeare's Globe",
+        "10:00 Victoria and Albert Museum | 16:45 Royal Observatory Greenwich",
+      ]);
+      // Shut then too, the Globe still gives its place to the sight they named, then finds room after it.
+      const shut = morning27th(true);
+      expect(timed(moveShutStops(shut.days, new Map(), shut.shut, vaNamed).days)).toEqual([
+        "",
+        "10:00 Victoria and Albert Museum | 15:20 Shakespeare's Globe | 16:45 Royal Observatory Greenwich",
+      ]);
+    });
+  });
+
   it("starts the sight that leaves at its own opening too", () => {
     // The gallery, open on the 24th, takes the Tower's slot at nine; it opens at ten.
     const days = [
@@ -695,6 +770,62 @@ describe("a stop still shut after the reorder", () => {
     const result = await keepOffClosingDays(plan, "Rome", ask, undefined, undefined, modelOnly);
     expect(result).toMatchObject({ shutBefore: 1, shutAfter: 0, stopsMoved: 1 });
     expect(timed(result.itinerary.days)[1]).toBe("13:00 Pizzeria Remo");
+  });
+});
+
+describe("a stop shut for the season", () => {
+  type Timed = { name: string; type: string; start_time: string; duration_minutes: number };
+  const stop = (name: string, type: string, start_time: string, duration_minutes: number): Timed => ({ name, type, start_time, duration_minutes });
+  // Kashmir, 17 and 18 December 2026: the pass is shut by snow all winter.
+  const kashmir = () => [
+    { day_number: 1, date: "2026-12-17", activities: [stop("Thajiwas Glacier", "attraction", "09:30", 150), stop("Sonamarg Café", "restaurant", "12:30", 60)] },
+    { day_number: 2, date: "2026-12-18", activities: [stop("Zoji La Pass", "attraction", "09:30", 120), stop("Baltal Restaurant", "restaurant", "12:00", 60)] },
+  ];
+  const openEveryDay = async () => ({ closings: new Map(), shutDates: new Map(), costUsd: 0.0004 });
+  const passShut = async (_destination: string, places: string[], _dates: string[]) => ({
+    shut: new Set(places.filter((place) => /zoji la/i.test(place)).map((place) => place.toLowerCase())),
+    costUsd: 0.0001,
+  });
+
+  it("is shut on every date of the trip, swapped, and counted apart from the closing days", async () => {
+    const swap = vi.fn(async (days: WordDay[], _stuck: StuckStop[]) => ({
+      days: days.map((d, i) => (i === 1 ? { ...d, activities: [{ name: "Sonamarg Snow Point", type: "nature" }, ...(d.activities ?? []).slice(1)] } : d)),
+      swapped: 1,
+      costUsd: 0.0003,
+    }));
+    const result = await keepOffClosingDays({ days: kashmir() }, "Kashmir, India", openEveryDay, undefined, swap, undefined, undefined, passShut);
+    expect(swap.mock.calls[0][1]).toEqual([{ day: 2, date: "2026-12-18", name: "Zoji La Pass", start_time: "09:30", duration_minutes: 120 }]);
+    expect(result).toMatchObject({ shutBefore: 0, seasonal: 1, shutAfter: 0, swapped: 1, stopsMoved: 0 });
+    expect(result.costUsd).toBeCloseTo(0.0008, 10);
+  });
+
+  it("asks about the trip's places and dates, its meals left out", async () => {
+    const askSeason = vi.fn(passShut);
+    await keepOffClosingDays({ days: kashmir() }, "Kashmir, India", openEveryDay, undefined, undefined, undefined, undefined, askSeason);
+    expect(askSeason).toHaveBeenCalledWith("Kashmir, India", ["Thajiwas Glacier", "Zoji La Pass"], ["2026-12-17", "2026-12-18"]);
+  });
+
+  it("stays where it is without a swap, named in the log", async () => {
+    const result = await keepOffClosingDays({ days: kashmir() }, "Kashmir, India", openEveryDay, undefined, undefined, undefined, undefined, passShut);
+    expect(result).toMatchObject({ shutBefore: 0, seasonal: 1, shutAfter: 1 });
+    expect(result.leftShut).toEqual(["Zoji La Pass (2026-12-18)"]);
+  });
+
+  it("is asked about once on a trip through several cities, and swapped in its own city", async () => {
+    const askSeason = vi.fn(passShut);
+    const days = kashmir().map((d, i) => ({ ...d, city: i === 0 ? "Sonamarg" : "Baltal" }));
+    const swap = vi.fn(async (cityDays: WordDay[], _stuck: StuckStop[]) => ({
+      days: cityDays.map((d) => ({ ...d, activities: [{ name: "Sonamarg Snow Point", type: "nature" }, ...(d.activities ?? []).slice(1)] })),
+      swapped: 1,
+      costUsd: 0.0003,
+    }));
+    const swapIn = vi.fn((_city: string) => swap);
+    const result = await keepOffClosingDaysByCity({ days }, "Kashmir, India", openEveryDay, undefined, swapIn, undefined, undefined, askSeason);
+    expect(askSeason).toHaveBeenCalledTimes(1);
+    expect(swap).toHaveBeenCalledTimes(1);
+    expect(swap.mock.calls[0][1]).toEqual([{ day: 2, date: "2026-12-18", name: "Zoji La Pass", start_time: "09:30", duration_minutes: 120 }]);
+    expect(result).toMatchObject({ shutBefore: 0, seasonal: 1, shutAfter: 0, swapped: 1 });
+    expect(result.costUsd).toBeCloseTo(0.0008, 10);
   });
 });
 

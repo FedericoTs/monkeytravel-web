@@ -62,6 +62,23 @@ async function ask(text = "make day 2 slower") {
   fireEvent.click(screen.getByRole("button", { name: "assistant.ask" }));
 }
 
+describe("who the trip is for", () => {
+  it("goes with each question, as the planner's answers", async () => {
+    const facts = { tripIntent: "family", childrenAges: ["under3"], pace: "relaxed", budgetTier: "balanced", dietary: ["vegetarian"] };
+    render(<AnonAssistantPanel destination="Lisbon, Portugal" tripTitle="Lisbon" days={days} onApplyEdits={() => "edit-1"} facts={facts} />);
+    await ask("something fun for tonight");
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).trip).toEqual(facts);
+  });
+
+  it("is left out when the page has none", async () => {
+    renderPanel({});
+    await ask();
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).not.toHaveProperty("trip");
+  });
+});
+
 describe("a question put from elsewhere on the page", () => {
   const panel = (asked: { id: number; message: string } | null) => (
     <AnonAssistantPanel destination="Lisbon, Portugal" tripTitle="Lisbon" days={days} onApplyEdits={() => "edit-1"} onUndoEdits={() => true} asked={asked} />

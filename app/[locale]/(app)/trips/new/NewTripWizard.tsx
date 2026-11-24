@@ -826,6 +826,11 @@ export default function NewTripPage({
     }),
     [destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, anchors, mustDos, dietary, tripIntent, flexibleDates, tripStay]
   );
+  // Who the plan is for, so the assistant's edits keep to it (the server keeps only what each may be).
+  const assistantFacts = useMemo(
+    () => ({ tripIntent: answers.tripIntent, pace: answers.pace, budgetTier: answers.budgetTier, dietary: answers.dietary }),
+    [answers.tripIntent, answers.pace, answers.budgetTier, answers.dietary]
+  );
 
   // Keep a draft of the itinerary until the trip is saved, then none.
   //
@@ -1764,6 +1769,7 @@ export default function NewTripPage({
               onPlanElsewhere={handlePlanElsewhere}
               onPlanRoute={MULTI_CITY_ENABLED ? handlePlanRoute : undefined}
               asked={assistantAsked}
+              facts={assistantFacts}
               // Post-edit save bridge. Only offered while the
               // trip is unsaved AND the manual save arm owns persistence —
               // when the auto-save arm is active the edit is already being

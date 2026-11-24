@@ -6,6 +6,8 @@
  * itinerary simultaneously, only one API call is made.
  */
 
+import { createHash } from "node:crypto";
+
 // In-flight request cache: Maps request hash to promise
 const inflightRequests = new Map<string, Promise<unknown>>();
 
@@ -56,40 +58,6 @@ function hashParams(params: Record<string, unknown>): string {
 }
 
 /**
- * Parameters for itinerary generation deduplication key
- */
-export interface ItineraryDedupParams {
-  destination: string;
-  startDate: string;
-  endDate: string;
-  budgetTier: string;
-  pace: string;
-  vibes?: string[];
-  language?: string;
-  /**
-   * Must-do wishlist (P3a). Same identity rule as anchorBrief: two requests
-   * over the same trip shape with different wishes must not coalesce.
-   */
-  mustDos?: string[];
-  /** The rest of what the prompt is built from: requests that differ here want different plans. */
-  interests?: string[];
-  requirements?: string;
-  travelStyle?: string;
-  tripIntent?: string;
-  /** Where they're staying: two trips with different stays are different plans. */
-  stay?: { name: string; coordinates?: { lat: number; lng: number } };
-  /** Places an earlier stay in the same city holds: a stay asked again without them is another plan. */
-  alreadyPlanned?: string[];
-  profile?: object;
-  /**
-   * Anchored-trip segment brief (F1). Two anchored generations over the same
-   * dates with different constraints must NOT coalesce — the brief is part
-   * of the request identity.
-   */
-  anchorBrief?: string;
-}
-
-/**
  * Parameters for activity regeneration deduplication key
  */
 export interface ActivityDedupParams {
@@ -111,27 +79,12 @@ export interface DayDedupParams {
 }
 
 /**
- * Generate deduplication key for itinerary generation
+ * The key two itinerary requests share a model call under: the exact prompt the model would be sent. They share one
+ * only when they would ask it the same thing; a list of the request's fields misses the next input added to the
+ * prompt.
  */
-export function getItineraryDedupKey(params: ItineraryDedupParams): string {
-  return `itinerary:${hashParams({
-    dest: params.destination.toLowerCase().trim(),
-    start: params.startDate,
-    end: params.endDate,
-    budget: params.budgetTier,
-    pace: params.pace,
-    vibes: params.vibes || [],
-    lang: params.language || "en",
-    mustDos: params.mustDos || [],
-    interests: params.interests,
-    requirements: params.requirements,
-    style: params.travelStyle,
-    intent: params.tripIntent,
-    stay: params.stay,
-    profile: params.profile,
-    anchor: params.anchorBrief || "",
-    planned: params.alreadyPlanned || [],
-  })}`;
+export function getItineraryDedupKey(prompt: string): string {
+  return `itinerary:${createHash("sha256").update(prompt).digest("base64url")}`;
 }
 
 /**
@@ -170,7 +123,7 @@ export function getDayDedupKey(params: DayDedupParams): string {
  * @returns Promise resolving to the fetcher's result
  *
  * @example
- * const key = getItineraryDedupKey(params);
+ * const key = getItineraryDedupKey(buildUserPrompt(params, options));
  * const result = await withDeduplication(key, () => generateItinerary(params));
  */
 export async function withDeduplication<T>(

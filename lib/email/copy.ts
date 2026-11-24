@@ -554,6 +554,55 @@ export const feedbackOutreachCopy: Record<EmailLocale, FeedbackOutreachCopy> = {
   },
 };
 
+// ── Collaboration notifications: must-dos from someone going ────────────
+
+interface PicksAddedEmailCopy {
+  /** The trip page card's own title, so the email and the card say the same thing. */
+  heading: (guestName: string | null) => string;
+  /** What the button on the trip does, in the card's words. */
+  howTo: string;
+  cta: string;
+  turnOffPrefix: string;
+  turnOffLink: string;
+  /** Names the destination, never the person: the name is someone's own typing. */
+  subject: (destination: string) => string;
+}
+
+export const picksAddedCopy: Record<EmailLocale, PicksAddedEmailCopy> = {
+  en: {
+    heading: (n) => (n ? `${n} doesn't want to miss` : "Someone going doesn't want to miss"),
+    howTo: "Open the trip and tap Add to the plan: they go into the right days, and you can undo it.",
+    cta: "Open the trip",
+    turnOffPrefix: "Don't want these? You can turn them off in",
+    turnOffLink: "notification settings",
+    subject: (d) => `New must-dos for your ${d} trip`,
+  },
+  es: {
+    heading: (n) => (n ? `${n} no quiere perderse` : "Alguien que viene no quiere perderse"),
+    howTo: "Abre el viaje y toca Añadir al plan: van a los días adecuados, y puedes deshacerlo.",
+    cta: "Abrir el viaje",
+    turnOffPrefix: "¿No quieres recibirlos? Puedes desactivarlos en",
+    turnOffLink: "los ajustes de notificaciones",
+    subject: (d) => `Nuevos imprescindibles para tu viaje a ${d}`,
+  },
+  it: {
+    heading: (n) => (n ? `${n} non vuole perdersi` : "Qualcuno che viene non vuole perdersi"),
+    howTo: "Apri il viaggio e tocca Aggiungi al piano: finiscono nei giorni giusti, e puoi annullare.",
+    cta: "Apri il viaggio",
+    turnOffPrefix: "Non vuoi riceverle? Puoi disattivarle nelle",
+    turnOffLink: "impostazioni di notifica",
+    subject: (d) => `Cose da non perdere nel tuo viaggio a ${d}`,
+  },
+  pt: {
+    heading: (n) => (n ? `${n} não quer perder` : "Alguém que vai não quer perder"),
+    howTo: "Abra a viagem e toque em Adicionar ao plano: eles entram nos dias certos, e você pode desfazer.",
+    cta: "Abrir a viagem",
+    turnOffPrefix: "Não quer receber estes e-mails? Você pode desativá-los em",
+    turnOffLink: "configurações de notificação",
+    subject: (d) => `Novos imperdíveis para sua viagem para ${d}`,
+  },
+};
+
 // ── Collaboration notifications: vote cast ──────────────────────────────
 
 type VoteType = "love" | "flexible" | "concerns" | "no";

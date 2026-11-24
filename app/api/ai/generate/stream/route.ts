@@ -506,6 +506,8 @@ export async function POST(request: NextRequest) {
                         known: openDays.known,
                         shut_before: openDays.shutBefore,
                         shut_listed: openDays.shutListed,
+                        // Stops shut on their day for the season alone (lib/ai/seasonal-closings.ts).
+                        ...(openDays.seasonal > 0 ? { seasonal: openDays.seasonal } : {}),
                         shut_after: openDays.shutAfter,
                         stops_moved: openDays.stopsMoved,
                         swapped: openDays.swapped,

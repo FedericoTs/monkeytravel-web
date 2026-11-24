@@ -311,6 +311,7 @@
     "regeneratingActivity": "Regenerando atividade com AI...",
     "savedInTrips": "{count, plural, one {Em # viagem salva} other {Em # viagens salvas}}",
     "unverified": "Não verificado no Google Maps: confirme que está aberto antes de ir.",
+    "pickedBy": "Escolha de {name}",
     "closedOn": "Fechado {dates}",
     "closedMoreDays": "{count, plural, one {mais # dia} other {mais # dias}}",
     "closedSource": "Horário oficial"
@@ -1280,7 +1281,21 @@
       "followingAlong": "só acompanha, não divide os gastos",
       "notInExpensesYet": "ainda não divide os gastos",
       "remove": "Remover",
-      "planOwnLead": "Vai para outro lugar?"
+      "planOwnLead": "Vai para outro lugar?",
+      "fit": {
+        "title": "{name} não quer perder",
+        "titleNoName": "Alguém que vai não quer perder",
+        "button": "Adicionar ao plano",
+        "working": "Adicionando…",
+        "added": "Adicionado ao plano: {list}.",
+        "noPlace": "Sem um bom lugar nesta viagem para: {list}.",
+        "failed": "Não deu certo. Tente de novo em um minuto.",
+        "busy": "O plano estava sendo salvo. Tente de novo.",
+        "undo": "Desfazer",
+        "undone": "Voltou a como estava.",
+        "undoFailed": "Não foi possível desfazer: o plano mudou desde então.",
+        "waiting": "{count, plural, one {# coisa para adicionar} other {# coisas para adicionar}}"
+      }
     },
     "savedHero": {
       "aiTitle": "Roteiro gerado por AI",

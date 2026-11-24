@@ -2,6 +2,7 @@
 import { describe, it, expect } from "vitest";
 import type { ItineraryDay } from "@/types";
 import { buildPrompt } from "./edit-prompt";
+import { tripFactsLines } from "./trip-facts";
 import { composeReply } from "./edit-reply";
 import type { DayEdit } from "./edit-validation";
 import { correctionFor, correctionWithRule } from "./engine";
@@ -832,6 +833,26 @@ describe("buildPrompt", () => {
   it("keeps the trip's length and the saved activities' names", () => {
     expect(prompt).toContain("Keep the number of days unless the traveller asks for more or fewer");
     expect(prompt).toContain("never translate or rename activities");
+  });
+
+  it("says who the trip is for, as it was planned, before the days", () => {
+    const family = buildPrompt({
+      message: "add something fun for tonight",
+      destination: "Lisbon",
+      tripTitle: "Lisbon",
+      days: [day(1, ["A"])],
+      locale: "en",
+      facts: { tripIntent: "family", childrenAges: ["under3"], dietary: ["vegetarian"] },
+    });
+    const lines = tripFactsLines({ tripIntent: "family", childrenAges: ["under3"], dietary: ["vegetarian"] });
+    expect(family).toContain(lines);
+    expect(family.indexOf(lines)).toBeLessThan(family.indexOf("Itinerary:"));
+    expect(family).toContain("Don't plan bars or late nights as stops.");
+    // A trip it knows nothing about reads as before.
+    expect(prompt).not.toContain("Who the trip is for");
+    expect(buildPrompt({ message: "hi", destination: "Lisbon", tripTitle: "Lisbon", days: [day(1, ["A"])], locale: "en", facts: {} })).toBe(
+      buildPrompt({ message: "hi", destination: "Lisbon", tripTitle: "Lisbon", days: [day(1, ["A"])], locale: "en" }),
+    );
   });
 
   it("gives the trip's length from its dates, and each day its date", () => {

@@ -256,6 +256,8 @@ export default function TripDetailClient({
   // Check for share query param (used to auto-open share modal after trip save)
   const searchParams = useSearchParams();
   const shareParam = searchParams.get("share");
+  // The chip a link opens the page on: the owner's email about must-dos sends ?open=who.
+  const openParam = searchParams.get("open");
   const shouldAutoOpenShareModal = shareParam === "invite";
 
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
@@ -270,6 +272,7 @@ export default function TripDetailClient({
   const participantsEnabled = isLiveTripParticipantsEnabled();
   // The counts the strip's chips show, told by their cards.
   const [goingCount, setGoingCount] = useState<number | null>(null);
+  const [picksWaiting, setPicksWaiting] = useState(0);
   const [bookedCount, setBookedCount] = useState<number | null>(null);
   // The hero's cover: the stored one, else one the hero looks up, which the
   // owner's visit stores on the trip.
@@ -922,9 +925,27 @@ export default function TripDetailClient({
     stripItems.push({
       id: "who",
       label: tCommon("share.participants.whoIsGoing"),
-      detail: goingCount === null ? null : tCommon("share.participants.going", { count: goingCount }),
+      // With the must-dos people going sent that the plan doesn't hold yet.
+      detail:
+        goingCount === null
+          ? null
+          : [
+              tCommon("share.participants.going", { count: goingCount }),
+              ...(picksWaiting > 0 ? [tCommon("share.participants.fit.waiting", { count: picksWaiting })] : []),
+            ].join(" · "),
       // The share ask is "send it to the people coming", not "get votes".
-      content: <WhoIsGoingCard tripId={trip.id} onShare={openCrewShareModal} onCount={setGoingCount} />,
+      // With the plan and its write queue: the card adds what people going don't want to miss.
+      content: (
+        <WhoIsGoingCard
+          tripId={trip.id}
+          onShare={openCrewShareModal}
+          onCount={setGoingCount}
+          onPicksWaiting={setPicksWaiting}
+          itinerary={editedItinerary}
+          runItineraryWrite={runItineraryWrite}
+          onItineraryChange={adoptStoredItinerary}
+        />
+      ),
       keepMounted: true,
     });
   }
@@ -1103,7 +1124,7 @@ export default function TripDetailClient({
       >
         {/* The plan comes first: what sits beside it is a row of chips. On a phone the gaps
             above the days are a little tighter, so the first stop clears the tab bar. */}
-        <TripStrip label={tCommon("tripStrip.label")} items={stripItems} className="mb-4 sm:mb-6" />
+        <TripStrip label={tCommon("tripStrip.label")} items={stripItems} initialOpen={openParam} className="mb-4 sm:mb-6" />
         {/* Backpacker Mode — Hostelworld CTA. Renders only when the
             trip was generated as backpacker (trip_meta.travel_style).
             Placed near the top of the page, because that's the surface

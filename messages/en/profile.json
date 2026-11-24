@@ -102,8 +102,8 @@
         "description": "Reminders as a trip gets close, and a heads-up about the next day while you're travelling."
       },
       "collabVotes": {
-        "label": "Votes on my trips",
-        "description": "An email when someone votes on an activity in one of your trips."
+        "label": "Votes and must-dos on my trips",
+        "description": "An email when someone votes on an activity in one of your trips, or someone going adds what they don't want to miss."
       },
       "marketingNotifications": {
         "label": "News and updates",
@@ -132,6 +132,7 @@
       "template": {
         "invite": "Trip invitation",
         "vote_cast": "Vote on your trip",
+        "picks_added": "Must-dos from someone going",
         "trip_reminder": "Trip reminder",
         "trip_day_digest": "Next day of your trip",
         "trip_followup": "After your trip",
@@ -148,7 +149,7 @@
     "what": {
       "all": "emails from MonkeyTravel",
       "tripReminders": "trip reminders",
-      "collabVotes": "vote notifications",
+      "collabVotes": "emails about votes and must-dos",
       "marketingNotifications": "news and updates",
       "collabProposals": "activity proposal emails",
       "collabComments": "comment emails",
