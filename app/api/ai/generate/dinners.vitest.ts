@@ -23,7 +23,11 @@ vi.mock("@/lib/anonymous/rate-limit", () => ({
 vi.mock("@/lib/ai/user-context", () => ({
   loadUserContext: async () => ({ profilePreferences: {}, userLanguage: "en" }),
 }));
-vi.mock("@/lib/api-gateway", () => ({ checkApiAccess: async () => ({ allowed: true }), logApiCall: async () => {} }));
+const logged: Array<{ status?: number; metadata?: Record<string, unknown> }> = [];
+vi.mock("@/lib/api-gateway", () => ({
+  checkApiAccess: async () => ({ allowed: true }),
+  logApiCall: async (row: (typeof logged)[number]) => void logged.push(row),
+}));
 vi.mock("@/lib/usage-limits", () => ({
   checkUsageLimit: async () => ({ allowed: true, used: 0, remaining: 10, limit: 10 }),
   incrementUsage: async () => {},
@@ -102,5 +106,7 @@ describe("the JSON route", () => {
     ]);
     // The plan's own places to eat are named, so the answer isn't one of them.
     expect(dinnerQuestions.at(-1)).toContain("None the plan already has: Vermillion Cafe.");
+    // The log says how many full days had no dinner and how many got one, as the stream says it.
+    expect(logged.find((row) => row.status === 200)?.metadata?.dinners).toEqual({ missing: 1, added: 1 });
   });
 });

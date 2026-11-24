@@ -23,7 +23,11 @@ vi.mock("@/lib/anonymous/rate-limit", () => ({
 vi.mock("@/lib/ai/user-context", () => ({
   loadUserContext: async () => ({ profilePreferences: {}, userLanguage: "en" }),
 }));
-vi.mock("@/lib/api-gateway", () => ({ checkApiAccess: async () => ({ allowed: true }), logApiCall: async () => {} }));
+const logged: Array<{ status?: number; metadata?: Record<string, unknown> }> = [];
+vi.mock("@/lib/api-gateway", () => ({
+  checkApiAccess: async () => ({ allowed: true }),
+  logApiCall: async (row: (typeof logged)[number]) => void logged.push(row),
+}));
 vi.mock("@/lib/usage-limits", () => ({
   checkUsageLimit: async () => ({ allowed: true, used: 0, remaining: 10, limit: 10 }),
   incrementUsage: async () => {},
@@ -95,5 +99,7 @@ describe("the JSON route", () => {
     const days = (await res.json()).itinerary.days as Array<{ activities: Array<{ name: string; start_time: string }> }>;
     expect(days[2].activities.map((a) => `${a.start_time} ${a.name}`)).toEqual(["09:00 Nijo Castle", "17:00 Pontocho Alley", "19:00 Pontocho Kappa"]);
     expect(days[0].activities.map((a) => a.name)).toContain("Gion Karyo");
+    // The log says how many repeats it found and how many got another place, as the stream says it.
+    expect(logged.find((row) => row.status === 200)?.metadata?.repeated_restaurants).toEqual({ found: 1, replaced: 1 });
   });
 });
