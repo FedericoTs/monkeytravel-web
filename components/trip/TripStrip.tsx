@@ -47,11 +47,22 @@ function SendIcon() {
  * What sits beside the plan on the saved trip page (who is going, confirming,
  * getting ready, booking ahead), as one row of chips under the header. A chip
  * opens its card below the row; one card is open at a time and none at first,
- * so the plan starts right after the row. A chip that acts (sending the plan)
- * is filled, to be told from the ones that open.
+ * so the plan starts right after the row, unless a link names one (`initialOpen`,
+ * the owner's email about must-dos opens "who"). A chip that acts (sending the
+ * plan) is filled, to be told from the ones that open.
  */
-export default function TripStrip({ label, items, className = "" }: { label: string; items: TripStripItem[]; className?: string }) {
-  const [open, setOpen] = useState<string | null>(null);
+export default function TripStrip({
+  label,
+  items,
+  className = "",
+  initialOpen = null,
+}: {
+  label: string;
+  items: TripStripItem[];
+  className?: string;
+  initialOpen?: string | null;
+}) {
+  const [open, setOpen] = useState<string | null>(initialOpen);
   const base = useId();
   if (items.length === 0) return null;
 

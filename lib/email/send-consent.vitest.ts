@@ -65,7 +65,17 @@ const digest = {
     tripUrl: "https://monkeytravel.app/trips/t1",
   },
 };
-const TEMPLATES = { reminder, followup, digest };
+const picks = {
+  id: "picks_added" as const,
+  props: {
+    guestName: "Bo",
+    picks: ["Belém Tower"],
+    tripTitle: "Lisbon in May",
+    tripDestination: "Lisbon",
+    tripUrl: "https://monkeytravel.app/trips/t1?open=who",
+  },
+};
+const TEMPLATES = { reminder, followup, digest, picks };
 type Name = keyof typeof TEMPLATES;
 
 const dispatch = (name: Name, extra: Record<string, unknown> = {}) =>
@@ -105,6 +115,9 @@ describe("who said no to what", () => {
     ["no to marketing doesn't stop the day digest", "digest", { marketingNotifications: false }, "sent"],
     ["no to all email stops the reminder", "reminder", { emailNotifications: false }, "skipped_disabled"],
     ["no to all email stops the follow-up", "followup", { emailNotifications: false }, "skipped_disabled"],
+    ["no to votes stops must-dos from someone going", "picks", { collabVotes: false }, "skipped_disabled"],
+    ["no to marketing doesn't stop must-dos from someone going", "picks", { marketingNotifications: false }, "sent"],
+    ["no to all email stops must-dos from someone going", "picks", { emailNotifications: false }, "skipped_disabled"],
   ])("%s (%s)", async (_name, template, settings, status) => {
     s.settings = settings;
     const outcome = await dispatch(template);
@@ -124,6 +137,7 @@ describe("the one-click unsubscribe", () => {
     ["followup", "marketingNotifications"],
     ["reminder", "tripReminders"],
     ["digest", "tripReminders"],
+    ["picks", "collabVotes"],
   ])("on the %s turns off %s: the preference it was sent under", async (template, key) => {
     await dispatch(template);
     const email = sendEmail.mock.calls[0][0] as SendInput;
