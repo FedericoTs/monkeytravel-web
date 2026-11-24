@@ -307,8 +307,10 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       askForReplacements(repeatsWanted, mealOptions),
       askForSights(sightsWanted, { language: userLanguage, taken: sightNames(itinerary.days) }),
     ]);
-    itinerary = { ...itinerary, days: withDinners(itinerary.days, dinnersWanted, dinnersAsked.answer).days };
-    itinerary = { ...itinerary, days: withReplacements(itinerary.days, repeatsWanted, repeatsAsked.answer).days };
+    const dinners = withDinners(itinerary.days, dinnersWanted, dinnersAsked.answer);
+    itinerary = { ...itinerary, days: dinners.days };
+    const repeats = withReplacements(itinerary.days, repeatsWanted, repeatsAsked.answer);
+    itinerary = { ...itinerary, days: repeats.days };
     const sights = withSightReplacements(itinerary.days, sightsWanted, sightsAsked.answer);
     itinerary = { ...itinerary, days: sights.days };
 
@@ -370,6 +372,9 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         ...(routeFrom ? { route_from: routeFrom } : {}),
         // Full days the plan left without lunch, and how many got one.
         ...(lunchesWanted.length > 0 ? { lunches: { missing: lunchesWanted.length, added: lunches.added } } : {}),
+        // Full days without dinner and restaurants named again on a later day, and how many got one, as the stream logs them.
+        ...(dinnersWanted.length > 0 ? { dinners: { missing: dinnersWanted.length, added: dinners.added } } : {}),
+        ...(repeatsWanted.length > 0 ? { repeated_restaurants: { found: repeatsWanted.length, replaced: repeats.replaced } } : {}),
         // Sights visited again on another day, and how many got another place.
         ...(sightsWanted.length > 0 ? { repeated_sights: { found: sightsWanted.length, replaced: sights.replaced } } : {}),
         // Stops on a day they're shut before and after the closing step, as the stream logs them.
