@@ -413,6 +413,12 @@ export async function POST(request: NextRequest) {
       );
       finalItinerary = openDays.itinerary;
       generationCost += openDays.costUsd;
+      //     The days can have moved: a first or last day, planned without dinner, now in the
+      //     middle of the trip. Its dinner is asked for now; nothing is asked when none moved.
+      const movedDinnersWanted = daysWithoutDinner(finalItinerary.days, params.destination).filter(
+        (day) => !dinnersWanted.some((asked) => asked.after === day.after)
+      );
+      const movedDinnersAsked = askForDinners(movedDinnersWanted, mealOptions);
       //     The lunches, after the visits they were chosen near, wherever those
       //     now are: before the hours step, which then sees the day's times.
       const lunchAnswer = await lunchesAsked;
@@ -427,8 +433,10 @@ export async function POST(request: NextRequest) {
       // 5b''. The dinners, after the places they were chosen near, wherever those now are.
       const dinnerAnswer = await dinnersAsked;
       const dinners = withDinners(finalItinerary.days, dinnersWanted, dinnerAnswer.answer);
-      finalItinerary = { ...finalItinerary, days: dinners.days };
-      generationCost += dinnerAnswer.costUsd;
+      const movedDinnerAnswer = await movedDinnersAsked;
+      const movedDinners = withDinners(dinners.days, movedDinnersWanted, movedDinnerAnswer.answer);
+      finalItinerary = { ...finalItinerary, days: movedDinners.days };
+      generationCost += dinnerAnswer.costUsd + movedDinnerAnswer.costUsd;
       // 5b'''. Then each repeated restaurant's replacement, in its place.
       const repeatAnswer = await repeatsAsked;
       const repeats = withReplacements(finalItinerary.days, repeatsWanted, repeatAnswer.answer);
@@ -546,8 +554,17 @@ export async function POST(request: NextRequest) {
                       },
                     }
                   : {}),
-                // Full days the plan left without dinner, and how many got one.
-                ...(dinnersWanted.length > 0 ? { dinners: { missing: dinnersWanted.length, added: dinners.added } } : {}),
+                // Full days the plan left without dinner, and how many got one; after_move: those found only once
+                // the closing days had moved the days.
+                ...(dinnersWanted.length + movedDinnersWanted.length > 0
+                  ? {
+                      dinners: {
+                        missing: dinnersWanted.length + movedDinnersWanted.length,
+                        added: dinners.added + movedDinners.added,
+                        ...(movedDinnersWanted.length > 0 ? { after_move: movedDinnersWanted.length } : {}),
+                      },
+                    }
+                  : {}),
                 // Full days the plan left without lunch, and how many got one.
                 ...(lunchesWanted.length > 0 ? { lunches: { missing: lunchesWanted.length, added: lunches.added } } : {}),
                 ...(repeatsWanted.length > 0 ? { repeated_restaurants: { found: repeatsWanted.length, replaced: repeats.replaced } } : {}),
