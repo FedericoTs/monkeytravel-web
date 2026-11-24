@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { alreadyPlannedLine, buildStaticChatHistory, buildUserPrompt, daylightLine, routeLine, stayLine } from "./trip-prompt";
-import type { TripCreationParams } from "@/types";
+import type { TripCreationParams, TripVibe } from "@/types";
 
 /**
  * Left alone, 3.5 Flash-Lite writes short descriptions and ends most days at
@@ -353,6 +353,33 @@ describe("when they arrive and leave", () => {
 
   it("says nothing of them when they didn't say", () => {
     expect(buildUserPrompt(trip())).not.toContain("Travel days:");
+  });
+});
+
+describe("the vibes and what the place is known for", () => {
+  const trip = (vibes: TripVibe[], destination = "Agra, India"): TripCreationParams => ({
+    destination,
+    startDate: "2026-12-14",
+    endDate: "2026-12-15",
+    budgetTier: "balanced",
+    pace: "moderate",
+    vibes,
+    interests: [],
+  });
+  const vibeSection = (params: TripCreationParams) => buildUserPrompt(params).split("## Travel Vibes")[1]?.split("\n## ")[0] ?? "";
+
+  // A group that picked only "nature" for Agra got sanctuaries and gardens and no Taj Mahal.
+  it("keeps the destination's signature sights in a plan led by a narrow interest", () => {
+    const section = vibeSection(trip(["nature"]));
+    expect(section).toContain("shape the trip around what Agra, India is known for, never instead of it");
+    expect(section).toContain("its signature sights, the one or two places nearly every visitor comes to see");
+    expect(vibeSection(trip(["foodie", "urban"], "Athens"))).toContain("what Athens is known for");
+  });
+
+  it("leaves them out of a trip led by hidden gems, and says nothing without vibes", () => {
+    expect(vibeSection(trip(["offbeat", "nature"]))).not.toContain("signature sights");
+    expect(vibeSection(trip(["nature", "offbeat"]))).toContain("signature sights");
+    expect(buildUserPrompt(trip([]))).not.toContain("signature sights");
   });
 });
 
