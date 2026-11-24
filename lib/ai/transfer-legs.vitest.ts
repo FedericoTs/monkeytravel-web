@@ -551,13 +551,35 @@ describe("dayWithWayBack", () => {
   const stop = (start_time: string, duration_minutes: number) =>
     ({ time_slot: "afternoon", start_time, duration_minutes, name: `Stop at ${start_time}`, type: "attraction" }) as Activity;
 
-  it("leaves after the day's last stop, wherever it sits in the list", () => {
-    const day = dayWithWayBack(back, [stop("19:00", 90), stop("10:00", 60)]);
-    expect(day.at(-1)).toMatchObject({ name: "Flight to Bangkok", start_time: "21:00", time_slot: "evening" });
+  it("leaves after the day's last stop, wherever it sits in the list, when it gets in by ten at night", () => {
+    const day = dayWithWayBack(back, [stop("15:00", 60), stop("10:00", 60)]);
+    expect(day.at(-1)).toMatchObject({ name: "Flight to Bangkok", start_time: "16:30", time_slot: "afternoon" });
+    expect(day).toHaveLength(3);
   });
-  it("leaves at five on a day with no timed stops, and by half past eleven after a late one", () => {
+  it("leaves at five on a day with no timed stops, half an hour after an early last stop", () => {
     expect(dayWithWayBack(back, []).at(-1)).toMatchObject({ start_time: "17:00", time_slot: "evening" });
     expect(dayWithWayBack(back, [stop("12:00", 60)]).at(-1)).toMatchObject({ start_time: "13:30", time_slot: "afternoon" });
-    expect(dayWithWayBack(back, [stop("23:00", 60)]).at(-1)).toMatchObject({ start_time: "23:30" });
+  });
+  // Kept plans, a week: 26 of 34 ways back left after a full last day and got in after midnight ("Train to London"
+  // at 21:05 for 4 h 30). The way back leaves in time to get in by ten; what is still on then gives way.
+  it("leaves in time to get in by ten at night, the day's later stops giving way", () => {
+    const day = dayWithWayBack(back, [stop("10:00", 60), stop("19:00", 90), stop("23:00", 60)]);
+    expect(day.map((a) => `${a.start_time} ${a.name}`)).toEqual(["10:00 Stop at 10:00", "18:40 Flight to Bangkok"]);
+    expect(day.at(-1)?.time_slot).toBe("evening");
+  });
+  it("cuts a visit still on when it must leave, when an hour and half of it remain, else lets it go", () => {
+    const day = dayWithWayBack(back, [stop("16:00", 180), stop("18:00", 90)]);
+    expect(day.map((a) => `${a.start_time} ${a.name} ${a.duration_minutes}`)).toEqual(["16:00 Stop at 16:00 130", "18:40 Flight to Bangkok 200"]);
+    // Half of it wouldn't remain, or less than an hour would: it goes.
+    expect(dayWithWayBack(back, [stop("17:00", 180)]).map((a) => a.name)).toEqual(["Flight to Bangkok"]);
+    expect(dayWithWayBack(back, [stop("17:20", 90)]).map((a) => a.name)).toEqual(["Flight to Bangkok"]);
+    // A stop with no time stays.
+    const untimed = { ...stop("10:00", 60), start_time: undefined, name: "Souvenir shopping" } as unknown as Activity;
+    expect(dayWithWayBack(back, [untimed, stop("19:00", 90)]).map((a) => a.name)).toEqual(["Souvenir shopping", "Flight to Bangkok"]);
+  });
+  it("adds no way back too long to follow a day there", () => {
+    const long = { ...back, duration_minutes: 400 } as Activity;
+    const stops = [stop("10:00", 60), stop("19:00", 90)];
+    expect(dayWithWayBack(long, stops)).toEqual(stops);
   });
 });
