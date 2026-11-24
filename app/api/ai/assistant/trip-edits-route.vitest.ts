@@ -63,7 +63,7 @@ const storedTrip = {
   end_date: "2027-03-13",
   budget: { total: 900, currency: "EUR" },
   tags: [],
-  trip_meta: { destination: "Dublin, Ireland", locale: "en" },
+  trip_meta: { destination: "Dublin, Ireland", locale: "en" } as Record<string, unknown>,
   itinerary: [
     { day_number: 1, date: "2027-03-11", activities: [act("a1", "Trinity College", "09:00", "morning")] },
     { day_number: 2, date: "2027-03-12", activities: [act("b1", "National Gallery", "10:00", "morning")] },
@@ -142,7 +142,7 @@ const savedAssistantMessage = () => {
 };
 
 beforeEach(() => {
-  storedTrip.trip_meta.locale = "en";
+  storedTrip.trip_meta = { destination: "Dublin, Ireland", locale: "en" };
   calls = [];
   storedConversation = { id: "conv-1", messages: savedMessages, context: {} };
   conversationRows = [];
@@ -255,6 +255,27 @@ describe("trip-page assistant: free-form edits", () => {
     proposeTripEdits.mockRejectedValue(new Error("model overloaded"));
     await send("how many free questions do I get?");
     expect(String(chatCalls.mock.calls.at(-1)?.[0])).toContain("8 of 10 messages left this month");
+  });
+
+  it("tells the engine and the chat who the trip is for, as it was planned", async () => {
+    storedTrip.trip_meta = { destination: "Dublin, Ireland", locale: "en", trip_intent: "family", children_ages: ["under3"], pace: "relaxed", dietary: ["vegetarian"] };
+    proposeTripEdits.mockResolvedValue({ reply: "Which evening?", revisedDays: [], summary: "", meta });
+    await send("add something fun for the evening");
+    expect(proposeTripEdits).toHaveBeenCalledWith(
+      expect.objectContaining({ facts: { tripIntent: "family", childrenAges: ["under3"], pace: "relaxed", dietary: ["vegetarian"] } }),
+    );
+    proposeTripEdits.mockRejectedValue(new Error("model overloaded"));
+    await send("add something fun for the evening");
+    const chat = String(chatCalls.mock.calls.at(-1)?.[0]);
+    expect(chat).toContain("Who the trip is for");
+    expect(chat).toContain("Don't plan bars or late nights as stops.");
+    expect(chat).toContain("Diet: Vegetarian (no meat or fish).");
+  });
+
+  it("tells nothing of a trip planned without answers", async () => {
+    proposeTripEdits.mockResolvedValue({ reply: "Which evening?", revisedDays: [], summary: "", meta });
+    await send("add something fun for the evening");
+    expect(proposeTripEdits).toHaveBeenCalledWith(expect.objectContaining({ facts: {} }));
   });
 
   it("uses the engine's answer when nothing needs to change", async () => {

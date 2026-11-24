@@ -33,6 +33,7 @@ import { allowanceFrom } from "@/lib/ai/assistant/allowance";
 import { askChatModel } from "@/lib/ai/assistant/chat-model";
 import { appendTurn, assistantMessage, listThreads, openThread, readThread, userMessage } from "@/lib/ai/assistant/thread";
 import { askedTripDates, offerTripDates } from "@/lib/ai/assistant/trip-dates";
+import { tripFactsFromMeta } from "@/lib/ai/assistant/trip-facts";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -60,6 +61,8 @@ export async function POST(request: NextRequest) {
 
     // The traveller's own messages left, as the counter under the chat shows them.
     const allowance = allowanceFrom(usageCheck);
+    // Who the trip is for and how it was planned: the edits and the chat keep to it.
+    const facts = tripFactsFromMeta(trip.trip_meta, trip.budget);
 
     const tripContext: TripContext = {
       id: trip.id,
@@ -71,6 +74,7 @@ export async function POST(request: NextRequest) {
       itinerary,
       dayCount: itinerary.length,
       activityCount: itinerary.reduce((sum, day) => sum + day.activities.length, 0),
+      facts,
     };
 
     // Load conversation. Before the intents: the edit engine below reads it.
@@ -102,6 +106,7 @@ export async function POST(request: NextRequest) {
           canAddDays: assistantRole === "owner",
           waiting: readWaitingChange(body.waiting, itinerary.length),
           allowance,
+          facts,
         });
       } catch (err) {
         // Out of credit, the chat is refused too.

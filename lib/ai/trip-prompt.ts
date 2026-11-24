@@ -15,6 +15,15 @@ import type { ChildAgeBand, ChosenTripIntent } from "@/lib/wizard/answers";
  * and the day and activity regenerations include.
  */
 
+/** How the plan names each diet; the assistant that edits a plan uses the same words. */
+const DIET_LABELS: Record<string, string> = {
+  "vegetarian": "Vegetarian (no meat or fish)",
+  "vegan": "Vegan (no animal products)",
+  "halal": "Halal (Islamic dietary laws)",
+  "kosher": "Kosher (Jewish dietary laws)",
+  "gluten-free": "Gluten-Free",
+};
+
 /**
  * Build profile preferences section for the prompt
  * Includes dietary restrictions, travel styles, and accessibility needs
@@ -26,14 +35,7 @@ function buildProfilePreferencesSection(profilePreferences?: UserProfilePreferen
 
   // Dietary preferences - CRITICAL for food recommendations
   if (profilePreferences.dietaryPreferences && profilePreferences.dietaryPreferences.length > 0) {
-    const dietLabels: Record<string, string> = {
-      "vegetarian": "Vegetarian (no meat or fish)",
-      "vegan": "Vegan (no animal products)",
-      "halal": "Halal (Islamic dietary laws)",
-      "kosher": "Kosher (Jewish dietary laws)",
-      "gluten-free": "Gluten-Free",
-    };
-    const formatted = profilePreferences.dietaryPreferences.map(d => dietLabels[d] || d).join(", ");
+    const formatted = profilePreferences.dietaryPreferences.map(d => DIET_LABELS[d] || d).join(", ");
     sections.push(`- Dietary Requirements: ${formatted}
   IMPORTANT: every place to eat or drink (restaurants, cafés, bars, markets, food tours) MUST suit these needs. Choose real, named, long-established places well known for these options, not new or little-known ones; a popular restaurant with clearly marked dishes for these needs is a good choice. In each one's description, say what the traveller can eat there.`);
   }
@@ -546,6 +548,7 @@ ${anchorSection}${partSection}Generate the itinerary now, following the system r
 }
 
 export {
+  DIET_LABELS,
   alreadyPlannedLine,
   buildProfilePreferencesSection,
   buildSchedulingPreferencesSection,
