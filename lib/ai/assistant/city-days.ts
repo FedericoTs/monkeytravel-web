@@ -10,7 +10,7 @@ import { normalizeActivityType } from "@/lib/trip/activity-type";
 import { isRealPoint } from "@/lib/trip/placeholder-point";
 import type { Activity, ItineraryDay } from "@/types";
 import type { DayEdit } from "./edit-validation";
-import { asksForDayTrip } from "./message-asks";
+import { asksForDayTrip, asksToRegroup } from "./message-asks";
 import { nameTokens, SAME_ACTIVITY, sameActivityScore, sameWord } from "./saved-activities";
 
 const plain = (s: string) => ` ${s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim()} `;
@@ -44,7 +44,10 @@ export interface PlacesAway {
  * The places on days of the plan, as the change leaves it, that are in another
  * city's area (placesInOtherCities), by day: on the days the change edits, or
  * on `onDays`. A day trip they asked for, a place they named, and travel stay
- * where they are. None on a trip to one place.
+ * where they are. So does a place an edited day already had, which the change
+ * didn't put there (a day out the traveller planned on an earlier turn), unless
+ * they ask to regroup the plan or name the city it is in. None on a trip to one
+ * place.
  */
 export function placesAway(days: ItineraryDay[], edits: DayEdit[], message: string, onDays?: Set<number>): PlacesAway[] {
   if (!days.some((d) => d.city) || asksForDayTrip(message)) return [];
@@ -73,10 +76,15 @@ export function placesAway(days: ItineraryDay[], edits: DayEdit[], message: stri
   });
   const elsewhere = placesInOtherCities(places.map((p) => ({ city: p.city, point: p.a.coordinates as Point })));
   const checked = onDays ?? new Set(edited.keys());
+  const regroup = asksToRegroup(message);
+  const before = (n: number) => days.find((d) => d.day_number === n)?.activities ?? [];
+  const hadIt = (n: number, a: Activity) =>
+    edited.has(n) && before(n).some((b) => typeof b?.name === "string" && (sameActivityScore(b, a) >= SAME_ACTIVITY || sameActivityScore(a, b) >= SAME_ACTIVITY));
   const byDay = new Map<number, PlacesAway>();
   for (const [k, other] of elsewhere) {
     const { day, city, a } = places[k];
     if (!checked.has(day) || named(a)) continue;
+    if (!regroup && !plain(message).includes(` ${other} `) && hadIt(day, a)) continue;
     const entry = byDay.get(day) ?? { day, city: label.get(city) ?? city, other: label.get(other) ?? other, activities: [] };
     entry.activities.push(a);
     byDay.set(day, entry);

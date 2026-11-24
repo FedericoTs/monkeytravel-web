@@ -1285,6 +1285,17 @@ describe("assistTrip on a trip through two cities", () => {
     expect(out.reply).toBe("Grouped by area.");
   });
 
+  // A day out the traveller planned on an earlier turn, asked next for photo times on each place: the change took
+  // that day's places off it as another city's, and said so in a note. The day keeps what it had.
+  it("keeps the places a day already had when the change is about something else", async () => {
+    const theirs = [days[0], { ...days[1], activities: [...days[1].activities, at("Gamcheon Culture Village", 35.0975, 129.0106)] }] as unknown as ItineraryDay[];
+    generateContent.mockResolvedValue(reply([[2, [["Gyeongbokgung Palace", 37.5796, 126.977], ["N Seoul Tower", 37.5512, 126.9882], ["Gamcheon Culture Village", 35.0975, 129.0106]]]]));
+    const out = await run({ ...ask, days: theirs, message: "add the best photo time to each place" });
+    expect(generateContent).toHaveBeenCalledTimes(1);
+    expect(named(out)).toEqual(["2: Gyeongbokgung Palace, N Seoul Tower, Gamcheon Culture Village"]);
+    expect(out.reply).toBe("Grouped by area.");
+  });
+
   // The Seoul day still has the Busan sight a change put on a Busan day: that copy isn't a repeat.
   it("keeps another city's place a change put on a day of its own city, though the wrong day still has it", async () => {
     const mixed = [days[0], { ...days[1], activities: [...days[1].activities, at("Gamcheon Culture Village", 35.0975, 129.0106)] }] as unknown as ItineraryDay[];
