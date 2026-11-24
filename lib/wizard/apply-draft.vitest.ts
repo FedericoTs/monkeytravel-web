@@ -28,6 +28,8 @@ const fullDraft: ItineraryDraft = {
   mustDos: ["Tram 28"],
   dietary: ["vegan", "not-a-diet"],
   tripIntent: "group",
+  arrival: "evening",
+  departure: "morning",
   flexibleDates: true,
   stay: { name: "  Memmo   Alfama ", coordinates: { lat: 38.7111, lng: -9.1306 } },
   savedAt: 1,
@@ -46,6 +48,8 @@ function targets() {
     setTravelStyle: vi.fn(),
     setAnchors: vi.fn(),
     setTripIntent: vi.fn(),
+    setArrival: vi.fn(),
+    setDeparture: vi.fn(),
     setFlexibleDates: vi.fn(),
     setStay: vi.fn(),
     setGeneratedItinerary: vi.fn(),
@@ -69,6 +73,8 @@ describe("applyDraft", () => {
     expect(to.setTravelStyle).toHaveBeenCalledWith("backpacker");
     expect(to.setAnchors).toHaveBeenCalledWith(anchors);
     expect(to.setTripIntent).toHaveBeenCalledWith("group");
+    expect(to.setArrival).toHaveBeenCalledWith("evening");
+    expect(to.setDeparture).toHaveBeenCalledWith("morning");
     expect(to.setFlexibleDates).toHaveBeenCalledWith(true);
     expect(to.setStay).toHaveBeenCalledWith(STAY);
     expect(to.setGeneratedItinerary).toHaveBeenCalledWith(itinerary);
@@ -86,6 +92,8 @@ describe("applyDraft", () => {
       mustDos: ["Tram 28"],
       dietary: ["vegan"],
       tripIntent: "group",
+      arrival: "evening",
+      departure: "morning",
       flexibleDates: true,
       stay: STAY,
     });
@@ -163,6 +171,8 @@ describe("applyKeptPlan", () => {
     expect(to.setBudgetTier).toHaveBeenCalledWith("premium");
     expect(to.setTravelStyle).toHaveBeenCalledWith("backpacker");
     expect(to.setTripIntent).toHaveBeenCalledWith("group");
+    expect(to.setArrival).toHaveBeenCalledWith(null);
+    expect(to.setDeparture).toHaveBeenCalledWith(null);
     expect(to.setFlexibleDates).toHaveBeenCalledWith(true);
     expect(to.setMustDos).toHaveBeenCalledWith(["Tram 28"]);
     expect(to.setDietary).toHaveBeenCalledWith(["vegan"]);
@@ -182,6 +192,8 @@ describe("applyKeptPlan", () => {
       mustDos: ["Tram 28"],
       dietary: ["vegan"],
       tripIntent: "group",
+      arrival: null,
+      departure: null,
       flexibleDates: true,
       stay: STAY,
     });
