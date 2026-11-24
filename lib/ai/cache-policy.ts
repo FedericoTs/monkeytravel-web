@@ -25,7 +25,9 @@ export function cachePolicy(params: TripCreationParams, fresh: boolean, totalDay
         params.tripIntent ||
         params.stay ||
         params.whatsOn?.length ||
-        params.occasion
+        params.occasion ||
+        params.arrival ||
+        params.departure
     ),
     fresh,
     totalDays,

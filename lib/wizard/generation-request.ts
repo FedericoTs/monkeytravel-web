@@ -2,7 +2,7 @@ import type { RouteStop } from "@/components/trips/MultiCityRouteBuilder";
 import type { Diet } from "@/lib/trips/diet";
 import type { SeasonalContext, TripCreationParams } from "@/types";
 import type { WizardAnswers } from "./answers";
-import { isChosenTripIntent } from "./answers";
+import { isArrival, isChosenTripIntent, isDeparture, type Arrival, type Departure } from "./answers";
 import { tidyTypedPlace } from "./place-name";
 
 /**
@@ -15,7 +15,8 @@ export function routeLegs(rows: RouteStop[]): RouteStop[] {
 }
 
 export interface GenerationRequest {
-  body: Omit<TripCreationParams, "stay"> & {
+  // Arrival and departure go as their words; the server puts them on the trip's dates (TripCreationParams).
+  body: Omit<TripCreationParams, "stay" | "arrival" | "departure"> & {
     locale: string;
     dietary?: Diet[];
     fresh?: true;
@@ -25,6 +26,9 @@ export interface GenerationRequest {
     stayCoords?: { latitude: number; longitude: number };
     /** The place typed before step 1's offered route was taken ("Thailand"); logged with the plan. */
     routeFrom?: string;
+    /** When they arrive and leave; the server puts them on the trip's first and last dates (lib/ai/generation-caller.ts). */
+    arrival?: Arrival;
+    departure?: Departure;
   };
   /** Multi-city and anchored trips come back as one merged JSON body, not a stream. */
   stream: boolean;
@@ -60,7 +64,7 @@ export function generationRequest(
   const isMultiCity = extra.legs.length > 1;
   const isAnchored = !isMultiCity && anchors.length > 0;
   // The stay travels as its words and its place (below), which the server reads back.
-  const params: Omit<TripCreationParams, "stay"> = {
+  const params: Omit<TripCreationParams, "stay" | "arrival" | "departure"> = {
     destination,
     startDate,
     endDate,
@@ -91,6 +95,8 @@ export function generationRequest(
         ? { stayCoords: { latitude: stay.coordinates.lat, longitude: stay.coordinates.lng } }
         : {}),
       ...(isMultiCity && extra.routeFrom ? { routeFrom: extra.routeFrom } : {}),
+      ...(isArrival(answers.arrival) ? { arrival: answers.arrival } : {}),
+      ...(isDeparture(answers.departure) ? { departure: answers.departure } : {}),
     },
     stream: !isMultiCity && !isAnchored,
     isMultiCity,
