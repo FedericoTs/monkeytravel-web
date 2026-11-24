@@ -6,10 +6,19 @@
  * them every edit was made for nobody in particular.
  */
 
-import { DIET_LABELS, travellersLine } from "@/lib/ai/trip-prompt";
+import { ARRIVING, DIET_LABELS, LEAVING, travellersLine } from "@/lib/ai/trip-prompt";
 import { paceBudgetPromptClause } from "@/lib/trip/pace";
 import { dietsFrom, type Diet } from "@/lib/trips/diet";
-import { childAgeBands, isChosenTripIntent, type ChildAgeBand, type ChosenTripIntent } from "@/lib/wizard/answers";
+import {
+  childAgeBands,
+  isArrival,
+  isChosenTripIntent,
+  isDeparture,
+  type Arrival,
+  type ChildAgeBand,
+  type ChosenTripIntent,
+  type Departure,
+} from "@/lib/wizard/answers";
 import { isBudgetTier, TRIP_PACES, type BudgetTier, type TripPace } from "@/types";
 
 export interface TripFacts {
@@ -19,6 +28,9 @@ export interface TripFacts {
   pace?: TripPace;
   budgetTier?: BudgetTier;
   dietary?: Diet[];
+  /** When they arrive on the first day and leave on the last, as the planner asks them. */
+  arrival?: Arrival;
+  departure?: Departure;
 }
 
 const isPace = (value: unknown): value is TripPace => (TRIP_PACES as readonly unknown[]).includes(value);
@@ -29,7 +41,7 @@ const isPace = (value: unknown): value is TripPace => (TRIP_PACES as readonly un
  */
 export function readTripFacts(raw: unknown): TripFacts {
   if (!raw || typeof raw !== "object") return {};
-  const { tripIntent, childrenAges, pace, budgetTier, dietary } = raw as Record<string, unknown>;
+  const { tripIntent, childrenAges, pace, budgetTier, dietary, arrival, departure } = raw as Record<string, unknown>;
   const ages = tripIntent === "family" ? childAgeBands(childrenAges) : [];
   const diets = dietsFrom(dietary);
   return {
@@ -38,6 +50,8 @@ export function readTripFacts(raw: unknown): TripFacts {
     ...(isPace(pace) ? { pace } : {}),
     ...(isBudgetTier(budgetTier) ? { budgetTier } : {}),
     ...(diets.length > 0 ? { dietary: diets } : {}),
+    ...(isArrival(arrival) ? { arrival } : {}),
+    ...(isDeparture(departure) ? { departure } : {}),
   };
 }
 
@@ -51,6 +65,8 @@ export function tripFactsFromMeta(meta: unknown, budget: unknown): TripFacts {
     pace: m.pace,
     budgetTier: m.budget_tier ?? tier,
     dietary: m.dietary,
+    arrival: m.arrival,
+    departure: m.departure,
   });
 }
 
@@ -63,6 +79,8 @@ export function tripFactsLines(facts: TripFacts): string {
     facts.dietary?.length
       ? `Diet: ${facts.dietary.map((d) => DIET_LABELS[d] ?? d).join(", ")}. Every place to eat or drink you add must suit it.`
       : "",
+    facts.arrival ? ARRIVING[facts.arrival] : "",
+    facts.departure ? LEAVING[facts.departure] : "",
   ].filter(Boolean);
   if (lines.length === 0) return "";
   return `Who the trip is for, as it was planned (every day you change or add must fit it, unless the traveller asks for something else):\n${lines.map((l) => `- ${l}`).join("\n")}\n`;

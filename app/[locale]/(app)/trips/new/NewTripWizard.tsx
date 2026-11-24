@@ -835,8 +835,15 @@ export default function NewTripPage({
   );
   // Who the plan is for, so the assistant's edits keep to it (the server keeps only what each may be).
   const assistantFacts = useMemo(
-    () => ({ tripIntent: answers.tripIntent, pace: answers.pace, budgetTier: answers.budgetTier, dietary: answers.dietary }),
-    [answers.tripIntent, answers.pace, answers.budgetTier, answers.dietary]
+    () => ({
+      tripIntent: answers.tripIntent,
+      pace: answers.pace,
+      budgetTier: answers.budgetTier,
+      dietary: answers.dietary,
+      ...(answers.arrival ? { arrival: answers.arrival } : {}),
+      ...(answers.departure ? { departure: answers.departure } : {}),
+    }),
+    [answers.tripIntent, answers.pace, answers.budgetTier, answers.dietary, answers.arrival, answers.departure]
   );
 
   // Keep a draft of the itinerary until the trip is saved, then none.
