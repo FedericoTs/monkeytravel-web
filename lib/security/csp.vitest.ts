@@ -263,6 +263,24 @@ describe("CSP lets session replay start its worker", () => {
   });
 });
 
+describe("CSP lets Google's one-tap run in the save box", () => {
+  // Google's own list for Identity Services: the script, its styles, and its status and FedCM setup calls. The
+  // prompt's frame is already allowed for the Google sign-in.
+  it("admits Google's script on rendered and prerendered pages alike", () => {
+    expect(directive("script-src")).toContain("https://accounts.google.com/gsi/client");
+    expect(directive("script-src", "/blog", buildCspHeader("/blog", { hashes: [] }))).toContain("https://accounts.google.com/gsi/client");
+  });
+
+  it("admits its styles, its calls and its frame, and nothing else of accounts.google.com", () => {
+    expect(directive("style-src")).toContain("https://accounts.google.com/gsi/style");
+    expect(directive("connect-src")).toContain("https://accounts.google.com/gsi/");
+    expect(directive("frame-src")).toContain("https://accounts.google.com");
+    for (const name of ["script-src", "style-src", "connect-src"]) {
+      expect(directive(name).filter((src) => src.includes("accounts.google.com")).every((src) => src.includes("/gsi/"))).toBe(true);
+    }
+  });
+});
+
 describe("CSP script-src lists no host the app no longer loads from", () => {
   it("leaves out Sentry's CDN: the SDK ships in the app's own chunks and fetches nothing from it", () => {
     const src = directive("script-src", "/blog", buildCspHeader("/blog", { hashes: [] }));
