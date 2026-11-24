@@ -22,6 +22,8 @@ const setCookie = vi.fn();
 const planSends: unknown[] = [];
 let planStatus = "sent";
 let planAllowed = true;
+/** The server events captured, by name. */
+const events: Array<{ name: string; props: Record<string, unknown> }> = [];
 
 vi.mock("next/headers", () => ({
   cookies: async () => ({ get: () => (browserCookie ? { value: browserCookie } : undefined), set: setCookie }),
@@ -29,7 +31,9 @@ vi.mock("next/headers", () => ({
 vi.mock("nanoid", () => ({ nanoid: () => "fresh-browser-id-0001" }));
 vi.mock("@/lib/api/rate-limit", () => ({ createRateLimiter: () => ({ check: async () => ({ allowed: true }) }) }));
 vi.mock("@/lib/participants/flag", () => ({ isLiveTripParticipantsEnabled: () => true }));
-vi.mock("@/lib/posthog/server", () => ({ captureServerEvent: () => {} }));
+vi.mock("@/lib/posthog/server", () => ({
+  captureServerEvent: (_id: string, name: string, props: Record<string, unknown>) => void events.push({ name, props }),
+}));
 vi.mock("@/lib/participants/plan-email", () => ({
   mayEmailPlan: async () => planAllowed,
   sendParticipantPlanEmail: async (_admin: unknown, args: unknown) => {
@@ -81,6 +85,63 @@ beforeEach(() => {
   planSends.length = 0;
   planStatus = "sent";
   planAllowed = true;
+  events.length = 0;
+});
+
+describe("the must-dos someone going adds", () => {
+  it("are kept with when they were sent, on joining and after", async () => {
+    await send({ action: "join", picks: [" teamLab  Planets ", "Ichiran ramen"] });
+    expect(ops("trip_participants", "insert")[0].value).toMatchObject({
+      picks: ["teamLab Planets", "Ichiran ramen"],
+      picks_at: expect.any(String),
+    });
+    ownRow = { id: "row-1", left_at: null, display_name: "Bo", email: null, source: "shared" };
+    await send({ action: "update", picks: ["Ghibli Museum"] });
+    expect(ops("trip_participants", "update")[0].value).toEqual({
+      picks: ["Ghibli Museum"],
+      picks_at: expect.any(String),
+      picks_placed_at: null,
+    });
+    // Coming back after leaving, with picks.
+    ownRow = { id: "row-1", left_at: "2026-10-01T10:00:00Z", display_name: "Bo", email: null, source: "shared" };
+    await send({ action: "join", picks: ["Ghibli Museum"] });
+    expect(ops("trip_participants", "update")[0].value).toEqual({
+      left_at: null,
+      picks: ["Ghibli Museum"],
+      picks_at: expect.any(String),
+      picks_placed_at: null,
+    });
+  });
+
+  it("are written again only when they change, and taken back with an empty list", async () => {
+    ownRow = { id: "row-1", left_at: null, display_name: "Bo", email: null, source: "shared", picks: ["Ghibli Museum"] };
+    await send({ action: "update", picks: ["Ghibli Museum"] });
+    expect(ops("trip_participants", "update")).toEqual([]);
+    await send({ action: "update", picks: [] });
+    expect(ops("trip_participants", "update")[0].value).toEqual({ picks: null, picks_at: null, picks_placed_at: null });
+  });
+
+  it("stay as they were when a request doesn't send them, or the person is leaving", async () => {
+    ownRow = { id: "row-1", left_at: null, display_name: "Bo", email: null, source: "shared", picks: ["Ghibli Museum"] };
+    await send({ action: "update", display_name: "Bo B" });
+    expect(ops("trip_participants", "update")[0].value).toEqual({ display_name: "Bo B" });
+    await send({ action: "leave", picks: ["Shibuya Sky"] });
+    expect(ops("trip_participants", "update")[0].value).toEqual({ left_at: expect.any(String) });
+  });
+
+  it("are counted when added, by how many and never what they say", async () => {
+    await send({ action: "join", picks: ["teamLab Planets", "Ichiran ramen"] });
+    expect(events.filter((e) => e.name === "participant_picks_added")).toEqual([
+      { name: "participant_picks_added", props: { trip_id: "trip-1", count: 2 } },
+    ]);
+    events.length = 0;
+    ownRow = { id: "row-1", left_at: null, display_name: "Bo", email: null, source: "shared", picks: ["Ghibli Museum"] };
+    await send({ action: "update", picks: ["Ghibli Museum"] });
+    await send({ action: "update", picks: [] });
+    // Leaving writes none, so it counts none.
+    await send({ action: "leave", picks: ["Shibuya Sky"] });
+    expect(events.filter((e) => e.name === "participant_picks_added")).toEqual([]);
+  });
 });
 
 describe("POST /api/shared/[token]/join", () => {

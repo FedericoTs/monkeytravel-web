@@ -43,8 +43,29 @@ vi.mock("@/lib/supabase/admin", () => ({
           data: [
             { id: "row-m", participant_cookie_id: "mate-cookie", user_id: "mate-1", display_name: "Luca G", email: null, joined_at: "2026-10-01T10:00:00Z" },
             { id: "row-v2", participant_cookie_id: "vi-cookie", user_id: "viewer-2", display_name: "Vi", email: null, joined_at: "2026-10-01T11:00:00Z" },
-            { id: "row-g", participant_cookie_id: "guest-cookie", user_id: null, display_name: "Bo", email: "bo@example.com", joined_at: "2026-10-01T12:00:00Z" },
-            { id: "row-p", participant_cookie_id: "public-cookie", user_id: null, display_name: "Pat", email: null, joined_at: "2026-10-01T13:00:00Z", source: "public" },
+            {
+              id: "row-g",
+              participant_cookie_id: "guest-cookie",
+              user_id: null,
+              display_name: "Bo",
+              email: "bo@example.com",
+              joined_at: "2026-10-01T12:00:00Z",
+              picks: ["teamLab Planets", "Ichiran ramen"],
+              picks_at: "2026-10-02T09:00:00Z",
+              picks_placed_at: "2026-10-03T08:00:00Z",
+            },
+            {
+              id: "row-p",
+              participant_cookie_id: "public-cookie",
+              user_id: null,
+              display_name: "Pat",
+              email: null,
+              joined_at: "2026-10-01T13:00:00Z",
+              source: "public",
+              picks: ["Shibuya Sky"],
+              picks_at: "2026-10-02T10:00:00Z",
+              picks_placed_at: null,
+            },
           ],
           error: null,
         };
@@ -85,6 +106,13 @@ describe("GET /api/trips/[id]/participants", () => {
       { id: "row-v2", display_name: "Vi", role: "viewer", going: true, in_split: true, has_account: true, has_email: false, joined_at: "2026-10-01T11:00:00Z", participant_id: "row-v2" },
       { id: "row-g", display_name: "Bo", role: null, going: true, in_split: true, has_account: false, has_email: true, joined_at: "2026-10-01T12:00:00Z", participant_id: "row-g" },
       { id: "row-p", display_name: "Pat", role: null, going: true, in_split: false, has_account: false, has_email: false, joined_at: "2026-10-01T13:00:00Z", participant_id: "row-p" },
+    ]);
+  });
+
+  it("lists the must-dos added by people going through the share link, with who added them", async () => {
+    const body = await (await call()).json();
+    expect(body.picks).toEqual([
+      { participant_id: "row-g", display_name: "Bo", picks: ["teamLab Planets", "Ichiran ramen"], picks_at: "2026-10-02T09:00:00Z", picks_placed_at: "2026-10-03T08:00:00Z" },
     ]);
   });
 

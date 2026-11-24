@@ -20,6 +20,10 @@ updates:
       # eslint-config-next 16 requires ESLint 9.
       - dependency-name: "eslint"
         update-types: ["version-update:semver-major"]
+      # TypeScript 7 (the native compiler) ships no compiler API, which the
+      # source-guard scripts and tests parse code with (ts.forEachChild, ...).
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
