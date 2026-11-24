@@ -45,6 +45,22 @@ export type ChildAgeBand = (typeof CHILD_AGE_BANDS)[number];
 export const OCCASIONS = ["honeymoon", "anniversary", "birthday"] as const;
 export type Occasion = (typeof OCCASIONS)[number];
 
+/** When they arrive on the trip's first day, when they said: the planner fits that day to it. */
+export const ARRIVALS = ["morning", "afternoon", "evening", "night"] as const;
+export type Arrival = (typeof ARRIVALS)[number];
+
+/** When they leave on the trip's last day, when they said. */
+export const DEPARTURES = ["morning", "afternoon", "evening"] as const;
+export type Departure = (typeof DEPARTURES)[number];
+
+export function isArrival(value: unknown): value is Arrival {
+  return (ARRIVALS as readonly unknown[]).includes(value);
+}
+
+export function isDeparture(value: unknown): value is Departure {
+  return (DEPARTURES as readonly unknown[]).includes(value);
+}
+
 /** Whether a value is one of the special trips offered; anything else stays out of the plan and the prompt. */
 export function isOccasion(value: unknown): value is Occasion {
   return (OCCASIONS as readonly unknown[]).includes(value);

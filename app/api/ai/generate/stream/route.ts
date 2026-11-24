@@ -44,6 +44,7 @@ import { withoutLongClosures } from "@/lib/ai/long-closures";
 import { askedByName, keepMustDos } from "@/lib/ai/must-dos";
 import { keepNamesInOneScript } from "@/lib/ai/one-script-names";
 import { tripSpanDays } from "@/lib/dates/iso-date";
+import { travelDaysFit } from "@/lib/ai/travel-days";
 import { isModelOutOfCredit, MODEL_OUTAGE_MESSAGE } from "@/lib/ai/model-outage";
 
 // Allow the function to run long enough for slow generations. Vercel
@@ -485,6 +486,8 @@ export async function POST(request: NextRequest) {
                   : {}),
                 // Must-dos the plan held nowhere, and how many of them went in.
                 ...(mustDosIn.missing > 0 ? { must_dos: { missing: mustDosIn.missing, added: mustDosIn.added } } : {}),
+                // When they arrive and leave, and the stops planned before they're there or after they've gone.
+                ...(params.arrival || params.departure ? { travel_days: travelDaysFit(sanitized.days, params) } : {}),
                 ...(namesIn.glued > 0 ? { names: { glued: namesIn.glued, renamed: namesIn.renamed } } : {}),
                 ...(longClosed.removed > 0 ? { long_closures_removed: longClosed.removed } : {}),
                 // Stops on a day they're shut, before and after the days were ordered, and stops moved on their own.

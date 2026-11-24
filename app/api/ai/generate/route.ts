@@ -39,6 +39,7 @@ import { inPlanCurrency } from "@/lib/ai/plan-currency";
 import type { TripAnchor } from "@/types";
 import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/generation-result";
 import { tripSpanDays } from "@/lib/dates/iso-date";
+import { travelDaysFit } from "@/lib/ai/travel-days";
 import { isModelOutOfCredit } from "@/lib/ai/model-outage";
 
 // Cache helpers live in lib/ai/cache.ts, shared with the streaming route. See
@@ -335,6 +336,8 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         ...(profilePreferences.dietaryPreferences?.length ? { dietary: profilePreferences.dietaryPreferences } : {}),
         // Must-dos the plan held nowhere, and how many of them went in.
         ...(mustDosIn.missing > 0 ? { must_dos: { missing: mustDosIn.missing, added: mustDosIn.added } } : {}),
+        // When they arrive and leave, and the stops planned before they're there or after they've gone.
+        ...(params.arrival || params.departure ? { travel_days: travelDaysFit(sanitizedItinerary.days, params) } : {}),
         // Names with two writing systems in one word, and how many got their usual name.
         ...(namesIn.glued > 0 ? { names: { glued: namesIn.glued, renamed: namesIn.renamed } } : {}),
         // The hops between cities, how many were answered, and how many cards took the answer.

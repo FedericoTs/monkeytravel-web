@@ -6,7 +6,7 @@ import { closuresFor, isClosedPlace, longClosuresLine } from "@/lib/ai/long-clos
 import { paceBudgetPromptClause } from "@/lib/trip/pace";
 import { ACTIVITY_TYPES } from "@/lib/trip/activity-type";
 import { addIsoDays, tripSpanDays } from "@/lib/dates/iso-date";
-import type { ChildAgeBand, ChosenTripIntent } from "@/lib/wizard/answers";
+import type { Arrival, ChildAgeBand, ChosenTripIntent, Departure } from "@/lib/wizard/answers";
 
 /**
  * The prompt a trip is generated with: the shared chat prefix every
@@ -333,6 +333,34 @@ function occasionLine({ occasion, startDate, endDate }: Pick<TripCreationParams,
   }
 }
 
+/** The first day, by when they arrive. Only ever these fixed words. */
+const ARRIVING: Record<Arrival, string> = {
+  morning: "They arrive on day 1 in the morning: start that day from about 11:00, after the arrival, close to where they're staying.",
+  afternoon:
+    "They arrive on day 1 in the afternoon: plan nothing before about 15:30 that day, then a light start close to where they're staying, and dinner.",
+  evening: "They arrive on day 1 in the evening: plan only dinner that day, from about 19:30, close to where they're staying.",
+  night: "They arrive on day 1 late at night: plan nothing that day but the arrival and the check-in.",
+};
+
+/** The last day, by when they leave. Only ever these fixed words. */
+const LEAVING: Record<Departure, string> = {
+  morning: "They leave on the last day in the morning: plan only breakfast and the way to the airport or station that day, nothing after about 09:30.",
+  afternoon: "They leave on the last day in the afternoon: plan that morning only, done by about 12:30 and on the way out.",
+  evening: "They leave on the last day in the evening: plan that day until about 16:00, ending on the way out.",
+};
+
+/**
+ * When they arrive and leave, on the trip's first and last days. On a trip through several cities each city has its
+ * own dates: the arrival goes to the city that starts the trip, the leaving to the one that ends it.
+ */
+function travelDaysLine({ arrival, departure, startDate, endDate }: Pick<TripCreationParams, "arrival" | "departure" | "startDate" | "endDate">): string {
+  const said = [
+    arrival && arrival.date === startDate ? ARRIVING[arrival.when] : "",
+    departure && departure.date === endDate ? LEAVING[departure.when] : "",
+  ].filter(Boolean);
+  return said.length > 0 ? `Travel days: ${said.join(" ")}` : "";
+}
+
 function daylightLine({ daylight }: Pick<TripCreationParams, "daylight">): string {
   if (!daylight) return "";
   const { first, last } = daylight;
@@ -497,6 +525,7 @@ ${knownPlaces.map((p) => `- ${p.name} (${p.type})`).join("\n")}
 
   const travellers = travellersLine(params);
   const occasion = occasionLine(params);
+  const travelDays = travelDaysLine(params);
   const daylight = daylightLine(params);
   // What is on there on these dates (lib/ai/whats-on.ts), one line each.
   const whatsOnLines = (params.whatsOn ?? []).map((line) => `- ${line}\n`).join("");
@@ -535,7 +564,7 @@ ${params.mustDos.map((m) => `- ${m}`).join("\n")}
 ${days ? `- ${days}\n` : ""}${route ? `- ${route}\n` : ""}${planned ? `- ${planned}\n` : ""}- Duration: ${duration} days
 - Budget Tier: ${params.budgetTier}
 - Travel Pace: ${params.pace} — ${paceBudgetPromptClause(params.pace)}
-${travellers ? `- ${travellers}\n` : ""}${occasion ? `- ${occasion}\n` : ""}${daylight ? `- ${daylight}\n` : ""}${whatsOnLines}${stay ? `- ${stay}\n` : ""}${closed ? `- ${closed}\n` : ""}
+${travellers ? `- ${travellers}\n` : ""}${occasion ? `- ${occasion}\n` : ""}${travelDays ? `- ${travelDays}\n` : ""}${daylight ? `- ${daylight}\n` : ""}${whatsOnLines}${stay ? `- ${stay}\n` : ""}${closed ? `- ${closed}\n` : ""}
 ${travelStyleSection}${vibeSection}${seasonalSection}## Traveler Preferences
 - Interests: ${params.interests.length > 0 ? params.interests.join(", ") : "general sightseeing"}
 ${params.requirements ? `- Special Requirements: ${params.requirements}` : ""}
@@ -557,6 +586,7 @@ export {
   occasionLine,
   routeLine,
   stayLine,
+  travelDaysLine,
   travellersLine,
 };
 export type { BuildPromptOptions };
