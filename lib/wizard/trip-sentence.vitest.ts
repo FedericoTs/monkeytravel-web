@@ -170,6 +170,29 @@ describe("looksLikeRequest", () => {
     }
   });
 
+  // Split at its commas and its "and", each piece looked like a place: "Friday-Sunday", "me", "wife". It was
+  // planned as a trip to "Annapolis Maryland , Friday-Sunday, me and wife".
+  it("is one when a piece says when or who rather than where", () => {
+    for (const request of [
+      "Annapolis Maryland , Friday-Sunday, me and wife",
+      "Lisbon, next weekend",
+      "Paris, my wife and kids",
+      "Roma, venerdì-domenica, io e mia moglie",
+      "Sevilla, fin de semana, mi esposa y yo",
+      "Porto, fim de semana, eu e minha esposa",
+      "Lisbon, this Friday-Sunday",
+      "Roma, questo venerdì",
+      "Sevilla, este sábado",
+    ]) {
+      expect(looksLikeRequest(request), request).toBe(true);
+    }
+    // A place's name with such a word in it is still a place.
+    // Nor a state or a country by its letters.
+    for (const place of ["Friday Harbor", "Santo Domingo, Dominican Republic", "Sunday River, Maine", "Saint-Martin & Anguilla", "Portland, ME", "Detroit, MI", "Chicago, US", "Punta del Este"]) {
+      expect(looksLikeRequest(place), place).toBe(false);
+    }
+  });
+
   it("is one when it holds more than a destination may", () => {
     expect(looksLikeRequest("goa & kerala & pondicherry;")).toBe(true);
     // A list too long for one destination is read as a route.
