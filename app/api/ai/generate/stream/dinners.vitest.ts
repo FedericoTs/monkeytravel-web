@@ -69,7 +69,10 @@ vi.mock("@/lib/gemini", () => ({
   },
 }));
 vi.mock("@/lib/ai/itinerary-text", () => ({ parseStreamedItinerary: (text: string) => JSON.parse(text) }));
-// The closing-day question finds nothing shut; the dinners question names a restaurant near Gion.
+// The closing-day question finds nothing shut; the dinners question names a restaurant near Gion, unless a test
+// moves it.
+const NEAR_GION = { lat: 35.0029, lng: 135.7751 };
+let dinnerAt = NEAR_GION;
 const dinnerQuestions: string[] = [];
 vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/ai/gemini-call")>()),
@@ -79,7 +82,7 @@ vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
         const dinners = question.startsWith("Name one real restaurant for dinner");
         if (dinners) dinnerQuestions.push(question);
         const answer = dinners
-          ? { dinners: [{ n: 1, name: "Gion Nanba", description: "Seasonal kaiseki.", location: "Gion", coordinates: { lat: 35.0029, lng: 135.7751 }, cost_per_person_usd: 80 }] }
+          ? { dinners: [{ n: 1, name: "Gion Nanba", description: "Seasonal kaiseki.", location: "Gion", coordinates: dinnerAt, cost_per_person_usd: 80 }] }
           : { places: [] };
         return { response: { text: () => JSON.stringify(answer), usageMetadata: { promptTokenCount: 80, candidatesTokenCount: 20 } } };
       },
@@ -108,6 +111,7 @@ const complete = async () => {
 beforeEach(() => {
   logged.length = 0;
   dinnerQuestions.length = 0;
+  dinnerAt = NEAR_GION;
   vi.spyOn(console, "log").mockImplementation(() => {});
 });
 
@@ -125,5 +129,13 @@ describe("a plan with a full day left without dinner", () => {
     expect(dinnerQuestions[0]).toContain("None the plan already has: Okonomiyaki Kiraku; Gion Karyo; Vermillion Cafe; Honke Owariya.");
     await vi.waitFor(() => expect(logged.find((row) => row.status === 200)).toBeTruthy());
     expect(logged.find((row) => row.status === 200)?.metadata?.dinners).toEqual({ missing: 1, added: 1 });
+  });
+
+  it("logs why the day still has none when the answer is turned away: here, a restaurant in Osaka", async () => {
+    dinnerAt = { lat: 34.6687, lng: 135.5013 };
+    const days = await complete();
+    expect(days[1]).toEqual(["09:00 Fushimi Inari", "12:30 Vermillion Cafe", "15:00 Gion"]);
+    await vi.waitFor(() => expect(logged.find((row) => row.status === 200)).toBeTruthy());
+    expect(logged.find((row) => row.status === 200)?.metadata?.dinners).toEqual({ missing: 1, added: 0, left: { far: 1 } });
   });
 });

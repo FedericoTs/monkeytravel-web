@@ -386,7 +386,16 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
             }
           : {}),
         // Full days without dinner and restaurants named again on a later day, and how many got one, as the stream logs them.
-        ...(dinnersWanted.length > 0 ? { dinners: { missing: dinnersWanted.length, added: dinners.added } } : {}),
+        ...(dinnersWanted.length > 0
+          ? {
+              dinners: {
+                missing: dinnersWanted.length,
+                added: dinners.added,
+                // Why the days still without one have none (lib/ai/dinners.ts DinnerLeftOut).
+                ...(Object.keys(dinners.left).length > 0 ? { left: dinners.left } : {}),
+              },
+            }
+          : {}),
         ...(repeatsWanted.length > 0 ? { repeated_restaurants: { found: repeatsWanted.length, replaced: repeats.replaced } } : {}),
         // Sights visited again on another day, and how many got another place.
         ...(sightsWanted.length > 0 ? { repeated_sights: { found: sightsWanted.length, replaced: sights.replaced } } : {}),
