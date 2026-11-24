@@ -13,6 +13,7 @@ import { getModelForPurpose } from "@/lib/ai/model-router";
 import { geminiCostUsd } from "@/lib/ai/gemini-cost";
 import { isAdmin } from "@/lib/admin";
 import { logApiCall } from "@/lib/api-gateway";
+import { isProbeSession } from "@/lib/analytics/telemetry-env";
 import { incrementUsage } from "@/lib/usage-limits";
 import { fetchActivityImages } from "@/lib/images/activity";
 import { sanitizeItinerary } from "@/lib/utils/sanitize";
@@ -91,6 +92,10 @@ export async function POST(request: NextRequest) {
   // The wizard's id for this request: the plan is kept under it, for a
   // browser that loses the stream (lib/ai/generation-result.ts).
   const generationId = generationIdOf(request);
+  // A live check's own plan (a tagged probe session) says so in every row it logs, so reads of travellers' plans
+  // leave it out. The cookie is read here: inside the stream the request is no longer at hand.
+  const probe = isProbeSession(request.cookies.get("mt_session_id")?.value);
+  const log = (row: Parameters<typeof logApiCall>[0]) => logApiCall(probe ? { ...row, metadata: { ...row.metadata, probe: true } } : row);
 
   // 1. Pre-flight: parse body and run all checks BEFORE opening the SSE
   //    stream. Failures here can return JSON 4xx/5xx normally (better
@@ -240,7 +245,7 @@ export async function POST(request: NextRequest) {
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err);
           waitUntil(
-            logApiCall({
+            log({
               apiName: "gemini",
               endpoint: "/api/ai/generate/stream",
               status: 500,
@@ -299,7 +304,7 @@ export async function POST(request: NextRequest) {
           // The model answered, so Google billed it: log the failure and
           // its cost (this return used to skip logging altogether).
           waitUntil(
-            logApiCall({
+            log({
               apiName: "gemini",
               endpoint: "/api/ai/generate/stream",
               status: 500,
@@ -479,7 +484,7 @@ export async function POST(request: NextRequest) {
       waitUntil(
         (async () => {
           try {
-            await logApiCall({
+            await log({
               apiName: "gemini",
               endpoint: "/api/ai/generate/stream",
               status: 200,
@@ -592,7 +597,7 @@ export async function POST(request: NextRequest) {
       console.error("[AI Generate Stream] fatal error:", msg);
       // Best-effort log — don't block the error event.
       waitUntil(
-        logApiCall({
+        log({
           apiName: "gemini",
           endpoint: "/api/ai/generate/stream",
           status: 500,

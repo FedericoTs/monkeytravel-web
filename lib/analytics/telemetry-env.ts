@@ -9,6 +9,11 @@
  */
 export const PROBE_SESSION_PREFIX = "e2eprobe-";
 
+/** Whether a session is a tagged probe: a live check of production, never a traveller. */
+export function isProbeSession(sessionId: string | null | undefined): boolean {
+  return (sessionId ?? "").startsWith(PROBE_SESSION_PREFIX);
+}
+
 export function writesTelemetry(sessionId: string | null | undefined): boolean {
-  return process.env.VERCEL_ENV === "production" || (sessionId ?? "").startsWith(PROBE_SESSION_PREFIX);
+  return process.env.VERCEL_ENV === "production" || isProbeSession(sessionId);
 }
