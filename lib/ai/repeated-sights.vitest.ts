@@ -123,7 +123,9 @@ describe("sightQuestion", () => {
     const q = sightQuestion(wanted, { language: "it", taken: ["Man Mo Temple", "Peak Tram"] });
     expect(q).toContain("1. Hong Kong, 2026-12-09 at 14:15, near Bubba Gump (22.27000, 114.15000), instead of Man Mo Temple (landmark)");
     // The places it has come before the visits, and three are asked for each.
-    expect(q.indexOf("It already has these places: Man Mo Temple; Peak Tram.")).toBeLessThan(q.indexOf("1. Hong Kong"));
+    const has = q.indexOf("It already has these places: Man Mo Temple; Peak Tram.");
+    expect(has).toBeGreaterThanOrEqual(0);
+    expect(has).toBeLessThan(q.indexOf("1. Hong Kong"));
     expect(q).toContain("name three other real places to visit instead, best first: none of the places it already has");
     expect(q).toContain("in Italian");
   });
