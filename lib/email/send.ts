@@ -52,6 +52,11 @@ import FinishTripEmail, {
   finishTripSubject,
   type FinishTripEmailProps,
 } from "./templates/FinishTrip";
+import PicksAddedEmail, {
+  picksAddedEmailText,
+  picksAddedSubject,
+  type PicksAddedEmailProps,
+} from "./templates/PicksAdded";
 import ParticipantPlanEmail, {
   participantPlanEmailText,
   participantPlanSubject,
@@ -63,6 +68,7 @@ import { normalizeEmailLocale, type EmailLocale } from "./copy";
 export type EmailTemplate =
   | { id: "invite"; props: InviteEmailProps }
   | { id: "vote_cast"; props: VoteCastEmailProps }
+  | { id: "picks_added"; props: PicksAddedEmailProps }
   | { id: "trip_reminder"; props: TripReminderEmailProps }
   | { id: "trip_followup"; props: TripFollowupEmailProps }
   | { id: "trip_day_digest"; props: TripDayDigestEmailProps }
@@ -182,6 +188,8 @@ export const NOTIFICATION_SETTING_KEY: Record<EmailTemplate["id"], string | null
   invite: null,
   // Vote-cast is collaboration — gated by emailNotifications + collabVotes
   vote_cast: "collabVotes",
+  // Must-dos from someone going: collaboration, the same switch as votes.
+  picks_added: "collabVotes",
   // Pre-trip cascade — gated by emailNotifications + tripReminders. The
   // tripReminders key is already populated at signup
   // (app/auth/callback/route.ts + app/[locale]/(app)/auth/signup/page.tsx);
@@ -220,6 +228,7 @@ export const NOTIFICATION_SETTING_KEY: Record<EmailTemplate["id"], string | null
 const UNSUB_KEY: Record<EmailTemplate["id"], UnsubKey | null> = {
   invite: null, // transactional — recipient may not have an account yet
   vote_cast: "collabVotes",
+  picks_added: "collabVotes",
   trip_reminder: "tripReminders",
   trip_followup: "marketingNotifications",
   trip_day_digest: "tripReminders",
@@ -723,6 +732,12 @@ async function renderTemplate(
         template.props.tripDestination,
         template.props.locale
       );
+      return { html, text, subject };
+    }
+    case "picks_added": {
+      const html = await render(PicksAddedEmail(template.props));
+      const text = picksAddedEmailText(template.props);
+      const subject = picksAddedSubject(template.props.tripDestination, template.props.locale);
       return { html, text, subject };
     }
     case "trip_reminder": {

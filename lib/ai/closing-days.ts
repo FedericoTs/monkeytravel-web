@@ -40,6 +40,7 @@ import {
   shortenedToFit,
   startsApart,
   withStopAt,
+  type RoomRules,
   type TimedStop as DayRoomStop,
 } from "@/lib/trip/day-room";
 
@@ -316,7 +317,12 @@ type TimedStop = WordStop & DayRoomStop;
  * A day takes a moved sight only while it keeps its shape: its daytime sights in the day (a museum pushed to the
  * evening is shut) and its meals near their hours.
  */
-const KEEPS_SHAPE = { keepShape: true };
+const KEEPS_SHAPE: RoomRules = { keepShape: true };
+/**
+ * For a sight the traveller named that nothing else gets to a day it is open: a museum the plan had late may be
+ * pushed on to make room. Better the one they didn't ask for late than the one they did swapped away.
+ */
+const FOR_A_NAMED_SIGHT: RoomRules = { keepShape: true, lateMuseumsMove: true };
 
 /** A stop that may change days to make room: one of the day's sights, not a dated event or a fixed plan. */
 const mayChangeDay = (stop: TimedStop) => isDaytimeSight(stop) && stop.type !== "event" && !(stop as { locked?: boolean }).locked;
@@ -390,6 +396,8 @@ function tradedDays<T extends Day>(
  * better that one swapped for an open place than the one they named. When no
  * slot takes its whole visit, it is cut to the slot it takes, never under an
  * hour or half its visit: a shorter visit to a sight they asked for beats none.
+ * Making room never pushes a museum into the evening, even one the plan had
+ * late in the day, except, last of all, for a sight they named.
  * No trade puts a sight outside the hours its place keeps that day, when the
  * checked list knows them (`hoursOn`). Only
  * the plan's sights are asked about, so a meal never moves. A stop with
@@ -419,15 +427,16 @@ export function moveShutStops<T extends Day>(
         .map((day, i) => ({ day, i }))
         .filter(({ day, i }) => i !== d && day.date !== undefined && !stopShutOn(stop, day.date, closings, shutDates))
         .sort((a, b) => plannedMinutes(a.day) - plannedMinutes(b.day) || Math.abs(a.i - d) - Math.abs(b.i - d));
-      let target: { i: number; into: T; from: T } | null = null;
-      for (const option of options) {
-        // At its own time, or at its place's opening that day when that comes later.
-        const into = withStopAt(option.day, notBefore(stop, hoursOn(stop, option.day.date)?.open), KEEPS_SHAPE);
-        if (into) {
-          target = { i: option.i, into, from: { ...current[d], activities: (current[d].activities ?? []).filter((_, k) => k !== s) } };
-          break;
+      const left = { ...current[d], activities: (current[d].activities ?? []).filter((_, k) => k !== s) };
+      // At its own time, or at its place's opening that day when that comes later, on the first day with room.
+      const putIn = (rules: RoomRules): { i: number; into: T; from: T } | null => {
+        for (const option of options) {
+          const into = withStopAt(option.day, notBefore(stop, hoursOn(stop, option.day.date)?.open), rules);
+          if (into) return { i: option.i, into, from: left };
         }
-      }
+        return null;
+      };
+      let target = putIn(KEEPS_SHAPE);
       const home = current[d];
       for (const option of target ? [] : options) {
         const trade = tradedDays(home, s, option.day, (other) => !named(other) && !stopShutOn(other, home.date, closings, shutDates), { hoursOn });
@@ -447,6 +456,8 @@ export function moveShutStops<T extends Day>(
         }
         if (target) break;
       }
+      // Last, for a sight they named: in at its own time where that only pushes on a museum the plan had late.
+      if (!target && named(stop)) target = putIn(FOR_A_NAMED_SIGHT);
       if (!target) {
         s++;
         continue;
