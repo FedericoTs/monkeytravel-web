@@ -16,6 +16,7 @@ import { createRateLimiter } from "@/lib/api/rate-limit";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { withinAnonDailyLimit } from "@/lib/ai/anon-daily-limit";
 import { assistTrip } from "@/lib/ai/assistant/engine";
+import { readTripFacts } from "@/lib/ai/assistant/trip-facts";
 import { MAX_TRIP_DAYS_MULTI } from "@/lib/ai/assistant/structural";
 import { placeLabel } from "@/lib/ai/assistant/elsewhere";
 import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
@@ -99,6 +100,9 @@ const BodySchema = z.object({
   display: z
     .object({ currency: z.string().regex(/^[A-Z]{3}$/), rate: z.number().positive().max(1_000_000) })
     .optional(),
+  // The planner's answers the plan was made with (who's coming, pace, budget, diet): read by readTripFacts,
+  // which keeps only what each may be, so a stray value never refuses the request.
+  trip: z.unknown().optional(),
 });
 
 const INJECTION_RE =
@@ -196,6 +200,7 @@ export async function POST(request: NextRequest) {
         history: body.history,
         autoApply: body.autoApply,
         display: body.display,
+        facts: readTripFacts(body.trip),
         explainRemovals: true,
         // The wizard plans another place anew when the traveller picks one.
         canPlanElsewhere: true,

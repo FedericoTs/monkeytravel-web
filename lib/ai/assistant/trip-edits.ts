@@ -20,6 +20,7 @@ import { validateAndFixCoordinates } from "@/lib/trip/coordinate-fallback";
 import { applyAssistantEdits } from "@/lib/trips/day-edit-merge";
 import { generateActivityId } from "@/lib/utils/activity-id";
 import type { Activity, ItineraryDay, StructuredAssistantResponse } from "@/types";
+import type { TripFacts } from "./trip-facts";
 
 /** The currency the page shows prices in, when the request names a sane one. */
 export function readDisplayCurrency(raw: unknown): DisplayCurrency | undefined {
@@ -207,6 +208,8 @@ export async function proposeTripEdits(input: {
   waiting?: WaitingChange;
   /** The traveller's own assistant messages, for questions about the assistant itself. */
   allowance?: AssistantAllowance;
+  /** Who the trip is for, from its trip_meta: every edit fits it. */
+  facts?: TripFacts;
 }): Promise<TripEditProposal | null> {
   const { canAddDays, waiting, ...ask } = input;
   const current = input.days.length;
