@@ -6,8 +6,10 @@
  * collaborator and everyone who said they're going, once each, with their
  * role, whether they said they're going, whether they share new expenses,
  * and whether they gave an email or hold an account — never the email
- * itself. `count` is the people who share expenses. Service-role read behind
- * the ownership check; the tables have no policies for this.
+ * itself. `count` is the people who share expenses. `picks` lists the
+ * must-dos people going through the share link added, with who added them
+ * and whether they were fitted in. Service-role read behind the ownership
+ * check; the tables have no policies for this.
  */
 import { NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -15,7 +17,7 @@ import { createClient } from "@/lib/supabase/server";
 import { verifyTripOwnership } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
-import { type OwnerParticipant } from "@/lib/participants/shared";
+import { type OwnerParticipant, type OwnerPicks } from "@/lib/participants/shared";
 import { publicNameOrNull } from "@/lib/profile/public-name";
 import { sharesExpenses, tripRoster } from "@/lib/trips/roster";
 import { isUuid } from "@/lib/utils/uuid";
@@ -52,9 +54,10 @@ export async function GET(_request: NextRequest, context: TripRouteContext) {
       }
     }
 
+    const nameOf = (p: (typeof roster)[number]) => (p.userId ? profileNames.get(p.userId) : undefined) ?? p.name;
     const participants: OwnerParticipant[] = roster.map((p) => ({
       id: p.participant?.id ?? (p.userId as string),
-      display_name: (p.userId ? profileNames.get(p.userId) : undefined) ?? p.name,
+      display_name: nameOf(p),
       role: p.role,
       going: p.going,
       in_split: sharesExpenses(p),
@@ -63,7 +66,21 @@ export async function GET(_request: NextRequest, context: TripRouteContext) {
       joined_at: p.participant?.joinedAt ?? null,
       participant_id: p.participant?.id ?? null,
     }));
-    return apiSuccess({ count: participants.filter((p) => p.in_split).length, participants });
+    // Picks come through the share link only: the public page asks for none.
+    const picks: OwnerPicks[] = roster.flatMap((p) =>
+      p.participant?.picks && p.participant.picksAt && p.participant.source !== "public"
+        ? [
+            {
+              participant_id: p.participant.id,
+              display_name: nameOf(p),
+              picks: p.participant.picks,
+              picks_at: p.participant.picksAt,
+              picks_placed_at: p.participant.picksPlacedAt ?? null,
+            },
+          ]
+        : [],
+    );
+    return apiSuccess({ count: participants.filter((p) => p.in_split).length, participants, picks });
   } catch (err) {
     console.error("[Trip Participants] Unexpected error:", err);
     return errors.internal("Internal server error", "TripParticipants");

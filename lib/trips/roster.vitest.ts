@@ -67,6 +67,38 @@ describe("tripRoster", () => {
     expect(going?.filters).toContainEqual(["is", "left_at", null]);
   });
 
+  it("carries the must-dos someone going added, when they were sent and when they were placed", async () => {
+    const { admin, log } = world(
+      [],
+      [
+        {
+          id: "row-2",
+          participant_cookie_id: "guest-cookie-1",
+          user_id: null,
+          display_name: "Bo",
+          email: null,
+          joined_at: "2026-10-01T11:00:00Z",
+          source: "shared",
+          picks: ["teamLab Planets", "Ichiran ramen"],
+          picks_at: "2026-10-02T09:00:00Z",
+          picks_placed_at: "2026-10-03T08:00:00Z",
+        },
+      ],
+    );
+    const { roster } = await tripRoster(admin, TRIP);
+    expect(roster[1].participant).toEqual({
+      id: "row-2",
+      joinedAt: "2026-10-01T11:00:00Z",
+      hasEmail: false,
+      source: "shared",
+      picks: ["teamLab Planets", "Ichiran ramen"],
+      picksAt: "2026-10-02T09:00:00Z",
+      picksPlacedAt: "2026-10-03T08:00:00Z",
+    });
+    const read = log.find((q: FakeQuery) => q.table === "trip_participants");
+    expect(read?.columns).toContain("picks_placed_at");
+  });
+
   it("returns nobody rather than part of the group when a list can't be read", async () => {
     const { admin } = world([{ user_id: "mate-1", role: "editor" }], [], "trip_participants");
     const { roster, error } = await tripRoster(admin, TRIP);

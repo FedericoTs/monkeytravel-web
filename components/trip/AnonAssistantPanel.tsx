@@ -24,6 +24,7 @@ import { placeLabel, type TripPlace } from "@/lib/ai/assistant/elsewhere";
 import { routeLabel, type RouteStop } from "@/lib/ai/assistant/route";
 import { isModelOutageResponse } from "@/lib/ai/model-outage";
 import type { Activity, ItineraryDay } from "@/types";
+import type { TripFacts } from "@/lib/ai/assistant/trip-facts";
 
 interface AnonEdit {
   day_number: number;
@@ -83,6 +84,12 @@ interface AnonAssistantPanelProps {
    * already there when the panel appears is another plan's, and isn't asked.
    */
   asked?: { id: number; message: string } | null;
+  /**
+   * The planner's answers the plan was made with (who's coming, children's
+   * ages, pace, budget, diet), so an edit keeps to them. The server keeps only
+   * what each may be (lib/ai/assistant/trip-facts.ts).
+   */
+  facts?: { [K in keyof TripFacts]?: unknown };
 }
 
 interface Msg {
@@ -117,6 +124,7 @@ export default function AnonAssistantPanel({
   onRequestSave,
   shareSlot,
   asked,
+  facts,
 }: AnonAssistantPanelProps) {
   const t = useTranslations("trips");
   const tAssistant = useTranslations("common.ai.assistant");
@@ -196,6 +204,8 @@ export default function AnonAssistantPanel({
           autoApply: !!onUndoEdits,
           // So figures in the answer match the prices on the page.
           display: displayCurrencyFor(days, preferences?.preferredCurrency, exchangeRates),
+          // Who the trip is for, so an edit fits them.
+          ...(facts ? { trip: facts } : {}),
         }),
       });
       const data = await res.json().catch(() => ({}));

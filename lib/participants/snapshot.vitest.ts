@@ -39,6 +39,17 @@ describe("participantsSnapshot", () => {
     expect(await me(undefined, null)).toMatchObject({ joined: false });
   });
 
+  it("gives a person their own must-dos, and nobody's to anyone else", async () => {
+    const withPicks = rows.map((r) => (r.id === "p-guest" ? { ...r, picks: ["teamLab Planets", "Ichiran ramen"] } : r));
+    const picked = fakeSupabase(() => ({ data: withPicks, error: null })).client as unknown as SupabaseClient;
+    const forBo = await participantsSnapshot(picked, "trip-1", "phone-cookie", null);
+    expect(forBo.me.picks).toEqual(["teamLab Planets", "Ichiran ramen"]);
+    const forCy = await participantsSnapshot(picked, "trip-1", "shared-cookie", null);
+    expect(forCy.me).not.toHaveProperty("picks");
+    expect(JSON.stringify(forCy)).not.toContain("teamLab");
+    expect(JSON.stringify(forBo.participants)).not.toContain("teamLab");
+  });
+
   it("isn't going here for someone whose row came from the public page, but keeps what they gave", async () => {
     expect(await me("public-cookie", null)).toEqual({ joined: false, display_name: "Pat", has_email: false });
     expect(await me("another-browser", "user-4")).toEqual({ joined: false, display_name: "Dee", has_email: true });

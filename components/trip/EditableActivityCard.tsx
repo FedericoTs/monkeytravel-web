@@ -13,6 +13,7 @@ import { CalendarDays, Pencil, Sparkles, Trash2 } from "lucide-react";
 import TripActionsMenu, { TripActionsMenuItem } from "./TripActionsMenu";
 import MoveToDaySheet, { type MoveToDayOption } from "./MoveToDaySheet";
 import UnverifiedNote from "./UnverifiedNote";
+import PickedByNote from "./PickedByNote";
 import ClosingNote from "./ClosingNote";
 import DurationSelect from "./DurationSelect";
 import { normalizeActivityType } from "@/lib/trip/activity-type";
@@ -402,6 +403,7 @@ function EditableActivityCard({
                   </p>
                 )}
                 <UnverifiedNote activity={activity} />
+                <PickedByNote activity={activity} />
                 <ClosingNote activity={activity} className="text-slate-500" />
 
                 {/* Location */}

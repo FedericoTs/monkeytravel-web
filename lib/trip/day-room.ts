@@ -9,13 +9,21 @@ import { isMealStop } from "@/lib/trip/pace";
 
 export type TimedStop = { name?: string; type?: string; start_time?: string; duration_minutes?: number; time_slot?: string };
 type DayOfStops = { activities?: TimedStop[] };
+/** What a day that takes one more stop is held to (withStopAt). */
+export type RoomRules = {
+  /** Its sights stay in the day and its meals near their hours. */
+  keepShape?: boolean;
+  /** With keepShape: a museum the plan had late in the day may be pushed on, as any evening stop. */
+  lateMuseumsMove?: boolean;
+};
 
 /** The latest a stop may start once the stops after one moved in make room for it. */
 const LATEST_START = 22 * 60;
 /**
  * For a caller that asks (keepShape): the latest a sight planned for the day may start once it is pushed, and the
  * latest it may end. Museums, monuments and markets take their last visitors in the late afternoon and shut by the
- * evening. One the plan already had in the evening (a viewpoint at sunset) isn't held to it.
+ * evening. One the plan already had in the evening (a viewpoint at sunset) isn't held to it, unless it is a museum:
+ * that one stays where the plan had it rather than going later.
  */
 const LATEST_SIGHT_START = 16 * 60 + 30;
 const LATEST_SIGHT_END = 18 * 60;
@@ -23,6 +31,7 @@ const LATEST_SIGHT_END = 18 * 60;
 const EVENING_KIND = /entertain|night|show|shopping|spa|wellness|transport|accommodation|hotel|lodging/i;
 /** A stop that would be shut by the evening: not a meal, and none of the kinds above. */
 const shutByEvening = (stop: TimedStop) => !isMealStop(stop) && !EVENING_KIND.test(stop.type ?? "");
+const isMuseum = (stop: TimedStop) => stop.type === "museum";
 /** From one stop's end to the next one's start, when a day makes room. */
 const BETWEEN_MINUTES = 20;
 /** A stop's length when the plan gives none. */
@@ -84,10 +93,11 @@ export const keepsToTheDay = (stop: TimedStop): boolean => {
  * ahead of it ends, with a short walk between. Past `through`, the first stop
  * that needn't move ends it: the rest of the day stays as the plan had it.
  * Null when a stop would start after the evening, or a dated event would
- * move; with keepShape, also when a daytime sight would start past the late
+ * move; with keepShape, also when a daytime sight, or a museum whatever time
+ * the plan gave it (unless `lateMuseumsMove`), would start past the late
  * afternoon or run into the evening.
  */
-function makeRoom(stops: TimedStop[], at: number, through: number, keepShape: boolean): TimedStop[] | null {
+function makeRoom(stops: TimedStop[], at: number, through: number, { keepShape = false, lateMuseumsMove = false }: RoomRules): TimedStop[] | null {
   const out = [...stops];
   for (let i = Math.max(at, 1); i < out.length; i++) {
     const ahead = out[i - 1];
@@ -101,7 +111,8 @@ function makeRoom(stops: TimedStop[], at: number, through: number, keepShape: bo
     }
     if (earliest > LATEST_START || out[i].type === "event") return null;
     const time = formatMinutesToTime(earliest);
-    if (keepShape && isDaytimeSight(out[i]) && !keepsToTheDay({ ...out[i], start_time: time })) return null;
+    const held = isDaytimeSight(out[i]) || (!lateMuseumsMove && isMuseum(out[i]));
+    if (keepShape && held && !keepsToTheDay({ ...out[i], start_time: time })) return null;
     out[i] = { ...out[i], start_time: time, time_slot: determineTimeSlot(time) };
   }
   return out;
@@ -117,9 +128,11 @@ function makeRoom(stops: TimedStop[], at: number, through: number, keepShape: bo
  * stop after the evening, or move a dated event: the day has no room. With
  * keepShape, a day also has no room when a daytime sight, the stop put in or
  * one it pushes, would start past the late afternoon or run into the evening,
- * when it would be shut, or when a meal would still be well past its hour.
+ * when it would be shut (a museum pushed on, whatever time the plan gave it,
+ * unless `lateMuseumsMove`), or when a meal would still be well past its hour.
  */
-export function withStopAt<T extends DayOfStops>(day: T, stop: TimedStop, { keepShape = false }: { keepShape?: boolean } = {}): T | null {
+export function withStopAt<T extends DayOfStops>(day: T, stop: TimedStop, rules: RoomRules = {}): T | null {
+  const { keepShape = false } = rules;
   let order = [...(day.activities ?? [])];
   const own = minutesOf(stop.start_time);
   const later = order.findIndex((other) => {
@@ -128,7 +141,7 @@ export function withStopAt<T extends DayOfStops>(day: T, stop: TimedStop, { keep
   });
   const at = later === -1 ? order.length : later;
   order.splice(at, 0, stop);
-  let made = makeRoom(order, at, at, keepShape);
+  let made = makeRoom(order, at, at, rules);
   if (!made) return null;
 
   // Where the stop put in is now: a meal that goes ahead of it moves it one place on.
@@ -148,7 +161,7 @@ export function withStopAt<T extends DayOfStops>(day: T, stop: TimedStop, { keep
       const tried = [...order];
       const [meal] = tried.splice(k, 1);
       tried.splice(j, 0, meal);
-      const room = makeRoom(tried, at, k, keepShape);
+      const room = makeRoom(tried, at, k, rules);
       if (!room) break;
       if (lateBy(room, j) <= MEAL_SLACK_MINUTES) {
         order = tried;
