@@ -39,6 +39,7 @@ import { keepOffClosingDays } from "@/lib/ai/closing-days";
 import { keepInsideHours } from "@/lib/ai/visit-hours";
 import { askForDinners, daysWithoutDinner, placesToEat, withDinners } from "@/lib/ai/dinners";
 import { askForReplacements, repeatedRestaurants, withReplacements } from "@/lib/ai/repeated-meals";
+import { askForLunches, daysWithoutLunch, withLunches } from "@/lib/ai/lunches";
 import { swapClosedStops } from "@/lib/ai/closed-swaps";
 import { withoutLongClosures } from "@/lib/ai/long-closures";
 import { askedByName, keepMustDos } from "@/lib/ai/must-dos";
@@ -385,6 +386,10 @@ export async function POST(request: NextRequest) {
       //     for meanwhile too (lib/ai/repeated-meals.ts).
       const repeatsWanted = repeatedRestaurants(finalItinerary.days, params.destination);
       const repeatsAsked = askForReplacements(repeatsWanted, mealOptions);
+      //     A full day left without lunch gets one after a visit of it,
+      //     asked for meanwhile too (lib/ai/lunches.ts).
+      const lunchesWanted = daysWithoutLunch(finalItinerary.days, params.destination);
+      const lunchesAsked = askForLunches(lunchesWanted, mealOptions);
       const openDays = await keepOffClosingDays(
         finalItinerary,
         params.destination,
@@ -397,6 +402,12 @@ export async function POST(request: NextRequest) {
       );
       finalItinerary = openDays.itinerary;
       generationCost += openDays.costUsd;
+      //     The lunches, after the visits they were chosen near, wherever those
+      //     now are: before the hours step, which then sees the day's times.
+      const lunchAnswer = await lunchesAsked;
+      const lunches = withLunches(finalItinerary.days, lunchesWanted, lunchAnswer.answer);
+      finalItinerary = { ...finalItinerary, days: lunches.days };
+      generationCost += lunchAnswer.costUsd;
       // 5b'. Each visit to a place of known hours inside them: a garden that
       //      shuts at four isn't planned from half past two to half past four
       //      (lib/ai/visit-hours.ts).
@@ -519,6 +530,8 @@ export async function POST(request: NextRequest) {
                   : {}),
                 // Full days the plan left without dinner, and how many got one.
                 ...(dinnersWanted.length > 0 ? { dinners: { missing: dinnersWanted.length, added: dinners.added } } : {}),
+                // Full days the plan left without lunch, and how many got one.
+                ...(lunchesWanted.length > 0 ? { lunches: { missing: lunchesWanted.length, added: lunches.added } } : {}),
                 ...(repeatsWanted.length > 0 ? { repeated_restaurants: { found: repeatsWanted.length, replaced: repeats.replaced } } : {}),
                 ...(generationId ? { generation_id: generationId } : {}),
               },

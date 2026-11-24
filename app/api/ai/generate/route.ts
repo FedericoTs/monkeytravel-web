@@ -31,6 +31,7 @@ import { keepOffClosingDays, keepOffClosingDaysByCity } from "@/lib/ai/closing-d
 import { keepInsideHours } from "@/lib/ai/visit-hours";
 import { askForDinners, daysWithoutDinner, placesToEat, withDinners } from "@/lib/ai/dinners";
 import { askForReplacements, repeatedRestaurants, withReplacements } from "@/lib/ai/repeated-meals";
+import { askForLunches, daysWithoutLunch, withLunches } from "@/lib/ai/lunches";
 import { swapClosedStops } from "@/lib/ai/closed-swaps";
 import { withoutLongClosures } from "@/lib/ai/long-closures";
 import { askedByName, keepMustDos } from "@/lib/ai/must-dos";
@@ -241,6 +242,16 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     // trip keeps its order: its commitments fix the days. A must-do keeps a day
     // it is open before a sight nobody asked for does.
     const named = askedByName(params.mustDos);
+    // A full day left without lunch gets one after a visit of it
+    // (lib/ai/lunches.ts), asked for meanwhile and put in before the hours
+    // step below sees the day's times.
+    const lunchesWanted = daysWithoutLunch(itinerary.days, params.destination);
+    const lunchesAsked = askForLunches(lunchesWanted, {
+      budgetTier: params.budgetTier,
+      diets: profilePreferences.dietaryPreferences,
+      language: userLanguage,
+      taken: placesToEat(itinerary.days),
+    });
     const closing = isMultiCity
       ? await keepOffClosingDaysByCity(
           itinerary,
@@ -263,6 +274,8 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
           )
         : null;
     if (closing) itinerary = closing.itinerary;
+    const lunches = withLunches(itinerary.days, lunchesWanted, (await lunchesAsked).answer);
+    itinerary = { ...itinerary, days: lunches.days };
 
     // Each visit to a place of known hours inside them (lib/ai/visit-hours.ts).
     // Visits trade slots within their own day, so a multi-city or anchored
@@ -341,6 +354,8 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         ...(transfers ? { transfers } : {}),
         // The place typed before the route step 1 offered for it was taken.
         ...(routeFrom ? { route_from: routeFrom } : {}),
+        // Full days the plan left without lunch, and how many got one.
+        ...(lunchesWanted.length > 0 ? { lunches: { missing: lunchesWanted.length, added: lunches.added } } : {}),
         // Stops on a day they're shut before and after the closing step, as the stream logs them.
         ...(closing && closing.asked > 0
           ? {
