@@ -9,8 +9,8 @@ import { GENERATION_ID_HEADER, isGenerationId } from "@/lib/ai/generation-id";
  * collects the plan from GET /api/ai/generate/result instead of paying for
  * another generation.
  *
- * Kept in this instance's memory, and in Upstash when it is configured so any
- * instance finds it. Bound to the browser's mt_session_id when it has one.
+ * Kept in Upstash when it is configured, else in this instance's memory (local
+ * dev, tests). Bound to the browser's mt_session_id when it has one.
  */
 
 const TTL_SECONDS = 30 * 60;
@@ -50,41 +50,40 @@ export function generationOwner(request: NextRequest): string | null {
   return request.cookies.get("mt_session_id")?.value || null;
 }
 
-/**
- * Keeps a finished plan under its id: in this instance's memory, and in Upstash for the other instances. The memory
- * copy is what a page coming back to this instance collects when Upstash refuses or is out of its allowance. Never
- * throws: a plan not kept only can't be recovered.
- */
+/** Keeps a finished plan under its id. Never throws: a plan not kept only can't be recovered. */
 export async function keepGeneration(id: string, owner: string | null, result: KeptGeneration): Promise<void> {
   const kept: Kept = { owner, result };
   try {
     const json = JSON.stringify(kept);
     if (json.length > MAX_BYTES) return;
-    const now = Date.now();
-    if (memory.size > 200) {
-      for (const [key, entry] of memory) if (entry.expiresAt <= now) memory.delete(key);
-    }
-    memory.set(keyOf(id), { kept, expiresAt: now + TTL_SECONDS * 1000 });
     if (redis) {
       let timer: ReturnType<typeof setTimeout> | undefined;
       await Promise.race([
         redis.set(keyOf(id), json, { ex: TTL_SECONDS }),
         new Promise((resolve) => (timer = setTimeout(resolve, KEEP_WAIT_MS))),
       ]).finally(() => clearTimeout(timer));
+      return;
     }
+    const now = Date.now();
+    if (memory.size > 200) {
+      for (const [key, entry] of memory) if (entry.expiresAt <= now) memory.delete(key);
+    }
+    memory.set(keyOf(id), { kept, expiresAt: now + TTL_SECONDS * 1000 });
   } catch (err) {
     console.warn("[generation-result] keep failed:", err);
   }
 }
 
-/** The plan kept under this id for this browser, or null: this instance's copy first, then Upstash's. */
+/** The plan kept under this id for this browser, or null. */
 export async function findGeneration(id: string, owner: string | null): Promise<KeptGeneration | null> {
-  const entry = memory.get(keyOf(id));
-  let kept: Kept | null = entry && entry.expiresAt > Date.now() ? entry.kept : null;
+  let kept: Kept | null = null;
   try {
-    if (!kept && redis) {
+    if (redis) {
       const raw = await redis.get<Kept | string>(keyOf(id));
       kept = typeof raw === "string" ? (JSON.parse(raw) as Kept) : raw ?? null;
+    } else {
+      const entry = memory.get(keyOf(id));
+      kept = entry && entry.expiresAt > Date.now() ? entry.kept : null;
     }
   } catch (err) {
     console.warn("[generation-result] find failed:", err);
