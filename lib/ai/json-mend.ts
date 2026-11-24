@@ -5,7 +5,8 @@
  * left before the end of an object or a list (`{"a":1,}`, `[1,]`), a stray
  * character or HTML scrap typed before a value (`"type":="market"`,
  * `"address":amp; "Main"`), a line break or tab typed as it is inside a
- * string, and a name and its value typed inside a list (`["a", "b": 1]`).
+ * string, a name and its value typed inside a list (`["a", "b": 1]`), and a
+ * name typed without its quotes (`$activities: [`).
  * One mend per parse, at the parser's position, so text that parses is
  * never touched. A reply it can't mend throws the parser's first error, and when
  * it mended slips before giving up, the one that stopped it; either carries the
@@ -29,6 +30,12 @@ const MENDS_MAX = 20;
  * out would leave the number as the value.
  */
 const STRAY_BEFORE_VALUE = /^[^"{}[\],:]{1,6}?(?=\s*["{[])/;
+
+/**
+ * A name without its quotes where one is due: a word starting with a letter, at most one stray character before it
+ * (`$activities:`), up to its colon, which is left in place for the value after it.
+ */
+const UNQUOTED_NAME = /^[^\w\s"{}[\],:]?([A-Za-z_]\w*)\s*(?=:)/;
 
 /** How a control character is written inside a JSON string. */
 const ESCAPES: Record<string, string> = { "\n": "\\n", "\r": "\\r", "\t": "\\t" };
@@ -89,6 +96,11 @@ function mendAt(text: string, at: number): string | null {
   if (prev === ":") {
     const stray = STRAY_BEFORE_VALUE.exec(text.slice(at, at + 24));
     if (stray) return `${text.slice(0, at)}${text.slice(at + stray[0].length)}`;
+  }
+  // A name typed without its quotes where one is due, a stray character before it taken out.
+  if (prev === "," || prev === "{") {
+    const name = UNQUOTED_NAME.exec(text.slice(at, at + 64));
+    if (name) return `${text.slice(0, at)}"${name[1]}"${text.slice(at + name[0].length)}`;
   }
   return null;
 }

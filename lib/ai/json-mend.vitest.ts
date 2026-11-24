@@ -43,8 +43,19 @@ describe("mendJson", () => {
     expect(mendJson('{"days":[{"n":1,  }],"x":2}').value).toEqual({ days: [{ n: 1 }], x: 2 });
     // Only a comma: a name left without its colon stays the parser's error.
     expect(() => mendJson('{"a" }')).toThrow(/after property name in JSON at position 5 \(line 1 column 6\)$/);
-    // Nor a name left unquoted.
-    expect(() => mendJson('{"a":1, b:2}')).toThrow(/Expected double-quoted property name/);
+  });
+
+  it("puts back the quotes of a name typed without them, a stray character before it taken out", () => {
+    // Read live: a day's activities named with a dollar and no quotes.
+    const live = '{"theme":"Culture and Urban Neighborhoods",\n      $activities: [\n        {"start_time":"09:00"}]}';
+    expect(mendJson(live)).toEqual({ value: { theme: "Culture and Urban Neighborhoods", activities: [{ start_time: "09:00" }] }, mends: 1 });
+    expect(mendJson('{"a":1, b:2}').value).toEqual({ a: 1, b: 2 });
+    expect(mendJson('{ day_number : 3 }').value).toEqual({ day_number: 3 });
+    // Two stray characters, a name that starts with a digit, or no colon after it: the parser's error, nothing mended.
+    const untouched = /^Expected double-quoted property name in JSON at position 8 \(line 1 column 9\)$/;
+    expect(() => mendJson('{"a":1, $$b:2}')).toThrow(untouched);
+    expect(() => mendJson('{"a":1, 2b:2}')).toThrow(untouched);
+    expect(() => mendJson('{"a":1, b 2}')).toThrow(untouched);
   });
 
   it("takes out a stray character or scrap typed before a value, found by the text the parser quotes", () => {
@@ -113,8 +124,8 @@ describe("mendJson", () => {
     };
     // A number right after a number: no comma it can put back.
     expect(slipNear(caught('{"a":[1 2]}'))).toBe('{"a":[1 ⟪2]}');
-    // A name without its quotes at the start of a line, the line break written as its escape.
-    expect(slipNear(caught('{"a":1,\n      x: 2}'))).toBe('{"a":1,\\n      ⟪x: 2}');
+    // A name that starts with a digit at the start of a line, the line break written as its escape.
+    expect(slipNear(caught('{"a":1,\n      2x: 2}'))).toBe('{"a":1,\\n      ⟪2x: 2}');
     // After the slips it mended, the text as mended, around the one that stopped it.
     expect(slipNear(caught('{"tip":"Try the "best" coffee","address":ოფ Flat 4}'))).toBe('ip":"Try the \\"best\\" coffee","address":⟪ოფ Flat 4}');
     // Forty characters on each side, no more.
