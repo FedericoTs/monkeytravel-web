@@ -428,3 +428,26 @@ describe("a special trip", () => {
     expect(buildUserPrompt(trip())).not.toContain("Occasion:");
   });
 });
+
+describe("a first day high up", () => {
+  const trip = (destination: string): TripCreationParams => ({
+    destination,
+    startDate: "2026-12-29",
+    endDate: "2027-01-01",
+    budgetTier: "balanced",
+    pace: "moderate",
+    vibes: [],
+    interests: [],
+  });
+
+  it("asks a plan for Leh to keep its first day for the height, with the trip's details", () => {
+    const prompt = buildUserPrompt(trip("Leh, Ladakh, India"));
+    expect(prompt).toContain("- Altitude: Leh is about 3,500 m up");
+    expect(prompt.indexOf("Altitude:")).toBeGreaterThan(prompt.indexOf("Travel Pace:"));
+    expect(prompt.indexOf("Altitude:")).toBeLessThan(prompt.indexOf("Traveler Preferences"));
+  });
+
+  it("says nothing of altitude for a place that isn't high", () => {
+    expect(buildUserPrompt(trip("Lisbon, Portugal"))).not.toContain("Altitude:");
+  });
+});

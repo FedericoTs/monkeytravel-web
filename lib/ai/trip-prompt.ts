@@ -3,6 +3,7 @@ import type { SupportedLanguage } from "@/lib/ai/language";
 import type { OutlineDay } from "@/lib/ai/trip-outline";
 import type { KnownPlace } from "@/lib/ai/known-places";
 import { closuresFor, isClosedPlace, longClosuresLine } from "@/lib/ai/long-closures";
+import { altitudeLine } from "@/lib/ai/altitude";
 import { paceBudgetPromptClause } from "@/lib/trip/pace";
 import { ACTIVITY_TYPES } from "@/lib/trip/activity-type";
 import { addIsoDays, tripSpanDays } from "@/lib/dates/iso-date";
@@ -533,6 +534,7 @@ ${knownPlaces.map((p) => `- ${p.name} (${p.type})`).join("\n")}
   const travellers = travellersLine(params);
   const occasion = occasionLine(params);
   const travelDays = travelDaysLine(params);
+  const altitude = altitudeLine(params);
   const daylight = daylightLine(params);
   // What is on there on these dates (lib/ai/whats-on.ts), one line each.
   const whatsOnLines = (params.whatsOn ?? []).map((line) => `- ${line}\n`).join("");
@@ -571,7 +573,7 @@ ${params.mustDos.map((m) => `- ${m}`).join("\n")}
 ${days ? `- ${days}\n` : ""}${route ? `- ${route}\n` : ""}${planned ? `- ${planned}\n` : ""}- Duration: ${duration} days
 - Budget Tier: ${params.budgetTier}
 - Travel Pace: ${params.pace} — ${paceBudgetPromptClause(params.pace)}
-${travellers ? `- ${travellers}\n` : ""}${occasion ? `- ${occasion}\n` : ""}${travelDays ? `- ${travelDays}\n` : ""}${daylight ? `- ${daylight}\n` : ""}${whatsOnLines}${stay ? `- ${stay}\n` : ""}${closed ? `- ${closed}\n` : ""}
+${travellers ? `- ${travellers}\n` : ""}${occasion ? `- ${occasion}\n` : ""}${travelDays ? `- ${travelDays}\n` : ""}${altitude ? `- ${altitude}\n` : ""}${daylight ? `- ${daylight}\n` : ""}${whatsOnLines}${stay ? `- ${stay}\n` : ""}${closed ? `- ${closed}\n` : ""}
 ${travelStyleSection}${vibeSection}${seasonalSection}## Traveler Preferences
 - Interests: ${params.interests.length > 0 ? params.interests.join(", ") : "general sightseeing"}
 ${params.requirements ? `- Special Requirements: ${params.requirements}` : ""}
