@@ -10,6 +10,7 @@ import { getModelForPurpose } from "@/lib/ai/model-router";
 import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import { isAdmin } from "@/lib/admin";
 import { blockedCall, logApiCall } from "@/lib/api-gateway";
+import { isProbeSession } from "@/lib/analytics/telemetry-env";
 import { incrementUsage } from "@/lib/usage-limits";
 import { fetchActivityImages } from "@/lib/images/activity";
 import { sanitizeItinerary } from "@/lib/utils/sanitize";
@@ -59,6 +60,10 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
   // The wizard's id for this request: the plan is kept under it, for a
   // browser that loses the answer (lib/ai/generation-result.ts).
   const generationId = generationIdOf(request);
+  // A live check's own plan (a tagged probe session) says so in every row it logs, so reads of travellers' plans
+  // leave it out.
+  const probe = isProbeSession(request.cookies.get("mt_session_id")?.value);
+  const log = (row: Parameters<typeof logApiCall>[0]) => logApiCall(probe ? { ...row, metadata: { ...row.metadata, probe: true } } : row);
 
   try {
     // Who is asking and with what body: an anonymous visitor over a cap, or a
@@ -132,7 +137,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         apiName: "gemini",
         endpoint: "/api/ai/generate",
         startTime,
-        metadata: { user_id: user?.id ?? "anonymous" },
+        metadata: { user_id: user?.id ?? "anonymous", ...(probe ? { probe: true } : {}) },
         disabled: "AI generation is currently disabled",
       });
     }
@@ -334,7 +339,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     const generationCost = cacheHit ? 0 : geminiCost.usd;
 
     // Log the request using centralized gateway
-    await logApiCall({
+    await log({
       apiName: "gemini",
       endpoint: "/api/ai/generate",
       status: 200,
@@ -458,7 +463,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
 
     // Log error using centralized gateway. Attempts the model answered before
     // the failure (a retried parse error) were billed all the same.
-    await logApiCall({
+    await log({
       apiName: "gemini",
       endpoint: "/api/ai/generate",
       status: 500,
