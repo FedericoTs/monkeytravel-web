@@ -53,6 +53,36 @@ describe("placesAway", () => {
     expect(names(placesAway(trip(), changed, "make day 4 calmer"))).toEqual([["Gamcheon Culture Village"]]);
   });
 
+  // Taipei and Kaohsiung, with a day out to Taichung that the traveller put on day 3 on an earlier turn. Asked
+  // next for photo times on each place, a change would take Taichung's places off it as Kaohsiung's: places 100 km
+  // apart chain into one area from Taichung through Chiayi to Kaohsiung.
+  it("leaves the places a day already had, unless they ask to regroup or name the city they're in", () => {
+    const taiwan = [
+      day(1, "Ximending", [place("Ximending Walking Street", 25.0421, 121.5075), place("Longshan Temple", 25.0372, 121.4999)]),
+      day(2, "Ximending", [place("Jiufen Old Street", 25.1097, 121.8452), place("Shifen Old Street", 25.0485, 121.7756)]),
+      day(3, "Ximending", [place("Taichung Old Station", 24.1371, 120.6852), place("Miyahara", 24.1376, 120.6838), place("Rainbow Village", 24.1335, 120.6098), place("Xitou Monster Village", 23.6747, 120.7966)]),
+      day(4, "Kaohsiung", [place("National Chung Cheng University", 23.5621, 120.4734), place("Kaohsiung National Stadium", 22.7029, 120.2955)]),
+      day(5, "Kaohsiung", [place("Alishan Forest Recreation Area", 23.5104, 120.8049), place("Pier-2 Art Center", 22.6204, 120.2817)]),
+    ];
+    const timed = edit(3, taiwan[2].activities.map((a, i) => ({ ...a, start_time: `${9 + 2 * i}:00` })));
+    expect(placesAway(taiwan, [timed], "include the photo op time to each place and eating time to the restaurant you recommend")).toEqual([]);
+    // A place the change brings to the day is still found.
+    const brought = edit(3, [...timed.activities, place("Pier-2 Art Center", 22.6204, 120.2817)]);
+    expect(names(placesAway(taiwan, [brought], "add photo times"))).toEqual([["Pier-2 Art Center"]]);
+    // Asked to regroup, or about the other city's places, the day's own count too.
+    expect(names(placesAway(taiwan, [timed], "cluster the days by area"))).toEqual([["Taichung Old Station", "Miyahara", "Rainbow Village", "Xitou Monster Village"]]);
+    expect(names(placesAway(taiwan, [timed], "why are Kaohsiung places on day 3?"))).toEqual([["Taichung Old Station", "Miyahara", "Rainbow Village", "Xitou Monster Village"]]);
+    // A place the day had under another wording is the same place.
+    const renamed = edit(3, [{ ...taiwan[2].activities[0], name: "Taichung Old Station photo stop" }, ...taiwan[2].activities.slice(1)]);
+    expect(placesAway(taiwan, [renamed], "add photo times")).toEqual([]);
+    const shorter = edit(3, [...taiwan[2].activities.slice(0, 3), { ...taiwan[2].activities[3], name: "Monster Village" }]);
+    expect(placesAway(taiwan, [shorter], "add photo times")).toEqual([]);
+    // A stop with no name on the day is no trouble.
+    const nameless = taiwan.map((d) => (d.day_number === 3 ? { ...d, activities: [{ start_time: "08:00" } as unknown as Activity, ...d.activities] } : d));
+    expect(placesAway(nameless, [timed], "add photo times")).toEqual([]);
+    expect(withoutPlacesAway(taiwan, [timed], "add photo times")).toEqual({ edits: [timed], away: [] });
+  });
+
   it("finds nothing on a trip to one place, or between cities close together", () => {
     const oneCity = trip().map(({ city: _city, ...d }) => d as ItineraryDay);
     expect(placesAway(oneCity, [edit(4, [GAMCHEON])], "cluster")).toEqual([]);
