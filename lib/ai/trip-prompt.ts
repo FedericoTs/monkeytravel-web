@@ -584,7 +584,9 @@ ${anchorSection}${partSection}Generate the itinerary now, following the system r
 }
 
 export {
+  ARRIVING,
   DIET_LABELS,
+  LEAVING,
   alreadyPlannedLine,
   buildProfilePreferencesSection,
   buildSchedulingPreferencesSection,
