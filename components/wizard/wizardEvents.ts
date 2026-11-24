@@ -78,6 +78,11 @@ export const WIZARD_EVENT_STEPS = [
   "auth_onetap_offered",
   "auth_onetap_signed_in",
   "auth_onetap_failed",
+  // The card that asks a signed-out planner starting a second trip to sign in and keep both: shown, signed in
+  // from it, or "Not now".
+  "keep_both_shown",
+  "keep_both_signed_in",
+  "keep_both_dismissed",
 ] as const;
 
 export type WizardEventStep = (typeof WIZARD_EVENT_STEPS)[number];
