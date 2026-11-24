@@ -37,8 +37,10 @@ export async function generateMetadata({
 
 export default async function TripDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string; locale: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { id, locale } = await params;
   const { supabase, claimedId, verified } = await createClientWithViewer();
@@ -101,8 +103,11 @@ export default async function TripDetailPage({
       // Back here after signing in (it used to land on /trips and lose the trip).
       // The language goes on the login page and the destination stays
       // unprefixed: the login page's router adds the language itself, so a
-      // prefixed redirect became /it/it/trips/<id>, a 404.
-      redirect(`${localePrefix}/auth/login?redirect=${encodeURIComponent(`/trips/${id}`)}`);
+      // prefixed redirect became /it/it/trips/<id>, a 404. A link that opens the
+      // page on a chip (?open=who, the owner's email about must-dos) keeps it.
+      const open = (await searchParams)?.open;
+      const chip = typeof open === "string" && /^[a-z]{1,20}$/.test(open) ? `?open=${open}` : "";
+      redirect(`${localePrefix}/auth/login?redirect=${encodeURIComponent(`/trips/${id}${chip}`)}`);
     }
     // Invited by email and not in yet: the invite is the way in, and it's theirs.
     const inviteToken = await emailedInviteToken(id, user.email);

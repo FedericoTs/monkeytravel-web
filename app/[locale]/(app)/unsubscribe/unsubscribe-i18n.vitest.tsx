@@ -84,7 +84,8 @@ describe("unsubscribe page", () => {
     ["es", "marketingNotifications", "¿Dejar de recibir las novedades y actualizaciones?"],
     ["it", "tripReminders", "Vuoi smettere di ricevere i promemoria di viaggio?"],
     ["it", "all", "Vuoi smettere di ricevere le email di MonkeyTravel?"],
-    ["pt", "collabVotes", "Parar de receber as notificações de votos?"],
+    ["pt", "collabVotes", "Parar de receber os e-mails de votos e imperdíveis?"],
+    ["en", "collabVotes", "Stop receiving emails about votes and must-dos?"],
     ["it", "notAKey", "Vuoi smettere di ricevere queste email?"],
   ] as const)("%s, %s: asks in the page's language", async (locale, key, title) => {
     await renderPage(locale, { k: key });

@@ -352,6 +352,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
                 known: closing.known,
                 shut_before: closing.shutBefore,
                 shut_listed: closing.shutListed,
+                ...(closing.seasonal > 0 ? { seasonal: closing.seasonal } : {}),
                 shut_after: closing.shutAfter,
                 stops_moved: closing.stopsMoved,
                 swapped: closing.swapped,

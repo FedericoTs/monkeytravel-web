@@ -63,12 +63,19 @@ vi.mock("@/lib/gemini", () => ({
 }));
 vi.mock("@/lib/ai/itinerary-text", () => ({ parseStreamedItinerary: (text: string) => JSON.parse(text) }));
 
+// The place the seasonal question (lib/ai/seasonal-closings.ts) names as shut for the trip, when a test sets one.
+let shutForTheSeason: string | null = null;
 // The short question about the plan's places: the museum is shut on Mondays.
 vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/ai/gemini-call")>()),
   genAI: {
     getGenerativeModel: () => ({
       generateContent: async (question: string) => {
+        if (question.includes("can't be visited")) {
+          const line = shutForTheSeason ? question.split("\n").find((one) => one.includes(shutForTheSeason!)) : undefined;
+          const shut = line ? [Number(line.split(".")[0])] : [];
+          return { response: { text: () => JSON.stringify({ shut }), usageMetadata: { promptTokenCount: 40, candidatesTokenCount: 5 } } };
+        }
         const museum = question.split("\n").find((line) => line.includes("Bellas Artes"));
         const places = museum ? [{ n: Number(museum.split(".")[0]), closed: ["Monday"] }] : [];
         return { response: { text: () => JSON.stringify({ places }), usageMetadata: { promptTokenCount: 80, candidatesTokenCount: 20 } } };
@@ -107,6 +114,18 @@ describe("a plan with a sight on the day it shuts", () => {
     expect(logged.find((row) => row.status === 200)?.metadata).toMatchObject({
       closing_days: { asked: 3, known: 0, shut_before: 1, shut_listed: 0, shut_after: 0, stops_moved: 0 },
     });
+    expect(logged.find((row) => row.status === 200)?.metadata?.closing_days).not.toHaveProperty("seasonal");
+  });
+
+  it("logs a stop shut for the season apart from the closing days", async () => {
+    shutForTheSeason = "Plaza de España";
+    try {
+      await complete();
+      await vi.waitFor(() => expect(logged.find((row) => row.status === 200)).toBeTruthy());
+      expect(logged.find((row) => row.status === 200)?.metadata).toMatchObject({ closing_days: { shut_before: 1, seasonal: 1 } });
+    } finally {
+      shutForTheSeason = null;
+    }
   });
 
   it("from the cache, on this request's dates, is ordered the same way", async () => {

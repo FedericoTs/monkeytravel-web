@@ -102,8 +102,8 @@
         "description": "Promemoria quando un viaggio si avvicina e un'anteprima del giorno dopo mentre sei in viaggio."
       },
       "collabVotes": {
-        "label": "Voti sui miei viaggi",
-        "description": "Un'email quando qualcuno vota un'attività in uno dei tuoi viaggi."
+        "label": "Voti e cose da non perdere nei miei viaggi",
+        "description": "Un'email quando qualcuno vota un'attività in uno dei tuoi viaggi, o chi viene aggiunge cosa non vuole perdersi."
       },
       "marketingNotifications": {
         "label": "Novità e aggiornamenti",
@@ -132,6 +132,7 @@
       "template": {
         "invite": "Invito a un viaggio",
         "vote_cast": "Voto su un tuo viaggio",
+        "picks_added": "Cose da non perdere da chi viene",
         "trip_reminder": "Promemoria di viaggio",
         "trip_day_digest": "Programma del giorno dopo",
         "trip_followup": "Dopo il viaggio",
@@ -148,7 +149,7 @@
     "what": {
       "all": "le email di MonkeyTravel",
       "tripReminders": "i promemoria di viaggio",
-      "collabVotes": "le notifiche sui voti",
+      "collabVotes": "le email su voti e cose da non perdere",
       "marketingNotifications": "le novità e gli aggiornamenti",
       "collabProposals": "le email sulle attività proposte",
       "collabComments": "le email sui commenti",

@@ -63,6 +63,7 @@ const STATUS_COLOR: Record<string, string> = {
 const NAMED_TEMPLATES = new Set([
   "invite",
   "vote_cast",
+  "picks_added",
   "trip_reminder",
   "trip_day_digest",
   "trip_followup",
