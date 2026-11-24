@@ -278,6 +278,9 @@ export interface TripMeta {
    * different and the share prompt branches on that distinction.
    */
   trip_intent?: ChosenTripIntent;
+  /** When they arrive on the first day and leave on the last, when they said on step 2. */
+  arrival?: Arrival;
+  departure?: Departure;
   /**
    * Language the itinerary text is written in (Live Trip plan, Phase 1.3).
    * Stamped from the generation language at creation; every route that

@@ -98,6 +98,9 @@ export interface WizardAnswers {
   mustDos: string[];
   dietary: Diet[];
   tripIntent: TripIntent;
+  /** When they arrive on the first day and leave on the last, when they said (step 2). */
+  arrival: Arrival | null;
+  departure: Departure | null;
   flexibleDates: boolean;
   /** Where they're staying, when they said: the plan starts and ends each day near it. */
   stay: TripStay | null;
@@ -116,6 +119,8 @@ export const FRESH_ANSWERS: WizardAnswers = {
   mustDos: [],
   dietary: [],
   tripIntent: "unspecified",
+  arrival: null,
+  departure: null,
   flexibleDates: false,
   stay: null,
 };
@@ -142,6 +147,8 @@ export function keptPlanOf(answers: WizardAnswers, itinerary: GeneratedItinerary
     budgetTier,
     travelStyle,
     ...(isChosenTripIntent(tripIntent) ? { tripIntent } : {}),
+    ...(isArrival(answers.arrival) ? { arrival: answers.arrival } : {}),
+    ...(isDeparture(answers.departure) ? { departure: answers.departure } : {}),
     ...(flexibleDates ? { flexibleDates: true } : {}),
     ...(mustDos.length > 0 ? { mustDos } : {}),
     ...(dietary.length > 0 ? { dietary } : {}),

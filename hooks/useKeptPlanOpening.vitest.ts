@@ -52,6 +52,8 @@ const targets = () => ({
   setTravelStyle: vi.fn(),
   setAnchors: vi.fn(),
   setTripIntent: vi.fn(),
+  setArrival: vi.fn(),
+  setDeparture: vi.fn(),
   setFlexibleDates: vi.fn(),
   setStay: vi.fn(),
   setGeneratedItinerary: vi.fn(),
