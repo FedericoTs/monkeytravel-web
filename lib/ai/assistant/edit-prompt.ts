@@ -18,6 +18,7 @@ import { ACTIVITY_TYPES } from "@/lib/trip/activity-type";
 import { SHORTEST_STOP_MINUTES } from "./edit-validation";
 import { allowanceRule, type AssistantAllowance } from "./allowance";
 import { IDEAS_RULE, turnedDown } from "./ideas-rule";
+import { tripFactsLines, type TripFacts } from "./trip-facts";
 
 // How a reply presents an edit that is still waiting to be saved, per language:
 // the model kept writing "I've added" / "Ho aggiunto" for an unsaved edit, and
@@ -80,6 +81,8 @@ export interface AssistInput {
   explainRemovals?: boolean;
   /** The currency the page shows prices in, when it isn't the plan's own. */
   display?: DisplayCurrency;
+  /** Who the trip is for and how it was planned (trip-facts.ts): every edit fits it. */
+  facts?: TripFacts;
   /**
    * A change the last reply prepared that the traveller hasn't saved yet,
    * which `days` already include: one line per day it changes.
@@ -236,7 +239,7 @@ Trip: ${input.tripTitle}
 Destination: ${input.destination}
 ${lengthLine}
 Currency: ${cur}
-Itinerary:
+${tripFactsLines(input.facts ?? {})}Itinerary:
 ${buildContext(input.days, input.display, input.startDate)}
 ${costLines(costs)}${unsaved}${buildHistory(input.history, input.message)}
 Traveller's new message: "${input.message}"

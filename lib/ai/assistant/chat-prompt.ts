@@ -4,6 +4,7 @@ import type { AssistantMessage } from "@/lib/ai/assistant/thread";
 import { ACTIVITY_TYPES } from "@/lib/trip/activity-type";
 import { allowanceRule, type AssistantAllowance } from "@/lib/ai/assistant/allowance";
 import { IDEAS_RULE } from "@/lib/ai/assistant/ideas-rule";
+import { tripFactsLines, type TripFacts } from "@/lib/ai/assistant/trip-facts";
 import type { ItineraryDay, StructuredAssistantResponse } from "@/types";
 
 /** What the trip assistant's chat model is told about the trip. */
@@ -17,6 +18,8 @@ export interface TripContext {
   itinerary: ItineraryDay[];
   dayCount: number;
   activityCount: number;
+  /** Who the trip is for and how it was planned (trip-facts.ts). */
+  facts?: TripFacts;
 }
 
 /**
@@ -66,6 +69,7 @@ TRIP CONTEXT:
 - Dates: ${tripContext.startDate} to ${tripContext.endDate} (${tripContext.dayCount} days)
 - Activities: ${tripContext.activityCount} planned
 ${tripContext.budget ? `- Budget: ${tripContext.budget.currency} ${tripContext.budget.total}` : ""}
+${tripFactsLines(tripContext.facts ?? {})}
 
 CURRENT ITINERARY:
 ${tripContext.itinerary.map((day) => `Day ${day.day_number}: ${day.activities.map((a) => `${a.name} (${a.type})`).join(", ")}`).join("\n")}
