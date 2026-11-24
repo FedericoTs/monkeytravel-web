@@ -84,7 +84,7 @@ describe("notification settings page", () => {
     expect(await switchNames()).toEqual([
       "Inviami email",
       "Promemoria di viaggio",
-      "Voti sui miei viaggi",
+      "Voti e cose da non perdere nei miei viaggi",
       "Novità e aggiornamenti",
     ]);
     for (const gone of [/weekly digest/i, /proposed activities/i, /comments on activities/i, /invite accepted/i]) {
@@ -101,9 +101,9 @@ describe("notification settings page", () => {
   });
 
   it.each([
-    ["es", esProfile, "Preferencias de notificaciones", ["Enviarme correos", "Recordatorios de viaje", "Votos en mis viajes", "Novedades y actualizaciones"]],
-    ["pt", ptProfile, "Preferências de notificação", ["Receber e-mails", "Lembretes de viagem", "Votos nas minhas viagens", "Novidades e atualizações"]],
-    ["en", enProfile, "Notification preferences", ["Send me emails", "Trip reminders", "Votes on my trips", "News and updates"]],
+    ["es", esProfile, "Preferencias de notificaciones", ["Enviarme correos", "Recordatorios de viaje", "Votos e imprescindibles en mis viajes", "Novedades y actualizaciones"]],
+    ["pt", ptProfile, "Preferências de notificação", ["Receber e-mails", "Lembretes de viagem", "Votos e imperdíveis nas minhas viagens", "Novidades e atualizações"]],
+    ["en", enProfile, "Notification preferences", ["Send me emails", "Trip reminders", "Votes and must-dos on my trips", "News and updates"]],
   ])("in %s", async (locale, profile, heading, switches) => {
     renderPage(locale, profile);
     expect(await screen.findByRole("heading", { name: heading })).toBeTruthy();
@@ -133,7 +133,7 @@ describe("notification settings page", () => {
   it("with the master switch off, the others can't be changed", async () => {
     renderPage("en", enProfile);
     fireEvent.click(await screen.findByRole("switch", { name: "Send me emails" }));
-    for (const name of ["Trip reminders", "Votes on my trips", "News and updates"]) {
+    for (const name of ["Trip reminders", "Votes and must-dos on my trips", "News and updates"]) {
       expect((screen.getByRole("switch", { name }) as HTMLButtonElement).disabled).toBe(true);
     }
   });

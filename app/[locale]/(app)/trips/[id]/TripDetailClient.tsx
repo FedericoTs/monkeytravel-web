@@ -256,6 +256,8 @@ export default function TripDetailClient({
   // Check for share query param (used to auto-open share modal after trip save)
   const searchParams = useSearchParams();
   const shareParam = searchParams.get("share");
+  // The chip a link opens the page on: the owner's email about must-dos sends ?open=who.
+  const openParam = searchParams.get("open");
   const shouldAutoOpenShareModal = shareParam === "invite";
 
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
@@ -1122,7 +1124,7 @@ export default function TripDetailClient({
       >
         {/* The plan comes first: what sits beside it is a row of chips. On a phone the gaps
             above the days are a little tighter, so the first stop clears the tab bar. */}
-        <TripStrip label={tCommon("tripStrip.label")} items={stripItems} className="mb-4 sm:mb-6" />
+        <TripStrip label={tCommon("tripStrip.label")} items={stripItems} initialOpen={openParam} className="mb-4 sm:mb-6" />
         {/* Backpacker Mode — Hostelworld CTA. Renders only when the
             trip was generated as backpacker (trip_meta.travel_style).
             Placed near the top of the page, because that's the surface
