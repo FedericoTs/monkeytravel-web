@@ -235,10 +235,27 @@ function vibeFit(place: Place, vibes: TripVibe[]): number {
   return fit / weights;
 }
 
+type Arrival = NonNullable<TripCreationParams["arrival"]>["when"];
+type Departure = NonNullable<TripCreationParams["departure"]>["when"];
+/** How much of the first day they're there for, by when they arrive (lib/ai/trip-prompt.ts plans that day). */
+const ARRIVAL_SHARE: Record<Arrival, number> = { morning: 0.75, afternoon: 0.3, evening: 0, night: 0 };
+/** How much of the last day they're there for, by when they leave. */
+const DEPARTURE_SHARE: Record<Departure, number> = { morning: 0, afternoon: 0.4, evening: 0.7 };
+
+/**
+ * The days they're there to see places: the first or last day counts for the part of it they're there, when they said
+ * when they arrive or leave. Offered places for whole days, a plan puts the ones that don't fit on the day they leave.
+ */
+function daysThere({ arrival, departure, startDate, endDate }: TripCreationParams, totalDays: number): number {
+  const first = arrival && arrival.date === startDate ? 1 - ARRIVAL_SHARE[arrival.when] : 0;
+  const last = departure && departure.date === endDate ? 1 - DEPARTURE_SHARE[departure.when] : 0;
+  return totalDays - first - last;
+}
+
 /**
  * The known places for this trip, best first: those that suit its vibes,
  * budget and style, none it already asks for by name, about half of what its
- * pace fills the days with, and at most one known meal a day.
+ * pace fills the days they're there with, and at most one known meal a day.
  */
 export function pickKnownPlaces(rows: KnownPlaceRow[], params: TripCreationParams, totalDays: number): KnownPlace[] {
   const vibes = params.vibes ?? [];
@@ -247,7 +264,7 @@ export function pickKnownPlaces(rows: KnownPlaceRow[], params: TripCreationParam
 
   // The pace's sights and activities a day, and about one meal: meals are limited apart below.
   const perDay = PACE_BUDGETS[normalizePace(params.pace)].targetActivities + 1;
-  let limit = Math.min(MAX_PLACES, Math.max(4, Math.round(totalDays * perDay * 0.5)));
+  let limit = Math.min(MAX_PLACES, Math.max(4, Math.round(daysThere(params, totalDays) * perDay * 0.5)));
   if (vibes.includes("offbeat")) limit = Math.round(limit / 2);
   // Places to eat were kept whatever the traveller ate, so a trip with a diet is offered none.
   const mealLimit = params.profilePreferences?.dietaryPreferences?.length
