@@ -135,6 +135,35 @@ describe("withStopAt", () => {
       const untilFive = { activities: [stop("Fort", "landmark", "08:00", 520)] };
       expect(timed(withStopAt(untilFive, stop("Museum", "museum", "10:00", 60)))).toEqual(["08:00 Fort", "17:00 Museum"]);
     });
+
+    it("never pushes on a museum the plan had late in the day, but leaves it where it is", () => {
+      const day = {
+        activities: [
+          stop("The Anchor Bankside", "restaurant", "13:30", 90),
+          stop("Royal Observatory Greenwich", "museum", "16:45", 60),
+          stop("The Grapes", "restaurant", "19:30", 120),
+        ],
+      };
+      // Two and a half hours from twenty past three would start the Observatory at ten past six, after it shuts.
+      const va = stop("Victoria and Albert Museum", "museum", "15:20", 150);
+      expect(withStopAt(day, va, DAYTIME)).toBeNull();
+      // Not even five minutes on.
+      expect(withStopAt(day, stop("Borough Market", "market", "15:20", 70), DAYTIME)).toBeNull();
+      // A stop that leaves it in place is fine: its time is the plan's to give.
+      expect(timed(withStopAt(day, stop("Borough Market", "market", "15:20", 60), DAYTIME))).toEqual([
+        "13:30 The Anchor Bankside",
+        "15:20 Borough Market",
+        "16:45 Royal Observatory Greenwich",
+        "19:30 The Grapes",
+      ]);
+      // Unasked, it is pushed as before.
+      expect(timed(withStopAt(day, va))).toEqual([
+        "13:30 The Anchor Bankside",
+        "15:20 Victoria and Albert Museum",
+        "18:10 Royal Observatory Greenwich",
+        "19:30 The Grapes",
+      ]);
+    });
   });
 
   it("goes ahead of as few stops as it takes", () => {
