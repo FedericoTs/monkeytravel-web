@@ -65,5 +65,5 @@ export function tripFactsLines(facts: TripFacts): string {
       : "",
   ].filter(Boolean);
   if (lines.length === 0) return "";
-  return `Who the trip is for, as it was planned (every day you change or add must fit it):\n${lines.map((l) => `- ${l}`).join("\n")}\n`;
+  return `Who the trip is for, as it was planned (every day you change or add must fit it, unless the traveller asks for something else):\n${lines.map((l) => `- ${l}`).join("\n")}\n`;
 }
