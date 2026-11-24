@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
 import { getAllFrontmatter } from "@/lib/blog/api";
 import { blogFeedResponse, type FeedLocale } from "./feed";
