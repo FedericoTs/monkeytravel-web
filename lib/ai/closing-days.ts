@@ -40,10 +40,12 @@ import {
   plannedMinutes,
   shortenedToFit,
   startsApart,
+  withRoomClearedFor,
   withStopAt,
   type RoomRules,
   type TimedStop as DayRoomStop,
 } from "@/lib/trip/day-room";
+import { isMealStop } from "@/lib/trip/pace";
 
 export const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
 export type Weekday = (typeof WEEKDAYS)[number];
@@ -328,6 +330,10 @@ const FOR_A_NAMED_SIGHT: RoomRules = { keepShape: true, lateMuseumsMove: true };
 /** A stop that may change days to make room: one of the day's sights, not a dated event or a fixed plan. */
 const mayChangeDay = (stop: TimedStop) => isDaytimeSight(stop) && stop.type !== "event" && !(stop as { locked?: boolean }).locked;
 
+/** A stop that may make way for a sight the traveller named: never a meal, a dated event, a fixed plan or the journey. */
+const mayGiveWay = (stop: TimedStop) =>
+  !isMealStop(stop) && stop.type !== "event" && !(stop as { locked?: boolean }).locked && !/transport|accommodation|hotel|lodging/i.test(stop.type ?? "");
+
 /** No stop was named by the traveller. */
 const NONE_NAMED = () => false;
 
@@ -459,6 +465,14 @@ export function moveShutStops<T extends Day>(
       }
       // Last, for a sight they named: in at its own time where that only pushes on a museum the plan had late.
       if (!target && named(stop)) target = putIn(FOR_A_NAMED_SIGHT);
+      // Last of all, for a sight they named: the room the stops nobody asked for take on a day it is open.
+      for (const option of target || !named(stop) ? [] : options) {
+        const into = withRoomClearedFor(option.day, stop, (other) => !named(other) && mayGiveWay(other), hoursOn(stop, option.day.date));
+        if (into) {
+          target = { i: option.i, into, from: left };
+          break;
+        }
+      }
       if (!target) {
         s++;
         continue;
@@ -564,7 +578,8 @@ async function settleDays<D extends Day>(
   const words = moves.length > 0 ? await reword(ordered, moves, destination) : { days: ordered, costUsd: 0, reworded: 0 };
   // A trade keeps each sight inside the hours the checked list knows for it, in this city.
   const stops = moveShutStops(words.days, closings, shutDates, named, (stop, date) => (date ? knownHoursFor(stop.name, destination, date) : null));
-  const stuck = swap ? stopsStillShut(stops.days, closings, shutDates) : [];
+  // A sight they named is never swapped for another: still shut, it keeps its day and its closed note.
+  const stuck = swap ? stopsStillShut(stops.days, closings, shutDates).filter((s) => !named?.({ name: s.name })) : [];
   const swaps = swap && stuck.length > 0 ? await swap(stops.days, stuck) : { days: stops.days, swapped: 0, costUsd: 0 };
   return { days: swaps.days as D[], costUsd: words.costUsd + swaps.costUsd, reworded: words.reworded, stopsMoved: stops.moved, swapped: swaps.swapped };
 }

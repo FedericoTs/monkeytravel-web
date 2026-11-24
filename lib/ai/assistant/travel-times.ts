@@ -26,7 +26,7 @@ const TRAVEL_MARGIN: Record<string, { after: number; before: number }> = {
   car: { after: 30, before: 30 },
 };
 // The journey itself: getting from the airport, checking in, getting there.
-const JOURNEY =
+export const JOURNEY =
   /(?<![\p{L}])(?:airports?|aeropuertos?|aeroport[oi]s?|aéroport|transfers?|traslados?|trasferiment[oi]|translados?|arrival|arrive|arriving|arriv[oi]|llegadas?|chegadas?|departure|depart|departing|salidas?|partenz[ae]|partidas?|check[\s-]?(?:in|out)|flights?|vuelos?|vol[oi]|voos?|stations?|estaci[oó]n|stazion[ei]|esta[cç][aã]o|luggage|baggage|equipaje|bagagli|bagagem)(?![\p{L}])/iu;
 /** Slack before a time counts as outside it. */
 const TRAVEL_SLACK = 15;

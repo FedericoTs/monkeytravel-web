@@ -54,11 +54,16 @@ if (UPSTASH_URL && UPSTASH_TOKEN) {
  * @param namespace - Unique name for the rate limit bucket (e.g. "subscribe")
  * @param limit - Max requests per window
  * @param windowMs - Time window in milliseconds (default: 60s)
+ * @param options.shared - false counts on each instance only and never calls
+ *   Redis: for high-volume writes such as analytics pings, where a count per
+ *   instance is enough and Redis's monthly command allowance is kept for the
+ *   limits that guard spend and for the plans kept for recovery.
  */
 export function createRateLimiter(
   namespace: string,
   limit: number,
-  windowMs = 60_000
+  windowMs = 60_000,
+  { shared = true }: { shared?: boolean } = {}
 ) {
   if (!stores.has(namespace)) {
     stores.set(namespace, new Map());
@@ -66,7 +71,7 @@ export function createRateLimiter(
   const store = stores.get(namespace)!;
 
   const checkKey = async (bucketKey: string): Promise<{ allowed: boolean; remaining: number }> => {
-    if (redis) {
+    if (redis && shared) {
       try {
         return await checkRedis(redis, namespace, bucketKey, limit, windowMs);
       } catch (err) {

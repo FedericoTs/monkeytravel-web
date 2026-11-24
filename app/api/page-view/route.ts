@@ -31,9 +31,10 @@ import { logWriteError } from "@/lib/supabase/log-write-error";
 export const runtime = "nodejs";
 
 // A person navigates a few times a minute at most; the IP bucket is what
-// caps a cookie-rotating script.
-const ipLimiter = createRateLimiter("page-view-ip", 240, 60 * 1000);
-const sessionLimiter = createRateLimiter("page-view-session", 60, 60 * 1000);
+// caps a cookie-rotating script. Counted on each instance, not in Redis: these
+// come with every page, and a count per instance still stops a flood.
+const ipLimiter = createRateLimiter("page-view-ip", 240, 60 * 1000, { shared: false });
+const sessionLimiter = createRateLimiter("page-view-session", 60, 60 * 1000, { shared: false });
 
 /**
  * Pathname only, never a query string, and never a protocol-relative "//"

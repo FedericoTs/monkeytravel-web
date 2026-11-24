@@ -24,9 +24,11 @@ export const runtime = "nodejs";
 // One engagement per session is the whole point, so these are generous only to
 // absorb retries and multi-tab noise. The IP bucket is the one that matters:
 // it caps a cookie-rotating caller, which is exactly the traffic this exists
-// to exclude. Same composite shape as /api/wizard-event and /api/funnel-event.
-const ipLimiter = createRateLimiter("page-engaged-ip", 120, 60 * 1000);
-const sessionLimiter = createRateLimiter("page-engaged-session", 10, 60 * 1000);
+// to exclude. Same composite shape as /api/wizard-event and /api/funnel-event,
+// but counted on each instance, not in Redis: these come with every page, and
+// a count per instance still stops a flood.
+const ipLimiter = createRateLimiter("page-engaged-ip", 120, 60 * 1000, { shared: false });
+const sessionLimiter = createRateLimiter("page-engaged-session", 10, 60 * 1000, { shared: false });
 
 export async function POST(request: NextRequest) {
   const sessionId = request.cookies.get("mt_session_id")?.value;

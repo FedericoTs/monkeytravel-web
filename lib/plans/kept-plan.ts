@@ -13,7 +13,7 @@ import { isIsoDate } from "@/lib/trips/anonymous-share";
 import { MAX_TRIP_DAYS_MULTI, MUST_DOS_MAX, MUST_DO_MAX_LENGTH, VIBES_MAX } from "@/lib/trips/request-limits";
 import { dietsFrom, type Diet } from "@/lib/trips/diet";
 import { readStay } from "@/lib/trips/stay";
-import { isChosenTripIntent, type ChosenTripIntent } from "@/lib/wizard/answers";
+import { isArrival, isChosenTripIntent, isDeparture, type Arrival, type ChosenTripIntent, type Departure } from "@/lib/wizard/answers";
 
 
 export interface KeptPlan {
@@ -26,6 +26,9 @@ export interface KeptPlan {
   budgetTier?: BudgetTier;
   travelStyle?: "classic" | "backpacker";
   tripIntent?: ChosenTripIntent;
+  /** When they arrive on the first day and leave on the last, when they said. */
+  arrival?: Arrival;
+  departure?: Departure;
   flexibleDates?: boolean;
   mustDos?: string[];
   dietary?: Diet[];
@@ -134,6 +137,8 @@ export function parseKeptPlan(input: unknown): KeptPlan | null {
     ...(budgetTier ? { budgetTier } : {}),
     ...(input.travelStyle === "backpacker" || input.travelStyle === "classic" ? { travelStyle: input.travelStyle } : {}),
     ...(isChosenTripIntent(input.tripIntent) ? { tripIntent: input.tripIntent } : {}),
+    ...(isArrival(input.arrival) ? { arrival: input.arrival } : {}),
+    ...(isDeparture(input.departure) ? { departure: input.departure } : {}),
     ...(input.flexibleDates === true ? { flexibleDates: true } : {}),
     ...(mustDos?.length ? { mustDos } : {}),
     ...(dietary.length ? { dietary } : {}),

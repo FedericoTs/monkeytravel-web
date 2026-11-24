@@ -39,12 +39,14 @@ import { keepOffClosingDays } from "@/lib/ai/closing-days";
 import { keepInsideHours } from "@/lib/ai/visit-hours";
 import { askForDinners, daysWithoutDinner, placesToEat, withDinners } from "@/lib/ai/dinners";
 import { askForReplacements, repeatedRestaurants, withReplacements } from "@/lib/ai/repeated-meals";
+import { askForSights, repeatedSights, sightNames, withSightReplacements } from "@/lib/ai/repeated-sights";
 import { askForLunches, daysWithoutLunch, withLunches } from "@/lib/ai/lunches";
 import { swapClosedStops } from "@/lib/ai/closed-swaps";
 import { withoutLongClosures } from "@/lib/ai/long-closures";
 import { askedByName, keepMustDos } from "@/lib/ai/must-dos";
 import { keepNamesInOneScript } from "@/lib/ai/one-script-names";
 import { tripSpanDays } from "@/lib/dates/iso-date";
+import { travelDaysFit } from "@/lib/ai/travel-days";
 import { isModelOutOfCredit, MODEL_OUTAGE_MESSAGE } from "@/lib/ai/model-outage";
 
 // Allow the function to run long enough for slow generations. Vercel
@@ -386,6 +388,10 @@ export async function POST(request: NextRequest) {
       //     for meanwhile too (lib/ai/repeated-meals.ts).
       const repeatsWanted = repeatedRestaurants(finalItinerary.days, params.destination);
       const repeatsAsked = askForReplacements(repeatsWanted, mealOptions);
+      //     A sight visited again on another day gets another of its kind,
+      //     asked for meanwhile too (lib/ai/repeated-sights.ts).
+      const sightsWanted = repeatedSights(finalItinerary.days, params.destination, askedByName(params.mustDos));
+      const sightsAsked = askForSights(sightsWanted, { language: userLanguage, taken: sightNames(finalItinerary.days) });
       //     A full day left without lunch gets one after a visit of it,
       //     asked for meanwhile too (lib/ai/lunches.ts).
       const lunchesWanted = daysWithoutLunch(finalItinerary.days, params.destination);
@@ -423,6 +429,11 @@ export async function POST(request: NextRequest) {
       const repeats = withReplacements(finalItinerary.days, repeatsWanted, repeatAnswer.answer);
       finalItinerary = { ...finalItinerary, days: repeats.days };
       generationCost += repeatAnswer.costUsd;
+      // 5b''''. And each repeated sight's replacement, in its place.
+      const sightAnswer = await sightsAsked;
+      const sights = withSightReplacements(finalItinerary.days, sightsWanted, sightAnswer.answer);
+      finalItinerary = { ...finalItinerary, days: sights.days };
+      generationCost += sightAnswer.costUsd;
       if (!cacheHit) {
         try {
           // Zero Google at generation: Wikimedia photos and type-relevant stock
@@ -496,6 +507,8 @@ export async function POST(request: NextRequest) {
                   : {}),
                 // Must-dos the plan held nowhere, and how many of them went in.
                 ...(mustDosIn.missing > 0 ? { must_dos: { missing: mustDosIn.missing, added: mustDosIn.added } } : {}),
+                // When they arrive and leave, and the stops planned before they're there or after they've gone.
+                ...(params.arrival || params.departure ? { travel_days: travelDaysFit(sanitized.days, params) } : {}),
                 ...(namesIn.glued > 0 ? { names: { glued: namesIn.glued, renamed: namesIn.renamed } } : {}),
                 ...(longClosed.removed > 0 ? { long_closures_removed: longClosed.removed } : {}),
                 // Stops on a day they're shut, before and after the days were ordered, and stops moved on their own.
@@ -533,6 +546,7 @@ export async function POST(request: NextRequest) {
                 // Full days the plan left without lunch, and how many got one.
                 ...(lunchesWanted.length > 0 ? { lunches: { missing: lunchesWanted.length, added: lunches.added } } : {}),
                 ...(repeatsWanted.length > 0 ? { repeated_restaurants: { found: repeatsWanted.length, replaced: repeats.replaced } } : {}),
+                ...(sightsWanted.length > 0 ? { repeated_sights: { found: sightsWanted.length, replaced: sights.replaced } } : {}),
                 ...(generationId ? { generation_id: generationId } : {}),
               },
             });

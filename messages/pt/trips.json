@@ -268,6 +268,24 @@
         "hint": "Diga os lugares ou pratos exatos: vamos encaixar cada um no dia certo.",
         "placeholder": "ex.: Muralha da China, pato de Pequim — pressione Enter para adicionar",
         "remove": "Remover {item}"
+      },
+      "travelDays": {
+        "title": "Seu primeiro e último dia",
+        "hint": "O dia 1 começa quando você chega, e o último termina quando você vai embora.",
+        "arriving": "Chegada",
+        "leaving": "Partida",
+        "anyTime": "Qualquer horário",
+        "arrive": {
+          "morning": "De manhã",
+          "afternoon": "À tarde",
+          "evening": "À noite",
+          "night": "Tarde da noite"
+        },
+        "depart": {
+          "morning": "De manhã",
+          "afternoon": "À tarde",
+          "evening": "À noite"
+        }
       }
     },
     "step3": {

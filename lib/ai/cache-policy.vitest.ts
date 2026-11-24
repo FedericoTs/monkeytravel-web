@@ -21,6 +21,11 @@ describe("cachePolicy", () => {
     expect(cachePolicy(trip({ mustDos: [], profilePreferences: { dietaryPreferences: [] } }), false, 3).tailored).toBe(false);
   });
 
+  it("counts a plan for when they arrive or leave as tailored", () => {
+    expect(cachePolicy(trip({ arrival: { when: "evening", date: "2026-11-01" } }), false, 3).tailored).toBe(true);
+    expect(cachePolicy(trip({ departure: { when: "morning", date: "2026-11-03" } }), false, 3).tailored).toBe(true);
+  });
+
   it("counts a special trip as tailored", () => {
     expect(cachePolicy(trip({ occasion: { kind: "birthday", date: "2026-11-02" } }), false, 3).tailored).toBe(true);
   });

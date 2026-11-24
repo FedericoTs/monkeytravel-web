@@ -22,6 +22,11 @@ describe("readTripFacts", () => {
     expect(readTripFacts({ tripIntent: "couple", childrenAges: ["teen"] })).toEqual({ tripIntent: "couple" });
     expect(readTripFacts({ childrenAges: ["teen"] })).toEqual({});
   });
+
+  it("keeps when they arrive and leave, as the planner asks them", () => {
+    expect(readTripFacts({ arrival: "evening", departure: "morning" })).toEqual({ arrival: "evening", departure: "morning" });
+    expect(readTripFacts({ arrival: "dawn", departure: "night" })).toEqual({});
+  });
 });
 
 describe("tripFactsFromMeta (a saved trip)", () => {
@@ -29,6 +34,10 @@ describe("tripFactsFromMeta (a saved trip)", () => {
     expect(
       tripFactsFromMeta({ trip_intent: "family", children_ages: ["3to6"], pace: "active", budget_tier: "budget", dietary: ["halal"] }, null),
     ).toEqual({ tripIntent: "family", childrenAges: ["3to6"], pace: "active", budgetTier: "budget", dietary: ["halal"] });
+  });
+
+  it("reads when they arrive and leave", () => {
+    expect(tripFactsFromMeta({ arrival: "afternoon", departure: "evening" }, null)).toEqual({ arrival: "afternoon", departure: "evening" });
   });
 
   it("takes the budget from the budget column when the meta has none, and nothing from an empty trip", () => {
@@ -58,6 +67,18 @@ describe("tripFactsLines", () => {
     expect(couple).not.toContain("Pace");
     expect(couple).not.toContain("Diet");
     expect(tripFactsLines({ dietary: ["kosher"] })).not.toContain("Travellers");
+  });
+
+  it("says when they arrive and leave in the planner's fixed words", () => {
+    const text = tripFactsLines({ arrival: "evening", departure: "morning" });
+    expect(text).toContain("every day you change or add must fit it, unless the traveller asks for something else");
+    expect(text).toContain("- They arrive on day 1 in the evening: plan only dinner that day, from about 19:30, close to where they're staying.\n");
+    expect(text).toContain(
+      "- They leave on the last day in the morning: plan only breakfast and the way to the airport or station that day, nothing after about 09:30.\n"
+    );
+    expect(tripFactsLines({ arrival: "night" })).toContain("They arrive on day 1 late at night");
+    expect(tripFactsLines({ arrival: "night" })).not.toContain("They leave");
+    expect(tripFactsLines({ departure: "afternoon" })).not.toContain("They arrive");
   });
 
   it("is nothing for a trip it knows nothing about", () => {

@@ -180,5 +180,51 @@ export function withStopAt<T extends DayOfStops>(day: T, stop: TimedStop, rules:
 }
 
 /** The time a day's stops take, a stop with no length counted as an hour and a half. */
+/**
+ * For a sight the traveller named that has nowhere else to go: `day` with the stop in the first gap that holds its
+ * visit, or an hour and half of it at least, inside its place's `hours` when known, in by the late afternoon and over
+ * by the evening, once the stops `mayGo` allows have made way where they stand in it. The ones they didn't ask for give
+ * way to the one they did. Null when no gap can be made.
+ */
+export function withRoomClearedFor<T extends DayOfStops>(
+  day: T,
+  stop: TimedStop,
+  mayGo: (other: TimedStop) => boolean,
+  hours?: { open: number; close: number; lastEntry?: number } | null
+): T | null {
+  const length = stop.duration_minutes || DEFAULT_MINUTES;
+  const shortest = Math.max(SHORTEST_MINUTES, length / 2);
+  const stops = (day.activities ?? []) as TimedStop[];
+  const spanOf = (other: TimedStop): [number, number] | null => {
+    const start = minutesOf(other.start_time);
+    return start === null ? null : [start, start + (other.duration_minutes || DEFAULT_MINUTES)];
+  };
+  const fixed = stops.filter((other) => !mayGo(other)).map(spanOf).filter((span): span is [number, number] => span !== null);
+  const earliest = hours?.open ?? minutesOf(stop.start_time) ?? 9 * 60;
+  const latestStart = Math.min(LATEST_SIGHT_START, hours?.lastEntry ?? LATEST_SIGHT_START);
+  const latestEnd = Math.min(LATEST_SIGHT_END, hours?.close ?? LATEST_SIGHT_END);
+  const starts = [earliest, ...fixed.map(([, end]) => end + BETWEEN_MINUTES)]
+    .filter((start) => start >= earliest && start <= latestStart)
+    .sort((a, b) => a - b);
+  for (const start of starts) {
+    // Not inside a stop that stays, nor too close after it.
+    if (fixed.some(([from, to]) => from < start + BETWEEN_MINUTES && to + BETWEEN_MINUTES > start)) continue;
+    const next = Math.min(...fixed.map(([from]) => from).filter((from) => from >= start), Infinity);
+    const room = Math.floor((Math.min(latestEnd, next - BETWEEN_MINUTES) - start) / 5) * 5;
+    const minutes = room >= length ? length : room >= shortest ? room : null;
+    if (minutes === null) continue;
+    const time = formatMinutesToTime(start);
+    const put = { ...stop, start_time: time, time_slot: determineTimeSlot(time), duration_minutes: minutes };
+    const kept = stops.filter((other) => {
+      if (!mayGo(other)) return true;
+      const span = spanOf(other);
+      return span === null || span[1] + BETWEEN_MINUTES <= start || span[0] >= start + minutes + BETWEEN_MINUTES;
+    });
+    const order = [...kept, put].sort((a, b) => (minutesOf(a.start_time) ?? 24 * 60) - (minutesOf(b.start_time) ?? 24 * 60));
+    return { ...day, activities: order as T["activities"] };
+  }
+  return null;
+}
+
 export const plannedMinutes = (day: DayOfStops) =>
   (day.activities ?? []).reduce((sum, stop) => sum + (stop.duration_minutes || DEFAULT_MINUTES), 0);
