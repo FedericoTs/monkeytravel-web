@@ -19,6 +19,14 @@ describe("withStopAt", () => {
     expect(withStopAt(day, MORNING_SIGHT)?.activities?.[1].time_slot).toBe("morning");
   });
 
+  it("puts the stop in right after a given stop when asked, ahead of one that starts at its time", () => {
+    const day = { activities: [stop("Reef park", "park", "09:30", 150), stop("Punta Sur", "nature", "12:30", 90), stop("Beach", "beach", "14:30", 120)] };
+    const lunch = stop("Lunch", "restaurant", "12:30", 60);
+    // By its time it goes after Punta Sur, which starts at 12:30 too.
+    expect(timed(withStopAt(day, lunch))).toEqual(["09:30 Reef park", "12:30 Punta Sur", "14:20 Lunch", "15:40 Beach"]);
+    expect(timed(withStopAt(day, lunch, {}, 1))).toEqual(["09:30 Reef park", "12:30 Lunch", "13:50 Punta Sur", "15:40 Beach"]);
+  });
+
   it("brings a meal the move would push well past its hour ahead of the sight pushing it", () => {
     const day = {
       activities: [
