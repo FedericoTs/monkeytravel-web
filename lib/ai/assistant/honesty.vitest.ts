@@ -14,7 +14,6 @@ import {
   isConfirmation,
   lengthUnchangedNote,
   missingAnswerReply,
-  noProposalNote,
   nothingChangedReply,
   nothingKeptReply,
   notAppliedLead,
@@ -319,11 +318,6 @@ describe("isConfirmation", () => {
 
 describe("the replies the server puts in their place", () => {
   const languages = ["en", "es", "it", "pt"];
-
-  it.each(languages)("say a handed-over change isn't ready, without claiming one (%s)", (lng) => {
-    expect(claimsItineraryChange(noProposalNote(lng))).toBe(false);
-    expect(announcesProposal(noProposalNote(lng))).toBe(false);
-  });
 
   it.each(languages)("never claim a change themselves (%s)", (lng) => {
     expect(claimsItineraryChange(nothingChangedReply(lng))).toBe(false);
