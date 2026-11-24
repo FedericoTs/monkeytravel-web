@@ -41,7 +41,7 @@ describe("tripFactsFromMeta (a saved trip)", () => {
 describe("tripFactsLines", () => {
   it("says who the trip is for in the planner's words, and asks every change to fit", () => {
     const text = tripFactsLines({ tripIntent: "family", childrenAges: ["under3"], pace: "relaxed", budgetTier: "balanced", dietary: ["vegetarian", "gluten-free"] });
-    expect(text).toContain("every day you change or add must fit it");
+    expect(text).toContain("every day you change or add must fit it, unless the traveller asks for something else");
     expect(text).toContain(`- ${travellersLine({ tripIntent: "family", childrenAges: ["under3"] })}`);
     expect(text).toContain("Don't plan bars or late nights as stops.");
     expect(text).toContain("Budget: balanced");
