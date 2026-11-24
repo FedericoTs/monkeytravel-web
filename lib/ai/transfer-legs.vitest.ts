@@ -492,19 +492,39 @@ describe("a sight the arrival day can't hold", () => {
     });
   const timed = (day: { activities: Activity[] }) => day.activities.map((a) => `${a.start_time} ${a.name}`);
 
-  it("goes to another day of the city at its own time, the stops after it later", () => {
+  // The day it went to used to take it by pushing its last sight into the evening: Akbar's Tomb at 18:00, after it
+  // shuts at sunset, and dinner at 20:20. On trips through several cities, 1 plan in 5 had a museum, a park or a
+  // monastery starting after half past seven.
+  it("goes to another day of the city at its own time, and a sight it would push into the evening makes way", () => {
     const merged = trip([firstDay(), secondDay()]);
     expect(timed(merged.days[1])).toEqual(["08:30 Train to Agra", "11:30 Pinch of Spice", "13:30 Agra Fort", "16:30 Mehtab Bagh", "19:00 Esphahan"]);
-    // Lunch keeps its hour: it goes ahead of the tomb that would have pushed it past 13:30.
-    expect(timed(merged.days[2])).toEqual([
-      "08:00 Taj Mahal",
-      "11:30 Joney's Place",
-      "13:20 Itimad-ud-Daulah",
-      "15:40 Kinari Bazaar",
-      "18:00 Akbar's Tomb",
-      "20:20 Dasaprakash",
-    ]);
+    // Lunch keeps its hour: it goes ahead of the tomb that would have pushed it past 13:30. Dinner keeps its own.
+    expect(timed(merged.days[2])).toEqual(["08:00 Taj Mahal", "11:30 Joney's Place", "13:20 Itimad-ud-Daulah", "15:40 Kinari Bazaar", "19:00 Dasaprakash"]);
     expect(merged.days[2].activities[2].time_slot).toBe("afternoon");
+  });
+
+  it("goes to the lighter of two days that both keep their sights in the daytime with it", () => {
+    const fatehpur = [stop("Fatehpur Sikri", "landmark", "10:00", 180)];
+    const evening = [stop("Mehtab Bagh", "park", "15:00", 60)];
+    const merged = trip([firstDay(), fatehpur, evening]);
+    expect(timed(merged.days[3])).toEqual(["08:00 Taj Mahal", "15:00 Mehtab Bagh"]);
+    expect(timed(merged.days[2])).toEqual(["10:00 Fatehpur Sikri"]);
+  });
+
+  it("puts a sight that makes way into another day with room for it at its own time", () => {
+    // A long morning at the bear rescue: the Taj Mahal can't follow it and still end by six.
+    const rescue = [stop("Agra Bear Rescue", "nature", "07:00", 480), stop("Pind Balluchi", "restaurant", "19:00", 90)];
+    const merged = trip([firstDay(), secondDay(), rescue]);
+    expect(timed(merged.days[2])).toEqual(["08:00 Taj Mahal", "11:30 Joney's Place", "13:20 Itimad-ud-Daulah", "15:40 Kinari Bazaar", "19:00 Dasaprakash"]);
+    expect(timed(merged.days[3])).toEqual(["07:00 Agra Bear Rescue", "16:00 Akbar's Tomb", "19:00 Pind Balluchi"]);
+  });
+
+  it("leaves a day as it was when making way for it would still push a meal or a sight too far", () => {
+    // Its morning sight goes on to the evening even with the afternoon's tomb gone: no day takes it.
+    const long = [stop("Fatehpur Sikri", "landmark", "08:00", 420), stop("Pind Balluchi", "restaurant", "19:00", 90)];
+    const merged = trip([firstDay(), long]);
+    expect(timed(merged.days[2])).toEqual(["08:00 Fatehpur Sikri", "19:00 Pind Balluchi"]);
+    expect(merged.days.flatMap((d) => d.activities.map((a) => a.name))).not.toContain("Taj Mahal");
   });
 
   it("goes to the day with the most room when the city has several", () => {
