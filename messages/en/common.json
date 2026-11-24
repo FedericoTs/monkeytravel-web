@@ -311,6 +311,7 @@
     "regeneratingActivity": "Regenerating activity with AI...",
     "savedInTrips": "{count, plural, one {In # saved trip} other {In # saved trips}}",
     "unverified": "Not verified on Google Maps: check it's open before you go.",
+    "pickedBy": "{name}'s pick",
     "closedOn": "Closed {dates}",
     "closedMoreDays": "{count, plural, one {# more day} other {# more days}}",
     "closedSource": "Official hours"
@@ -1280,7 +1281,21 @@
       "followingAlong": "following along, not splitting costs",
       "notInExpensesYet": "not in expenses yet",
       "remove": "Remove",
-      "planOwnLead": "Going somewhere else?"
+      "planOwnLead": "Going somewhere else?",
+      "fit": {
+        "title": "{name} doesn't want to miss",
+        "titleNoName": "Someone going doesn't want to miss",
+        "button": "Add to the plan",
+        "working": "Adding…",
+        "added": "Added to the plan: {list}.",
+        "noPlace": "No good place on this trip for: {list}.",
+        "failed": "That didn't work. Try again in a minute.",
+        "busy": "The plan was being saved just then. Try again.",
+        "undo": "Undo",
+        "undone": "Put back as it was.",
+        "undoFailed": "Couldn't undo: the plan has changed since.",
+        "waiting": "{count, plural, one {# must-do to add} other {# must-dos to add}}"
+      }
     },
     "savedHero": {
       "aiTitle": "AI-Generated Itinerary",

@@ -1,7 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { actorKey } from "@/lib/expenses/shared";
-import type { ParticipantSource } from "@/lib/participants/shared";
+import { readPicks, type ParticipantSource } from "@/lib/participants/shared";
 
 /**
  * Who is in a trip's group, one entry per person: the owner, every
@@ -20,8 +20,19 @@ export interface RosterPerson {
   /** "owner" or their collaborator role; null for someone who only said they're going. */
   role: string | null;
   going: boolean;
-  /** Their "I'm going" row, if they tapped it, and where they tapped it. */
-  participant: { id: string; joinedAt: string; hasEmail: boolean; source: ParticipantSource } | null;
+  /**
+   * Their "I'm going" row, if they tapped it, and where they tapped it. With the must-dos they added, when they
+   * sent them and when the owner fitted them in, when they added any.
+   */
+  participant: {
+    id: string;
+    joinedAt: string;
+    hasEmail: boolean;
+    source: ParticipantSource;
+    picks?: string[];
+    picksAt?: string;
+    picksPlacedAt?: string | null;
+  } | null;
 }
 
 export type CohortMember = Pick<RosterPerson, "userId" | "cookieId" | "name">;
@@ -35,7 +46,7 @@ export async function tripRoster(
     admin.from("trip_collaborators").select("user_id, role").eq("trip_id", trip.id).order("joined_at", { ascending: true }),
     admin
       .from("trip_participants")
-      .select("id, participant_cookie_id, user_id, display_name, email, joined_at, source")
+      .select("id, participant_cookie_id, user_id, display_name, email, joined_at, source, picks, picks_at, picks_placed_at")
       .eq("trip_id", trip.id)
       .is("left_at", null)
       .order("joined_at", { ascending: true }),
@@ -69,6 +80,11 @@ export async function tripRoster(
   for (const p of participants.data ?? []) {
     const userId = (p.user_id as string | null) ?? null;
     const cookieId = userId ? null : ((p.participant_cookie_id as string | null) ?? null);
+    const picks = readPicks(p.picks);
+    const picked =
+      picks.length > 0 && typeof p.picks_at === "string"
+        ? { picks, picksAt: p.picks_at, picksPlacedAt: (p.picks_placed_at as string | null) ?? null }
+        : {};
     put({
       key: actorKey(userId, cookieId),
       userId,
@@ -76,7 +92,7 @@ export async function tripRoster(
       name: (p.display_name as string | null) ?? null,
       role: null,
       going: true,
-      participant: { id: p.id as string, joinedAt: p.joined_at as string, hasEmail: !!p.email, source: p.source as ParticipantSource },
+      participant: { id: p.id as string, joinedAt: p.joined_at as string, hasEmail: !!p.email, source: p.source as ParticipantSource, ...picked },
     });
   }
   return { roster: [...byKey.values()], error: null };

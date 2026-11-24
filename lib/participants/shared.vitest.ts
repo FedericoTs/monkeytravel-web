@@ -4,9 +4,36 @@ import {
   isParticipantCookieId,
   normalizeDisplayName,
   normalizeEmail,
+  normalizePicks,
   parseJoinAction,
   parseParticipantSource,
+  readPicks,
 } from "./shared";
+
+describe("normalizePicks", () => {
+  it("trims, single-spaces and bounds each pick, drops empties and repeats, and keeps three", () => {
+    expect(normalizePicks(["  teamLab   Planets ", "", "Ichiran ramen", "TEAMLAB planets", "Shibuya Sky", "Ghibli Museum"])).toEqual([
+      "teamLab Planets",
+      "Ichiran ramen",
+      "Shibuya Sky",
+    ]);
+    expect(normalizePicks(["x".repeat(100)])).toEqual(["x".repeat(80)]);
+  });
+  it("is null when no list was sent, and empty when the list holds nothing", () => {
+    expect(normalizePicks(undefined)).toBeNull();
+    expect(normalizePicks("teamLab Planets")).toBeNull();
+    expect(normalizePicks([])).toEqual([]);
+    expect(normalizePicks(["  ", 42, null])).toEqual([]);
+  });
+});
+
+describe("readPicks", () => {
+  it("is a stored list's texts, and nothing for anything else", () => {
+    expect(readPicks(["Ghibli Museum", 3, "Ichiran ramen"])).toEqual(["Ghibli Museum", "Ichiran ramen"]);
+    expect(readPicks(null)).toEqual([]);
+    expect(readPicks("Ghibli Museum")).toEqual([]);
+  });
+});
 
 describe("normalizeDisplayName", () => {
   it("trims, collapses spaces and bounds the length", () => {

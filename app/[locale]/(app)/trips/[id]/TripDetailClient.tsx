@@ -270,6 +270,7 @@ export default function TripDetailClient({
   const participantsEnabled = isLiveTripParticipantsEnabled();
   // The counts the strip's chips show, told by their cards.
   const [goingCount, setGoingCount] = useState<number | null>(null);
+  const [picksWaiting, setPicksWaiting] = useState(0);
   const [bookedCount, setBookedCount] = useState<number | null>(null);
   // The hero's cover: the stored one, else one the hero looks up, which the
   // owner's visit stores on the trip.
@@ -922,9 +923,27 @@ export default function TripDetailClient({
     stripItems.push({
       id: "who",
       label: tCommon("share.participants.whoIsGoing"),
-      detail: goingCount === null ? null : tCommon("share.participants.going", { count: goingCount }),
+      // With the must-dos people going sent that the plan doesn't hold yet.
+      detail:
+        goingCount === null
+          ? null
+          : [
+              tCommon("share.participants.going", { count: goingCount }),
+              ...(picksWaiting > 0 ? [tCommon("share.participants.fit.waiting", { count: picksWaiting })] : []),
+            ].join(" · "),
       // The share ask is "send it to the people coming", not "get votes".
-      content: <WhoIsGoingCard tripId={trip.id} onShare={openCrewShareModal} onCount={setGoingCount} />,
+      // With the plan and its write queue: the card adds what people going don't want to miss.
+      content: (
+        <WhoIsGoingCard
+          tripId={trip.id}
+          onShare={openCrewShareModal}
+          onCount={setGoingCount}
+          onPicksWaiting={setPicksWaiting}
+          itinerary={editedItinerary}
+          runItineraryWrite={runItineraryWrite}
+          onItineraryChange={adoptStoredItinerary}
+        />
+      ),
       keepMounted: true,
     });
   }

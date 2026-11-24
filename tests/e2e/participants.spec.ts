@@ -106,4 +106,80 @@ test.describe("recipient → participant", () => {
     const remaining = (payload(await list.json()).participants as { display_name: string | null }[]) ?? [];
     expect(remaining.some((p) => p.display_name === name)).toBe(false);
   });
+
+  // The fit and the Undo are answered by the test: no model call, and the stored trip is not changed.
+  test("a guest's must-do: the owner adds it to the plan, which says whose pick it is, and Undo takes it out", async ({ request, browser, page }) => {
+    const stamp = Date.now().toString(36);
+    const name = `E2E Picks ${stamp}`;
+    const pick = `E2E Granja ${stamp}`;
+    const res = await request.post(`/api/trips/${TRIP_ID}/share`);
+    expect(res.status(), "share mint failed").toBe(200);
+    const token = payload(await res.json()).shareToken as string;
+
+    // 1. a guest says they're going, with one must-do, through the route the bar uses
+    const anon = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+    try {
+      const joined = await anon.request.post(`/api/shared/${token}/join`, { data: { action: "join", display_name: name, picks: [pick] } });
+      expect(joined.status(), "join failed").toBe(200);
+    } finally {
+      await anon.close();
+    }
+
+    // 2. the plan as stored, and what adding the must-do would make of it (on the first day, which the trip starts today)
+    const tripRes = await request.get(`/api/trips/${TRIP_ID}`);
+    expect(tripRes.status()).toBe(200);
+    const stored = payload(await tripRes.json()).trip as {
+      itinerary: Array<{ day_number: number; activities: Array<Record<string, unknown>> }>;
+      itinerary_version: number;
+    };
+    const added = { id: `act_e2e${stamp}`.slice(0, 16), name: pick, type: "food", start_time: "21:30", time_slot: "evening", duration_minutes: 30, description: "", location: "", tips: [], picked_by: name };
+    const withPick = stored.itinerary.map((d, i) => (i === 0 ? { ...d, activities: [...d.activities, added] } : d));
+    const json = (body: unknown) => ({ status: 200, contentType: "application/json", body: JSON.stringify({ data: body }) });
+    await page.route(`**/api/trips/${TRIP_ID}/participants/*/fit`, (route) =>
+      route.fulfill(
+        route.request().method() === "POST"
+          ? json({ added: [pick], notFitted: [], itinerary: withPick, previousItinerary: stored.itinerary, fromVersion: stored.itinerary_version, itineraryVersion: stored.itinerary_version })
+          : json({ reset: true }),
+      ),
+    );
+    await page.route("**/api/ai/assistant/undo", (route) =>
+      route.fulfill(json({ success: true, restoredItinerary: stored.itinerary, itineraryVersion: stored.itinerary_version })),
+    );
+
+    // 3. the owner sees it under "Who's going" and adds it
+    await page.addInitScript(() => localStorage.setItem("mt_ai_assistant_seen", String(Date.now())));
+    await page.goto(`/trips/${TRIP_ID}`);
+    await declineConsent(page);
+    // The chip says how many must-dos wait to be added before the card is opened (another run's guest may have left some).
+    const chip = page.getByTestId("trip-strip-who");
+    const waiting = async () =>
+      Number((await chip.textContent())?.match(/(\d+) (?:must-dos? to add|cosas? por añadir|cos[ae] da aggiungere|coisas? para adicionar)/)?.[1] ?? 0);
+    await expect.poll(waiting).toBeGreaterThanOrEqual(1);
+    const before = await waiting();
+    await chip.click();
+    const card = page.getByTestId("who-is-going");
+    const theirs = card.getByTestId("who-is-going-pick").filter({ hasText: name });
+    await expect(theirs).toContainText(pick);
+    await theirs.getByRole("button", { name: /^(add to the plan|añadir al plan|aggiungi al piano|adicionar ao plano)$/i }).click();
+    await expect(theirs).toContainText(/added to the plan|añadido al plan|aggiunto al piano|adicionado ao plano/i);
+
+    // the page took the plan: the stop is on it, saying whose pick it is
+    const label = page.getByText(new RegExp(`^(${name}'s pick|Elegido por ${name}|Scelto da ${name}|Escolha de ${name})$`));
+    await expect(label.first()).toBeAttached();
+    await expect.poll(waiting).toBe(before - 1);
+
+    // 4. Undo puts the plan back, and the must-do is offered again
+    await theirs.getByRole("button", { name: /^(undo|deshacer|annulla|desfazer)$/i }).click();
+    await expect(label).toHaveCount(0);
+    await expect(theirs.getByRole("button", { name: /^(add to the plan|añadir al plan|aggiungi al piano|adicionar ao plano)$/i })).toBeVisible();
+    await expect.poll(waiting).toBe(before);
+
+    // cleanup: the guest leaves the group
+    const list = await request.get(`/api/trips/${TRIP_ID}/participants`);
+    const rows = (payload(await list.json()).participants as { display_name: string | null; participant_id: string | null }[]) ?? [];
+    const row = rows.find((p) => p.display_name === name);
+    expect(row?.participant_id, "the guest is in the group").toBeTruthy();
+    const removed = await request.delete(`/api/trips/${TRIP_ID}/participants/${row!.participant_id}`);
+    expect(removed.ok(), "participant removal failed").toBe(true);
+  });
 });
