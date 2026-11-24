@@ -31,6 +31,7 @@ import { keepOffClosingDays, keepOffClosingDaysByCity } from "@/lib/ai/closing-d
 import { keepInsideHours } from "@/lib/ai/visit-hours";
 import { askForDinners, daysWithoutDinner, placesToEat, withDinners } from "@/lib/ai/dinners";
 import { askForReplacements, repeatedRestaurants, withReplacements } from "@/lib/ai/repeated-meals";
+import { askForSights, repeatedSights, sightNames, withSightReplacements } from "@/lib/ai/repeated-sights";
 import { askForLunches, daysWithoutLunch, withLunches } from "@/lib/ai/lunches";
 import { swapClosedStops } from "@/lib/ai/closed-swaps";
 import { withoutLongClosures } from "@/lib/ai/long-closures";
@@ -283,23 +284,28 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     // trip keeps its days.
     itinerary = { ...itinerary, days: keepInsideHours(itinerary.days, params.destination).days };
 
-    // A full day the plan left without dinner gets one (lib/ai/dinners.ts), and
-    // a restaurant named again on a later day gets another (lib/ai/repeated-meals.ts):
-    // both asked at once, the dinners put in first.
+    // A full day the plan left without dinner gets one (lib/ai/dinners.ts), a
+    // restaurant named again on a later day gets another (lib/ai/repeated-meals.ts),
+    // and a sight visited again on another day another of its kind
+    // (lib/ai/repeated-sights.ts): all asked at once, the dinners put in first.
     const dinnersWanted = daysWithoutDinner(itinerary.days, params.destination);
     const repeatsWanted = repeatedRestaurants(itinerary.days, params.destination);
+    const sightsWanted = repeatedSights(itinerary.days, params.destination, named);
     const mealOptions = {
       budgetTier: params.budgetTier,
       diets: profilePreferences.dietaryPreferences,
       language: userLanguage,
       taken: placesToEat(itinerary.days),
     };
-    const [dinnersAsked, repeatsAsked] = await Promise.all([
+    const [dinnersAsked, repeatsAsked, sightsAsked] = await Promise.all([
       askForDinners(dinnersWanted, mealOptions),
       askForReplacements(repeatsWanted, mealOptions),
+      askForSights(sightsWanted, { language: userLanguage, taken: sightNames(itinerary.days) }),
     ]);
     itinerary = { ...itinerary, days: withDinners(itinerary.days, dinnersWanted, dinnersAsked.answer).days };
     itinerary = { ...itinerary, days: withReplacements(itinerary.days, repeatsWanted, repeatsAsked.answer).days };
+    const sights = withSightReplacements(itinerary.days, sightsWanted, sightsAsked.answer);
+    itinerary = { ...itinerary, days: sights.days };
 
     // Assign activity images server-side (prevents a client race), cached
     // plans included: ZERO Google here. Every activity still gets an image — a
@@ -359,6 +365,8 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         ...(routeFrom ? { route_from: routeFrom } : {}),
         // Full days the plan left without lunch, and how many got one.
         ...(lunchesWanted.length > 0 ? { lunches: { missing: lunchesWanted.length, added: lunches.added } } : {}),
+        // Sights visited again on another day, and how many got another place.
+        ...(sightsWanted.length > 0 ? { repeated_sights: { found: sightsWanted.length, replaced: sights.replaced } } : {}),
         // Stops on a day they're shut before and after the closing step, as the stream logs them.
         ...(closing && closing.asked > 0
           ? {
