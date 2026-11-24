@@ -287,7 +287,8 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     // Each visit to a place of known hours inside them (lib/ai/visit-hours.ts).
     // Visits trade slots within their own day, so a multi-city or anchored
     // trip keeps its days.
-    itinerary = { ...itinerary, days: keepInsideHours(itinerary.days, params.destination).days };
+    const inHours = keepInsideHours(itinerary.days, params.destination);
+    itinerary = { ...itinerary, days: inHours.days };
 
     // A full day the plan left without dinner gets one (lib/ai/dinners.ts), a
     // restaurant named again on a later day gets another (lib/ai/repeated-meals.ts),
@@ -372,6 +373,18 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         ...(routeFrom ? { route_from: routeFrom } : {}),
         // Full days the plan left without lunch, and how many got one.
         ...(lunchesWanted.length > 0 ? { lunches: { missing: lunchesWanted.length, added: lunches.added } } : {}),
+        // Visits to places of known hours: how many were outside them, and what was done, as the stream logs them.
+        ...(inHours.checked > 0
+          ? {
+              visit_hours: {
+                checked: inHours.checked,
+                outside: inHours.outside,
+                moved: inHours.moved,
+                shortened: inHours.shortened,
+                ...(inHours.left.length > 0 ? { left: inHours.left.slice(0, 5) } : {}),
+              },
+            }
+          : {}),
         // Full days without dinner and restaurants named again on a later day, and how many got one, as the stream logs them.
         ...(dinnersWanted.length > 0 ? { dinners: { missing: dinnersWanted.length, added: dinners.added } } : {}),
         ...(repeatsWanted.length > 0 ? { repeated_restaurants: { found: repeatsWanted.length, replaced: repeats.replaced } } : {}),
