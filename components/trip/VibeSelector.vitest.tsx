@@ -61,4 +61,18 @@ describe("a suggested vibe", () => {
     fireEvent.click(card("cultural"));
     expect(onVibesChange).toHaveBeenCalledWith(["foodie", "cultural"]);
   });
+
+  it("is added to, not replaced, where a tap adds to the suggestion", () => {
+    const onVibesChange = vi.fn();
+    render(<VibeSelector selectedVibes={["cultural", "foodie"]} onVibesChange={onVibesChange} suggested addsToSuggestion />);
+    fireEvent.click(card("nature"));
+    expect(onVibesChange).toHaveBeenCalledWith(["cultural", "foodie", "nature"]);
+  });
+
+  it("still goes when it is tapped where a tap adds to the suggestion", () => {
+    const onVibesChange = vi.fn();
+    render(<VibeSelector selectedVibes={["cultural", "foodie"]} onVibesChange={onVibesChange} suggested addsToSuggestion />);
+    fireEvent.click(card("foodie"));
+    expect(onVibesChange).toHaveBeenCalledWith(["cultural"]);
+  });
 });

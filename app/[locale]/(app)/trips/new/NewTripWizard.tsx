@@ -203,6 +203,10 @@ import ResultActionBars from "@/components/wizard/ResultActionBars";
 import ResultItinerary, { MAP_SECTION_ID, ResultOverview } from "@/components/wizard/ResultItinerary";
 import SkyPlan from "@/components/sky/SkyPlan";
 import { assignSky, syncSkyArm, type SkyAssignment } from "@/lib/experiments/result-sky";
+import { assignArm, type Assignment } from "@/lib/experiments/assign";
+import { createExposureReporter } from "@/lib/experiments/exposure";
+import { STEP2_DEFAULT } from "@/lib/experiments/registry";
+import { placeKind, step2Default } from "@/lib/wizard/step2-default";
 import PreferencesStep from "@/components/wizard/PreferencesStep";
 import WizardFooter from "@/components/wizard/WizardFooter";
 import DestinationField from "@/components/wizard/DestinationField";
@@ -291,6 +295,9 @@ const EXPRESS_VIBES: TripVibe[] = ["cultural", "foodie"];
 // How long the destination's text stays as typed before it is offered as a request to read.
 const REQUEST_SETTLE_MS = 600;
 
+// Which arm of an experiment a counted browser saw, recorded once per page (lib/experiments/exposure).
+const reportExposure = createExposureReporter({ post: (url, init) => fetch(url, init), onPostHog: onPostHogReady });
+
 /**
  * The place a one-sentence plan names, as the destination search knows it
  * (its name and coordinates), or null to keep it as typed: several places,
@@ -373,6 +380,24 @@ export default function NewTripPage({
   useEffect(() => {
     onPostHogReady((posthog) => syncSkyArm(posthog, skyTest));
   }, [skyTest]);
+  // What step 2 starts with (lib/experiments, step2_default): the season's suggestion, or the two styles most chosen
+  // for the kind of place and company.
+  const [step2Test] = useState<Assignment<(typeof STEP2_DEFAULT.arms)[number]>>(() => {
+    if (typeof window === "undefined") return { arm: "season", counted: false };
+    let store: Storage | null = null;
+    try {
+      store = window.localStorage;
+    } catch {
+      store = null;
+    }
+    return assignArm(STEP2_DEFAULT, {
+      asked: searchParams?.get("exp_step2_default"),
+      store,
+      now: Date.now(),
+      random: Math.random,
+      pin: process.env.NEXT_PUBLIC_EXP_STEP2_DEFAULT,
+    });
+  });
   // Snapshot ?auth_event on the FIRST render. AuthEventTracker strips it with
   // history.replaceState as soon as auth resolves, and useSearchParams follows
   // — so a live read a few hundred milliseconds later sees nothing and a
@@ -1876,21 +1901,26 @@ export default function NewTripPage({
         ? { dates_mode: flexibleDates ? "flexible" : "exact", one_tap: datesPencilled }
         : {}),
     });
-    // Pre-apply seasonal vibe suggestions when advancing into
-    // step 2, so the user doesn't have to re-pick by hand what
-    // step 1 suggested. Only seeds if the user hasn't already
-    // picked vibes (don't clobber their choices).
-    if (step === 1 && seasonalContext && selectedVibes.length === 0 && startDate) {
-      try {
-        const seed = seasonalVibeSeed(seasonalContext, startDate, tripIntent);
-        if (seed.length > 0) {
-          setSelectedVibes(seed);
-          setVibesSuggested(true);
+    // Step 2 starts with suggested vibes when the planner has picked none (never over their choices): the season's,
+    // or, in the experiment's data arm, the two most chosen for the kind of place and company. The arms first differ
+    // here, so this is where a counted browser's arm is recorded.
+    if (step === 1 && selectedVibes.length === 0) {
+      reportExposure(STEP2_DEFAULT, step2Test);
+      if (step2Test.arm === "data") {
+        setSelectedVibes(step2Default(tripIntent, placeKind(destination, MULTI_CITY_ENABLED && multiCityMode)));
+        setVibesSuggested(true);
+      } else if (seasonalContext && startDate) {
+        try {
+          const seed = seasonalVibeSeed(seasonalContext, startDate, tripIntent);
+          if (seed.length > 0) {
+            setSelectedVibes(seed);
+            setVibesSuggested(true);
+          }
+        } catch (err) {
+          // Non-fatal: if the helper throws, step 2 just
+          // starts empty.
+          console.warn("[wizard] seasonal vibe seed failed:", err);
         }
-      } catch (err) {
-        // Non-fatal: if the helper throws, step 2 just
-        // starts empty.
-        console.warn("[wizard] seasonal vibe seed failed:", err);
       }
     }
     setStep(step + 1);
@@ -2121,6 +2151,7 @@ export default function NewTripPage({
             selectedVibes={selectedVibes}
             handleVibesChange={handleVibesChange}
             vibesSuggested={vibesSuggested}
+            vibesAddToSuggestion={step2Test.arm === "data"}
             mustDos={mustDos}
             setMustDos={setMustDos}
             mustDoInput={mustDoInput}

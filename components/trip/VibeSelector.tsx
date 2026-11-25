@@ -35,6 +35,8 @@ interface VibeSelectorProps {
    * leads the plan instead of following the suggestion.
    */
   suggested?: boolean;
+  /** A tap on another vibe adds it to the suggestion instead of replacing it (the step2_default experiment). */
+  addsToSuggestion?: boolean;
 }
 
 function VibeSelectorInner({
@@ -42,6 +44,7 @@ function VibeSelectorInner({
   onVibesChange,
   maxVibes = VIBES_MAX,
   suggested = false,
+  addsToSuggestion = false,
 }: VibeSelectorProps) {
   const t = useTranslations("common.vibes");
 
@@ -75,7 +78,7 @@ function VibeSelectorInner({
         // Remove vibe
         const newVibes = selectedVibes.filter((v) => v !== vibeId);
         onVibesChange(newVibes);
-      } else if (suggested) {
+      } else if (suggested && !addsToSuggestion) {
         // The traveller's first pick replaces the suggestion.
         onVibesChange([vibeId]);
       } else if (selectedVibes.length < maxVibes) {
@@ -83,7 +86,7 @@ function VibeSelectorInner({
         onVibesChange([...selectedVibes, vibeId]);
       }
     },
-    [selectedVibes, onVibesChange, maxVibes, suggested]
+    [selectedVibes, onVibesChange, maxVibes, suggested, addsToSuggestion]
   );
 
   const getSelectionOrder = (vibeId: TripVibe): number | null => {
