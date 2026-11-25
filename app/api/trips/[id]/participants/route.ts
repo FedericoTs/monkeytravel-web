@@ -2,11 +2,10 @@
  * GET /api/trips/[id]/participants — the owner's "Who's going" (Phase 2.4)
  *
  * Owner only (trips.user_id = the signed-in user). Returns the trip's group
- * as the expense split sees it (lib/trips/roster): the owner, every
- * collaborator and everyone who said they're going, once each, with their
- * role, whether they said they're going, whether they share new expenses,
- * and whether they gave an email or hold an account — never the email
- * itself. `count` is the people who share expenses. `picks` lists the
+ * (lib/trips/roster): the owner, every collaborator and everyone who said
+ * they're going, once each, with their role, whether they said they're going,
+ * whether they count in the group, and whether they gave an email or hold an
+ * account — never the email itself. `count` is the people in the group. `picks` lists the
  * must-dos people going through the share link added, with who added them
  * and whether they were fitted in. Service-role read behind the ownership
  * check; the tables have no policies for this.
@@ -19,7 +18,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
 import { type OwnerParticipant, type OwnerPicks } from "@/lib/participants/shared";
 import { publicNameOrNull } from "@/lib/profile/public-name";
-import { sharesExpenses, tripRoster } from "@/lib/trips/roster";
+import { inTheGroup, tripRoster } from "@/lib/trips/roster";
 import { isUuid } from "@/lib/utils/uuid";
 
 export async function GET(_request: NextRequest, context: TripRouteContext) {
@@ -60,7 +59,7 @@ export async function GET(_request: NextRequest, context: TripRouteContext) {
       display_name: nameOf(p),
       role: p.role,
       going: p.going,
-      in_split: sharesExpenses(p),
+      in_split: inTheGroup(p),
       has_account: !!p.userId,
       has_email: p.participant?.hasEmail ?? false,
       joined_at: p.participant?.joinedAt ?? null,

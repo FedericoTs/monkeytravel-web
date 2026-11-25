@@ -12,7 +12,6 @@ const DIR = join(process.cwd(), "messages", "pt");
 const REWRITTEN: Record<string, string[]> = {
   "common.json": [
     "startOver.customReasonPlaceholder",
-    "today.expenses.youAreOwed",
     "today.nothingToday",
     "share.socialText.emailBodyCrew",
     "share.ownerClaim.body",

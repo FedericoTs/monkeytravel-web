@@ -1148,21 +1148,6 @@
     "shared": "Compartilhado"
   },
   "today": {
-    "expenses": {
-      "title": "Despesas",
-      "whoPaid": "Quem pagou?",
-      "amountPlaceholder": "Valor",
-      "save": "Salvar",
-      "cancel": "Cancelar",
-      "spentSoFar": "Gasto até agora",
-      "youAreOwed": "Você tem {amount} a receber",
-      "youOwe": "Você deve {amount}",
-      "settledUp": "Tudo acertado",
-      "paid": "pagou",
-      "splitAcross": "dividido entre {count}",
-      "remove": "Remover",
-      "empty": "Ainda sem despesas. Toque em “Quem pagou?” numa atividade para dividir um custo."
-    },
     "packing": {
       "title": "Mala pronta?",
       "progress": "{done}/{total} na mala"
@@ -1178,8 +1163,6 @@
       "doneDay": "encerrou o dia",
       "title": "Atividade recente",
       "join": "vai também",
-      "expense": "pagou {amount}",
-      "expenseActivity": "pagou {amount} · {activity}",
       "justNow": "agora mesmo"
     },
     "chips": {
@@ -1212,8 +1195,7 @@
     "nothingToday": "Nada planejado para hoje.",
     "errors": {
       "failed": "Não deu certo. Tente de novo.",
-      "rateLimited": "Muitas alterações seguidas. Espere um pouco e tente de novo.",
-      "amount": "Insira um valor maior que zero."
+      "rateLimited": "Muitas alterações seguidas. Espere um pouco e tente de novo."
     }
   },
   "share": {
@@ -1278,7 +1260,7 @@
       "getsUpdates": "recebe avisos",
       "guest": "sem conta",
       "followingAlong": "só acompanha, não divide os gastos",
-      "notInExpensesYet": "ainda não divide os gastos",
+      "fromPublicPage": "pela página pública",
       "remove": "Remover",
       "planOwnLead": "Vai para outro lugar?",
       "fit": {
@@ -2505,92 +2487,6 @@
       "findHostels": "Encontre hostels para esta viagem",
       "onHostelworld": "no Booking.com",
       "affiliateDisclosure": "Link de afiliado — podemos ganhar uma pequena comissão sem custo extra para você."
-    }
-  },
-  "expenses": {
-    "title": "Despesas da viagem",
-    "emptyHint": "Acompanhe o que você realmente gasta",
-    "addButton": "Adicionar despesa",
-    "fieldAmount": "Valor",
-    "fieldCurrency": "Moeda",
-    "fieldDate": "Data",
-    "fieldCategory": "Categoria",
-    "fieldDescription": "Descrição",
-    "descriptionPlaceholder": "ex.: Jantar na La Trattoria",
-    "category": {
-      "transport": "Transporte",
-      "accommodation": "Hospedagem",
-      "food": "Comida e bebida",
-      "activity": "Atividades",
-      "shopping": "Compras",
-      "other": "Outros"
-    },
-    "cancel": "Cancelar",
-    "save": "Salvar",
-    "saving": "Salvando…",
-    "loading": "Carregando despesas…",
-    "empty": "Nenhuma despesa registrada ainda.",
-    "toastAdded": "Despesa adicionada.",
-    "toastDeleted": "Despesa removida.",
-    "undo": "Desfazer",
-    "errorAmountRequired": "Insira um valor maior que zero.",
-    "errorAddFailed": "Não foi possível adicionar a despesa — tente novamente.",
-    "errorDeleteFailed": "Não foi possível excluir a despesa — tente novamente.",
-    "errorDeleteNotYours": "Você só pode excluir as despesas que você adicionou.",
-    "errorLoadFailed": "Não foi possível carregar as despesas. Tente novamente.",
-    "retry": "Tentar de novo",
-    "deleteAriaLabel": "Excluir esta despesa",
-    "amountInvalid": "Insira um valor como {example}.",
-    "amountWhich": "Qual valor você quis dizer?",
-    "settle": {
-      "openButton": "Acertar contas",
-      "title": "Acertar Contas",
-      "subtitleCount": "{count, plural, =1 {# transferência para quitar} other {# transferências para quitar}}",
-      "loading": "Calculando quem deve o quê…",
-      "errorLoad": "Não foi possível carregar os acertos — tente novamente.",
-      "retry": "Tentar de novo",
-      "empty": "Tudo acertado!",
-      "emptyHint": "Todos os saldos desta viagem estão zerados. Bom trabalho.",
-      "owes": "deve a",
-      "payAction": "Pagar",
-      "guestNoPaymentLink": "Sem link de pagamento: essa pessoa entrou sem fazer login. Pague diretamente.",
-      "payComingSoon": "Pagar (em breve)"
-    },
-    "payments": {
-      "provider": {
-        "paypal": "PayPal",
-        "venmo": "Venmo",
-        "wise": "Wise"
-      },
-      "payVia": {
-        "paypal": "Pagar via PayPal",
-        "venmo": "Pagar via Venmo",
-        "wise": "Pagar via Wise"
-      },
-      "recipientHasNoHandles": "O destinatário não definiu identificadores de pagamento. Peça para ele adicionar um nas Configurações.",
-      "recipientHandlesInvalid": "Os identificadores de pagamento do destinatário não são válidos. Peça para ele atualizá-los nas Configurações.",
-      "settings": {
-        "title": "Identificadores de pagamento",
-        "description": "Salve seus nomes de usuário do PayPal, Venmo e Wise para que seus companheiros de viagem possam te pagar com um toque a partir da tela Acertar Contas.",
-        "breadcrumbProfile": "Perfil",
-        "loading": "Carregando seus identificadores…",
-        "errorLoadFailed": "Não foi possível carregar seus identificadores de pagamento. Tente novamente.",
-        "retry": "Tentar de novo",
-        "save": "Salvar identificadores",
-        "saving": "Salvando…",
-        "cancel": "Cancelar",
-        "toastSaved": "Identificadores de pagamento salvos.",
-        "errorSaveFailed": "Não foi possível salvar — tente novamente.",
-        "errorTooLong": "Muito longo (máximo 64 caracteres).",
-        "errorInvalidHandle": "Isso não parece um identificador válido para este provedor.",
-        "errorFixBeforeSave": "Corrija o identificador destacado antes de salvar.",
-        "help": {
-          "paypal": "Seu nome de usuário do PayPal.me — a parte depois de paypal.me/ no seu link. Letras, números, pontos, traços e sublinhados.",
-          "venmo": "Seu nome de usuário do Venmo — a parte depois do @ no seu identificador do Venmo. 5-30 caracteres.",
-          "wise": "Seu nome de usuário do Wise (TransferWise), ex.: @alyssaperez. Verifique se a opção 'Receber pagamentos' está ativada na sua conta Wise."
-        },
-        "privacyNote": "Somente os membros da viagem com quem você compartilha uma despesa podem ver esses identificadores. Nunca vemos nem processamos os pagamentos — os links abrem o app do provedor diretamente."
-      }
     }
   },
   "advisory": {
