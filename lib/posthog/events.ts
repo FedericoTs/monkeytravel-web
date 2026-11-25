@@ -585,7 +585,6 @@ export type AuthPromptLocation =
   | "shared_save"
   | "invite_accept"
   | "publish_trip"
-  | "concierge_quota"
   // The anonymous free-generation cap, reached from the wizard (the stream
   // and its JSON fallback both enforce it).
   | "wizard_generation_limit"
@@ -721,92 +720,6 @@ export interface ResultExitUnsavedEvent {
 // async dynamic import always loses to a page teardown.
 export function captureResultExitUnsaved(event: ResultExitUnsavedEvent) {
   captureNavSafe("result_exit_unsaved", event);
-}
-
-// ============================================================================
-// CONCIERGE EVENTS
-// ============================================================================
-
-export interface ConciergeOpenedEvent {
-  trip_id: string;
-  /** Is the trip's date window active right now? Drives "today" mode. */
-  is_live_trip?: boolean;
-}
-
-export interface ConciergeQuestionSentEvent {
-  trip_id: string;
-  question_length: number;
-  /** Was the trip in live-trip "today" mode when the question fired? */
-  is_live_trip?: boolean;
-}
-
-export interface ConciergeResponseReceivedEvent {
-  trip_id: string;
-  response_time_ms: number;
-  is_live_trip: boolean;
-  /** Length of the streamed answer (chars). 0 if empty or errored. */
-  answer_length: number;
-}
-
-export interface ConciergeQuotaBlockedEvent {
-  trip_id: string;
-}
-
-export interface ConciergeErrorEvent {
-  trip_id: string;
-  error_type: "network" | "stream_parse" | "quota" | "unknown";
-}
-
-export async function captureConciergeOpened(event: ConciergeOpenedEvent) {
-  const ph = await getPosthog();
-  ph.capture("concierge_opened", event);
-}
-
-export async function captureConciergeQuestionSent(event: ConciergeQuestionSentEvent) {
-  const ph = await getPosthog();
-  ph.capture("concierge_question_sent", event);
-}
-
-export async function captureConciergeResponseReceived(event: ConciergeResponseReceivedEvent) {
-  const ph = await getPosthog();
-  ph.capture("concierge_response_received", event);
-}
-
-export async function captureConciergeQuotaBlocked(event: ConciergeQuotaBlockedEvent) {
-  const ph = await getPosthog();
-  ph.capture("concierge_quota_blocked", event);
-}
-
-// Concierge edit proposals: the shown → applied rate is the success metric.
-interface ConciergeProposalShownEvent {
-  trip_id: string;
-  proposal_type: string;
-  day_number: number;
-}
-
-interface ConciergeProposalAppliedEvent {
-  trip_id: string;
-  proposal_type: string;
-  day_number: number;
-}
-
-export async function captureConciergeProposalShown(
-  event: ConciergeProposalShownEvent
-) {
-  const ph = await getPosthog();
-  ph.capture("concierge_proposal_shown", event);
-}
-
-export async function captureConciergeProposalApplied(
-  event: ConciergeProposalAppliedEvent
-) {
-  const ph = await getPosthog();
-  ph.capture("concierge_proposal_applied", event);
-}
-
-export async function captureConciergeError(event: ConciergeErrorEvent) {
-  const ph = await getPosthog();
-  ph.capture("concierge_error", event);
 }
 
 // ============================================================================

@@ -28,7 +28,7 @@ import { computeTripDayState, type TripDayState } from "@/lib/trip/live";
 import { EditModeNotice, SaveSuccessToast } from "@/components/trip/TripNotices";
 import AiDisclaimer from "@/components/trip/AiDisclaimer";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
-// TravelAdvisoryBanner / TripConciergeChat are loaded with
+// TravelAdvisoryBanner is loaded with
 // next/dynamic further down, which keeps the initial trip-page chunk lean.
 import { useActivityVotes } from "@/hooks/useActivityVotes";
 import { useProposals } from "@/hooks/useProposals";
@@ -147,20 +147,6 @@ const PasteBookingModal = dynamic(() => import("@/components/trip/PasteBookingMo
 const TravelAdvisoryBanner = dynamic(
   () => import("@/components/trip/TravelAdvisoryBanner"),
   { ssr: false }
-);
-
-// Concierge chat — flag-gated, its own chunk. Server-rendered: the trigger
-// pill sits above the plan, and arriving after hydration it pushed the
-// whole page down.
-const TripConciergeChat = dynamic(
-  () => import("@/components/trip/TripConciergeChat")
-);
-
-// Concierge conversation history: a collapsible list of past Q+A pairs for
-// this trip. Server-rendered like the launcher, for the same reason; the
-// history fetch still waits for the expand click.
-const ConciergeHistory = dynamic(
-  () => import("@/components/trip/ConciergeHistory")
 );
 
 interface TripDetailClientProps {
@@ -1130,23 +1116,6 @@ export default function TripDetailClient({
         {currentStatus === "cancelled" && isOwner && (
           <CancelledTripNote updating={isUpdatingStatus} onRestore={() => handleStatusUpdate("planning")} />
         )}
-
-        {/* In-trip Concierge. Rendered in EVERY phase, outside the
-            !isActiveTripPhase branch, so the chat is there while the user
-            is ON the trip. Flag-gated; renders null when the env flag is
-            off. Apply is offered to the owner only; canEdit gates just the
-            UI (the /apply route checks access itself). */}
-        <div className="mb-4 space-y-2">
-          <TripConciergeChat
-            tripId={trip.id}
-            canEdit={isOwner}
-            runItineraryWrite={runItineraryWrite}
-            onItineraryChange={adoptStoredItinerary}
-          />
-          {/* Past Q+A pairs for THIS trip. Lazy expand-to-fetch; renders
-              nothing when the Concierge env-flag is off. */}
-          <ConciergeHistory tripId={trip.id} />
-        </div>
 
         {/* Active Trip Phase - Today, else the Ongoing Trip View */}
         {isActiveTripPhase && (todayView ?? (

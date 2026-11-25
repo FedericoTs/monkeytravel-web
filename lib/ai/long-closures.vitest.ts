@@ -127,3 +127,19 @@ describe("taking it out of a plan", () => {
     expect(withoutLongClosures(before, { ...paris, destination: "Rome, Italy" }).itinerary).toBe(before);
   });
 });
+
+describe("Dubai's Museum of the Future, shut since September 2026 and back in 2027 on a date not yet given", () => {
+  const dubai = { destination: "Dubai, United Arab Emirates", startDate: "2026-12-12", endDate: "2026-12-16" };
+
+  it("is kept out of a December 2026 trip, in the planner's languages", () => {
+    expect(closuresFor(dubai).map((c) => c.label)).toEqual(["Museum of the Future (temporarily closed, reopening in 2027)"]);
+    expect(closuresFor({ ...dubai, destination: "Dubái, Emiratos Árabes Unidos" })).toHaveLength(1);
+    expect(isClosedPlace("Museum of the Future", closuresFor(dubai))).toBe(true);
+    expect(isClosedPlace("Museo del Futuro", closuresFor(dubai))).toBe(true);
+  });
+
+  it("is left to a trip that reaches into 2027, when it may be open again", () => {
+    expect(closuresFor({ ...dubai, startDate: "2026-12-29", endDate: "2027-01-02" })).toEqual([]);
+    expect(closuresFor({ ...dubai, startDate: "2027-02-10", endDate: "2027-02-14" })).toEqual([]);
+  });
+});

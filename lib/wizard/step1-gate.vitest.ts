@@ -11,8 +11,13 @@ describe("destinationProblem", () => {
     ["São Paulo, Brazil", null],
     ["Москва", null],
     ["Côte d'Azur (Nice) & Monaco / 2", null],
+    // As a phone's keyboard types them: a curly apostrophe, an en dash, an em dash.
+    ["Côte d’Azur", null],
+    ["O‘ahu, Hawai’i", null],
+    ["Rome – Florence — Venice", null],
     ["Paris; DROP TABLE", "chars"],
     ["Tokyo 🗼", "chars"],
+    ["“Paris”", "chars"],
   ])("%j → %s", (destination, problem) => {
     expect(destinationProblem(destination)).toBe(problem);
   });

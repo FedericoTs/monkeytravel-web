@@ -47,20 +47,6 @@ export const FLAG_ENHANCED_BOOKING = "enhanced-booking-panel";
 export const FLAG_AUTH_WALL_VARIANT = "auth-wall-variant";
 
 /**
- * Concierge surface gate
- *
- * Whether to show the TripConciergeChat button on all trips or only during the
- * live-trip window. Hypothesis: live-only positioning concentrates use around
- * the highest-utility moment ("what's near me after lunch").
- *
- * Variants: always | live-only | off
- *
- * Not wired: TripConciergeChat.tsx does not read it; the env flag is the
- * only switch.
- */
-export const FLAG_CONCIERGE_SURFACE = "concierge-surface";
-
-/**
  * Anonymous engagement on /explore
  *
  * Whether anonymous viewers can like/save trips with cookie-keyed state, or
@@ -166,7 +152,6 @@ export const FLAG_EXPLORE_UGC = "explore-ugc-v1";
  */
 export const UNWIRED_FLAGS: readonly string[] = [
   FLAG_AUTH_WALL_VARIANT,
-  FLAG_CONCIERGE_SURFACE,
   FLAG_EXPLORE_ANON_ENGAGEMENT,
   FLAG_WIZARD_LAYOUT,
   FLAG_WIZARD_UX_V2,
@@ -181,7 +166,6 @@ export const UNWIRED_FLAGS: readonly string[] = [
 export const FLAG_DEFAULTS: Record<string, boolean | string> = {
   [FLAG_ENHANCED_BOOKING]: false, // Start disabled, enable via PostHog
   [FLAG_AUTH_WALL_VARIANT]: "magic-link-primary",
-  [FLAG_CONCIERGE_SURFACE]: "always",
   [FLAG_EXPLORE_ANON_ENGAGEMENT]: "auth-gated",
   [FLAG_WIZARD_LAYOUT]: "two-step",
   [FLAG_WIZARD_UX_V2]: false,
