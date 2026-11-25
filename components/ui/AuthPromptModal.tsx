@@ -24,8 +24,6 @@ import { prefs } from "@/lib/platform/storage";
 import { createClient } from "@/lib/supabase/client";
 import { buildAuthCallbackUrl, localizePath } from "@/lib/auth/callback-url";
 import { withStoredReferral, attachStoredReferral } from "@/lib/referral/client";
-import { loadGoogleId, makeNonce, offerOneTap } from "@/lib/auth/google-one-tap";
-import { isNativePlatform } from "@/lib/native/platform";
 import { trackWizardEvent } from "@/components/wizard/wizardEvents";
 import {
   OTP_CODE_LENGTH,
@@ -376,56 +374,7 @@ export default function AuthPromptModal({
     router.push(localizePath(`/auth/login?redirect=${encodeURIComponent(redirectPath)}`, locale));
   };
 
-  // Google's one-tap: someone signed in to Google in this browser taps their account in the browser's own prompt,
-  // and its credential signs them in here, with no redirect. Then the same landing as the in-tab code: a full
-  // navigation, so the server sees the session and the wizard resumes the save from pendingTripGeneration; the
-  // signup trigger has made the profile, and the referring friend is credited from here.
-  const signInWithOneTap = async (credential: string, rawNonce: string) => {
-    setGoogleLoading(true);
-    setIsNavigating(true);
-    setError(null);
-    try {
-      await prefs.set("pendingTripGeneration", "true");
-      const { error: tokenError } = await createClient().auth.signInWithIdToken({
-        provider: "google",
-        token: credential,
-        nonce: rawNonce,
-      });
-      if (tokenError) throw tokenError;
-      void trackWizardEvent("auth_onetap_signed_in", { destination: destination || undefined });
-      attachStoredReferral();
-      window.location.assign(localizePath(redirectPath, locale));
-    } catch (err) {
-      console.error("[AuthPromptModal] Google one-tap failed:", err);
-      void trackWizardEvent("auth_onetap_failed", { destination: destination || undefined });
-      setError(t("googleFailed"));
-      setGoogleLoading(false);
-      setIsNavigating(false);
-    }
-  };
-  const oneTapRef = useRef(signInWithOneTap);
-  useEffect(() => {
-    oneTapRef.current = signInWithOneTap;
-  });
-
-  // Offered each time the box opens, outside the apps' WebView, where Google's prompt can't run; taken back when it
-  // closes. When Google's script can't be had, or the person isn't signed in to Google here, the box is all there is.
-  useEffect(() => {
-    if (!isOpen || isNativePlatform()) return;
-    let closed = false;
-    let cancel: (() => void) | undefined;
-    void Promise.all([loadGoogleId(), makeNonce()]).then(([id, nonce]) => {
-      if (!id || closed) return;
-      cancel = offerOneTap(id, nonce.hashed, (credential) => void oneTapRef.current(credential, nonce.raw));
-      void trackWizardEvent("auth_onetap_offered", { destination: destination || undefined });
-    });
-    return () => {
-      closed = true;
-      cancel?.();
-    };
-  }, [isOpen, destination]);
-
-  // Google one-tap — the fastest path at peak intent. Magic-link forces an
+  // Google — the fastest path at peak intent, offered once, by this button. Magic-link forces an
   // inbox round-trip (request → switch app → find email → click), which
   // sheds users; OAuth is a single redirect. Same resume mechanism as the
   // other methods: persist pendingTripGeneration BEFORE we leave, so the
@@ -656,7 +605,7 @@ export default function AuthPromptModal({
               </ul>
             )}
 
-            {/* Google one-tap, above the email field. It stays an outline:
+            {/* Google, above the email field. It stays an outline:
                 as the filled main button it pushed away the people who would
                 rather not use Google, and they left instead of using email. */}
             <button

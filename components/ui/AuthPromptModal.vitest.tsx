@@ -16,27 +16,9 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 const signInWithOtp = vi.fn();
 const verifyOtp = vi.fn();
 const signInWithOAuth = vi.fn();
-const signInWithIdToken = vi.fn();
 const push = vi.fn();
 const assign = vi.fn();
 const ui = vi.hoisted(() => ({ locale: "en" }));
-// Google's one-tap (lib/auth/google-one-tap.ts): no script here unless a test gives one.
-const oneTap = vi.hoisted(() => ({
-  id: null as null | { initialize: () => void; prompt: () => void; cancel: () => void },
-  load: null as null | (() => Promise<unknown>),
-  credential: undefined as undefined | ((credential: string) => void),
-  native: false,
-}));
-const cancelOneTap = vi.hoisted(() => vi.fn());
-vi.mock("@/lib/auth/google-one-tap", () => ({
-  loadGoogleId: vi.fn(() => (oneTap.load ? oneTap.load() : Promise.resolve(oneTap.id))),
-  makeNonce: vi.fn(async () => ({ raw: "raw-nonce", hashed: "hashed-nonce" })),
-  offerOneTap: vi.fn((_id: unknown, _hashed: string, onCredential: (credential: string) => void) => {
-    oneTap.credential = onCredential;
-    return cancelOneTap;
-  }),
-}));
-vi.mock("@/lib/native/platform", () => ({ isNativePlatform: () => oneTap.native }));
 vi.mock("@/lib/referral/client", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/referral/client")>()),
   attachStoredReferral: vi.fn(),
@@ -50,7 +32,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push, refresh: vi.fn() }),
 }));
 vi.mock("@/lib/supabase/client", () => ({
-  createClient: () => ({ auth: { signInWithOtp, verifyOtp, signInWithOAuth, signInWithIdToken } }),
+  createClient: () => ({ auth: { signInWithOtp, verifyOtp, signInWithOAuth } }),
 }));
 vi.mock("@/lib/platform/storage", () => ({
   prefs: { set: vi.fn().mockResolvedValue(undefined), get: vi.fn().mockResolvedValue(null) },
@@ -69,9 +51,6 @@ vi.mock("@/lib/posthog/events", () => ({
 import AuthPromptModal from "./AuthPromptModal";
 import { captureAuthMethodSwitched, captureAuthPromptDismissed, captureMagicLinkRequestFailed } from "@/lib/posthog/events";
 import { trackWizardEvent } from "@/components/wizard/wizardEvents";
-import { loadGoogleId, offerOneTap } from "@/lib/auth/google-one-tap";
-import { attachStoredReferral } from "@/lib/referral/client";
-import { prefs } from "@/lib/platform/storage";
 
 /** Get to the state where the code input exists: request the link first. */
 async function reachCodeEntry() {
@@ -90,8 +69,6 @@ beforeEach(() => {
   signInWithOAuth.mockResolvedValue({ error: null });
   signInWithOtp.mockResolvedValue({ error: null });
   verifyOtp.mockResolvedValue({ error: null, data: { session: { access_token: "t" } } });
-  signInWithIdToken.mockResolvedValue({ error: null, data: { session: { access_token: "t" } } });
-  Object.assign(oneTap, { id: null, load: null, credential: undefined, native: false });
   Object.defineProperty(window, "location", {
     value: { origin: "https://monkeytravel.app", assign },
     writable: true,
@@ -658,91 +635,15 @@ describe("what the box tells the funnel", () => {
   });
 });
 
-describe("Google's one-tap in the box", () => {
-  const googleId = () => ({ initialize: vi.fn(), prompt: vi.fn(), cancel: vi.fn() });
-  const openBox = (props: Partial<React.ComponentProps<typeof AuthPromptModal>> = {}) =>
-    render(<AuthPromptModal isOpen onClose={() => {}} destination="Lisbon" redirectPath="/trips/new" {...props} />);
-
-  it("is offered with the hashed nonce when the box opens, and counted", async () => {
-    oneTap.id = googleId();
-    openBox();
-    await waitFor(() => expect(offerOneTap).toHaveBeenCalledTimes(1));
-    expect(vi.mocked(offerOneTap).mock.calls[0].slice(0, 2)).toEqual([oneTap.id, "hashed-nonce"]);
-    expect(trackWizardEvent).toHaveBeenCalledWith("auth_onetap_offered", { destination: "Lisbon" });
-  });
-
-  it("signs in with the tapped account and the raw nonce, credits the friend, and lands back on the save", async () => {
-    oneTap.id = googleId();
-    openBox();
-    await waitFor(() => expect(oneTap.credential).toBeDefined());
-    oneTap.credential!("google-id-token");
-    await waitFor(() => expect(assign).toHaveBeenCalledWith("/trips/new"));
-    expect(signInWithIdToken).toHaveBeenCalledWith({ provider: "google", token: "google-id-token", nonce: "raw-nonce" });
-    // Set before signing in: the wizard reads it after the navigation and resumes the save.
-    expect(prefs.set).toHaveBeenCalledWith("pendingTripGeneration", "true");
-    expect(vi.mocked(prefs.set).mock.invocationCallOrder[0]).toBeLessThan(signInWithIdToken.mock.invocationCallOrder[0]);
-    expect(attachStoredReferral).toHaveBeenCalledTimes(1);
-    expect(trackWizardEvent).toHaveBeenCalledWith("auth_onetap_signed_in", { destination: "Lisbon" });
-    expect(signInWithOAuth).not.toHaveBeenCalled();
-  });
-
-  it("lands on the Portuguese wizard in Portuguese", async () => {
-    ui.locale = "pt";
-    oneTap.id = googleId();
-    openBox();
-    await waitFor(() => expect(oneTap.credential).toBeDefined());
-    oneTap.credential!("google-id-token");
-    await waitFor(() => expect(assign).toHaveBeenCalledWith("/pt/trips/new"));
-  });
-
-  it("says Google failed when the credential doesn't sign in, and leaves the box working", async () => {
-    signInWithIdToken.mockResolvedValue({ error: new Error("Passed nonce and nonce in id_token should either both exist or not.") });
-    oneTap.id = googleId();
-    openBox();
-    await waitFor(() => expect(oneTap.credential).toBeDefined());
-    oneTap.credential!("google-id-token");
-    await screen.findByText("googleFailed");
-    expect(assign).not.toHaveBeenCalled();
-    expect(attachStoredReferral).not.toHaveBeenCalled();
-    expect(trackWizardEvent).toHaveBeenCalledWith("auth_onetap_failed", { destination: "Lisbon" });
-    // Not left waiting on a navigation that never comes: the box's own Google button still goes.
-    fireEvent.click(screen.getByRole("button", { name: "googleButton" }));
-    await waitFor(() => expect(signInWithOAuth).toHaveBeenCalledTimes(1));
-  });
-
-  it("is taken back when the box closes", async () => {
-    oneTap.id = googleId();
-    const { rerender } = openBox();
-    await waitFor(() => expect(offerOneTap).toHaveBeenCalledTimes(1));
-    expect(cancelOneTap).not.toHaveBeenCalled();
-    rerender(<AuthPromptModal isOpen={false} onClose={() => {}} destination="Lisbon" redirectPath="/trips/new" />);
-    expect(cancelOneTap).toHaveBeenCalledTimes(1);
-  });
-
-  it("isn't offered in the apps, without Google's script, or once the box closed while it loaded", async () => {
-    oneTap.native = true;
-    oneTap.id = googleId();
-    const app = openBox();
-    await Promise.resolve();
-    expect(loadGoogleId).not.toHaveBeenCalled();
-    app.unmount();
-
-    oneTap.native = false;
-    oneTap.id = null;
-    const noScript = openBox();
-    await waitFor(() => expect(loadGoogleId).toHaveBeenCalledTimes(1));
+/**
+ * Google is offered once, by the box's own button. The box loads no Google prompt of its own: one would put a second
+ * "Continue" for the same sign-in on screen and, on a phone, slide over the bottom of the box.
+ */
+describe("Google is offered once, by the box's own button", () => {
+  it("loads no Google prompt when the box opens", async () => {
+    render(<AuthPromptModal isOpen onClose={() => {}} destination="Lisbon" redirectPath="/trips/new" />);
     await new Promise((resolve) => setTimeout(resolve, 0));
-    expect(offerOneTap).not.toHaveBeenCalled();
-    noScript.unmount();
-
-    let loaded: (id: unknown) => void = () => {};
-    oneTap.load = () => new Promise((resolve) => (loaded = resolve));
-    const slow = openBox();
-    await waitFor(() => expect(loadGoogleId).toHaveBeenCalledTimes(2));
-    slow.rerender(<AuthPromptModal isOpen={false} onClose={() => {}} destination="Lisbon" redirectPath="/trips/new" />);
-    loaded(googleId());
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    expect(offerOneTap).not.toHaveBeenCalled();
-    expect(trackWizardEvent).not.toHaveBeenCalledWith("auth_onetap_offered", expect.anything());
+    expect(document.querySelector('script[src*="accounts.google.com/gsi"]')).toBeNull();
+    expect(screen.getAllByRole("button", { name: "googleButton" })).toHaveLength(1);
   });
 });
