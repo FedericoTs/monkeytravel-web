@@ -3,7 +3,7 @@
  *
  * ON by default. Set NEXT_PUBLIC_LIVE_TRIP_PARTICIPANTS=off to return the
  * recipient page to the browse layout (vote banner, like/save/fork bar,
- * fixed Save bar) and to close the join route. A public env var because the
+ * fixed bottom bar) and to close the join route. A public env var because the
  * header renders client-side; the routes read the same value so the UI and
  * the API can never disagree.
  *

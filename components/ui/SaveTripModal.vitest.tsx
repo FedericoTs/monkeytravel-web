@@ -4,13 +4,11 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import SaveTripModal from "./SaveTripModal";
 
 /**
- * "Save to My Trips" from a shared link copies the trip by its share token.
- * The public trip page has no token, so it saves by the trip's public slug,
- * and signing in first comes back to the public page, not a /shared link.
+ * "Save to My Trips" on a ready-made trip copies the template, and signing in
+ * first comes back to the template's page.
  */
 
-const TOKEN = "11111111-2222-4333-8444-555555555555";
-const SLUG = "lisbon-trip-abc123";
+const TEMPLATE = "tpl-1";
 
 const state = vi.hoisted(() => ({
   user: null as { id: string } | null,
@@ -35,8 +33,8 @@ vi.mock("@/lib/platform/storage", () => ({
 
 let posted: Array<{ url: string; body: Record<string, unknown> }>;
 
-function open(props: { shareToken?: string; publicSlug?: string }) {
-  render(<SaveTripModal isOpen onClose={() => {}} tripTitle="Lisbon Trip" tripDestination="Lisbon" durationDays={3} onSuccess={() => {}} {...props} />);
+function open() {
+  render(<SaveTripModal isOpen onClose={() => {}} templateId={TEMPLATE} tripTitle="Lisbon Trip" tripDestination="Lisbon" durationDays={3} onSuccess={() => {}} />);
 }
 
 beforeEach(() => {
@@ -48,7 +46,7 @@ beforeEach(() => {
     "fetch",
     vi.fn(async (url: string, init?: RequestInit) => {
       posted.push({ url: String(url), body: JSON.parse(String(init?.body ?? "{}")) });
-      return new Response(JSON.stringify({ tripId: "new-trip" }), { status: 200 });
+      return new Response(JSON.stringify({ trip: { id: "new-trip" } }), { status: 200 });
     }),
   );
 });
@@ -58,62 +56,41 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("saving from the public trip page", () => {
+describe("saving a ready-made trip", () => {
   it("says it in the page's language when the connection drops, not the browser's words", async () => {
     state.user = { id: "viewer-1" };
     vi.stubGlobal("fetch", vi.fn(async () => {
       throw new TypeError("Load failed");
     }));
-    open({ publicSlug: SLUG });
+    open();
     fireEvent.click(screen.getByText("saveToTrips"));
     expect(await screen.findByText("saveFailed")).toBeTruthy();
     expect(screen.queryByText("Load failed")).toBeNull();
   });
 
-  it("copies the trip by its slug", async () => {
+  it("copies the template", async () => {
     state.user = { id: "viewer-1" };
-    open({ publicSlug: SLUG });
+    open();
     fireEvent.click(screen.getByText("saveToTrips"));
     await waitFor(() => expect(posted).toHaveLength(1));
-    expect(posted[0].url).toBe("/api/trips/duplicate");
-    expect(Object.keys(posted[0].body).sort()).toEqual(["publicSlug", "startDate"]);
-    expect(posted[0].body.publicSlug).toBe(SLUG);
+    expect(posted[0].url).toBe(`/api/templates/${TEMPLATE}/copy`);
+    expect(Object.keys(posted[0].body).sort()).toEqual(["locale", "startDate"]);
   });
 
-  it("comes back to the public page after signing in, keeping no token", async () => {
-    open({ publicSlug: SLUG });
+  it("comes back to the template's page after signing in", async () => {
+    open();
     fireEvent.click(screen.getByText("signUpToSave"));
     await waitFor(() => expect(state.pushed).toHaveLength(1));
-    expect(state.pushed[0]).toBe(`/auth/signup?redirect=${encodeURIComponent(`/trip/${SLUG}`)}`);
-    const pending = JSON.parse(state.stored[0][1]);
-    expect(pending.publicSlug).toBe(SLUG);
-    expect(pending.shareToken).toBeUndefined();
+    expect(state.pushed[0]).toBe(`/auth/signup?redirect=${encodeURIComponent(`/trips/template/${TEMPLATE}`)}`);
+    expect(JSON.parse(state.stored[0][1]).templateId).toBe(TEMPLATE);
     expect(posted).toEqual([]);
-  });
-});
-
-describe("saving from a shared link is unchanged", () => {
-  it("copies the trip by its token", async () => {
-    state.user = { id: "viewer-1" };
-    open({ shareToken: TOKEN });
-    fireEvent.click(screen.getByText("saveToTrips"));
-    await waitFor(() => expect(posted).toHaveLength(1));
-    expect(Object.keys(posted[0].body).sort()).toEqual(["shareToken", "startDate"]);
-    expect(posted[0].body.shareToken).toBe(TOKEN);
-  });
-
-  it("comes back to the shared link after signing in", async () => {
-    open({ shareToken: TOKEN });
-    fireEvent.click(screen.getByText("signUpToSave"));
-    await waitFor(() => expect(state.pushed).toHaveLength(1));
-    expect(state.pushed[0]).toBe(`/auth/signup?redirect=${encodeURIComponent(`/shared/${TOKEN}`)}`);
   });
 });
 
 describe("as a dialog", () => {
   it("is named by the destination, takes focus, and closes on Escape", async () => {
     const onClose = vi.fn();
-    render(<SaveTripModal isOpen onClose={onClose} tripTitle="Lisbon Trip" tripDestination="Lisbon" durationDays={3} onSuccess={() => {}} shareToken={TOKEN} />);
+    render(<SaveTripModal isOpen onClose={onClose} tripTitle="Lisbon Trip" tripDestination="Lisbon" durationDays={3} onSuccess={() => {}} templateId={TEMPLATE} />);
     const dialog = screen.getByRole("dialog", { name: "Lisbon" });
     await waitFor(() => expect(dialog.contains(document.activeElement)).toBe(true));
     expect(screen.getByRole("button", { name: "close" })).toBeTruthy();
@@ -124,7 +101,7 @@ describe("as a dialog", () => {
 });
 
 describe("the start date", () => {
-  const props = { onClose: () => {}, tripTitle: "Lisbon Trip", tripDestination: "Lisbon", durationDays: 3, onSuccess: () => {} };
+  const props = { onClose: () => {}, templateId: TEMPLATE, tripTitle: "Lisbon Trip", tripDestination: "Lisbon", durationDays: 3, onSuccess: () => {} };
   const dateInput = () => document.querySelector<HTMLInputElement>('input[type="date"]')!;
   const tomorrow = () => {
     const d = new Date();

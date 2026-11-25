@@ -38,7 +38,7 @@ function serve(before: ParticipantsResponse, after: ParticipantsResponse) {
 
 async function tapImGoing(before: ParticipantsResponse, after: ParticipantsResponse) {
   const server = serve(before, after);
-  render(<ParticipantsBar shareToken="token-1" source="shared" crewAsk={false} tripTitle="Lisbon" onSaveForLater={() => {}} />);
+  render(<ParticipantsBar shareToken="token-1" source="shared" crewAsk={false} tripTitle="Lisbon" />);
   await waitFor(() => expect(countShown()).toBe(String(before.count)));
   fireEvent.click(screen.getByTestId("participants-join"));
   expect(screen.getByTestId("participants-joined")).toBeTruthy();
@@ -65,17 +65,6 @@ describe("ParticipantsBar's More menu", () => {
     await waitFor(() => expect(countShown()).toBe("1"));
     fireEvent.click(screen.getByRole("button", { name: /share\.participants\.more/ }));
     expect(screen.getByRole("menuitem", { name: "share.participants.fork" })).toBeTruthy();
-    expect(screen.queryByRole("menuitem", { name: "share.participants.saveForLater" })).toBeNull();
-  });
-
-  it("offers Save for later when the page gives it", async () => {
-    serve(group(1, false), group(1, false));
-    const onSaveForLater = vi.fn();
-    render(<ParticipantsBar shareToken="token-1" source="shared" crewAsk={false} tripTitle="Lisbon" onSaveForLater={onSaveForLater} />);
-    await waitFor(() => expect(countShown()).toBe("1"));
-    fireEvent.click(screen.getByRole("button", { name: /share\.participants\.more/ }));
-    fireEvent.click(screen.getByRole("menuitem", { name: "share.participants.saveForLater" }));
-    expect(onSaveForLater).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -88,7 +77,7 @@ describe("ParticipantsBar", () => {
         return new Response(JSON.stringify(group(1, false)));
       }),
     );
-    render(<ParticipantsBar shareToken="token-1" source="shared" crewAsk={false} tripTitle="Lisbon" onSaveForLater={() => {}} />);
+    render(<ParticipantsBar shareToken="token-1" source="shared" crewAsk={false} tripTitle="Lisbon" />);
     await waitFor(() => expect(countShown()).toBe("1"));
     fireEvent.click(screen.getByTestId("participants-join"));
     expect(await screen.findByText("share.participants.error")).toBeTruthy();
@@ -124,7 +113,7 @@ describe("ParticipantsBar", () => {
         );
       }),
     );
-    render(<ParticipantsBar shareToken="token-email" source="shared" crewAsk={false} tripTitle="Lisbon" onSaveForLater={() => {}} />);
+    render(<ParticipantsBar shareToken="token-email" source="shared" crewAsk={false} tripTitle="Lisbon" />);
     await waitFor(() => expect(countShown()).toBe("1"));
     fireEvent.click(screen.getByTestId("participants-join"));
     fireEvent.change(await screen.findByTestId("participants-name"), { target: { value: "" } });
@@ -140,7 +129,7 @@ describe("ParticipantsBar", () => {
 
   it("shows someone going who said so at the bottom of the page", async () => {
     serve(group(0, false), group(1, true));
-    render(<ParticipantsBar shareToken="token-footer" source="shared" crewAsk={false} tripTitle="Lisbon" onSaveForLater={() => {}} />);
+    render(<ParticipantsBar shareToken="token-footer" source="shared" crewAsk={false} tripTitle="Lisbon" />);
     await waitFor(() => expect(countShown()).toBe("0"));
     act(() => publishParticipants("token-footer", group(1, true)));
     expect(screen.getByTestId("participants-joined")).toBeTruthy();

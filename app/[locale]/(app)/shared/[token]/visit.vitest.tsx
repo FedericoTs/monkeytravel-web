@@ -24,20 +24,11 @@ const state = vi.hoisted(() => ({
   claim: null as { shareToken: string } | null,
   claimed: null as string | null,
   claimListeners: [] as Array<(id: string) => void>,
-  pending: null as Record<string, unknown> | null,
   prefsSet: [] as Array<[string, string]>,
-  cleared: 0,
   lazyProps: [] as Array<Record<string, unknown>>,
   today: [] as Array<Record<string, unknown>>,
   packing: [] as Array<Record<string, unknown>>,
   itinerary: [] as Array<Record<string, unknown>>,
-  saveProps: {} as Record<string, unknown>,
-}));
-const pendingSave = vi.hoisted(() => ({
-  getPending: async () => state.pending,
-  clearPending: async () => {
-    state.cleared += 1;
-  },
 }));
 const spies = vi.hoisted(() => ({
   trackShareLinkClicked: vi.fn(),
@@ -123,10 +114,8 @@ vi.mock("@/components/trip/PlanByEmail", () => ({
   default: (p: { source: string; defaultEmail?: string }) => <div data-testid="plan-by-email" data-source={p.source} data-email={p.defaultEmail ?? ""} />,
 }));
 vi.mock("@/components/trip/ParticipantsBar", () => ({
-  default: (p: { source: string; crewAsk: boolean; tripTitle: string; onSaveForLater?: () => void }) => (
-    <div data-testid="participants-bar" data-source={p.source} data-crew={String(p.crewAsk)} data-title={p.tripTitle}>
-      {p.onSaveForLater && <button onClick={p.onSaveForLater}>save for later from the bar</button>}
-    </div>
+  default: (p: { source: string; crewAsk: boolean; tripTitle: string }) => (
+    <div data-testid="participants-bar" data-source={p.source} data-crew={String(p.crewAsk)} data-title={p.tripTitle} />
   ),
 }));
 vi.mock("@/components/trip/AnonymousActivityVoteBar", () => ({ AnonymousActivityVoteBar: () => <div data-testid="vote-bar" /> }));
@@ -144,13 +133,6 @@ vi.mock("@/components/trip/ReadOnlyItinerary", () => ({
 }));
 vi.mock("@/components/ShareRow", () => ({
   default: (p: { url: string; title: string }) => <div data-testid="share-row" data-url={p.url} data-title={p.title} />,
-}));
-vi.mock("@/components/ui/SaveTripModal", () => ({
-  default: (p: Record<string, unknown> & { isOpen: boolean; onClose: () => void }) => {
-    state.saveProps = p;
-    return <button data-testid="save-modal" data-open={String(p.isOpen)} onClick={p.onClose} />;
-  },
-  usePendingSaveTripAction: () => pendingSave,
 }));
 
 const upcoming = (over: Partial<TripDayState> = {}): TripDayState => ({
@@ -194,7 +176,7 @@ const page = (over: Partial<Props> = {}) => (
   <SharedTripView trip={trip} dateRange="Oct 10 – 11" viewSource="shared" shareToken={TOKEN} liveState={upcoming()} {...over} />
 );
 const show = (over: Partial<Props> = {}) => render(page(over));
-const publicPage = { slug: SLUG, url: `https://monkeytravel.app/trip/${SLUG}` };
+const publicPage = { url: `https://monkeytravel.app/trip/${SLUG}` };
 const showPublic = (over: Partial<Props> = {}) => show({ shareToken: undefined, publicPage, viewSource: "public", ...over });
 
 const realLocation = window.location;
@@ -208,18 +190,13 @@ beforeEach(() => {
   state.claim = null;
   state.claimed = null;
   state.claimListeners = [];
-  state.pending = null;
   state.prefsSet = [];
-  state.cleared = 0;
   state.lazyProps = [];
   state.today = [];
   state.packing = [];
   state.itinerary = [];
-  state.saveProps = {};
   fetched = [];
   localStorage.clear();
-  // Saving a copy is switched off in production; the tests below that save switch it on.
-  vi.stubEnv("NEXT_PUBLIC_SAVE_COPY_ENABLED", "true");
   Object.defineProperty(window, "location", { configurable: true, value: { ...realLocation, assign } });
   vi.stubGlobal(
     "fetch",
@@ -232,7 +209,6 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
-  vi.unstubAllEnvs();
   vi.restoreAllMocks();
   vi.clearAllMocks();
   Object.defineProperty(window, "location", { configurable: true, value: realLocation });
@@ -349,71 +325,6 @@ describe("a signed-out reader of a share link", { timeout: 20_000 }, () => {
     show();
     await settled();
     expect(state.prefsSet).toEqual([]);
-  });
-});
-
-describe("a save started before signing in", { timeout: 20_000 }, () => {
-  const started = { shareToken: TOKEN, startDate: "2026-11-01", timestamp: 1 };
-
-  it("reopens the dialog with its date, and is forgotten", async () => {
-    state.viewer = { id: "viewer-1" };
-    state.pending = started;
-    show();
-    await waitFor(() => expect(screen.getByTestId("save-modal").getAttribute("data-open")).toBe("true"));
-    expect(state.saveProps.initialStartDate).toBe("2026-11-01");
-    expect(state.cleared).toBe(1);
-  });
-
-  it("waits for a signed-in viewer", async () => {
-    state.pending = started;
-    show();
-    await settled();
-    expect(screen.getByTestId("save-modal").getAttribute("data-open")).toBe("false");
-    expect(state.cleared).toBe(0);
-    cleanup();
-    state.viewer = { id: "viewer-1" };
-    state.viewerLoading = true;
-    show();
-    await settled();
-    expect(screen.getByTestId("save-modal").getAttribute("data-open")).toBe("false");
-  });
-
-  it("is left alone when it was for another link", async () => {
-    state.viewer = { id: "viewer-1" };
-    state.pending = { shareToken: "another-token", timestamp: 1 };
-    show();
-    await settled();
-    expect(screen.getByTestId("save-modal").getAttribute("data-open")).toBe("false");
-    expect(state.cleared).toBe(0);
-  });
-
-  it("is matched by its slug on the public page", async () => {
-    state.viewer = { id: "viewer-1" };
-    state.pending = { publicSlug: SLUG, startDate: "2026-11-01", timestamp: 1 };
-    showPublic();
-    await waitFor(() => expect(screen.getByTestId("save-modal").getAttribute("data-open")).toBe("true"));
-    cleanup();
-    state.pending = { publicSlug: "another-slug", timestamp: 1 };
-    state.cleared = 0;
-    showPublic();
-    await settled();
-    expect(screen.getByTestId("save-modal").getAttribute("data-open")).toBe("false");
-    expect(state.cleared).toBe(0);
-  });
-
-  it("closes like any dialog", async () => {
-    state.viewer = { id: "viewer-1" };
-    state.pending = started;
-    show();
-    await waitFor(() => expect(screen.getByTestId("save-modal").getAttribute("data-open")).toBe("true"));
-    fireEvent.click(screen.getByTestId("save-modal"));
-    expect(screen.getByTestId("save-modal").getAttribute("data-open")).toBe("false");
-  });
-
-  it("gives the dialog the trip's name, place and length", async () => {
-    show();
-    await settled();
-    expect(state.saveProps).toMatchObject({ shareToken: TOKEN, tripTitle: "Lisbon Trip", tripDestination: "Lisbon", durationDays: 2 });
   });
 });
 
@@ -557,13 +468,6 @@ describe("the top of the page", { timeout: 20_000 }, () => {
     expect(screen.getByTestId("plan-by-email").getAttribute("data-source")).toBe("shared");
   });
 
-  it("opens the save dialog from the bar", async () => {
-    show();
-    await settled();
-    fireEvent.click(screen.getByText("save for later from the bar"));
-    expect(screen.getByTestId("save-modal").getAttribute("data-open")).toBe("true");
-  });
-
   it("offers the signed-in reader the plan by email at their own address", async () => {
     state.viewer = { id: "viewer-1", email: "bea@example.com" };
     show();
@@ -589,37 +493,24 @@ describe("the end of the page for the owner", { timeout: 20_000 }, () => {
     expect(screen.queryByTestId("trip-bottom-bar")).toBeNull();
     expect(screen.getByTestId("who-is-going")).toBeTruthy();
   });
-
-  it("still offers saving from the footer's second button to a reader", async () => {
-    show();
-    await settled();
-    fireEvent.click(within(screen.getByTestId("recipient-footer-cta")).getByText("share.participants.saveForLater"));
-    expect(screen.getByTestId("save-modal").getAttribute("data-open")).toBe("true");
-  });
 });
 
-describe("with saving a copy switched off", { timeout: 20_000 }, () => {
-  beforeEach(() => {
-    vi.stubEnv("NEXT_PUBLIC_SAVE_COPY_ENABLED", "false");
-  });
-
-  it("a share link offers joining and planning their own, and no copy", async () => {
+describe("a reader is offered no copy of the trip", { timeout: 20_000 }, () => {
+  it("a share link offers joining and planning their own", async () => {
     show();
     await settled();
     expect(screen.getByTestId("participants-bar")).toBeTruthy();
-    expect(screen.queryByText("save for later from the bar")).toBeNull();
     const footer = screen.getByTestId("recipient-footer-cta");
-    expect(within(footer).queryByText("share.participants.saveForLater")).toBeNull();
+    expect(within(footer).queryByRole("button")).toBeNull();
     expect(within(footer).getByText("share.savedHero.planOwnButton")).toBeTruthy();
   });
 
-  it("with participants off too, the bottom bar keeps planning their own", async () => {
+  it("with participants off, the bottom bar keeps planning their own", async () => {
     state.participants = false;
     show();
     await settled();
     const bar = screen.getByTestId("trip-bottom-bar");
-    expect(within(bar).queryByText("share.savedHero.saveButton")).toBeNull();
-    expect(within(bar).queryByText("share.savedHero.saveSubtitle")).toBeNull();
+    expect(within(bar).queryByRole("button")).toBeNull();
     expect(within(bar).getByText("share.savedHero.planOwnButton")).toBeTruthy();
   });
 });
@@ -647,16 +538,13 @@ describe("with participants switched off", { timeout: 20_000 }, () => {
     show({ engagementSlot: <div data-testid="engagement" /> });
     await settled();
     expect(screen.getByTestId("engagement")).toBeTruthy();
-    expect(screen.getByText("share.savedHero.loveTitle")).toBeTruthy();
   });
 
-  it("ends on the two-button bar: saving, and planning their own", async () => {
+  it("ends on the bottom bar: planning their own", async () => {
     show();
     await settled();
     const bar = screen.getByTestId("trip-bottom-bar");
     expect(screen.queryByTestId("recipient-footer-cta")).toBeNull();
-    fireEvent.click(within(bar).getByText("share.savedHero.saveButton"));
-    expect(screen.getByTestId("save-modal").getAttribute("data-open")).toBe("true");
     const own = within(bar).getByText("share.savedHero.planOwnButton");
     expect(own.closest("a")?.getAttribute("href")).toBe("/trips/new?destination=Lisbon");
     fireEvent.click(own);
@@ -667,7 +555,7 @@ describe("with participants switched off", { timeout: 20_000 }, () => {
     state.claim = { shareToken: TOKEN };
     show();
     await waitFor(() => expect(document.querySelector("[data-owner-claim-strip]")).not.toBeNull());
-    expect(screen.queryByText("share.savedHero.saveButton")).toBeNull();
+    expect(screen.queryByText("share.savedHero.planOwnButton")).toBeNull();
   });
 });
 
@@ -706,11 +594,10 @@ describe("the top of the public page", { timeout: 20_000 }, () => {
 });
 
 describe("with participants on", { timeout: 20_000 }, () => {
-  it("keeps the map a tap away, and leaves out the engagement slot and the save hero", async () => {
+  it("keeps the map a tap away, and leaves out the engagement slot", async () => {
     show({ engagementSlot: <div data-testid="engagement" /> });
     await settled();
     expect(screen.queryByTestId("engagement")).toBeNull();
-    expect(screen.queryByText("share.savedHero.loveTitle")).toBeNull();
   });
 });
 

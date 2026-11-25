@@ -162,11 +162,11 @@ describe("the public trip page holds no share token", () => {
     expect(selects.trips[0].split(",").map((c) => c.trim())).not.toContain("share_token");
   });
 
-  it("renders the view read-only, sharing and saving by the public slug", async () => {
+  it("renders the view read-only, sharing by the public URL", async () => {
     const view = findView(await PublicTripPage({ params }));
     expect(view).not.toBeNull();
     expect(view).not.toHaveProperty("shareToken");
-    expect(view!.publicPage).toEqual({ slug: SLUG, url: `https://monkeytravel.app/trip/${SLUG}` });
+    expect(view!.publicPage).toEqual({ url: `https://monkeytravel.app/trip/${SLUG}` });
   });
 
   it("puts the token nowhere in what it renders", async () => {

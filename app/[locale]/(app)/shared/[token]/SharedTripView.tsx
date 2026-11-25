@@ -24,13 +24,11 @@ import DestinationHero from "@/components/DestinationHero";
 import TripPackingEssentials from "@/components/trip/TripPackingEssentials";
 import { tripNights } from "@/lib/dates/iso-date";
 import { MapToggle, ViewModeToggle } from "@/components/trip/ViewControls";
-import SaveTripModal from "@/components/ui/SaveTripModal";
-import { saveCopyShown } from "@/lib/trips/save-copy";
 import { useAuth } from "@/components/auth/AuthProvider";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import { AnonymousActivityVoteBar } from "@/components/trip/AnonymousActivityVoteBar";
 import { useSharedVotes } from "@/hooks/useSharedVotes";
-import { useOwnerClaim, useSharedTripSave, useSharedTripVisit } from "@/hooks/useSharedTripVisit";
+import { useOwnerClaim, useSharedTripVisit } from "@/hooks/useSharedTripVisit";
 import { useTravelDistances } from "@/hooks/useTravelDistances";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { useCurrency } from "@/lib/locale";
@@ -83,8 +81,8 @@ interface SharedTripViewProps {
    * `publicPage` instead, and the view is read-only.
    */
   shareToken?: string;
-  /** The public page's slug and canonical URL, which sharing and saving use there. */
-  publicPage?: { slug: string; url: string };
+  /** The public page's canonical URL, which sharing uses there. */
+  publicPage?: { url: string };
   dateRange: string;
   /**
    * Persisted cover image URL (column `trips.cover_image_url`). The hero runs
@@ -152,7 +150,6 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
   // (NEXT_PUBLIC_LIVE_TRIP_PARTICIPANTS=off) returns the browse layout. The
   // public page keeps the layout, but every group control needs the token.
   const participantsEnabled = isLiveTripParticipantsEnabled();
-  const publicSlug = publicPage?.slug;
 
   // With participants on, a recipient lands on title · dates · going → Day 1:
   // the map is one tap away ("Show map") rather than 400px above the first
@@ -163,9 +160,6 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
   // Who is reading decides what the page asks of them.
   const { user: viewer, loading: viewerLoading } = useAuth();
   useSharedTripVisit({ tripId: trip.id, viewSource, referralCode, shareToken, viewer, viewerLoading });
-  const { showSaveModal, setShowSaveModal, resumedStartDate } = useSharedTripSave({ shareToken, publicSlug, viewer, viewerLoading });
-  // Saving a copy into the reader's own account, while it's switched on.
-  const onSave = saveCopyShown() ? () => setShowSaveModal(true) : undefined;
   const ownerPending = useOwnerClaim({ shareToken, tripId: trip.id, signedIn: !viewerLoading && !!viewer });
 
   // Votes go through the share link, so the public page shows none.
@@ -307,7 +301,6 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
           crewAsk={crewAsk}
           planOwnHref={planOwn}
           onPlanOwn={firePlanOwnClicked}
-          onSave={onSave}
           tripId={trip.id}
           tripTitle={trip.title}
           publicUrl={publicPage?.url}
@@ -400,8 +393,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
         {/* Like / save / fork action bar. Server-rendered slot — empty when
             the explore flag is off or the trip isn't public. Sits right above
             the map so it's reachable without scrolling on mobile. Flag-off
-            layout only: with participants on, ParticipantsBar replaces it and
-            Save for later lives under More. */}
+            layout only: with participants on, ParticipantsBar replaces it. */}
         {!participantsEnabled && engagementSlot && (
           <div className="mb-6 flex items-center justify-start">
             {engagementSlot}
@@ -471,29 +463,6 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
 
         <AiDisclaimer title={t("share.savedHero.aiTitle")}>{t("share.savedHero.aiDescription")}</AiDisclaimer>
 
-        {/* The mid-page Save hero shows only in the flag-off layout. */}
-        {!participantsEnabled && (
-          <div className="mt-6 p-5 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-xl">
-            <div className="flex gap-4">
-              <div className="flex-shrink-0">
-                <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                  </svg>
-                </div>
-              </div>
-              <div>
-                <h4 className="font-semibold text-purple-900 mb-1">
-                  {t("share.savedHero.loveTitle")}
-                </h4>
-                <p className="text-sm text-purple-800">
-                  {t("share.savedHero.loveDescription")}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
         <SharedTripEndAsk
           participantsEnabled={participantsEnabled}
           isOwner={isOwner}
@@ -501,24 +470,11 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
           crewAsk={crewAsk}
           planOwnHref={planOwn}
           onPlanOwn={firePlanOwnClicked}
-          onSave={onSave}
           ownerPending={ownerPending}
           tripOver={dayState.phase === "past"}
           viewerEmail={viewer?.email}
           destination={destination}
           likeThisDays={likeThis}
-        />
-
-        {/* Save Trip Modal */}
-        <SaveTripModal
-          isOpen={showSaveModal}
-          onClose={() => setShowSaveModal(false)}
-          shareToken={shareToken}
-          publicSlug={publicSlug}
-          tripTitle={trip.title}
-          tripDestination={destination}
-          durationDays={nights + 1}
-          initialStartDate={resumedStartDate}
         />
       </main>
 
