@@ -76,10 +76,19 @@ describe("mendJson", () => {
     expect(mendJson('{"tips":["a","b", "cost": 12, "x": 1}').value).toEqual({ tips: ["a", "b"], cost: 12, x: 1 });
     // A name with a quote in it.
     expect(mendJson('{"tips":["a", "the \\"best\\" time": "dawn"]}').value).toEqual({ tips: ["a"], 'the "best" time': "dawn" });
-    // A name first in its list has nothing before it to end, and a colon after a value in an object is no list's:
-    // the parser's error, nothing mended.
-    expect(() => mendJson('{"tips":["note": 1]}')).toThrow(/^Expected ',' or '\]' after array element in JSON at position 15 \(line 1 column 16\)$/);
+    // A colon after a value in an object is no list's: the parser's error, nothing mended.
     expect(() => mendJson('{"a": "x": 1}')).toThrow(/^Expected ',' or '\}' after property value in JSON at position 9 \(line 1 column 10\)$/);
+  });
+
+  it("ends a list empty when the name and its value were typed as its first item", () => {
+    // Read live: a stop's tips opened, the stop's next field typed as their only item, the tips' end after its value.
+    const live = '{"activities":[{"name":"Xcaret Park","tips": [\n            "booking_required": true\n          ]\n        }\n      ]}';
+    expect(mendJson(live)).toEqual({
+      value: { activities: [{ name: "Xcaret Park", tips: [], booking_required: true }] },
+      mends: 1,
+    });
+    expect(mendJson('{"tips":["note": 1]}').value).toEqual({ tips: [], note: 1 });
+    expect(mendJson('{"tips":[ "note": "go early", "x": 2}').value).toEqual({ tips: [], note: "go early", x: 2 });
   });
 
   it("takes out a comma left before the end of a list in a long reply", () => {
