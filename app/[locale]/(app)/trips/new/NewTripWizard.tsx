@@ -184,6 +184,7 @@ import type { TripIntent } from "@/lib/posthog/events";
 import { capture } from "@/lib/posthog/events";
 import { usePostHog } from "@/lib/posthog";
 import { onPostHogReady } from "@/lib/posthog/client";
+import { whenSeen } from "@/lib/analytics/when-seen";
 import { trackWizardEvent } from "@/components/wizard/wizardEvents";
 import { useWizardSave } from "@/hooks/useWizardSave";
 import { useClaimedTrip } from "@/hooks/useClaimedTrip";
@@ -730,8 +731,9 @@ export default function NewTripPage({
       // Check my plan's "fix it" the places worth keeping.
       from: prefillSource(searchParams?.get("from")),
     };
-    // PostHog loads when the browser is idle, after this first render: sent once it has.
-    onPostHogReady((ph) => ph.capture("wizard_prefilled_from_article", prefilled));
+    // PostHog loads when the browser is idle, after this first render: sent once it has, and once the page is seen
+    // (a tab the browser restores in the background waits, like the step views).
+    return whenSeen(() => onPostHogReady((ph) => ph.capture("wizard_prefilled_from_article", prefilled)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

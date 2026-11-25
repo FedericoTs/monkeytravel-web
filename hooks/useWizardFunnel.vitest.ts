@@ -55,6 +55,39 @@ describe("useWizardFunnel", () => {
     expect(rows("step_2_vibes")).toHaveLength(1);
   });
 
+  it("records the step view of a page loaded in the background only once it is seen, and none if never seen", () => {
+    let visibility: DocumentVisibilityState = "hidden";
+    Object.defineProperty(document, "visibilityState", { configurable: true, get: () => visibility });
+    const show = (state: DocumentVisibilityState) => {
+      visibility = state;
+      act(() => {
+        document.dispatchEvent(new Event("visibilitychange"));
+      });
+    };
+    try {
+      const seen = renderHook((p: Props) => useWizardFunnel(p), { initialProps: props() });
+      expect(stepViewed).not.toHaveBeenCalled();
+      expect(rows("step_1_destination_dates")).toHaveLength(0);
+      show("visible");
+      show("hidden");
+      show("visible");
+      expect(stepViewed).toHaveBeenCalledTimes(1);
+      expect(rows("step_1_destination_dates")).toHaveLength(1);
+      seen.unmount();
+
+      [trackWizardEvent, stepViewed].forEach((fn) => fn.mockClear());
+      visibility = "hidden";
+      const never = renderHook((p: Props) => useWizardFunnel(p), { initialProps: props() });
+      never.unmount();
+      show("visible");
+      expect(stepViewed).not.toHaveBeenCalled();
+      expect(rows("step_1_destination_dates")).toHaveLength(0);
+    } finally {
+      // Back to the document's own visibility for the other tests.
+      delete (document as { visibilityState?: unknown }).visibilityState;
+    }
+  });
+
   it("describes the trip on the step-2 view as it stood when step 1 was left", () => {
     const { rerender } = renderHook((p: Props) => useWizardFunnel(p), { initialProps: props() });
     const trip = { destination: "Lisbon, Portugal", startDate: "2027-05-10", endDate: "2027-05-14" };
