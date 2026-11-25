@@ -1,6 +1,5 @@
 {
   "nothingChanged": "Não alterei o seu itinerário: não consegui fazer essa alteração daqui. Você pode fazê-la com \"Editar viagem\".",
-  "noProposal": "(Esta alteração não está pronta: não há nada para confirmar. Peça de novo com o dia e a atividade.)",
   "preparedChange": "Preparei esta alteração.",
   "wizardNothingChanged": "Não alterei o seu plano: não consegui fazer essa alteração. Tente pedir dia a dia, por exemplo \"deixe o dia 3 mais tranquilo\".",
   "wizardNothingKept": "Aqui não consigo guardar dados como esse, e só me lembro das últimas mensagens. Para ajustar o plano, diga o que deve mudar, por exemplo \"chegamos às 14:00 no dia 1\".",

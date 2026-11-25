@@ -413,18 +413,25 @@ export async function POST(request: NextRequest) {
       );
       finalItinerary = openDays.itinerary;
       generationCost += openDays.costUsd;
-      //     The days can have moved: a first or last day, planned without dinner, now in the
-      //     middle of the trip. Its dinner is asked for now; nothing is asked when none moved.
+      //     The days can have moved: a first or last day, planned without lunch or dinner, now in
+      //     the middle of the trip. Its lunch and dinner are asked for now, together; nothing is
+      //     asked when none moved.
       const movedDinnersWanted = daysWithoutDinner(finalItinerary.days, params.destination).filter(
         (day) => !dinnersWanted.some((asked) => asked.after === day.after)
       );
       const movedDinnersAsked = askForDinners(movedDinnersWanted, mealOptions);
+      const movedLunchesWanted = daysWithoutLunch(finalItinerary.days, params.destination).filter(
+        (day) => !lunchesWanted.some((asked) => asked.after === day.after)
+      );
+      const movedLunchesAsked = askForLunches(movedLunchesWanted, mealOptions);
       //     The lunches, after the visits they were chosen near, wherever those
       //     now are: before the hours step, which then sees the day's times.
       const lunchAnswer = await lunchesAsked;
       const lunches = withLunches(finalItinerary.days, lunchesWanted, lunchAnswer.answer);
-      finalItinerary = { ...finalItinerary, days: lunches.days };
-      generationCost += lunchAnswer.costUsd;
+      const movedLunchAnswer = await movedLunchesAsked;
+      const movedLunches = withLunches(lunches.days, movedLunchesWanted, movedLunchAnswer.answer);
+      finalItinerary = { ...finalItinerary, days: movedLunches.days };
+      generationCost += lunchAnswer.costUsd + movedLunchAnswer.costUsd;
       // 5b'. Each visit to a place of known hours inside them: a garden that
       //      shuts at four isn't planned from half past two to half past four
       //      (lib/ai/visit-hours.ts).
@@ -568,8 +575,17 @@ export async function POST(request: NextRequest) {
                       },
                     }
                   : {}),
-                // Full days the plan left without lunch, and how many got one.
-                ...(lunchesWanted.length > 0 ? { lunches: { missing: lunchesWanted.length, added: lunches.added } } : {}),
+                // Full days the plan left without lunch, and how many got one; after_move: those found only
+                // once the closing days had moved the days.
+                ...(lunchesWanted.length + movedLunchesWanted.length > 0
+                  ? {
+                      lunches: {
+                        missing: lunchesWanted.length + movedLunchesWanted.length,
+                        added: lunches.added + movedLunches.added,
+                        ...(movedLunchesWanted.length > 0 ? { after_move: movedLunchesWanted.length } : {}),
+                      },
+                    }
+                  : {}),
                 ...(repeatsWanted.length > 0 ? { repeated_restaurants: { found: repeatsWanted.length, replaced: repeats.replaced } } : {}),
                 ...(sightsWanted.length > 0 ? { repeated_sights: { found: sightsWanted.length, replaced: sights.replaced } } : {}),
                 ...(generationId ? { generation_id: generationId } : {}),

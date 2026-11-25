@@ -103,6 +103,10 @@ const BALI = /\bbali\b|\bubud\b|\bseminyak\b|\bcanggu\b|\bcanga\b|\bkuta\b|\bulu
 const GOA = /\bgoa\b|\bpanaji\b|\bpanjim\b/i;
 const MUNNAR = /\bmunnar\b|\bkerala\b|\bidukki\b/i;
 const OSAKA = /\bosaka\b|\bosaca\b|大阪/i;
+const SEOUL = /\bseoul\b|\bse[uú]l\b|서울/i;
+const DUBAI = /\bdubai\b|\bdub[aá]i\b|دبي/i;
+const SYDNEY = /\bsydney\b|\bs[ií]dney\b|\bsidn[eé]i\b/i;
+const SANTORINI = /\bsantorini\b|\bsantor[ií]n\b|\bthira\b|\bfira\b|\boia\b/i;
 const AGRA = /\bagra\b|आगरा/i;
 const DELHI = /\bdelhi\b|\bnova d[eé]li\b|दिल्ली/i;
 const JODHPUR = /\bjodhpur\b/i;
@@ -150,6 +154,11 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
     names: /\bteamlab planets\b/i,
     city: TOKYO,
     rules: [day("2026-12-03"), day("2027-01-14")],
+    hours: [
+      { from: "01-01", to: "01-02", open: "08:00", close: "20:00", lastEntry: "19:00" },
+      { from: "12-31", to: "12-31", open: "08:00", close: "20:00", lastEntry: "19:00" },
+      { from: "01-01", to: "12-31", open: "08:00", close: "22:00", lastEntry: "21:00" },
+    ],
     source: "https://www.teamlab.art/e/planets/",
   },
   {
@@ -285,6 +294,14 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
     notNames: /\bsento\b/i,
     city: KYOTO,
     rules: [{ weekly: ["Monday"], holidayShift: "jp" }, yearly("12-28", "01-04")],
+    // Entry until 15:20, 15:50 or 16:20 by season, out by 16:00, 16:30 or 17:00.
+    hours: [
+      { from: "03-01", to: "03-31", open: "09:00", close: "16:30", lastEntry: "15:50" },
+      { from: "04-01", to: "08-31", open: "09:00", close: "17:00", lastEntry: "16:20" },
+      { from: "09-01", to: "09-30", open: "09:00", close: "16:30", lastEntry: "15:50" },
+      { from: "01-01", to: "12-31", open: "09:00", close: "16:00", lastEntry: "15:20" },
+    ],
+    hoursSource: "https://sankan.kunaicho.go.jp/multilingual/information.html",
     source: "https://kyoto-gosho.kunaicho.go.jp/en",
   },
   {
@@ -441,7 +458,20 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
   // Barcelona
   // The market's Christmas notices, the same each year: shut on Christmas Day, St Stephen's Day, New Year's Day and Epiphany.
   { names: /\bboqueria\b|\bmercat de sant josep\b/i, city: BARCELONA, rules: [{ weekly: ["Sunday"] }, yearly("12-25", "12-26"), yearly("01-01"), yearly("01-06")], hours: [{ from: "01-01", to: "12-31", open: "08:00", close: "20:30" }], hoursSource: "https://ajuntament.barcelona.cat/memoriademocratica/en/detail/mercat-boqueria-sant-josep_92086009447", source: "https://www.boqueria.barcelona/boqueria-opening-hours-during-christmas-n-352-en" },
-  { names: /\bpar(?:k|c|que) g[uü]ell\b/i, city: BARCELONA, rules: OPEN_EVERY_DAY, source: "https://parkguell.barcelona/en/planning-your-visit/prices-and-times" },
+  {
+    // Tickets are for a time band, with half an hour to go in; the park itself shuts at 22:00.
+    names: /\bpar(?:k|c|que) g[uü]ell\b/i,
+    city: BARCELONA,
+    rules: OPEN_EVERY_DAY,
+    hours: [
+      { from: "02-08", to: "02-29", open: "09:30", close: "22:00", lastEntry: "18:30" },
+      { from: "03-01", to: "06-30", open: "09:30", close: "22:00", lastEntry: "20:00" },
+      { from: "07-01", to: "08-31", open: "09:00", close: "22:00", lastEntry: "20:00" },
+      { from: "09-01", to: "10-31", open: "09:30", close: "22:00", lastEntry: "20:00" },
+      { from: "01-01", to: "12-31", open: "09:30", close: "22:00", lastEntry: "18:00" },
+    ],
+    source: "https://parkguell.barcelona/en/planning-your-visit/prices-and-times",
+  },
   { names: /\bsagrada fam[ií]lia\b/i, city: BARCELONA, rules: OPEN_EVERY_DAY, hours: [{ from: "12-25", to: "12-26", open: "09:00", close: "14:00" }, { from: "01-01", to: "01-01", open: "09:00", close: "14:00" }, { from: "01-06", to: "01-06", open: "09:00", close: "14:00" }, { from: "11-01", to: "02-29", days: ["Sunday"], open: "10:30", close: "18:00" }, { from: "11-01", to: "02-29", open: "09:00", close: "18:00" }, { from: "03-01", to: "03-31", days: ["Saturday"], open: "09:00", close: "18:00" }, { from: "03-01", to: "03-31", days: ["Sunday"], open: "10:30", close: "19:00" }, { from: "03-01", to: "03-31", open: "09:00", close: "19:00" }, { from: "10-01", to: "10-31", days: ["Saturday"], open: "09:00", close: "18:00" }, { from: "10-01", to: "10-31", days: ["Sunday"], open: "10:30", close: "19:00" }, { from: "10-01", to: "10-31", open: "09:00", close: "19:00" }, { from: "04-01", to: "09-30", days: ["Saturday"], open: "09:00", close: "18:00" }, { from: "04-01", to: "09-30", days: ["Sunday"], open: "10:30", close: "20:00" }, { from: "04-01", to: "09-30", open: "09:00", close: "20:00" }], source: "https://sagradafamilia.org/en/schedules-how-to-get" },
   // London
   {
@@ -473,6 +503,11 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
     notNames: /\bcloisters\b|\bbreuer\b|\bopera\b/i,
     city: NEW_YORK,
     rules: [{ weekly: ["Wednesday"] }, { thanksgiving: true }, day("2026-12-25"), day("2027-01-01")],
+    hours: [
+      { from: "01-01", to: "12-31", days: ["Friday", "Saturday"], open: "10:00", close: "21:00" },
+      { from: "01-01", to: "12-31", open: "10:00", close: "17:00" },
+    ],
+    hoursSource: "https://www.metmuseum.org/plan-your-visit/met-fifth-avenue",
     source: "https://www.metmuseum.org/plan-your-visit",
   },
   {
@@ -490,6 +525,21 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
     names: /\bamerican museum of natural history\b|\bamnh\b/i,
     city: NEW_YORK,
     rules: [{ thanksgiving: true }, day("2026-12-25")],
+    // The holiday season's later evenings, as this season's page lists them.
+    hours: [
+      { from: "11-28", to: "11-28", open: "09:00", close: "20:00" },
+      { from: "11-27", to: "11-29", open: "09:00", close: "17:30" },
+      { from: "12-05", to: "12-05", open: "10:00", close: "20:00" },
+      { from: "12-19", to: "12-19", open: "10:00", close: "20:00" },
+      { from: "12-26", to: "12-30", open: "09:00", close: "20:00" },
+      { from: "01-02", to: "01-02", open: "10:00", close: "20:00" },
+      { from: "01-09", to: "01-09", open: "10:00", close: "20:00" },
+      { from: "01-16", to: "01-16", open: "10:00", close: "20:00" },
+      { from: "01-23", to: "01-23", open: "10:00", close: "20:00" },
+      { from: "01-30", to: "01-30", open: "10:00", close: "20:00" },
+      { from: "01-01", to: "12-31", open: "10:00", close: "17:30" },
+    ],
+    hoursSource: "https://www.amnh.org/plan-your-visit/hours",
     source: "https://www.amnh.org/plan-your-visit",
   },
   // Mexico City
@@ -591,6 +641,12 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
     notNames: /\broman agora\b|\b[aá]gora romana\b/i,
     city: ATHENS,
     rules: [yearly("01-01"), yearly("03-25"), yearly("05-01"), { easter: "orthodox" }, yearly("12-25", "12-26")],
+    // Last entry 20 minutes before closing. September and October hold the later of the page's table and its notice.
+    hours: [
+      { from: "04-01", to: "08-31", open: "08:00", close: "20:00", lastEntry: "19:40" },
+      { from: "09-01", to: "10-31", open: "08:00", close: "19:30", lastEntry: "19:10" },
+      { from: "01-01", to: "12-31", open: "08:00", close: "17:00", lastEntry: "16:40" },
+    ],
     source: "https://www.hh.gr/en/destinations/ancient-agora-athens/",
   },
   // Granada
@@ -608,10 +664,15 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
   },
   // London
   {
-    // Sundays are for worship only. Its page doesn't say whether 15:30 is the last entry or the closing: no hours.
+    // Sundays are for worship only. Its opening-times page: 9:30 to 4:30, last entry 3:30; Saturdays 9:00 to 4:00.
     names: /\bwestminster abbey\b|\babad[ií]a de westminster\b|\babbazia di westminster\b/i,
     city: LONDON,
     rules: [{ weekly: ["Sunday"] }, yearly("12-25")],
+    hours: [
+      { from: "01-01", to: "12-31", days: ["Saturday"], open: "09:00", close: "16:00", lastEntry: "15:00" },
+      { from: "01-01", to: "12-31", open: "09:30", close: "16:30", lastEntry: "15:30" },
+    ],
+    hoursSource: "https://www.westminster-abbey.org/visit-us/opening-times-and-prices/",
     source: "https://www.westminster-abbey.org/faq",
   },
   // Edinburgh
@@ -999,6 +1060,404 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
     rules: [yearly("12-25")],
     hours: [{ from: "01-01", to: "12-31", open: "07:00", close: "22:00" }],
     source: "https://www.chelseamarket.com/visit",
+  },
+  // The most planned sights that had no hours here, from their official pages. Where a page leaves room, a row
+  // takes the earlier opening and the later closing, so a visit in time is never moved.
+  // Kyoto
+  {
+    // The Tsutenkyo bridge and the abbot's garden; from mid-November to early December they open half an hour early.
+    names: /\btofuku-?ji\b|東福寺/i,
+    city: KYOTO,
+    rules: OPEN_EVERY_DAY,
+    hours: [
+      { from: "04-01", to: "11-13", open: "09:00", close: "16:30", lastEntry: "16:00" },
+      { from: "11-14", to: "12-06", open: "08:30", close: "16:30", lastEntry: "16:00" },
+      { from: "01-01", to: "12-31", open: "09:00", close: "16:00", lastEntry: "15:30" },
+    ],
+    source: "https://tofukuji.jp/guide/",
+  },
+  // Osaka
+  {
+    names: /\bosaka museum of history\b|大阪歴史博物館|\bmuseo de historia de osaka\b|\bmuseo di storia di osaka\b|\bmuseu de hist[oó]ria de osaka\b/i,
+    city: OSAKA,
+    rules: [{ weekly: ["Tuesday"], holidayShift: "jp" }, yearly("12-28", "01-04")],
+    hours: [{ from: "01-01", to: "12-31", open: "09:30", close: "17:00", lastEntry: "16:30" }],
+    source: "https://www.osakamushis.jp/eng/index.html",
+  },
+  {
+    // Its hours are set day by day: each month holds the earliest opening and the latest closing of its calendar.
+    names: /\bkaiyukan\b|海遊館|\bosaka aquarium\b|\bacuario de osaka\b|\bacquario di osaka\b|\baqu[aá]rio de osaka\b/i,
+    city: OSAKA,
+    rules: [{ from: "2027-01-13", to: "2027-01-14" }],
+    hours: [
+      { from: "04-01", to: "04-30", open: "09:00", close: "20:00", lastEntry: "19:00" },
+      { from: "05-01", to: "05-31", open: "08:00", close: "21:00", lastEntry: "20:00" },
+      { from: "06-01", to: "06-30", open: "09:30", close: "20:00", lastEntry: "19:00" },
+      { from: "07-01", to: "07-31", open: "08:30", close: "20:30", lastEntry: "19:30" },
+      { from: "08-01", to: "09-30", open: "08:00", close: "21:00", lastEntry: "20:00" },
+      { from: "10-01", to: "10-31", open: "08:30", close: "20:30", lastEntry: "19:30" },
+      { from: "12-01", to: "12-31", open: "08:30", close: "20:30", lastEntry: "19:30" },
+      { from: "01-01", to: "12-31", open: "08:30", close: "20:00", lastEntry: "19:00" },
+    ],
+    source: "https://www.kaiyukan.com/info/hours/",
+  },
+  {
+    names: /\bumeda sky\b|梅田スカイビル|\bfloating garden observatory\b/i,
+    city: OSAKA,
+    rules: OPEN_EVERY_DAY,
+    hours: [{ from: "01-01", to: "12-31", open: "09:30", close: "22:30", lastEntry: "22:00" }],
+    source: "https://www.skybldg.co.jp/en/",
+  },
+  // Seoul: a palace shut on a public holiday's weekday opens and shuts the next day instead, which the rules don't hold.
+  {
+    names: /\bgyeongbok(?:gung)?\b|경복궁/i,
+    city: SEOUL,
+    rules: [{ weekly: ["Tuesday"] }],
+    hours: [
+      { from: "03-01", to: "05-31", open: "09:00", close: "18:00", lastEntry: "17:00" },
+      { from: "06-01", to: "08-31", open: "09:00", close: "18:30", lastEntry: "17:30" },
+      { from: "09-01", to: "10-31", open: "09:00", close: "18:00", lastEntry: "17:00" },
+      { from: "01-01", to: "12-31", open: "09:00", close: "17:00", lastEntry: "16:00" },
+    ],
+    source: "https://royal.khs.go.kr/ROYAL/contents/R702000000.do?schGroupCode=gbg",
+  },
+  {
+    // The palace; its Secret Garden is a separate, timed tour.
+    names: /\bchangdeok(?:gung)?\b|창덕궁/i,
+    city: SEOUL,
+    rules: [{ weekly: ["Monday"] }],
+    hours: [
+      { from: "02-01", to: "05-31", open: "09:00", close: "18:00", lastEntry: "17:00" },
+      { from: "06-01", to: "08-31", open: "09:00", close: "18:30", lastEntry: "17:30" },
+      { from: "09-01", to: "10-31", open: "09:00", close: "18:00", lastEntry: "17:00" },
+      { from: "01-01", to: "12-31", open: "09:00", close: "17:30", lastEntry: "16:30" },
+    ],
+    source: "https://royal.khs.go.kr/ROYAL/contents/R702000000.do?schGroupCode=cdg",
+  },
+  {
+    names: /\bleeum\b|리움/i,
+    city: SEOUL,
+    rules: [{ weekly: ["Monday"] }, yearly("01-01")],
+    hours: [{ from: "01-01", to: "12-31", open: "10:00", close: "18:00", lastEntry: "17:30" }],
+    source: "https://www.leeumhoam.org/leeum/info/visit",
+  },
+  {
+    // Its busiest lanes are a special management area: visitors only from 10:00 to 17:00.
+    names: /\bbukchon\b|북촌/i,
+    city: SEOUL,
+    rules: OPEN_EVERY_DAY,
+    hours: [{ from: "01-01", to: "12-31", open: "10:00", close: "17:00" }],
+    source: "https://english.seoul.go.kr/notice-on-restrictions-for-tourist-visits-to-bukchon-special-management-area-effective-from-november-2024/",
+  },
+  // Bangkok
+  {
+    names: /\bbangkok art (?:and|&) culture cent(?:re|er)\b|\bbacc\b/i,
+    city: BANGKOK,
+    rules: [{ weekly: ["Monday"] }],
+    hours: [{ from: "01-01", to: "12-31", open: "10:00", close: "20:00" }],
+    source: "https://www.bacc.or.th/en/plan-your-visit",
+  },
+  // Rome
+  {
+    // The basilica, not the square in front of it.
+    names: /\bst\.? peter'?s basilica\b|\bsaint peter'?s basilica\b|\bbas[ií]lica de san pedro\b|\bbasilica di san pietro\b|\bbas[ií]lica de s[aã]o pedro\b/i,
+    city: ROME,
+    rules: OPEN_EVERY_DAY,
+    hours: [
+      { from: "03-29", to: "10-25", open: "07:00", close: "20:00" },
+      { from: "01-01", to: "12-31", open: "07:00", close: "19:00" },
+    ],
+    source: "https://www.basilicasanpietro.va/en/opening-hours",
+  },
+  // Paris
+  {
+    // Its gates open and shut with the daylight, changing every fortnight.
+    names: /\bjardin du luxembourg\b|\bluxembourg gardens?\b|\bjard[ií]n de luxemburgo\b|\bgiardin[oi] del lussemburgo\b|\bjardim do luxemburgo\b/i,
+    city: PARIS,
+    rules: OPEN_EVERY_DAY,
+    hours: [
+      { from: "01-01", to: "01-15", open: "08:15", close: "16:45" },
+      { from: "01-16", to: "01-31", open: "08:15", close: "17:00" },
+      { from: "02-01", to: "02-15", open: "08:00", close: "17:30" },
+      { from: "02-16", to: "02-29", open: "07:45", close: "17:45" },
+      { from: "03-01", to: "03-15", open: "07:30", close: "18:15" },
+      { from: "03-16", to: "03-24", open: "07:30", close: "18:30" },
+      { from: "03-25", to: "03-31", open: "07:30", close: "19:30" },
+      { from: "04-01", to: "04-15", open: "07:30", close: "20:00" },
+      { from: "04-16", to: "04-30", open: "07:30", close: "20:15" },
+      { from: "05-01", to: "05-15", open: "07:30", close: "20:45" },
+      { from: "05-16", to: "05-31", open: "07:30", close: "21:00" },
+      { from: "06-01", to: "06-15", open: "07:30", close: "21:15" },
+      { from: "06-16", to: "06-30", open: "07:30", close: "21:30" },
+      { from: "07-01", to: "07-15", open: "07:30", close: "21:15" },
+      { from: "07-16", to: "07-31", open: "07:30", close: "21:00" },
+      { from: "08-01", to: "08-15", open: "07:30", close: "20:45" },
+      { from: "08-16", to: "08-31", open: "07:30", close: "20:15" },
+      { from: "09-01", to: "09-15", open: "07:30", close: "19:45" },
+      { from: "09-16", to: "09-30", open: "07:30", close: "19:15" },
+      { from: "10-01", to: "10-15", open: "07:45", close: "18:45" },
+      { from: "10-16", to: "10-30", open: "08:00", close: "18:15" },
+      { from: "10-31", to: "10-31", open: "08:00", close: "17:15" },
+      { from: "11-01", to: "11-15", open: "08:00", close: "17:00" },
+      { from: "11-16", to: "11-30", open: "08:00", close: "16:45" },
+      { from: "12-01", to: "12-31", open: "08:15", close: "16:30" },
+    ],
+    source: "https://jardin.senat.fr/infos-pratiques/horaires-douverture.html",
+  },
+  // A second batch of the most planned sights without hours, from their official pages, the same way.
+  // Madrid
+  {
+    // The palace in Madrid, not the royal sites around it.
+    names: /\bpalacio real\b|\broyal palace of madrid\b|\bmadrid royal palace\b|\bpalazzo reale di madrid\b|\bpal[aá]cio real de madri/i,
+    notNames: /\baranjuez\b|\bla granja\b|\bel pardo\b|\briofr[ií]o\b/i,
+    city: MADRID,
+    rules: [yearly("01-01"), yearly("01-06"), yearly("05-01"), yearly("12-25")],
+    hours: [
+      { from: "12-24", to: "12-24", open: "10:00", close: "15:00", lastEntry: "14:00" },
+      { from: "12-31", to: "12-31", open: "10:00", close: "15:00", lastEntry: "14:00" },
+      { from: "01-01", to: "12-31", days: ["Sunday"], open: "10:00", close: "16:00", lastEntry: "15:00" },
+      { from: "04-01", to: "09-30", open: "10:00", close: "19:00", lastEntry: "18:00" },
+      { from: "01-01", to: "12-31", open: "10:00", close: "18:00", lastEntry: "17:00" },
+    ],
+    source: "https://tickets.patrimonionacional.es/en/tickets/palacio-real-de-madrid",
+  },
+  {
+    names: /\btemplo de debod\b|\btemple of debod\b|\btempio di debod\b/i,
+    city: MADRID,
+    rules: [{ weekly: ["Monday"] }, yearly("01-01"), yearly("01-06"), yearly("05-01"), yearly("12-24", "12-25"), yearly("12-31")],
+    hours: [
+      { from: "06-15", to: "09-15", open: "10:00", close: "19:00", lastEntry: "18:30" },
+      { from: "01-01", to: "12-31", open: "10:00", close: "20:00", lastEntry: "19:30" },
+    ],
+    source: "https://www.madrid.es/portales/munimadrid/es/Inicio/El-Ayuntamiento/Moncloa-Aravaca/Direcciones-y-telefonos/Templo-de-Debod/?vgnextfmt=default&vgnextoid=13b432df1d51c010VgnVCM2000000c205a0aRCRD&vgnextchannel=a6d4d47ffee28010VgnVCM100000dc0ca8c0RCRD",
+  },
+  {
+    // The park's gates; the palaces inside it keep their own hours.
+    names: /\bparque del retiro\b|\bretiro park\b|\bbuen retiro\b|\bparco del retiro\b/i,
+    notNames: /\bpalacio de cristal\b|\bcrystal palace\b|\bpalacio de vel[aá]zquez\b/i,
+    city: MADRID,
+    rules: OPEN_EVERY_DAY,
+    hours: [
+      { from: "04-01", to: "09-30", open: "06:00", close: "23:59" },
+      { from: "01-01", to: "12-31", open: "06:00", close: "22:00" },
+    ],
+    source: "https://www.madrid.es/portales/munimadrid/es/Inicio/El-Ayuntamiento/Parques-y-jardines/Patrimonio-Verde/Parques-en-Madrid/Jardines-de-El-Buen-Retiro/?vgnextfmt=default&vgnextoid=499561945d9ec210VgnVCM2000000c205a0aRCRD&vgnextchannel=38bb1914e7d4e210VgnVCM1000000b205a0aRCRD",
+  },
+  {
+    names: /\balmudena\b/i,
+    notNames: /\bcrypt\b|\bcripta\b/i,
+    city: MADRID,
+    rules: OPEN_EVERY_DAY,
+    hours: [
+      { from: "07-01", to: "08-31", open: "10:00", close: "21:00" },
+      { from: "01-01", to: "12-31", open: "10:00", close: "20:30" },
+    ],
+    source: "https://catedraldelaalmudena.es/catedral",
+  },
+  // Dubai
+  {
+    // Open for its season only: the season to 31 May 2027, then shut until the next (October, not yet dated).
+    names: /\bmiracle garden\b/i,
+    city: DUBAI,
+    rules: [{ from: "2027-06-01", to: "2027-09-30" }],
+    hours: [{ from: "01-01", to: "12-31", open: "09:00", close: "21:00", lastEntry: "20:30" }],
+    source: "https://www.dubaimiraclegarden.com/",
+  },
+  {
+    names: /\bat the top\b|\bburj khalifa\b/i,
+    city: DUBAI,
+    rules: OPEN_EVERY_DAY,
+    hours: [{ from: "01-01", to: "12-31", open: "07:00", close: "23:00" }],
+    source: "https://www.emaar.com/en/at-the-top-burj-khalifa",
+  },
+  {
+    names: /\bthe view at the palm\b|\bview at the palm\b/i,
+    city: DUBAI,
+    rules: OPEN_EVERY_DAY,
+    hours: [{ from: "01-01", to: "12-31", open: "09:00", close: "19:00" }],
+    source: "https://www.theviewpalm.ae/en/standard-admission",
+  },
+  // New York
+  {
+    // Midtown's museum, not MoMA PS1 in Queens.
+    names: /\bmuseum of modern art\b|\bmoma\b/i,
+    notNames: /\bps ?1\b|\bsf ?moma\b|\bsan francisco\b/i,
+    city: NEW_YORK,
+    rules: [{ thanksgiving: true }, yearly("12-25")],
+    hours: [
+      { from: "01-01", to: "12-31", days: ["Friday"], open: "10:30", close: "20:30" },
+      { from: "01-01", to: "12-31", open: "10:30", close: "17:30" },
+    ],
+    source: "https://www.moma.org/visit/",
+  },
+  {
+    names: /\btop of the rock\b/i,
+    city: NEW_YORK,
+    rules: OPEN_EVERY_DAY,
+    hours: [{ from: "01-01", to: "12-31", open: "08:00", close: "23:59", lastEntry: "23:10" }],
+    source: "https://www.rockefellercenter.com/attractions/top-of-the-rock-observation-deck/",
+  },
+  {
+    names: /\bhigh line\b/i,
+    city: NEW_YORK,
+    rules: OPEN_EVERY_DAY,
+    hours: [
+      { from: "04-01", to: "11-30", open: "07:00", close: "22:00" },
+      { from: "01-01", to: "12-31", open: "07:00", close: "20:00" },
+    ],
+    source: "https://www.thehighline.org/visit/",
+  },
+  // Sydney
+  {
+    // The gates shut with the light, from 17:00 in midwinter to 20:00 in summer.
+    names: /\broyal botanic gardens?\b|\bbotanic gardens? sydney\b/i,
+    city: SYDNEY,
+    rules: OPEN_EVERY_DAY,
+    hours: [
+      { from: "03-01", to: "03-31", open: "07:00", close: "18:30" },
+      { from: "04-01", to: "04-30", open: "07:00", close: "18:00" },
+      { from: "05-01", to: "05-31", open: "07:00", close: "17:30" },
+      { from: "06-01", to: "07-31", open: "07:00", close: "17:00" },
+      { from: "08-01", to: "08-31", open: "07:00", close: "17:30" },
+      { from: "09-01", to: "09-30", open: "07:00", close: "18:00" },
+      { from: "10-01", to: "10-31", open: "07:00", close: "19:30" },
+      { from: "01-01", to: "12-31", open: "07:00", close: "20:00" },
+    ],
+    source: "https://www.botanicgardens.org.au/royal-botanic-garden-sydney/plan-your-visit",
+  },
+  {
+    names: /\baustralian museum\b/i,
+    city: SYDNEY,
+    rules: [yearly("12-25")],
+    hours: [{ from: "01-01", to: "12-31", open: "10:00", close: "17:00" }],
+    source: "https://australian.museum/visit/",
+  },
+  {
+    names: /\bart gallery of new south wales\b|\bart gallery of nsw\b|\bagnsw\b/i,
+    city: SYDNEY,
+    rules: [yearly("12-25")],
+    hours: [
+      { from: "01-01", to: "12-31", days: ["Wednesday"], open: "10:00", close: "22:00" },
+      { from: "01-01", to: "12-31", open: "10:00", close: "17:00" },
+    ],
+    source: "https://www.artgallery.nsw.gov.au/visit/plan-your-visit/",
+  },
+  // Santorini
+  {
+    // The excavation, not the lighthouse or the beaches of the same cape. Shut on Tuesdays in winter, which the rules
+    // can't say for part of a year: left open then.
+    names: /\bakrotiri\b/i,
+    notNames: /\blighthouse\b|\bfaro\b|\bbeach\b|\bplaya\b|\bspiaggia\b|\bpraia\b/i,
+    city: SANTORINI,
+    rules: [yearly("01-01"), yearly("03-25"), yearly("05-01"), { easter: "orthodox" }, yearly("12-25", "12-26")],
+    hours: [
+      { from: "04-01", to: "10-31", days: ["Monday", "Thursday"], open: "08:30", close: "15:30", lastEntry: "15:10" },
+      { from: "04-01", to: "08-31", open: "08:00", close: "20:00", lastEntry: "19:40" },
+      { from: "09-01", to: "09-15", open: "08:00", close: "19:30", lastEntry: "19:10" },
+      { from: "09-16", to: "09-30", open: "08:00", close: "19:00", lastEntry: "18:40" },
+      { from: "10-01", to: "10-15", open: "08:00", close: "18:30", lastEntry: "18:10" },
+      { from: "10-16", to: "10-31", open: "08:00", close: "18:00", lastEntry: "17:40" },
+      { from: "01-01", to: "12-31", open: "08:30", close: "15:30", lastEntry: "15:10" },
+    ],
+    source: "https://www.hh.gr/en/destinations/akrotiri-thera/",
+  },
+  {
+    names: /\bmuseum of prehistoric thera\b|\bprehistoric thera\b/i,
+    city: SANTORINI,
+    rules: [{ weekly: ["Tuesday"] }, yearly("01-01"), yearly("03-25"), yearly("05-01"), { easter: "orthodox" }, yearly("12-25", "12-26")],
+    hours: [{ from: "01-01", to: "12-31", open: "08:30", close: "15:30", lastEntry: "15:10" }],
+    source: "https://cyclades.culture.gov.gr/en/location/the-museum-of-prehistoric-thera/",
+  },
+  // Hanoi
+  {
+    // Mornings only, half an hour longer at weekends. The complex around it (the stilt house, the One Pillar Pagoda)
+    // keeps longer hours: a stop named for them isn't held to these. Its yearly maintenance closure is dated each year.
+    names: /\bho chi minh(?:'s)? mausoleum\b|\bmausoleo (?:de |di )?ho chi minh\b|\bmausol[eé]u (?:de )?ho chi minh\b/i,
+    notNames: /\bcomplex\b|\bcomplejo\b|\bcomplesso\b|\bcomplexo\b|\bpresidential palace\b|\bstilt house\b|\bone pillar\b/i,
+    city: HANOI,
+    rules: [{ weekly: ["Monday", "Friday"] }],
+    hours: [
+      { from: "04-01", to: "10-31", days: ["Saturday", "Sunday"], open: "07:30", close: "11:00" },
+      { from: "04-01", to: "10-31", open: "07:30", close: "10:30" },
+      { from: "01-01", to: "12-31", days: ["Saturday", "Sunday"], open: "08:00", close: "11:30" },
+      { from: "01-01", to: "12-31", open: "08:00", close: "11:00" },
+    ],
+    source: "https://en.bqllang.gov.vn/visiting-schedule.html",
+  },
+  {
+    names: /\bimperial citadel of thang long\b|\bthang long (?:imperial )?citadel\b|\bho[aà]ng th[aà]nh th[aă]ng long\b/i,
+    city: HANOI,
+    rules: OPEN_EVERY_DAY,
+    hours: [{ from: "01-01", to: "12-31", open: "08:00", close: "17:00" }],
+    source: "https://hoangthanhthanglong.vn/",
+  },
+  {
+    names: /\bvietnam national (?:museum of )?fine arts?(?: museum)?\b|\bnational (?:museum of )?fine arts? museum\b/i,
+    city: HANOI,
+    rules: [{ weekly: ["Monday"] }],
+    hours: [{ from: "01-01", to: "12-31", open: "08:30", close: "17:00" }],
+    source: "https://vnfam.vn/",
+  },
+  // London
+  {
+    names: /\bbritish museum\b|\bmuseo brit[aá]nico\b|\bmuseu brit[aâ]nico\b/i,
+    city: LONDON,
+    rules: [yearly("12-24", "12-26")],
+    hours: [
+      { from: "01-01", to: "12-31", days: ["Friday"], open: "10:00", close: "20:30", lastEntry: "20:15" },
+      { from: "01-01", to: "12-31", open: "10:00", close: "17:00", lastEntry: "16:45" },
+    ],
+    source: "https://www.britishmuseum.org/visit",
+  },
+  {
+    names: /\bsky garden\b/i,
+    city: LONDON,
+    rules: OPEN_EVERY_DAY,
+    hours: [
+      { from: "01-01", to: "12-31", days: ["Saturday", "Sunday"], open: "11:00", close: "21:00" },
+      { from: "01-01", to: "12-31", open: "10:00", close: "18:00" },
+    ],
+    source: "https://skygarden.london/visit/getting-here-hours/",
+  },
+  // Paris
+  {
+    // The cathedral inside, not its square, its towers or a look at it from outside.
+    names: /\bnotre[- ]dame\b/i,
+    notNames: /\bexterior\b|\boutside\b|\bview\b|\bsquare\b|\bparvis\b|\bcrypt[e]?\b|\btowers?\b|\btours\b|\bsacr[eé]\b|\bmontmartre\b|\bbasilique\b/i,
+    city: PARIS,
+    rules: OPEN_EVERY_DAY,
+    hours: [
+      { from: "01-01", to: "12-31", days: ["Thursday"], open: "07:50", close: "22:00", lastEntry: "21:30" },
+      { from: "01-01", to: "12-31", days: ["Saturday", "Sunday"], open: "08:15", close: "19:30", lastEntry: "19:00" },
+      { from: "01-01", to: "12-31", open: "07:50", close: "19:00", lastEntry: "18:30" },
+    ],
+    source: "https://www.notredamedeparis.fr/en/faq/opening-hours/",
+  },
+  {
+    names: /\btuileries\b|\bjard[ií]n de las tuller[ií]as\b|\bjardim das tulherias\b/i,
+    city: PARIS,
+    rules: OPEN_EVERY_DAY,
+    hours: [
+      { from: "06-01", to: "08-31", open: "07:00", close: "23:00" },
+      { from: "04-01", to: "05-31", open: "07:00", close: "21:00" },
+      { from: "09-01", to: "10-31", open: "07:00", close: "21:00" },
+      { from: "01-01", to: "12-31", open: "07:30", close: "19:30" },
+    ],
+    source: "https://www.louvre.fr/en/visit/hours-admission",
+  },
+  {
+    // The tower's floors and summit; a look at it from the Trocadéro, a cruise or its evening lights isn't a visit.
+    names: /\beiffel\b/i,
+    notNames: /\bview\b|\bsparkl|\blights?\b|\btrocad[eé]ro\b|\bchamp de mars\b|\bpicnic\b|\bphoto\b|\bseine\b|\bcruise\b|\bcrucero\b|\bcrociera\b|\bcruzeiro\b/i,
+    city: PARIS,
+    rules: OPEN_EVERY_DAY,
+    hours: [
+      { from: "12-31", to: "12-31", open: "09:15", close: "21:00", lastEntry: "19:00" },
+      { from: "12-18", to: "12-30", open: "09:15", close: "23:59", lastEntry: "23:45" },
+      { from: "06-15", to: "09-15", open: "08:45", close: "23:59", lastEntry: "23:45" },
+      { from: "01-01", to: "12-31", open: "09:15", close: "23:45", lastEntry: "22:45" },
+    ],
+    source: "https://www.toureiffel.paris/en/rates-opening-times",
   },
 ];
 

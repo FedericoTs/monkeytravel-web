@@ -9,12 +9,14 @@ import { parseDigestDay } from "@/lib/notifications/digest";
  * How many days before departure each pre-trip slot is meant to arrive.
  *
  * Mirrors the offsets in enqueue_trip_notifications (latest definition:
- * supabase/migrations/20260902170000_enqueue_revives_suppressed_rows.sql).
+ * supabase/migrations/20260902170000_enqueue_revives_suppressed_rows.sql), and
+ * need_10d's in enqueue_need_ask (the *_need_question_email.sql migration).
  * The post-trip family is absent on purpose: those fire AFTER the trip and
  * cannot be overtaken by it.
  */
 const PRE_TRIP_OFFSET_DAYS: Record<string, number> = {
   pack_early_14d: 14,
+  need_10d: 10,
   visa_check_7d: 7,
   weather_3d: 3,
   confirm_1d: 1,
@@ -29,6 +31,8 @@ const PRE_TRIP_OFFSET_DAYS: Record<string, number> = {
  * says:
  *
  *   "Two weeks to go"          at 13 days   still true enough      -> 1 day
+ *   "What do you still need…"  at 7 days    names no day, and a    -> 3 days
+ *                                           week is time to help
  *   "One week out"             at 6 days    still true enough      -> 1 day
  *   "Three days to Palermo"    at 2 days    close enough           -> 1 day
  *   "Tomorrow - final checks"  at 0 days    the trip is TODAY      -> 0 days
@@ -36,15 +40,28 @@ const PRE_TRIP_OFFSET_DAYS: Record<string, number> = {
  *
  * The last two name a specific imminent day, so a day's slip makes them false
  * rather than merely loose. A single global tolerance of one day would send
- * "Travel day" the morning after departure.
+ * "Travel day" the morning after departure. need_10d's three days end where
+ * its send window does (NEED_EMAIL_DAYS in ./need-email.ts).
  */
 const STALE_GRACE_DAYS: Record<string, number> = {
   pack_early_14d: 1,
+  need_10d: 3,
   visa_check_7d: 1,
   weather_3d: 1,
   confirm_1d: 0,
   morning_of: 0,
 };
+
+/**
+ * Whole days from today (UTC) to a trip's start_date: 0 on departure day,
+ * negative once the trip has begun, null for a date that can't be read.
+ */
+export function daysUntilStart(tripStartDate: string, now: Date): number | null {
+  const start = Date.parse(`${tripStartDate}T00:00:00Z`);
+  if (Number.isNaN(start)) return null;
+  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  return Math.round((start - today) / 86_400_000);
+}
 
 /**
  * Is this row's moment gone?
@@ -71,15 +88,12 @@ export function staleReason(
   const intended = PRE_TRIP_OFFSET_DAYS[slot];
   if (intended === undefined) return null; // post-trip slot, or unknown
 
-  const start = Date.parse(`${tripStartDate}T00:00:00Z`);
-  if (Number.isNaN(start)) return null; // unusable dates are not this guard's problem
-
-  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-  const daysUntilStart = Math.round((start - today) / 86_400_000);
+  const days = daysUntilStart(tripStartDate, now);
+  if (days === null) return null; // unusable dates are not this guard's problem
 
   // How late is this row against the moment its copy describes? Positive =
   // late. `morning_of` (intended 0) is late the moment the trip has begun.
-  const daysLate = intended - daysUntilStart;
+  const daysLate = intended - days;
   if (daysLate <= (STALE_GRACE_DAYS[slot] ?? 1)) return null;
 
   return `stale_${slot}_${daysLate}d_late`;
@@ -104,7 +118,8 @@ export function prioritizeDueRows<
   T extends { slot: string; scheduled_for: string },
 >(rows: T[]): T[] {
   const urgency = (slot: string): number => {
-    if (slot.startsWith("followup_")) return 2;
+    // After every pre-trip slot, however long its grace (need_10d's is three days).
+    if (slot.startsWith("followup_")) return Number.MAX_SAFE_INTEGER;
     // An evening-before digest is wrong by the next evening: zero grace.
     if (parseDigestDay(slot) !== null) return 0;
     return STALE_GRACE_DAYS[slot] ?? 1;

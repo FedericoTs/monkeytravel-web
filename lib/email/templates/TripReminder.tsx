@@ -3,7 +3,9 @@
  *
  * Sent from the daily cron (app/api/cron/scheduled-notifications) at
  * each of the five slots: T-14d (pack early), T-7d (visa check), T-3d
- * (weather), T-1d (confirm bookings), and morning-of.
+ * (weather), T-1d (confirm bookings), and morning-of. Also at T-10d, once
+ * per person: need_10d, the reminders' one question as an email of its own
+ * (lib/notifications/need-email.ts).
  *
  * Localised via next-intl: the cron route resolves the recipient's
  * preferred_language, calls getTranslations({ locale, namespace:
@@ -24,11 +26,13 @@ import type { EmailLocale } from "../copy";
 import { h1, leadText, bodyText, button, secondaryButton } from "./_styles";
 
 /**
- * Slot discriminator. Matches the CHECK constraint in
- * supabase/migrations/20260601_scheduled_notifications.sql.
+ * Slot discriminator. Matches the CHECK constraint on
+ * scheduled_notifications.slot (restated whole in the
+ * *_need_question_email.sql migration).
  */
 export type TripReminderSlot =
   | "pack_early_14d"
+  | "need_10d"
   | "visa_check_7d"
   | "weather_3d"
   | "confirm_1d"
@@ -72,11 +76,19 @@ export interface TripReminderEmailProps {
    * Pre-translated; the cron decides when it applies.
    */
   needAsk?: { question: string; answers: { label: string; url: string }[] };
+  /**
+   * The email is the one question itself (need_10d): the heading asks it, so
+   * the answers follow the body, with no main button and the question not
+   * asked a second time. Ignored without answers to show, so the email always
+   * has something to tap.
+   */
+  questionOnly?: boolean;
 }
 
 /** Slot → emoji. Visual hook, not load-bearing for the message. */
 const SLOT_EMOJI: Record<TripReminderSlot, string> = {
   pack_early_14d: "🎒",
+  need_10d: "💬",
   visa_check_7d: "🛂",
   weather_3d: "☀️",
   confirm_1d: "✅",
@@ -98,8 +110,10 @@ export default function TripReminderEmail({
   contextBlocks,
   groupAsk,
   needAsk,
+  questionOnly,
 }: TripReminderEmailProps) {
   const preview = `${SLOT_EMOJI[slot]} ${tripReminderSubject({ heading, destination })}`;
+  const answersOnly = showsAnswersOnly({ questionOnly, needAsk });
 
   return (
     <EmailLayout
@@ -120,11 +134,13 @@ export default function TripReminderEmail({
 
       <ContextBlocks blocks={contextBlocks} />
 
-      <Section style={{ textAlign: "center", margin: "32px 0" }}>
-        <Button href={tripUrl} style={button}>
-          {ctaLabel}
-        </Button>
-      </Section>
+      {answersOnly ? null : (
+        <Section style={{ textAlign: "center", margin: "32px 0" }}>
+          <Button href={tripUrl} style={button}>
+            {ctaLabel}
+          </Button>
+        </Section>
+      )}
 
       {groupAsk ? (
         <Section style={groupAskBox}>
@@ -137,7 +153,7 @@ export default function TripReminderEmail({
 
       {needAsk ? (
         <Section style={needAskBox}>
-          <Text style={needAskQuestion}>{needAsk.question}</Text>
+          {answersOnly ? null : <Text style={needAskQuestion}>{needAsk.question}</Text>}
           {needAsk.answers.map((answer) => (
             <Link key={answer.url} href={answer.url} style={needAskAnswer}>
               {answer.label}
@@ -182,6 +198,7 @@ export function tripReminderSubject(props: {
  * conservative clients (Outlook 2007, corporate gateways).
  */
 export function tripReminderEmailText(props: TripReminderEmailProps): string {
+  const answersOnly = showsAnswersOnly(props);
   const lines = [
     `${SLOT_EMOJI[props.slot]} ${props.heading}`,
     "",
@@ -189,11 +206,14 @@ export function tripReminderEmailText(props: TripReminderEmailProps): string {
     "",
     props.body,
     ...contextBlocksText(props.contextBlocks),
-    "",
-    `${props.ctaLabel}: ${props.tripUrl}`,
+    ...(answersOnly ? [] : ["", `${props.ctaLabel}: ${props.tripUrl}`]),
     ...(props.groupAsk ? ["", props.groupAsk.text, `${props.groupAsk.label}: ${props.groupAsk.url}`] : []),
     ...(props.needAsk
-      ? ["", props.needAsk.question, ...props.needAsk.answers.map((a) => `${a.label}: ${a.url}`)]
+      ? [
+          "",
+          ...(answersOnly ? [] : [props.needAsk.question]),
+          ...props.needAsk.answers.map((a) => `${a.label}: ${a.url}`),
+        ]
       : []),
     "",
     "—",
@@ -201,6 +221,11 @@ export function tripReminderEmailText(props: TripReminderEmailProps): string {
     `Manage preferences: ${props.unsubscribeUrl ?? `${APP_URL}/profile/notifications`}`,
   ];
   return lines.filter((l) => l !== undefined).join("\n");
+}
+
+/** Whether the email is its answers alone (questionOnly), which needs answers to show. */
+function showsAnswersOnly(props: Pick<TripReminderEmailProps, "questionOnly" | "needAsk">): boolean {
+  return Boolean(props.questionOnly && props.needAsk?.answers.length);
 }
 
 // This email's own inline styles; the shared ones are in ./_styles.

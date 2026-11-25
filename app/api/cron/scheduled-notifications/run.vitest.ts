@@ -684,6 +684,7 @@ describe("the post-trip follow-ups", () => {
 describe("the copy", () => {
   const reminderSlots = [
     ["pack_early_14d", 14],
+    ["need_10d", 10],
     ["visa_check_7d", 7],
     ["weather_3d", 3],
     ["confirm_1d", 1],
@@ -909,6 +910,51 @@ describe("asking what they still need before the trip", () => {
     const html = await render(TripReminderEmail(props));
     expect(html).toContain("/feedback/need?");
     expect(sent.verify({ html, text: tripReminderEmailText(props), subject: tripReminderSubject(props) })).toEqual({ ok: true });
+  });
+});
+
+describe("the question as an email of its own, ten days out", () => {
+  const tenDaysOut = (id: string) => trip(id, { title: "Lisbon Trip", start_date: daysFromNow(10), end_date: daysFromNow(13) });
+
+  it("goes through the cron as the question alone, keyed to the person, and passes the check", async () => {
+    trips = [tenDaysOut("a")];
+    rows = [due("row-a", "a", "need_10d")];
+    expect((await run()).body).toMatchObject({ sent: 1, skipped: 0, failed: 0 });
+    const [sent] = sends();
+    expect(sent.template.props).toMatchObject({
+      slot: "need_10d",
+      questionOnly: true,
+      heading: "What do you still need for your trip to Lisbon?",
+    });
+    expect((sent as unknown as { idempotencyKey: string }).idempotencyKey).toBe(`need_ask:${OWNER}`);
+    expect(row("row-a").status).toBe("sent");
+    const props = { ...sent.template.props, locale: sent.locale as TripReminderEmailProps["locale"] };
+    const html = await render(TripReminderEmail(props));
+    expect(sent.verify({ html, text: tripReminderEmailText(props), subject: tripReminderSubject(props) })).toEqual({ ok: true });
+  });
+
+  it("goes once per person: another trip's row the same morning is held back", async () => {
+    trips = [tenDaysOut("a"), trip("b", { title: "Rome", start_date: daysFromNow(10), end_date: daysFromNow(12) })];
+    rows = [due("row-a", "a", "need_10d"), due("row-b", "b", "need_10d")];
+    expect((await run()).body).toMatchObject({ sent: 1, skipped: 1 });
+    expect(sends()).toHaveLength(1);
+    expect(row("row-a").status).toBe("sent");
+    expect(row("row-b")).toMatchObject({ status: "suppressed", skipped_reason: "already_asked" });
+  });
+
+  it("still goes three days late, while a week is left", async () => {
+    trips = [trip("a", { start_date: daysFromNow(7), end_date: daysFromNow(10) })];
+    rows = [due("row-a", "a", "need_10d")];
+    await run();
+    expect(row("row-a").status).toBe("sent");
+  });
+
+  it("not four days late: the last week's reminders ask it instead", async () => {
+    trips = [trip("a", { start_date: daysFromNow(6), end_date: daysFromNow(9) })];
+    rows = [due("row-a", "a", "need_10d")];
+    await run();
+    expect(sends()).toEqual([]);
+    expect(row("row-a")).toMatchObject({ status: "suppressed", skipped_reason: "stale_need_10d_4d_late" });
   });
 });
 

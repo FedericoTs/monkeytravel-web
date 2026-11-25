@@ -11,7 +11,7 @@ import { isUuid } from "@/lib/utils/uuid";
  */
 
 const EMAIL_SLOT_RE =
-  /^(?:pack_early_14d|visa_check_7d|weather_3d|confirm_1d|morning_of|followup_(?:return_3d|next_21d|final_45d|dormant)|in_trip_day_(?:[2-9]|1\d|2[01])|finish_trip_1d|participant_plan|kept_plan)$/;
+  /^(?:pack_early_14d|need_10d|visa_check_7d|weather_3d|confirm_1d|morning_of|followup_(?:return_3d|next_21d|final_45d|dormant)|in_trip_day_(?:[2-9]|1\d|2[01])|finish_trip_1d|participant_plan|kept_plan)$/;
 
 
 export interface EmailClick {

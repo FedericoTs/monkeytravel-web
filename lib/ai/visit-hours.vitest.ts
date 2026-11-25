@@ -100,11 +100,66 @@ describe("a visit that runs past closing", () => {
     expect(out).toMatchObject({ shortened: 0, left: ["Castle (2027-01-28 15:45)"] });
   });
 
-  it("is never cut when it starts before opening", () => {
+  it("is never cut to end at closing when it starts before opening", () => {
+    // A ride at nine leaves it no room to wait: it trades with nothing, and isn't cut either.
     const { hoursFor } = listed({ Museum: hours("09:30", "17:00") });
-    const out = keepInsideHours([day([stop("08:30", "Museum", "museum", 90)])], "Paris", hoursFor);
+    const out = keepInsideHours([day([stop("08:30", "Museum", "museum", 90), stop("09:00", "Bus to Versailles", "transport", 60)])], "Paris", hoursFor);
     expect(out.days[0].activities[0]).toMatchObject({ start_time: "08:30", duration_minutes: 90 });
-    expect(out.left).toEqual(["Museum (2027-01-28 08:30)"]);
+    expect(out).toMatchObject({ shortened: 0, left: ["Museum (2027-01-28 08:30)"] });
+  });
+});
+
+describe("a visit planned before its place opens", () => {
+  // Ubud's Sacred Monkey Forest opens at nine: a plan had it first thing at half past eight.
+  const FOREST = hours("09:00", "18:00", "17:00");
+
+  it("waits for the opening when the day has room, the rest of the day as it was", () => {
+    const { hoursFor } = listed({ "Sacred Monkey Forest Sanctuary": FOREST });
+    const out = keepInsideHours(
+      [day([stop("08:30", "Sacred Monkey Forest Sanctuary", "nature", 120), stop("11:30", "Warung Babi Guling", "restaurant", 60)])],
+      "Bali",
+      hoursFor
+    );
+    expect(out.days[0].activities[0]).toMatchObject({ start_time: "09:00", duration_minutes: 120, time_slot: "morning" });
+    expect(out.days[0].activities[1]).toMatchObject({ start_time: "11:30" });
+    expect(out).toMatchObject({ checked: 1, outside: 1, moved: 1, shortened: 0, left: [] });
+  });
+
+  it("is cut to end a walk before the next stop when its whole visit doesn't fit from the opening", () => {
+    const { hoursFor } = listed({ "Sacred Monkey Forest Sanctuary": FOREST });
+    const out = keepInsideHours(
+      [day([stop("08:30", "Sacred Monkey Forest Sanctuary", "nature", 120), stop("10:20", "Ubud Palace", "landmark", 60)])],
+      "Bali",
+      hoursFor
+    );
+    // From nine, a walk before twenty past ten: an hour, and half the visit planned.
+    expect(out.days[0].activities[0]).toMatchObject({ start_time: "09:00", duration_minutes: 60 });
+    expect(out.left).toEqual([]);
+  });
+
+  it("doesn't wait past a stop planned before the opening, or when even a cut visit wouldn't fit", () => {
+    const { hoursFor } = listed({ "Sacred Monkey Forest Sanctuary": FOREST });
+    const early = keepInsideHours(
+      [day([stop("08:30", "Sacred Monkey Forest Sanctuary", "nature", 120), stop("08:45", "Coffee at the gate", "cafe", 30)])],
+      "Bali",
+      hoursFor
+    );
+    expect(early.days[0].activities[0]).toMatchObject({ start_time: "08:30" });
+    expect(early.left).toEqual(["Sacred Monkey Forest Sanctuary (2027-01-28 08:30)"]);
+    // Nor past one planned for the same time: the day already has two things then.
+    const same = keepInsideHours(
+      [day([stop("08:30", "Sacred Monkey Forest Sanctuary", "nature", 120), stop("08:30", "Coffee at the gate", "cafe", 30)])],
+      "Bali",
+      hoursFor
+    );
+    expect(same.days[0].activities[0]).toMatchObject({ start_time: "08:30" });
+    // A stop at a quarter to ten leaves 25 minutes from the opening: too short to be worth it.
+    const tight = keepInsideHours(
+      [day([stop("08:30", "Sacred Monkey Forest Sanctuary", "nature", 120), stop("09:45", "Ubud Palace", "landmark", 60)])],
+      "Bali",
+      hoursFor
+    );
+    expect(tight.days[0].activities[0]).toMatchObject({ start_time: "08:30" });
   });
 });
 

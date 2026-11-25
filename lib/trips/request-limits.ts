@@ -18,9 +18,11 @@ export const DESTINATION_MIN_LENGTH = 2;
 export const DESTINATION_MAX_LENGTH = 100;
 /**
  * What a destination's name may be made of: letters, spaces, hyphens,
- * commas, dots, parentheses, apostrophes, &, / and digits.
+ * commas, dots, parentheses, apostrophes, &, / and digits. Apostrophes and
+ * dashes as phones type them count too: a phone's keyboard turns "d'Azur" into
+ * "d’Azur" and "Rome - Florence" into "Rome – Florence" on its own.
  */
-export const DESTINATION_ALLOWLIST = /^[\p{L}\p{M}\s\-,.'()&/0-9]+$/u;
+export const DESTINATION_ALLOWLIST = /^[\p{L}\p{M}\s\-\u2010-\u2015,.'\u2018\u2019()&/0-9]+$/u;
 
 /** The traveller's own words for the plan, in characters. */
 export const REQUIREMENTS_MAX = 500;

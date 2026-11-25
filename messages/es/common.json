@@ -2512,32 +2512,6 @@
       "affiliateDisclosure": "Enlace de afiliado — podemos ganar una pequeña comisión sin coste adicional para ti."
     }
   },
-  "concierge": {
-    "triggerLabel": "Preguntar al concierge",
-    "modalTitle": "Concierge del viaje",
-    "inputLabel": "Pregunta al concierge",
-    "placeholder": "Pregunta lo que quieras sobre tu viaje — \"¿qué hay cerca del hotel del Día 3 para cenar?\", \"¿cuánto se tarda al Castello di Miramare desde la ciudad?\"",
-    "hint": "Solo lectura — no modificará tu itinerario.",
-    "send": "Preguntar",
-    "sending": "Preguntando…",
-    "thinking": "Pensando…",
-    "yourQuestion": "Preguntaste",
-    "answer": "El concierge dice",
-    "liveTripHint": "Hoy está dentro de las fechas de tu viaje — las respuestas se basan en las actividades de hoy.",
-    "errorQuota": "Límite diario de AI alcanzado. Inténtalo mañana.",
-    "errorGeneric": "No pude responder ahora. Inténtalo de nuevo en un momento.",
-    "hintEditable": "Pregunta lo que quieras — o pide un cambio y confírmalo antes de que toque tu plan.",
-    "proposalApplied": "Cambio aplicado a tu viaje.",
-    "applyError": "No se pudo aplicar el cambio. Tu viaje no ha cambiado — inténtalo de nuevo.",
-    "tryDifferentPrefill": "Propón una opción diferente.",
-    "historyToggle": "Preguntas previas al concierge",
-    "historyCount": "({count})",
-    "historyLoading": "Cargando…",
-    "historyEmpty": "Aún no hay preguntas — tus chats previos con el concierge aparecerán aquí.",
-    "historyError": "No pude cargar el historial. Inténtalo de nuevo en un momento.",
-    "historyLiveTrip": "Viaje en curso",
-    "historyLiveTripDay": "Día {day}"
-  },
   "expenses": {
     "title": "Gastos del viaje",
     "emptyHint": "Registra cuánto gastas realmente",
@@ -2710,6 +2684,10 @@
     "morning_of": {
       "heading": "Día de viaje",
       "body": "Llegó el día. Tu plan de hoy en {destination} está a un toque — ábrelo cuando necesites direcciones, horarios o saber qué sigue."
+    },
+    "need_10d": {
+      "heading": "¿Qué te falta todavía para tu viaje a {destination}?",
+      "body": "Basta con un toque. Así sabemos qué mejorar antes de tu viaje."
     },
     "needAsk": {
       "question": "Una pregunta: ¿qué te falta todavía para este viaje?",
