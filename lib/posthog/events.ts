@@ -810,37 +810,6 @@ export async function captureConciergeError(event: ConciergeErrorEvent) {
 }
 
 // ============================================================================
-// EXPENSE LEDGER EVENTS
-// ============================================================================
-
-export interface ExpenseAddedEvent {
-  trip_id: string;
-  currency: string;
-  category: "transport" | "accommodation" | "food" | "activity" | "shopping" | "other";
-  /**
-   * Amount in the entry's native currency. We do NOT FX-convert here —
-   * the dashboard side does that with a snapshot rate. Keeps the event
-   * faithful to what the user actually typed.
-   */
-  amount: number;
-}
-
-export interface ExpenseDeletedEvent {
-  trip_id: string;
-  was_self: boolean;
-}
-
-export async function captureExpenseAdded(event: ExpenseAddedEvent) {
-  const ph = await getPosthog();
-  ph.capture("expense_added", event);
-}
-
-export async function captureExpenseDeleted(event: ExpenseDeletedEvent) {
-  const ph = await getPosthog();
-  ph.capture("expense_deleted", event);
-}
-
-// ============================================================================
 // /EXPLORE ENGAGEMENT EVENTS
 // ============================================================================
 

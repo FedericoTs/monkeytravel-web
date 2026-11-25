@@ -4,10 +4,10 @@
  * WHY THIS EXISTS
  * ---------------
  * The collaborative surfaces have almost no production data (next to no
- * trip_collaborators rows, activity votes, proposals, expense splits or
- * payment handles). So the code paths that the public.users lockdown touched —
- * collaborator lists, vote attribution, Settle Up — cannot be exercised
- * against real data at all. They have to be manufactured.
+ * trip_collaborators rows, activity votes or proposals). So the code paths
+ * that the public.users lockdown touched — collaborator lists, vote
+ * attribution — cannot be exercised against real data at all. They have to
+ * be manufactured.
  *
  * That matters because every one of those paths fails SILENTLY under a wrong
  * RLS policy: a denied read returns zero rows and a denied PostgREST embed
@@ -179,11 +179,6 @@ async function seed() {
           socialNotifications: false,
           marketingNotifications: false, // the reliable opt-out signal
         },
-        // Only the creditor needs handles — this is what /api/trips/[id]/
-        // settlements reads with the service client (48013fc).
-        ...(r.key === "owner"
-          ? { paypal_handle: "e2e-fixture", venmo_handle: "e2e-fixture", wise_handle: "e2e-fixture" }
-          : {}),
       })
       .eq("id", u.id);
     if (error) throw new Error(`profile update failed for ${u.email}: ${error.message}`);
@@ -264,31 +259,6 @@ async function seed() {
       }))
     );
     if (error) throw new Error(`proposal_votes insert failed: ${error.message}`);
-  }
-
-  // ---- expenses + splits: Settle Up needs a real debtor/creditor pair ------
-  // Owner pays 90 split three ways -> owner +60, the other two -30 each, so
-  // Settle Up shows two transfers with names on both sides.
-  await db.from("trip_expenses").delete().eq("trip_id", tripId);
-  const expenseId = randomUUID();
-  {
-    const { error } = await db.from("trip_expenses").insert({
-      id: expenseId,
-      trip_id: tripId,
-      amount: 90,
-      currency: "EUR",
-      category: "food",
-      spent_on: today,
-      paid_by_user_id: users.owner.id,
-      description: "E2E fixture dinner",
-    });
-    if (error) throw new Error(`expense insert failed: ${error.message}`);
-  }
-  {
-    const { error } = await db.from("trip_expense_splits").insert(
-      ROLES.map((r) => ({ expense_id: expenseId, user_id: users[r.key].id, share_amount: 30 }))
-    );
-    if (error) throw new Error(`expense splits insert failed: ${error.message}`);
   }
 
   const manifest = {

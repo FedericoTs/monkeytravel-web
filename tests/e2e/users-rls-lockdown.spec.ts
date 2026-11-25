@@ -247,42 +247,6 @@ test.describe("users lockdown — signed in", () => {
       expect(v.user!.display_name).not.toBe("Unknown");
     }
   });
-
-  test("settle up shows both names and the payee's handles", async ({
-    request,
-  }) => {
-    // Two separate regressions meet here:
-    //   Settle Up's names came from a LEFT JOIN on public.users, so
-    //   restricted rows made every name blank -> the route renders "—".
-    //   The payment-handle lookup used the user-scoped client (48013fc), so
-    //   handles came back null and the pay buttons showed an empty state.
-    // Amounts stayed correct throughout, which is what makes both invisible.
-    test.skip(!TRIP_ID, "set USERS_RLS_TRIP_ID");
-    const res = await request.get(`/api/trips/${TRIP_ID}/settlements`);
-    expect(res.status()).toBe(200);
-    const body = await res.json();
-    const transfers = body.transfers ?? body.data?.transfers ?? [];
-    expect(
-      transfers.length,
-      "no transfers — fixture expense/splits missing?"
-    ).toBeGreaterThan(0);
-
-    for (const t of transfers) {
-      expect(t.fromUser?.name, "payer name blank").toBeTruthy();
-      expect(t.fromUser.name, "payer name fell back to the em-dash").not.toBe("—");
-      expect(t.toUser?.name, "payee name blank").toBeTruthy();
-      expect(t.toUser.name, "payee name fell back to the em-dash").not.toBe("—");
-      const handles = [
-        t.toUser.paypal_handle,
-        t.toUser.venmo_handle,
-        t.toUser.wise_handle,
-      ].filter(Boolean);
-      expect(
-        handles.length,
-        "payee has no payment handles — the service-client fix regressed"
-      ).toBeGreaterThan(0);
-    }
-  });
 });
 
 test.describe("users lockdown — admin gate holds for a NON-admin", () => {
