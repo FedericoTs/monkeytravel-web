@@ -436,12 +436,12 @@ function buildUserPrompt(params: TripCreationParams, options?: BuildPromptOption
     retro: "Retro Time Travel - vintage cafes, historic districts, nostalgia",
   };
 
-  // What the place is known for stays whatever the vibes: a "nature" trip to Agra still sees the Taj Mahal. A trip
-  // led by hidden gems is the exception.
+  // What the place is known for stays whatever the vibes: a "nature" trip to Agra still sees the Taj Mahal, and a week
+  // at a beach town has its sea when the season suits it. A trip led by hidden gems is the exception.
   const signatureLine =
     params.vibes?.[0] === "offbeat"
       ? ""
-      : `The vibes shape the trip around what ${params.destination} is known for, never instead of it: include its signature sights, the one or two places nearly every visitor comes to see (as the Taj Mahal is in Agra, or the Acropolis in Athens), each on a sensible day, unless the traveller asked to skip them. The vibes choose everything else.
+      : `The vibes shape the trip around what ${params.destination} is known for, never instead of it: include its signature sights, the one or two places nearly every visitor comes to see (as the Taj Mahal is in Agra, or the Acropolis in Athens), each on a sensible day, unless the traveller asked to skip them. Where people come to ${params.destination} mostly for its beaches and sea (a beach town, an island), that is what it is known for too: on most full days of a stay of three days or more, give a morning or an afternoon to it whatever the vibes (a beach, a swim or snorkel, a boat, or its best-known day out by the sea) and fit the vibes around it; but not when the trip's dates fall in a season when the sea there is too cold or rough for it. The vibes choose everything else.
 `;
   const vibeSection = params.vibes && params.vibes.length > 0
     ? `## Travel Vibes (${params.vibes.length} selected - PRIORITIZE THESE)
