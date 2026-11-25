@@ -36,7 +36,9 @@ const gionDinner = { n: 1, name: "Gion Karyo", description: "Kaiseki in a machiy
 
 describe("the full days without dinner", () => {
   it("are the days between the first and the last with no meal from 17:00, each with the place it ends at", () => {
-    expect(daysWithoutDinner(plan(), "Kyoto")).toEqual([{ after: "Gion", at: at(35.0037, 135.7788), date: "2027-04-06", city: "Kyoto" }]);
+    expect(daysWithoutDinner(plan(), "Kyoto")).toEqual([
+      { after: "Gion", at: at(35.0037, 135.7788), date: "2027-04-06", city: "Kyoto", hours: { from: 18 * 60 + 30, by: 21 * 60 } },
+    ]);
   });
 
   it("leave out a day that has dinner, or a bar from the evening, and name a city's own day by its city", () => {
@@ -156,13 +158,51 @@ describe("the dinner question", () => {
   it("names the plan's own places to eat, so the answer is none of them", () => {
     const q = dinnerQuestion(wanted, { language: "en", taken: ["Okonomiyaki Kiraku", "Bar K6"] });
     expect(q).toContain("None the plan already has: Okonomiyaki Kiraku; Bar K6.");
-    expect(q).toContain("1. Kyoto, 2027-04-06: the day ends at Gion (35.00370, 135.77880)");
+    expect(q).toContain("1. Kyoto, 2027-04-06, dinner from 18:30: the day ends at Gion (35.00370, 135.77880)");
     expect(q).toContain("in English.");
   });
 
   it("says nothing of them when the plan has none", () => {
     expect(dinnerQuestion(wanted, { language: "en", taken: [] })).not.toContain("None the plan already has");
     expect(dinnerQuestion(wanted, { language: "en" })).not.toContain("None the plan already has");
+  });
+});
+
+// Restaurants in Spain open for dinner around 20:00 to 20:30, in Italy around 19:00 to 19:30: a dinner put in at 18:30
+// there found the kitchen shut. The hours are those where the day ends (lib/ai/meal-hours.ts).
+describe("a dinner where the day ends", () => {
+  const madrid = () => [
+    day("2027-04-05", [stop("10:00", "Royal Palace", "attraction", 90, at(40.418, -3.7143))]),
+    day("2027-04-06", [stop("10:00", "Retiro Park", "park", 90, at(40.4153, -3.6845)), stop("15:00", "Prado Museum", "museum", 120, at(40.4138, -3.6921))]),
+    day("2027-04-07", [stop("10:00", "Reina Sofia", "museum", 90, at(40.4086, -3.6943))]),
+  ];
+  const casaLucio = { n: 1, name: "Casa Lucio", description: "Huevos rotos.", location: "La Latina", coordinates: { lat: 40.4122, lng: -3.7092 } };
+
+  it("starts at the local hour: from 20:30 in Spain, and as late as 22:00", () => {
+    const wanted = daysWithoutDinner(madrid(), "Madrid");
+    expect(wanted[0].hours).toEqual({ from: 20 * 60 + 30, by: 22 * 60 });
+    expect(names(withDinners(madrid(), wanted, { dinners: [casaLucio] }).days[1])).toEqual(["10:00 Retiro Park", "15:00 Prado Museum", "20:30 Casa Lucio"]);
+    const late = madrid();
+    late[1].activities[1] = { ...late[1].activities[1], start_time: "19:30", duration_minutes: 90 };
+    expect(names(withDinners(late, wanted, { dinners: [casaLucio] }).days[1])).toEqual(["10:00 Retiro Park", "19:30 Prado Museum", "21:30 Casa Lucio"]);
+  });
+
+  it("starts from 19:30 in Italy", () => {
+    const rome = [
+      day("2027-04-05", [stop("10:00", "Vatican Museums", "museum", 180, at(41.9065, 12.4536))]),
+      day("2027-04-06", [stop("10:00", "Colosseum", "landmark", 150, at(41.8902, 12.4922)), stop("15:00", "Pantheon", "landmark", 120, at(41.8986, 12.4769))]),
+      day("2027-04-07", [stop("10:00", "Borghese Gallery", "museum", 120, at(41.9142, 12.4921))]),
+    ];
+    const wanted = daysWithoutDinner(rome, "Rome");
+    const near = { ...casaLucio, name: "Armando al Pantheon", coordinates: { lat: 41.8989, lng: 12.4762 } };
+    expect(names(withDinners(rome, wanted, { dinners: [near] }).days[1])).toEqual(["10:00 Colosseum", "15:00 Pantheon", "19:30 Armando al Pantheon"]);
+  });
+
+  it("keeps the usual hours for a family that eats early, and asks for a place open then", () => {
+    const wanted = daysWithoutDinner(madrid(), "Madrid", true);
+    expect(names(withDinners(madrid(), wanted, { dinners: [casaLucio] }).days[1])).toEqual(["10:00 Retiro Park", "15:00 Prado Museum", "18:30 Casa Lucio"]);
+    expect(dinnerQuestion(wanted, { language: "en" })).toContain("1. Madrid, 2027-04-06, dinner from 18:30: the day ends at Prado Museum");
+    expect(dinnerQuestion(daysWithoutDinner(madrid(), "Madrid"), { language: "en" })).toContain("1. Madrid, 2027-04-06, dinner from 20:30: the day ends at Prado Museum");
   });
 });
 

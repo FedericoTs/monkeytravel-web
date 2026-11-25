@@ -53,7 +53,19 @@ const stop = (start_time: string, name: string, type: string, lat = 35.0, lng = 
   location: "Kyoto",
   coordinates: { lat, lng },
 });
-const plan = () => ({
+// Madrid, the same shape: the middle day ends at the Prado with no dinner.
+const madrid = () => ({
+  destination: { name: "Madrid", country: "Spain" },
+  days: [
+    [stop("09:00", "Royal Palace", "attraction", 40.418, -3.7143), stop("12:30", "Casa Labra", "restaurant", 40.4177, -3.7039), stop("21:00", "Sobrino de Botin", "restaurant", 40.4142, -3.7081)],
+    [stop("09:00", "Retiro Park", "park", 40.4153, -3.6845), stop("12:30", "Cafe Comercial", "cafe", 40.4321, -3.7029), stop("15:00", "Prado Museum", "museum", 40.4138, -3.6921)],
+    [stop("09:00", "Retiro Park", "park", 40.4153, -3.6845), stop("12:30", "Cafe Comercial", "cafe", 40.4321, -3.7029), stop("15:00", "Prado Museum", "museum", 40.4138, -3.6921)],
+    [stop("09:00", "Reina Sofia", "museum", 40.4086, -3.6943), stop("13:30", "Lhardy", "restaurant", 40.4166, -3.7019)],
+  ].map((activities, i) => ({ day_number: i + 1, date: `2027-04-0${5 + i}`, theme: "t", activities })),
+});
+let inMadrid = false;
+const plan = () => (inMadrid ? madrid() : kyoto());
+const kyoto = () => ({
   destination: { name: "Kyoto", country: "Japan" },
   days: [
     [stop("09:00", "Kinkaku-ji", "attraction"), stop("12:30", "Okonomiyaki Kiraku", "restaurant"), stop("19:00", "Gion Karyo", "restaurant")],
@@ -82,7 +94,7 @@ vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
         const dinners = question.startsWith("Name one real restaurant for dinner");
         if (dinners) dinnerQuestions.push(question);
         const answer = dinners
-          ? { dinners: [{ n: 1, name: "Gion Nanba", description: "Seasonal kaiseki.", location: "Gion", coordinates: dinnerAt, cost_per_person_usd: 80 }] }
+          ? { dinners: [{ n: 1, name: inMadrid ? "Casa Lucio" : "Gion Nanba", description: "Seasonal kaiseki.", location: "Gion", coordinates: dinnerAt, cost_per_person_usd: 80 }] }
           : { places: [] };
         return { response: { text: () => JSON.stringify(answer), usageMetadata: { promptTokenCount: 80, candidatesTokenCount: 20 } } };
       },
@@ -92,12 +104,12 @@ vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
 
 const { POST } = await import("./route");
 
-const complete = async () => {
+const complete = async (extra: Record<string, unknown> = {}) => {
   const res = await POST(
     new NextRequest("http://localhost/api/ai/generate/stream", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ destination: "Kyoto, Japan", startDate: "2027-04-05", endDate: "2027-04-07", vibes: ["cultural"], budgetTier: "premium" }),
+      body: JSON.stringify({ destination: inMadrid ? "Madrid, Spain" : "Kyoto, Japan", startDate: "2027-04-05", endDate: "2027-04-07", vibes: ["cultural"], budgetTier: "premium", ...extra }),
     })
   );
   const events = (await res.text()).split("\n\n").filter(Boolean);
@@ -112,6 +124,7 @@ beforeEach(() => {
   logged.length = 0;
   dinnerQuestions.length = 0;
   dinnerAt = NEAR_GION;
+  inMadrid = false;
   vi.spyOn(console, "log").mockImplementation(() => {});
 });
 
@@ -123,12 +136,22 @@ describe("a plan with a full day left without dinner", () => {
     // The same question, asked twice at once: an evening the first answer can't fill takes the second's.
     expect(dinnerQuestions).toHaveLength(2);
     expect(dinnerQuestions[1]).toBe(dinnerQuestions[0]);
-    expect(dinnerQuestions[0]).toContain("1. Kyoto, Japan, 2027-04-06: the day ends at Gion (35.00370, 135.77880)");
+    expect(dinnerQuestions[0]).toContain("1. Kyoto, Japan, 2027-04-06, dinner from 18:30: the day ends at Gion (35.00370, 135.77880)");
     expect(dinnerQuestions[0]).toContain("a special, upscale");
     // The plan's own places to eat are named, so the answer isn't one of them (it would be turned away).
     expect(dinnerQuestions[0]).toContain("None the plan already has: Okonomiyaki Kiraku; Gion Karyo; Vermillion Cafe; Honke Owariya.");
     await vi.waitFor(() => expect(logged.find((row) => row.status === 200)).toBeTruthy());
     expect(logged.find((row) => row.status === 200)?.metadata?.dinners).toEqual({ missing: 1, added: 1 });
+  });
+
+  it("has it at the local hour in Spain, and at 18:30 for a family with a toddler", async () => {
+    inMadrid = true;
+    dinnerAt = { lat: 40.4122, lng: -3.7092 };
+    expect((await complete())[1]).toEqual(["09:00 Retiro Park", "12:30 Cafe Comercial", "15:00 Prado Museum", "20:30 Casa Lucio"]);
+    expect(dinnerQuestions[0]).toContain("1. Madrid, Spain, 2027-04-06, dinner from 20:30: the day ends at Prado Museum");
+    dinnerQuestions.length = 0;
+    expect((await complete({ tripIntent: "family", childrenAges: ["under3"] }))[1]).toContain("18:30 Casa Lucio");
+    expect(dinnerQuestions[0]).toContain("dinner from 18:30");
   });
 
   it("logs why the day still has none when the answer is turned away: here, a restaurant in Osaka", async () => {

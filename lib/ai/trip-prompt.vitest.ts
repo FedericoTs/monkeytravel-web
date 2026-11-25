@@ -18,6 +18,10 @@ describe("what every plan is asked for", () => {
     expect(spec).not.toMatch(/count among the day's activities/i);
   });
 
+  it("has dinner at the local hour, later in Spain and southern Europe, earlier for young children", () => {
+    expect(spec).toContain("Dinner is at the local hour, at a place that serves it then: from about 20:30 in Spain, and from about 19:30 in Italy, France, Portugal and Greece (young children: earlier, at a place open then)");
+  });
+
   it("describes each stop with why it is worth it", () => {
     expect(spec).toMatch(/"description": "What to do here and why it is worth it, in about 25 words"/);
   });

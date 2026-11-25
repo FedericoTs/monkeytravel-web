@@ -54,7 +54,18 @@ const stop = (start_time: string, name: string, type: string, lat = 35.0, lng = 
   location: "Kyoto",
   coordinates: { lat, lng },
 });
-const plan = () => ({
+// Madrid, the same shape: the middle day ends at the Prado with no dinner.
+const madrid = () => ({
+  destination: { name: "Madrid", country: "Spain" },
+  days: [
+    [stop("09:00", "Royal Palace", "attraction", 40.418, -3.7143)],
+    [stop("09:00", "Retiro Park", "park", 40.4153, -3.6845), stop("12:30", "Cafe Comercial", "cafe", 40.4321, -3.7029), stop("15:00", "Prado Museum", "museum", 40.4138, -3.6921)],
+    [stop("09:00", "Reina Sofia", "museum", 40.4086, -3.6943)],
+  ].map((activities, i) => ({ day_number: i + 1, date: `2027-04-0${5 + i}`, theme: "t", activities })),
+});
+let inMadrid = false;
+const plan = () => (inMadrid ? madrid() : kyoto());
+const kyoto = () => ({
   destination: { name: "Kyoto", country: "Japan" },
   days: [
     [stop("09:00", "Kinkaku-ji", "attraction")],
@@ -75,7 +86,7 @@ vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
       generateContent: async (question: string) => {
         if (question.startsWith("Name one real restaurant for dinner")) dinnerQuestions.push(question);
         const answer = question.startsWith("Name one real restaurant for dinner")
-          ? { dinners: [{ n: 1, name: "Gion Nanba", description: "Seasonal kaiseki.", location: "Gion", coordinates: answeredAt }] }
+          ? { dinners: [{ n: 1, name: inMadrid ? "Casa Lucio" : "Gion Nanba", description: "Seasonal kaiseki.", location: "Gion", coordinates: answeredAt }] }
           : { places: [] };
         return { response: { text: () => JSON.stringify(answer), usageMetadata: { promptTokenCount: 80, candidatesTokenCount: 20 } } };
       },
@@ -88,16 +99,20 @@ const { POST } = await import("./route");
 beforeEach(() => {
   logged.length = 0;
   answeredAt = GION;
+  inMadrid = false;
   vi.spyOn(console, "log").mockImplementation(() => {});
 });
 
-const legs = { destinations: [{ city: "Kyoto", nights: 2 }, { city: "Osaka", nights: 1 }] };
-const generate = () =>
+const legs = () =>
+  inMadrid
+    ? { destination: "Madrid & Toledo", destinations: [{ city: "Madrid", nights: 2 }, { city: "Toledo", nights: 1 }] }
+    : { destination: "Kyoto & Osaka", destinations: [{ city: "Kyoto", nights: 2 }, { city: "Osaka", nights: 1 }] };
+const generate = (extra: Record<string, unknown> = {}) =>
   POST(
     new NextRequest("https://monkeytravel.app/api/ai/generate", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ destination: "Kyoto & Osaka", startDate: "2027-04-05", endDate: "2027-04-07", vibes: ["cultural"], ...legs }),
+      body: JSON.stringify({ startDate: "2027-04-05", endDate: "2027-04-07", vibes: ["cultural"], ...legs(), ...extra }),
     })
   );
 
@@ -106,6 +121,17 @@ describe("the JSON route", () => {
     answeredAt = { lat: 34.6687, lng: 135.5013 };
     expect((await generate()).status).toBe(200);
     expect(logged.find((row) => row.status === 200)?.metadata?.dinners).toEqual({ missing: 1, added: 0, left: { far: 1 } });
+  });
+
+  it("has it at the local hour in Spain, and at 18:30 for a family with a toddler", async () => {
+    inMadrid = true;
+    answeredAt = { lat: 40.4122, lng: -3.7092 };
+    const middleDay = async (extra: Record<string, unknown> = {}) => {
+      const days = (await (await generate(extra)).json()).itinerary.days as Array<{ activities: Array<{ name: string; start_time: string }> }>;
+      return days[1].activities.map((a) => `${a.start_time} ${a.name}`);
+    };
+    expect(await middleDay()).toEqual(["09:00 Retiro Park", "12:30 Cafe Comercial", "15:00 Prado Museum", "20:30 Casa Lucio"]);
+    expect(await middleDay({ tripIntent: "family", childrenAges: ["under3"] })).toContain("18:30 Casa Lucio");
   });
 
   it("gives a full day without dinner one, after the place the day ends at", async () => {
