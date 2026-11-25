@@ -62,17 +62,19 @@ function positionOf(message: string, text: string): number | null {
 /**
  * A name and its value typed inside a list (`"tips": ["a", "b", "booking": true]`): the list ended before the name,
  * and a `]` left right after the value taken out. `quote` is where the name's closing quote is, `colon` its colon.
- * Null when no comma comes before the name: it is the list's first item, or a value in an object.
+ * Typed as the list's first item (`"tips": ["booking": true]`), the list ends empty. Null when neither a comma nor a
+ * list's start comes before the name: a value in an object.
  */
 function listEndedBefore(text: string, quote: number, colon: number): string | null {
   let open = quote - 1;
   while (open >= 0 && (text[open] !== '"' || text[open - 1] === "\\")) open--;
-  let comma = open - 1;
-  while (comma >= 0 && /\s/.test(text[comma])) comma--;
-  if (open < 0 || text[comma] !== ",") return null;
+  let before = open - 1;
+  while (before >= 0 && /\s/.test(text[before])) before--;
+  if (open < 0 || (text[before] !== "," && text[before] !== "[")) return null;
   const value = /^\s*(?:"(?:[^"\\]|\\.)*"|true|false|null|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)\s*\]/.exec(text.slice(colon + 1));
   const after = value ? text.slice(colon + 1, colon + value[0].length) + text.slice(colon + 1 + value[0].length) : text.slice(colon + 1);
-  return `${text.slice(0, comma)}]${text.slice(comma, colon + 1)}${after}`;
+  if (text[before] === "[") return `${text.slice(0, before + 1)}],${text.slice(before + 1, colon + 1)}${after}`;
+  return `${text.slice(0, before)}]${text.slice(before, colon + 1)}${after}`;
 }
 
 /** The text with the slip at `at` mended, or null when it isn't one of them. */
