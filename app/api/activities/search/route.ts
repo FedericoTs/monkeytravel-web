@@ -52,6 +52,14 @@ const ACTIVITY_TYPE_CATEGORIES: Record<string, string[]> = {
  */
 const NEAR_KM = 100;
 
+/**
+ * Where the cities table doesn't know the place by that name ("Seville" is
+ * "Sevilla" there; a region is no city), the middle of the rows' own pins
+ * stands in, and this far from it: a namesake abroad is farther, a region's
+ * places nearer.
+ */
+const FAR_KM = 500;
+
 /** A hotel is not something to add to a day. */
 const STAY_TYPES = new Set(["accommodation", "hotel", "lodging"]);
 
@@ -227,7 +235,11 @@ async function searchLocalActivities(
     return [];
   }
 
-  const rows = ((data ?? []) as ActivityIndexRow[]).filter((row) => isSuggestion(row, near));
+  const activities = ((data ?? []) as ActivityIndexRow[]).filter((row) => !isRideOrStay(row));
+  const around = near ? { at: near, km: NEAR_KM } : middleOf(activities);
+  const rows = around
+    ? activities.filter((row) => isRealPoint(row.coordinates) && haversineKm(row.coordinates, around.at) <= around.km)
+    : activities;
 
   // Dedupe by lowercased name — multiple trips often reference the same place
   // (e.g. "Sagrada Família" across every Barcelona itinerary). Highest similarity
@@ -258,14 +270,26 @@ async function searchLocalActivities(
   return results;
 }
 
+/** A ride or a hotel: never something to add to a day. */
+function isRideOrStay(row: ActivityIndexRow): boolean {
+  return isRide({ type: row.type }) || STAY_TYPES.has((row.type ?? "").toLowerCase());
+}
+
+const median = (xs: number[]): number => {
+  const sorted = [...xs].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+};
+
 /**
- * A row worth offering for a day: not a ride or a stay, and, where the place
- * searched is known, pinned within NEAR_KM of it.
+ * Where most of the rows are, for a place the cities table doesn't know: the
+ * median of their pins, which a few namesakes can't move, when at least three
+ * have one; otherwise nothing to judge by.
  */
-function isSuggestion(row: ActivityIndexRow, near: { lat: number; lng: number } | null): boolean {
-  if (isRide({ type: row.type }) || STAY_TYPES.has((row.type ?? "").toLowerCase())) return false;
-  if (!near) return true;
-  return isRealPoint(row.coordinates) && haversineKm(row.coordinates, near) <= NEAR_KM;
+function middleOf(rows: ActivityIndexRow[]): { at: { lat: number; lng: number }; km: number } | null {
+  const pins = rows.map((row) => row.coordinates).filter((point): point is { lat: number; lng: number } => isRealPoint(point));
+  if (pins.length < 3) return null;
+  return { at: { lat: median(pins.map((p) => p.lat)), lng: median(pins.map((p) => p.lng)) }, km: FAR_KM };
 }
 
 /**
