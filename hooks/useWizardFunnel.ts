@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { landingAttribution, trackWizardEvent } from "@/components/wizard/wizardEvents";
 import { useDwellHeartbeat } from "@/hooks/useDwellHeartbeat";
+import { whenSeen } from "@/lib/analytics/when-seen";
 import { funnelDays, funnelTraits } from "@/lib/wizard/plan-funnel";
 import {
   captureTripWizardAbandoned,
@@ -82,33 +83,38 @@ export function useWizardFunnel({
     if (!entryResolved) {
       return;
     }
-    captureTripWizardStepViewed({
-      step_number: step,
-      step_name: WIZARD_STEP_NAMES[step - 1],
-    });
-    // Mirror the step view into Supabase. Step 1 fires
-    // `step_1_destination_dates`, step 2 fires `step_2_vibes`. This is the
-    // entry-point event for each step — downstream events (generating/result/
-    // save_clicked/saved/abandoned) are fired from their own handlers. Step 1
-    // sends only `locale`, the one field guaranteed to be meaningful then.
-    //
-    // Gate on trackedStepsRef so we fire exactly once per step per wizard
-    // mount lifetime: going back to a step (1→2→1) does not re-fire. A full
-    // remount (route nav) resets the ref, which is correct — that's a new
-    // session view.
-    if (trackedStepsRef.current.has(step)) {
-      return;
-    }
-    trackedStepsRef.current.add(step);
-    if (step === 1) {
-      void trackWizardEvent("step_1_destination_dates", { locale, ...landingAttribution() });
-    } else if (step === 2) {
-      void trackWizardEvent("step_2_vibes", {
-        ...funnelTraits({ destination: destinationFieldRef.current || undefined, tripIntent, travelStyle }),
-        duration_days: funnelDays(startDateRef.current, endDateRef.current),
-        locale,
+    const recordStepView = () => {
+      captureTripWizardStepViewed({
+        step_number: step,
+        step_name: WIZARD_STEP_NAMES[step - 1],
       });
-    }
+      // Mirror the step view into Supabase. Step 1 fires
+      // `step_1_destination_dates`, step 2 fires `step_2_vibes`. This is the
+      // entry-point event for each step — downstream events (generating/result/
+      // save_clicked/saved/abandoned) are fired from their own handlers. Step 1
+      // sends only `locale`, the one field guaranteed to be meaningful then.
+      //
+      // Gate on trackedStepsRef so we fire exactly once per step per wizard
+      // mount lifetime: going back to a step (1→2→1) does not re-fire. A full
+      // remount (route nav) resets the ref, which is correct — that's a new
+      // session view.
+      if (trackedStepsRef.current.has(step)) {
+        return;
+      }
+      trackedStepsRef.current.add(step);
+      if (step === 1) {
+        void trackWizardEvent("step_1_destination_dates", { locale, ...landingAttribution() });
+      } else if (step === 2) {
+        void trackWizardEvent("step_2_vibes", {
+          ...funnelTraits({ destination: destinationFieldRef.current || undefined, tripIntent, travelStyle }),
+          duration_days: funnelDays(startDateRef.current, endDateRef.current),
+          locale,
+        });
+      }
+    };
+    // A page the browser loads in the background (restoring its tabs) isn't seen by anyone: its step view waits
+    // until it is, as PostHog's own page view does (the step-1 heartbeat skips hidden tabs too).
+    return whenSeen(recordStepView);
     // entryResolved is a REQUIRED dep: it flips false->true once the auth state
     // resolves and that flip is what actually fires the step view.
     // exhaustive-deps is disabled here, so the linter won't catch its removal.
