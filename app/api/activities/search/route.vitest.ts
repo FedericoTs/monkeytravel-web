@@ -133,9 +133,33 @@ describe("suggestions from the trips we know", () => {
     expect(await suggest("Augsburg")).toEqual(["Augsburg Cathedral"]);
   });
 
-  it("keeps every place where the city isn't known, as before", async () => {
-    localRows = [prague, row("Somewhere", null)];
-    expect(await suggest("Côte d'Azur")).toEqual(["Black Light Theatre", "Somewhere"]);
+  it("keeps every place where the city isn't known and too few are pinned to tell where most are", async () => {
+    localRows = [prague, row("Somewhere", null), row("Elsewhere", { lat: 43.7, lng: 7.27 })];
+    expect(await suggest("Côte d'Azur")).toEqual(["Black Light Theatre", "Somewhere", "Elsewhere"]);
+  });
+
+  // The cities table knows Seville only as "Sevilla": the places most of its rows are pinned around stand in.
+  it("where the city isn't known, keeps the places around most of its rows", async () => {
+    const sevilla = (name: string, lng: number) => row(name, { lat: 37.39, lng });
+    localRows = [
+      sevilla("Real Alcázar", -5.9925),
+      row("Sevierville Golf Club", { lat: 35.897, lng: -83.524 }),
+      sevilla("Metropol Parasol", -5.992),
+      row("Belleville Street Art", { lat: 48.8686, lng: 2.3848 }),
+      sevilla("Mercado de Triana", -6.0022),
+      row("Forbidden Caverns", { lat: 35.8369, lng: -83.5059 }),
+      row("Somewhere", null),
+    ];
+    expect(await suggest("Seville")).toEqual(["Real Alcázar", "Metropol Parasol", "Mercado de Triana"]);
+  });
+
+  it("and a region's places spread over a few hundred km all stay", async () => {
+    localRows = [
+      row("Hallgrímskirkja", { lat: 64.1417, lng: -21.9266 }),
+      row("Skógafoss", { lat: 63.5321, lng: -19.5114 }), // ~130 km
+      row("Jökulsárlón", { lat: 64.0784, lng: -16.2306 }), // ~280 km
+    ];
+    expect(await suggest("Iceland")).toEqual(["Hallgrímskirkja", "Skógafoss", "Jökulsárlón"]);
   });
 
   it("never suggests a ride or a stay", async () => {
