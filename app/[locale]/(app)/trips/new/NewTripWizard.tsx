@@ -205,7 +205,7 @@ import SkyPlan from "@/components/sky/SkyPlan";
 import { assignSky, syncSkyArm, type SkyAssignment } from "@/lib/experiments/result-sky";
 import { assignArm, type Assignment } from "@/lib/experiments/assign";
 import { createExposureReporter } from "@/lib/experiments/exposure";
-import { STEP2_DEFAULT } from "@/lib/experiments/registry";
+import { SAVE_BOX_BENEFITS, STEP2_DEFAULT } from "@/lib/experiments/registry";
 import { placeKind, step2Default } from "@/lib/wizard/step2-default";
 import PreferencesStep from "@/components/wizard/PreferencesStep";
 import WizardFooter from "@/components/wizard/WizardFooter";
@@ -396,6 +396,23 @@ export default function NewTripPage({
       now: Date.now(),
       random: Math.random,
       pin: process.env.NEXT_PUBLIC_EXP_STEP2_DEFAULT,
+    });
+  });
+  // What the box says to someone keeping a plan (save_box_benefits): the two ways in, or what an account gives.
+  const [saveBoxTest] = useState<Assignment<(typeof SAVE_BOX_BENEFITS.arms)[number]>>(() => {
+    if (typeof window === "undefined") return { arm: "words", counted: false };
+    let store: Storage | null = null;
+    try {
+      store = window.localStorage;
+    } catch {
+      store = null;
+    }
+    return assignArm(SAVE_BOX_BENEFITS, {
+      asked: searchParams?.get("exp_save_box_benefits"),
+      store,
+      now: Date.now(),
+      random: Math.random,
+      pin: process.env.NEXT_PUBLIC_EXP_SAVE_BOX_BENEFITS,
     });
   });
   // Snapshot ?auth_event on the FIRST render. AuthEventTracker strips it with
@@ -915,6 +932,7 @@ export default function NewTripPage({
     setAuthPromptLocation(location);
     setAuthPromptReason("save");
     setShowAuthModal(true);
+    reportExposure(SAVE_BOX_BENEFITS, saveBoxTest);
   };
   // -- Pending anonymous share ----------------------------------------------
   // A plan this browser shared while signed out, and the claim that makes it
@@ -1694,6 +1712,7 @@ export default function NewTripPage({
           location={authPromptLocation}
           reason={authPromptReason}
           redirectPath={limitRedirectPath}
+          saveBenefits={saveBoxTest.arm === "benefits"}
         />
 
         {/* Hero with Cover Image */}
@@ -1956,6 +1975,7 @@ export default function NewTripPage({
         location={authPromptLocation}
         reason={authPromptReason}
         redirectPath={limitRedirectPath}
+        saveBenefits={saveBoxTest.arm === "benefits"}
       />
 
       {/* Header */}

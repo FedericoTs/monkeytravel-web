@@ -69,7 +69,26 @@ interface AuthPromptModalProps {
    * need an account to keep planning — same sign-up, different words.
    */
   reason?: "save" | "generation_limit";
+  /**
+   * Keeping a plan: say what an account gives (the day's plan by email on each trip day, reminders before going, the
+   * group joining) above the sign-in buttons, instead of the sentence naming the two ways in. The header loses its
+   * icon to keep both ways in above the fold on a phone. The save_box_benefits experiment's "benefits" arm.
+   */
+  saveBenefits?: boolean;
 }
+
+/** What an account gives, each true today: the trip-day emails, the reminders before the trip, people joining. */
+const SAVE_BENEFITS = [
+  { key: "dayPlan", icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" },
+  {
+    key: "reminders",
+    icon: "M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9",
+  },
+  {
+    key: "group",
+    icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z",
+  },
+] as const;
 
 const BENEFITS = [
   { icon: "M13 10V3L4 14h7v7l9-11h-7z", key: "aiPowered" },
@@ -96,11 +115,14 @@ export default function AuthPromptModal({
   redirectPath = "/trips/new",
   location = "wizard_save",
   reason = "save",
+  saveBenefits = false,
 }: AuthPromptModalProps) {
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations("common.authPrompt");
   const atLimit = reason === "generation_limit";
+  // Only while keeping a plan (the cap has its own list); once the email is out, the sent state keeps its own words.
+  const benefitsFirst = saveBenefits && !atLimit;
   const title = atLimit ? t("generationLimit.title") : t("title");
   const subtitle = atLimit ? t("generationLimit.subtitle") : t("subtitle", { destination });
   const checkInbox = atLimit ? t("generationLimit.checkInbox") : t("magicLink.checkInbox");
@@ -452,7 +474,9 @@ export default function AuthPromptModal({
     >
       {/* Gradient header, kept short so both sign-in paths sit above the fold on a phone */}
       <div className="bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/80 px-6 py-6 text-white text-center">
-        <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
+        {/* With the benefits listed below, the icon gives up its room so both ways in stay above the fold. */}
+        {!(benefitsFirst && !linkSent) && (
+        <div data-testid="auth-header-icon" className="w-12 h-12 mx-auto mb-3 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
@@ -464,13 +488,16 @@ export default function AuthPromptModal({
             />
           </svg>
         </div>
+        )}
         <h2 className="text-2xl font-bold mb-2">
           {linkSent ? t("magicLink.sentTitle") : title}
         </h2>
         <p className="text-white/80">
           {linkSent
             ? t("magicLink.sentSubtitle", { email })
-            : subtitle}
+            : benefitsFirst
+              ? t("saveBenefits.free")
+              : subtitle}
         </p>
       </div>
 
@@ -608,6 +635,25 @@ export default function AuthPromptModal({
                 </div>
               ))}
             </div>
+            )}
+
+            {benefitsFirst && (
+              <ul className="mb-4 space-y-2">
+                {SAVE_BENEFITS.map((benefit) => (
+                  <li key={benefit.key} className="flex items-start gap-2.5 text-sm text-slate-700">
+                    <svg
+                      aria-hidden="true"
+                      className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={benefit.icon} />
+                    </svg>
+                    <span>{t(`saveBenefits.${benefit.key}`)}</span>
+                  </li>
+                ))}
+              </ul>
             )}
 
             {/* Google one-tap, above the email field. It stays an outline:
