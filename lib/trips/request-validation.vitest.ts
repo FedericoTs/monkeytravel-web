@@ -68,3 +68,14 @@ describe("the prompt-injection guard", () => {
     expect(threeTimes(request)).toEqual([{ valid: true }, { valid: true }, { valid: true }]);
   });
 });
+
+describe("a destination typed on a phone", () => {
+  it("is taken with the keyboard's curly apostrophe and dashes, as the planner takes it", () => {
+    expect(validateTripParams(params({ destination: "Côte d’Azur" }))).toEqual({ valid: true });
+    expect(validateTripParams(params({ destination: "Rome – Florence" }))).toEqual({ valid: true });
+  });
+
+  it("still refuses what isn't a place's name", () => {
+    expect(validateTripParams(params({ destination: "“Paris”" }))).toEqual({ valid: false, error: "Destination contains invalid characters" });
+  });
+});
