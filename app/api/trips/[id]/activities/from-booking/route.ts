@@ -197,8 +197,7 @@ function buildActivityFromBooking(
     estimated_cost: {
       // Email parses don't carry a normalized cost — leave at 0 so the
       // user sees the booking but the trip's total estimate isn't
-      // double-counted. The ExpenseLedger work (task #220) is the
-      // proper home for real spend tracking.
+      // double-counted.
       amount: 0,
       currency: "USD",
       tier: "moderate",

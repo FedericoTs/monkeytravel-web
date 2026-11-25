@@ -28,7 +28,7 @@ import { computeTripDayState, type TripDayState } from "@/lib/trip/live";
 import { EditModeNotice, SaveSuccessToast } from "@/components/trip/TripNotices";
 import AiDisclaimer from "@/components/trip/AiDisclaimer";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
-// TravelAdvisoryBanner / ExpenseLedger are loaded with
+// TravelAdvisoryBanner is loaded with
 // next/dynamic further down, which keeps the initial trip-page chunk lean.
 import { useActivityVotes } from "@/hooks/useActivityVotes";
 import { useProposals } from "@/hooks/useProposals";
@@ -149,16 +149,6 @@ const TravelAdvisoryBanner = dynamic(
   { ssr: false }
 );
 
-// Expense ledger — flag-gated (renders null when off) and renders below
-// the booking panel, well below the fold for first paint.
-const ExpenseLedger = dynamic(
-  () => import("@/components/trip/ExpenseLedger"),
-  { ssr: false }
-);
-// Opened from Today's expense panel; loaded only when someone opens it.
-const SettleUpView = dynamic(() => import("@/components/trip/SettleUpView"), { ssr: false });
-const expenseLedgerEnabled = process.env.NEXT_PUBLIC_EXPENSE_LEDGER_ENABLED === "true";
-
 interface TripDetailClientProps {
   trip: {
     id: string;
@@ -232,9 +222,6 @@ export default function TripDetailClient({
   );
   const dayState = useLiveTripState(fallbackDayState, trip.startDate, trip.endDate);
   const [todayMode, setTodayMode] = useState(true);
-  // Settle Up from Today's expense panel: the ledger with it sits in the
-  // planning view, which a live trip hides.
-  const [settleFromToday, setSettleFromToday] = useState(false);
   // A separate translator for the 'common' namespace (activity.*,
   // addFromEmail.*, today.*).
   const tCommon = useTranslations('common');
@@ -1029,7 +1016,6 @@ export default function TripDetailClient({
       onViewFullItinerary={() => setTodayMode(false)}
       tripId={trip.id}
       apiBase={`/api/trips/${trip.id}/today`}
-      onSettleUp={expenseLedgerEnabled ? () => setSettleFromToday(true) : undefined}
       className="mb-6"
     />
   ) : null;
@@ -1319,15 +1305,6 @@ export default function TripDetailClient({
             />
           ))}
 
-        {/* Post-booking expense tracking. Behind the
-            NEXT_PUBLIC_EXPENSE_LEDGER_ENABLED flag — renders null when off,
-            so the layout is unchanged where it isn't enabled. */}
-        <ExpenseLedger
-          tripId={trip.id}
-          defaultCurrency={trip.budget?.currency || "EUR"}
-          className="mb-8"
-        />
-
         {todayView}
 
         {!showToday && (
@@ -1427,8 +1404,6 @@ export default function TripDetailClient({
         {isEditMode && <EditModeNotice />}
           </>
         )}
-        {/* Outside both phases: Today shows during the trip and before it. */}
-        {settleFromToday && <SettleUpView tripId={trip.id} isOpen onClose={() => setSettleFromToday(false)} />}
       </main>
 
       {/* Edit Mode Undo/Redo Bar - Minimal, with status indicator */}
