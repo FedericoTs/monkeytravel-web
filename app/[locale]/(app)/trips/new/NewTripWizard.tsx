@@ -1885,7 +1885,7 @@ export default function NewTripPage({
     // picked vibes (don't clobber their choices).
     if (step === 1 && seasonalContext && selectedVibes.length === 0 && startDate) {
       try {
-        const seed = seasonalVibeSeed(seasonalContext, startDate);
+        const seed = seasonalVibeSeed(seasonalContext, startDate, tripIntent);
         if (seed.length > 0) {
           setSelectedVibes(seed);
           setVibesSuggested(true);
