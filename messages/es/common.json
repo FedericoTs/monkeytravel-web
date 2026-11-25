@@ -2566,19 +2566,19 @@
       "ctaNo": "No, no fui"
     },
     "followup_next_21d": {
-      "heading": "¿Pensando en el próximo?",
-      "body": "Han pasado unas tres semanas desde {destination}. Si otro viaje te ronda la cabeza, podemos convertirlo en un plan día a día en aproximadamente un minuto — igual que la vez anterior.",
-      "cta": "Planea tu próximo viaje"
+      "heading": "¿Adónde ahora?",
+      "body": "Han pasado unas tres semanas desde {destination}. Si otro viaje empieza a tomar forma, nuestra guía de {month} reúne los lugares en su mejor momento, y cualquiera de ellos se convierte en un plan día a día en un minuto.",
+      "cta": "Dónde viajar en {month}"
     },
     "followup_final_45d": {
       "heading": "El último de nuestra parte",
-      "body": "No vamos a seguir insistiendo. Si surge un viaje, aquí estamos — tu plan de {destination} sigue guardado y crear uno nuevo lleva alrededor de un minuto. Si no, disfruta de la calma.",
-      "cta": "Planea un viaje"
+      "body": "No vamos a seguir insistiendo. Tu plan de {destination} sigue guardado. Si surge un viaje, nuestra guía de {month} es un buen punto de partida, y un plan se hace en un minuto. Si no, disfruta de la calma.",
+      "cta": "Dónde viajar en {month}"
     },
     "followup_dormant": {
       "heading": "Tu plan de {destination} sigue aquí",
-      "body": "Tu plan día a día de {destination} está guardado y listo cuando lo necesites. Y si tienes otro viaje en mente, crear un plan nuevo lleva alrededor de un minuto.",
-      "cta": "Planea un viaje"
+      "body": "Tu plan día a día de {destination} está guardado y listo cuando lo necesites. Para el próximo viaje, nuestra guía de {month} reúne los lugares en su mejor momento.",
+      "cta": "Dónde viajar en {month}"
     },
     "finalNote": "Este es el último correo de esta serie."
   },

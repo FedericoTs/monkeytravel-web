@@ -21,7 +21,7 @@ import {
   summarizeDefects,
   escapeHtmlText,
 } from "@/lib/email/verify-render";
-import { didNotGoUrl, postTripCtaUrl } from "@/lib/email/followup-cta";
+import { didNotGoUrl, nextTripMonth, postTripCtaUrl } from "@/lib/email/followup-cta";
 import { needAnswerUrls, reminderCtaUrl } from "@/lib/email/reminder-cta";
 import { resolveLocale, formatDateRange, formatDayMonth } from "@/lib/email/reminder-locale";
 import { NEED_ANSWERS } from "@/lib/feedback/need";
@@ -147,10 +147,15 @@ export async function sendSlotEmail(
 
   // Where the CTA points: reminderCtaUrl (day 1 without sign-in, or the trip
   // if the link can't be signed) and postTripCtaUrl (return →
-  // the answer "yes, I went", later slots → wizard), shared with the audit script
+  // the answer "yes, I went", later slots → the guide to the next trip's month), shared with the audit script
   // so it vets what ships. `slot`, not `utm_source`: a utm_* param on an internal
   // link overwrites the stored acquisition source.
-  const followupLinks = { tripUrl, appUrl: APP_URL, userId: row.user_id, locale, tripId: trip.id };
+  const now = new Date();
+  const followupLinks = { tripUrl, appUrl: APP_URL, userId: row.user_id, locale, tripId: trip.id, now };
+  // The month that guide is for, in the recipient's words ("January", "enero"), for the copy that names it.
+  const month = new Intl.DateTimeFormat(locale, { month: "long", timeZone: "UTC" }).format(
+    new Date(Date.UTC(2000, nextTripMonth(now), 15)),
+  );
   const ctaUrl = followup
     ? postTripCtaUrl(row.slot as TripFollowupSlot, followupLinks)
     : reminderCtaUrl(row.slot as TripReminderSlot, { appUrl: APP_URL, locale, tripId: trip.id, startDate: trip.start_date });
@@ -164,7 +169,7 @@ export async function sendSlotEmail(
   // supplied. Passing it unconditionally also means a translator moving
   // {destination} into another heading cannot break the mail; unused values
   // are ignored.
-  const heading = t("heading", { destination });
+  const heading = t("heading", { destination, month });
   // The post-trip body states when the trip ended; other bodies ignore it.
   const endDate = formatDayMonth(trip.end_date, locale);
   // A domestic trip reads the slot's bodyDomestic when the copy has one
@@ -172,12 +177,12 @@ export async function sendSlotEmail(
   const body =
     domestic && t.has("bodyDomestic")
       ? t("bodyDomestic", { destination })
-      : t("body", { destination, endDate });
+      : t("body", { destination, endDate, month });
   // The reminder family shares ONE cta across all five slots, so it sits
   // at the namespace root. The followup family needs a different verb per
   // slot ("Open your trip" vs "Plan your next trip"), so its cta lives
   // inside the slot. Hence two different lookups, not an inconsistency.
-  const ctaLabel = followup ? t("cta") : ctaT("cta");
+  const ctaLabel = followup ? t("cta", { month }) : ctaT("cta");
   // The return email asks "did you go?", so it has a button for each answer.
   const noUrl = row.slot === "followup_return_3d" ? didNotGoUrl(followupLinks) : null;
   const secondCta = noUrl ? { label: t("ctaNo"), url: noUrl } : undefined;

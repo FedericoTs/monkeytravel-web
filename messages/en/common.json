@@ -2566,19 +2566,19 @@
       "ctaNo": "No, I didn’t go"
     },
     "followup_next_21d": {
-      "heading": "Thinking about the next one?",
-      "body": "It's been about three weeks since {destination}. If another trip is forming in the back of your mind, we can turn it into a day-by-day plan in about a minute — same as last time.",
-      "cta": "Plan your next trip"
+      "heading": "Where to next?",
+      "body": "It's been about three weeks since {destination}. If another trip is taking shape, our guide to {month} has the places at their best then, and any of them becomes a day-by-day plan in about a minute.",
+      "cta": "Where to go in {month}"
     },
     "followup_final_45d": {
       "heading": "Last one from us",
-      "body": "We won't keep nudging. If a trip comes up we're here — your {destination} plan is still saved, and a new one takes about a minute. Otherwise, enjoy the quiet.",
-      "cta": "Plan a trip"
+      "body": "We won't keep nudging. Your {destination} plan is still saved. If a trip comes up, our guide to {month} is a good place to start, and a plan takes about a minute. Otherwise, enjoy the quiet.",
+      "cta": "Where to go in {month}"
     },
     "followup_dormant": {
       "heading": "Your {destination} plan is still here",
-      "body": "Your day-by-day {destination} plan is saved and ready whenever you want it. And if another trip is on your mind, a new plan takes about a minute to put together.",
-      "cta": "Plan a trip"
+      "body": "Your day-by-day {destination} plan is saved and ready whenever you want it. For the next trip, our guide to {month} has the places at their best then.",
+      "cta": "Where to go in {month}"
     },
     "finalNote": "This is the last email in this sequence."
   },

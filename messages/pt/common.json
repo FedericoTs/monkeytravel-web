@@ -2566,19 +2566,19 @@
       "ctaNo": "Não fui"
     },
     "followup_next_21d": {
-      "heading": "Pensando na próxima?",
-      "body": "Já faz umas três semanas desde {destination}. Se outra viagem está tomando forma na sua cabeça, a gente transforma ela num roteiro dia a dia em cerca de um minuto — igual da última vez.",
-      "cta": "Planejar sua próxima viagem"
+      "heading": "Para onde agora?",
+      "body": "Já faz umas três semanas desde {destination}. Se outra viagem está tomando forma, nosso guia de {month} reúne os lugares no seu melhor momento, e qualquer um deles vira um roteiro dia a dia em cerca de um minuto.",
+      "cta": "Para onde viajar em {month}"
     },
     "followup_final_45d": {
       "heading": "A última da nossa parte",
-      "body": "Não vamos ficar insistindo. Se surgir uma viagem, estamos aqui — seu roteiro de {destination} continua salvo, e criar um novo leva cerca de um minuto. Caso contrário, aproveite o sossego.",
-      "cta": "Planejar uma viagem"
+      "body": "Não vamos ficar insistindo. Seu roteiro de {destination} continua salvo. Se surgir uma viagem, nosso guia de {month} é um bom ponto de partida, e um roteiro leva cerca de um minuto. Caso contrário, aproveite o sossego.",
+      "cta": "Para onde viajar em {month}"
     },
     "followup_dormant": {
       "heading": "Seu roteiro de {destination} continua aqui",
-      "body": "Seu roteiro dia a dia de {destination} está salvo e pronto quando você quiser. E se tiver outra viagem em mente, criar um roteiro novo leva cerca de um minuto.",
-      "cta": "Planejar uma viagem"
+      "body": "Seu roteiro dia a dia de {destination} está salvo e pronto quando você quiser. Para a próxima viagem, nosso guia de {month} reúne os lugares no seu melhor momento.",
+      "cta": "Para onde viajar em {month}"
     },
     "finalNote": "Este é o último e-mail desta sequência."
   },
