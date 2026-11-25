@@ -253,12 +253,13 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     // (lib/ai/lunches.ts), asked for meanwhile and put in before the hours
     // step below sees the day's times.
     const lunchesWanted = daysWithoutLunch(itinerary.days, params.destination);
-    const lunchesAsked = askForLunches(lunchesWanted, {
+    const lunchOptions = {
       budgetTier: params.budgetTier,
       diets: profilePreferences.dietaryPreferences,
       language: userLanguage,
       taken: placesToEat(itinerary.days),
-    });
+    };
+    const lunchesAsked = askForLunches(lunchesWanted, lunchOptions);
     const closing = isMultiCity
       ? await keepOffClosingDaysByCity(
           itinerary,
@@ -281,8 +282,16 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
           )
         : null;
     if (closing) itinerary = closing.itinerary;
+    // The days can have moved: a first or last day, planned without lunch, now
+    // in the middle of the trip. Its lunch is asked for now; nothing is asked
+    // when none moved.
+    const movedLunchesWanted = daysWithoutLunch(itinerary.days, params.destination).filter(
+      (day) => !lunchesWanted.some((asked) => asked.after === day.after)
+    );
+    const movedLunchesAsked = askForLunches(movedLunchesWanted, lunchOptions);
     const lunches = withLunches(itinerary.days, lunchesWanted, (await lunchesAsked).answer);
-    itinerary = { ...itinerary, days: lunches.days };
+    const movedLunches = withLunches(lunches.days, movedLunchesWanted, (await movedLunchesAsked).answer);
+    itinerary = { ...itinerary, days: movedLunches.days };
 
     // Each visit to a place of known hours inside them (lib/ai/visit-hours.ts).
     // Visits trade slots within their own day, so a multi-city or anchored
@@ -371,8 +380,17 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         ...(transfers ? { transfers } : {}),
         // The place typed before the route step 1 offered for it was taken.
         ...(routeFrom ? { route_from: routeFrom } : {}),
-        // Full days the plan left without lunch, and how many got one.
-        ...(lunchesWanted.length > 0 ? { lunches: { missing: lunchesWanted.length, added: lunches.added } } : {}),
+        // Full days the plan left without lunch, and how many got one; after_move: those found only once the
+        // closing days had moved the days, as the stream logs them.
+        ...(lunchesWanted.length + movedLunchesWanted.length > 0
+          ? {
+              lunches: {
+                missing: lunchesWanted.length + movedLunchesWanted.length,
+                added: lunches.added + movedLunches.added,
+                ...(movedLunchesWanted.length > 0 ? { after_move: movedLunchesWanted.length } : {}),
+              },
+            }
+          : {}),
         // Visits to places of known hours: how many were outside them, and what was done, as the stream logs them.
         ...(inHours.checked > 0
           ? {
