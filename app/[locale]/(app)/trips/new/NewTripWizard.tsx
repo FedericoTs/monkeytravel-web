@@ -719,7 +719,7 @@ export default function NewTripPage({
       setFlexibleDates(true);
     }
 
-    posthog?.capture("wizard_prefilled_from_article", {
+    const prefilled = {
       prefilled_days: days ?? null,
       prefilled_month: month,
       prefilled_budget: budget ?? null,
@@ -729,7 +729,9 @@ export default function NewTripPage({
       // A public trip page's "plan one like this" carries its length too, and
       // Check my plan's "fix it" the places worth keeping.
       from: prefillSource(searchParams?.get("from")),
-    });
+    };
+    // PostHog loads when the browser is idle, after this first render: sent once it has.
+    onPostHogReady((ph) => ph.capture("wizard_prefilled_from_article", prefilled));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
