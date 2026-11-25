@@ -25,7 +25,7 @@ import { createClient } from "@/lib/supabase/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { readJsonBody } from "@/lib/api/json-body";
-import { cityPointsFor } from "@/lib/ai/city-points";
+import { placePointFor } from "@/lib/ai/place-point";
 import { haversineKm } from "@/lib/map/geo";
 import { isRide } from "@/lib/trip/far-pins";
 import { isRealPoint } from "@/lib/trip/placeholder-point";
@@ -219,15 +219,15 @@ async function searchLocalActivities(
 
   // More rows than shown, as the ones far away or not activities are left out
   // below; where the place is, from the destination's first part ("Kyoto" of
-  // "Kyoto, Japan"), asked alongside.
-  const [{ data, error }, [near]] = await Promise.all([
+  // "Kyoto, Japan"), asked alongside (lib/ai/place-point.ts).
+  const [{ data, error }, near] = await Promise.all([
     supabase.rpc("search_activities", {
       q: query ?? "",
       dest: destination,
       types: expandedTypes.size > 0 ? Array.from(expandedTypes) : null,
       lim: Math.min(limit * 3, 25),
     }),
-    cityPointsFor([destination.split(",")[0].trim()]),
+    placePointFor(destination.split(",")[0].trim()),
   ]);
 
   if (error) {

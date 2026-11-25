@@ -29,15 +29,15 @@ const POINTS: Record<string, { lat: number; lng: number }> = {
   Kyoto: { lat: 35.0116, lng: 135.7681 },
   // Within NEAR_KM of the placeholder pin (48, 10) a place with no known location gets.
   Augsburg: { lat: 48.3705, lng: 10.8978 },
-  // The table's biggest "Bali" is a town in India; the island is no city in it.
-  Bali: { lat: 22.65, lng: 88.34 },
+  // No curated destination is called "Costa Rica", and the cities table's is a town in Brazil.
+  "Costa Rica": { lat: -18.54, lng: -53.13 },
   Paris: { lat: 48.8566, lng: 2.3522 },
 };
 const pointsAsked: string[] = [];
-vi.mock("@/lib/ai/city-points", () => ({
-  cityPointsFor: async (cities: string[]) => {
-    pointsAsked.push(...cities);
-    return cities.map((city) => POINTS[city] ?? null);
+vi.mock("@/lib/ai/place-point", () => ({
+  placePointFor: async (name: string) => {
+    pointsAsked.push(name);
+    return POINTS[name] ?? null;
   },
 }));
 vi.mock("@/lib/api/rate-limit", () => ({ createRateLimiter: () => ({ check: async () => ({ allowed: true, remaining: 1 }) }) }));
@@ -141,14 +141,13 @@ describe("suggestions from the trips we know", () => {
   });
 
   it("where none of the places is near the table's city, that city is a namesake and most of the places decide", async () => {
-    const ubud = (name: string, lat: number) => row(name, { lat, lng: 115.26 });
     localRows = [
-      ubud("Campuhan Ridge Walk", -8.5),
+      row("Arenal Volcano", { lat: 10.4626, lng: -84.7032 }),
       row("Balboa Park", { lat: 32.7788, lng: -117.1471 }),
-      ubud("Locavore", -8.503),
-      ubud("Tegallalang Rice Terraces", -8.43),
+      row("Manuel Antonio", { lat: 9.3923, lng: -84.1365 }),
+      row("La Fortuna Waterfall", { lat: 10.4385, lng: -84.6829 }),
     ];
-    expect(await suggest("Bali")).toEqual(["Campuhan Ridge Walk", "Locavore", "Tegallalang Rice Terraces"]);
+    expect(await suggest("Costa Rica")).toEqual(["Arenal Volcano", "Manuel Antonio", "La Fortuna Waterfall"]);
   });
 
   it("finds the city by the destination's first part", async () => {
