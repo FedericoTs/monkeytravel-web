@@ -43,6 +43,16 @@ export const LONG_CLOSURES: LongClosure[] = [
     label: "Pergamonmuseum (closed for renovation until 4 June 2027)",
     source: "https://www.smb.museum/en/whats-new/detail/the-pergamonmuseum-returns-opening-on-june-4th-2027/",
   },
+  {
+    // Shut since 1 September 2026 "as we prepare for our next chapter", back in 2027 with no date yet: listed to
+    // the end of 2026, the part that is certain.
+    names: /\bmuseum of the future\b|\bmuseo del futuro\b|\bmuseu do futuro\b|متحف المستقبل/i,
+    city: /\bdubai\b|\bdub[aá]i\b|دبي/i,
+    from: "2026-09-01",
+    until: "2027-01-01",
+    label: "Museum of the Future (temporarily closed, reopening in 2027)",
+    source: "https://museumofthefuture.ae/en",
+  },
 ];
 
 type Trip = Pick<TripCreationParams, "destination" | "startDate" | "endDate">;

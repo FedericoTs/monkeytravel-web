@@ -685,7 +685,7 @@ describe("a stop still shut after the reorder", () => {
           date: "2026-12-27",
           // A booked pantomime keeps this day on its date: only the stops can move. It is too full for one more.
           activities: [
-            stop("Sky Garden", "attraction", "10:00", 60),
+            stop("St Dunstan in the East", "attraction", "10:00", 60),
             stop("Lunch in Wapping", "restaurant", "11:20", 60),
             stop("Clink Prison Museum", "museum", "12:40", 150),
             stop("Postal Museum", "museum", "15:30", 60),
@@ -695,10 +695,10 @@ describe("a stop still shut after the reorder", () => {
       ],
     };
     // The museum's afternoon slot would move nothing, but the Tower shuts at half past four on a winter Sunday: it
-    // takes the Sky Garden's morning, and the stops after it start a little later.
+    // takes the ruined church garden's morning, and the stops after it start a little later.
     const result = await keepOffClosingDays(plan, "London", ask, words, undefined, undefined, askedFor);
     expect(timed(result.itinerary.days)).toEqual([
-      "10:00 Sky Garden | 13:30 Lunch at Borough",
+      "10:00 St Dunstan in the East | 13:30 Lunch at Borough",
       "10:00 Tower of London | 11:50 Lunch in Wapping | 13:10 Clink Prison Museum | 16:00 Postal Museum | 19:00 Christmas pantomime",
     ]);
   });
