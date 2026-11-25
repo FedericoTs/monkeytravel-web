@@ -38,6 +38,9 @@ vi.mock("@/lib/api/rate-limit", () => ({
 vi.mock("@/lib/images/activity", () => ({ fetchActivityImages: async () => {} }));
 vi.mock("@/lib/trips/request-validation", () => ({ validateTripParams: () => ({ valid: true }) }));
 vi.mock("@/lib/ai/known-places", () => ({ knownPlacesFor: async () => [], knownPlacesUsed: () => 0 }));
+vi.mock("@/lib/ai/place-point", () => ({
+  placePointFor: async (name: string) => (name === "Prague" ? { lat: 50.0755, lng: 14.4378 } : null),
+}));
 vi.mock("@/lib/ai/city-points", () => ({
   cityPointsFor: async (cities: string[]) => cities.map((c) => (c === "Prague" ? { lat: 50.0755, lng: 14.4378 } : null)),
 }));

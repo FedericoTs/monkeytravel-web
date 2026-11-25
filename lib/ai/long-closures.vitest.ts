@@ -143,3 +143,62 @@ describe("Dubai's Museum of the Future, shut since September 2026 and back in 20
     expect(closuresFor({ ...dubai, startDate: "2027-02-10", endDate: "2027-02-14" })).toEqual([]);
   });
 });
+
+describe("Bangkok's Vimanmek Mansion and Ananta Samakhom Throne Hall, shut since 2016 and 2017", () => {
+  const bangkok = { destination: "Bangkok, Thailand", startDate: "2026-12-25", endDate: "2026-12-30" };
+  const labels = (destination: string) => closuresFor({ ...bangkok, destination }).map((c) => c.label);
+  const both = [
+    "Vimanmek Mansion (closed since 2016, not reopening to the public)",
+    "Ananta Samakhom Throne Hall (closed inside since 2017; its outside is seen from the Royal Plaza)",
+  ];
+
+  it("are kept out of a trip to Bangkok, however it is written, or to Thailand as a whole", () => {
+    for (const destination of ["Bangkok, Thailand", "Bkk", "Bangkok, Chiang Mai & Krabi", "Banguecoque, Tailândia", "Thailand", "Tailandia"]) {
+      expect(labels(destination), destination).toEqual(both);
+    }
+  });
+
+  it("not out of a trip to another Thai place", () => {
+    expect(labels("Phuket, Thailand")).toEqual([]);
+    expect(labels("Chiang Mai")).toEqual([]);
+  });
+
+  it("whatever the plan calls them", () => {
+    const shut = closuresFor(bangkok);
+    for (const name of [
+      "Vimanmek Mansion",
+      "Mansión Vimanmek",
+      "Palazzo Vimanmek",
+      "Vimarnmek Mansion",
+      "Ananta Samakhom Throne Hall",
+      "Salón del Trono Ananta Samakhom",
+      "Anantasamakhom Throne Hall",
+      "Ananda Samakhom Throne Hall",
+    ]) {
+      expect(isClosedPlace(name, shut), name).toBe(true);
+    }
+  });
+
+  it("but the throne hall seen from outside stays", () => {
+    const shut = closuresFor(bangkok);
+    for (const name of [
+      "Royal Plaza & Ananta Samakhom Throne Hall",
+      "Ananta Samakhom Throne Hall (exterior)",
+      "Ananta Samakhom Throne Hall from outside",
+      "Wat Benchamabophit",
+    ]) {
+      expect(isClosedPlace(name, shut), name).toBe(false);
+    }
+  });
+
+  it("are taken out of a Bangkok plan", () => {
+    const plan = {
+      days: [
+        { day_number: 1, activities: [{ name: "Vimanmek Mansion" }, { name: "Ananta Samakhom Throne Hall" }, { name: "Wat Benchamabophit" }] },
+      ],
+    };
+    const { itinerary, removed } = withoutLongClosures(plan, bangkok);
+    expect(removed).toBe(2);
+    expect(itinerary.days[0].activities.map((a) => a.name)).toEqual(["Wat Benchamabophit"]);
+  });
+});
