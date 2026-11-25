@@ -98,11 +98,12 @@ DELETE FROM public.user_calendar_connections;
 
 ### `NEXT_PUBLIC_CALENDAR_EXPORT_ENABLED` *(feature gate, Phase 1+)*
 
-Defaults to `"false"` in code so a PR merge doesn't go live. Set to
-`"true"` in Vercel to expose the Add-to-Calendar UI to all users.
-The subscription-feed *route itself* ignores this flag (see the
-route's header comment for why) — flipping the flag off only hides
-the UI, it doesn't break already-subscribed calendars.
+No button reads it any more: the trip menu's Add-to-Calendar button
+was removed (Export makes its calendar file in the browser). It is
+still the fallback for `NEXT_PUBLIC_TRIP_NOTIFICATIONS_ENABLED` when
+that one is unset (`lib/notifications/scheduling.ts`). The
+subscription-feed *route itself* ignores this flag (see the route's
+header comment for why).
 
 ## Database
 

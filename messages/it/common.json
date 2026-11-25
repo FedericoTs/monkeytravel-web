@@ -2512,10 +2512,6 @@
       "affiliateDisclosure": "Link affiliato — potremmo guadagnare una piccola commissione senza alcun costo aggiuntivo per te."
     }
   },
-  "calendar": {
-    "downloadIcs": "Aggiungi al calendario",
-    "downloadIcsSubtitle": "Funziona con Apple Calendar, Google Calendar e Outlook"
-  },
   "expenses": {
     "title": "Spese del viaggio",
     "emptyHint": "Tieni traccia di quanto spendi davvero",
