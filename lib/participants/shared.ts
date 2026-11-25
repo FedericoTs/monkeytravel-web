@@ -132,7 +132,7 @@ export interface OwnerParticipant {
   /** "owner" or their collaborator role; null for someone who only said they're going. */
   role: string | null;
   going: boolean;
-  /** Shares new expenses (lib/trips/roster sharesExpenses). */
+  /** Counts in the group (lib/trips/roster inTheGroup): not someone who only said they're going on the public page. */
   in_split: boolean;
   has_account: boolean;
   has_email: boolean;
