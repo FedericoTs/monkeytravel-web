@@ -1148,21 +1148,6 @@
     "shared": "Compartido"
   },
   "today": {
-    "expenses": {
-      "title": "Gastos",
-      "whoPaid": "¿Quién pagó?",
-      "amountPlaceholder": "Importe",
-      "save": "Guardar",
-      "cancel": "Cancelar",
-      "spentSoFar": "Gastado hasta ahora",
-      "youAreOwed": "Te deben {amount}",
-      "youOwe": "Debes {amount}",
-      "settledUp": "Todo saldado",
-      "paid": "pagó",
-      "splitAcross": "dividido entre {count}",
-      "remove": "Quitar",
-      "empty": "Aún no hay gastos. Toca “¿Quién pagó?” en una actividad para dividir un gasto."
-    },
     "packing": {
       "title": "¿Equipaje listo?",
       "progress": "{done}/{total} en la maleta"
@@ -1178,8 +1163,6 @@
       "doneDay": "dio por terminado el día",
       "title": "Actividad reciente",
       "join": "se apunta",
-      "expense": "pagó {amount}",
-      "expenseActivity": "pagó {amount} · {activity}",
       "justNow": "ahora mismo"
     },
     "chips": {
@@ -1212,8 +1195,7 @@
     "nothingToday": "Nada planeado para hoy.",
     "errors": {
       "failed": "No ha funcionado. Inténtalo de nuevo.",
-      "rateLimited": "Demasiados cambios seguidos. Espera un momento y vuelve a intentarlo.",
-      "amount": "Introduce un importe mayor que cero."
+      "rateLimited": "Demasiados cambios seguidos. Espera un momento y vuelve a intentarlo."
     }
   },
   "share": {
@@ -1279,7 +1261,7 @@
       "getsUpdates": "recibe avisos",
       "guest": "sin cuenta",
       "followingAlong": "solo sigue el viaje, no comparte gastos",
-      "notInExpensesYet": "todavía no comparte gastos",
+      "fromPublicPage": "desde la página pública",
       "remove": "Quitar",
       "planOwnLead": "¿Vas a otro sitio?",
       "fit": {
@@ -2478,92 +2460,6 @@
       "findHostels": "Encuentra hostales para este viaje",
       "onHostelworld": "en Booking.com",
       "affiliateDisclosure": "Enlace de afiliado — podemos ganar una pequeña comisión sin coste adicional para ti."
-    }
-  },
-  "expenses": {
-    "title": "Gastos del viaje",
-    "emptyHint": "Registra cuánto gastas realmente",
-    "addButton": "Añadir gasto",
-    "fieldAmount": "Importe",
-    "fieldCurrency": "Moneda",
-    "fieldDate": "Fecha",
-    "fieldCategory": "Categoría",
-    "fieldDescription": "Descripción",
-    "descriptionPlaceholder": "ej. Cena en La Trattoria",
-    "category": {
-      "transport": "Transporte",
-      "accommodation": "Alojamiento",
-      "food": "Comida y bebida",
-      "activity": "Actividades",
-      "shopping": "Compras",
-      "other": "Otro"
-    },
-    "cancel": "Cancelar",
-    "save": "Guardar",
-    "saving": "Guardando…",
-    "loading": "Cargando gastos…",
-    "empty": "Aún no hay gastos registrados.",
-    "toastAdded": "Gasto añadido.",
-    "toastDeleted": "Gasto eliminado.",
-    "undo": "Deshacer",
-    "errorAmountRequired": "Introduce un importe mayor que cero.",
-    "errorAddFailed": "No se pudo añadir el gasto — inténtalo de nuevo.",
-    "errorDeleteFailed": "No se pudo eliminar el gasto — inténtalo de nuevo.",
-    "errorDeleteNotYours": "Solo puedes eliminar los gastos que añadiste tú.",
-    "errorLoadFailed": "No se pudieron cargar los gastos. Inténtalo de nuevo.",
-    "retry": "Intentar de nuevo",
-    "deleteAriaLabel": "Eliminar este gasto",
-    "amountInvalid": "Introduce un importe como {example}.",
-    "amountWhich": "¿Qué importe querías decir?",
-    "settle": {
-      "openButton": "Liquidar",
-      "title": "Liquidar cuentas",
-      "subtitleCount": "{count, plural, =1 {# transferencia por cerrar} other {# transferencias por cerrar}}",
-      "loading": "Calculando quién debe qué…",
-      "errorLoad": "No se pudieron cargar los saldos — inténtalo de nuevo.",
-      "retry": "Intentar de nuevo",
-      "empty": "¡Todo liquidado!",
-      "emptyHint": "Cada saldo de este viaje está en cero. Bien hecho.",
-      "owes": "debe a",
-      "payAction": "Pagar",
-      "guestNoPaymentLink": "No hay enlace de pago: esta persona se unió sin iniciar sesión. Págale directamente.",
-      "payComingSoon": "Pagar (próximamente)"
-    },
-    "payments": {
-      "provider": {
-        "paypal": "PayPal",
-        "venmo": "Venmo",
-        "wise": "Wise"
-      },
-      "payVia": {
-        "paypal": "Pagar con PayPal",
-        "venmo": "Pagar con Venmo",
-        "wise": "Pagar con Wise"
-      },
-      "recipientHasNoHandles": "El destinatario no ha configurado sus métodos de pago. Pídele que añada uno en Ajustes.",
-      "recipientHandlesInvalid": "Los métodos de pago del destinatario no son válidos. Pídele que los actualice en Ajustes.",
-      "settings": {
-        "title": "Métodos de pago",
-        "description": "Guarda tus usuarios de PayPal, Venmo y Wise para que tus compañeros de viaje puedan devolverte el dinero con un toque desde Liquidar cuentas.",
-        "breadcrumbProfile": "Perfil",
-        "loading": "Cargando tus métodos…",
-        "errorLoadFailed": "No se pudieron cargar tus métodos de pago. Inténtalo de nuevo.",
-        "retry": "Intentar de nuevo",
-        "save": "Guardar métodos",
-        "saving": "Guardando…",
-        "cancel": "Cancelar",
-        "toastSaved": "Métodos de pago guardados.",
-        "errorSaveFailed": "No se pudo guardar — inténtalo de nuevo.",
-        "errorTooLong": "Demasiado largo (máx. 64 caracteres).",
-        "errorInvalidHandle": "No parece un nombre de usuario válido para este servicio.",
-        "errorFixBeforeSave": "Corrige el nombre de usuario marcado antes de guardar.",
-        "help": {
-          "paypal": "Tu nombre de usuario de PayPal.me — la parte después de paypal.me/ en tu enlace. Letras, números, puntos, guiones y guiones bajos.",
-          "venmo": "Tu nombre de usuario de Venmo — la parte después de @ en tu handle. 5-30 caracteres.",
-          "wise": "Tu nombre de usuario de Wise (TransferWise), p. ej. @alyssaperez. Asegúrate de tener activada la opción 'Recibir pagos' en tu cuenta de Wise."
-        },
-        "privacyNote": "Solo los compañeros de viaje con los que compartas un gasto verán estos métodos. Nosotros nunca vemos ni procesamos los pagos — los enlaces abren directamente la app del servicio."
-      }
     }
   },
   "advisory": {

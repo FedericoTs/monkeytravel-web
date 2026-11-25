@@ -4,9 +4,9 @@ import { NextRequest } from "next/server";
 import { eqOf, fakeSupabase } from "@/tests/fake-supabase";
 
 /**
- * The owner's "Who's going" is the group the expense split uses: the owner,
- * every collaborator and everyone who said they're going, once each. The
- * count is the people who share expenses; a viewer who hasn't said they're
+ * The owner's "Who's going" is the trip's group: the owner, every
+ * collaborator and everyone who said they're going, once each. The count is
+ * the people in the group; a viewer who hasn't said they're
  * going is listed but not counted, nor is someone who said it only on the
  * public trip page.
  */
@@ -93,7 +93,7 @@ beforeEach(() => {
 });
 
 describe("GET /api/trips/[id]/participants", () => {
-  it("lists the whole group once each and counts who shares expenses", async () => {
+  it("lists the whole group once each and counts who is in it", async () => {
     const res = await call();
     expect(res.status).toBe(200);
     const body = await res.json();

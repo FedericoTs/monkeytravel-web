@@ -1,14 +1,13 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { actorKey } from "@/lib/expenses/shared";
 import { readPicks, type ParticipantSource } from "@/lib/participants/shared";
 
 /**
  * Who is in a trip's group, one entry per person: the owner, every
  * collaborator, and everyone who tapped "I'm going" and hasn't left. A person
  * is keyed by their account when there is one, otherwise by the browser
- * cookie they joined from. Every feature that splits or lists the group reads
- * this, so they agree on who it is.
+ * cookie they joined from. Every feature that lists the group reads this, so
+ * they agree on who it is.
  */
 export interface RosterPerson {
   /** "u:<userId>" for an account, "c:<cookie>" for a guest. */
@@ -35,9 +34,12 @@ export interface RosterPerson {
   } | null;
 }
 
-export type CohortMember = Pick<RosterPerson, "userId" | "cookieId" | "name">;
+/** How a person is keyed in the group: "u:<userId>" for an account, "c:<cookie>" for a guest. */
+export function actorKey(userId: string | null, cookieId: string | null): string {
+  return userId ? `u:${userId}` : cookieId ? `c:${cookieId}` : "c:unknown";
+}
 
-/** The trip's group. Fails rather than return part of it, so nothing is split across a partial group. */
+/** The trip's group. Fails rather than return part of it, so no one reads a partial group. */
 export async function tripRoster(
   admin: SupabaseClient,
   trip: { id: string; user_id: string | null },
@@ -99,21 +101,11 @@ export async function tripRoster(
 }
 
 /**
- * Whether a person shares a new expense: the owner, editors, voters, and
+ * Whether a person counts in the trip's group: the owner, editors, voters, and
  * anyone who said they're going through the share link. A viewer is often
- * someone following along, so they share only once they tap "I'm going".
+ * someone following along, so they count only once they tap "I'm going".
  * Anyone could tap it on the public trip page, so that alone doesn't count.
  */
-export function sharesExpenses(p: RosterPerson): boolean {
+export function inTheGroup(p: RosterPerson): boolean {
   return (p.going && p.participant?.source !== "public") || p.role === "owner" || p.role === "editor" || p.role === "voter";
-}
-
-/** Who a new expense is split across: everyone who shares, plus the payer, once. */
-export function expenseCohort(roster: RosterPerson[], payer: CohortMember | null): CohortMember[] {
-  const cohort: CohortMember[] = roster.filter(sharesExpenses).map(({ userId, cookieId, name }) => ({ userId, cookieId, name }));
-  if (payer && (payer.userId || payer.cookieId)) {
-    const key = actorKey(payer.userId, payer.cookieId);
-    if (!roster.some((p) => p.key === key && sharesExpenses(p))) cohort.push(payer);
-  }
-  return cohort;
 }
