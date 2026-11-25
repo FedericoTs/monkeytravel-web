@@ -29,6 +29,9 @@ const POINTS: Record<string, { lat: number; lng: number }> = {
   Kyoto: { lat: 35.0116, lng: 135.7681 },
   // Within NEAR_KM of the placeholder pin (48, 10) a place with no known location gets.
   Augsburg: { lat: 48.3705, lng: 10.8978 },
+  // The table's biggest "Bali" is a town in India; the island is no city in it.
+  Bali: { lat: 22.65, lng: 88.34 },
+  Paris: { lat: 48.8566, lng: 2.3522 },
 };
 const pointsAsked: string[] = [];
 vi.mock("@/lib/ai/city-points", () => ({
@@ -119,6 +122,33 @@ describe("suggestions from the trips we know", () => {
     localRows = [prague, uffizi, pisa];
     expect(await suggest("Florence")).toEqual(["Uffizi Gallery", "Leaning Tower of Pisa"]);
     expect(pointsAsked).toEqual(["Florence"]);
+  });
+
+  it("keeps the table's city when a place is near it, though most are a namesake's", async () => {
+    const pariserPlatz = (name: string, lng: number) => row(name, { lat: 52.5163, lng });
+    localRows = [
+      pariserPlatz("Brandenburger Tor", 13.3777),
+      pariserPlatz("Hotel Adlon Bar", 13.3793),
+      row("Musée Carnavalet", { lat: 48.8575, lng: 2.3627 }),
+      pariserPlatz("Akademie der Künste", 13.3784),
+    ];
+    expect(await suggest("Paris")).toEqual(["Musée Carnavalet"]);
+  });
+
+  it("leaves out a lone namesake even with too few places to judge by", async () => {
+    localRows = [prague];
+    expect(await suggest("Florence")).toEqual([]);
+  });
+
+  it("where none of the places is near the table's city, that city is a namesake and most of the places decide", async () => {
+    const ubud = (name: string, lat: number) => row(name, { lat, lng: 115.26 });
+    localRows = [
+      ubud("Campuhan Ridge Walk", -8.5),
+      row("Balboa Park", { lat: 32.7788, lng: -117.1471 }),
+      ubud("Locavore", -8.503),
+      ubud("Tegallalang Rice Terraces", -8.43),
+    ];
+    expect(await suggest("Bali")).toEqual(["Campuhan Ridge Walk", "Locavore", "Tegallalang Rice Terraces"]);
   });
 
   it("finds the city by the destination's first part", async () => {

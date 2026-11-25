@@ -54,9 +54,9 @@ const NEAR_KM = 100;
 
 /**
  * Where the cities table doesn't know the place by that name ("Seville" is
- * "Sevilla" there; a region is no city), the middle of the rows' own pins
- * stands in, and this far from it: a namesake abroad is farther, a region's
- * places nearer.
+ * "Sevilla" there; a region is no city), or knows only a namesake, the middle
+ * of the rows' own pins stands in, and this far from it: a namesake abroad is
+ * farther, a region's places nearer.
  */
 const FAR_KM = 500;
 
@@ -236,10 +236,17 @@ async function searchLocalActivities(
   }
 
   const activities = ((data ?? []) as ActivityIndexRow[]).filter((row) => !isRideOrStay(row));
-  const around = near ? { at: near, km: NEAR_KM } : middleOf(activities);
-  const rows = around
-    ? activities.filter((row) => isRealPoint(row.coordinates) && haversineKm(row.coordinates, around.at) <= around.km)
-    : activities;
+  const middle = middleOf(activities);
+  const nearCity = near ? activities.filter((row) => within(row, near, NEAR_KM)) : [];
+  // The table's city stands when a place is near it, or when too few are
+  // pinned to say where they are. None near it while most agree elsewhere
+  // means a namesake of the place meant (its biggest "Bali" is in India).
+  const rows =
+    near && (nearCity.length > 0 || !middle)
+      ? nearCity
+      : middle
+        ? activities.filter((row) => within(row, middle, FAR_KM))
+        : activities;
 
   // Dedupe by lowercased name — multiple trips often reference the same place
   // (e.g. "Sagrada Família" across every Barcelona itinerary). Highest similarity
@@ -282,14 +289,18 @@ const median = (xs: number[]): number => {
 };
 
 /**
- * Where most of the rows are, for a place the cities table doesn't know: the
- * median of their pins, which a few namesakes can't move, when at least three
- * have one; otherwise nothing to judge by.
+ * Where most of the rows are: the median of their pins, which a few namesakes
+ * can't move, when at least three have one; otherwise nothing to judge by.
  */
-function middleOf(rows: ActivityIndexRow[]): { at: { lat: number; lng: number }; km: number } | null {
+function middleOf(rows: ActivityIndexRow[]): { lat: number; lng: number } | null {
   const pins = rows.map((row) => row.coordinates).filter((point): point is { lat: number; lng: number } => isRealPoint(point));
   if (pins.length < 3) return null;
-  return { at: { lat: median(pins.map((p) => p.lat)), lng: median(pins.map((p) => p.lng)) }, km: FAR_KM };
+  return { lat: median(pins.map((p) => p.lat)), lng: median(pins.map((p) => p.lng)) };
+}
+
+/** Whether a row has a real pin within `km` of a point. */
+function within(row: ActivityIndexRow, at: { lat: number; lng: number }, km: number): boolean {
+  return isRealPoint(row.coordinates) && haversineKm(row.coordinates, at) <= km;
 }
 
 /**
