@@ -55,14 +55,6 @@ describe("describeFeedEvent", () => {
     expect(describeFeedEvent(ev({ kind: "done", activityName: "Lunch" })).key).toBe("doneActivity");
     expect(describeFeedEvent(ev({ kind: "done", activityName: null })).key).toBe("doneDay");
   });
-
-  it("expense keeps the amount for the view and switches key on activity", () => {
-    const withAct = describeFeedEvent(ev({ kind: "expense", amountCents: 1250, currency: "EUR", activityName: "Lunch" }));
-    expect(withAct.key).toBe("expenseActivity");
-    expect(withAct.amountCents).toBe(1250);
-    expect(withAct.currency).toBe("EUR");
-    expect(describeFeedEvent(ev({ kind: "expense", amountCents: 500 })).key).toBe("expense");
-  });
 });
 
 describe("relativeTime", () => {
@@ -79,7 +71,7 @@ describe("relativeTime", () => {
 
 describe("feedIcon", () => {
   it("has an icon for every kind", () => {
-    for (const k of ["join", "running_late", "skip", "swap", "done", "expense"] as const) {
+    for (const k of ["join", "running_late", "skip", "swap", "done"] as const) {
       expect(feedIcon(k).length).toBeGreaterThan(0);
     }
   });

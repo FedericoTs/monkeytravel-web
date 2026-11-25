@@ -16,13 +16,10 @@ vi.mock("next-intl", () => ({
 }));
 vi.mock("@/components/ActivityCard", () => ({ default: () => null }));
 vi.mock("@/components/trip/TodayPacking", () => ({ default: () => null }));
-vi.mock("@/components/trip/TodayExpenses", () => ({ default: () => null }));
 vi.mock("@/components/trip/TodayFeed", () => ({ default: () => null }));
-vi.mock("@/components/trip/ExpenseQuickAdd", () => ({ default: () => null }));
 vi.mock("@/lib/today/useTodayActions", () => ({
   useTodayActions: () => ({ actions: [], busy: false, error: null, apply: vi.fn(), undo: vi.fn() }),
 }));
-vi.mock("@/lib/expenses/useTripExpenses", () => ({ useTripExpenses: () => ({ expenses: [], summary: null, add: vi.fn() }) }));
 vi.mock("@/lib/feed/useTripFeed", () => ({ useTripFeed: () => ({ events: [], refetch: vi.fn() }) }));
 
 const dayState: TripDayState = {

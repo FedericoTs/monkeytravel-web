@@ -16,8 +16,8 @@ import { TodayWriteError, todayErrorKey, type TodayErrorKey } from "./errors";
  * chip tapped by anyone appears on everyone's Today within seconds. Applying
  * and undoing go through the routes under `base` (the share link's, or the
  * members' /api/trips/[id]/today), which announce each change; this hook
- * re-fetches, along with `alsoRefresh` (the expense panel), at most every few
- * seconds (refresh-throttle), so every viewer converges on the server's truth.
+ * re-fetches at most every few seconds (refresh-throttle), so every viewer
+ * converges on the server's truth.
  */
 export interface TodayActionsApi {
   actions: TodayAction[];
@@ -31,7 +31,6 @@ export function useTodayActions(
   base: string,
   tripId: string,
   enabled: boolean,
-  alsoRefresh?: () => Promise<void>,
 ): TodayActionsApi {
   const [actions, setActions] = useState<TodayAction[]>([]);
   const [busy, setBusy] = useState(false);
@@ -55,7 +54,7 @@ export function useTodayActions(
   useEffect(() => {
     if (!enabled || !tripId) return;
     void fetchActions();
-    const refresh = throttledRefresh(() => Promise.all([fetchActions(), alsoRefresh?.()]), TODAY_REFRESH_GAP_MS);
+    const refresh = throttledRefresh(fetchActions, TODAY_REFRESH_GAP_MS);
     const supabase = createClient();
     if (channelRef.current) supabase.removeChannel(channelRef.current);
     const channel = supabase
@@ -70,7 +69,7 @@ export function useTodayActions(
         channelRef.current = null;
       }
     };
-  }, [enabled, tripId, fetchActions, alsoRefresh]);
+  }, [enabled, tripId, fetchActions]);
 
   const post = useCallback(
     (body: Record<string, unknown>) =>
