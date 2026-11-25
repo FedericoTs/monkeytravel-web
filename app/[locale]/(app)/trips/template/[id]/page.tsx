@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import TemplatePreviewClient from "./TemplatePreviewClient";
 import { refreshItineraryPhotos } from "@/lib/places/refreshItineraryPhotos";
@@ -7,6 +7,8 @@ import { buildAlternates } from "@/lib/seo/canonical";
 import { publicTripAlternates } from "@/lib/seo/public-trip";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { isNoRow } from "@/lib/supabase/no-row";
+import { templatesShown } from "@/lib/templates/shown";
+import { hiddenTemplateTarget } from "@/lib/templates/hidden-target";
 
 interface TemplatePageProps {
   params: Promise<{ id: string; locale: string }>;
@@ -74,7 +76,8 @@ export default async function TemplatePage({ params }: TemplatePageProps) {
       template_country,
       template_country_code,
       template_copy_count,
-      template_short_description
+      template_short_description,
+      public_slug
     `)
     .eq("id", id)
     .eq("is_template", true)
@@ -84,6 +87,9 @@ export default async function TemplatePage({ params }: TemplatePageProps) {
   if (error && !isNoRow(error)) throw error;
   if (!template) {
     notFound();
+  }
+  if (!templatesShown()) {
+    permanentRedirect(hiddenTemplateTarget(locale, { slug: template.public_slug, tripMeta: template.trip_meta }));
   }
 
   // Calculate date range for display (generic, will be customized on save)

@@ -14,7 +14,10 @@ vi.mock("@/lib/i18n/routing", () => ({
   Link: ({ href, children }: { href: string; children: ReactNode }) => <a href={href}>{children}</a>,
 }));
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllEnvs();
+});
 
 const TRIPS = { en: enTrips, es: esTrips, it: itTrips, pt: ptTrips } as const;
 type Locale = keyof typeof TRIPS;
@@ -37,6 +40,8 @@ function said(locale: Locale, fix: ValidationFix): string {
 
 describe("the planner out of service", () => {
   it.each(Object.keys(TRIPS) as Locale[])("is said in %s, with no English from the server", (locale) => {
+    // With templates on, its way to them is in the page's language too.
+    vi.stubEnv("NEXT_PUBLIC_TEMPLATES_ENABLED", "true");
     const { container, unmount } = render(
       <NextIntlClientProvider locale={locale} messages={{ trips: TRIPS[locale] }} onError={() => {}}>
         <GenerationErrorNotice error={MODEL_OUTAGE_MESSAGE} errorFix={null} effectiveMaxTripDays={14} onAction={vi.fn()} />
