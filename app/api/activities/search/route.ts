@@ -25,6 +25,10 @@ import { createClient } from "@/lib/supabase/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { readJsonBody } from "@/lib/api/json-body";
+import { placePointFor } from "@/lib/ai/place-point";
+import { haversineKm } from "@/lib/map/geo";
+import { isRide } from "@/lib/trip/far-pins";
+import { isRealPoint } from "@/lib/trip/placeholder-point";
 
 // 30 req/min/IP — covers a fast typist hammering AddActivityButton's debounced
 // search, blocks bots. Mirrors task #200 (places-autocomplete) cap.
@@ -39,6 +43,25 @@ const ACTIVITY_TYPE_CATEGORIES: Record<string, string[]> = {
   nature: ["nature", "park", "spa", "wellness"],
   shopping: ["shopping", "market"],
 };
+
+/**
+ * The trips we know match a place by name only, loosely ("Florence" finds
+ * Florenc, in Prague). Where the cities table knows the place searched, a
+ * suggestion is pinned within this of it: its day trips stay, a namesake
+ * elsewhere goes.
+ */
+const NEAR_KM = 100;
+
+/**
+ * Where the cities table doesn't know the place by that name ("Seville" is
+ * "Sevilla" there; a region is no city), or knows only a namesake, the middle
+ * of the rows' own pins stands in, and this far from it: a namesake abroad is
+ * farther, a region's places nearer.
+ */
+const FAR_KM = 500;
+
+/** A hotel is not something to add to a day. */
+const STAY_TYPES = new Set(["accommodation", "hotel", "lodging"]);
 
 export interface ActivitySearchResult {
   id: string;
@@ -194,19 +217,36 @@ async function searchLocalActivities(
     });
   });
 
-  const { data, error } = await supabase.rpc("search_activities", {
-    q: query ?? "",
-    dest: destination,
-    types: expandedTypes.size > 0 ? Array.from(expandedTypes) : null,
-    lim: limit,
-  });
+  // More rows than shown, as the ones far away or not activities are left out
+  // below; where the place is, from the destination's first part ("Kyoto" of
+  // "Kyoto, Japan"), asked alongside (lib/ai/place-point.ts).
+  const [{ data, error }, near] = await Promise.all([
+    supabase.rpc("search_activities", {
+      q: query ?? "",
+      dest: destination,
+      types: expandedTypes.size > 0 ? Array.from(expandedTypes) : null,
+      lim: Math.min(limit * 3, 25),
+    }),
+    placePointFor(destination.split(",")[0].trim()),
+  ]);
 
   if (error) {
     console.error("[Activity Search] search_activities RPC failed:", error);
     return [];
   }
 
-  const rows = (data ?? []) as ActivityIndexRow[];
+  const activities = ((data ?? []) as ActivityIndexRow[]).filter((row) => !isRideOrStay(row));
+  const middle = middleOf(activities);
+  const nearCity = near ? activities.filter((row) => within(row, near, NEAR_KM)) : [];
+  // The table's city stands when a place is near it, or when too few are
+  // pinned to say where they are. None near it while most agree elsewhere
+  // means a namesake of the place meant (its biggest "Bali" is in India).
+  const rows =
+    near && (nearCity.length > 0 || !middle)
+      ? nearCity
+      : middle
+        ? activities.filter((row) => within(row, middle, FAR_KM))
+        : activities;
 
   // Dedupe by lowercased name — multiple trips often reference the same place
   // (e.g. "Sagrada Família" across every Barcelona itinerary). Highest similarity
@@ -235,6 +275,32 @@ async function searchLocalActivities(
   }
 
   return results;
+}
+
+/** A ride or a hotel: never something to add to a day. */
+function isRideOrStay(row: ActivityIndexRow): boolean {
+  return isRide({ type: row.type }) || STAY_TYPES.has((row.type ?? "").toLowerCase());
+}
+
+const median = (xs: number[]): number => {
+  const sorted = [...xs].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+};
+
+/**
+ * Where most of the rows are: the median of their pins, which a few namesakes
+ * can't move, when at least three have one; otherwise nothing to judge by.
+ */
+function middleOf(rows: ActivityIndexRow[]): { lat: number; lng: number } | null {
+  const pins = rows.map((row) => row.coordinates).filter((point): point is { lat: number; lng: number } => isRealPoint(point));
+  if (pins.length < 3) return null;
+  return { lat: median(pins.map((p) => p.lat)), lng: median(pins.map((p) => p.lng)) };
+}
+
+/** Whether a row has a real pin within `km` of a point. */
+function within(row: ActivityIndexRow, at: { lat: number; lng: number }, km: number): boolean {
+  return isRealPoint(row.coordinates) && haversineKm(row.coordinates, at) <= km;
 }
 
 /**

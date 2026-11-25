@@ -40,6 +40,7 @@ const LOCALES = ["en", "es", "it", "pt"] as const;
 // than by mailing a key path to whoever the new slot fires for.
 const SLOTS = [
   "pack_early_14d",
+  "need_10d",
   "visa_check_7d",
   "weather_3d",
   "confirm_1d",

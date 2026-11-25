@@ -251,14 +251,6 @@ export function nothingChangedReply(language: string | undefined): string {
 }
 
 /**
- * Appended when an answer handed over a change that could not be attached. The
- * concierge streams its words before it knows whether the change came with them.
- */
-export function noProposalNote(language: string | undefined): string {
-  return note(language, "noProposal");
-}
-
-/**
  * The reply when a change is prepared but the model's words claimed it done.
  * It stays true once the change is applied; pendingChangeNote, beside it while
  * the change waits, names the button.

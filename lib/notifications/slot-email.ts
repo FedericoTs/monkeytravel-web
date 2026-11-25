@@ -15,10 +15,16 @@ import {
   tripLengthDays,
 } from "@/lib/email/trip-forecast";
 import { tripStartCoordinate } from "@/lib/email/trip-coordinates";
-import { verifyRenderedEmail, blockingDefects, summarizeDefects } from "@/lib/email/verify-render";
+import {
+  verifyRenderedEmail,
+  blockingDefects,
+  summarizeDefects,
+  escapeHtmlText,
+} from "@/lib/email/verify-render";
 import { didNotGoUrl, postTripCtaUrl } from "@/lib/email/followup-cta";
 import { needAnswerUrls, reminderCtaUrl } from "@/lib/email/reminder-cta";
 import { resolveLocale, formatDateRange, formatDayMonth } from "@/lib/email/reminder-locale";
+import { NEED_ANSWERS } from "@/lib/feedback/need";
 import { sharesAsGroup } from "@/lib/wizard/answers";
 import {
   type TripEmailRow,
@@ -27,6 +33,7 @@ import {
   persistOutcome,
   assertTranslated,
 } from "./slot-row";
+import { NEED_EMAIL_SLOT, needEmailKey, needEmailVerdict, tripNeedAnswered } from "./need-email";
 
 /**
  * Where the reminder copy lives in the assembled message tree.
@@ -110,6 +117,8 @@ export async function sendSlotEmail(
 ): Promise<"sent" | "skipped" | "failed"> {
   const followup = isFollowupSlot(row.slot);
   const rootNs = followup ? FOLLOWUP_NS : REMINDER_NS;
+  // need_10d is the one question as an email of its own (./need-email.ts).
+  const questionOnly = row.slot === NEED_EMAIL_SLOT;
 
   let t: Awaited<ReturnType<typeof getTranslations>>;
   let ctaT: Awaited<ReturnType<typeof getTranslations>>;
@@ -199,16 +208,26 @@ export async function sendSlotEmail(
   // The one question (NEED_ASK_SLOTS), until the trip's owner has answered it.
   // Optional like the group ask: a failed read, or links that can't be signed,
   // leave it out and the reminder goes without it.
+  //
+  // need_10d is that question as the whole email, so it is the opposite: it
+  // goes with its answers or not at all, and needEmailVerdict decides which
+  // (once per person, never once answered, never against a no to marketing).
+  // Its heading asks the question, so the heading is the question here too.
   let needAsk: { question: string; answers: { label: string; url: string }[] } | undefined;
-  if (!followup && NEED_ASK_SLOTS.has(row.slot)) {
-    const { data: answered, error } = await svc
-      .from("user_feedback")
-      .select("id")
-      .eq("extra->>trip_id", trip.id)
-      .not("extra->>need", "is", null)
-      .limit(1);
+  if (questionOnly) {
+    const verdict = await needEmailVerdict(svc, row, trip, { appUrl: APP_URL, locale }, new Date());
+    if (!verdict.send) {
+      await persistOutcome(svc, row.id, verdict.status, verdict.reason, verdict.error);
+      return verdict.status === "failed" ? "failed" : "skipped";
+    }
+    needAsk = {
+      question: heading,
+      answers: verdict.answers.map(({ need, url }) => ({ label: ctaT(`needAsk.${need}`), url })),
+    };
+  } else if (!followup && NEED_ASK_SLOTS.has(row.slot)) {
+    const answered = await tripNeedAnswered(svc, trip.id);
     const urls =
-      !error && (answered ?? []).length === 0
+      !answered.error && !answered.answered
         ? needAnswerUrls(row.slot as TripReminderSlot, { appUrl: APP_URL, locale, tripId: trip.id, userId: row.user_id })
         : null;
     if (urls) {
@@ -357,6 +376,7 @@ export async function sendSlotEmail(
           contextBlocks,
           ...(groupAsk ? { groupAsk } : {}),
           ...(needAsk ? { needAsk } : {}),
+          ...(questionOnly ? { questionOnly: true } : {}),
         },
       };
 
@@ -366,8 +386,9 @@ export async function sendSlotEmail(
     // Per-(trip, slot) idempotency — covers the (rare) case of two
     // overlapping cron runs grabbing the same row before status flips.
     // Prefixed by family so a reminder and a followup on the same trip
-    // can never collide on the same key.
-    idempotencyKey: `${template.id}:${row.trip_id}:${slot}`,
+    // can never collide on the same key. need_10d is keyed per person
+    // instead: one in a lifetime, whichever trip asks.
+    idempotencyKey: questionOnly ? needEmailKey(row.user_id) : `${template.id}:${row.trip_id}:${slot}`,
     // Already resolved above for the translated body — pass it so the shared
     // shell (header/footer) renders in the same language.
     locale,
@@ -387,8 +408,9 @@ export async function sendSlotEmail(
           html,
           destination,
           // The real CTA target: the trip or its day 1 for reminders, the
-          // answer link for followup_return_3d, the wizard after it.
-          ctaUrl,
+          // answer link for followup_return_3d, the wizard after it. need_10d
+          // has no button: its answers are its links, checked below.
+          ctaUrl: questionOnly ? "" : ctaUrl,
           contextBlocks,
           // This trip's own enrichment values — the corpus containment is
           // checked against. Anything rendered that is not in here came from
@@ -403,6 +425,17 @@ export async function sendSlotEmail(
           ],
         })
       );
+      // need_10d is nothing without its answers: every one must reach the reader.
+      if (questionOnly) {
+        const shown = (needAsk?.answers ?? []).filter((a) => html.includes(escapeHtmlText(a.url))).length;
+        if (shown < NEED_ANSWERS.length) {
+          defects.push({
+            check: "need_answers_missing",
+            detail: `${shown} of ${NEED_ANSWERS.length} answers in the body`,
+            severity: "block",
+          });
+        }
+      }
       return defects.length
         ? { ok: false, reason: summarizeDefects(defects) }
         : { ok: true };
