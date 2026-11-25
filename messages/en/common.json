@@ -2512,10 +2512,6 @@
       "affiliateDisclosure": "Affiliate link — we may earn a small commission at no extra cost to you."
     }
   },
-  "calendar": {
-    "downloadIcs": "Add to Calendar",
-    "downloadIcsSubtitle": "Works with Apple Calendar, Google Calendar, Outlook"
-  },
   "concierge": {
     "triggerLabel": "Ask concierge",
     "modalTitle": "Trip concierge",

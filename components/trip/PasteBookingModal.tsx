@@ -142,9 +142,8 @@ interface PasteBookingModalProps {
  *      Confirm we POST to /api/trips/[id]/activities/from-booking and
  *      close.
  *
- * Gating: NEXT_PUBLIC_EMAIL_PARSE_ENABLED. Same dead-code-elimination
- * pattern as DownloadIcsButton — flag flipped at the env layer means
- * zero bytes shipped when off.
+ * Gating: NEXT_PUBLIC_EMAIL_PARSE_ENABLED, inlined at build time — flag
+ * flipped at the env layer means zero bytes shipped when off.
  *
  * Accessibility: built on BaseModal (a11y-hardened in cycle-7 #192 —
  * has role="dialog", aria-modal, focus trap, Esc handler). We pass

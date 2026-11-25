@@ -2512,10 +2512,6 @@
       "affiliateDisclosure": "Enlace de afiliado — podemos ganar una pequeña comisión sin coste adicional para ti."
     }
   },
-  "calendar": {
-    "downloadIcs": "Añadir al calendario",
-    "downloadIcsSubtitle": "Compatible con Apple Calendar, Google Calendar y Outlook"
-  },
   "concierge": {
     "triggerLabel": "Preguntar al concierge",
     "modalTitle": "Concierge del viaje",

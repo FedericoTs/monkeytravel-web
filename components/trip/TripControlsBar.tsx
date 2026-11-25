@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Sparkles } from "lucide-react";
-import DownloadIcsButton from "@/components/calendar/DownloadIcsButton";
 import ShareButton from "@/components/trip/ShareButton";
 import TripActionsMenu, { TripActionsMenuItem, TripActionsMenuSlot } from "@/components/trip/TripActionsMenu";
 import { MapToggle, ViewModeToggle } from "@/components/trip/ViewControls";
@@ -15,8 +14,8 @@ const ExportMenu = dynamic(() => import("@/components/trip/ExportMenu"), { ssr: 
 
 /**
  * The trip page's controls bar: the way back to the trips, the view and map
- * toggles, sharing, Edit with AI, and the More menu (export, calendar, add
- * from email). The editing controls come last, as children.
+ * toggles, sharing, Edit with AI, and the More menu (export, add from email).
+ * The editing controls come last, as children.
  */
 export default function TripControlsBar({
   trip,
@@ -144,12 +143,6 @@ export default function TripControlsBar({
                 }}
                 surface="trip_detail"
               />
-            </TripActionsMenuSlot>
-
-            {/* Add to Calendar (.ics). Self-gates on the calendar flag —
-                renders nothing when off, so the slot is safe unconditionally. */}
-            <TripActionsMenuSlot>
-              <DownloadIcsButton tripId={trip.id} showSubtext={false} />
             </TripActionsMenuSlot>
 
             {/* Add from email (paste booking → Gemini parse). Flag-gated. */}
