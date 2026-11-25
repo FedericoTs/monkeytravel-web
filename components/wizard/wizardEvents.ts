@@ -72,9 +72,8 @@ export const WIZARD_EVENT_STEPS = [
   // went out, with elapsed_ms how long it was open.
   "auth_google_pressed",
   "auth_modal_closed",
-  // Google's one-tap in the box (lib/auth/google-one-tap.ts): offered (Google's script loaded and asked), signed in
-  // with the tapped account, or the sign-in with it failed. With the browser's own prompt the page can't see whether
-  // it showed, so "offered" counts the asks.
+  // Google's own one-tap prompt in the box: offered, signed in, failed. Nothing sends these any more (the box offers
+  // Google once, by its own button); they stay while the database's list of steps still holds them.
   "auth_onetap_offered",
   "auth_onetap_signed_in",
   "auth_onetap_failed",

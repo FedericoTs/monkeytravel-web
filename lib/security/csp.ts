@@ -80,8 +80,6 @@ const SCRIPT_HOSTS = [
   "https://maps.googleapis.com",
   "https://maps.gstatic.com",
   "https://js.stripe.com",
-  // Google's one-tap sign-in in the save box (lib/auth/google-one-tap.ts).
-  "https://accounts.google.com/gsi/client",
 ];
 
 /**
@@ -131,8 +129,6 @@ export function buildCspHeader(pathname: string, scripts: ScriptPolicy): string 
       // Next's font CSS, etc. Pragmatic compromise — see top comment.
       "'unsafe-inline'",
       "https://fonts.googleapis.com",
-      // The one-tap prompt's own styles.
-      "https://accounts.google.com/gsi/style",
     ],
     "font-src": ["'self'", "https://fonts.gstatic.com", "data:"],
     "img-src": ["'self'", "data:", "blob:", "https:"],
@@ -142,8 +138,6 @@ export function buildCspHeader(pathname: string, scripts: ScriptPolicy): string 
       "https://*.supabase.co",
       "wss://*.supabase.co",
       ...configuredSupabase(),
-      // Google's one-tap: its status check and the browser's sign-in prompt (FedCM) setup.
-      "https://accounts.google.com/gsi/",
       // Analytics + monitoring
       "https://*.posthog.com",
       "https://*.sentry.io",
