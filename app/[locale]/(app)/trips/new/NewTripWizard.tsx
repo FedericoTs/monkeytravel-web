@@ -139,6 +139,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { useDraftRestore } from "@/hooks/useDraftRestore";
 import { useGeneratedPlan } from "@/hooks/useGeneratedPlan";
 import { useKeptPlan } from "@/hooks/useKeptPlan";
+import { useScrollTopOnNewPlan } from "@/hooks/useScrollTopOnNewPlan";
 import { useKeptPlanOpening } from "@/hooks/useKeptPlanOpening";
 import { usePlanPhotos } from "@/hooks/usePlanPhotos";
 import type { KeptPlan } from "@/lib/plans/kept-plan";
@@ -724,12 +725,8 @@ export default function NewTripPage({
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [step]);
 
-  // Scroll to top when itinerary is generated
-  useEffect(() => {
-    if (generatedItinerary) {
-      window.scrollTo({ top: 0, behavior: "instant" });
-    }
-  }, [generatedItinerary]);
+  // A new plan opens at the top; the same plan changing (photos, an edit) keeps the reader's place.
+  useScrollTopOnNewPlan(generatedItinerary, planNumber);
 
   // Build seasonal context when destination and dates are set.
   // Uses latitude for accurate (Southern Hemisphere) season detection.
