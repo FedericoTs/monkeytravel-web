@@ -16,22 +16,31 @@ type Point = { lat: number; lng: number };
 /** What a name may not hold to be read as itself in an ILIKE: its pattern characters, PostgREST's `*` among them. */
 const PATTERN = /[%_*\\]/;
 
+const cleaned = (name: string) => name.replace(/\s+/g, " ").trim();
+
+/** The curated destination of that name's point, or null: none, no location, a failed read or no database. */
+export async function curatedPointFor(name: string, db: SupabaseClient | null = cacheAdminDb()): Promise<Point | null> {
+  const place = cleaned(name);
+  if (!place || !db || PATTERN.test(place)) return null;
+  try {
+    // ILIKE with no wildcard is a case-insensitive equality; curated names are unique.
+    const { data } = logReadError("place point", await db.from("destinations").select("latitude, longitude").ilike("name", place).limit(1));
+    const row = (Array.isArray(data) ? data[0] : null) as { latitude?: unknown; longitude?: unknown } | null;
+    if (row && typeof row.latitude === "number" && typeof row.longitude === "number") {
+      return { lat: row.latitude, lng: row.longitude };
+    }
+  } catch {
+    // The cities table answers instead.
+  }
+  return null;
+}
+
 /** The place's point, or null when neither the curated destinations nor the cities table has it. */
 export async function placePointFor(name: string, db: SupabaseClient | null = cacheAdminDb()): Promise<Point | null> {
-  const place = name.replace(/\s+/g, " ").trim();
+  const place = cleaned(name);
   if (!place) return null;
-  if (db && !PATTERN.test(place)) {
-    try {
-      // ILIKE with no wildcard is a case-insensitive equality; curated names are unique.
-      const { data } = logReadError("place point", await db.from("destinations").select("latitude, longitude").ilike("name", place).limit(1));
-      const row = (Array.isArray(data) ? data[0] : null) as { latitude?: unknown; longitude?: unknown } | null;
-      if (row && typeof row.latitude === "number" && typeof row.longitude === "number") {
-        return { lat: row.latitude, lng: row.longitude };
-      }
-    } catch {
-      // The cities table answers instead.
-    }
-  }
+  const curated = await curatedPointFor(place, db);
+  if (curated) return curated;
   const [point] = await cityPointsFor([place], db);
   return point;
 }
