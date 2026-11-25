@@ -71,13 +71,13 @@ beforeEach(() => {
 
 describe("a plan the model wrote that can't be read", () => {
   it("logs the text around the slip that stopped the mend, and tells the traveller nothing of it", async () => {
-    reply = '{"destination":{"name":"Rome"},"days":[{"day_number":1,"date":"2026-11-01","activities":[]}],\n      x: 2}';
+    reply = '{"destination":{"name":"Rome"},"days":[{"day_number":1,"date":"2026-11-01","activities":[]}],\n      2x: 2}';
     const last = await lastEvent();
     expect(last.startsWith("event: error")).toBe(true);
     expect(last).not.toContain("⟪");
     const row = logged.find((r) => r.status === 500);
     expect(row?.error).toMatch(/^unparseable output: Expected double-quoted property name/);
-    expect(row?.metadata?.slip).toBe('":"2026-11-01","activities":[]}],\\n      ⟪x: 2}');
+    expect(row?.metadata?.slip).toBe('":"2026-11-01","activities":[]}],\\n      ⟪2x: 2}');
   });
 
   it("logs no slip when the reply simply stops", async () => {

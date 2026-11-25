@@ -140,6 +140,23 @@ describe("pickKnownPlaces", () => {
     expect(picked.filter((p) => p.type === "restaurant").length).toBeLessThanOrEqual(2);
   });
 
+  it("offers fewer when they arrive late or leave early: a first or last day counts for the part of it they're there", () => {
+    const many = Array.from({ length: 30 }, (_, i) => row(`Sight ${i}`, { type: "museum", vibes: { cultural: 3 } }));
+    const four = { startDate: "2027-05-01", endDate: "2027-05-04" };
+    const arrive = (when: "morning" | "afternoon" | "evening" | "night", date = "2027-05-01") => ({ arrival: { when, date } });
+    const leave = (when: "morning" | "afternoon" | "evening", date = "2027-05-04") => ({ departure: { when, date } });
+    // Four moderate days: 8.
+    expect(names(many, four, 4)).toHaveLength(8);
+    // In for dinner on the first day, out after breakfast on the last: two days there, 4.
+    expect(names(many, { ...four, ...arrive("evening"), ...leave("morning") }, 4)).toHaveLength(4);
+    expect(names(many, { ...four, ...arrive("night") }, 4)).toHaveLength(6);
+    // An afternoon arrival and an afternoon leaving: 2.7 days, 5. A morning arrival and an evening leaving: 3.45, 7.
+    expect(names(many, { ...four, ...arrive("afternoon"), ...leave("afternoon") }, 4)).toHaveLength(5);
+    expect(names(many, { ...four, ...arrive("morning"), ...leave("evening") }, 4)).toHaveLength(7);
+    // Answers for other dates, a route's other cities, change nothing here.
+    expect(names(many, { ...four, ...arrive("evening", "2027-04-28"), ...leave("morning", "2027-05-09") }, 4)).toHaveLength(8);
+  });
+
   it("offers a trip with a diet no places to eat: they were kept whatever the traveller ate", () => {
     const meals = ["Le Consulat", "L'As du Fallafel", "Du Pain et des Idées"];
     const vegan = names(PARIS, { vibes: ["cultural", "foodie"], profilePreferences: { dietaryPreferences: ["vegan"] } });

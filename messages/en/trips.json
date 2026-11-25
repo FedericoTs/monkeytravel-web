@@ -268,6 +268,24 @@
         "hint": "Name the exact places or dishes — we'll fit each one into the right day.",
         "placeholder": "e.g. Great Wall, Peking duck — press Enter to add",
         "remove": "Remove {item}"
+      },
+      "travelDays": {
+        "title": "Your first and last day",
+        "hint": "Day 1 starts when you get there, and the last day ends when you leave.",
+        "arriving": "Arriving",
+        "leaving": "Leaving",
+        "anyTime": "Any time",
+        "arrive": {
+          "morning": "In the morning",
+          "afternoon": "In the afternoon",
+          "evening": "In the evening",
+          "night": "Late at night"
+        },
+        "depart": {
+          "morning": "In the morning",
+          "afternoon": "In the afternoon",
+          "evening": "In the evening"
+        }
       }
     },
     "step3": {

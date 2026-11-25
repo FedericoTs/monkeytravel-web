@@ -8,7 +8,7 @@ vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
   genAI: { getGenerativeModel: () => ({ generateContent }) },
 }));
 
-import { askForDinners, daysWithoutDinner, dinnerQuestion, placesToEat, withDinners, type DinnerAnswer } from "@/lib/ai/dinners";
+import { askForDinners, daysWithoutDinner, dinnerQuestion, dinnersLeftTogether, placesToEat, withDinners, type DinnerAnswer } from "@/lib/ai/dinners";
 
 type Stop = { name: string; type: string; start_time: string; duration_minutes: number; coordinates?: { lat: number; lng: number } };
 const at = (lat: number, lng: number) => ({ lat, lng });
@@ -73,6 +73,7 @@ describe("a dinner answered", () => {
   it("goes in half an hour after the place it was chosen near, as a restaurant, priced per person", () => {
     const out = withDinners(plan(), wanted, { dinners: [gionDinner] });
     expect(out.added).toBe(1);
+    expect(out.left).toEqual({});
     // Gion ends at 17:00: half an hour later is 17:30, so dinner waits for 18:30.
     expect(names(out.days[1])).toEqual(["09:00 Fushimi Inari", "12:30 Lunch", "15:00 Gion", "18:30 Gion Karyo"]);
     expect(out.days[1].activities[3]).toMatchObject({
@@ -92,24 +93,43 @@ describe("a dinner answered", () => {
     expect(names(out.days[1])).toEqual(["09:00 Fushimi Inari", "12:30 Lunch"]);
   });
 
-  it("is left out when it would start after 21:00, is far from that place, or is a place the plan holds", () => {
+  it("is left out when it would start after 21:00, is far from that place, or is a place the plan holds, and says which", () => {
     const late = plan();
     late[1].activities[2] = { ...late[1].activities[2], start_time: "19:00", duration_minutes: 120 };
-    expect(withDinners(late, wanted, { dinners: [gionDinner] }).added).toBe(0);
+    expect(withDinners(late, wanted, { dinners: [gionDinner] })).toMatchObject({ added: 0, left: { late: 1 } });
     const far: DinnerAnswer = { dinners: [{ ...gionDinner, coordinates: { lat: 34.69, lng: 135.5 } }] };
-    expect(withDinners(plan(), wanted, far).added).toBe(0);
+    expect(withDinners(plan(), wanted, far)).toMatchObject({ added: 0, left: { far: 1 } });
     const held: DinnerAnswer = { dinners: [{ ...gionDinner, name: "Fushimi Inari" }] };
-    expect(withDinners(plan(), wanted, held).added).toBe(0);
+    expect(withDinners(plan(), wanted, held)).toMatchObject({ added: 0, left: { taken: 1 } });
   });
 
-  it("is left out when it isn't a real place, answers no day, or the day has dinner by now", () => {
-    expect(withDinners(plan(), wanted, { dinners: [{ ...gionDinner, coordinates: { lat: 0, lng: 0 } }] }).added).toBe(0);
-    expect(withDinners(plan(), wanted, { dinners: [{ ...gionDinner, n: 2 }] }).added).toBe(0);
-    expect(withDinners(plan(), wanted, { dinners: [{ ...gionDinner, name: "" }] }).added).toBe(0);
+  it("is left out when it isn't a real place, answers no day, or the day has dinner by now, and says which", () => {
+    expect(withDinners(plan(), wanted, { dinners: [{ ...gionDinner, coordinates: { lat: 0, lng: 0 } }] })).toMatchObject({ added: 0, left: { unreal: 1 } });
+    expect(withDinners(plan(), wanted, { dinners: [{ ...gionDinner, n: 2 }] })).toMatchObject({ added: 0, left: { unanswered: 1 } });
+    expect(withDinners(plan(), wanted, { dinners: [{ ...gionDinner, name: "" }] })).toMatchObject({ added: 0, left: { unreal: 1 } });
+    // A name of no telling word ("Dinner") is no place either.
+    expect(withDinners(plan(), wanted, { dinners: [{ ...gionDinner, name: "Dinner" }] })).toMatchObject({ added: 0, left: { unreal: 1 } });
     const fed = plan();
     fed[1].activities.push(stop("19:00", "Pontocho dinner", "restaurant"));
-    expect(withDinners(fed, wanted, { dinners: [gionDinner] }).added).toBe(0);
-    expect(withDinners(plan(), wanted, {}).days).toEqual(plan());
+    expect(withDinners(fed, wanted, { dinners: [gionDinner] })).toEqual({ days: fed, added: 0, left: {} });
+    expect(withDinners(plan(), wanted, {})).toEqual({ days: plan(), added: 0, left: { unanswered: 1 } });
+  });
+
+  it("is left out when the place it was chosen near has left the plan, and says so", () => {
+    const gone = plan();
+    gone[1].activities.pop();
+    expect(withDinners(gone, wanted, { dinners: [gionDinner] })).toMatchObject({ added: 0, left: { gone: 1 } });
+  });
+
+  it("counts a day once: a second answer that fits fills it, two turned away leave it for the first's reason", () => {
+    const far = { ...gionDinner, coordinates: { lat: 34.69, lng: 135.5 } };
+    expect(withDinners(plan(), wanted, { dinners: [far, gionDinner] })).toMatchObject({ added: 1, left: {} });
+    expect(withDinners(plan(), wanted, { dinners: [far, { ...gionDinner, name: "Fushimi Inari" }] })).toMatchObject({ added: 0, left: { far: 1 } });
+  });
+
+  it("adds up the days left by why, from two or more counts", () => {
+    expect(dinnersLeftTogether({ far: 1 }, { far: 2, late: 1 }, {})).toEqual({ far: 3, late: 1 });
+    expect(dinnersLeftTogether()).toEqual({});
   });
 });
 

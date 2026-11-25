@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { alreadyPlannedLine, buildStaticChatHistory, buildUserPrompt, daylightLine, routeLine, stayLine } from "./trip-prompt";
-import type { TripCreationParams } from "@/types";
+import type { TripCreationParams, TripVibe } from "@/types";
 
 /**
  * Left alone, 3.5 Flash-Lite writes short descriptions and ends most days at
@@ -81,6 +81,29 @@ describe("who's coming", () => {
     expect(prompt).toContain("- Travellers: a family with children.");
     expect(prompt).toContain("Use any ages under Special Requirements.");
     expect(prompt).toContain("Don't plan bars or late nights as stops.");
+  });
+
+  it("plans for the children's ages when the family gave them, and only for those", () => {
+    const prompt = buildUserPrompt(trip({ tripIntent: "family", childrenAges: ["under3", "teen"] }));
+    expect(prompt).toContain("Children's ages: under 3:");
+    expect(prompt).toContain("a free stretch after lunch for a nap");
+    expect(prompt).toContain("dinner by 18:30");
+    expect(prompt).toContain("stroller");
+    expect(prompt).toContain("teenagers:");
+    expect(prompt).not.toContain("3 to 6:");
+    expect(prompt).not.toContain("7 to 12:");
+    const middle = buildUserPrompt(trip({ tripIntent: "family", childrenAges: ["3to6", "7to12"] }));
+    expect(middle).toContain("Children's ages: 3 to 6:");
+    expect(middle).toContain("7 to 12:");
+    expect(middle).toContain("age or height limits");
+    // Teenagers alone don't get a toddler's day.
+    const teens = buildUserPrompt(trip({ tripIntent: "family", childrenAges: ["teen"] }));
+    expect(teens).toContain("no rest after lunch");
+    expect(teens).not.toContain("shorter days with a rest after lunch");
+    expect(teens).toContain("Don't plan bars or late nights as stops.");
+    // Without ages the family line stays as it was, and ages never reach anyone else's trip.
+    expect(buildUserPrompt(trip({ tripIntent: "family" }))).not.toContain("Children's ages");
+    expect(buildUserPrompt(trip({ tripIntent: "couple", childrenAges: ["under3"] }))).not.toContain("Children's ages");
   });
 
   it.each(["solo", "couple", "family", "group"] as const)("asks for %s to show in the choices rather than in every tip", (tripIntent) => {
@@ -284,5 +307,147 @@ describe("one city of a trip through several", () => {
     expect(alreadyPlannedLine(leg("Lisbon", ["Lisbon", "Porto", "Lisbon"]))).toBe("");
     expect(alreadyPlannedLine({ ...back, alreadyPlanned: [" ", ""] })).toBe("");
     expect(buildUserPrompt(leg("Lisbon", ["Lisbon", "Porto", "Lisbon"]))).not.toContain("An earlier stay");
+  });
+});
+
+describe("when they arrive and leave", () => {
+  const trip = (over: Partial<TripCreationParams> = {}): TripCreationParams => ({
+    destination: "Rome, Italy",
+    startDate: "2027-04-10",
+    endDate: "2027-04-13",
+    budgetTier: "balanced",
+    pace: "moderate",
+    vibes: ["cultural"],
+    interests: [],
+    ...over,
+  });
+  const arrive = (when: "morning" | "afternoon" | "evening" | "night") => ({ arrival: { when, date: "2027-04-10" } });
+  const leave = (when: "morning" | "afternoon" | "evening") => ({ departure: { when, date: "2027-04-13" } });
+
+  it("fits the first day to the arrival, in fixed words", () => {
+    expect(buildUserPrompt(trip(arrive("morning")))).toContain("- Travel days: They arrive on day 1 in the morning: start that day from about 11:00");
+    expect(buildUserPrompt(trip(arrive("afternoon")))).toContain("plan nothing before about 15:30 that day");
+    expect(buildUserPrompt(trip(arrive("evening")))).toContain("plan only dinner that day, from about 19:30");
+    expect(buildUserPrompt(trip(arrive("night")))).toContain("plan nothing that day but the arrival and the check-in");
+  });
+
+  it("fits the last day to the leaving, and says both in one line", () => {
+    expect(buildUserPrompt(trip(leave("morning")))).toContain(
+      "They leave on the last day in the morning: plan only breakfast and the way to the airport or station that day, nothing after about 09:30."
+    );
+    expect(buildUserPrompt(trip(leave("afternoon")))).toContain("plan that morning only, done by about 12:30");
+    expect(buildUserPrompt(trip(leave("evening")))).toContain("plan that day until about 16:00");
+    const both = buildUserPrompt(trip({ ...arrive("evening"), ...leave("morning") }));
+    expect(both).toContain("- Travel days: They arrive on day 1 in the evening: plan only dinner that day, from about 19:30, close to where they're staying. They leave on the last day in the morning:");
+  });
+
+  it("on a trip through several cities, tells the city that starts the trip the arrival and the one that ends it the leaving", () => {
+    const route = { destinations: [{ city: "Rome", nights: 2 }, { city: "Florence", nights: 2 }], ...arrive("evening"), ...leave("morning") };
+    const rome = buildUserPrompt(trip({ ...route, destination: "Rome", startDate: "2027-04-10", endDate: "2027-04-11" }));
+    expect(rome).toContain("They arrive on day 1 in the evening");
+    expect(rome).not.toContain("They leave");
+    const florence = buildUserPrompt(trip({ ...route, destination: "Florence", startDate: "2027-04-12", endDate: "2027-04-13" }));
+    expect(florence).toContain("They leave on the last day in the morning");
+    expect(florence).not.toContain("They arrive");
+  });
+
+  it("says nothing of them when they didn't say", () => {
+    expect(buildUserPrompt(trip())).not.toContain("Travel days:");
+  });
+});
+
+describe("the vibes and what the place is known for", () => {
+  const trip = (vibes: TripVibe[], destination = "Agra, India"): TripCreationParams => ({
+    destination,
+    startDate: "2026-12-14",
+    endDate: "2026-12-15",
+    budgetTier: "balanced",
+    pace: "moderate",
+    vibes,
+    interests: [],
+  });
+  const vibeSection = (params: TripCreationParams) => buildUserPrompt(params).split("## Travel Vibes")[1]?.split("\n## ")[0] ?? "";
+
+  // A group that picked only "nature" for Agra got sanctuaries and gardens and no Taj Mahal.
+  it("keeps the destination's signature sights in a plan led by a narrow interest", () => {
+    const section = vibeSection(trip(["nature"]));
+    expect(section).toContain("shape the trip around what Agra, India is known for, never instead of it");
+    expect(section).toContain("its signature sights, the one or two places nearly every visitor comes to see");
+    expect(vibeSection(trip(["foodie", "urban"], "Athens"))).toContain("what Athens is known for");
+  });
+
+  it("leaves them out of a trip led by hidden gems, and says nothing without vibes", () => {
+    expect(vibeSection(trip(["offbeat", "nature"]))).not.toContain("signature sights");
+    expect(vibeSection(trip(["nature", "offbeat"]))).toContain("signature sights");
+    expect(buildUserPrompt(trip([]))).not.toContain("signature sights");
+  });
+});
+
+describe("a special trip", () => {
+  const trip = (over: Partial<TripCreationParams> = {}): TripCreationParams => ({
+    destination: "Lisbon, Portugal",
+    startDate: "2027-04-10",
+    endDate: "2027-04-13",
+    budgetTier: "balanced",
+    pace: "moderate",
+    vibes: ["romantic"],
+    interests: [],
+    ...over,
+  });
+
+  it("asks a honeymoon for unhurried days, and for its special dinner on its day", () => {
+    const prompt = buildUserPrompt(trip({ occasion: { kind: "honeymoon", date: "2027-04-12" } }));
+    expect(prompt).toContain("- Occasion: a honeymoon.");
+    expect(prompt).toContain("no early starts");
+    expect(prompt).toContain("On day 3 (2027-04-12), a special dinner");
+  });
+
+  it("puts an anniversary's or a birthday's evening on its day, and has it said only then", () => {
+    const anniversary = buildUserPrompt(trip({ occasion: { kind: "anniversary", date: "2027-04-11" } }));
+    expect(anniversary).toContain("- Occasion: an anniversary on day 2 (2027-04-11). That evening");
+    expect(anniversary).toContain("mention the anniversary only that evening");
+    const birthday = buildUserPrompt(trip({ occasion: { kind: "birthday", date: "2027-04-13" } }));
+    expect(birthday).toContain("- Occasion: a birthday on day 4 (2027-04-13).");
+    expect(birthday).toContain("Mention the birthday only that day.");
+  });
+
+  it("on a trip through several cities, gives the evening to the city whose days hold it", () => {
+    const route = { destinations: [{ city: "Lisbon", nights: 2 }, { city: "Porto", nights: 2 }] };
+    const lisbon = trip({ ...route, destination: "Lisbon", startDate: "2027-04-10", endDate: "2027-04-11" });
+    expect(buildUserPrompt({ ...lisbon, occasion: { kind: "anniversary", date: "2027-04-13" } })).not.toContain("Occasion:");
+    expect(buildUserPrompt({ ...lisbon, occasion: { kind: "birthday", date: "2027-04-13" } })).not.toContain("Occasion:");
+    // A honeymoon is the whole trip; its dinner is in the city that has the day.
+    const honeymoon = buildUserPrompt({ ...lisbon, occasion: { kind: "honeymoon", date: "2027-04-13" } });
+    expect(honeymoon).toContain("- Occasion: a honeymoon.");
+    expect(honeymoon).not.toContain("special dinner");
+    const porto = trip({ ...route, destination: "Porto", startDate: "2027-04-12", endDate: "2027-04-13" });
+    expect(buildUserPrompt({ ...porto, occasion: { kind: "anniversary", date: "2027-04-13" } })).toContain("an anniversary on day 2 (2027-04-13)");
+  });
+
+  it("says nothing of an occasion when there is none", () => {
+    expect(buildUserPrompt(trip())).not.toContain("Occasion:");
+  });
+});
+
+describe("a first day high up", () => {
+  const trip = (destination: string): TripCreationParams => ({
+    destination,
+    startDate: "2026-12-29",
+    endDate: "2027-01-01",
+    budgetTier: "balanced",
+    pace: "moderate",
+    vibes: [],
+    interests: [],
+  });
+
+  it("asks a plan for Leh to keep its first day for the height, with the trip's details", () => {
+    const prompt = buildUserPrompt(trip("Leh, Ladakh, India"));
+    expect(prompt).toContain("- Altitude: Leh is about 3,500 m up");
+    expect(prompt.indexOf("Altitude:")).toBeGreaterThan(prompt.indexOf("Travel Pace:"));
+    expect(prompt.indexOf("Altitude:")).toBeLessThan(prompt.indexOf("Traveler Preferences"));
+  });
+
+  it("says nothing of altitude for a place that isn't high", () => {
+    expect(buildUserPrompt(trip("Lisbon, Portugal"))).not.toContain("Altitude:");
   });
 });

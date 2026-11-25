@@ -24,7 +24,11 @@ vi.mock("@/lib/anonymous/rate-limit", () => ({
 vi.mock("@/lib/ai/user-context", () => ({
   loadUserContext: async () => ({ profilePreferences: {}, userLanguage: "en" }),
 }));
-vi.mock("@/lib/api-gateway", () => ({ checkApiAccess: async () => ({ allowed: true }), logApiCall: async () => {} }));
+const logged: Array<{ status?: number; metadata?: Record<string, unknown> }> = [];
+vi.mock("@/lib/api-gateway", () => ({
+  checkApiAccess: async () => ({ allowed: true }),
+  logApiCall: async (row: (typeof logged)[number]) => void logged.push(row),
+}));
 vi.mock("@/lib/usage-limits", () => ({
   checkUsageLimit: async () => ({ allowed: true, used: 0, remaining: 10, limit: 10 }),
   incrementUsage: async () => {},
@@ -102,6 +106,8 @@ describe("the JSON route", () => {
       "16:00 Takeshita Street",
       "18:00 Dinner at Uobei Shibuya",
     ]);
+    // The log says what the hours step did, as the stream says it.
+    expect(logged.findLast((row) => row.status === 200)?.metadata?.visit_hours).toMatchObject({ outside: 1, moved: 1, shortened: 0 });
   });
 
   it("does the same on a multi-city trip, within the day", async () => {

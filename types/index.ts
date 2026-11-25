@@ -1,5 +1,5 @@
 import type { SupportedLanguage } from "@/lib/ai/language";
-import type { ChosenTripIntent } from "@/lib/wizard/answers";
+import type { Arrival, ChildAgeBand, ChosenTripIntent, Departure, Occasion } from "@/lib/wizard/answers";
 // Bananas currency system types
 export * from './bananas';
 
@@ -167,6 +167,8 @@ export interface Activity {
    * open place to put instead: kept, and shown as not verified.
    */
   unverified?: boolean;
+  /** The first name of someone going who asked for this stop, when the owner fitted it in for them. */
+  picked_by?: string;
 }
 
 export interface DailyBudget {
@@ -276,6 +278,9 @@ export interface TripMeta {
    * different and the share prompt branches on that distinction.
    */
   trip_intent?: ChosenTripIntent;
+  /** When they arrive on the first day and leave on the last, when they said on step 2. */
+  arrival?: Arrival;
+  departure?: Departure;
   /**
    * Language the itinerary text is written in (Live Trip plan, Phase 1.3).
    * Stamped from the generation language at creation; every route that
@@ -520,6 +525,16 @@ export interface TripCreationParams {
    * so a plan with it neither comes from the shared cache nor goes into it.
    */
   tripIntent?: ChosenTripIntent;
+  /** The children's ages on a family trip (lib/wizard/answers.ts), youngest first: they shape the plan. */
+  childrenAges?: ChildAgeBand[];
+  /** A special trip, and the day its evening is on (lib/ai/generation-caller.ts withOccasion). */
+  occasion?: { kind: Occasion; date: string };
+  /**
+   * When they arrive and leave, on the trip's first and last dates (lib/ai/generation-caller.ts withTravelDays): on a
+   * trip through several cities only the city whose days hold that date plans for it.
+   */
+  arrival?: { when: Arrival; date: string };
+  departure?: { when: Departure; date: string };
   /** Sunrise and sunset at the destination, worked out by the server (lib/ai/daylight.ts). */
   daylight?: TripDaylight;
   /**

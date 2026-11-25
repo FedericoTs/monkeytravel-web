@@ -3,10 +3,11 @@ import type { SupportedLanguage } from "@/lib/ai/language";
 import type { OutlineDay } from "@/lib/ai/trip-outline";
 import type { KnownPlace } from "@/lib/ai/known-places";
 import { closuresFor, isClosedPlace, longClosuresLine } from "@/lib/ai/long-closures";
+import { altitudeLine } from "@/lib/ai/altitude";
 import { paceBudgetPromptClause } from "@/lib/trip/pace";
 import { ACTIVITY_TYPES } from "@/lib/trip/activity-type";
 import { addIsoDays, tripSpanDays } from "@/lib/dates/iso-date";
-import type { ChosenTripIntent } from "@/lib/wizard/answers";
+import type { Arrival, ChildAgeBand, ChosenTripIntent, Departure } from "@/lib/wizard/answers";
 
 /**
  * The prompt a trip is generated with: the shared chat prefix every
@@ -14,6 +15,15 @@ import type { ChosenTripIntent } from "@/lib/wizard/answers";
  * (buildUserPrompt), and the profile, scheduling and language sections they
  * and the day and activity regenerations include.
  */
+
+/** How the plan names each diet; the assistant that edits a plan uses the same words. */
+const DIET_LABELS: Record<string, string> = {
+  "vegetarian": "Vegetarian (no meat or fish)",
+  "vegan": "Vegan (no animal products)",
+  "halal": "Halal (Islamic dietary laws)",
+  "kosher": "Kosher (Jewish dietary laws)",
+  "gluten-free": "Gluten-Free",
+};
 
 /**
  * Build profile preferences section for the prompt
@@ -26,14 +36,7 @@ function buildProfilePreferencesSection(profilePreferences?: UserProfilePreferen
 
   // Dietary preferences - CRITICAL for food recommendations
   if (profilePreferences.dietaryPreferences && profilePreferences.dietaryPreferences.length > 0) {
-    const dietLabels: Record<string, string> = {
-      "vegetarian": "Vegetarian (no meat or fish)",
-      "vegan": "Vegan (no animal products)",
-      "halal": "Halal (Islamic dietary laws)",
-      "kosher": "Kosher (Jewish dietary laws)",
-      "gluten-free": "Gluten-Free",
-    };
-    const formatted = profilePreferences.dietaryPreferences.map(d => dietLabels[d] || d).join(", ");
+    const formatted = profilePreferences.dietaryPreferences.map(d => DIET_LABELS[d] || d).join(", ");
     sections.push(`- Dietary Requirements: ${formatted}
   IMPORTANT: every place to eat or drink (restaurants, cafés, bars, markets, food tours) MUST suit these needs. Choose real, named, long-established places well known for these options, not new or little-known ones; a popular restaurant with clearly marked dishes for these needs is a good choice. In each one's description, say what the traveller can eat there.`);
   }
@@ -288,8 +291,75 @@ const TRAVELLERS: Record<ChosenTripIntent, string> = {
   group: "friends travelling together. Favour places that suit a group: tables for several, shared dishes, activities that are fun together. Say when a group should book ahead. Show this in what you choose, and mention it only where it helps.",
 };
 
-function travellersLine({ tripIntent }: Pick<TripCreationParams, "tripIntent">): string {
-  return tripIntent ? `Travellers: ${TRAVELLERS[tripIntent]}` : "";
+/** What a family's children need, by the ages it gave. Only ever these fixed words. */
+const CHILDREN: Record<ChildAgeBand, string> = {
+  under3:
+    "under 3: keep a free stretch after lunch for a nap (about 13:30 to 15:30) and dinner by 18:30; choose places and routes that work with a stroller, and say when one has many steps or no lift.",
+  "3to6": "3 to 6: a playground or a park near each long visit, museums with something to touch or try, and dinner by 19:00.",
+  "7to12": "7 to 12: hands-on museums, zoos and aquariums, easy outdoor adventures; mention age or height limits where they apply.",
+  teen: "teenagers: no rest after lunch and dinner at the local time; at least one active or social thing a day (a bike ride, climbing, a food market, a show or a match) and some evenings out together.",
+};
+
+/** A family that gave its children's ages: the ages, not a toddler's day for everyone, set the pace. */
+const FAMILY_BY_AGE =
+  "a family with children. Plan for their ages, below. Don't plan bars or late nights as stops. Show this in what you choose, and mention it only where it helps.";
+
+function travellersLine({ tripIntent, childrenAges }: Pick<TripCreationParams, "tripIntent" | "childrenAges">): string {
+  if (!tripIntent) return "";
+  if (tripIntent === "family" && childrenAges?.length) {
+    return `Travellers: ${FAMILY_BY_AGE} Children's ages: ${childrenAges.map((band) => CHILDREN[band]).join(" ")}`;
+  }
+  return `Travellers: ${TRAVELLERS[tripIntent]}`;
+}
+
+/**
+ * A special trip: a honeymoon's days, and the evening of any occasion in the city whose days hold it (on a trip
+ * through several, each city has its own dates). Only ever these fixed words.
+ */
+function occasionLine({ occasion, startDate, endDate }: Pick<TripCreationParams, "occasion" | "startDate" | "endDate">): string {
+  if (!occasion) return "";
+  const here = occasion.date >= startDate && occasion.date <= endDate;
+  const day = `day ${tripSpanDays(startDate, occasion.date)} (${occasion.date})`;
+  switch (occasion.kind) {
+    case "honeymoon":
+      return `Occasion: a honeymoon. Unhurried, romantic days: no early starts, time for the two of them (a garden, a long lunch, a spa or a boat), a sunset at a fine viewpoint.${here ? ` On ${day}, a special dinner at a celebrated table or one with a view, booked ahead.` : ""} Show this in what you choose.`;
+    case "anniversary":
+      return here
+        ? `Occasion: an anniversary on ${day}. That evening, a sunset at a fine viewpoint, then dinner at a celebrated table, booked ahead. Keep the other days as you would plan them, and mention the anniversary only that evening.`
+        : "";
+    case "birthday":
+      return here
+        ? `Occasion: a birthday on ${day}. That evening, a celebration dinner somewhere memorable, booked ahead, and that day one thing they would love most on this trip. Mention the birthday only that day.`
+        : "";
+  }
+}
+
+/** The first day, by when they arrive. Only ever these fixed words. */
+const ARRIVING: Record<Arrival, string> = {
+  morning: "They arrive on day 1 in the morning: start that day from about 11:00, after the arrival, close to where they're staying.",
+  afternoon:
+    "They arrive on day 1 in the afternoon: plan nothing before about 15:30 that day, then a light start close to where they're staying, and dinner.",
+  evening: "They arrive on day 1 in the evening: plan only dinner that day, from about 19:30, close to where they're staying.",
+  night: "They arrive on day 1 late at night: plan nothing that day but the arrival and the check-in.",
+};
+
+/** The last day, by when they leave. Only ever these fixed words. */
+const LEAVING: Record<Departure, string> = {
+  morning: "They leave on the last day in the morning: plan only breakfast and the way to the airport or station that day, nothing after about 09:30.",
+  afternoon: "They leave on the last day in the afternoon: plan that morning only, done by about 12:30 and on the way out.",
+  evening: "They leave on the last day in the evening: plan that day until about 16:00, ending on the way out.",
+};
+
+/**
+ * When they arrive and leave, on the trip's first and last days. On a trip through several cities each city has its
+ * own dates: the arrival goes to the city that starts the trip, the leaving to the one that ends it.
+ */
+function travelDaysLine({ arrival, departure, startDate, endDate }: Pick<TripCreationParams, "arrival" | "departure" | "startDate" | "endDate">): string {
+  const said = [
+    arrival && arrival.date === startDate ? ARRIVING[arrival.when] : "",
+    departure && departure.date === endDate ? LEAVING[departure.when] : "",
+  ].filter(Boolean);
+  return said.length > 0 ? `Travel days: ${said.join(" ")}` : "";
 }
 
 function daylightLine({ daylight }: Pick<TripCreationParams, "daylight">): string {
@@ -366,6 +436,13 @@ function buildUserPrompt(params: TripCreationParams, options?: BuildPromptOption
     retro: "Retro Time Travel - vintage cafes, historic districts, nostalgia",
   };
 
+  // What the place is known for stays whatever the vibes: a "nature" trip to Agra still sees the Taj Mahal. A trip
+  // led by hidden gems is the exception.
+  const signatureLine =
+    params.vibes?.[0] === "offbeat"
+      ? ""
+      : `The vibes shape the trip around what ${params.destination} is known for, never instead of it: include its signature sights, the one or two places nearly every visitor comes to see (as the Taj Mahal is in Agra, or the Acropolis in Athens), each on a sensible day, unless the traveller asked to skip them. The vibes choose everything else.
+`;
   const vibeSection = params.vibes && params.vibes.length > 0
     ? `## Travel Vibes (${params.vibes.length} selected - PRIORITIZE THESE)
 ${params.vibes.map((v, i) => {
@@ -374,7 +451,7 @@ ${params.vibes.map((v, i) => {
 }).join("\n")}
 
 IMPORTANT: Blend these vibes throughout the itinerary. For fantasy vibes (wonderland, movie-magic, fairytale, retro), seek out unusual, photogenic, and story-worthy locations that match that aesthetic.
-`
+${signatureLine}`
     : "";
 
   // Backpacker Mode: when the traveller picked it in the wizard, inject a
@@ -455,6 +532,9 @@ ${knownPlaces.map((p) => `- ${p.name} (${p.type})`).join("\n")}
     : "";
 
   const travellers = travellersLine(params);
+  const occasion = occasionLine(params);
+  const travelDays = travelDaysLine(params);
+  const altitude = altitudeLine(params);
   const daylight = daylightLine(params);
   // What is on there on these dates (lib/ai/whats-on.ts), one line each.
   const whatsOnLines = (params.whatsOn ?? []).map((line) => `- ${line}\n`).join("");
@@ -493,7 +573,7 @@ ${params.mustDos.map((m) => `- ${m}`).join("\n")}
 ${days ? `- ${days}\n` : ""}${route ? `- ${route}\n` : ""}${planned ? `- ${planned}\n` : ""}- Duration: ${duration} days
 - Budget Tier: ${params.budgetTier}
 - Travel Pace: ${params.pace} — ${paceBudgetPromptClause(params.pace)}
-${travellers ? `- ${travellers}\n` : ""}${daylight ? `- ${daylight}\n` : ""}${whatsOnLines}${stay ? `- ${stay}\n` : ""}${closed ? `- ${closed}\n` : ""}
+${travellers ? `- ${travellers}\n` : ""}${occasion ? `- ${occasion}\n` : ""}${travelDays ? `- ${travelDays}\n` : ""}${altitude ? `- ${altitude}\n` : ""}${daylight ? `- ${daylight}\n` : ""}${whatsOnLines}${stay ? `- ${stay}\n` : ""}${closed ? `- ${closed}\n` : ""}
 ${travelStyleSection}${vibeSection}${seasonalSection}## Traveler Preferences
 - Interests: ${params.interests.length > 0 ? params.interests.join(", ") : "general sightseeing"}
 ${params.requirements ? `- Special Requirements: ${params.requirements}` : ""}
@@ -505,5 +585,19 @@ ${
 ${anchorSection}${partSection}Generate the itinerary now, following the system rules and the Required Output schema exactly.${languageSection}`;
 }
 
-export { alreadyPlannedLine, buildProfilePreferencesSection, buildSchedulingPreferencesSection, buildUserPrompt, daylightLine, routeLine, stayLine, travellersLine };
+export {
+  ARRIVING,
+  DIET_LABELS,
+  LEAVING,
+  alreadyPlannedLine,
+  buildProfilePreferencesSection,
+  buildSchedulingPreferencesSection,
+  buildUserPrompt,
+  daylightLine,
+  occasionLine,
+  routeLine,
+  stayLine,
+  travelDaysLine,
+  travellersLine,
+};
 export type { BuildPromptOptions };

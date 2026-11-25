@@ -13,6 +13,7 @@ import { getModelForPurpose } from "@/lib/ai/model-router";
 import { geminiCostUsd } from "@/lib/ai/gemini-cost";
 import { isAdmin } from "@/lib/admin";
 import { logApiCall } from "@/lib/api-gateway";
+import { isProbeSession } from "@/lib/analytics/telemetry-env";
 import { incrementUsage } from "@/lib/usage-limits";
 import { fetchActivityImages } from "@/lib/images/activity";
 import { sanitizeItinerary } from "@/lib/utils/sanitize";
@@ -37,13 +38,16 @@ import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/genera
 import { knownPlacesFor, knownPlacesUsed, type KnownPlace } from "@/lib/ai/known-places";
 import { keepOffClosingDays } from "@/lib/ai/closing-days";
 import { keepInsideHours } from "@/lib/ai/visit-hours";
-import { askForDinners, daysWithoutDinner, placesToEat, withDinners } from "@/lib/ai/dinners";
+import { askForDinners, daysWithoutDinner, dinnersLeftTogether, placesToEat, withDinners } from "@/lib/ai/dinners";
 import { askForReplacements, repeatedRestaurants, withReplacements } from "@/lib/ai/repeated-meals";
+import { askForSights, repeatedSights, sightNames, withSightReplacements } from "@/lib/ai/repeated-sights";
+import { askForLunches, daysWithoutLunch, withLunches } from "@/lib/ai/lunches";
 import { swapClosedStops } from "@/lib/ai/closed-swaps";
 import { withoutLongClosures } from "@/lib/ai/long-closures";
 import { askedByName, keepMustDos } from "@/lib/ai/must-dos";
 import { keepNamesInOneScript } from "@/lib/ai/one-script-names";
 import { tripSpanDays } from "@/lib/dates/iso-date";
+import { travelDaysFit } from "@/lib/ai/travel-days";
 import { isModelOutOfCredit, MODEL_OUTAGE_MESSAGE } from "@/lib/ai/model-outage";
 
 // Allow the function to run long enough for slow generations. Vercel
@@ -88,6 +92,10 @@ export async function POST(request: NextRequest) {
   // The wizard's id for this request: the plan is kept under it, for a
   // browser that loses the stream (lib/ai/generation-result.ts).
   const generationId = generationIdOf(request);
+  // A live check's own plan (a tagged probe session) says so in every row it logs, so reads of travellers' plans
+  // leave it out. The cookie is read here: inside the stream the request is no longer at hand.
+  const probe = isProbeSession(request.cookies.get("mt_session_id")?.value);
+  const log = (row: Parameters<typeof logApiCall>[0]) => logApiCall(probe ? { ...row, metadata: { ...row.metadata, probe: true } } : row);
 
   // 1. Pre-flight: parse body and run all checks BEFORE opening the SSE
   //    stream. Failures here can return JSON 4xx/5xx normally (better
@@ -237,7 +245,7 @@ export async function POST(request: NextRequest) {
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err);
           waitUntil(
-            logApiCall({
+            log({
               apiName: "gemini",
               endpoint: "/api/ai/generate/stream",
               status: 500,
@@ -296,7 +304,7 @@ export async function POST(request: NextRequest) {
           // The model answered, so Google billed it: log the failure and
           // its cost (this return used to skip logging altogether).
           waitUntil(
-            logApiCall({
+            log({
               apiName: "gemini",
               endpoint: "/api/ai/generate/stream",
               status: 500,
@@ -385,6 +393,14 @@ export async function POST(request: NextRequest) {
       //     for meanwhile too (lib/ai/repeated-meals.ts).
       const repeatsWanted = repeatedRestaurants(finalItinerary.days, params.destination);
       const repeatsAsked = askForReplacements(repeatsWanted, mealOptions);
+      //     A sight visited again on another day gets another of its kind,
+      //     asked for meanwhile too (lib/ai/repeated-sights.ts).
+      const sightsWanted = repeatedSights(finalItinerary.days, params.destination, askedByName(params.mustDos));
+      const sightsAsked = askForSights(sightsWanted, { language: userLanguage, taken: sightNames(finalItinerary.days) });
+      //     A full day left without lunch gets one after a visit of it,
+      //     asked for meanwhile too (lib/ai/lunches.ts).
+      const lunchesWanted = daysWithoutLunch(finalItinerary.days, params.destination);
+      const lunchesAsked = askForLunches(lunchesWanted, mealOptions);
       const openDays = await keepOffClosingDays(
         finalItinerary,
         params.destination,
@@ -397,6 +413,18 @@ export async function POST(request: NextRequest) {
       );
       finalItinerary = openDays.itinerary;
       generationCost += openDays.costUsd;
+      //     The days can have moved: a first or last day, planned without dinner, now in the
+      //     middle of the trip. Its dinner is asked for now; nothing is asked when none moved.
+      const movedDinnersWanted = daysWithoutDinner(finalItinerary.days, params.destination).filter(
+        (day) => !dinnersWanted.some((asked) => asked.after === day.after)
+      );
+      const movedDinnersAsked = askForDinners(movedDinnersWanted, mealOptions);
+      //     The lunches, after the visits they were chosen near, wherever those
+      //     now are: before the hours step, which then sees the day's times.
+      const lunchAnswer = await lunchesAsked;
+      const lunches = withLunches(finalItinerary.days, lunchesWanted, lunchAnswer.answer);
+      finalItinerary = { ...finalItinerary, days: lunches.days };
+      generationCost += lunchAnswer.costUsd;
       // 5b'. Each visit to a place of known hours inside them: a garden that
       //      shuts at four isn't planned from half past two to half past four
       //      (lib/ai/visit-hours.ts).
@@ -405,13 +433,21 @@ export async function POST(request: NextRequest) {
       // 5b''. The dinners, after the places they were chosen near, wherever those now are.
       const dinnerAnswer = await dinnersAsked;
       const dinners = withDinners(finalItinerary.days, dinnersWanted, dinnerAnswer.answer);
-      finalItinerary = { ...finalItinerary, days: dinners.days };
-      generationCost += dinnerAnswer.costUsd;
+      const movedDinnerAnswer = await movedDinnersAsked;
+      const movedDinners = withDinners(dinners.days, movedDinnersWanted, movedDinnerAnswer.answer);
+      const dinnersLeft = dinnersLeftTogether(dinners.left, movedDinners.left);
+      finalItinerary = { ...finalItinerary, days: movedDinners.days };
+      generationCost += dinnerAnswer.costUsd + movedDinnerAnswer.costUsd;
       // 5b'''. Then each repeated restaurant's replacement, in its place.
       const repeatAnswer = await repeatsAsked;
       const repeats = withReplacements(finalItinerary.days, repeatsWanted, repeatAnswer.answer);
       finalItinerary = { ...finalItinerary, days: repeats.days };
       generationCost += repeatAnswer.costUsd;
+      // 5b''''. And each repeated sight's replacement, in its place.
+      const sightAnswer = await sightsAsked;
+      const sights = withSightReplacements(finalItinerary.days, sightsWanted, sightAnswer.answer);
+      finalItinerary = { ...finalItinerary, days: sights.days };
+      generationCost += sightAnswer.costUsd;
       if (!cacheHit) {
         try {
           // Zero Google at generation: Wikimedia photos and type-relevant stock
@@ -457,7 +493,7 @@ export async function POST(request: NextRequest) {
       waitUntil(
         (async () => {
           try {
-            await logApiCall({
+            await log({
               apiName: "gemini",
               endpoint: "/api/ai/generate/stream",
               status: 200,
@@ -485,6 +521,8 @@ export async function POST(request: NextRequest) {
                   : {}),
                 // Must-dos the plan held nowhere, and how many of them went in.
                 ...(mustDosIn.missing > 0 ? { must_dos: { missing: mustDosIn.missing, added: mustDosIn.added } } : {}),
+                // When they arrive and leave, and the stops planned before they're there or after they've gone.
+                ...(params.arrival || params.departure ? { travel_days: travelDaysFit(sanitized.days, params) } : {}),
                 ...(namesIn.glued > 0 ? { names: { glued: namesIn.glued, renamed: namesIn.renamed } } : {}),
                 ...(longClosed.removed > 0 ? { long_closures_removed: longClosed.removed } : {}),
                 // Stops on a day they're shut, before and after the days were ordered, and stops moved on their own.
@@ -495,6 +533,8 @@ export async function POST(request: NextRequest) {
                         known: openDays.known,
                         shut_before: openDays.shutBefore,
                         shut_listed: openDays.shutListed,
+                        // Stops shut on their day for the season alone (lib/ai/seasonal-closings.ts).
+                        ...(openDays.seasonal > 0 ? { seasonal: openDays.seasonal } : {}),
                         shut_after: openDays.shutAfter,
                         stops_moved: openDays.stopsMoved,
                         swapped: openDays.swapped,
@@ -515,9 +555,23 @@ export async function POST(request: NextRequest) {
                       },
                     }
                   : {}),
-                // Full days the plan left without dinner, and how many got one.
-                ...(dinnersWanted.length > 0 ? { dinners: { missing: dinnersWanted.length, added: dinners.added } } : {}),
+                // Full days the plan left without dinner, and how many got one; after_move: those found only once
+                // the closing days had moved the days.
+                ...(dinnersWanted.length + movedDinnersWanted.length > 0
+                  ? {
+                      dinners: {
+                        missing: dinnersWanted.length + movedDinnersWanted.length,
+                        added: dinners.added + movedDinners.added,
+                        ...(movedDinnersWanted.length > 0 ? { after_move: movedDinnersWanted.length } : {}),
+                        // Why the days still without one have none (lib/ai/dinners.ts DinnerLeftOut).
+                        ...(Object.keys(dinnersLeft).length > 0 ? { left: dinnersLeft } : {}),
+                      },
+                    }
+                  : {}),
+                // Full days the plan left without lunch, and how many got one.
+                ...(lunchesWanted.length > 0 ? { lunches: { missing: lunchesWanted.length, added: lunches.added } } : {}),
                 ...(repeatsWanted.length > 0 ? { repeated_restaurants: { found: repeatsWanted.length, replaced: repeats.replaced } } : {}),
+                ...(sightsWanted.length > 0 ? { repeated_sights: { found: sightsWanted.length, replaced: sights.replaced } } : {}),
                 ...(generationId ? { generation_id: generationId } : {}),
               },
             });
@@ -563,7 +617,7 @@ export async function POST(request: NextRequest) {
       console.error("[AI Generate Stream] fatal error:", msg);
       // Best-effort log — don't block the error event.
       waitUntil(
-        logApiCall({
+        log({
           apiName: "gemini",
           endpoint: "/api/ai/generate/stream",
           status: 500,

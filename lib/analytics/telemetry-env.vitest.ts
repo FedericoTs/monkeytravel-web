@@ -1,8 +1,18 @@
 /** @vitest-environment node */
 import { describe, it, expect, afterEach, vi } from "vitest";
-import { writesTelemetry } from "./telemetry-env";
+import { isProbeSession, writesTelemetry } from "./telemetry-env";
 
 afterEach(() => vi.unstubAllEnvs());
+
+describe("isProbeSession", () => {
+  it("knows a tagged probe by the start of its session id, and nothing else", () => {
+    expect(isProbeSession("e2eprobe-techdebt-live-stream-1")).toBe(true);
+    expect(isProbeSession("3f1c0a9e-6d2b-4a51-9c3e-0b7f2d8e4a11")).toBe(false);
+    expect(isProbeSession("live-e2eprobe-1")).toBe(false);
+    expect(isProbeSession(null)).toBe(false);
+    expect(isProbeSession(undefined)).toBe(false);
+  });
+});
 
 describe("writesTelemetry", () => {
   it("writes every row in production, with or without a session", () => {

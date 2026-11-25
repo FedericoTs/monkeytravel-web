@@ -10,9 +10,9 @@
  * without pulling in lib/gemini (which needs runtime env). The orchestrator that
  * actually calls Gemini lives in lib/ai/multi-city.ts.
  */
-import type { GeneratedItinerary, ItineraryDay } from "@/types";
+import type { Activity, GeneratedItinerary, ItineraryDay } from "@/types";
 import { arrivalDay, buildTransferActivity, buildWayBack, dayWithWayBack, type KnownHop } from "./transfer-legs";
-import { plannedMinutes, withStopAt } from "@/lib/trip/day-room";
+import { isDaytimeSight, keepsToTheDay, plannedMinutes, withStopAt } from "@/lib/trip/day-room";
 import { flightLink, hotelLinks } from "./booking-links";
 import { addIsoDays } from "@/lib/dates/iso-date";
 import { haversineKm } from "@/lib/map/geo";
@@ -21,20 +21,41 @@ import { isMealStop } from "@/lib/trip/pace";
 import { isSameDestination } from "@/lib/trips/sameDestination";
 
 /**
- * A city's days with each sight its arrival day couldn't hold put into another of its days at the sight's own time,
- * the one with the least planned first; one no day has room for is left out.
+ * A city's days with each sight its arrival day couldn't hold put into another of its days at the sight's own time:
+ * the one with the least planned that keeps its sights in the daytime and its meals near their hours. When none
+ * does, the least planned day that can take it does, and the sights it would push past the late afternoon make way
+ * (a museum at eight in the evening is shut): each goes into another day the same way, or is left out. One no day
+ * has room for is left out.
  */
 function withCarried(days: ItineraryDay[], left: ItineraryDay["activities"]): ItineraryDay[] {
   let out = days;
-  for (const stop of left ?? []) {
-    const options = out
+  const others = (except?: number) =>
+    out
       .map((day, d) => ({ day, d }))
       .slice(1)
+      .filter(({ d }) => d !== except)
       .sort((a, b) => plannedMinutes(a.day) - plannedMinutes(b.day) || a.d - b.d);
-    for (const { day, d } of options) {
-      const room = withStopAt(day, stop);
+  const keptIn = (stop: Activity, except?: number): boolean => {
+    for (const { day, d } of others(except)) {
+      const room = withStopAt(day, stop, { keepShape: true });
       if (!room) continue;
       out = out.map((x, k) => (k === d ? room : x));
+      return true;
+    }
+    return false;
+  };
+  for (const stop of left ?? []) {
+    if (keptIn(stop)) continue;
+    for (const { day, d } of others()) {
+      const pushed = withStopAt(day, stop);
+      if (!pushed) continue;
+      const moved = new Map((pushed.activities ?? []).map((a) => [a.name, a]));
+      const makeWay = (day.activities ?? []).filter((a) => isDaytimeSight(a) && !keepsToTheDay(moved.get(a.name) ?? a));
+      if (makeWay.length === 0) continue;
+      const room = withStopAt({ ...day, activities: (day.activities ?? []).filter((a) => !makeWay.includes(a)) }, stop, { keepShape: true });
+      if (!room) continue;
+      out = out.map((x, k) => (k === d ? room : x));
+      for (const sight of makeWay) keptIn(sight, d);
       break;
     }
   }

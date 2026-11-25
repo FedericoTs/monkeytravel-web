@@ -12,17 +12,18 @@ import { changeDates, isolate, restoreDraft, storedDraft } from "./wizard-draft"
 
 const originalDayOne = draft.generatedItinerary.days[0].activities.map((a) => a.name);
 
-/** The assistant answers with Day 1 as one new activity. */
-async function stubAssistant(page: Page) {
+/** The assistant answers with Day 1 as one new activity; `asked` collects what the page sent. */
+async function stubAssistant(page: Page, asked: Array<Record<string, unknown>> = []) {
   const day = draft.generatedItinerary.days[0];
   const edits = [{ day_number: 1, theme: day.theme, activities: [{ ...day.activities[0], id: undefined, name: "Canal cruise" }] }];
-  await page.route("**/api/ai/assistant-anon", (route) =>
-    route.fulfill({
+  await page.route("**/api/ai/assistant-anon", (route) => {
+    asked.push(route.request().postDataJSON());
+    return route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({ data: { reply: "Day 1 is now a canal cruise.", edits } }),
-    })
-  );
+    });
+  });
 }
 
 function askOnly(page: Page) {
@@ -71,11 +72,21 @@ test.describe("wizard: the assistant's edits", () => {
   });
 
   test("an edit applies as it arrives, and Undo takes it back", async ({ page }) => {
-    await stubAssistant(page);
-    await restoreDraft(page);
+    const asked: Array<Record<string, unknown>> = [];
+    await stubAssistant(page, asked);
+    await restoreDraft(page, { arrival: "evening", departure: "morning" });
 
     await ask(page);
     await expect.poll(() => firstDayKept(page)).toEqual(["Canal cruise"]);
+    // The answers the plan was made with go along, so an edit keeps to them.
+    expect(asked[0].trip).toEqual({
+      tripIntent: draft.tripIntent,
+      pace: draft.pace,
+      budgetTier: draft.budgetTier,
+      dietary: draft.dietary,
+      arrival: "evening",
+      departure: "morning",
+    });
 
     await page.getByRole("button", { name: "Undo", exact: true }).click();
     await expect.poll(() => firstDayKept(page)).toEqual(originalDayOne);

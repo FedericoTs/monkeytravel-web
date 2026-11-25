@@ -436,15 +436,37 @@ export function buildWayBack(opts: Parameters<typeof buildTransferActivity>[0]):
   return { ...buildTransferActivity(opts), description: LABELS[resolveLocale(opts.language)].wayBack(opts.toCity) };
 }
 
-/** The last day with the way back after its last stop, and its plan as it was. */
+/** The way back gets in by then: later, it is a night ride after a full day there. */
+const BACK_BY = 22 * 60;
+/** A way back longer than this doesn't follow a day there: the plan says nothing rather than send them off at night. */
+const LONGEST_WAY_BACK = 6 * 60;
+/** The shortest a visit still on when the way back leaves is cut to. */
+const SHORTEST_CUT = 60;
+
+/**
+ * The last day with the way back half an hour after its last stop, or sooner, to get in by ten at night: a full
+ * last day sent 26 of 34 ways back in after midnight ("Train to London" at 21:05 for 4 h 30). A stop still on when
+ * it must go is cut to end in time when an hour and half its visit remain, or gives way. A way back over six hours
+ * is no evening ride: the day stays as it was, with none.
+ */
 export function dayWithWayBack(back: Activity, activities: Activity[]): Activity[] {
+  const ride = back.duration_minutes || 0;
+  if (ride > LONGEST_WAY_BACK) return activities;
   const ends = activities.flatMap((a) => {
     const at = minutesOf(a.start_time);
     return at === null ? [] : [at + (a.duration_minutes || 60)];
   });
-  const leave = Math.min(ends.length > 0 ? Math.max(...ends) + ARRIVAL_BUFFER_MINUTES : 17 * 60, 23 * 60 + 30);
+  const leave = Math.min(ends.length > 0 ? Math.max(...ends) + ARRIVAL_BUFFER_MINUTES : 17 * 60, BACK_BY - ride);
+  const doneBy = leave - ARRIVAL_BUFFER_MINUTES;
+  const kept = activities.flatMap((a) => {
+    const at = minutesOf(a.start_time);
+    const length = a.duration_minutes || 60;
+    if (at === null || at + length <= doneBy) return [a];
+    const room = Math.floor((doneBy - at) / 5) * 5;
+    return room >= Math.max(SHORTEST_CUT, length / 2) ? [{ ...a, duration_minutes: room }] : [];
+  });
   const timeSlot = leave < 12 * 60 ? "morning" : leave < 17 * 60 ? "afternoon" : "evening";
-  return [...activities, { ...back, start_time: formatMinutesToTime(leave), time_slot: timeSlot }];
+  return [...kept, { ...back, start_time: formatMinutesToTime(leave), time_slot: timeSlot }];
 }
 
 export interface JourneyStopWithTransit {

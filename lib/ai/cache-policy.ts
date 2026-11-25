@@ -1,4 +1,5 @@
 import type { GeneratedItinerary, TripCreationParams } from "@/types";
+import { altitudeLine } from "@/lib/ai/altitude";
 
 /**
  * When a generation may use the cross-user plan cache. One set of rules for
@@ -6,9 +7,10 @@ import type { GeneratedItinerary, TripCreationParams } from "@/types";
  */
 export interface CachePolicy {
   /**
-   * Must-dos, a diet, who's coming, where they're staying, or what's on at their dates: a tailored plan is neither
-   * answered from the shared pool nor added to it. The pool is keyed without dates, so a plan told the Christmas
-   * markets are open would otherwise answer a July trip.
+   * Must-dos, a diet, who's coming, where they're staying, a special trip, what's on at their dates, or a first day
+   * high up (lib/ai/altitude.ts): a tailored plan is neither answered from the shared pool nor added to it. The pool
+   * is keyed without dates, so a plan told the Christmas markets are open would otherwise answer a July trip, and one
+   * written before a place's altitude was known would keep answering its trips.
    */
   tailored: boolean;
   /** "Try Different Version": the plan on screen must not come back. */
@@ -24,7 +26,11 @@ export function cachePolicy(params: TripCreationParams, fresh: boolean, totalDay
         params.profilePreferences?.dietaryPreferences?.length ||
         params.tripIntent ||
         params.stay ||
-        params.whatsOn?.length
+        params.whatsOn?.length ||
+        params.occasion ||
+        params.arrival ||
+        params.departure ||
+        altitudeLine(params)
     ),
     fresh,
     totalDays,

@@ -32,6 +32,7 @@ import { genAI, withTimeout } from "@/lib/ai/gemini-call";
 import { getModelForPurpose, thinkingConfigFor } from "@/lib/ai/model-router";
 import { geminiCostUsd, recordGeminiUsage } from "@/lib/ai/gemini-cost";
 import { rewordMovedDays, type WordDay, type WordStop } from "@/lib/ai/moved-day-words";
+import { askSeasonalClosings, placesForTheSeason, tripDates, withSeasonalClosings } from "@/lib/ai/seasonal-closings";
 import {
   isDaytimeSight,
   keepsToTheDay,
@@ -39,9 +40,12 @@ import {
   plannedMinutes,
   shortenedToFit,
   startsApart,
+  withRoomClearedFor,
   withStopAt,
+  type RoomRules,
   type TimedStop as DayRoomStop,
 } from "@/lib/trip/day-room";
+import { isMealStop } from "@/lib/trip/pace";
 
 export const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
 export type Weekday = (typeof WEEKDAYS)[number];
@@ -316,10 +320,19 @@ type TimedStop = WordStop & DayRoomStop;
  * A day takes a moved sight only while it keeps its shape: its daytime sights in the day (a museum pushed to the
  * evening is shut) and its meals near their hours.
  */
-const KEEPS_SHAPE = { keepShape: true };
+const KEEPS_SHAPE: RoomRules = { keepShape: true };
+/**
+ * For a sight the traveller named that nothing else gets to a day it is open: a museum the plan had late may be
+ * pushed on to make room. Better the one they didn't ask for late than the one they did swapped away.
+ */
+const FOR_A_NAMED_SIGHT: RoomRules = { keepShape: true, lateMuseumsMove: true };
 
 /** A stop that may change days to make room: one of the day's sights, not a dated event or a fixed plan. */
 const mayChangeDay = (stop: TimedStop) => isDaytimeSight(stop) && stop.type !== "event" && !(stop as { locked?: boolean }).locked;
+
+/** A stop that may make way for a sight the traveller named: never a meal, a dated event, a fixed plan or the journey. */
+const mayGiveWay = (stop: TimedStop) =>
+  !isMealStop(stop) && stop.type !== "event" && !(stop as { locked?: boolean }).locked && !/transport|accommodation|hotel|lodging/i.test(stop.type ?? "");
 
 /** No stop was named by the traveller. */
 const NONE_NAMED = () => false;
@@ -390,6 +403,8 @@ function tradedDays<T extends Day>(
  * better that one swapped for an open place than the one they named. When no
  * slot takes its whole visit, it is cut to the slot it takes, never under an
  * hour or half its visit: a shorter visit to a sight they asked for beats none.
+ * Making room never pushes a museum into the evening, even one the plan had
+ * late in the day, except, last of all, for a sight they named.
  * No trade puts a sight outside the hours its place keeps that day, when the
  * checked list knows them (`hoursOn`). Only
  * the plan's sights are asked about, so a meal never moves. A stop with
@@ -419,15 +434,16 @@ export function moveShutStops<T extends Day>(
         .map((day, i) => ({ day, i }))
         .filter(({ day, i }) => i !== d && day.date !== undefined && !stopShutOn(stop, day.date, closings, shutDates))
         .sort((a, b) => plannedMinutes(a.day) - plannedMinutes(b.day) || Math.abs(a.i - d) - Math.abs(b.i - d));
-      let target: { i: number; into: T; from: T } | null = null;
-      for (const option of options) {
-        // At its own time, or at its place's opening that day when that comes later.
-        const into = withStopAt(option.day, notBefore(stop, hoursOn(stop, option.day.date)?.open), KEEPS_SHAPE);
-        if (into) {
-          target = { i: option.i, into, from: { ...current[d], activities: (current[d].activities ?? []).filter((_, k) => k !== s) } };
-          break;
+      const left = { ...current[d], activities: (current[d].activities ?? []).filter((_, k) => k !== s) };
+      // At its own time, or at its place's opening that day when that comes later, on the first day with room.
+      const putIn = (rules: RoomRules): { i: number; into: T; from: T } | null => {
+        for (const option of options) {
+          const into = withStopAt(option.day, notBefore(stop, hoursOn(stop, option.day.date)?.open), rules);
+          if (into) return { i: option.i, into, from: left };
         }
-      }
+        return null;
+      };
+      let target = putIn(KEEPS_SHAPE);
       const home = current[d];
       for (const option of target ? [] : options) {
         const trade = tradedDays(home, s, option.day, (other) => !named(other) && !stopShutOn(other, home.date, closings, shutDates), { hoursOn });
@@ -446,6 +462,16 @@ export function moveShutStops<T extends Day>(
           }
         }
         if (target) break;
+      }
+      // Last, for a sight they named: in at its own time where that only pushes on a museum the plan had late.
+      if (!target && named(stop)) target = putIn(FOR_A_NAMED_SIGHT);
+      // Last of all, for a sight they named: the room the stops nobody asked for take on a day it is open.
+      for (const option of target || !named(stop) ? [] : options) {
+        const into = withRoomClearedFor(option.day, stop, (other) => !named(other) && mayGiveWay(other), hoursOn(stop, option.day.date));
+        if (into) {
+          target = { i: option.i, into, from: left };
+          break;
+        }
       }
       if (!target) {
         s++;
@@ -498,16 +524,21 @@ export async function keepOffClosingDays<T extends { days: Day[] }>(
   swap?: SwapStuck,
   checked: typeof withKnownClosings = withKnownClosings,
   /** Tells the stops the traveller asked for by name (lib/ai/must-dos.ts askedByName): they keep a day they are open. */
-  named?: (stop: WordStop) => boolean
+  named?: (stop: WordStop) => boolean,
+  /** Asks which places are shut for the whole trip, for the season (lib/ai/seasonal-closings.ts). */
+  askSeason: typeof askSeasonalClosings = askSeasonalClosings
 ): Promise<{
   itinerary: T;
   costUsd: number;
   asked: number;
   /** Stops whose closing days came from the checked list. */
   known: number;
+  /** Stops shut on their day by their own closing days, the season aside. */
   shutBefore: number;
   /** Of shutBefore, the stops the checked list alone shuts on their day: the place's own page says so. */
   shutListed: number;
+  /** Stops shut on their day by the season alone: not counted in shutBefore. */
+  seasonal: number;
   shutAfter: number;
   /** The stops still on a day they're shut at the end, as "name (date)": what a miss was. */
   leftShut: string[];
@@ -516,12 +547,17 @@ export async function keepOffClosingDays<T extends { days: Day[] }>(
   swapped: number;
 }> {
   const places = placesToAsk(itinerary.days);
-  const answer = await ask(destination, places, holidayDatesToAsk(itinerary.days));
+  const dates = tripDates(itinerary.days);
+  const [answer, season] = await Promise.all([
+    ask(destination, places, holidayDatesToAsk(itinerary.days)),
+    askSeason(destination, placesForTheSeason(itinerary.days), dates),
+  ]);
   // The sights on the checked list are decided by it, not by the model (lib/ai/known-closings.ts).
   const { closings, shutDates, known } = checked(answer, itinerary.days, destination);
   const listed = checked(NO_ANSWER, itinerary.days, destination).shutDates;
-  const settled = await settleDays(itinerary.days, closings, shutDates, destination, reword, swap, named);
-  return report(itinerary, settled, answer.costUsd, places.length, known, closings, shutDates, listed, destination);
+  const allShut = withSeasonalClosings(shutDates, season.shut, dates, destination);
+  const settled = await settleDays(itinerary.days, closings, allShut, destination, reword, swap, named);
+  return report(itinerary, settled, answer.costUsd + season.costUsd, places.length, known, closings, shutDates, allShut, listed, destination);
 }
 
 type Settled<D> = { days: D[]; costUsd: number; reworded: number; stopsMoved: number; swapped: number };
@@ -542,7 +578,8 @@ async function settleDays<D extends Day>(
   const words = moves.length > 0 ? await reword(ordered, moves, destination) : { days: ordered, costUsd: 0, reworded: 0 };
   // A trade keeps each sight inside the hours the checked list knows for it, in this city.
   const stops = moveShutStops(words.days, closings, shutDates, named, (stop, date) => (date ? knownHoursFor(stop.name, destination, date) : null));
-  const stuck = swap ? stopsStillShut(stops.days, closings, shutDates) : [];
+  // A sight they named is never swapped for another: still shut, it keeps its day and its closed note.
+  const stuck = swap ? stopsStillShut(stops.days, closings, shutDates).filter((s) => !named?.({ name: s.name })) : [];
   const swaps = swap && stuck.length > 0 ? await swap(stops.days, stuck) : { days: stops.days, swapped: 0, costUsd: 0 };
   return { days: swaps.days as D[], costUsd: words.costUsd + swaps.costUsd, reworded: words.reworded, stopsMoved: stops.moved, swapped: swaps.swapped };
 }
@@ -556,20 +593,24 @@ function report<T extends { days: Day[] }>(
   known: number,
   closings: Closings,
   shutDates: ShutDates,
+  /** shutDates with the places shut for the season shut on every date of the trip. */
+  allShut: ShutDates,
   listed: ShutDates,
   destination: string
 ) {
   // Each listed place shut on a date of the trip says so on the stop, with its official page.
   const days = withClosingNotes(settled.days, destination);
+  const shutBefore = shutStops(itinerary.days, closings, shutDates);
   return {
     itinerary: days === itinerary.days ? itinerary : { ...itinerary, days },
     costUsd: askedUsd + settled.costUsd,
     asked,
     known,
-    shutBefore: shutStops(itinerary.days, closings, shutDates),
+    shutBefore,
     shutListed: shutStops(itinerary.days, new Map(), listed),
-    shutAfter: shutStops(days, closings, shutDates),
-    leftShut: stopsStillShut(days, closings, shutDates).map((stop) => `${stop.name} (${stop.date})`),
+    seasonal: shutStops(itinerary.days, closings, allShut) - shutBefore,
+    shutAfter: shutStops(days, closings, allShut),
+    leftShut: stopsStillShut(days, closings, allShut).map((stop) => `${stop.name} (${stop.date})`),
     reworded: settled.reworded,
     stopsMoved: settled.stopsMoved,
     swapped: settled.swapped,
@@ -600,15 +641,21 @@ export async function keepOffClosingDaysByCity<T extends { days: Day[] }>(
   reword: typeof rewordMovedDays = rewordMovedDays,
   swapIn?: (city: string) => SwapStuck,
   checked: typeof withKnownClosings = withKnownClosings,
-  named?: (stop: WordStop) => boolean
+  named?: (stop: WordStop) => boolean,
+  askSeason: typeof askSeasonalClosings = askSeasonalClosings
 ): ReturnType<typeof keepOffClosingDays<T>> {
   const places = placesToAsk(itinerary.days);
-  const answer = await ask(destination, places, holidayDatesToAsk(itinerary.days));
+  const dates = tripDates(itinerary.days);
+  const [answer, season] = await Promise.all([
+    ask(destination, places, holidayDatesToAsk(itinerary.days)),
+    askSeason(destination, placesForTheSeason(itinerary.days), dates),
+  ]);
   const { closings, shutDates, known } = checked(answer, itinerary.days, destination);
   const listed = checked(NO_ANSWER, itinerary.days, destination).shutDates;
+  const allShut = withSeasonalClosings(shutDates, season.shut, dates, destination);
   const parts = cityRuns(itinerary.days);
   const runs = await Promise.all(
-    parts.map((part) => settleDays(part.days, closings, shutDates, part.city || destination, reword, swapIn?.(part.city || destination), named))
+    parts.map((part) => settleDays(part.days, closings, allShut, part.city || destination, reword, swapIn?.(part.city || destination), named))
   );
   // Settling returns a city's own days when nothing in them moved.
   const changed = runs.some((run, i) => run.days !== parts[i].days);
@@ -619,5 +666,5 @@ export async function keepOffClosingDaysByCity<T extends { days: Day[] }>(
     stopsMoved: runs.reduce((sum, run) => sum + run.stopsMoved, 0),
     swapped: runs.reduce((sum, run) => sum + run.swapped, 0),
   };
-  return report(itinerary, settled, answer.costUsd, places.length, known, closings, shutDates, listed, destination);
+  return report(itinerary, settled, answer.costUsd + season.costUsd, places.length, known, closings, shutDates, allShut, listed, destination);
 }

@@ -168,22 +168,61 @@ export async function askForDinners(wanted: DinnerWanted[], opts: DinnerOptions)
 }
 
 /**
+ * Why a day asked about still has no dinner: no answer named it, the place it was chosen near is gone from the plan,
+ * the dinner would start after 21:00, the answer is no real place (no name, no pin), is farther than 5 km from that
+ * place, or is a place the plan already holds.
+ */
+export type DinnerLeftOut = "unanswered" | "gone" | "late" | "unreal" | "far" | "taken";
+
+/** How many days asked about still have no dinner, by why: the first answer turned away for each, or no answer. */
+export type DinnersLeft = Partial<Record<DinnerLeftOut, number>>;
+
+/** Two or more counts of days left without dinner, as one. */
+export function dinnersLeftTogether(...lefts: DinnersLeft[]): DinnersLeft {
+  const out: DinnersLeft = {};
+  for (const left of lefts) {
+    for (const [why, n] of Object.entries(left) as Array<[DinnerLeftOut, number]>) out[why] = (out[why] ?? 0) + n;
+  }
+  return out;
+}
+
+/**
  * The days with each answered dinner after the place it was chosen near, wherever that place now is: half an hour
  * after its visit ends, not before 18:30, as a restaurant. Left out when it isn't a real place within 5 km of that
- * place, the plan already holds it, it would start after 21:00, or the day has an evening meal by now. Pure.
+ * place, the plan already holds it, it would start after 21:00, or the day has an evening meal by now. `left` says,
+ * for the days asked about that still have none, why. Pure.
  */
-export function withDinners<D extends Day>(days: D[], wanted: DinnerWanted[], answer: DinnerAnswer): { days: D[]; added: number } {
+export function withDinners<D extends Day>(
+  days: D[],
+  wanted: DinnerWanted[],
+  answer: DinnerAnswer
+): { days: D[]; added: number; left: DinnersLeft } {
   let out = days;
   let added = 0;
+  // For each day asked about, the first reason an answer for it was turned away; and the days that have dinner now.
+  const why = new Map<number, DinnerLeftOut>();
+  const fed = new Set<number>();
   for (const entry of answer.dinners ?? []) {
-    const want = typeof entry.n === "number" ? wanted[entry.n - 1] : undefined;
+    const n = typeof entry.n === "number" ? entry.n - 1 : -1;
+    const want = wanted[n];
     if (!want) continue;
+    const turnedAway = (reason: DinnerLeftOut) => void (why.has(n) || why.set(n, reason));
     const at = out.findIndex((d) => (d.activities ?? []).some((s) => s.name === want.after));
-    if (at < 0 || (out[at].activities ?? []).some(isEveningMeal)) continue;
+    if (at < 0) {
+      turnedAway("gone");
+      continue;
+    }
+    if ((out[at].activities ?? []).some(isEveningMeal)) {
+      fed.add(n);
+      continue;
+    }
     const anchor = (out[at].activities ?? []).find((s) => s.name === want.after)!;
     const ends = (minutesOf(anchor.start_time) ?? 0) + (anchor.duration_minutes || 60);
     const start = Math.ceil(Math.max(EARLIEST, ends + AFTER_MINUTES) / 15) * 15;
-    if (start > LATEST) continue;
+    if (start > LATEST) {
+      turnedAway("late");
+      continue;
+    }
     const cost = Number(entry.cost_per_person_usd);
     const activity = activityOf({
       ...entry,
@@ -192,10 +231,20 @@ export function withDinners<D extends Day>(days: D[], wanted: DinnerWanted[], an
       duration_minutes: DINNER_MINUTES,
       ...(Number.isFinite(cost) && cost > 0 ? { estimated_cost: { amount: Math.round(cost), currency: "USD", tier: "moderate" } } : {}),
     });
-    if (!activity || !activity.coordinates || haversineKm(activity.coordinates, want.at) > NEAR_KM) continue;
+    const words = activity ? nameTokens(activity.name) : [];
+    if (!activity || !activity.coordinates || words.length === 0) {
+      turnedAway("unreal");
+      continue;
+    }
+    if (haversineKm(activity.coordinates, want.at) > NEAR_KM) {
+      turnedAway("far");
+      continue;
+    }
     const names = out.flatMap((d) => d.activities ?? []).map((s) => nameTokens(s.name ?? ""));
-    const words = nameTokens(activity.name);
-    if (words.length === 0 || held(words, names)) continue;
+    if (held(words, names)) {
+      turnedAway("taken");
+      continue;
+    }
     const dinner = { ...activity, type: "restaurant" } as Activity;
     out = out.map((d, i) =>
       i === at
@@ -208,6 +257,13 @@ export function withDinners<D extends Day>(days: D[], wanted: DinnerWanted[], an
         : d
     );
     added++;
+    fed.add(n);
   }
-  return { days: out, added };
+  const left: DinnersLeft = {};
+  wanted.forEach((_, n) => {
+    if (fed.has(n)) return;
+    const reason = why.get(n) ?? "unanswered";
+    left[reason] = (left[reason] ?? 0) + 1;
+  });
+  return { days: out, added, left };
 }

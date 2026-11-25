@@ -6,6 +6,7 @@ import VibeSelector from "@/components/trip/VibeSelector";
 import { DIETS, dietsFrom, type Diet } from "@/lib/trips/diet";
 import { MUST_DOS_MAX, MUST_DO_MAX_LENGTH, REQUIREMENTS_MAX } from "@/lib/trips/request-limits";
 import { mustDoItem, withMustDo } from "@/lib/wizard/must-dos";
+import { ARRIVALS, DEPARTURES, isArrival, isDeparture, type Arrival, type Departure } from "@/lib/wizard/answers";
 import { BUDGET_TIERS, TRIP_PACES, type TripVibe, type BudgetTier, type TripPace } from "@/types";
 
 // Budget tier styling - labels/descriptions come from translations
@@ -53,6 +54,10 @@ export default function PreferencesStep({
   setPace,
   requirements,
   setRequirements,
+  arrival,
+  setArrival,
+  departure,
+  setDeparture,
 }: {
   destination: string;
   selectedVibes: TripVibe[];
@@ -74,6 +79,11 @@ export default function PreferencesStep({
   setPace: (pace: TripPace) => void;
   requirements: string;
   setRequirements: (value: string) => void;
+  /** When they arrive on the first day and leave on the last; null is any time. */
+  arrival: Arrival | null;
+  setArrival: (value: Arrival | null) => void;
+  departure: Departure | null;
+  setDeparture: (value: Departure | null) => void;
 }) {
   const t = useTranslations("trips");
   const tDiet = useTranslations("common.onboarding.dietary");
@@ -183,6 +193,48 @@ export default function PreferencesStep({
               </button>
             );
           })}
+        </div>
+      </div>
+
+      {/* The first and last day: without an answer a plan starts day 1 in the morning and runs
+          to the evening of the last; with one, they fit when they get there and when they leave. */}
+      <div role="group" aria-labelledby="travel-days-label">
+        <p id="travel-days-label" className="text-sm font-medium text-slate-700 mb-1">
+          {t("wizard.step2.travelDays.title")}{" "}
+          <span className="font-normal text-slate-500">{t("wizard.step2.mustDos.optional")}</span>
+        </p>
+        <p className="text-xs text-slate-500 mb-2">{t("wizard.step2.travelDays.hint")}</p>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block text-sm text-slate-700">
+            {t("wizard.step2.travelDays.arriving")}
+            <select
+              value={arrival ?? ""}
+              onChange={(e) => setArrival(isArrival(e.target.value) ? e.target.value : null)}
+              className="mt-1 min-h-[44px] w-full rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-sm text-[var(--foreground)]"
+            >
+              <option value="">{t("wizard.step2.travelDays.anyTime")}</option>
+              {ARRIVALS.map((when) => (
+                <option key={when} value={when}>
+                  {t(`wizard.step2.travelDays.arrive.${when}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block text-sm text-slate-700">
+            {t("wizard.step2.travelDays.leaving")}
+            <select
+              value={departure ?? ""}
+              onChange={(e) => setDeparture(isDeparture(e.target.value) ? e.target.value : null)}
+              className="mt-1 min-h-[44px] w-full rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-sm text-[var(--foreground)]"
+            >
+              <option value="">{t("wizard.step2.travelDays.anyTime")}</option>
+              {DEPARTURES.map((when) => (
+                <option key={when} value={when}>
+                  {t(`wizard.step2.travelDays.depart.${when}`)}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
       </div>
 

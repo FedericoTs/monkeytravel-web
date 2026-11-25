@@ -4,8 +4,10 @@
  * (`"the "best" view"`), a comma left out between two items (`{…}{…}`), a comma
  * left before the end of an object or a list (`{"a":1,}`, `[1,]`), a stray
  * character or HTML scrap typed before a value (`"type":="market"`,
- * `"address":amp; "Main"`), and a line break or tab typed as it is inside a
- * string. One mend per parse, at the parser's position, so text that parses is
+ * `"address":amp; "Main"`), a line break or tab typed as it is inside a
+ * string, a name and its value typed inside a list (`["a", "b": 1]`), and a
+ * name typed without its quotes (`$activities: [`).
+ * One mend per parse, at the parser's position, so text that parses is
  * never touched. A reply it can't mend throws the parser's first error, and when
  * it mended slips before giving up, the one that stopped it; either carries the
  * text around the slip that stopped it (slipNear), for the logs.
@@ -29,6 +31,12 @@ const MENDS_MAX = 20;
  */
 const STRAY_BEFORE_VALUE = /^[^"{}[\],:]{1,6}?(?=\s*["{[])/;
 
+/**
+ * A name without its quotes where one is due: a word starting with a letter, at most one stray character before it
+ * (`$activities:`), up to its colon, which is left in place for the value after it.
+ */
+const UNQUOTED_NAME = /^[^\w\s"{}[\],:]?([A-Za-z_]\w*)\s*(?=:)/;
+
 /** How a control character is written inside a JSON string. */
 const ESCAPES: Record<string, string> = { "\n": "\\n", "\r": "\\r", "\t": "\\t" };
 const escapeOf = (c: string) => ESCAPES[c] ?? `\\u${c.charCodeAt(0).toString(16).padStart(4, "0")}`;
@@ -51,6 +59,22 @@ function positionOf(message: string, text: string): number | null {
   return first + AROUND_BEFORE;
 }
 
+/**
+ * A name and its value typed inside a list (`"tips": ["a", "b", "booking": true]`): the list ended before the name,
+ * and a `]` left right after the value taken out. `quote` is where the name's closing quote is, `colon` its colon.
+ * Null when no comma comes before the name: it is the list's first item, or a value in an object.
+ */
+function listEndedBefore(text: string, quote: number, colon: number): string | null {
+  let open = quote - 1;
+  while (open >= 0 && (text[open] !== '"' || text[open - 1] === "\\")) open--;
+  let comma = open - 1;
+  while (comma >= 0 && /\s/.test(text[comma])) comma--;
+  if (open < 0 || text[comma] !== ",") return null;
+  const value = /^\s*(?:"(?:[^"\\]|\\.)*"|true|false|null|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)\s*\]/.exec(text.slice(colon + 1));
+  const after = value ? text.slice(colon + 1, colon + value[0].length) + text.slice(colon + 1 + value[0].length) : text.slice(colon + 1);
+  return `${text.slice(0, comma)}]${text.slice(comma, colon + 1)}${after}`;
+}
+
 /** The text with the slip at `at` mended, or null when it isn't one of them. */
 function mendAt(text: string, at: number): string | null {
   // A line break or another control character inside a string: written as its escape.
@@ -62,6 +86,8 @@ function mendAt(text: string, at: number): string | null {
   if (prev === undefined || next === undefined) return null;
   // Two items with nothing between them: `}{`, `""`, `]"`.
   if (/["}\]]/.test(prev) && /["{[]/.test(next)) return `${text.slice(0, before + 1)},${text.slice(before + 1)}`;
+  // A name and its value typed inside a list: the list ended before the name.
+  if (prev === '"' && next === ":") return listEndedBefore(text, before, at);
   // A comma left before the end of an object or a list.
   if (prev === "," && (next === "}" || next === "]")) return `${text.slice(0, before)}${text.slice(before + 1)}`;
   // A string that ended at a quote inside it, the words going on after it.
@@ -70,6 +96,11 @@ function mendAt(text: string, at: number): string | null {
   if (prev === ":") {
     const stray = STRAY_BEFORE_VALUE.exec(text.slice(at, at + 24));
     if (stray) return `${text.slice(0, at)}${text.slice(at + stray[0].length)}`;
+  }
+  // A name typed without its quotes where one is due, a stray character before it taken out.
+  if (prev === "," || prev === "{") {
+    const name = UNQUOTED_NAME.exec(text.slice(at, at + 64));
+    if (name) return `${text.slice(0, at)}"${name[1]}"${text.slice(at + name[0].length)}`;
   }
   return null;
 }

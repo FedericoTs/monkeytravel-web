@@ -94,6 +94,28 @@ describe("generateTripOutline", () => {
     expect(prompts[1]).toContain("Travellers: friends travelling together.");
     await generateTripOutline(params, 3);
     expect(prompts[2]).not.toContain("Travellers:");
+    await generateTripOutline({ ...params, tripIntent: "family", childrenAges: ["under3"] }, 3);
+    expect(prompts[3]).toContain("Children's ages: under 3:");
+  });
+
+  it("outlines a special trip's evening on its day", async () => {
+    answer = JSON.stringify({ days: [day(1, ["a"]), day(2, ["b"]), day(3, ["c"])] });
+    await generateTripOutline({ ...params, tripIntent: "couple", occasion: { kind: "anniversary", date: "2027-05-02" } }, 3);
+    expect(prompts[0]).toContain("Occasion: an anniversary on day 2 (2027-05-02).");
+    await generateTripOutline(params, 3);
+    expect(prompts[1]).not.toContain("Occasion:");
+  });
+
+  it("outlines the first and last day for when they arrive and leave", async () => {
+    answer = JSON.stringify({ days: [day(1, ["a"]), day(2, ["b"]), day(3, ["c"])] });
+    await generateTripOutline(
+      { ...params, arrival: { when: "evening", date: "2027-05-01" }, departure: { when: "morning", date: "2027-05-03" } },
+      3
+    );
+    expect(prompts[0]).toContain("Travel days: They arrive on day 1 in the evening:");
+    expect(prompts[0]).toContain("They leave on the last day in the morning:");
+    await generateTripOutline(params, 3);
+    expect(prompts[1]).not.toContain("Travel days:");
   });
 
   it("outlines the days around where they're staying, when they said", async () => {

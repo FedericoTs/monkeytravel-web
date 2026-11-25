@@ -9,10 +9,13 @@
  * person. Signed in, a person has one row per trip, their account's, on any
  * browser; this browser's guest row becomes it.
  *
- * Body: { action: 'join' | 'update' | 'leave', source?, display_name?, email? }
- *   join   — insert, or re-activate a row that had left; name/email if given
- *   update — name and/or email on an active row
+ * Body: { action: 'join' | 'update' | 'leave', source?, display_name?, email?, picks? }
+ *   join   — insert, or re-activate a row that had left; name/email/picks if given
+ *   update — name, email and/or picks on an active row
  *   leave  — sets left_at (the row stays, for the tap-rate history)
+ * `picks` are the must-dos they add (up to three short texts; an empty list
+ * takes them back). New picks wait for the owner to fit them in again, and
+ * email the owner, at most once a trip a day (share-link rows only).
  *
  * Returns the same shape as GET /participants so the page can replace its
  * state in one go: { count, participants[], me }. An email typed here also
@@ -37,12 +40,15 @@ import { participantCookieId, readParticipantWrite, setParticipantCookie, signed
 import {
   normalizeDisplayName,
   normalizeEmail,
+  normalizePicks,
   parseJoinAction,
   parseParticipantSource,
+  readPicks,
   type ParticipantSource,
 } from "@/lib/participants/shared";
 import { participantsSnapshot } from "@/lib/participants/snapshot";
 import { mayEmailPlan, sendParticipantPlanEmail } from "@/lib/participants/plan-email";
+import { sendPicksEmail } from "@/lib/notifications/picks-email";
 import { readSharedTrip } from "@/lib/trips/shared-trip";
 
 const ipLimiter = createRateLimiter("shared-join-ip", 30, 60_000);
@@ -56,6 +62,20 @@ interface JoinBody {
   email?: unknown;
   /** The page's language, for the plan email. */
   locale?: unknown;
+  picks?: unknown;
+}
+
+/**
+ * The columns that keep `picks`, or nothing when they are what the row holds already: the same picks sent again
+ * don't wait for the owner a second time.
+ */
+function picksPatch(picks: string[] | null, held: unknown): Record<string, unknown> {
+  if (!picks) return {};
+  const before = readPicks(held);
+  if (picks.length === before.length && picks.every((p, i) => p === before[i])) return {};
+  return picks.length > 0
+    ? { picks, picks_at: new Date().toISOString(), picks_placed_at: null }
+    : { picks: null, picks_at: null, picks_placed_at: null };
 }
 
 export async function POST(request: NextRequest, context: InviteTokenRouteContext) {
@@ -76,6 +96,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     if (email === false) {
       return errors.badRequest("That email address doesn't look right");
     }
+    const picks = normalizePicks(body.picks);
 
     const admin = createAdminClient();
     const { trip, errorResponse } = await readSharedTrip<{ id: string }>(admin, token, "id");
@@ -101,7 +122,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     // What this browser did here as a guest becomes the account's first.
     if (userId && !issuedCookie) await linkGuestToAccount(admin, userId, cookieId, trip.id);
 
-    const lookup = admin.from("trip_participants").select("id, left_at, display_name, email, source").eq("trip_id", trip.id);
+    const lookup = admin.from("trip_participants").select("id, left_at, display_name, email, source, picks").eq("trip_id", trip.id);
     const { data: existing } = await (userId
       ? lookup.eq("user_id", userId)
       : lookup.eq("participant_cookie_id", cookieId)
@@ -109,8 +130,11 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
 
     let joinedNow = false;
     let firstJoinId: string | null = null;
-    // The row an email typed now was saved on, unless it is a public page's.
-    let planRowId: string | null = null;
+    // What this request changes of their picks: nothing when it sends none, or the ones the row holds.
+    const picksChange = picksPatch(picks, existing?.picks ?? null);
+    // The row this request wrote, unless it is a public page's: the plan email and the owner's email about
+    // picks are for the group's link.
+    let sharedRowId: string | null = null;
     if (action === "join") {
       if (!existing) {
         // Signed in, this browser's cookie can already key another account's row here.
@@ -126,6 +150,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
             display_name: displayName,
             email: email ?? accountEmail,
             source,
+            ...picksChange,
           })
           .select("id")
           .single();
@@ -135,7 +160,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
         }
         joinedNow = true;
         firstJoinId = (inserted?.id as string | undefined) ?? null;
-        if (source !== "public") planRowId = firstJoinId;
+        if (source !== "public") sharedRowId = firstJoinId;
       } else {
         const patch: Record<string, unknown> = { left_at: null };
         if (displayName) patch.display_name = displayName;
@@ -144,13 +169,14 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
         // The share link is the group's invitation, so joining through it
         // confirms someone who first said they're going on the public page.
         if (existing.source === "public" && source !== "public") patch.source = "shared";
+        Object.assign(patch, picksChange);
         const { error } = await admin.from("trip_participants").update(patch).eq("id", existing.id);
         if (error) {
           console.error("[Shared Join] rejoin failed:", error);
           return errors.internal("Could not save that", "SharedJoin");
         }
         joinedNow = existing.left_at !== null;
-        if (existing.source !== "public" || source !== "public") planRowId = existing.id as string;
+        if (existing.source !== "public" || source !== "public") sharedRowId = existing.id as string;
       }
     } else if (action === "update") {
       if (!existing || existing.left_at !== null) {
@@ -160,6 +186,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
       if (displayName) patch.display_name = displayName;
       if (email) patch.email = email;
       else if (accountEmail && !existing.email) patch.email = accountEmail;
+      Object.assign(patch, picksChange);
       if (Object.keys(patch).length > 0) {
         const { error } = await admin.from("trip_participants").update(patch).eq("id", existing.id);
         if (error) {
@@ -167,7 +194,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
           return errors.internal("Could not save that", "SharedJoin");
         }
       }
-      if (existing.source !== "public") planRowId = existing.id as string;
+      if (existing.source !== "public") sharedRowId = existing.id as string;
     } else {
       // leave
       if (existing && existing.left_at === null) {
@@ -192,6 +219,24 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
         gave_email: email !== null && email !== undefined,
       });
     }
+    // Leaving writes no picks; joining and updating wrote these.
+    const picksAdded = action !== "leave" && Array.isArray(picksChange.picks) ? picksChange.picks.length : 0;
+    if (picksAdded > 0) {
+      // How many, never what they say: the owner reads them on the trip.
+      captureServerEvent(cookieId, "participant_picks_added", { trip_id: trip.id, count: picksAdded });
+      // The owner hears of them, at most once a trip a day.
+      if (sharedRowId) {
+        waitUntil(
+          sendPicksEmail({
+            tripId: trip.id,
+            participantId: sharedRowId,
+            guestUserId: userId,
+            guestName: displayName ?? ((existing?.display_name as string | null | undefined) || null),
+            picks: picksChange.picks as string[],
+          }),
+        );
+      }
+    }
 
     if (issuedCookie) setParticipantCookie(cookieStore, cookieId);
 
@@ -199,13 +244,13 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     // public page's row (the email carries the share link). Waits a few
     // seconds so the page can say what happened; a slow send carries on.
     let planEmail: "sent" | "already" | "not_sent" | null = null;
-    if (typeof email === "string" && planRowId) {
+    if (typeof email === "string" && sharedRowId) {
       planEmail = "not_sent";
       if (await mayEmailPlan(request, trip.id)) {
         const sending = sendParticipantPlanEmail(admin, {
           tripId: trip.id,
           shareToken: token,
-          participantId: planRowId,
+          participantId: sharedRowId,
           email,
           locale: typeof body.locale === "string" ? body.locale : null,
         });

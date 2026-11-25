@@ -10,6 +10,7 @@ import { getModelForPurpose } from "@/lib/ai/model-router";
 import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import { isAdmin } from "@/lib/admin";
 import { blockedCall, logApiCall } from "@/lib/api-gateway";
+import { isProbeSession } from "@/lib/analytics/telemetry-env";
 import { incrementUsage } from "@/lib/usage-limits";
 import { fetchActivityImages } from "@/lib/images/activity";
 import { sanitizeItinerary } from "@/lib/utils/sanitize";
@@ -31,6 +32,8 @@ import { keepOffClosingDays, keepOffClosingDaysByCity } from "@/lib/ai/closing-d
 import { keepInsideHours } from "@/lib/ai/visit-hours";
 import { askForDinners, daysWithoutDinner, placesToEat, withDinners } from "@/lib/ai/dinners";
 import { askForReplacements, repeatedRestaurants, withReplacements } from "@/lib/ai/repeated-meals";
+import { askForSights, repeatedSights, sightNames, withSightReplacements } from "@/lib/ai/repeated-sights";
+import { askForLunches, daysWithoutLunch, withLunches } from "@/lib/ai/lunches";
 import { swapClosedStops } from "@/lib/ai/closed-swaps";
 import { withoutLongClosures } from "@/lib/ai/long-closures";
 import { askedByName, keepMustDos } from "@/lib/ai/must-dos";
@@ -39,6 +42,7 @@ import { inPlanCurrency } from "@/lib/ai/plan-currency";
 import type { TripAnchor } from "@/types";
 import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/generation-result";
 import { tripSpanDays } from "@/lib/dates/iso-date";
+import { travelDaysFit } from "@/lib/ai/travel-days";
 import { isModelOutOfCredit } from "@/lib/ai/model-outage";
 
 // Cache helpers live in lib/ai/cache.ts, shared with the streaming route. See
@@ -56,6 +60,10 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
   // The wizard's id for this request: the plan is kept under it, for a
   // browser that loses the answer (lib/ai/generation-result.ts).
   const generationId = generationIdOf(request);
+  // A live check's own plan (a tagged probe session) says so in every row it logs, so reads of travellers' plans
+  // leave it out.
+  const probe = isProbeSession(request.cookies.get("mt_session_id")?.value);
+  const log = (row: Parameters<typeof logApiCall>[0]) => logApiCall(probe ? { ...row, metadata: { ...row.metadata, probe: true } } : row);
 
   try {
     // Who is asking and with what body: an anonymous visitor over a cap, or a
@@ -129,7 +137,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         apiName: "gemini",
         endpoint: "/api/ai/generate",
         startTime,
-        metadata: { user_id: user?.id ?? "anonymous" },
+        metadata: { user_id: user?.id ?? "anonymous", ...(probe ? { probe: true } : {}) },
         disabled: "AI generation is currently disabled",
       });
     }
@@ -241,6 +249,16 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     // trip keeps its order: its commitments fix the days. A must-do keeps a day
     // it is open before a sight nobody asked for does.
     const named = askedByName(params.mustDos);
+    // A full day left without lunch gets one after a visit of it
+    // (lib/ai/lunches.ts), asked for meanwhile and put in before the hours
+    // step below sees the day's times.
+    const lunchesWanted = daysWithoutLunch(itinerary.days, params.destination);
+    const lunchesAsked = askForLunches(lunchesWanted, {
+      budgetTier: params.budgetTier,
+      diets: profilePreferences.dietaryPreferences,
+      language: userLanguage,
+      taken: placesToEat(itinerary.days),
+    });
     const closing = isMultiCity
       ? await keepOffClosingDaysByCity(
           itinerary,
@@ -263,29 +281,39 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
           )
         : null;
     if (closing) itinerary = closing.itinerary;
+    const lunches = withLunches(itinerary.days, lunchesWanted, (await lunchesAsked).answer);
+    itinerary = { ...itinerary, days: lunches.days };
 
     // Each visit to a place of known hours inside them (lib/ai/visit-hours.ts).
     // Visits trade slots within their own day, so a multi-city or anchored
     // trip keeps its days.
-    itinerary = { ...itinerary, days: keepInsideHours(itinerary.days, params.destination).days };
+    const inHours = keepInsideHours(itinerary.days, params.destination);
+    itinerary = { ...itinerary, days: inHours.days };
 
-    // A full day the plan left without dinner gets one (lib/ai/dinners.ts), and
-    // a restaurant named again on a later day gets another (lib/ai/repeated-meals.ts):
-    // both asked at once, the dinners put in first.
+    // A full day the plan left without dinner gets one (lib/ai/dinners.ts), a
+    // restaurant named again on a later day gets another (lib/ai/repeated-meals.ts),
+    // and a sight visited again on another day another of its kind
+    // (lib/ai/repeated-sights.ts): all asked at once, the dinners put in first.
     const dinnersWanted = daysWithoutDinner(itinerary.days, params.destination);
     const repeatsWanted = repeatedRestaurants(itinerary.days, params.destination);
+    const sightsWanted = repeatedSights(itinerary.days, params.destination, named);
     const mealOptions = {
       budgetTier: params.budgetTier,
       diets: profilePreferences.dietaryPreferences,
       language: userLanguage,
       taken: placesToEat(itinerary.days),
     };
-    const [dinnersAsked, repeatsAsked] = await Promise.all([
+    const [dinnersAsked, repeatsAsked, sightsAsked] = await Promise.all([
       askForDinners(dinnersWanted, mealOptions),
       askForReplacements(repeatsWanted, mealOptions),
+      askForSights(sightsWanted, { language: userLanguage, taken: sightNames(itinerary.days) }),
     ]);
-    itinerary = { ...itinerary, days: withDinners(itinerary.days, dinnersWanted, dinnersAsked.answer).days };
-    itinerary = { ...itinerary, days: withReplacements(itinerary.days, repeatsWanted, repeatsAsked.answer).days };
+    const dinners = withDinners(itinerary.days, dinnersWanted, dinnersAsked.answer);
+    itinerary = { ...itinerary, days: dinners.days };
+    const repeats = withReplacements(itinerary.days, repeatsWanted, repeatsAsked.answer);
+    itinerary = { ...itinerary, days: repeats.days };
+    const sights = withSightReplacements(itinerary.days, sightsWanted, sightsAsked.answer);
+    itinerary = { ...itinerary, days: sights.days };
 
     // Assign activity images server-side (prevents a client race), cached
     // plans included: ZERO Google here. Every activity still gets an image — a
@@ -314,7 +342,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     const generationCost = cacheHit ? 0 : geminiCost.usd;
 
     // Log the request using centralized gateway
-    await logApiCall({
+    await log({
       apiName: "gemini",
       endpoint: "/api/ai/generate",
       status: 200,
@@ -335,12 +363,42 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         ...(profilePreferences.dietaryPreferences?.length ? { dietary: profilePreferences.dietaryPreferences } : {}),
         // Must-dos the plan held nowhere, and how many of them went in.
         ...(mustDosIn.missing > 0 ? { must_dos: { missing: mustDosIn.missing, added: mustDosIn.added } } : {}),
+        // When they arrive and leave, and the stops planned before they're there or after they've gone.
+        ...(params.arrival || params.departure ? { travel_days: travelDaysFit(sanitizedItinerary.days, params) } : {}),
         // Names with two writing systems in one word, and how many got their usual name.
         ...(namesIn.glued > 0 ? { names: { glued: namesIn.glued, renamed: namesIn.renamed } } : {}),
         // The hops between cities, how many were answered, and how many cards took the answer.
         ...(transfers ? { transfers } : {}),
         // The place typed before the route step 1 offered for it was taken.
         ...(routeFrom ? { route_from: routeFrom } : {}),
+        // Full days the plan left without lunch, and how many got one.
+        ...(lunchesWanted.length > 0 ? { lunches: { missing: lunchesWanted.length, added: lunches.added } } : {}),
+        // Visits to places of known hours: how many were outside them, and what was done, as the stream logs them.
+        ...(inHours.checked > 0
+          ? {
+              visit_hours: {
+                checked: inHours.checked,
+                outside: inHours.outside,
+                moved: inHours.moved,
+                shortened: inHours.shortened,
+                ...(inHours.left.length > 0 ? { left: inHours.left.slice(0, 5) } : {}),
+              },
+            }
+          : {}),
+        // Full days without dinner and restaurants named again on a later day, and how many got one, as the stream logs them.
+        ...(dinnersWanted.length > 0
+          ? {
+              dinners: {
+                missing: dinnersWanted.length,
+                added: dinners.added,
+                // Why the days still without one have none (lib/ai/dinners.ts DinnerLeftOut).
+                ...(Object.keys(dinners.left).length > 0 ? { left: dinners.left } : {}),
+              },
+            }
+          : {}),
+        ...(repeatsWanted.length > 0 ? { repeated_restaurants: { found: repeatsWanted.length, replaced: repeats.replaced } } : {}),
+        // Sights visited again on another day, and how many got another place.
+        ...(sightsWanted.length > 0 ? { repeated_sights: { found: sightsWanted.length, replaced: sights.replaced } } : {}),
         // Stops on a day they're shut before and after the closing step, as the stream logs them.
         ...(closing && closing.asked > 0
           ? {
@@ -349,6 +407,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
                 known: closing.known,
                 shut_before: closing.shutBefore,
                 shut_listed: closing.shutListed,
+                ...(closing.seasonal > 0 ? { seasonal: closing.seasonal } : {}),
                 shut_after: closing.shutAfter,
                 stops_moved: closing.stopsMoved,
                 swapped: closing.swapped,
@@ -431,7 +490,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
 
     // Log error using centralized gateway. Attempts the model answered before
     // the failure (a retried parse error) were billed all the same.
-    await logApiCall({
+    await log({
       apiName: "gemini",
       endpoint: "/api/ai/generate",
       status: 500,

@@ -288,14 +288,39 @@ const UNNAMED_PLACE = new Set([
 ]);
 
 /**
+ * Words that say when or who, not where: "Annapolis Maryland , Friday-Sunday, me and wife" split into pieces that
+ * each looked like a place. A place's name with one of them in it ("Friday Harbor", "Santo Domingo") has others too.
+ */
+const WHEN_OR_WHO = new Set([
+  "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", "weekend", "weekends", "next", "this",
+  // Not "me", "mi" or "us": Portland, ME; Detroit, MI; Chicago, US.
+  "my", "i", "we", "our", "wife", "husband", "kids", "kid", "children", "child", "family", "partner",
+  "girlfriend", "boyfriend", "fiance", "fiancee", "friend", "friends", "son", "daughter", "parents", "mom", "dad",
+  "lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo", "fin", "de", "semana", "proximo", "este",
+  "mis", "yo", "nosotros", "esposa", "esposo", "marido", "hijos", "hijas", "hijo", "hija", "ninos", "nino",
+  "familia", "pareja", "novia", "novio", "amigos", "amigas",
+  "lunedi", "martedi", "mercoledi", "giovedi", "venerdi", "domenica", "fine", "settimana", "prossimo", "questo",
+  "io", "mia", "mio", "miei", "noi", "moglie", "figli", "figlie", "bambini", "famiglia", "ragazza", "ragazzo",
+  "fidanzata", "fidanzato", "amici", "amiche",
+  "segunda", "terca", "quarta", "quinta", "sexta", "feira", "fim", "eu", "minha", "meu", "nos", "filhos", "filhas",
+  "criancas", "namorada", "namorado",
+]);
+const saysWhenOrWho = (piece: string) => {
+  const words = fold(piece).split(/[\s\-–—]+/).filter(Boolean);
+  return words.length > 0 && words.every((word) => WHEN_OR_WHO.has(word));
+};
+
+/**
  * A place's name as far as words can tell: a few words, no numbers, the
- * characters a destination may hold, and none that asks for a place unnamed.
+ * characters a destination may hold, none that asks for a place unnamed, and
+ * not only words of when or who.
  */
 const namesAPlace = (place: string) =>
   wordsOf(place).length <= PLACE_WORDS_MAX &&
   !/\d/.test(place) &&
   DESTINATION_ALLOWLIST.test(place) &&
-  !wordsOf(fold(place)).some((word) => UNNAMED_PLACE.has(word));
+  !wordsOf(fold(place)).some((word) => UNNAMED_PLACE.has(word)) &&
+  !saysWhenOrWho(place);
 
 /**
  * A sentence, not a place name: it says how long or when, and where, in words

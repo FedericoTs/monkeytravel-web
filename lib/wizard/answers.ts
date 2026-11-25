@@ -37,6 +37,41 @@ export function sharesAsGroup(intent: unknown): boolean {
   return intent === "group" || intent === "family";
 }
 
+/** The children's ages a family trip can carry, youngest first. */
+export const CHILD_AGE_BANDS = ["under3", "3to6", "7to12", "teen"] as const;
+export type ChildAgeBand = (typeof CHILD_AGE_BANDS)[number];
+
+/** The special trips the planner offers: a plan gives its evening to one of them (lib/ai/trip-prompt.ts). */
+export const OCCASIONS = ["honeymoon", "anniversary", "birthday"] as const;
+export type Occasion = (typeof OCCASIONS)[number];
+
+/** When they arrive on the trip's first day, when they said: the planner fits that day to it. */
+export const ARRIVALS = ["morning", "afternoon", "evening", "night"] as const;
+export type Arrival = (typeof ARRIVALS)[number];
+
+/** When they leave on the trip's last day, when they said. */
+export const DEPARTURES = ["morning", "afternoon", "evening"] as const;
+export type Departure = (typeof DEPARTURES)[number];
+
+export function isArrival(value: unknown): value is Arrival {
+  return (ARRIVALS as readonly unknown[]).includes(value);
+}
+
+export function isDeparture(value: unknown): value is Departure {
+  return (DEPARTURES as readonly unknown[]).includes(value);
+}
+
+/** Whether a value is one of the special trips offered; anything else stays out of the plan and the prompt. */
+export function isOccasion(value: unknown): value is Occasion {
+  return (OCCASIONS as readonly unknown[]).includes(value);
+}
+
+/** The age bands in a value, once each and youngest first; none for anything that isn't a list of them. */
+export function childAgeBands(value: unknown): ChildAgeBand[] {
+  if (!Array.isArray(value)) return [];
+  return CHILD_AGE_BANDS.filter((band) => value.includes(band));
+}
+
 /**
  * Whether a value is an answer to "Who's coming?". Every place a plan carries
  * the answer keeps it only then: "unspecified", and any string from a request
@@ -63,6 +98,9 @@ export interface WizardAnswers {
   mustDos: string[];
   dietary: Diet[];
   tripIntent: TripIntent;
+  /** When they arrive on the first day and leave on the last, when they said (step 2). */
+  arrival: Arrival | null;
+  departure: Departure | null;
   flexibleDates: boolean;
   /** Where they're staying, when they said: the plan starts and ends each day near it. */
   stay: TripStay | null;
@@ -81,6 +119,8 @@ export const FRESH_ANSWERS: WizardAnswers = {
   mustDos: [],
   dietary: [],
   tripIntent: "unspecified",
+  arrival: null,
+  departure: null,
   flexibleDates: false,
   stay: null,
 };
@@ -107,6 +147,8 @@ export function keptPlanOf(answers: WizardAnswers, itinerary: GeneratedItinerary
     budgetTier,
     travelStyle,
     ...(isChosenTripIntent(tripIntent) ? { tripIntent } : {}),
+    ...(isArrival(answers.arrival) ? { arrival: answers.arrival } : {}),
+    ...(isDeparture(answers.departure) ? { departure: answers.departure } : {}),
     ...(flexibleDates ? { flexibleDates: true } : {}),
     ...(mustDos.length > 0 ? { mustDos } : {}),
     ...(dietary.length > 0 ? { dietary } : {}),

@@ -183,10 +183,10 @@ function fakeSupabase() {
 }
 vi.mock("@supabase/ssr", () => ({ createServerClient: vi.fn(() => fakeSupabase()) }));
 
-async function visit(locale = "en") {
+async function visit(locale = "en", search: Record<string, string | string[]> = {}) {
   const { default: TripDetailPage } = await import("./page");
   try {
-    const el = (await TripDetailPage({ params: Promise.resolve({ id: TRIP, locale }) })) as {
+    const el = (await TripDetailPage({ params: Promise.resolve({ id: TRIP, locale }), searchParams: Promise.resolve(search) })) as {
       props: { userRole: string; ownerDisplayName?: string; mapOpenAtFirst?: boolean; engagementSlot?: unknown; trip: { placesToEatDue?: boolean } };
     };
     lastExploreBar = el.props.engagementSlot;
@@ -411,6 +411,21 @@ describe("non-members", () => {
     expect(await visit("en")).toEqual({
       redirect: `/auth/login?redirect=${encodeURIComponent(`/trips/${TRIP}`)}`,
     });
+  });
+
+  it("a signed-out owner from the email about must-dos comes back to the card it opens", async () => {
+    expect(await visit("en", { open: "who" })).toEqual({
+      redirect: `/auth/login?redirect=${encodeURIComponent(`/trips/${TRIP}?open=who`)}`,
+    });
+    expect(await visit("pt", { open: "who" })).toEqual({
+      redirect: `/pt/auth/login?redirect=${encodeURIComponent(`/trips/${TRIP}?open=who`)}`,
+    });
+    // Anything that isn't a chip's plain name stays behind.
+    for (const open of ["//evil.com", "who&x=1", "WHO", "", ["who", "book"]]) {
+      expect(await visit("en", { open })).toEqual({
+        redirect: `/auth/login?redirect=${encodeURIComponent(`/trips/${TRIP}`)}`,
+      });
+    }
   });
 
   it("a signed-in stranger on a private trip gets a 404 (the token stays hidden)", async () => {

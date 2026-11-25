@@ -92,11 +92,18 @@ const shortSeville = () => ({
 let multiCityPlan = route;
 vi.mock("@/lib/gemini", () => ({ generateItinerary: async () => plan() }));
 vi.mock("@/lib/ai/multi-city", () => ({ validateLegs: () => {}, generateMultiCityItinerary: async () => multiCityPlan() }));
+// The place the seasonal question (lib/ai/seasonal-closings.ts) names as shut for the trip, when a test sets one.
+let shutForTheSeason: string | null = null;
 vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/ai/gemini-call")>()),
   genAI: {
     getGenerativeModel: () => ({
       generateContent: async (question: string) => {
+        if (question.includes("can't be visited")) {
+          const line = shutForTheSeason ? question.split("\n").find((one) => one.includes(shutForTheSeason!)) : undefined;
+          const shut = line ? [Number(line.split(".")[0])] : [];
+          return { response: { text: () => JSON.stringify({ shut }), usageMetadata: { promptTokenCount: 40, candidatesTokenCount: 5 } } };
+        }
         const museum = question.split("\n").find((line) => line.includes("Bellas Artes"));
         const places = museum ? [{ n: Number(museum.split(".")[0]), closed: ["Monday"] }] : [];
         return { response: { text: () => JSON.stringify({ places }), usageMetadata: { promptTokenCount: 80, candidatesTokenCount: 20 } } };
@@ -150,5 +157,18 @@ describe("the JSON route", () => {
     logged.length = 0;
     await themes();
     expect(logged.at(-1)?.closing_days).toMatchObject({ asked: 3, shut_before: 1, shut_after: 0 });
+    expect(logged.at(-1)?.closing_days).not.toHaveProperty("seasonal");
+  });
+
+  it("logs a stop shut for the season apart from the closing days", async () => {
+    logged.length = 0;
+    shutForTheSeason = "Plaza de España";
+    try {
+      await themes();
+      // Shut on every date, it has nowhere to go and no swap here: it stays, counted on its own.
+      expect(logged.at(-1)?.closing_days).toMatchObject({ shut_before: 1, seasonal: 1, shut_after: 1 });
+    } finally {
+      shutForTheSeason = null;
+    }
   });
 });

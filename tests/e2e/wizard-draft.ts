@@ -24,15 +24,15 @@ export async function isolate(page: Page) {
   });
 }
 
-/** Restores the Paris draft, the first three days of the public template, onto the result view. */
-export async function restoreDraft(page: Page) {
+/** Restores the Paris draft, the first three days of the public template, onto the result view; `answers` change its answers. */
+export async function restoreDraft(page: Page, answers: Record<string, unknown> = {}) {
   await page.addInitScript(
     ({ key, value }) => {
       if (sessionStorage.getItem("e2e-draft-seeded")) return;
       localStorage.setItem(key, JSON.stringify({ ...value, savedAt: Date.now() }));
       sessionStorage.setItem("e2e-draft-seeded", "1");
     },
-    { key: DRAFT_KEY, value: draft }
+    { key: DRAFT_KEY, value: { ...draft, ...answers } }
   );
   await page.goto("/trips/new");
   const essentialOnly = page.getByRole("button", { name: /essential only/i });

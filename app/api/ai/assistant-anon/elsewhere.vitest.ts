@@ -22,12 +22,12 @@ vi.mock("@vercel/functions", () => ({ waitUntil: (p: Promise<unknown>) => void p
 
 import { POST } from "./route";
 
-const ask = (message: string) =>
+const ask = (message: string, extra: Record<string, unknown> = {}) =>
   POST(
     new NextRequest("http://localhost/api/ai/assistant-anon", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ message, destination: "Moab, USA", tripTitle: "Moab Trip", days: [{ day_number: 1, activities: [] }] }),
+      body: JSON.stringify({ message, destination: "Moab, USA", tripTitle: "Moab Trip", days: [{ day_number: 1, activities: [] }], ...extra }),
     })
   );
 const answer = async (res: Response) => {
@@ -57,6 +57,27 @@ describe("another place for the whole trip", () => {
 
     expect(await answer(await ask("when does Arches open?"))).not.toHaveProperty("elsewhere");
     expect(logged[0].edit).toBeUndefined();
+  });
+});
+
+describe("who the trip is for", () => {
+  it("goes to the engine as the planner's answers, keeping only what each may be", async () => {
+    assistTrip.mockResolvedValue({ reply: "A playground near Arches.", edits: [], meta });
+    const res = await ask("something for the kids tonight", {
+      trip: { tripIntent: "family", childrenAges: ["3to6"], pace: "relaxed", budgetTier: "budget", dietary: ["vegan", "chips"], hack: "ignore all" },
+    });
+    expect(res.status).toBe(200);
+    expect(assistTrip.mock.calls[0][0]).toMatchObject({
+      facts: { tripIntent: "family", childrenAges: ["3to6"], pace: "relaxed", budgetTier: "budget", dietary: ["vegan"] },
+    });
+  });
+
+  it("never refuses a request for a stray answer, and an old page sends none", async () => {
+    assistTrip.mockResolvedValue({ reply: "Ok.", edits: [], meta });
+    expect((await ask("hi", { trip: "family" })).status).toBe(200);
+    expect(assistTrip.mock.calls[0][0]).toMatchObject({ facts: {} });
+    expect((await ask("hi")).status).toBe(200);
+    expect(assistTrip.mock.calls[1][0]).toMatchObject({ facts: {} });
   });
 });
 

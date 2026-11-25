@@ -492,19 +492,39 @@ describe("a sight the arrival day can't hold", () => {
     });
   const timed = (day: { activities: Activity[] }) => day.activities.map((a) => `${a.start_time} ${a.name}`);
 
-  it("goes to another day of the city at its own time, the stops after it later", () => {
+  // The day it went to used to take it by pushing its last sight into the evening: Akbar's Tomb at 18:00, after it
+  // shuts at sunset, and dinner at 20:20. On trips through several cities, 1 plan in 5 had a museum, a park or a
+  // monastery starting after half past seven.
+  it("goes to another day of the city at its own time, and a sight it would push into the evening makes way", () => {
     const merged = trip([firstDay(), secondDay()]);
     expect(timed(merged.days[1])).toEqual(["08:30 Train to Agra", "11:30 Pinch of Spice", "13:30 Agra Fort", "16:30 Mehtab Bagh", "19:00 Esphahan"]);
-    // Lunch keeps its hour: it goes ahead of the tomb that would have pushed it past 13:30.
-    expect(timed(merged.days[2])).toEqual([
-      "08:00 Taj Mahal",
-      "11:30 Joney's Place",
-      "13:20 Itimad-ud-Daulah",
-      "15:40 Kinari Bazaar",
-      "18:00 Akbar's Tomb",
-      "20:20 Dasaprakash",
-    ]);
+    // Lunch keeps its hour: it goes ahead of the tomb that would have pushed it past 13:30. Dinner keeps its own.
+    expect(timed(merged.days[2])).toEqual(["08:00 Taj Mahal", "11:30 Joney's Place", "13:20 Itimad-ud-Daulah", "15:40 Kinari Bazaar", "19:00 Dasaprakash"]);
     expect(merged.days[2].activities[2].time_slot).toBe("afternoon");
+  });
+
+  it("goes to the lighter of two days that both keep their sights in the daytime with it", () => {
+    const fatehpur = [stop("Fatehpur Sikri", "landmark", "10:00", 180)];
+    const evening = [stop("Mehtab Bagh", "park", "15:00", 60)];
+    const merged = trip([firstDay(), fatehpur, evening]);
+    expect(timed(merged.days[3])).toEqual(["08:00 Taj Mahal", "15:00 Mehtab Bagh"]);
+    expect(timed(merged.days[2])).toEqual(["10:00 Fatehpur Sikri"]);
+  });
+
+  it("puts a sight that makes way into another day with room for it at its own time", () => {
+    // A long morning at the bear rescue: the Taj Mahal can't follow it and still end by six.
+    const rescue = [stop("Agra Bear Rescue", "nature", "07:00", 480), stop("Pind Balluchi", "restaurant", "19:00", 90)];
+    const merged = trip([firstDay(), secondDay(), rescue]);
+    expect(timed(merged.days[2])).toEqual(["08:00 Taj Mahal", "11:30 Joney's Place", "13:20 Itimad-ud-Daulah", "15:40 Kinari Bazaar", "19:00 Dasaprakash"]);
+    expect(timed(merged.days[3])).toEqual(["07:00 Agra Bear Rescue", "16:00 Akbar's Tomb", "19:00 Pind Balluchi"]);
+  });
+
+  it("leaves a day as it was when making way for it would still push a meal or a sight too far", () => {
+    // Its morning sight goes on to the evening even with the afternoon's tomb gone: no day takes it.
+    const long = [stop("Fatehpur Sikri", "landmark", "08:00", 420), stop("Pind Balluchi", "restaurant", "19:00", 90)];
+    const merged = trip([firstDay(), long]);
+    expect(timed(merged.days[2])).toEqual(["08:00 Fatehpur Sikri", "19:00 Pind Balluchi"]);
+    expect(merged.days.flatMap((d) => d.activities.map((a) => a.name))).not.toContain("Taj Mahal");
   });
 
   it("goes to the day with the most room when the city has several", () => {
@@ -531,13 +551,35 @@ describe("dayWithWayBack", () => {
   const stop = (start_time: string, duration_minutes: number) =>
     ({ time_slot: "afternoon", start_time, duration_minutes, name: `Stop at ${start_time}`, type: "attraction" }) as Activity;
 
-  it("leaves after the day's last stop, wherever it sits in the list", () => {
-    const day = dayWithWayBack(back, [stop("19:00", 90), stop("10:00", 60)]);
-    expect(day.at(-1)).toMatchObject({ name: "Flight to Bangkok", start_time: "21:00", time_slot: "evening" });
+  it("leaves after the day's last stop, wherever it sits in the list, when it gets in by ten at night", () => {
+    const day = dayWithWayBack(back, [stop("15:00", 60), stop("10:00", 60)]);
+    expect(day.at(-1)).toMatchObject({ name: "Flight to Bangkok", start_time: "16:30", time_slot: "afternoon" });
+    expect(day).toHaveLength(3);
   });
-  it("leaves at five on a day with no timed stops, and by half past eleven after a late one", () => {
+  it("leaves at five on a day with no timed stops, half an hour after an early last stop", () => {
     expect(dayWithWayBack(back, []).at(-1)).toMatchObject({ start_time: "17:00", time_slot: "evening" });
     expect(dayWithWayBack(back, [stop("12:00", 60)]).at(-1)).toMatchObject({ start_time: "13:30", time_slot: "afternoon" });
-    expect(dayWithWayBack(back, [stop("23:00", 60)]).at(-1)).toMatchObject({ start_time: "23:30" });
+  });
+  // Kept plans, a week: 26 of 34 ways back left after a full last day and got in after midnight ("Train to London"
+  // at 21:05 for 4 h 30). The way back leaves in time to get in by ten; what is still on then gives way.
+  it("leaves in time to get in by ten at night, the day's later stops giving way", () => {
+    const day = dayWithWayBack(back, [stop("10:00", 60), stop("19:00", 90), stop("23:00", 60)]);
+    expect(day.map((a) => `${a.start_time} ${a.name}`)).toEqual(["10:00 Stop at 10:00", "18:40 Flight to Bangkok"]);
+    expect(day.at(-1)?.time_slot).toBe("evening");
+  });
+  it("cuts a visit still on when it must leave, when an hour and half of it remain, else lets it go", () => {
+    const day = dayWithWayBack(back, [stop("16:00", 180), stop("18:00", 90)]);
+    expect(day.map((a) => `${a.start_time} ${a.name} ${a.duration_minutes}`)).toEqual(["16:00 Stop at 16:00 130", "18:40 Flight to Bangkok 200"]);
+    // Half of it wouldn't remain, or less than an hour would: it goes.
+    expect(dayWithWayBack(back, [stop("17:00", 180)]).map((a) => a.name)).toEqual(["Flight to Bangkok"]);
+    expect(dayWithWayBack(back, [stop("17:20", 90)]).map((a) => a.name)).toEqual(["Flight to Bangkok"]);
+    // A stop with no time stays.
+    const untimed = { ...stop("10:00", 60), start_time: undefined, name: "Souvenir shopping" } as unknown as Activity;
+    expect(dayWithWayBack(back, [untimed, stop("19:00", 90)]).map((a) => a.name)).toEqual(["Souvenir shopping", "Flight to Bangkok"]);
+  });
+  it("adds no way back too long to follow a day there", () => {
+    const long = { ...back, duration_minutes: 400 } as Activity;
+    const stops = [stop("10:00", 60), stop("19:00", 90)];
+    expect(dayWithWayBack(long, stops)).toEqual(stops);
   });
 });

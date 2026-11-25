@@ -59,6 +59,30 @@ describe("createRateLimiter with Redis", () => {
   });
 });
 
+describe("a limiter counted on each server", () => {
+  it("never uses the shared store, and still stops a caller past its limit", async () => {
+    vi.resetModules();
+    const { createRateLimiter } = await import("./rate-limit");
+    const l = createRateLimiter("test-ping", 2, 60_000, { shared: false });
+    expect(await l.check(request)).toEqual({ allowed: true, remaining: 1 });
+    expect(await l.check(request)).toEqual({ allowed: true, remaining: 0 });
+    expect(await l.check(request)).toEqual({ allowed: false, remaining: 0 });
+    // Another caller has its own count.
+    expect(await l.check(request, "session-2")).toEqual({ allowed: true, remaining: 1 });
+    expect(evalMock).not.toHaveBeenCalled();
+  });
+
+  it("leaves the other limiters on the shared store", async () => {
+    evalMock.mockResolvedValue(1);
+    vi.resetModules();
+    const { createRateLimiter } = await import("./rate-limit");
+    createRateLimiter("test-ping", 2, 60_000, { shared: false });
+    await createRateLimiter("test-spend", 3, 60_000).check(request);
+    expect(evalMock).toHaveBeenCalledTimes(1);
+    expect(evalMock.mock.calls[0][1]).toEqual(["ratelimit:test-spend:203.0.113.7"]);
+  });
+});
+
 describe("checkKey", () => {
   it("counts under the key given, with no request to take an address from", async () => {
     evalMock.mockResolvedValue(3);

@@ -72,6 +72,17 @@ export const WIZARD_EVENT_STEPS = [
   // went out, with elapsed_ms how long it was open.
   "auth_google_pressed",
   "auth_modal_closed",
+  // Google's one-tap in the box (lib/auth/google-one-tap.ts): offered (Google's script loaded and asked), signed in
+  // with the tapped account, or the sign-in with it failed. With the browser's own prompt the page can't see whether
+  // it showed, so "offered" counts the asks.
+  "auth_onetap_offered",
+  "auth_onetap_signed_in",
+  "auth_onetap_failed",
+  // The card that asks a signed-out planner starting a second trip to sign in and keep both: shown, signed in
+  // from it, or "Not now".
+  "keep_both_shown",
+  "keep_both_signed_in",
+  "keep_both_dismissed",
 ] as const;
 
 export type WizardEventStep = (typeof WIZARD_EVENT_STEPS)[number];

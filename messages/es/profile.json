@@ -102,8 +102,8 @@
         "description": "Recordatorios cuando se acerca un viaje y un aviso sobre el día siguiente mientras viajas."
       },
       "collabVotes": {
-        "label": "Votos en mis viajes",
-        "description": "Un correo cuando alguien vota una actividad de uno de tus viajes."
+        "label": "Votos e imprescindibles en mis viajes",
+        "description": "Un correo cuando alguien vota una actividad de uno de tus viajes, o alguien que viene añade lo que no quiere perderse."
       },
       "marketingNotifications": {
         "label": "Novedades y actualizaciones",
@@ -132,6 +132,7 @@
       "template": {
         "invite": "Invitación a un viaje",
         "vote_cast": "Voto en tu viaje",
+        "picks_added": "Imprescindibles de alguien que viene",
         "trip_reminder": "Recordatorio de viaje",
         "trip_day_digest": "Plan del día siguiente",
         "trip_followup": "Después de tu viaje",
@@ -148,7 +149,7 @@
     "what": {
       "all": "los correos de MonkeyTravel",
       "tripReminders": "los recordatorios de viaje",
-      "collabVotes": "las notificaciones de votos",
+      "collabVotes": "los correos de votos e imprescindibles",
       "marketingNotifications": "las novedades y actualizaciones",
       "collabProposals": "los correos sobre actividades propuestas",
       "collabComments": "los correos sobre comentarios",
