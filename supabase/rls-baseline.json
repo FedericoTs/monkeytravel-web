@@ -831,6 +831,13 @@
     "rls_enabled": true
   },
   {
+    "table": "experiment_exposures",
+    "grants": {},
+    "policies": [],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
     "table": "fcdo_advisory_cache",
     "grants": {
       "anon": [
