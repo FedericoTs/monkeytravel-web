@@ -701,30 +701,20 @@
   },
   "editActivity": {
     "moveToDay": "Move to day",
-
     "moveToAnotherDay": "Move to another day…",
-
     "moveSheetTitle": "Move to which day?",
-
     "currentDay": "Current day",
-
     "emptyDay": "Nothing planned yet",
-
     "activityCount": "{count, plural, one {# activity} other {# activities}}",
-
     "movedToDay": "Moved to Day {day}",
     "removed": "Removed \"{name}\"",
     "regenerated": "Replaced with \"{name}\"",
     "madeRoom": "{count, plural, one {The stop after it now starts later} other {# stops after it now start later}}, to make room",
     "overlap": "Overlaps “{name}” by {duration}",
     "makeRoom": "Make room",
-
     "dropHere": "Drop here → start of Day {day}",
-
     "dropIntoEmptyDay": "Drop an activity here",
-
     "dropAtEnd": "Drop here → end of the day",
-
     "moreActions": "More actions",
     "editActivity": "Edit activity",
     "regenerateWithAI": "Regenerate with AI",
@@ -867,18 +857,6 @@
     "liveData": "Live Data",
     "rainyDays": "~{count, plural, one {# rainy day} other {# rainy days}} expected",
     "holidaysAndEvents": "Holidays & Events",
-    "suggestedVibes": "Suggested vibes for this season",
-    "vibesHint": "These are suggestions based on the season. Select your vibes in the next step.",
-    "vibeReasons": {
-      "christmas": "Perfect for Christmas markets and winter wonderland vibes",
-      "festival": "Experience local festivals and celebrations",
-      "valentine": "Ideal for romantic getaways",
-      "spring": "Cherry blossoms and spring blooms await",
-      "summer": "Great weather for outdoor activities",
-      "autumnFoodie": "Harvest season with amazing local produce",
-      "autumnRetro": "Cozy vintage cafes and autumn colors",
-      "winter": "Perfect for spa retreats and cozy escapes"
-    },
     "weatherFallback": {
       "tropicalWet": "Wet season with afternoon showers, humid",
       "tropicalDry": "Dry season with warm temperatures",

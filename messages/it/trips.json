@@ -701,30 +701,20 @@
   },
   "editActivity": {
     "moveToDay": "Sposta al giorno",
-
     "moveToAnotherDay": "Sposta in un altro giorno…",
-
     "moveSheetTitle": "In quale giorno?",
-
     "currentDay": "Giorno attuale",
-
     "emptyDay": "Ancora niente in programma",
-
     "activityCount": "{count, plural, one {# attività} other {# attività}}",
-
     "movedToDay": "Spostata al giorno {day}",
     "removed": "Rimossa: \"{name}\"",
     "regenerated": "Sostituita con \"{name}\"",
     "madeRoom": "{count, plural, one {La tappa successiva ora inizia più tardi} other {Le # tappe successive ora iniziano più tardi}}, per fare spazio",
     "overlap": "Si sovrappone a «{name}» per {duration}",
     "makeRoom": "Fai spazio",
-
     "dropHere": "Rilascia qui → inizio del giorno {day}",
-
     "dropIntoEmptyDay": "Rilascia qui un'attività",
-
     "dropAtEnd": "Rilascia qui → fine della giornata",
-
     "moreActions": "Altre azioni",
     "editActivity": "Modifica attività",
     "regenerateWithAI": "Rigenera con AI",
@@ -867,18 +857,6 @@
     "liveData": "Dati in tempo reale",
     "rainyDays": "~{count, plural, one {# giorno di pioggia previsto} other {# giorni di pioggia previsti}}",
     "holidaysAndEvents": "Festività ed eventi",
-    "suggestedVibes": "Atmosfere suggerite per questa stagione",
-    "vibesHint": "Sono suggerimenti basati sulla stagione. Sceglierai le tue atmosfere nel prossimo step.",
-    "vibeReasons": {
-      "christmas": "Perfetto per i mercatini di Natale e l'atmosfera invernale da favola",
-      "festival": "Vivi i festival e le celebrazioni locali",
-      "valentine": "Ideale per una fuga romantica",
-      "spring": "Ciliegi in fiore e fioriture primaverili ti aspettano",
-      "summer": "Clima perfetto per attività all'aria aperta",
-      "autumnFoodie": "Stagione del raccolto con prodotti locali eccezionali",
-      "autumnRetro": "Caffè vintage accoglienti e colori autunnali",
-      "winter": "Ideale per ritiri termali e fughe accoglienti"
-    },
     "weatherFallback": {
       "tropicalWet": "Stagione delle piogge con acquazzoni pomeridiani, umido",
       "tropicalDry": "Stagione secca con temperature calde",

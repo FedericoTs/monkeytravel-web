@@ -701,30 +701,20 @@
   },
   "editActivity": {
     "moveToDay": "Mover al día",
-
     "moveToAnotherDay": "Mover a otro día…",
-
     "moveSheetTitle": "¿A qué día lo movemos?",
-
     "currentDay": "Día actual",
-
     "emptyDay": "Nada planeado todavía",
-
     "activityCount": "{count, plural, one {# actividad} other {# actividades}}",
-
     "movedToDay": "Movido al día {day}",
     "removed": "Eliminada: \"{name}\"",
     "regenerated": "Cambiada por \"{name}\"",
     "madeRoom": "{count, plural, one {La parada siguiente ahora empieza más tarde} other {Las # paradas siguientes ahora empiezan más tarde}}, para hacer sitio",
     "overlap": "Se solapa con «{name}» {duration}",
     "makeRoom": "Hacer sitio",
-
     "dropHere": "Suelta aquí → inicio del día {day}",
-
     "dropIntoEmptyDay": "Suelta una actividad aquí",
-
     "dropAtEnd": "Suelta aquí → final del día",
-
     "moreActions": "Más acciones",
     "editActivity": "Editar actividad",
     "regenerateWithAI": "Regenerar con AI",
@@ -867,18 +857,6 @@
     "liveData": "Datos en vivo",
     "rainyDays": "~{count, plural, one {# día de lluvia previsto} other {# días de lluvia previstos}}",
     "holidaysAndEvents": "Festividades y eventos",
-    "suggestedVibes": "Estilos sugeridos para esta temporada",
-    "vibesHint": "Son sugerencias basadas en la temporada. Elegirás tus estilos en el siguiente paso.",
-    "vibeReasons": {
-      "christmas": "Perfecto para los mercados navideños y el ambiente invernal de cuento",
-      "festival": "Vive los festivales y celebraciones locales",
-      "valentine": "Ideal para una escapada romántica",
-      "spring": "Cerezos en flor y floraciones primaverales te esperan",
-      "summer": "Clima ideal para actividades al aire libre",
-      "autumnFoodie": "Temporada de cosecha con productos locales increíbles",
-      "autumnRetro": "Cafés vintage acogedores y colores otoñales",
-      "winter": "Perfecto para retiros de spa y escapadas acogedoras"
-    },
     "weatherFallback": {
       "tropicalWet": "Temporada de lluvias con chubascos por la tarde, húmedo",
       "tropicalDry": "Temporada seca con temperaturas cálidas",
