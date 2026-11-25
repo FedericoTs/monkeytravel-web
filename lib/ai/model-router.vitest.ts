@@ -33,7 +33,7 @@ describe("GEMINI_MODEL_OVERRIDE", () => {
   it("switches every purpose to a known model, later ones included", () => {
     process.env.GEMINI_MODEL_OVERRIDE = "gemini-3.5-flash-lite";
     expect(getModelForPurpose("trip-generation")).toBe("gemini-3.5-flash-lite");
-    expect(getModelForPurpose("concierge")).toBe("gemini-3.5-flash-lite");
+    expect(getModelForPurpose("activity-regenerate")).toBe("gemini-3.5-flash-lite");
   });
 
   it("ignores an unknown model", () => {
@@ -55,7 +55,6 @@ describe("the models in use", () => {
     "trip-generation",
     "day-regenerate",
     "activity-regenerate",
-    "concierge",
     "packing-list",
     "email-parser",
     "trip-title",
