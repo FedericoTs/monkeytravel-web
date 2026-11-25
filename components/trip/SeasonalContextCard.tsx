@@ -4,30 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslations, useLocale as useNextIntlLocale } from "next-intl";
 import { sentryException } from "@/lib/observability/sentry";
 import { SeasonalContext } from "@/types";
-import {
-  buildSeasonalContext,
-  SEASON_EMOJI,
-  getSeasonalVibeSuggestions,
-  SeasonalVibeSuggestion,
-} from "@/lib/seasonal";
+import { buildSeasonalContext, SEASON_EMOJI } from "@/lib/seasonal";
 import { useLocale, formatTemperatureRange } from "@/lib/locale";
 import { isPlausibleTripRange } from "@/lib/dates/iso-date";
 import { formatDateRange } from "@/lib/datetime";
-
-// The seasonal lib emits English `reason` strings (it's a pure-data lib with
-// no i18n coupling). We map those well-known strings back to translation keys
-// so the displayed tooltip respects the active locale. Mirrors the same
-// pattern used elsewhere when localizing strings produced by data-only libs.
-const VIBE_REASON_KEY_BY_ENGLISH: Record<string, string> = {
-  "Perfect for Christmas markets and winter wonderland vibes": "christmas",
-  "Experience local festivals and celebrations": "festival",
-  "Ideal for romantic getaways": "valentine",
-  "Cherry blossoms and spring blooms await": "spring",
-  "Great weather for outdoor activities": "summer",
-  "Harvest season with amazing local produce": "autumnFoodie",
-  "Cozy vintage cafes and autumn colors": "autumnRetro",
-  "Perfect for spa retreats and cozy escapes": "winter",
-};
 
 // One weather request per settled edit, not one per keystroke. The day digits
 // of a valid date are valid dates too (2026-10-03 on the way to 2026-10-30);
@@ -71,7 +51,6 @@ export default function SeasonalContextCard({
   const { preferences } = useLocale();
   // next-intl translator + active locale for date formatting.
   const t = useTranslations("trips.seasonalContext");
-  const tVibes = useTranslations("common.vibes.types");
   const locale = useNextIntlLocale();
 
   // Fetch weather data from API.
@@ -139,36 +118,11 @@ export default function SeasonalContextCard({
     };
   }, [coordinates, startDate, endDate]);
 
-  const { seasonalContext, vibeSuggestions } = useMemo<{
-    seasonalContext: SeasonalContext | null;
-    vibeSuggestions: SeasonalVibeSuggestion[];
-  }>(() => {
-    if (!destination || !startDate) return { seasonalContext: null, vibeSuggestions: [] };
-
-    // Build seasonal context with latitude for accurate hemisphere detection.
-    // endDate keeps the holidays to the ones inside the trip.
-    const context = buildSeasonalContext(
-      destination,
-      startDate,
-      coordinates?.latitude, // Pass latitude for correct hemisphere (fixes Southern Hemisphere bug)
-      endDate || undefined
-    );
-
-    // Get vibe suggestions based on season and holidays.
-    // Parse YYYY-MM-DD as local: `new Date(iso)` is UTC midnight, which west
-    // of UTC is the day before, so the 1st would count in the previous month.
-    const localStart = (() => {
-      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(startDate);
-      if (!m) return new Date(startDate);
-      return new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
-    })();
-    const month = localStart.getMonth() + 1;
-    const suggestions = getSeasonalVibeSuggestions(
-      context.season,
-      context.holidays,
-      month
-    );
-    return { seasonalContext: context, vibeSuggestions: suggestions };
+  // The season, crowds and holidays of the trip's dates. Styles are suggested on step 2 only, which offers them.
+  const seasonalContext = useMemo<SeasonalContext | null>(() => {
+    if (!destination || !startDate) return null;
+    // Latitude for the right hemisphere; endDate keeps the holidays to the ones inside the trip.
+    return buildSeasonalContext(destination, startDate, coordinates?.latitude, endDate || undefined);
   }, [destination, startDate, endDate, coordinates]);
 
   if (!seasonalContext || !destination || !startDate) {
@@ -328,51 +282,6 @@ export default function SeasonalContextCard({
                 ))}
               </div>
             </div>
-          </div>
-        )}
-
-        {/* Vibe Suggestions - Non-clickable informational chips */}
-        {vibeSuggestions.length > 0 && (
-          <div className="pt-3 border-t border-slate-100">
-            <div className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">
-              {t("suggestedVibes")}
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {vibeSuggestions.map((suggestion) => {
-                // Reuse the canonical localized vibe label from common.vibes.types
-                // (the same labels the wizard chip-picker shows) instead of
-                // building a label from the raw vibeId. Fallback to a humanized
-                // vibeId if the catalog ever drifts ahead of translations.
-                let vibeLabel: string;
-                try {
-                  vibeLabel = tVibes(`${suggestion.vibeId}.label`);
-                } catch {
-                  vibeLabel =
-                    suggestion.vibeId.charAt(0).toUpperCase() +
-                    suggestion.vibeId.slice(1).replace("-", " ");
-                }
-                const reasonKey = VIBE_REASON_KEY_BY_ENGLISH[suggestion.reason];
-                const reasonText = reasonKey
-                  ? t(`vibeReasons.${reasonKey}`)
-                  : suggestion.reason; // safety net for future reasons
-                return (
-                  <div
-                    key={suggestion.vibeId}
-                    className="group relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-50 to-violet-50 border border-purple-100 cursor-default"
-                  >
-                    <span className="text-sm font-medium text-purple-700">{vibeLabel}</span>
-                    {/* Tooltip on hover */}
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-                      {reasonText}
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            <p className="text-[10px] text-slate-500 mt-2 italic">
-              {t("vibesHint")}
-            </p>
           </div>
         )}
       </div>

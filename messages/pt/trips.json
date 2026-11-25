@@ -701,30 +701,20 @@
   },
   "editActivity": {
     "moveToDay": "Mover para o dia",
-
     "moveToAnotherDay": "Mover para outro dia…",
-
     "moveSheetTitle": "Para qual dia?",
-
     "currentDay": "Dia atual",
-
     "emptyDay": "Nada planejado ainda",
-
     "activityCount": "{count, plural, one {# atividade} other {# atividades}}",
-
     "movedToDay": "Movida para o dia {day}",
     "removed": "Removida: \"{name}\"",
     "regenerated": "Trocada por \"{name}\"",
     "madeRoom": "{count, plural, one {A parada seguinte agora começa mais tarde} other {As # paradas seguintes agora começam mais tarde}}, para dar espaço",
     "overlap": "Sobrepõe-se a «{name}» em {duration}",
     "makeRoom": "Abrir espaço",
-
     "dropHere": "Solte aqui → início do dia {day}",
-
     "dropIntoEmptyDay": "Solte uma atividade aqui",
-
     "dropAtEnd": "Solte aqui → fim do dia",
-
     "moreActions": "Mais ações",
     "editActivity": "Editar atividade",
     "regenerateWithAI": "Gerar novamente com AI",
@@ -867,18 +857,6 @@
     "liveData": "Dados ao vivo",
     "rainyDays": "~{count, plural, one {# dia de chuva previsto} other {# dias de chuva previstos}}",
     "holidaysAndEvents": "Feriados e eventos",
-    "suggestedVibes": "Climas sugeridos para esta estação",
-    "vibesHint": "São sugestões baseadas na estação. Você escolherá seus climas na próxima etapa.",
-    "vibeReasons": {
-      "christmas": "Perfeito para mercados de Natal e o clima mágico de inverno",
-      "festival": "Vivencie festivais e celebrações locais",
-      "valentine": "Ideal para escapadas românticas",
-      "spring": "Cerejeiras em flor e a primavera te esperam",
-      "summer": "Clima ótimo para atividades ao ar livre",
-      "autumnFoodie": "Temporada de colheita com produtos locais incríveis",
-      "autumnRetro": "Cafés vintage aconchegantes e as cores do outono",
-      "winter": "Perfeito para retiros de spa e escapadas aconchegantes"
-    },
     "weatherFallback": {
       "tropicalWet": "Estação chuvosa com pancadas à tarde, tempo úmido",
       "tropicalDry": "Estação seca com temperaturas quentes",
