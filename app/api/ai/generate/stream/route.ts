@@ -39,6 +39,7 @@ import { knownPlacesFor, knownPlacesUsed, type KnownPlace } from "@/lib/ai/known
 import { keepOffClosingDays } from "@/lib/ai/closing-days";
 import { keepInsideHours } from "@/lib/ai/visit-hours";
 import { askForDinners, daysWithoutDinner, dinnersLeftTogether, placesToEat, withDinners } from "@/lib/ai/dinners";
+import { eatsEarly } from "@/lib/ai/meal-hours";
 import { askForReplacements, repeatedRestaurants, withReplacements } from "@/lib/ai/repeated-meals";
 import { askForSights, repeatedSights, sightNames, withSightReplacements } from "@/lib/ai/repeated-sights";
 import { askForLunches, daysWithoutLunch, withLunches } from "@/lib/ai/lunches";
@@ -381,7 +382,7 @@ export async function POST(request: NextRequest) {
       //     date it could go to is swapped for an open place (lib/ai/closed-swaps.ts).
       //     A full day the plan left without dinner gets one, asked for meanwhile
       //     so the plan isn't slower (lib/ai/dinners.ts).
-      const dinnersWanted = daysWithoutDinner(finalItinerary.days, params.destination);
+      const dinnersWanted = daysWithoutDinner(finalItinerary.days, params.destination, eatsEarly(params));
       const mealOptions = {
         budgetTier: params.budgetTier,
         diets: profilePreferences.dietaryPreferences,
@@ -416,7 +417,7 @@ export async function POST(request: NextRequest) {
       //     The days can have moved: a first or last day, planned without lunch or dinner, now in
       //     the middle of the trip. Its lunch and dinner are asked for now, together; nothing is
       //     asked when none moved.
-      const movedDinnersWanted = daysWithoutDinner(finalItinerary.days, params.destination).filter(
+      const movedDinnersWanted = daysWithoutDinner(finalItinerary.days, params.destination, eatsEarly(params)).filter(
         (day) => !dinnersWanted.some((asked) => asked.after === day.after)
       );
       const movedDinnersAsked = askForDinners(movedDinnersWanted, mealOptions);

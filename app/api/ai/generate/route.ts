@@ -31,6 +31,7 @@ import { knownPlacesFor } from "@/lib/ai/known-places";
 import { keepOffClosingDays, keepOffClosingDaysByCity } from "@/lib/ai/closing-days";
 import { keepInsideHours } from "@/lib/ai/visit-hours";
 import { askForDinners, daysWithoutDinner, placesToEat, withDinners } from "@/lib/ai/dinners";
+import { eatsEarly } from "@/lib/ai/meal-hours";
 import { askForReplacements, repeatedRestaurants, withReplacements } from "@/lib/ai/repeated-meals";
 import { askForSights, repeatedSights, sightNames, withSightReplacements } from "@/lib/ai/repeated-sights";
 import { askForLunches, daysWithoutLunch, withLunches } from "@/lib/ai/lunches";
@@ -303,7 +304,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     // restaurant named again on a later day gets another (lib/ai/repeated-meals.ts),
     // and a sight visited again on another day another of its kind
     // (lib/ai/repeated-sights.ts): all asked at once, the dinners put in first.
-    const dinnersWanted = daysWithoutDinner(itinerary.days, params.destination);
+    const dinnersWanted = daysWithoutDinner(itinerary.days, params.destination, eatsEarly(params));
     const repeatsWanted = repeatedRestaurants(itinerary.days, params.destination);
     const sightsWanted = repeatedSights(itinerary.days, params.destination, named);
     const mealOptions = {

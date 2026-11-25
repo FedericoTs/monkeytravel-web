@@ -3,9 +3,9 @@
  * some: a family trip to Kyoto in the benchmark had none on any of its three full days. So each full day without an
  * evening meal gets one: a real restaurant near the day's last place, from one short question for all such days,
  * asked beside the closing-day question so the plan isn't slower. The answer goes in once the days are final, after
- * the place it was chosen near: half an hour after that place's visit ends, not before 18:30. A restaurant that
- * isn't a real place near it, one the plan already holds, or one that would start after 21:00 is left out, and the
- * day stays as it was.
+ * the place it was chosen near: half an hour after that place's visit ends, not before dinner starts there (from 18:30,
+ * later in Spain and southern Europe: lib/ai/meal-hours.ts). A restaurant that isn't a real place near it, one the plan
+ * already holds, or one that would start after the latest dinner hour there is left out, and the day stays as it was.
  */
 import { SchemaType, type ResponseSchema } from "@/lib/ai/genai-compat";
 import { genAI, withTimeout } from "@/lib/ai/gemini-call";
@@ -19,13 +19,11 @@ import { isRealPoint } from "@/lib/trip/placeholder-point";
 import { haversineKm } from "@/lib/map/geo";
 import { formatMinutesToTime } from "@/lib/datetime/format";
 import type { Activity, BudgetTier } from "@/types";
+import { dinnerHours, type DinnerHours } from "./meal-hours";
 
 type Stop = Partial<Activity> & { name?: string; type?: string; start_time?: string; duration_minutes?: number };
 type Day = { day_number?: number; date?: string; city?: string; activities?: Stop[] };
 
-/** The earliest a dinner goes in, and the latest it may start. */
-const EARLIEST = 18 * 60 + 30;
-const LATEST = 21 * 60;
 /** From the end of the day's last visit to dinner. */
 const AFTER_MINUTES = 30;
 const DINNER_MINUTES = 90;
@@ -49,12 +47,17 @@ export interface DinnerWanted {
   at: { lat: number; lng: number };
   date: string;
   city: string;
+  /** When dinner can start there (lib/ai/meal-hours.ts). */
+  hours: DinnerHours;
 }
 
 const isEveningMeal = (stop: Stop) => isMealStop(stop) && (minutesOf(stop.start_time) ?? 0) >= 17 * 60;
 
-/** The full days (not the plan's first or last) with no meal from 17:00, each with the place dinner goes after. */
-export function daysWithoutDinner(days: Day[], destination: string): DinnerWanted[] {
+/**
+ * The full days (not the plan's first or last) with no meal from 17:00, each with the place dinner goes after and the
+ * dinner hours there; a family that eats early (eatsEarly) has the usual ones.
+ */
+export function daysWithoutDinner(days: Day[], destination: string, early = false): DinnerWanted[] {
   return days.flatMap((day, i) => {
     const stops = day.activities ?? [];
     if (i === 0 || i === days.length - 1 || !day.date || stops.length === 0 || stops.some(isEveningMeal)) return [];
@@ -64,7 +67,8 @@ export function daysWithoutDinner(days: Day[], destination: string): DinnerWante
       .sort((a, b) => (minutesOf(a.start_time) ?? 0) - (minutesOf(b.start_time) ?? 0))
       .at(-1);
     if (!last?.name || !last.coordinates) return [];
-    return [{ after: last.name, at: { lat: last.coordinates.lat, lng: last.coordinates.lng }, date: day.date, city: day.city || destination }];
+    const at = { lat: last.coordinates.lat, lng: last.coordinates.lng };
+    return [{ after: last.name, at, date: day.date, city: day.city || destination, hours: dinnerHours(at, early) }];
   }).slice(0, MAX_DAYS);
 }
 
@@ -113,11 +117,17 @@ export function placesToEat(days: Day[]): string[] {
 
 type DinnerOptions = { budgetTier?: BudgetTier; diets?: string[]; language: SupportedLanguage; taken?: string[] };
 
-/** The question: the evenings, where each day ends, the budget and diets, and the places the plan already eats at. */
+/**
+ * The question: the evenings, from when dinner can start, where each day ends, the budget and diets, and the places
+ * the plan already eats at.
+ */
 export function dinnerQuestion(wanted: DinnerWanted[], opts: DinnerOptions): string {
   return [
-    "Name one real restaurant for dinner on each of these evenings, within a short walk or ride of the place the day ends at, open for dinner on that date:",
-    ...wanted.map((w, i) => `${i + 1}. ${w.city}, ${w.date}: the day ends at ${w.after} (${w.at.lat.toFixed(5)}, ${w.at.lng.toFixed(5)})`),
+    "Name one real restaurant for dinner on each of these evenings, within a short walk or ride of the place the day ends at, serving dinner on that date from the hour given:",
+    ...wanted.map(
+      (w, i) =>
+        `${i + 1}. ${w.city}, ${w.date}, dinner from ${formatMinutesToTime(w.hours.from)}: the day ends at ${w.after} (${w.at.lat.toFixed(5)}, ${w.at.lng.toFixed(5)})`
+    ),
     "",
     `Each one ${BUDGET_WORDS[opts.budgetTier ?? "balanced"]}${opts.diets?.length ? `, with good choices for a ${opts.diets.join(" and ")} diet` : ""}, and a different restaurant each evening.`,
     ...(opts.taken?.length ? [`None the plan already has: ${opts.taken.join("; ")}.`] : []),
@@ -169,8 +179,8 @@ export async function askForDinners(wanted: DinnerWanted[], opts: DinnerOptions)
 
 /**
  * Why a day asked about still has no dinner: no answer named it, the place it was chosen near is gone from the plan,
- * the dinner would start after 21:00, the answer is no real place (no name, no pin), is farther than 5 km from that
- * place, or is a place the plan already holds.
+ * the dinner would start after the latest dinner hour there, the answer is no real place (no name, no pin), is
+ * farther than 5 km from that place, or is a place the plan already holds.
  */
 export type DinnerLeftOut = "unanswered" | "gone" | "late" | "unreal" | "far" | "taken";
 
@@ -188,8 +198,9 @@ export function dinnersLeftTogether(...lefts: DinnersLeft[]): DinnersLeft {
 
 /**
  * The days with each answered dinner after the place it was chosen near, wherever that place now is: half an hour
- * after its visit ends, not before 18:30, as a restaurant. Left out when it isn't a real place within 5 km of that
- * place, the plan already holds it, it would start after 21:00, or the day has an evening meal by now. `left` says,
+ * after its visit ends, not before dinner starts there, as a restaurant. Left out when it isn't a real place within
+ * 5 km of that place, the plan already holds it, it would start after the latest dinner hour there, or the day has an
+ * evening meal by now. `left` says,
  * for the days asked about that still have none, why. Pure.
  */
 export function withDinners<D extends Day>(
@@ -218,8 +229,8 @@ export function withDinners<D extends Day>(
     }
     const anchor = (out[at].activities ?? []).find((s) => s.name === want.after)!;
     const ends = (minutesOf(anchor.start_time) ?? 0) + (anchor.duration_minutes || 60);
-    const start = Math.ceil(Math.max(EARLIEST, ends + AFTER_MINUTES) / 15) * 15;
-    if (start > LATEST) {
+    const start = Math.ceil(Math.max(want.hours.from, ends + AFTER_MINUTES) / 15) * 15;
+    if (start > want.hours.by) {
       turnedAway("late");
       continue;
     }

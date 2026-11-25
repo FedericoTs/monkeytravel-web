@@ -117,12 +117,12 @@ vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
 
 const { POST } = await import("./route");
 
-const complete = async () => {
+const complete = async (extra: Record<string, unknown> = {}) => {
   const res = await POST(
     new NextRequest("http://localhost/api/ai/generate/stream", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ destination: "Seville, Spain", startDate: "2026-11-28", endDate: "2026-11-30", vibes: ["cultural"] }),
+      body: JSON.stringify({ destination: "Seville, Spain", startDate: "2026-11-28", endDate: "2026-11-30", vibes: ["cultural"], ...extra }),
     })
   );
   const events = (await res.text()).split("\n\n").filter(Boolean);
@@ -151,13 +151,19 @@ describe("a day the closing days move into the middle of the trip", () => {
     // The museum's day goes to the Sunday, and the Sunday's to the Monday, as the closing days order them.
     expect(out).toEqual([
       "2026-11-28: 09:30 Real Alcázar, 13:00 Bodega Santa Cruz, 15:00 Catedral de Sevilla, 20:00 Eslava",
-      "2026-11-29: 10:00 Museo de Bellas Artes, 12:30 La Azotea, 14:30 Metropol Parasol, 18:30 Bar Antojo",
+      "2026-11-29: 10:00 Museo de Bellas Artes, 12:30 La Azotea, 14:30 Metropol Parasol, 20:30 Bar Antojo",
       "2026-11-30: 09:30 Plaza de España, 13:00 Casa Morales, 15:00 Parque de María Luisa, 20:00 El Rinconcillo",
     ]);
     // Asked for that day alone, on its new date, twice at once as every dinner question is.
     expect(dinnerQuestions).toHaveLength(2);
-    expect(dinnerQuestions[0]).toContain("1. Seville, Spain, 2026-11-29: the day ends at Metropol Parasol");
+    expect(dinnerQuestions[0]).toContain("1. Seville, Spain, 2026-11-29, dinner from 20:30: the day ends at Metropol Parasol");
     expect(dinnerQuestions[0]).not.toContain("2.");
+  });
+
+  it("has it at 18:30 for a family with a toddler, at a place open then", async () => {
+    const out = await complete({ tripIntent: "family", childrenAges: ["under3"] });
+    expect(out[1]).toBe("2026-11-29: 10:00 Museo de Bellas Artes, 12:30 La Azotea, 14:30 Metropol Parasol, 18:30 Bar Antojo");
+    expect(dinnerQuestions[0]).toContain("1. Seville, Spain, 2026-11-29, dinner from 18:30: the day ends at Metropol Parasol");
   });
 
   it("logs the day among those without dinner, as found after the move, with the questions in the plan's cost", async () => {
