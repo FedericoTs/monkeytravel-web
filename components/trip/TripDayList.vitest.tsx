@@ -440,6 +440,16 @@ describe("while editing", () => {
     expect(screen.getByRole("button", { name: "add to index 1 in Paris, France" })).toBeTruthy();
   });
 
+  it("a day of a trip through several cities takes new places from its own city", () => {
+    const cities = ["Lisbon", "Porto", ""];
+    const days = threeDays().map((day, i) => ({ ...day, city: cities[i] }));
+    show({ ...editing, days, destination: "Lisbon, Porto & Lagos" });
+    expect(screen.getByRole("button", { name: "add to index 0 in Lisbon" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "add to index 1 in Porto" })).toBeTruthy();
+    // A day the plan gave no city searches the whole trip, as before.
+    expect(screen.getByRole("button", { name: "add to index 2 in Lisbon, Porto & Lagos" })).toBeTruthy();
+  });
+
   it("the day's badge turns amber in edit mode, not while editing inline", () => {
     show(editing);
     expect(dayBox(1).querySelector(".from-amber-500")).toBeTruthy();

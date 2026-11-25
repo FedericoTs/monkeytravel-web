@@ -42,3 +42,14 @@ export function getTripDestination(trip: {
   const stripped = title.replace(/ Trip$/i, "").trim();
   return stripped || title;
 }
+
+/**
+ * Where places for one day are searched. A day of a trip through several
+ * cities carries its own city: searching the whole route ("Lisbon, Porto &
+ * Lagos") matches none of the places already planned, and Google's answer
+ * mixes every city on it. Days of a one-city trip have no city of their own
+ * and search the trip's destination.
+ */
+export function placeOfDay(day: { city?: string | null } | null | undefined, tripDestination: string): string {
+  return day?.city?.trim() || tripDestination;
+}

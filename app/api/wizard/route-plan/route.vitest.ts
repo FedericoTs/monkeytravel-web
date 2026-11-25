@@ -14,6 +14,7 @@ const s = vi.hoisted(() => ({
   burstAllowed: true,
   open: true,
   logged: [] as Array<{ status: number; costUsd: number; metadata?: unknown; error?: unknown }>,
+  limits: {} as Record<string, { max: number; windowMs: number }>,
 }));
 
 vi.mock("@/lib/ai/route-plan", async (importOriginal) => {
@@ -33,9 +34,12 @@ vi.mock("@/lib/api-gateway", () => ({
   },
 }));
 vi.mock("@/lib/api/rate-limit", () => ({
-  createRateLimiter: (name: string) => ({
-    check: async () => ({ allowed: name.endsWith("burst") ? s.burstAllowed : s.allowed, remaining: 1 }),
-  }),
+  createRateLimiter: (name: string, max: number, windowMs: number) => {
+    s.limits[name] = { max, windowMs };
+    return {
+      check: async () => ({ allowed: name.endsWith("burst") ? s.burstAllowed : s.allowed, remaining: 1 }),
+    };
+  },
 }));
 vi.mock("@vercel/functions", () => ({ waitUntil: (p: Promise<unknown>) => void p }));
 
@@ -113,6 +117,12 @@ describe("asking a route", () => {
       { status: 429, error: "burst" },
       { status: 429, error: "daily cap (per IP)" },
     ]);
+  });
+
+  // Step 1 asks each time typing pauses, and refused asks count too.
+  it("leaves room for a place typed slowly: 12 asks a minute, 40 a day", () => {
+    expect(s.limits["route-plan-burst"]).toEqual({ max: 12, windowMs: 60 * 1000 });
+    expect(s.limits["route-plan"]).toEqual({ max: 40, windowMs: 24 * 60 * 60 * 1000 });
   });
 
   it("answers unavailable while the model is switched off", async () => {

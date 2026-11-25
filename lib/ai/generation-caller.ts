@@ -11,7 +11,7 @@ import { requestLocale, type SupportedLanguage } from "@/lib/ai/language";
 import { withTripDiet } from "@/lib/trips/diet";
 import { daylightFor, readCoordinates } from "@/lib/ai/daylight";
 import { whatsOn } from "@/lib/ai/whats-on";
-import { cityPointsFor } from "@/lib/ai/city-points";
+import { placePointFor } from "@/lib/ai/place-point";
 import { cleanStayName } from "@/lib/trips/stay";
 import type { TripCreationParams, UserProfilePreferences } from "@/types";
 import { childAgeBands, isArrival, isChosenTripIntent, isDeparture, isOccasion } from "@/lib/wizard/answers";
@@ -219,16 +219,16 @@ function withWhatsOn(body: Record<string, unknown>): Pick<TripCreationParams, "w
 
 /**
  * A one-place trip typed and not picked sends no point, so it had no sunrise
- * and sunset and wasn't told what's on. Its point comes from the cities table
- * a route's cities already use (lib/ai/city-points.ts), for a bare name only:
- * "Paris, Texas" typed by hand would find Paris, France.
+ * and sunset and wasn't told what's on. Its point is the curated destination of
+ * that name, else the cities table's (lib/ai/place-point.ts), for a bare name
+ * only: "Paris, Texas" typed by hand would find Paris, France.
  */
 export async function withTypedPlace(params: TripCreationParams, body: Record<string, unknown>): Promise<TripCreationParams> {
   if (readCoordinates(body.destinationCoords)) return params;
   if (Array.isArray(body.destinations) && body.destinations.length > 1) return params;
   const name = typeof params.destination === "string" ? params.destination.trim() : "";
   if (!name || name.includes(",")) return params;
-  const [point] = await cityPointsFor([name]);
+  const point = await placePointFor(name);
   if (!point) return params;
   const daylight = daylightFor(point, params.startDate, params.endDate);
   const on = whatsOn(point, params.startDate, params.endDate);

@@ -38,6 +38,7 @@ import { segmentBetween, type useTravelDistances } from "@/hooks/useTravelDistan
 import { useCurrency } from "@/lib/locale";
 import type { TimelineItem } from "@/lib/proposals/timeline";
 import { dayBudgetLabel, showsDayBudget } from "@/lib/trip/day-budget";
+import { placeOfDay } from "@/lib/trips/destination";
 import type { Activity, ItineraryDay } from "@/types";
 import { calculateNextTimeSlot, isFixed, overlapMinutes } from "@/lib/utils/activity-id";
 
@@ -402,7 +403,7 @@ function TripDay({
             <div className="mt-4 ml-6">
               <AddActivityButton
                 dayIndex={dayIndex}
-                destination={destination}
+                destination={placeOfDay(day, destination)}
                 onAdd={(partialActivity) => onAddActivity(dayIndex, partialActivity)}
                 suggestedTime={calculateNextTimeSlot(day)}
               />
