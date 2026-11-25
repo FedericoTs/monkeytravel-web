@@ -6,15 +6,14 @@ import itCommon from "@/messages/it/common.json";
 import enCommon from "@/messages/en/common.json";
 
 /**
- * The profile in the page's language: the languages someone speaks, sharing their
- * invite link, and the answer when their data can't be exported again today.
- * What's stored stays as it was: languages by their English names.
+ * The profile in the page's language: the languages someone speaks, and the
+ * answer when their data can't be exported again today. What's stored stays as
+ * it was: languages by their English names.
  */
 
 const s = vi.hoisted(() => ({
   toasts: [] as Array<[string, string]>,
   writes: [] as Array<Record<string, unknown>>,
-  onShare: null as null | (() => Promise<void>),
 }));
 
 vi.mock("@/lib/i18n/routing", () => ({
@@ -27,12 +26,6 @@ vi.mock("@/components/ui/Toast", () => ({
 vi.mock("@/components/ui/MobileBottomNav", () => ({ default: () => null }));
 vi.mock("@/components/profile/DeleteAccountModal", () => ({ default: () => null }));
 vi.mock("@/components/beta", () => ({ BetaCodeInput: () => null }));
-vi.mock("@/components/bananas", () => ({
-  ReferralDashboard: ({ onShare }: { onShare: () => Promise<void> }) => {
-    s.onShare = onShare;
-    return null;
-  },
-}));
 vi.mock("@/lib/supabase/client", () => ({
   createClient: () => ({
     from: () => ({
@@ -105,8 +98,7 @@ let fetchMock: ReturnType<typeof vi.fn>;
 beforeEach(() => {
   s.toasts.length = 0;
   s.writes.length = 0;
-  s.onShare = null;
-  fetchMock = vi.fn(async () => Response.json({ code: "ABC" }));
+  fetchMock = vi.fn(async () => Response.json({}));
   vi.stubGlobal("fetch", fetchMock);
   vi.spyOn(console, "error").mockImplementation(() => {});
 });
@@ -114,7 +106,6 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
-  vi.unstubAllEnvs();
   vi.restoreAllMocks();
   vi.useRealTimers();
 });
@@ -140,58 +131,6 @@ describe("the languages someone speaks", () => {
     fireEvent.click(screen.getByRole("button", { name: "German" }));
     await act(() => vi.advanceTimersByTimeAsync(300));
     expect(s.writes).toEqual([{ languages: [] }]);
-  });
-});
-
-describe("the Referrals & Rewards section", () => {
-  it("isn't shown with referrals switched off", () => {
-    vi.stubEnv("NEXT_PUBLIC_REFERRALS_ENABLED", "false");
-    show("en");
-    expect(screen.queryByText("Referrals & Rewards")).toBeNull();
-    expect(s.onShare).toBeNull();
-  });
-});
-
-describe("sharing the invite link", () => {
-  const share = () => act(async () => s.onShare!());
-  // The section, and the share in it, show only with referrals switched on.
-  beforeEach(() => vi.stubEnv("NEXT_PUBLIC_REFERRALS_ENABLED", "true"));
-
-  it("uses the page's language in the share sheet", async () => {
-    const nativeShare = vi.fn(async () => {});
-    vi.stubGlobal("navigator", { ...navigator, share: nativeShare });
-    show("it");
-    await share();
-    expect(nativeShare).toHaveBeenCalledWith({
-      title: itCommon.profile.referralShare.title,
-      text: itCommon.profile.referralShare.text,
-      url: expect.stringContaining("/join/ABC"),
-    });
-    expect(s.toasts).toEqual([]);
-  });
-
-  it("says the link was copied where there's no share sheet", async () => {
-    const writeText = vi.fn(async () => {});
-    vi.stubGlobal("navigator", { ...navigator, share: undefined, clipboard: { writeText } });
-    show("it");
-    await share();
-    expect(writeText).toHaveBeenCalledWith(expect.stringContaining("/join/ABC"));
-    expect(s.toasts).toEqual([[itCommon.profile.referralShare.copied, "success"]]);
-  });
-
-  it("says nothing when the share sheet is closed", async () => {
-    const closed = Object.assign(new Error("closed"), { name: "AbortError" });
-    vi.stubGlobal("navigator", { ...navigator, share: vi.fn(async () => Promise.reject(closed)) });
-    show("it");
-    await share();
-    expect(s.toasts).toEqual([]);
-  });
-
-  it("says so when the link can't be got", async () => {
-    fetchMock.mockResolvedValueOnce(new Response("{}", { status: 500 }));
-    show("it");
-    await share();
-    expect(s.toasts).toEqual([[itCommon.profile.referralShare.failed, "error"]]);
   });
 });
 

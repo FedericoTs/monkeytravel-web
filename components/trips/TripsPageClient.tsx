@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import dynamic from "next/dynamic";
 import { useNow } from "@/hooks/useNow";
 import { shownTripStatus, tripTimeline } from "@/lib/trips/status";
 import { toLocalISODate } from "@/lib/utils/date-local";
@@ -15,35 +14,11 @@ import { PullToRefreshIndicator } from "@/components/ui/PullToRefreshIndicator";
 import { hapticLight } from "@/lib/native/haptics";
 import CuratedEscapes from "@/components/templates/CuratedEscapesClient";
 import BlogTipsSection, { type BlogTip } from "@/components/blog/BlogTipsSection";
-import ReferralModal from "@/components/referral/ReferralModal";
-import { referralsShown } from "@/lib/referral/shown";
 import TripActionModal from "@/components/trips/TripActionModal";
 import { sendDeletionReason, type DeletionReason } from "@/lib/trips/deletion-reasons";
 import TripCard, { type Trip } from "@/components/trips/TripCard";
 import WaitingRoom from "@/components/trips/WaitingRoom";
 import type { WaitingRoomTrip } from "@/lib/trips/waiting-room";
-
-// Client-only import — the banner's localStorage-driven `isDismissed`
-// state means the SSR + first-paint render emits a placeholder, then
-// post-mount the real banner replaces it. Even after switching to a
-// same-height placeholder (6cdc991), React 19's hydration matcher was
-// still throwing #418 on /trips because the post-mount banner insertion
-// shifted the dom enough that React couldn't reconcile the subtree
-// against the SSR HTML. Marking ssr:false tells Next.js to skip the
-// component entirely on the server and only mount it on the client —
-// hydration has nothing to compare, so nothing can mismatch. The
-// `loading` placeholder fills the same vertical space so layout doesn't
-// jump when the real banner arrives. Allowed from a "use client"
-// component (the ssr:false restriction is server-component only).
-const ReferralProgressBanner = dynamic(
-  () => import("@/components/bananas/ReferralProgressBanner"),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="min-h-[64px] mb-6 sm:mb-8" aria-hidden="true" />
-    ),
-  }
-);
 
 /** A trip someone else owns and invited this user to (trip_collaborators). */
 interface SharedTrip {
@@ -60,7 +35,6 @@ interface TripsPageClientProps {
   /** Trips the user was invited to; no owner actions (archive/delete) on these. */
   sharedTrips?: SharedTrip[];
   displayName: string;
-  lifetimeConversions: number;
   blogTips?: BlogTip[];
   /**
    * The visitor's day as the server reckons it (YYYY-MM-DD). The first render
@@ -109,7 +83,7 @@ function TripSection({ title, trips, icon, emptyText, renderTripCard }: {
   );
 }
 
-export default function TripsPageClient({ trips, sharedTrips = [], displayName, lifetimeConversions, blogTips = [], waitingRoom, serverToday }: TripsPageClientProps) {
+export default function TripsPageClient({ trips, sharedTrips = [], displayName, blogTips = [], waitingRoom, serverToday }: TripsPageClientProps) {
   const t = useTranslations('common.trips');
   const tRoles = useTranslations('common.roles');
   const tNav = useTranslations('common.navigation');
@@ -122,7 +96,6 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [showFilters, setShowFilters] = useState(false);
-  const [referralModalOpen, setReferralModalOpen] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
 
   // Pull-to-refresh — the canonical iOS gesture. router.refresh() re-runs
@@ -157,15 +130,15 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
   // state and fires even when a modal is open. Without `enabled` the
   // user could pull-inside an open modal — the spinner would render
   // at z-60 over the modal AND router.refresh() would race with any
-  // in-flight modal mutation. Gate the gesture off while any of the
-  // foreground UIs (trip-action modal, referral modal) are open.
+  // in-flight modal mutation. Gate the gesture off while the trip-action
+  // modal is open.
   // Note: per-card `menuOpen` state lives inside TripCard so we can't
   // see it from here without lifting state; the modal gating closes
   // the worst of the bug. Day-2 audit P2.
   const { isRefreshing: ptrRefreshing, pullDistance: ptrDistance } =
     usePullToRefresh(handlePullRefresh, {
       threshold: 80,
-      enabled: !actionModal.isOpen && !referralModalOpen,
+      enabled: !actionModal.isOpen,
     });
 
   // Handle trip actions
@@ -529,15 +502,6 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
               <div className="text-xl sm:text-2xl font-bold text-slate-900">{stats.destinations}</div>
             </div>
           </div>
-        )}
-
-        {/* Referral Progress Banner, while referrals are switched on */}
-        {referralsShown() && (
-          <ReferralProgressBanner
-            lifetimeConversions={lifetimeConversions}
-            className="mb-6 sm:mb-8"
-            onInvite={() => setReferralModalOpen(true)}
-          />
         )}
 
         {/* Someone who only has trips they were invited to sees those first. */}
@@ -912,12 +876,6 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
         {/* For users WITH trips: Show templates at the bottom for inspiration */}
         {activeTrips.length > 0 && <CuratedEscapes />}
       </main>
-
-      {/* Referral Modal */}
-      <ReferralModal
-        isOpen={referralModalOpen}
-        onClose={() => setReferralModalOpen(false)}
-      />
 
       {/* Trip Action Modal */}
       <TripActionModal

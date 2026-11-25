@@ -2096,31 +2096,6 @@
       "saveAndContinue": "Guardar y continuar"
     }
   },
-  "referral": {
-    "title": "Invita a amigos y gana bananas",
-    "subtitle": "50 bananas por cada amigo que se una",
-    "tryAgain": "Intentar de nuevo",
-    "howItWorks": "Cómo funciona",
-    "steps": {
-      "step1": "Comparte tu enlace único con amigos",
-      "step2": "Ellos se registran y crean su primer viaje",
-      "step3": "Ganas 50 bananas para gastar en generaciones extra o cola prioritaria"
-    },
-    "yourReferralLink": "Tu enlace de referido",
-    "copy": "Copiar",
-    "copied": "¡Copiado!",
-    "shareVia": "Compartir vía",
-    "stats": {
-      "friendsJoined": "Amigos unidos",
-      "linkClicks": "Clics en el enlace"
-    },
-    "share": {
-      "twitterText": "Llevo un tiempo planificando viajes con MonkeyTravel: la AI crea un itinerario día a día en unos 30 segundos, gratis. Únete:",
-      "whatsappText": "¡Hola! Estoy usando MonkeyTravel para planificar viajes: la AI crea un itinerario completo día a día en unos 30 segundos y es gratis. Pruébalo:",
-      "emailSubject": "Te invito a MonkeyTravel",
-      "emailBody": "¡Hola!\n\nLlevo un tiempo usando MonkeyTravel para planificar viajes con AI y creo que te va a gustar.\n\nEscribe una ciudad y crea un itinerario completo día a día en unos 30 segundos: gratis, y no necesitas cuenta para probarlo.\n\n¡Buen viaje!"
-    }
-  },
   "dataExport": {
     "title": "Exportar Tus Datos",
     "description": "Descarga todos tus datos personales en formato JSON (RGPD Artículo 20).",
@@ -2132,12 +2107,6 @@
     "includes": "Incluye: Perfil, viajes, conversaciones, preferencias"
   },
   "profile": {
-    "referralShare": {
-      "title": "Únete a MonkeyTravel",
-      "text": "Únete a mí en MonkeyTravel y consigue un viaje GRATIS creado con IA. 🌴✈️",
-      "copied": "Enlace de invitación copiado",
-      "failed": "No se pudo obtener tu enlace de invitación. Inténtalo de nuevo."
-    },
     "avatarTooLarge": "Esa foto supera los 5 MB. Elige una más pequeña.",
     "avatarWrongType": "Elige una foto JPEG, PNG, WebP o GIF.",
     "avatarFailed": "No se pudo subir tu foto. Inténtalo de nuevo.",
@@ -2153,7 +2122,6 @@
     "sections": {
       "personalInfo": "Información Personal",
       "travelPreferences": "Preferencias de Viaje",
-      "referrals": "Referidos y Recompensas",
       "betaAccess": "Acceso Beta",
       "account": "Cuenta"
     },

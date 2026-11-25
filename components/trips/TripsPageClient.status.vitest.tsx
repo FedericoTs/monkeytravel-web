@@ -5,7 +5,6 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { NextIntlClientProvider } from "next-intl";
 import common from "@/messages/en/common.json";
 
-vi.mock("next/dynamic", () => ({ default: () => () => null }));
 vi.mock("next/image", () => ({
   // eslint-disable-next-line @next/next/no-img-element
   default: ({ src, alt }: { src: string; alt: string }) => <img src={src} alt={alt} />,
@@ -24,7 +23,6 @@ vi.mock("@/components/ui/MobileBottomNav", () => ({ default: () => null }));
 vi.mock("@/components/ui/PullToRefreshIndicator", () => ({ PullToRefreshIndicator: () => null }));
 vi.mock("@/components/templates/CuratedEscapesClient", () => ({ default: () => null }));
 vi.mock("@/components/blog/BlogTipsSection", () => ({ default: () => null }));
-vi.mock("@/components/referral/ReferralModal", () => ({ default: () => null }));
 vi.mock("@/components/trips/TripActionModal", () => ({ default: () => null }));
 
 import TripsPageClient from "./TripsPageClient";
@@ -61,7 +59,7 @@ const TRIPS = [
 
 const page = (serverToday: string | undefined = TODAY) => (
   <NextIntlClientProvider locale="en" messages={{ common }} onError={() => {}}>
-    <TripsPageClient trips={TRIPS} displayName="Ana" lifetimeConversions={0} serverToday={serverToday} />
+    <TripsPageClient trips={TRIPS} displayName="Ana" serverToday={serverToday} />
   </NextIntlClientProvider>
 );
 
@@ -149,7 +147,7 @@ describe("My Trips, by the dates", () => {
     const html = document.createElement("div");
     html.innerHTML = renderToString(
       <NextIntlClientProvider locale="en" messages={{ common }} onError={() => {}}>
-        <TripsPageClient trips={TRIPS} displayName="Ana" lifetimeConversions={0} />
+        <TripsPageClient trips={TRIPS} displayName="Ana" />
       </NextIntlClientProvider>
     );
     expect(sectionOf(html, pastAdventures)).toHaveLength(TRIPS.length);
