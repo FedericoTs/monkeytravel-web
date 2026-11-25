@@ -4,7 +4,6 @@ import type { ItineraryDay } from "@/types";
 import { sortFeed, type FeedEvent } from "./shared";
 import type { SwapSuggestion } from "@/lib/today/actions";
 import { todayActionsSnapshot } from "@/lib/today/snapshot";
-import { expensesSnapshot } from "@/lib/expenses/snapshot";
 
 /** How many events the feed carries. Enough to feel alive, short enough to scan. */
 export const FEED_LIMIT = 12;
@@ -16,9 +15,9 @@ interface FeedTrip {
 }
 
 /**
- * The Today activity feed for one trip — participant joins, chip actions
- * (Phase 3.3) and expenses (Phase 3.4) merged into one chronological stream,
- * newest first, capped. Service-role read behind the /shared route's token
+ * The Today activity feed for one trip — participant joins and chip actions
+ * (Phase 3.3) merged into one chronological stream, newest first, capped.
+ * Service-role read behind the /shared route's token
  * check; reuses the existing per-source snapshots so the feed and the panels
  * never disagree. Activity ids are resolved to names here so the client needs
  * only the itinerary it already has. Live Trip Phase 3.5.
@@ -33,15 +32,10 @@ export async function feedSnapshot(
   const nameOf = activityNameResolver(trip.itinerary);
   const events: FeedEvent[] = [];
 
-  // The three sources are independent, so they are read together.
-  const [{ data: parts, error: pErr }, actions, { expenses }] = await Promise.all([
+  // The two sources are independent, so they are read together.
+  const [{ data: parts, error: pErr }, actions] = await Promise.all([
     admin.from("trip_participants").select("id, display_name, joined_at").eq("trip_id", trip.id).is("left_at", null),
     todayActionsSnapshot(admin, trip.id, viewerCookieId, viewerUserId),
-    // The feed's other sources are still worth showing without the payments.
-    expensesSnapshot(admin, trip.id, trip.user_id, viewerUserId, viewerCookieId).catch((err) => {
-      console.error("[feed] expenses read failed:", err);
-      return { expenses: [] };
-    }),
   ]);
 
   // 1. Participant joins — named only ("someone is going" is noise, not signal).
@@ -92,21 +86,6 @@ export async function feedSnapshot(
         activityName: nameOf(a.activity_id),
       });
     }
-  }
-
-  // 3. Expenses — reuse the ledger snapshot (authed + anonymous; paidByIsOwner
-  //    already resolved). The viewer summary it also computes is ignored here.
-  for (const e of expenses) {
-    events.push({
-      id: `exp:${e.id}`,
-      kind: "expense",
-      at: e.createdAt,
-      actorName: e.paidByName,
-      actorIsOwner: e.paidByIsOwner,
-      activityName: nameOf(e.activityId),
-      amountCents: e.amountCents,
-      currency: e.currency,
-    });
   }
 
   return sortFeed(events).slice(0, limit);

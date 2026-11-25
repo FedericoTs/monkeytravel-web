@@ -17,7 +17,6 @@ vi.mock("@/components/trip/ShareButton", () => ({
     return <div data-testid="share" />;
   },
 }));
-vi.mock("@/components/calendar/DownloadIcsButton", () => ({ default: () => <div data-testid="ics" /> }));
 vi.mock("next/dynamic", () => ({ default: () => () => <div data-testid="export" /> }));
 
 import TripControlsBar from "./TripControlsBar";

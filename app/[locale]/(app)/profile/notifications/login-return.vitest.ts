@@ -4,9 +4,9 @@ import { safeNextOrDefault } from "@/lib/security/safe-next";
 import { returnsToPage } from "@/lib/auth/first-login";
 
 /**
- * Signed-out visitors to the settings pages sign in and come back.
+ * Signed-out visitors to the notification settings page sign in and come back.
  *
- * Both pages sent them to /auth/login?next=…, a parameter the login page never
+ * The page sent them to /auth/login?next=…, a parameter the login page never
  * reads (it reads `redirect`), so after signing in they landed on My Trips.
  * /profile/notifications is the "Manage preferences" link in every email.
  */
@@ -22,7 +22,6 @@ vi.mock("next/navigation", () => ({
   },
 }));
 vi.mock("./NotificationPreferencesClient", () => ({ default: () => null }));
-vi.mock("../../settings/payment-handles/PaymentHandlesClient", () => ({ default: () => null }));
 
 let user: { id: string } | null = null;
 vi.mock("@/lib/supabase/server", () => ({
@@ -44,7 +43,6 @@ async function landing(page: Page, locale: string): Promise<string | null> {
 
 describe.each([
   ["/profile/notifications", () => import("./page")],
-  ["/settings/payment-handles", () => import("../../settings/payment-handles/page")],
 ])("%s", (path, load) => {
   beforeEach(() => {
     user = null;

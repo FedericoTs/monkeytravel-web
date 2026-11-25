@@ -16,6 +16,7 @@ import { knownPlacesFor } from "./known-places";
 import { askForTransfers } from "./transfer-question";
 import { answeredTransfer } from "./transfer-legs";
 import { cityPointsFor } from "./city-points";
+import { curatedPointFor } from "./place-point";
 import { unmirroredCities } from "./mirrored-cities";
 import { daylightFor } from "./daylight";
 import { whatsOn } from "./whats-on";
@@ -66,8 +67,12 @@ export async function generateMultiCityItinerary(
   const endsWhereItBegan = cities[cities.length - 1].toLowerCase() === cities[0].toLowerCase();
   const transfersAsked = askForTransfers(endsWhereItBegan ? cities : [...cities, cities[0]]);
   // Where each city is, for its own sunrise and sunset: a route sends no one
-  // place's coordinates.
-  const points = await cityPointsFor(cities);
+  // place's coordinates. A curated destination of that name first (the table
+  // has no "Santorini"; its biggest "Bali" is in India), then the cities
+  // table for the rest, which tells namesakes apart by the route.
+  const curated = await Promise.all(cities.map((city) => curatedPointFor(city)));
+  const tabled = await cityPointsFor(cities.map((city, i) => (curated[i] ? "" : city)));
+  const points = cities.map((_, i) => curated[i] ?? tabled[i]);
 
   // Derive each city's date sub-range from the cumulative nights so the legs
   // tile the trip with no gap or overlap.

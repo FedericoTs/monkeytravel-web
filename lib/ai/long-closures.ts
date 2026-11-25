@@ -24,6 +24,9 @@ export type LongClosure = {
   source: string;
 };
 
+/** Bangkok as a trip names it, or the whole country: a trip through it passes Bangkok. */
+const BANGKOK = /\bbangkok\b|\bbkk\b|\bbanguecoque\b|กรุงเทพ|^\s*(?:thailand|tailandia|thailandia|tail[aâ]ndia)\s*$/i;
+
 export const LONG_CLOSURES: LongClosure[] = [
   {
     names: /\b(?:centre|center|centro)\s+(?:georges[\s-]+)?pompidou\b|\bpompidou\s+(?:centre|center)\b|\bmus[ée]e\s+national\s+d.art\s+moderne\b/i,
@@ -42,6 +45,36 @@ export const LONG_CLOSURES: LongClosure[] = [
     until: "2027-06-04",
     label: "Pergamonmuseum (closed for renovation until 4 June 2027)",
     source: "https://www.smb.museum/en/whats-new/detail/the-pergamonmuseum-returns-opening-on-june-4th-2027/",
+  },
+  {
+    // Shut since 1 September 2026 "as we prepare for our next chapter", back in 2027 with no date yet: listed to
+    // the end of 2026, the part that is certain.
+    names: /\bmuseum of the future\b|\bmuseo del futuro\b|\bmuseu do futuro\b|متحف المستقبل/i,
+    city: /\bdubai\b|\bdub[aá]i\b|دبي/i,
+    from: "2026-09-01",
+    until: "2027-01-01",
+    label: "Museum of the Future (temporarily closed, reopening in 2027)",
+    source: "https://museumofthefuture.ae/en",
+  },
+  // Bangkok's two royal halls in Dusit. Neither has an official page for its closure; the cited page gives the
+  // dates and the official statements. Listed to 2030, to be read again before then. A trip typed as the whole
+  // country passes through Bangkok, and no other place has these names.
+  {
+    names: /\bvima(?:rn|n)mek\b|วิมานเมฆ/i,
+    city: BANGKOK,
+    from: "2016-07-21",
+    until: "2030-01-01",
+    label: "Vimanmek Mansion (closed since 2016, not reopening to the public)",
+    source: "https://en.wikipedia.org/wiki/Vimanmek_Mansion",
+  },
+  {
+    names: /\banan[dt]a\s*samak?h?om\b|อนันตสมาคม/i,
+    notNames: /\broyal plaza\b|\bexterior\b|\boutside\b|\bplaza real\b|\bpiazza reale\b|\bexterno\b|\besterno\b/i,
+    city: BANGKOK,
+    from: "2017-10-01",
+    until: "2030-01-01",
+    label: "Ananta Samakhom Throne Hall (closed inside since 2017; its outside is seen from the Royal Plaza)",
+    source: "https://en.wikipedia.org/wiki/Ananta_Samakhom_Throne_Hall",
   },
 ];
 

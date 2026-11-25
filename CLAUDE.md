@@ -85,7 +85,6 @@ Add to these; do not start a parallel version.
 | Regenerating an activity or a day | `lib/ai/regenerate-activity.ts`, `lib/ai/regenerate-day.ts`; calls, time limit and retries in `lib/ai/gemini-call.ts` |
 | Wizard assistant (before the trip is saved) | `lib/ai/assistant/engine.ts` (`edit-prompt.ts`, `edit-validation.ts`, `edit-reply.ts` beside it), `app/api/ai/assistant-anon/`, `hooks/useAssistantEdits.ts` |
 | Trip-page assistant | `app/api/ai/assistant/route.ts`, `hooks/useTripAssistant.ts` |
-| Trip concierge | `app/api/ai/concierge/route.ts`; what it reads `lib/ai/concierge-trip.ts`, its answer `lib/ai/concierge-answer.ts`, its proposals `lib/ai/concierge-proposal.ts` |
 | Shared assistant rules (honest replies, day targeting) | `lib/ai/assistant/` |
 | Checking a pasted plan | `lib/plans/`, `app/api/tools/check-plan/` |
 | A place to eat on Google Maps | `lib/places/places-to-eat.ts`; on a saved trip `lib/places/kept-trip.ts`, `check-kept-trip.ts` |

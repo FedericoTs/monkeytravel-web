@@ -4,9 +4,9 @@ import { act, renderHook } from "@testing-library/react";
 import { useTodayActions } from "./useTodayActions";
 
 /**
- * A screen on Today refreshes its chips and its expense panel when the trip's
- * channel says something changed, but a flood of events costs one refresh now
- * and one after the gap.
+ * A screen on Today refreshes its chips when the trip's channel says
+ * something changed, but a flood of events costs one refresh now and one
+ * after the gap.
  */
 
 let onChanged: (() => void) | null = null;
@@ -61,9 +61,8 @@ describe("useTodayActions", () => {
     expect(listened).toEqual([["broadcast", { event: "changed" }]]);
   });
 
-  it("refreshes the chips and the expenses on a change, at most once per gap", async () => {
-    const alsoRefresh = vi.fn(async () => undefined);
-    renderHook(() => useTodayActions("/api/shared/token-1", "trip-1", true, alsoRefresh));
+  it("refreshes only the chips on a change, at most once per gap", async () => {
+    renderHook(() => useTodayActions("/api/shared/token-1", "trip-1", true));
     await act(async () => {
       await vi.advanceTimersByTimeAsync(0);
     });
@@ -77,8 +76,7 @@ describe("useTodayActions", () => {
       await vi.advanceTimersByTimeAsync(5_000);
     });
     // 200 events in a second: one refresh at once and one after the gap.
-    expect(reads.filter((u) => u.endsWith("/today-actions"))).toHaveLength(3);
-    expect(alsoRefresh).toHaveBeenCalledTimes(2);
+    expect(reads).toEqual(Array(3).fill("/api/shared/token-1/today-actions"));
   });
 });
 

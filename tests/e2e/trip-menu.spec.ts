@@ -1,7 +1,7 @@
 /**
  * What the trip page's More menu offers the owner. A calendar comes one way:
- * Export's calendar file, made in the browser. The server's "Add to Calendar"
- * is switched off in production, and the suite builds with production's switches.
+ * Export's calendar file, made in the browser. The old server "Add to Calendar"
+ * button is gone; the test keeps it from coming back.
  *
  * Every test gets a trip of its own, removed afterwards. Needs the fixture
  * owner's session and service credentials:

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { keepOffClosingDays, type Weekday } from "@/lib/ai/closing-days";
 import { KNOWN_CLOSINGS, hoursOn, knownClosingFor, shutBy, withClosingNotes, withKnownClosings, type KnownClosing } from "@/lib/ai/known-closings";
+import { keepInsideHours } from "@/lib/ai/visit-hours";
 
 const entry = (name: string, destination: string) => {
   const found = knownClosingFor(name, destination);
@@ -551,5 +552,171 @@ describe("more of the most-planned sights", () => {
     expect(knownClosingFor("Museo Picasso", "Barcelona")).toBeDefined();
     expect(knownClosingFor("Musée Picasso", "Paris")).toBeUndefined();
     expect(knownClosingFor("Museu Nacional Centro de Arte Reina Sofía", "Madri")).toBeDefined();
+  });
+});
+
+describe("the most planned sights' official hours", () => {
+  const hm = (time: string) => Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5));
+  const at = (name: string, destination: string, date: string) => hoursOn(entry(name, destination), date);
+
+  it("keep Tokyo's and Kyoto's to their seasons and last entries", () => {
+    // Thursday 28 January 2027, Wednesday 12 May 2027, New Year's Eve 2026.
+    expect(at("teamLab Planets TOKYO", "Tokyo", "2027-01-28")).toEqual({ open: hm("08:00"), close: hm("22:00"), lastEntry: hm("21:00") });
+    expect(at("teamLab Planets TOKYO DMM", "Tokyo", "2026-12-31")?.close).toBe(hm("20:00"));
+    expect(at("Kyoto Imperial Palace", "Kyoto", "2027-01-28")).toEqual({ open: hm("09:00"), close: hm("16:00"), lastEntry: hm("15:20") });
+    expect(at("Kyoto Gosho", "Kyoto", "2027-03-10")).toEqual({ open: hm("09:00"), close: hm("16:30"), lastEntry: hm("15:50") });
+    expect(at("Kyoto Imperial Palace", "Kyoto", "2027-05-12")).toEqual({ open: hm("09:00"), close: hm("17:00"), lastEntry: hm("16:20") });
+    expect(at("Tofuku-ji Temple", "Kyoto", "2027-01-28")).toEqual({ open: hm("09:00"), close: hm("16:00"), lastEntry: hm("15:30") });
+    expect(at("Tofukuji", "Kyoto", "2026-11-20")?.open).toBe(hm("08:30"));
+  });
+
+  it("keep Osaka's, and shut its history museum on Tuesdays and over the New Year", () => {
+    expect(at("Osaka Museum of History", "Osaka", "2027-01-28")).toEqual({ open: hm("09:30"), close: hm("17:00"), lastEntry: hm("16:30") });
+    expect(at("Osaka Museum of History", "Osaka", "2027-01-26")).toBeNull();
+    expect(at("Osaka Museum of History", "Osaka", "2026-12-30")).toBeNull();
+    expect(at("Osaka Aquarium Kaiyukan", "Osaka", "2027-05-15")?.close).toBe(hm("21:00"));
+    expect(at("Kaiyukan", "Osaka", "2027-01-28")?.lastEntry).toBe(hm("19:00"));
+    expect(at("Kaiyukan", "Osaka", "2027-01-13")).toBeNull();
+    expect(at("Umeda Sky Building", "Osaka", "2027-01-28")).toEqual({ open: hm("09:30"), close: hm("22:30"), lastEntry: hm("22:00") });
+  });
+
+  it("shut Seoul's palaces on their own weekdays, and keep Bukchon's lanes to visitors' hours", () => {
+    // Tuesday 26 January 2027 shuts Gyeongbokgung; Monday 25 January shuts Changdeokgung and Leeum.
+    expect(at("Gyeongbokgung Palace", "Seoul", "2027-01-26")).toBeNull();
+    expect(at("Gyeongbokgung Palace", "Seoul", "2027-01-25")).toEqual({ open: hm("09:00"), close: hm("17:00"), lastEntry: hm("16:00") });
+    expect(at("Gyeongbokgung", "Seúl, Corea del Sur", "2027-07-15")).toEqual({ open: hm("09:00"), close: hm("18:30"), lastEntry: hm("17:30") });
+    expect(at("Changdeokgung Palace", "Seoul", "2027-01-25")).toBeNull();
+    expect(at("Changdeokgung Palace & Secret Garden", "Seoul", "2027-01-26")?.close).toBe(hm("17:30"));
+    expect(at("Changdeokgung", "Seoul", "2027-02-10")?.close).toBe(hm("18:00"));
+    expect(at("Leeum, Samsung Museum of Art", "Seoul", "2027-01-25")).toBeNull();
+    expect(at("Leeum", "Seoul", "2027-01-01")).toBeNull();
+    expect(at("Leeum", "Seoul", "2027-01-26")).toEqual({ open: hm("10:00"), close: hm("18:00"), lastEntry: hm("17:30") });
+    expect(at("Bukchon Hanok Village", "Seoul, South Korea", "2027-01-28")).toEqual({ open: hm("10:00"), close: hm("17:00") });
+  });
+
+  it("keep Bangkok's art centre shut on Mondays", () => {
+    expect(at("Bangkok Art & Culture Centre (BACC)", "Bangkok", "2027-01-25")).toBeNull();
+    expect(at("Bangkok Art and Culture Center", "Bangkok", "2027-01-26")).toEqual({ open: hm("10:00"), close: hm("20:00") });
+  });
+
+  it("keep Europe's to their seasons: Park Güell's last tickets, St Peter's, the Luxembourg's gates, the Agora, the Abbey", () => {
+    expect(at("Park Güell", "Barcelona", "2027-01-28")).toEqual({ open: hm("09:30"), close: hm("22:00"), lastEntry: hm("18:00") });
+    expect(at("Parc Guell", "Barcelona", "2027-07-15")).toEqual({ open: hm("09:00"), close: hm("22:00"), lastEntry: hm("20:00") });
+    expect(at("St. Peter's Basilica", "Rome", "2027-01-28")).toEqual({ open: hm("07:00"), close: hm("19:00") });
+    expect(at("Basilica di San Pietro", "Roma", "2027-05-15")?.close).toBe(hm("20:00"));
+    expect(at("Jardin du Luxembourg", "Paris", "2026-12-10")).toEqual({ open: hm("08:15"), close: hm("16:30") });
+    expect(at("Luxembourg Gardens", "Paris", "2027-06-20")?.close).toBe(hm("21:30"));
+    expect(at("Ancient Agora of Athens", "Athens", "2027-01-28")).toEqual({ open: hm("08:00"), close: hm("17:00"), lastEntry: hm("16:40") });
+    expect(at("Ancient Agora", "Athens", "2027-07-15")?.close).toBe(hm("20:00"));
+    // Saturday 30 January 2027, Wednesday 27 January, Sunday 31 January.
+    expect(at("Westminster Abbey", "London", "2027-01-30")).toEqual({ open: hm("09:00"), close: hm("16:00"), lastEntry: hm("15:00") });
+    expect(at("Westminster Abbey", "London", "2027-01-27")).toEqual({ open: hm("09:30"), close: hm("16:30"), lastEntry: hm("15:30") });
+    expect(at("Westminster Abbey", "London", "2027-01-31")).toBeNull();
+  });
+
+  it("leave out the places that only share a name", () => {
+    expect(knownClosingFor("St. Peter's Square", "Rome")).toBeUndefined();
+    expect(knownClosingFor("Musée du Luxembourg", "Paris")).toBeUndefined();
+    expect(knownClosingFor("Gyeongbokgung Palace", "Busan")).toBeUndefined();
+    expect(knownClosingFor("Park Güell", "Madrid")).toBeUndefined();
+  });
+
+  it("move a winter walk in the Luxembourg that would run past its gates' closing", () => {
+    // 10 December 2026: the gates shut at 16:30, and a 90-minute walk from 16:00 would not end in time. It trades
+    // slots with the morning's Panthéon, which keeps its own hours at 16:00.
+    const days = [
+      { date: "2026-12-10", activities: [{ name: "Panthéon", type: "landmark", start_time: "10:00", duration_minutes: 90 }, { name: "Jardin du Luxembourg", type: "park", start_time: "16:00", duration_minutes: 90 }] },
+    ];
+    const kept = keepInsideHours(days, "Paris");
+    expect(kept.days[0].activities.map((s) => `${s.start_time} ${s.name}`)).toEqual(["10:00 Jardin du Luxembourg", "16:00 Panthéon"]);
+    expect(kept.moved).toBe(1);
+  });
+});
+
+describe("a second batch of official hours", () => {
+  const hm = (time: string) => Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5));
+  const at = (name: string, destination: string, date: string) => hoursOn(entry(name, destination), date);
+
+  it("keep New York's museums to their late nights, the Met's Wednesday shut", () => {
+    // Friday 29 January 2027, Thursday 28 January, Wednesday 27 January.
+    expect(at("The Metropolitan Museum of Art", "New York", "2027-01-29")).toEqual({ open: hm("10:00"), close: hm("21:00") });
+    expect(at("The Met", "New York City", "2027-01-28")).toEqual({ open: hm("10:00"), close: hm("17:00") });
+    expect(at("The Met", "New York", "2027-01-27")).toBeNull();
+    expect(at("Museum of Modern Art (MoMA)", "New York", "2027-01-29")?.close).toBe(hm("20:30"));
+    expect(at("MoMA", "New York", "2027-01-28")).toEqual({ open: hm("10:30"), close: hm("17:30") });
+    expect(at("American Museum of Natural History", "New York", "2027-01-28")).toEqual({ open: hm("10:00"), close: hm("17:30") });
+    expect(at("AMNH", "New York", "2026-12-28")?.close).toBe(hm("20:00"));
+    expect(at("Top of the Rock Observation Deck", "New York", "2027-01-28")?.lastEntry).toBe(hm("23:10"));
+    expect(at("The High Line", "New York", "2027-01-28")?.close).toBe(hm("20:00"));
+    expect(at("The High Line", "New York", "2027-06-10")?.close).toBe(hm("22:00"));
+  });
+
+  it("keep Madrid's palace to its Sundays and seasons, and shut the Temple of Debod on Mondays", () => {
+    // Sunday 31 January 2027, Thursday 28 January, Thursday 10 June, Monday 25 January.
+    expect(at("Palacio Real de Madrid", "Madrid", "2027-01-31")).toEqual({ open: hm("10:00"), close: hm("16:00"), lastEntry: hm("15:00") });
+    expect(at("Royal Palace of Madrid", "Madrid", "2027-01-28")?.close).toBe(hm("18:00"));
+    expect(at("Palacio Real de Madrid", "Madrid", "2027-06-10")?.close).toBe(hm("19:00"));
+    expect(at("Palacio Real de Madrid", "Madrid", "2027-01-06")).toBeNull();
+    expect(at("Templo de Debod", "Madrid", "2027-01-25")).toBeNull();
+    expect(at("Temple of Debod", "Madrid", "2027-07-01")?.close).toBe(hm("19:00"));
+    expect(at("Parque del Retiro", "Madrid", "2027-01-28")?.close).toBe(hm("22:00"));
+    expect(at("Catedral de la Almudena", "Madrid", "2027-01-28")?.close).toBe(hm("20:30"));
+  });
+
+  it("keep Dubai's to their hours, and the Miracle Garden to its season", () => {
+    expect(at("Dubai Miracle Garden", "Dubai", "2027-01-28")).toEqual({ open: hm("09:00"), close: hm("21:00"), lastEntry: hm("20:30") });
+    expect(at("Dubai Miracle Garden", "Dubai", "2027-07-15")).toBeNull();
+    expect(at("At the Top, Burj Khalifa", "Dubai", "2027-01-28")?.close).toBe(hm("23:00"));
+    expect(at("The View at The Palm", "Dubai", "2027-01-28")?.close).toBe(hm("19:00"));
+  });
+
+  it("keep Sydney's garden gates to the light, and its galleries' late Wednesday", () => {
+    expect(at("Royal Botanic Garden Sydney", "Sydney", "2027-06-15")?.close).toBe(hm("17:00"));
+    expect(at("Royal Botanic Garden Sydney", "Sydney", "2027-01-28")?.close).toBe(hm("20:00"));
+    expect(at("Australian Museum", "Sydney", "2027-01-28")).toEqual({ open: hm("10:00"), close: hm("17:00") });
+    expect(at("Australian Museum", "Sídney, Australia", "2027-01-28")?.close).toBe(hm("17:00"));
+    expect(at("Art Gallery of New South Wales", "Sydney", "2027-01-27")?.close).toBe(hm("22:00"));
+    expect(at("Art Gallery of New South Wales", "Sydney", "2027-01-28")?.close).toBe(hm("17:00"));
+  });
+
+  it("keep Santorini's excavation and museum to their short days, the museum shut on Tuesdays", () => {
+    expect(at("Akrotiri Archaeological Site", "Santorini", "2027-01-28")).toEqual({ open: hm("08:30"), close: hm("15:30"), lastEntry: hm("15:10") });
+    expect(at("Akrotiri Archaeological Site", "Santorini, Greece", "2027-07-14")?.close).toBe(hm("20:00"));
+    expect(at("Museum of Prehistoric Thera", "Santorini", "2027-01-26")).toBeNull();
+    expect(at("Museum of Prehistoric Thera", "Santorini", "2027-01-28")?.close).toBe(hm("15:30"));
+  });
+
+  it("keep Hanoi's mausoleum to its mornings, shut on Mondays and Fridays, and the citadel to its day", () => {
+    // Thursday 28 January 2027, Saturday 30 January, Friday 29 January, Thursday 15 July.
+    expect(at("Ho Chi Minh Mausoleum", "Hanoi", "2027-01-28")).toEqual({ open: hm("08:00"), close: hm("11:00") });
+    expect(at("Ho Chi Minh Mausoleum", "Hanoi", "2027-01-30")?.close).toBe(hm("11:30"));
+    expect(at("Ho Chi Minh Mausoleum", "Hanoi", "2027-01-29")).toBeNull();
+    expect(at("Ho Chi Minh Mausoleum", "Hà Nội", "2027-07-15")).toEqual({ open: hm("07:30"), close: hm("10:30") });
+    expect(at("Imperial Citadel of Thang Long", "Hanoi", "2027-01-28")?.close).toBe(hm("17:00"));
+    expect(at("Vietnam National Museum of Fine Arts", "Hanoi", "2027-01-25")).toBeNull();
+  });
+
+  it("keep London's and Paris's to their days and gates", () => {
+    expect(at("British Museum", "London", "2027-01-29")?.close).toBe(hm("20:30"));
+    expect(at("The British Museum", "London", "2027-01-28")).toEqual({ open: hm("10:00"), close: hm("17:00"), lastEntry: hm("16:45") });
+    expect(at("British Museum", "London", "2026-12-25")).toBeNull();
+    expect(at("Sky Garden", "London", "2027-01-30")?.open).toBe(hm("11:00"));
+    expect(at("Notre-Dame de Paris", "Paris", "2027-01-28")?.close).toBe(hm("22:00"));
+    expect(at("Cathédrale Notre-Dame de Paris", "Paris", "2027-01-27")?.close).toBe(hm("19:00"));
+    expect(at("Jardin des Tuileries", "Paris", "2027-01-28")?.close).toBe(hm("19:30"));
+    expect(at("Eiffel Tower", "Paris", "2027-01-28")).toEqual({ open: hm("09:15"), close: hm("23:45"), lastEntry: hm("22:45") });
+  });
+
+  it("leave out the places that only share a name, and looks from outside", () => {
+    expect(knownClosingFor("Notre Dame Cathedral (Exterior View)", "Paris")).toBeUndefined();
+    expect(knownClosingFor("Eiffel Tower view from Trocadéro", "Paris")).toBeUndefined();
+    expect(knownClosingFor("Seine cruise past the Eiffel Tower", "Paris")).toBeUndefined();
+    expect(knownClosingFor("Ho Chi Minh Mausoleum Complex", "Hanoi")).toBeUndefined();
+    expect(knownClosingFor("Ho Chi Minh Mausoleum & One Pillar Pagoda", "Hanoi")).toBeUndefined();
+    expect(knownClosingFor("Palacio Real de Aranjuez", "Madrid")).toBeUndefined();
+    expect(knownClosingFor("Palacio de Cristal (Retiro)", "Madrid")).toBeUndefined();
+    expect(knownClosingFor("Akrotiri Lighthouse", "Santorini")).toBeUndefined();
+    expect(knownClosingFor("MoMA PS1", "New York")).toBeUndefined();
+    expect(knownClosingFor("British Museum", "Paris")).toBeUndefined();
   });
 });
