@@ -3,13 +3,13 @@ import { describe, expect, it } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { fakeSupabase, type FakeQuery } from "@/tests/fake-supabase";
 import type { ParticipantSource } from "@/lib/participants/shared";
-import { expenseCohort, sharesExpenses, tripRoster, type RosterPerson } from "./roster";
+import { actorKey, inTheGroup, tripRoster, type RosterPerson } from "./roster";
 
 /**
  * One list of the people in a trip, one entry each: the owner, the
- * collaborators and everyone going. A new expense is split across the owner,
- * editors, voters and anyone going through the share link, plus the payer,
- * once. Saying "I'm going" on the public trip page alone doesn't count.
+ * collaborators and everyone going. The group is the owner, editors, voters
+ * and anyone going through the share link. Saying "I'm going" on the public
+ * trip page alone doesn't count.
  */
 
 const TRIP = { id: "trip-1", user_id: "owner-1" };
@@ -107,7 +107,7 @@ describe("tripRoster", () => {
   });
 });
 
-describe("who shares an expense", () => {
+describe("who counts in the group", () => {
   const person = (role: string | null, going: boolean, source: ParticipantSource = "shared"): RosterPerson => ({
     key: "u:x",
     userId: "x",
@@ -119,24 +119,30 @@ describe("who shares an expense", () => {
   });
 
   it("is the owner, editors, voters and anyone going, but not a viewer who isn't", () => {
-    expect(sharesExpenses(person("owner", false))).toBe(true);
-    expect(sharesExpenses(person("editor", false))).toBe(true);
-    expect(sharesExpenses(person("voter", false))).toBe(true);
-    expect(sharesExpenses(person(null, true))).toBe(true);
-    expect(sharesExpenses(person("viewer", false))).toBe(false);
-    expect(sharesExpenses(person("viewer", true))).toBe(true);
+    expect(inTheGroup(person("owner", false))).toBe(true);
+    expect(inTheGroup(person("editor", false))).toBe(true);
+    expect(inTheGroup(person("voter", false))).toBe(true);
+    expect(inTheGroup(person(null, true))).toBe(true);
+    expect(inTheGroup(person("viewer", false))).toBe(false);
+    expect(inTheGroup(person("viewer", true))).toBe(true);
   });
 
   it("leaves out someone who said they're going only on the public page, unless their role puts them in", () => {
-    expect(sharesExpenses(person(null, true, "public"))).toBe(false);
-    expect(sharesExpenses(person("viewer", true, "public"))).toBe(false);
-    expect(sharesExpenses(person(null, true, "crew_ask"))).toBe(true);
-    expect(sharesExpenses(person("owner", true, "public"))).toBe(true);
-    expect(sharesExpenses(person("editor", true, "public"))).toBe(true);
-    expect(sharesExpenses(person("voter", true, "public"))).toBe(true);
+    expect(inTheGroup(person(null, true, "public"))).toBe(false);
+    expect(inTheGroup(person("viewer", true, "public"))).toBe(false);
+    expect(inTheGroup(person(null, true, "crew_ask"))).toBe(true);
+    expect(inTheGroup(person("owner", true, "public"))).toBe(true);
+    expect(inTheGroup(person("editor", true, "public"))).toBe(true);
+    expect(inTheGroup(person("voter", true, "public"))).toBe(true);
   });
 
-  it("splits nothing with a stranger from the public page, unless they pay", async () => {
+  it("keys a person by their account, else by their browser", () => {
+    expect(actorKey("u1", "c1")).toBe("u:u1");
+    expect(actorKey(null, "c1")).toBe("c:c1");
+    expect(actorKey(null, null)).toBe("c:unknown");
+  });
+
+  it("leaves out a stranger from the public page", async () => {
     const { admin } = world(
       [
         { user_id: "mate-1", role: "editor" },
@@ -151,18 +157,7 @@ describe("who shares an expense", () => {
     );
     const { roster } = await tripRoster(admin, TRIP);
     // The editor is in through their role; the viewer and the stranger only tapped on the public page.
-    expect(keys(expenseCohort(roster, { userId: "owner-1", cookieId: null, name: null }))).toEqual([
-      "owner-1",
-      "mate-1",
-      "cookie:guest-cookie-1",
-    ]);
-    // Paying is still sharing in what they paid for, as for anyone outside the group.
-    expect(keys(expenseCohort(roster, { userId: null, cookieId: "stranger-cookie", name: "Pat" }))).toEqual([
-      "owner-1",
-      "mate-1",
-      "cookie:guest-cookie-1",
-      "cookie:stranger-cookie",
-    ]);
+    expect(keys(roster.filter(inTheGroup))).toEqual(["owner-1", "mate-1", "cookie:guest-cookie-1"]);
   });
 
   it("counts someone who also said they're going through the share link, whichever row came first", async () => {
@@ -174,33 +169,7 @@ describe("who shares an expense", () => {
       [stranger, fromLink, fromPublic],
     ]) {
       const { roster } = await tripRoster(world([], rows).admin, TRIP);
-      expect(keys(expenseCohort(roster, null))).toEqual(["owner-1", "friend-1"]);
+      expect(keys(roster.filter(inTheGroup))).toEqual(["owner-1", "friend-1"]);
     }
-  });
-
-  it("adds the payer once", async () => {
-    const { admin } = world(
-      [
-        { user_id: "mate-1", role: "editor" },
-        { user_id: "viewer-1", role: "viewer" },
-      ],
-      [{ participant_cookie_id: "guest-cookie-1", user_id: null, display_name: "Bo" }],
-    );
-    const { roster } = await tripRoster(admin, TRIP);
-    expect(keys(expenseCohort(roster, { userId: "mate-1", cookieId: null, name: null }))).toEqual(["owner-1", "mate-1", "cookie:guest-cookie-1"]);
-    expect(keys(expenseCohort(roster, { userId: null, cookieId: "guest-cookie-1", name: "Bo" }))).toEqual([
-      "owner-1",
-      "mate-1",
-      "cookie:guest-cookie-1",
-    ]);
-    // A viewer who pays shares in what they paid for.
-    expect(keys(expenseCohort(roster, { userId: "viewer-1", cookieId: null, name: null }))).toEqual([
-      "owner-1",
-      "mate-1",
-      "cookie:guest-cookie-1",
-      "viewer-1",
-    ]);
-    // So does someone not on the trip's lists at all.
-    expect(keys(expenseCohort(roster, { userId: null, cookieId: "new-guest-1", name: null })).at(-1)).toBe("cookie:new-guest-1");
   });
 });

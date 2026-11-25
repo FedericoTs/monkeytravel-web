@@ -65,12 +65,12 @@ describe("WhoIsGoingCard", () => {
     expect(screen.queryByText("share.participants.noneYet")).toBeNull();
   });
 
-  it("says who is going but not in the expenses yet, and lets the owner remove them", async () => {
+  it("says who said they're going on the public page, and lets the owner remove them", async () => {
     const fromPublicPage = member({ id: "row-p", display_name: "Pat", going: true, in_split: false, has_account: false, joined_at: "2026-10-01T13:00:00Z", participant_id: "row-p" });
     serve({ count: 1, participants: [group[0], fromPublicPage] });
     render(<WhoIsGoingCard tripId="trip-1" />);
     await screen.findByText("Pat");
-    expect(rowOf("Pat").textContent).toContain("share.participants.guest · share.participants.notInExpensesYet");
+    expect(rowOf("Pat").textContent).toContain("share.participants.guest · share.participants.fromPublicPage");
     expect(rowOf("Pat").textContent).not.toContain("share.participants.followingAlong");
     expect(rowOf("Pat").textContent).toContain("share.participants.remove");
   });

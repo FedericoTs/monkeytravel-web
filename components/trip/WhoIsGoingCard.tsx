@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * The owner's "Who's going" (Live Trip Phase 2.4): the trip's group as the
- * expense split sees it (lib/trips/roster) — the owner, collaborators and
- * everyone who said they're going — with each one's role, join time, and
- * whether they have an account. The count is the people who share expenses.
+ * The owner's "Who's going" (Live Trip Phase 2.4): the trip's group
+ * (lib/trips/roster) — the owner, collaborators and everyone who said they're
+ * going — with each one's role, join time, and whether they have an account.
+ * The count is the people in the group.
  * Remove takes back an "I'm going" where that is what puts someone in the
  * group. The share button uses the participant framing ("send it to the
  * people coming"), not the vote one. Below the group, what people going
@@ -252,8 +252,8 @@ export default function WhoIsGoingCard({
       p.going && p.joined_at ? t("share.participants.joinedAt", { when: fmt(p.joined_at) }) : null,
       p.has_account ? null : t("share.participants.guest"),
       p.has_email ? t("share.participants.getsUpdates") : null,
-      // Going but not sharing: they said so on the public page, not through the share link.
-      p.in_split ? null : p.going ? t("share.participants.notInExpensesYet") : t("share.participants.followingAlong"),
+      // Going but not in the group: they said so on the public page, not through the share link.
+      p.in_split ? null : p.going ? t("share.participants.fromPublicPage") : t("share.participants.followingAlong"),
     ]
       .filter(Boolean)
       .join(" · ");

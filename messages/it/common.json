@@ -1148,21 +1148,6 @@
     "shared": "Condiviso"
   },
   "today": {
-    "expenses": {
-      "title": "Spese",
-      "whoPaid": "Chi ha pagato?",
-      "amountPlaceholder": "Importo",
-      "save": "Salva",
-      "cancel": "Annulla",
-      "spentSoFar": "Speso finora",
-      "youAreOwed": "Ti devono {amount}",
-      "youOwe": "Devi {amount}",
-      "settledUp": "Tutto saldato",
-      "paid": "ha pagato",
-      "splitAcross": "diviso in {count}",
-      "remove": "Rimuovi",
-      "empty": "Ancora nessuna spesa. Tocca “Chi ha pagato?” su un’attività per dividere un costo."
-    },
     "packing": {
       "title": "Valigia pronta?",
       "progress": "{done}/{total} in valigia"
@@ -1178,8 +1163,6 @@
       "doneDay": "ha concluso la giornata",
       "title": "Attività recente",
       "join": "partecipa",
-      "expense": "ha pagato {amount}",
-      "expenseActivity": "ha pagato {amount} · {activity}",
       "justNow": "proprio ora"
     },
     "chips": {
@@ -1212,8 +1195,7 @@
     "nothingToday": "Niente in programma per oggi.",
     "errors": {
       "failed": "Non ha funzionato. Riprova.",
-      "rateLimited": "Troppe modifiche di fila. Aspetta un momento e riprova.",
-      "amount": "Inserisci un importo maggiore di zero."
+      "rateLimited": "Troppe modifiche di fila. Aspetta un momento e riprova."
     }
   },
   "share": {
@@ -1279,7 +1261,7 @@
       "getsUpdates": "riceve aggiornamenti",
       "guest": "senza account",
       "followingAlong": "segue il viaggio, non divide le spese",
-      "notInExpensesYet": "non divide ancora le spese",
+      "fromPublicPage": "dalla pagina pubblica",
       "remove": "Rimuovi",
       "planOwnLead": "Vai da un'altra parte?",
       "fit": {
@@ -2510,92 +2492,6 @@
       "findHostels": "Trova ostelli per questo viaggio",
       "onHostelworld": "su Booking.com",
       "affiliateDisclosure": "Link affiliato — potremmo guadagnare una piccola commissione senza alcun costo aggiuntivo per te."
-    }
-  },
-  "expenses": {
-    "title": "Spese del viaggio",
-    "emptyHint": "Tieni traccia di quanto spendi davvero",
-    "addButton": "Aggiungi spesa",
-    "fieldAmount": "Importo",
-    "fieldCurrency": "Valuta",
-    "fieldDate": "Data",
-    "fieldCategory": "Categoria",
-    "fieldDescription": "Descrizione",
-    "descriptionPlaceholder": "es. Cena alla Trattoria",
-    "category": {
-      "transport": "Trasporti",
-      "accommodation": "Alloggio",
-      "food": "Cibo e bevande",
-      "activity": "Attività",
-      "shopping": "Shopping",
-      "other": "Altro"
-    },
-    "cancel": "Annulla",
-    "save": "Salva",
-    "saving": "Salvataggio…",
-    "loading": "Caricamento spese…",
-    "empty": "Nessuna spesa registrata.",
-    "toastAdded": "Spesa aggiunta.",
-    "toastDeleted": "Spesa rimossa.",
-    "undo": "Annulla",
-    "errorAmountRequired": "Inserisci un importo maggiore di zero.",
-    "errorAddFailed": "Impossibile aggiungere la spesa — riprova.",
-    "errorDeleteFailed": "Impossibile eliminare la spesa — riprova.",
-    "errorDeleteNotYours": "Puoi eliminare solo le spese che hai aggiunto tu.",
-    "errorLoadFailed": "Impossibile caricare le spese. Riprova.",
-    "retry": "Riprova",
-    "deleteAriaLabel": "Elimina questa spesa",
-    "amountInvalid": "Inserisci un importo come {example}.",
-    "amountWhich": "Quale importo intendevi?",
-    "settle": {
-      "openButton": "Liquidare",
-      "title": "Liquidare",
-      "subtitleCount": "{count, plural, =1 {# trasferimento da chiudere} other {# trasferimenti da chiudere}}",
-      "loading": "Calcolo dei conti in corso…",
-      "errorLoad": "Impossibile caricare i conti — riprova.",
-      "retry": "Riprova",
-      "empty": "Tutti i conti sono pari!",
-      "emptyHint": "Ogni saldo del viaggio è in pareggio. Ben fatto.",
-      "owes": "deve a",
-      "payAction": "Paga",
-      "guestNoPaymentLink": "Nessun link di pagamento: questa persona si è unita senza accedere. Paga direttamente.",
-      "payComingSoon": "Paga (in arrivo)"
-    },
-    "payments": {
-      "provider": {
-        "paypal": "PayPal",
-        "venmo": "Venmo",
-        "wise": "Wise"
-      },
-      "payVia": {
-        "paypal": "Paga con PayPal",
-        "venmo": "Paga con Venmo",
-        "wise": "Paga con Wise"
-      },
-      "recipientHasNoHandles": "Il destinatario non ha impostato i suoi account di pagamento. Chiedigli di aggiungerne uno dalle Impostazioni.",
-      "recipientHandlesInvalid": "Gli account di pagamento del destinatario non sono validi. Chiedigli di aggiornarli dalle Impostazioni.",
-      "settings": {
-        "title": "Account di pagamento",
-        "description": "Salva i tuoi username PayPal, Venmo e Wise così i compagni di viaggio possono pagarti con un tocco dalla schermata Liquidare.",
-        "breadcrumbProfile": "Profilo",
-        "loading": "Caricamento dei tuoi account…",
-        "errorLoadFailed": "Impossibile caricare i tuoi account di pagamento. Riprova.",
-        "retry": "Riprova",
-        "save": "Salva account",
-        "saving": "Salvataggio…",
-        "cancel": "Annulla",
-        "toastSaved": "Account di pagamento salvati.",
-        "errorSaveFailed": "Salvataggio non riuscito — riprova.",
-        "errorTooLong": "Troppo lungo (max 64 caratteri).",
-        "errorInvalidHandle": "Non sembra un username valido per questo servizio.",
-        "errorFixBeforeSave": "Correggi l'username evidenziato prima di salvare.",
-        "help": {
-          "paypal": "Il tuo username PayPal.me — la parte dopo paypal.me/ nel tuo link. Lettere, numeri, punti, trattini, underscore.",
-          "venmo": "Il tuo username Venmo — la parte dopo @ nel tuo handle. 5-30 caratteri.",
-          "wise": "Il tuo username Wise (TransferWise), es. @alyssaperez. Assicurati di aver abilitato 'Ricevi pagamenti' nel tuo account Wise."
-        },
-        "privacyNote": "Solo i compagni di viaggio con cui condividi una spesa possono vedere questi account. Non vediamo né gestiamo i pagamenti — i link aprono direttamente l'app del servizio."
-      }
     }
   },
   "advisory": {

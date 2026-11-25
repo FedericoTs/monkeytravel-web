@@ -51,8 +51,6 @@ interface TodayViewProps {
   apiBase?: string;
   /** The trip's packing list, for the "Packed?" checklist (Phase 3.4). */
   packingItems?: string[];
-  /** Not read: Today has no expense panel left to open Settle Up from. Kept while the trip page still passes it. */
-  onSettleUp?: () => void;
   className?: string;
 }
 
