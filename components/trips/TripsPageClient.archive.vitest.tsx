@@ -6,7 +6,6 @@ import common from "@/messages/en/common.json";
 
 const s = vi.hoisted(() => ({ refresh: vi.fn(), toast: vi.fn() }));
 
-vi.mock("next/dynamic", () => ({ default: () => () => null }));
 vi.mock("next/image", () => ({
   // eslint-disable-next-line @next/next/no-img-element
   default: ({ src, alt }: { src: string; alt: string }) => <img src={src} alt={alt} />,
@@ -26,7 +25,6 @@ vi.mock("@/components/ui/MobileBottomNav", () => ({ default: () => null }));
 vi.mock("@/components/ui/PullToRefreshIndicator", () => ({ PullToRefreshIndicator: () => null }));
 vi.mock("@/components/templates/CuratedEscapesClient", () => ({ default: () => null }));
 vi.mock("@/components/blog/BlogTipsSection", () => ({ default: () => null }));
-vi.mock("@/components/referral/ReferralModal", () => ({ default: () => null }));
 
 import TripsPageClient from "./TripsPageClient";
 
@@ -50,7 +48,7 @@ const trip = (title: string, is_archived: boolean) => ({
 const show = (trips = [trip("Kept", false), trip("Put away", true)]) =>
   render(
     <NextIntlClientProvider locale="en" messages={{ common }} onError={() => {}}>
-      <TripsPageClient trips={trips} displayName="Ana" lifetimeConversions={0} serverToday="2026-11-05" />
+      <TripsPageClient trips={trips} displayName="Ana" serverToday="2026-11-05" />
     </NextIntlClientProvider>
   );
 

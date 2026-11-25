@@ -24,7 +24,6 @@ vi.mock("@/components/ui/Toast", () => ({
 vi.mock("@/components/ui/MobileBottomNav", () => ({ default: () => null }));
 vi.mock("@/components/profile/DeleteAccountModal", () => ({ default: () => null }));
 vi.mock("@/components/beta", () => ({ BetaCodeInput: () => null }));
-vi.mock("@/components/bananas", () => ({ ReferralDashboard: () => null }));
 vi.mock("@/lib/supabase/client", () => ({ createClient: () => ({}) }));
 
 import ProfileClient from "./ProfileClient";

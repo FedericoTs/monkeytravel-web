@@ -42,7 +42,7 @@ export default async function TripsPage({ params }: { params: Promise<{ locale: 
       .order("created_at", { ascending: false }),
     supabase
       .from("users")
-      .select("display_name, avatar_url, lifetime_referral_conversions")
+      .select("display_name, avatar_url")
       .eq("id", userId)
       .single(),
     // Trips someone invited this user to, so accepting an invite isn't the
@@ -110,7 +110,6 @@ export default async function TripsPage({ params }: { params: Promise<{ locale: 
   const { data: profile } = logReadError("my trips: profile", profileResult);
 
   const displayName = profile?.display_name || user.email?.split("@")[0] || "Traveler";
-  const lifetimeConversions = profile?.lifetime_referral_conversions || 0;
 
   // Fetch latest 3 blog posts for Travel Guides section. Uses
   // getAllFrontmatter — the Travel Guides strip only renders title/cover/
@@ -155,7 +154,6 @@ export default async function TripsPage({ params }: { params: Promise<{ locale: 
       trips={trips || []}
       sharedTrips={sharedTrips}
       displayName={displayName}
-      lifetimeConversions={lifetimeConversions}
       blogTips={blogTips}
       serverToday={serverToday}
     />

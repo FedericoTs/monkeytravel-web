@@ -2119,31 +2119,6 @@
       "saveAndContinue": "Salva e continua"
     }
   },
-  "referral": {
-    "title": "Invita amici e guadagna banane",
-    "subtitle": "50 banane per ogni amico che si iscrive",
-    "tryAgain": "Riprova",
-    "howItWorks": "Come funziona",
-    "steps": {
-      "step1": "Condividi il tuo link unico con gli amici",
-      "step2": "Si registrano e creano il loro primo viaggio",
-      "step3": "Guadagni 50 banane da usare per generazioni extra o coda prioritaria"
-    },
-    "yourReferralLink": "Il tuo link di referral",
-    "copy": "Copia",
-    "copied": "Copiato!",
-    "shareVia": "Condividi tramite",
-    "stats": {
-      "friendsJoined": "Amici iscritti",
-      "linkClicks": "Clic sul link"
-    },
-    "share": {
-      "twitterText": "Sto pianificando i viaggi con MonkeyTravel: l'AI crea un itinerario giorno per giorno in circa 30 secondi, gratis. Unisciti:",
-      "whatsappText": "Ehi! Sto usando MonkeyTravel per pianificare viaggi: l'AI crea un itinerario completo giorno per giorno in circa 30 secondi ed è gratis. Provalo:",
-      "emailSubject": "Ti invito su MonkeyTravel",
-      "emailBody": "Ehi!\n\nSto usando MonkeyTravel per pianificare viaggi con l'AI e penso che ti piacerà.\n\nScrivi una città e crea un itinerario completo giorno per giorno in circa 30 secondi: gratis, e non serve un account per provarlo.\n\nBuon viaggio!"
-    }
-  },
   "dataExport": {
     "title": "Esporta i Tuoi Dati",
     "description": "Scarica tutti i tuoi dati personali in formato JSON (GDPR Articolo 20).",
@@ -2155,12 +2130,6 @@
     "includes": "Include: Profilo, viaggi, conversazioni, preferenze"
   },
   "profile": {
-    "referralShare": {
-      "title": "Unisciti a MonkeyTravel",
-      "text": "Unisciti a me su MonkeyTravel e ottieni un viaggio GRATIS creato con l'IA! 🌴✈️",
-      "copied": "Link di invito copiato",
-      "failed": "Non è stato possibile ottenere il tuo link di invito. Riprova."
-    },
     "avatarTooLarge": "Quella foto supera i 5 MB. Scegline una più piccola.",
     "avatarWrongType": "Scegli una foto JPEG, PNG, WebP o GIF.",
     "avatarFailed": "Non è stato possibile caricare la foto. Riprova.",
@@ -2176,7 +2145,6 @@
     "sections": {
       "personalInfo": "Informazioni Personali",
       "travelPreferences": "Preferenze di Viaggio",
-      "referrals": "Referral e Premi",
       "betaAccess": "Accesso Beta",
       "account": "Account"
     },
