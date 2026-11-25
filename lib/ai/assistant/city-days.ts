@@ -15,7 +15,7 @@ import { nameTokens, SAME_ACTIVITY, sameActivityScore, sameWord } from "./saved-
 
 const plain = (s: string) => ` ${s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim()} `;
 /** "Busan, South Korea" and "Busan" are one city. */
-const cityKey = (city: string) => plain(city.split(",")[0]).trim();
+export const cityKey = (city: string) => plain(city.split(",")[0]).trim();
 
 /**
  * The edits with each day of the trip kept in its city: another city only when

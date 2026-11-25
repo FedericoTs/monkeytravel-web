@@ -64,6 +64,7 @@ import {
   asksForEveryDay,
 } from "./message-asks";
 import { alsoInTheirCity, daysOfCity, keepDayCities, placesAway, withoutPlacesAway, type PlacesAway } from "./city-days";
+import { keepRides } from "./rides";
 import { type TravelTime, readTravelTimes, toldTravelTimes, outsideTravelTimes, minutesOf, keepDepartureTime, withPlanDeparture } from "./travel-times";
 import { composeReply, type PlaceOnDay } from "./edit-reply";
 import { maxTripDays } from "./structural";
@@ -123,9 +124,11 @@ function readOutcome(input: AssistInput, obj: Record<string, unknown>, cur: stri
     asksForFreeDay(input.message) || asksForFreeDay([...(input.history ?? [])].reverse().find((t) => t.role === "user")?.text ?? ""),
   );
   const told = [input.message, ...(input.history ?? []).slice(-4).filter((t) => t.role === "user").map((t) => t.text)].join("\n");
+  // Asked now, or in the message a "yes" answers.
+  const asked = [input.message, [...(input.history ?? [])].reverse().find((t) => t.role === "user")?.text ?? ""].join("\n");
   const edits = keepDepartureTime(
     input.days,
-    keepDayCities(input.days, keepSavedActivities(input.days, checked.edits, { reply, message: input.message }), told),
+    keepRides(input.days, keepDayCities(input.days, keepSavedActivities(input.days, checked.edits, { reply, message: input.message }), told), asked),
     input.message,
   );
   // The other days the change concerns, past what one reply holds.
