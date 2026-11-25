@@ -54,8 +54,10 @@ export default defineConfig({
   webServer: IS_PROD_TARGET
     ? undefined
     : {
-        // CI tests the production build it has just made; locally, the dev server.
-        command: process.env.CI ? "npm run start" : "npm run dev",
+        // CI tests the production build it has just made; locally, the dev server. In CI an idle connection stays
+        // open 55 s instead of Node's 5: a test that waits on the page between two requests on one request context
+        // would otherwise reuse a connection the server is closing ("socket hang up").
+        command: process.env.CI ? "npm run start -- --keepAliveTimeout 55000" : "npm run dev",
         url: BASE_URL,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
