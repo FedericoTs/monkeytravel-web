@@ -1260,7 +1260,6 @@
       "share": "Share",
       "copied": "Link copied",
       "more": "More",
-      "saveForLater": "Save for later",
       "fork": "Copy this trip",
       "namePrompt": "Your name?",
       "namePlaceholder": "So the others know it's you",
@@ -1300,10 +1299,6 @@
     "savedHero": {
       "aiTitle": "AI-Generated Itinerary",
       "aiDescription": "This itinerary was created by AI. Click \"More\" on any activity to see Google's photos, ratings and price levels, and double-check opening hours and availability before your trip.",
-      "loveTitle": "Love this itinerary?",
-      "loveDescription": "Save it to your account and make it your own. Edit times, swap activities, add notes, and share with your travel companions.",
-      "saveButton": "Save to My Trips",
-      "saveSubtitle": "Save this itinerary and customize it for your dates",
       "planOwnButton": "✨ Plan your own {destination} trip — free",
       "planOwnButtonGeneric": "✨ Plan your own trip — free",
       "planOwnSubtitle": "Build your own AI itinerary from scratch"

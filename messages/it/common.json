@@ -1260,7 +1260,6 @@
       "share": "Condividi",
       "copied": "Link copiato",
       "more": "Altro",
-      "saveForLater": "Salva per dopo",
       "fork": "Copia questo viaggio",
       "namePrompt": "Il tuo nome?",
       "namePlaceholder": "Così gli altri sanno che sei tu",
@@ -1300,10 +1299,6 @@
     "savedHero": {
       "aiTitle": "Itinerario generato dall'AI",
       "aiDescription": "Questo itinerario è stato creato dall'AI. Clicca \"Altro\" su qualsiasi attività per vedere foto, recensioni e fasce di prezzo di Google, e ricontrolla orari di apertura e disponibilità prima del viaggio.",
-      "loveTitle": "Ti piace questo itinerario?",
-      "loveDescription": "Salvalo sul tuo account e personalizzalo. Modifica gli orari, scambia le attività, aggiungi note e condividilo con i tuoi compagni di viaggio.",
-      "saveButton": "Salva nei Miei Viaggi",
-      "saveSubtitle": "Salva questo itinerario e personalizzalo per le tue date",
       "planOwnButton": "✨ Pianifica il tuo viaggio a {destination} — gratis",
       "planOwnButtonGeneric": "✨ Pianifica il tuo viaggio — gratis",
       "planOwnSubtitle": "Crea il tuo itinerario con l'AI da zero"

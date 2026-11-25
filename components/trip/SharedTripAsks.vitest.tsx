@@ -24,7 +24,6 @@ const end = (over: Partial<ComponentProps<typeof SharedTripEndAsk>> = {}) => (
     crewAsk={false}
     planOwnHref="/trips/new"
     onPlanOwn={() => {}}
-    onSave={() => {}}
     ownerPending={false}
     tripOver={false}
     destination="Lisbon"
@@ -68,7 +67,7 @@ describe("the bar's height", () => {
     expect(published()).toBe("");
   });
 
-  it("is published for the two-button bar with participants off", () => {
+  it("is published for the bar with participants off", () => {
     render(end({ participantsEnabled: false }));
     expect(published()).toBe("88px");
   });

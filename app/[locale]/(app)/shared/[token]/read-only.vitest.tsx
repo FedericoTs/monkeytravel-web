@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import type { TripDayState } from "@/lib/trip/live";
 import SharedTripView from "./SharedTripView";
@@ -9,7 +9,7 @@ import SharedTripView from "./SharedTripView";
  * The public trip page renders this view without the share token. Joining,
  * votes, Today's actions and expenses all go through the share link, which
  * belongs to the group it was sent to, so none of them may appear or call
- * out there. Sharing and saving use the public URL and slug instead.
+ * out there. Sharing uses the public URL instead.
  */
 
 const TOKEN = "11111111-2222-4333-8444-555555555555";
@@ -18,7 +18,6 @@ const PUBLIC_URL = `https://monkeytravel.app/trip/${SLUG}`;
 
 const state = vi.hoisted(() => ({
   viewer: null as { id: string } | null,
-  pending: null as Record<string, unknown> | null,
   prefsSet: [] as Array<[string, string]>,
   // Props given to the view's lazily loaded components (rendered as nothing).
   lazyProps: [] as Array<Record<string, unknown>>,
@@ -124,12 +123,6 @@ vi.mock("@/components/trip/TodayView", () => ({
   default: ({ apiBase }: { apiBase?: string }) => <div data-testid="today-view" data-api-base={apiBase ?? "none"} />,
 }));
 vi.mock("@/components/ShareRow", () => ({ default: ({ url }: { url: string }) => <div data-testid="share-row" data-url={url} /> }));
-vi.mock("@/components/ui/SaveTripModal", () => ({
-  default: ({ isOpen, shareToken, publicSlug }: { isOpen: boolean; shareToken?: string; publicSlug?: string }) => (
-    <div data-testid="save-modal" data-open={String(isOpen)} data-token={shareToken ?? "none"} data-slug={publicSlug ?? "none"} />
-  ),
-  usePendingSaveTripAction: () => ({ getPending: async () => state.pending, clearPending: async () => {} }),
-}));
 
 const day = (isLive: boolean): TripDayState => ({
   phase: isLive ? "live" : "upcoming",
@@ -184,20 +177,17 @@ function renderView({
       viewSource={token ? "shared" : "public"}
       isOwner={isOwner}
       liveState={state ?? day(live)}
-      {...(token ? { shareToken: token } : { publicPage: { slug: SLUG, url: PUBLIC_URL } })}
+      {...(token ? { shareToken: token } : { publicPage: { url: PUBLIC_URL } })}
     />,
   );
 }
 
 beforeEach(() => {
   state.viewer = null;
-  state.pending = null;
   state.prefsSet = [];
   state.lazyProps = [];
   fetched = [];
   funnel = [];
-  // Saving a copy is switched off in production; the tests that save switch it on.
-  vi.stubEnv("NEXT_PUBLIC_SAVE_COPY_ENABLED", "true");
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string, init?: RequestInit) => {
@@ -215,7 +205,6 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
-  vi.unstubAllEnvs();
 });
 
 // Each test renders the whole view: give it room when the suite runs at once.
@@ -244,44 +233,23 @@ describe("the public page's view is read-only", { timeout: 20_000 }, () => {
     expect(exportSurface()).toBe("shared_view");
   });
 
-  it("offers sharing and planning their own, and no copy, with saving a copy switched off", () => {
-    vi.stubEnv("NEXT_PUBLIC_SAVE_COPY_ENABLED", "false");
+  it("offers sharing and planning their own, and no copy", () => {
     renderView({});
     const actions = screen.getByTestId("public-trip-actions");
     expect(within(actions).getByTestId("share-row")).toBeTruthy();
-    expect(within(actions).queryByText("share.participants.saveForLater")).toBeNull();
+    expect(within(actions).queryByRole("button")).toBeNull();
     expect(within(actions).getByText("share.planLikeThis.short")).toBeTruthy();
   });
 
-  it("shares the public URL and saves by the slug", () => {
+  it("shares the public URL", () => {
     renderView({});
     expect(screen.getByTestId("share-row").getAttribute("data-url")).toBe(PUBLIC_URL);
-    const modal = screen.getByTestId("save-modal");
-    expect(modal.getAttribute("data-token")).toBe("none");
-    expect(modal.getAttribute("data-slug")).toBe(SLUG);
-    fireEvent.click(within(screen.getByTestId("public-trip-actions")).getByText("share.participants.saveForLater"));
-    expect(screen.getByTestId("save-modal").getAttribute("data-open")).toBe("true");
   });
 
   it("does not mark a signed-out visitor as a guest who may have joined or paid", async () => {
     renderView({});
     await waitFor(() => expect(fetched).toContain("/api/trips/trip-1/view"));
     expect(state.prefsSet).toEqual([]);
-  });
-
-  it("resumes a save started on this page, and only that one", async () => {
-    state.viewer = { id: "viewer-1" };
-    state.pending = { tripTitle: "Somewhere else", templateId: "template-1", timestamp: Date.now() };
-    renderView({});
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 20));
-    });
-    expect(screen.getByTestId("save-modal").getAttribute("data-open")).toBe("false");
-    cleanup();
-
-    state.pending = { tripTitle: "Lisbon Trip", publicSlug: SLUG, startDate: "2026-11-01", timestamp: Date.now() };
-    renderView({});
-    await waitFor(() => expect(screen.getByTestId("save-modal").getAttribute("data-open")).toBe("true"));
   });
 
   it("still shows the owner who is going", () => {
@@ -292,12 +260,11 @@ describe("the public page's view is read-only", { timeout: 20_000 }, () => {
 });
 
 describe("the share link keeps the group's controls", { timeout: 20_000 }, () => {
-  it("joins, votes and saves through the token", async () => {
+  it("joins and votes through the token", async () => {
     renderView({ token: TOKEN });
     expect(screen.getByTestId("participants-bar").getAttribute("data-token")).toBe(TOKEN);
     expect(screen.getByTestId("vote-bar")).toBeTruthy();
     expect(screen.queryByTestId("share-row")).toBeNull();
-    expect(screen.getByTestId("save-modal").getAttribute("data-token")).toBe(TOKEN);
     await waitFor(() => expect(fetched).toContain(`/api/shared/${TOKEN}/votes`));
   });
 

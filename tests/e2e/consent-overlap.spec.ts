@@ -64,18 +64,12 @@ const SURFACES: Surface[] = [
   {
     name: "public trip",
     path: `/trip/${PUBLIC_TRIP_SLUG}`,
-    cta: (p) => [
-      p.getByRole("button", { name: /save to my trips|save this trip/i }),
-      p.locator('main a[href*="/trips/new"]'),
-    ],
+    cta: (p) => [p.locator('main a[href*="/trips/new"]')],
   },
   {
     name: "shared trip",
     path: `/shared/${SHARE_TOKEN}`,
-    cta: (p) => [
-      p.getByRole("button", { name: /save to my trips|save this trip/i }),
-      p.locator('main a[href*="/trips/new"]'),
-    ],
+    cta: (p) => [p.locator('main a[href*="/trips/new"]')],
   },
 ];
 

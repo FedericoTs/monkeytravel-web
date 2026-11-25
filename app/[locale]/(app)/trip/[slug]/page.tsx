@@ -278,8 +278,8 @@ export default async function PublicTripPage({ params }: PageProps) {
         })}
         trip={sharedViewTrip(trip, itinerary)}
         // No share token: anyone can open this page, so it renders read-only
-        // and shares and saves by its own URL and slug.
-        publicPage={{ slug, url: tripUrl }}
+        // and shares by its own URL.
+        publicPage={{ url: tripUrl }}
         dateRange={formatDateRange(trip.start_date, trip.end_date, locale)}
         coverImageUrl={(trip.cover_image_url as string | null) ?? null}
         engagementSlot={

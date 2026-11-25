@@ -82,18 +82,14 @@ export function useSharedTripVisit({
 
 /**
  * The save dialog, reopened with its date on the way back from signing in to save
- * this trip: the dialog stored what it was doing before sending the visitor away.
+ * this template: the dialog stored what it was doing before sending the visitor away.
  */
 export function useSharedTripSave({
   templateId,
-  shareToken,
-  publicSlug,
   viewer,
   viewerLoading,
 }: {
-  templateId?: string;
-  shareToken?: string;
-  publicSlug?: string;
+  templateId: string;
   viewer: unknown;
   viewerLoading: boolean;
 }) {
@@ -105,12 +101,7 @@ export function useSharedTripSave({
     let cancelled = false;
     void getPending().then(async (pending) => {
       if (cancelled || !pending) return;
-      const ours = templateId
-        ? pending.templateId === templateId
-        : shareToken
-          ? pending.shareToken === shareToken
-          : !!publicSlug && pending.publicSlug === publicSlug;
-      if (!ours) return;
+      if (pending.templateId !== templateId) return;
       await clearPending();
       setResumedStartDate(pending.startDate);
       setShowSaveModal(true);
@@ -118,15 +109,15 @@ export function useSharedTripSave({
     return () => {
       cancelled = true;
     };
-  }, [viewerLoading, viewer, templateId, shareToken, publicSlug, getPending, clearPending]);
+  }, [viewerLoading, viewer, templateId, getPending, clearPending]);
   return { showSaveModal, setShowSaveModal, resumedStartDate };
 }
 
 /**
  * The sharer opening their own link: this browser still holds the claim token for
- * THIS trip. "Save to My Trips" would duplicate their own itinerary, so the page
- * offers the claim instead, and once the claim lands (announced by claimPendingTrip,
- * whoever called it) moves them onto the claimed trip in their account.
+ * THIS trip, so the page offers the claim, and once the claim lands (announced by
+ * claimPendingTrip, whoever called it) moves them onto the claimed trip in their
+ * account.
  */
 export function useOwnerClaim({ shareToken, tripId, signedIn }: { shareToken?: string; tripId: string; signedIn: boolean }): boolean {
   const [ownerPending, setOwnerPending] = useState(false);

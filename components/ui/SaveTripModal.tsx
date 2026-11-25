@@ -16,12 +16,8 @@ import { flagEmoji } from "@/lib/utils/flag-emoji";
 interface SaveTripModalProps {
   isOpen: boolean;
   onClose: () => void;
-  /** For templates: the template ID */
-  templateId?: string;
-  /** For shared trips: the share token */
-  shareToken?: string;
-  /** For a public trip page, which has no share token: the trip's public slug */
-  publicSlug?: string;
+  /** The template to copy */
+  templateId: string;
   /** Trip metadata for display */
   tripTitle: string;
   tripDestination: string;
@@ -38,15 +34,13 @@ const PENDING_SAVE_KEY = "pendingSaveTripAction";
 
 interface PendingSave {
   templateId?: string;
-  shareToken?: string;
-  publicSlug?: string;
   tripTitle: string;
   startDate?: string;
   timestamp: number;
 }
 
 /**
- * Modal for saving a template or shared trip to user's account
+ * Modal for saving a template to user's account
  * with date selection.
  *
  * UX Features:
@@ -60,8 +54,6 @@ export default function SaveTripModal({
   isOpen,
   onClose,
   templateId,
-  shareToken,
-  publicSlug,
   tripTitle,
   tripDestination,
   tripCountryCode,
@@ -138,8 +130,6 @@ export default function SaveTripModal({
   const storePendingSave = async () => {
     const pending: PendingSave = {
       templateId,
-      shareToken,
-      publicSlug,
       tripTitle,
       startDate,
       timestamp: Date.now(),
@@ -148,11 +138,7 @@ export default function SaveTripModal({
   };
 
   // Signing in comes back to the page this dialog was opened from.
-  const returnPath = templateId
-    ? `/trips/template/${templateId}`
-    : shareToken
-      ? `/shared/${shareToken}`
-      : `/trip/${publicSlug}`;
+  const returnPath = `/trips/template/${templateId}`;
 
   // Handle save action
   const handleSave = async () => {
@@ -173,25 +159,12 @@ export default function SaveTripModal({
     setError(null);
 
     try {
-      let response;
-
-      if (templateId) {
-        // Copy template
-        response = await fetch(`/api/templates/${templateId}/copy`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ startDate, locale }),
-        });
-      } else if (shareToken || publicSlug) {
-        // Duplicate the shared or public trip with new dates
-        response = await fetch("/api/trips/duplicate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(shareToken ? { shareToken, startDate } : { publicSlug, startDate }),
-        });
-      } else {
-        throw new Error("No template or share token provided");
-      }
+      // Copy template
+      const response = await fetch(`/api/templates/${templateId}/copy`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ startDate, locale }),
+      });
 
       const data = await response.json();
 
@@ -202,23 +175,21 @@ export default function SaveTripModal({
       setSaveSuccess(true);
 
       // Get the new trip ID
-      const newTripId = templateId ? data.trip.id : data.tripId;
+      const newTripId = data.trip.id;
 
       // Track analytics event
-      if (templateId) {
-        trackTemplateCopied({
-          templateId,
-          templateName: tripTitle,
-          destination: tripDestination,
-        });
-      }
-      // Track trip creation (both template copies and shared trip duplicates)
+      trackTemplateCopied({
+        templateId,
+        templateName: tripTitle,
+        destination: tripDestination,
+      });
+      // Track trip creation
       trackTripCreated({
         tripId: newTripId,
         destination: tripDestination,
         duration: durationDays,
         budgetTier: "balanced", // Default since we don't have this info here
-        isFromTemplate: !!templateId,
+        isFromTemplate: true,
       });
 
       // Native success haptic — this is the post-auth-wall conversion
