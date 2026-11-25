@@ -9,9 +9,8 @@ import type { FeedEvent } from "./shared";
  *
  * Fetch on mount, then refetch on demand. No realtime channel of its own: the
  * chip actions already arrive over the Today broadcast that
- * TodayView owns (useTodayActions), and the money tables have no public read
- * path to subscribe to — so TodayView calls refetch() whenever those change
- * or an expense is added. That reuses one subscription instead of opening a
+ * TodayView owns (useTodayActions), so TodayView calls refetch() whenever
+ * those change. That reuses one subscription instead of opening a
  * second, and still surfaces new joins on the next refetch or load.
  */
 export interface TripFeedApi {

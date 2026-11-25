@@ -15,12 +15,12 @@ const s = vi.hoisted(() => ({
   anonToday: true,
   anonTodayAsked: 0,
 }));
-/** Where the cities table puts a place, when a test says, and each lookup asked of it. */
+/** Where a place typed by its bare name is (lib/ai/place-point.ts), when a test says, and each lookup asked of it. */
 const places = vi.hoisted(() => ({ points: {} as Record<string, { lat: number; lng: number }>, looked: [] as string[][] }));
-vi.mock("@/lib/ai/city-points", () => ({
-  cityPointsFor: async (cities: string[]) => {
-    places.looked.push(cities);
-    return cities.map((c) => places.points[c] ?? null);
+vi.mock("@/lib/ai/place-point", () => ({
+  placePointFor: async (name: string) => {
+    places.looked.push([name]);
+    return places.points[name] ?? null;
   },
 }));
 
@@ -269,6 +269,15 @@ describe("withTypedPlace", () => {
     expect(places.looked).toEqual([["Prague"]]);
     expect(params.daylight?.first.sunset).toMatch(/^1[56]:[0-5]\d$/);
     expect(params.whatsOn).toEqual([expect.stringMatching(/Christmas markets are open/)]);
+  });
+
+  // The curated "Bali" is the island; the cities table's biggest is a town in India, where the sun sets at ~17:00.
+  it("gives a region typed by name its own sun, through the curated destinations", async () => {
+    places.points = { Bali: { lat: -8.34, lng: 115.09 } };
+    places.looked.length = 0;
+    const params = await placed({ ...december, destination: "Bali" });
+    expect(places.looked).toEqual([["Bali"]]);
+    expect(params.daylight?.first.sunset).toMatch(/^18:[0-5]\d$/);
   });
 
   it("keeps a picked place's own point, and looks nothing up", async () => {

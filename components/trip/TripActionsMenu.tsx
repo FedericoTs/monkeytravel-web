@@ -142,8 +142,8 @@ export function TripActionsMenuItem({
 }
 
 /**
- * A full-width slot for a self-contained control (ExportMenu, DownloadIcsButton)
- * so it sits as a menu row without restyling the component itself.
+ * A full-width slot for a self-contained control (ExportMenu) so it sits as a
+ * menu row without restyling the component itself.
  */
 export function TripActionsMenuSlot({ children }: { children: ReactNode }) {
   return <div className="flex w-full items-center px-1 py-0.5 [&_button]:w-full [&_button]:justify-start">{children}</div>;

@@ -25,7 +25,6 @@ vi.mock("@/lib/api/rate-limit", () => ({ createRateLimiter: () => ({ check: asyn
 vi.mock("@/lib/participants/flag", () => ({ isLiveTripParticipantsEnabled: () => true }));
 vi.mock("@/lib/posthog/server", () => ({ captureServerEvent: () => {} }));
 vi.mock("@/lib/today/snapshot", () => ({ todayActionsSnapshot: async () => [] }));
-vi.mock("@/lib/expenses/snapshot", () => ({ expensesSnapshot: async () => ({ expenses: [], summary: null }) }));
 vi.mock("@/lib/api/auth", () => ({
   getAuthenticatedUser: async () =>
     signedIn
@@ -42,7 +41,6 @@ vi.mock("@/lib/supabase/admin", () => ({
       if (q.table === "trip_collaborators") return { data: eqOf(q, "user_id") === "mate-1" ? { user_id: "mate-1" } : null, error: null };
       if (q.table === "users") return { data: { display_name: "Luca" }, error: null };
       if (q.table === "trip_participants") return { data: q.end === "list" ? [] : null, error: null };
-      if (q.table === "trip_expenses" && q.op === "insert") return { data: { id: "exp-1" }, error: null };
       return { data: null, error: null };
     });
     log = fake.log;
@@ -59,7 +57,6 @@ vi.mock("@/lib/supabase/admin", () => ({
 }));
 
 const tap = (await import("./today-action/route")).POST;
-const pay = (await import("./expense/route")).POST;
 const actions = (await import("./today-actions/route")).GET;
 const ctx = { params: Promise.resolve({ id: "trip-1" }) };
 const post = (path: string, body: unknown) =>
@@ -85,7 +82,6 @@ describe("Today's member routes", () => {
   it("refuse someone who isn't the owner or a collaborator", async () => {
     member = false;
     expect((await tap(post("today-action", { action_type: "done", day_number: 1 }), ctx)).status).toBe(403);
-    expect((await pay(post("expense", { amount: "10" }), ctx)).status).toBe(403);
     expect(log).toEqual([]);
   });
 
@@ -110,19 +106,5 @@ describe("Today's member routes", () => {
     const res = await tap(post("today-action", { action_type: "not-a-chip", day_number: 1 }), ctx);
     expect(res.status).toBe(400);
     expect(announced).toEqual([]);
-  });
-
-  it("write a member's payment by account and tell everyone's Today", async () => {
-    const res = await pay(post("expense", { amount: "10" }), ctx);
-    expect(res.status).toBe(200);
-    expect(writes("trip_expenses")[0].value).toMatchObject({
-      trip_id: "trip-1",
-      created_by: "mate-1",
-      created_by_cookie_id: null,
-      paid_by_user_id: "mate-1",
-      paid_by_cookie_id: null,
-      currency: "EUR",
-    });
-    expect(announced).toEqual(["trip-today:trip-1"]);
   });
 });

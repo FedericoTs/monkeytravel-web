@@ -20,10 +20,13 @@ import { DESTINATION_MAX_LENGTH, DESTINATION_MIN_LENGTH, MAX_TRIP_DAYS_MULTI } f
 
 export const maxDuration = 30;
 
-// A visitor tries a place or two before planning; these leave room for that
-// and stop a script.
-const routeIpLimiter = createRateLimiter("route-plan", 20, 24 * 60 * 60 * 1000);
-const routeBurstLimiter = createRateLimiter("route-plan-burst", 6, 60 * 1000);
+// A visitor tries a place or two before planning, and step 1 asks again each
+// time typing pauses (hooks/useRouteOffer.ts), so a place typed slowly on a
+// phone asks many times in a minute. Every ask counts, refused ones too.
+// These leave room for that and still stop a script; an ask costs a fraction
+// of a cent.
+const routeIpLimiter = createRateLimiter("route-plan", 40, 24 * 60 * 60 * 1000);
+const routeBurstLimiter = createRateLimiter("route-plan-burst", 12, 60 * 1000);
 
 const BodySchema = z.object({
   place: z.string().trim().min(DESTINATION_MIN_LENGTH).max(DESTINATION_MAX_LENGTH),

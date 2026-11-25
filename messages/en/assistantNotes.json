@@ -1,6 +1,5 @@
 {
   "nothingChanged": "I haven't changed your itinerary: I couldn't make that change from here. You can make it with \"Edit Trip\", or ask me for one activity at a time, like \"add a boat tour to day 5\".",
-  "noProposal": "(That change isn't ready: there's nothing to confirm. Ask me again with the day and the activity.)",
   "preparedChange": "I've prepared this change.",
   "wizardNothingChanged": "I haven't changed your plan: I couldn't make that change. Try asking for it day by day, like \"make day 3 more relaxed\".",
   "wizardNothingKept": "I can't keep details like that here, and I only remember the last few messages. To fit the plan to it, tell me what should change, like \"we land at 14:00 on day 1\".",

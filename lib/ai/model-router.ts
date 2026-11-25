@@ -13,7 +13,6 @@
  *   trip-generation             | gemini-3.5-flash-lite  | Full plans: fast, good pins, no deep reasoning needed
  *   day-regenerate              | gemini-3.5-flash-lite  | Single-day, same writing as a full plan
  *   activity-regenerate         | gemini-2.5-flash-lite  | Single activity, cheapest works
- *   concierge                   | gemini-3.5-flash-lite  | Conversational, needs context
  *   packing-list                | gemini-2.5-flash-lite  | Deterministic list, cheap
  *   email-parser                | gemini-2.5-flash-lite  | Structured extraction, low temp
  *   trip-title                  | gemini-2.5-flash-lite  | One-shot string, cheapest
@@ -37,7 +36,6 @@ export type GeminiPurpose =
   | "trip-generation"
   | "day-regenerate"
   | "activity-regenerate"
-  | "concierge"
   | "packing-list"
   | "email-parser"
   | "trip-title"
@@ -65,7 +63,6 @@ const PURPOSE_TO_MODEL: Record<GeminiPurpose, GeminiModelId> = {
   "trip-generation": "gemini-3.5-flash-lite",
   "day-regenerate": "gemini-3.5-flash-lite",
   "activity-regenerate": "gemini-2.5-flash-lite",
-  concierge: "gemini-3.5-flash-lite",
   "packing-list": "gemini-2.5-flash-lite",
   "email-parser": "gemini-2.5-flash-lite",
   "trip-title": "gemini-2.5-flash-lite",

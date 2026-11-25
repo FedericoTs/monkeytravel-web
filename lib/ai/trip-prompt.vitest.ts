@@ -381,6 +381,21 @@ describe("the vibes and what the place is known for", () => {
     expect(vibeSection(trip(["nature", "offbeat"]))).toContain("signature sights");
     expect(buildUserPrompt(trip([]))).not.toContain("signature sights");
   });
+
+  // A week at a beach town led by "urban" alone could come back as malls and squares and one beach stop.
+  it("keeps time at the sea on most days of a stay at a place people visit for it, in a season that suits it", () => {
+    const section = vibeSection(trip(["urban"], "Cancún, Mexico"));
+    expect(section).toContain("Where people come to Cancún, Mexico mostly for its beaches and sea");
+    expect(section).toContain("on most full days of a stay of three days or more, give a morning or an afternoon to it whatever the vibes");
+    expect(section).toContain("not when the trip's dates fall in a season when the sea there is too cold or rough for it");
+    // Before "the vibes choose everything else", which would otherwise take those days.
+    expect(section.indexOf("beaches and sea")).toBeLessThan(section.indexOf("The vibes choose everything else"));
+  });
+
+  it("leaves the sea to the vibes in a trip led by hidden gems, and says nothing of it without vibes", () => {
+    expect(vibeSection(trip(["offbeat"], "Cancún, Mexico"))).not.toContain("beaches and sea");
+    expect(buildUserPrompt(trip([], "Cancún, Mexico"))).not.toContain("beaches and sea");
+  });
 });
 
 describe("a special trip", () => {

@@ -33,7 +33,6 @@ const MOVED = [
   "components/collaboration/CollaboratorRow.tsx",
   "components/collaboration/proposals/ProposeActivitySheet.tsx",
   "components/collaboration/RoleSelector.tsx",
-  "components/trip/TodayExpenses.tsx",
   "app/[locale]/(app)/trips/[id]/TripDetailClient.tsx",
   "app/[locale]/(app)/shared/[token]/SharedTripView.tsx",
   "components/trip/ParticipantsBar.tsx",

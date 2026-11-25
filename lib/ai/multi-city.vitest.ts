@@ -15,10 +15,19 @@ const daylights: Array<{ destination: string; daylight: TripCreationParams["dayl
 const whatsOns: Array<{ destination: string; whatsOn: TripCreationParams["whatsOn"] }> = [];
 /** What each stay was told an earlier stay in its city already has. */
 const alreadyPlannedAsks: Array<{ destination: string; startDate: string; alreadyPlanned: TripCreationParams["alreadyPlanned"] }> = [];
-/** Where the cities table puts each city, when a test says. */
+/** Where the cities table puts each city, when a test says, and each list of names asked of it. */
 let pointsByCity: Record<string, { lat: number; lng: number }> = {};
+const citiesAsked: string[][] = [];
 vi.mock("./city-points", () => ({
-  cityPointsFor: async (cities: string[]) => cities.map((c) => pointsByCity[c] ?? null),
+  cityPointsFor: async (cities: string[]) => {
+    citiesAsked.push(cities);
+    return cities.map((c) => pointsByCity[c] ?? null);
+  },
+}));
+/** The curated destinations' points (lib/ai/place-point.ts), when a test says. */
+let curatedByCity: Record<string, { lat: number; lng: number }> = {};
+vi.mock("./place-point", () => ({
+  curatedPointFor: async (name: string) => curatedByCity[name] ?? null,
 }));
 vi.mock("@/lib/gemini", () => ({
   generateItinerary: async (p: TripCreationParams, options: { knownPlaces?: unknown }) => {
@@ -80,6 +89,24 @@ describe("generateMultiCityItinerary", () => {
     expect(of("Nowhere")).toBeUndefined();
     pointsByCity = {};
     for (const list of [generated, asked, routes, events, daylights] as unknown[][]) list.length = 0;
+  });
+
+  // The cities table has no "Santorini" (an island) and its biggest "Bali" is a town in India: a curated
+  // destination's point comes first, and the table is asked only for the other cities.
+  it("takes a curated destination's point before the cities table's", async () => {
+    pointsByCity = { Athens: { lat: 37.98, lng: 23.73 }, Santorini: { lat: 0.1, lng: 0.1 } };
+    curatedByCity = { Santorini: { lat: 36.39, lng: 25.46 } };
+    citiesAsked.length = 0;
+    daylights.length = 0;
+    const base = { budgetTier: "balanced", pace: "moderate", vibes: [], interests: [] } as unknown as Parameters<typeof generateMultiCityItinerary>[0];
+    await generateMultiCityItinerary(base, [{ city: "Athens", nights: 2 }, { city: "Santorini", nights: 3 }], "2027-06-01");
+    const of = (city: string) => daylights.find((d) => d.destination.trim() === city)?.daylight;
+    expect(of("Santorini")).toEqual(daylightFor({ lat: 36.39, lng: 25.46 }, "2027-06-03", "2027-06-05"));
+    expect(of("Athens")).toEqual(daylightFor({ lat: 37.98, lng: 23.73 }, "2027-06-01", "2027-06-02"));
+    expect(citiesAsked).toEqual([["Athens", ""]]);
+    pointsByCity = {};
+    curatedByCity = {};
+    for (const list of [generated, asked, routes, events, daylights, citiesAsked] as unknown[][]) list.length = 0;
   });
 
   it("tells each city what's on there, on its own dates", async () => {

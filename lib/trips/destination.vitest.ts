@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getTripDestination } from "./destination";
+import { getTripDestination, placeOfDay } from "./destination";
 
 describe("getTripDestination", () => {
   describe("Source 1: meta.destination (canonical)", () => {
@@ -97,5 +97,21 @@ describe("getTripDestination", () => {
         }),
       ).toBe("A");
     });
+  });
+});
+
+describe("placeOfDay", () => {
+  const route = "Lisbon, Porto & Lagos";
+
+  it("a day of a trip through several cities searches its own city", () => {
+    expect(placeOfDay({ city: "Porto" }, route)).toBe("Porto");
+    expect(placeOfDay({ city: "  Lagos " }, route)).toBe("Lagos");
+  });
+
+  it("a day with no city of its own searches the trip's destination", () => {
+    expect(placeOfDay({}, "Kyoto, Japan")).toBe("Kyoto, Japan");
+    expect(placeOfDay({ city: "   " }, "Kyoto, Japan")).toBe("Kyoto, Japan");
+    expect(placeOfDay({ city: null }, "Kyoto, Japan")).toBe("Kyoto, Japan");
+    expect(placeOfDay(undefined, "Kyoto, Japan")).toBe("Kyoto, Japan");
   });
 });

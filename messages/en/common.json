@@ -2507,36 +2507,6 @@
       "affiliateDisclosure": "Affiliate link — we may earn a small commission at no extra cost to you."
     }
   },
-  "calendar": {
-    "downloadIcs": "Add to Calendar",
-    "downloadIcsSubtitle": "Works with Apple Calendar, Google Calendar, Outlook"
-  },
-  "concierge": {
-    "triggerLabel": "Ask concierge",
-    "modalTitle": "Trip concierge",
-    "inputLabel": "Ask the concierge",
-    "placeholder": "Ask anything about your trip — \"what's near our Day 3 hotel for dinner?\", \"how long to Castello di Miramare from the city?\"",
-    "hint": "Read-only — won't change your itinerary.",
-    "send": "Ask",
-    "sending": "Asking…",
-    "thinking": "Thinking…",
-    "yourQuestion": "You asked",
-    "answer": "Concierge says",
-    "liveTripHint": "Today is in your trip window — answers ground in today's activities.",
-    "errorQuota": "Daily AI limit reached. Try again tomorrow.",
-    "errorGeneric": "Couldn't answer right now. Try again in a moment.",
-    "hintEditable": "Ask anything — or ask for a change and confirm it before it touches your plan.",
-    "proposalApplied": "Change applied to your trip.",
-    "applyError": "Couldn't apply that change. Your trip is unchanged — try again.",
-    "tryDifferentPrefill": "Propose a different option for that.",
-    "historyToggle": "Past concierge questions",
-    "historyCount": "({count})",
-    "historyLoading": "Loading…",
-    "historyEmpty": "No questions yet — your past chats with the concierge will show up here.",
-    "historyError": "Couldn't load history. Try again in a moment.",
-    "historyLiveTrip": "Live trip",
-    "historyLiveTripDay": "Day {day}"
-  },
   "expenses": {
     "title": "Trip expenses",
     "emptyHint": "Track what you actually spend",
@@ -2709,6 +2679,10 @@
     "morning_of": {
       "heading": "Travel day",
       "body": "Today's the day. Your {destination} plan for today is one tap away — open it whenever you need directions, today's stops, or what's next."
+    },
+    "need_10d": {
+      "heading": "What do you still need for your trip to {destination}?",
+      "body": "One tap is enough. It tells us what to make better before your trip."
     },
     "needAsk": {
       "question": "One question: what do you still need for this trip?",

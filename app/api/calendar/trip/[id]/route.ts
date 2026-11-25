@@ -16,10 +16,10 @@
  *      add the trip to their calendar without signing in.
  *
  * NOT a feature-flag gate:
- *   The UI button is gated by `NEXT_PUBLIC_CALENDAR_EXPORT_ENABLED`.
- *   This endpoint stays open even if the flag is flipped off — a user
- *   who already downloaded an .ics and re-runs the URL from their
- *   browser history shouldn't get a 404. The kill-switch is in the UI.
+ *   No page links here any more (Export makes its calendar file in the
+ *   browser). This endpoint stays open — a user who already downloaded
+ *   an .ics and re-runs the URL from their browser history shouldn't
+ *   get a 404.
  *
  * Rate limit:
  *   30 requests/min/IP. A download is a deliberate click, not a poll;

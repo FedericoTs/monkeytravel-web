@@ -1,18 +1,18 @@
 /**
  * The Today activity feed — Live Trip plan, Phase 3.5.
  *
- * "Ana is going · Marco skipped lunch · Bob paid €12 · dinner swapped" — one
- * chronological stream merged from three sources (participant joins, the chip
- * actions of 3.3, the expenses of 3.4). This is what makes N people re-open a
- * live trip: they can see it's alive.
+ * "Ana is going · Marco skipped lunch · dinner swapped" — one chronological
+ * stream merged from two sources (participant joins and the chip actions of
+ * 3.3). This is what makes N people re-open a live trip: they can see it's
+ * alive.
  *
- * The three sources live in service-role-only or public tables with different
+ * The two sources live in service-role-only or public tables with different
  * shapes, so the server (lib/feed/snapshot.ts) normalizes them into FeedEvent
  * rows; this module holds the shared type, the sort, the locale-agnostic
  * describe (the view localizes), and relative-time — all pure and tested.
  */
 
-export type FeedKind = "join" | "running_late" | "skip" | "swap" | "done" | "expense";
+export type FeedKind = "join" | "running_late" | "skip" | "swap" | "done";
 
 export interface FeedEvent {
   id: string;
@@ -27,9 +27,6 @@ export interface FeedEvent {
   minutes?: number;
   /** swap */
   swapTo?: string | null;
-  /** expense */
-  amountCents?: number;
-  currency?: string;
 }
 
 /** Newest first, with a stable tiebreak on id so equal timestamps don't reorder. */
@@ -46,24 +43,17 @@ const ICONS: Record<FeedKind, string> = {
   skip: "⏭️",
   swap: "🔄",
   done: "✓",
-  expense: "💶",
 };
 export function feedIcon(kind: FeedKind): string {
   return ICONS[kind];
 }
 
-/**
- * The message key + params for one event. `amount` is left to the view (it
- * needs the locale to format currency); everything else is here.
- */
+/** The message key + params for one event. */
 export interface FeedDescriptor {
   who: { kind: "name" | "owner" | "someone"; name?: string };
   /** today.feed.<key> */
-  key: "join" | "runningLate" | "skip" | "swap" | "swapNoName" | "doneActivity" | "doneDay" | "expense" | "expenseActivity";
+  key: "join" | "runningLate" | "skip" | "swap" | "swapNoName" | "doneActivity" | "doneDay";
   params: { activity?: string; minutes?: number; to?: string };
-  /** For expense events, the raw amount for the view to format. */
-  amountCents?: number;
-  currency?: string;
 }
 
 export function describeFeedEvent(e: FeedEvent): FeedDescriptor {
@@ -84,14 +74,6 @@ export function describeFeedEvent(e: FeedEvent): FeedDescriptor {
       return e.swapTo ? { who, key: "swap", params: { activity, to: e.swapTo } } : { who, key: "swapNoName", params: { activity } };
     case "done":
       return activity ? { who, key: "doneActivity", params: { activity } } : { who, key: "doneDay", params: {} };
-    case "expense":
-      return {
-        who,
-        key: activity ? "expenseActivity" : "expense",
-        params: { activity },
-        amountCents: e.amountCents,
-        currency: e.currency,
-      };
   }
 }
 

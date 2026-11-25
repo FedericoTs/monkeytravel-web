@@ -23,12 +23,9 @@ import type { TripDayState } from "@/lib/trip/live";
 import ActivityCard from "@/components/ActivityCard";
 import { DayRouteLink } from "@/components/trip/DayRouteLink";
 import TodayPacking from "@/components/trip/TodayPacking";
-import TodayExpenses from "@/components/trip/TodayExpenses";
 import TodayFeed from "@/components/trip/TodayFeed";
 import { weatherCondition } from "@/lib/trips/weather-note";
-import ExpenseQuickAdd from "@/components/trip/ExpenseQuickAdd";
 import { useTodayActions } from "@/lib/today/useTodayActions";
-import { useTripExpenses } from "@/lib/expenses/useTripExpenses";
 import { useTripFeed } from "@/lib/feed/useTripFeed";
 import {
   activeActions,
@@ -46,15 +43,15 @@ interface TodayViewProps {
   weatherNote?: string;
   onViewFullItinerary: () => void;
   /**
-   * Trip id + the routes Today reads and writes enable the chips, expenses
-   * and feed: `/api/shared/<token>` on the share link, `/api/trips/<id>/today`
-   * for members. Omit to show a read-only Today.
+   * Trip id + the routes Today reads and writes enable the chips and feed:
+   * `/api/shared/<token>` on the share link, `/api/trips/<id>/today` for
+   * members. Omit to show a read-only Today.
    */
   tripId?: string;
   apiBase?: string;
   /** The trip's packing list, for the "Packed?" checklist (Phase 3.4). */
   packingItems?: string[];
-  /** Opens Settle Up from the expense panel; the trip page passes it for members. */
+  /** Not read: Today has no expense panel left to open Settle Up from. Kept while the trip page still passes it. */
   onSettleUp?: () => void;
   className?: string;
 }
@@ -81,7 +78,6 @@ export default function TodayView({
   tripId,
   apiBase,
   packingItems,
-  onSettleUp,
   className = "",
 }: TodayViewProps) {
   const t = useTranslations("common");
@@ -96,24 +92,14 @@ export default function TodayView({
 
   // Phase 3.3 overlay (realtime). Enabled only when we know which routes to use.
   const chipsEnabled = !!apiBase && !!tripId;
-  // Phase 3.4 expenses: "Who paid?" on the live trip, split across participants.
-  // Refreshed with the chips when the trip's Today broadcast announces a change.
-  // Follows the expense switch, as the trip page's ledger and Settle up do.
-  const expensesOn = chipsEnabled && process.env.NEXT_PUBLIC_EXPENSE_LEDGER_ENABLED === "true";
-  const expenses = useTripExpenses(apiBase ?? "", expensesOn);
-  const { actions, busy, error, apply, undo } = useTodayActions(apiBase ?? "", tripId ?? "", chipsEnabled, expenses.refetch);
-  // Phase 3.5 activity feed: joins + chip actions + expenses, merged server-side.
-  // No channel of its own — refetch when the chip actions or the expenses
-  // change (a refresh that changed nothing keeps the arrays), reusing one channel.
+  const { actions, busy, error, apply, undo } = useTodayActions(apiBase ?? "", tripId ?? "", chipsEnabled);
+  // Phase 3.5 activity feed: joins + chip actions, merged server-side. No
+  // channel of its own — refetch when the chip actions change (a refresh that
+  // changed nothing keeps the array), reusing one channel.
   const { events: feedEvents, refetch: refetchFeed } = useTripFeed(apiBase ?? "", chipsEnabled);
   useEffect(() => {
     refetchFeed();
-  }, [actions, expenses.expenses, refetchFeed]);
-  const activityNameOf = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const d of itinerary) for (const a of d.activities ?? []) if (a?.id) map.set(a.id, a.name);
-    return (id: string | null) => (id ? map.get(id) ?? null : null);
-  }, [itinerary]);
+  }, [actions, refetchFeed]);
 
   const [nowMin, setNowMin] = useState<number | null>(() => (dayState.timeZone ? toMinutes(nowHHMMInZone(dayState.timeZone)) : null));
   useEffect(() => {
@@ -221,13 +207,6 @@ export default function TodayView({
                 </button>
               </>
             )}
-            {/* Phase 3.4: "Who paid?" on each activity. */}
-            {expensesOn && (
-              <ExpenseQuickAdd
-                onAdd={(amt) => expenses.add({ amount: amt, activityId: activity.id ?? null })}
-                busy={expenses.busy}
-              />
-            )}
           </div>
         )}
       </div>
@@ -279,23 +258,8 @@ export default function TodayView({
       )}
       {error && <p className="mb-3 text-xs text-red-600" role="alert">{t(`today.errors.${error}`)}</p>}
 
-      {/* Feed — participant joins + chip actions + expenses, merged (Phase 3.5) */}
+      {/* Feed — participant joins + chip actions, merged (Phase 3.5) */}
       {chipsEnabled && <TodayFeed events={feedEvents} className="mb-4" />}
-
-      {/* Expenses — "Who paid?" split across participants (Phase 3.4). */}
-      {expensesOn && (
-        <TodayExpenses
-          expenses={expenses.expenses}
-          summary={expenses.summary}
-          busy={expenses.busy}
-          error={expenses.error}
-          onAdd={(amt) => expenses.add({ amount: amt })}
-          onRemove={expenses.remove}
-          activityName={activityNameOf}
-          onSettleUp={onSettleUp}
-          className="mb-4"
-        />
-      )}
 
       {dayDone ? (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-6 text-center" data-testid="today-day-done">

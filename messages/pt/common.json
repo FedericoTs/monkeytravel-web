@@ -2507,36 +2507,6 @@
       "affiliateDisclosure": "Link de afiliado — podemos ganhar uma pequena comissão sem custo extra para você."
     }
   },
-  "calendar": {
-    "downloadIcs": "Adicionar ao Calendário",
-    "downloadIcsSubtitle": "Funciona com Apple Calendar, Google Agenda, Outlook"
-  },
-  "concierge": {
-    "triggerLabel": "Perguntar ao concierge",
-    "modalTitle": "Concierge da viagem",
-    "inputLabel": "Pergunte ao concierge",
-    "placeholder": "Pergunte qualquer coisa sobre sua viagem — \"o que tem perto do hotel do Dia 3 para o jantar?\", \"quanto tempo até o Castello di Miramare a partir da cidade?\"",
-    "hint": "Somente leitura — não altera seu roteiro.",
-    "send": "Perguntar",
-    "sending": "Perguntando…",
-    "thinking": "Pensando…",
-    "yourQuestion": "Você perguntou",
-    "answer": "O concierge diz",
-    "liveTripHint": "Hoje está dentro do período da sua viagem — as respostas se baseiam nas atividades de hoje.",
-    "errorQuota": "Limite diário de AI atingido. Tente novamente amanhã.",
-    "errorGeneric": "Não foi possível responder agora. Tente novamente em instantes.",
-    "hintEditable": "Pergunte qualquer coisa — ou peça uma mudança e confirme antes que ela toque no seu plano.",
-    "proposalApplied": "Mudança aplicada à sua viagem.",
-    "applyError": "Não foi possível aplicar a mudança. Sua viagem não mudou — tente novamente.",
-    "tryDifferentPrefill": "Proponha uma opção diferente.",
-    "historyToggle": "Perguntas anteriores ao concierge",
-    "historyCount": "({count})",
-    "historyLoading": "Carregando…",
-    "historyEmpty": "Nenhuma pergunta ainda — suas conversas anteriores com o concierge aparecerão aqui.",
-    "historyError": "Não foi possível carregar o histórico. Tente novamente em instantes.",
-    "historyLiveTrip": "Viagem em andamento",
-    "historyLiveTripDay": "Dia {day}"
-  },
   "expenses": {
     "title": "Despesas da viagem",
     "emptyHint": "Acompanhe o que você realmente gasta",
@@ -2709,6 +2679,10 @@
     "morning_of": {
       "heading": "Dia da viagem",
       "body": "Chegou o dia. Seu plano de hoje em {destination} está a um toque de distância — abra sempre que precisar de direções, das paradas de hoje ou do que vem a seguir."
+    },
+    "need_10d": {
+      "heading": "O que ainda falta para sua viagem a {destination}?",
+      "body": "Basta um toque. Assim sabemos o que melhorar antes da sua viagem."
     },
     "needAsk": {
       "question": "Uma pergunta: o que ainda falta para esta viagem?",
