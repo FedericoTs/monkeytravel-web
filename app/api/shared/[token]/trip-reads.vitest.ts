@@ -25,7 +25,6 @@ vi.mock("@/lib/supabase/admin", () => ({
 const get = () => new NextRequest(`http://localhost/api/shared/${TOKEN}`);
 const ctx = { params: Promise.resolve({ token: TOKEN }) };
 const routes: Array<[string, () => Promise<Response>]> = [
-  ["the expenses", async () => (await import("./expenses/route")).GET(get(), ctx)],
   ["the feed", async () => (await import("./feed/route")).GET(get(), ctx)],
   ["who's going", async () => (await import("./participants/route")).GET(get(), ctx)],
   ["Today's actions", async () => (await import("./today-actions/route")).GET(get(), ctx)],

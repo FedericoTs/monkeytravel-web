@@ -2,14 +2,14 @@
  * Today activity-feed probe — Live Trip Phase 3.5.
  *
  * Against a running deployment (BASE) + a shared trip (SHARE_TOKEN or the
- * newest), seeds one of each source row (a named participant, a chip action,
- * an expense), then GETs /api/shared/[token]/feed and proves the merge:
- *   - a named join, the chip action, and the expense all appear;
- *   - activity ids are resolved to names for the chip + expense;
+ * newest), seeds one of each source row (a named participant, a chip action),
+ * then GETs /api/shared/[token]/feed and proves the merge:
+ *   - a named join and the chip action both appear;
+ *   - activity ids are resolved to names for the chip;
  *   - the stream is newest-first;
- *   - the expense carries amount + currency, the chip carries its actor;
+ *   - the chip carries its actor;
  *   - an invalid token is rejected.
- * The source writes themselves are already covered by the 3.3 / 3.4 probes;
+ * The chip writes themselves are already covered by the 3.3 probe;
  * this asserts only what 3.5 adds — the merge. Cleans up its own rows.
  *
  *   SHARE_TOKEN=<uuid> BASE=http://localhost:3001 npx tsx scripts/feed-probe.mts
@@ -30,7 +30,7 @@ const admin = createClient(url, serviceKey, { auth: { persistSession: false } })
 let failures = 0;
 const check = (ok: boolean, label: string, d?: unknown) => { console.log(`${ok ? "  ok  " : "  FAIL"} ${label}${d !== undefined ? "  " + JSON.stringify(d).slice(0, 220) : ""}`); if (!ok) failures++; };
 
-interface FeedEvent { id: string; kind: string; at: string; actorName: string | null; actorIsOwner: boolean; activityName: string | null; amountCents?: number; currency?: string; minutes?: number; swapTo?: string | null }
+interface FeedEvent { id: string; kind: string; at: string; actorName: string | null; actorIsOwner: boolean; activityName: string | null; minutes?: number; swapTo?: string | null }
 const suffix = randomBytes(6).toString("hex");
 
 async function getFeed(token: string): Promise<{ status: number; events: FeedEvent[] }> {
@@ -51,7 +51,7 @@ async function getFeed(token: string): Promise<{ status: number; events: FeedEve
   const firstAct = days.flatMap((d) => d.activities ?? []).find((a) => a?.id && a?.name);
   const actId = firstAct?.id ?? null;
   const actName = firstAct?.name ?? null;
-  console.log(`trip ${tripId} · activity ${actId ? `"${actName}" (${actId})` : "(none — chip/expense name resolution not asserted)"}\n`);
+  console.log(`trip ${tripId} · activity ${actId ? `"${actName}" (${actId})` : "(none — chip name resolution not asserted)"}\n`);
 
   const partCookie = `probe_feed_${suffix}`;
   const now = Date.now();
@@ -66,13 +66,6 @@ async function getFeed(token: string): Promise<{ status: number; events: FeedEve
       actor_cookie_id: partCookie, actor_name: `Feed Chipper ${suffix}`, actor_role: "participant",
       payload: {}, created_at: new Date(now - 2 * 60_000).toISOString(),
     });
-    const { data: expRow } = await admin.from("trip_expenses").insert({
-      trip_id: tripId, amount: 12.5, currency: "EUR", category: "food", activity_id: actId,
-      created_by_cookie_id: partCookie, created_by_name: `Feed Payer ${suffix}`,
-      paid_by_cookie_id: partCookie, paid_by_name: `Feed Payer ${suffix}`,
-      created_at: new Date(now - 1 * 60_000).toISOString(),
-    }).select("id").single();
-    if (expRow?.id) await admin.from("trip_expense_splits").insert({ expense_id: expRow.id, participant_cookie_id: partCookie, participant_name: `Feed Payer ${suffix}`, share_amount: 12.5 });
 
     const { status, events } = await getFeed(token);
     check(status === 200, "GET feed → 200", status);
@@ -84,20 +77,14 @@ async function getFeed(token: string): Promise<{ status: number; events: FeedEve
     check(!!skip, "chip action appears with its actor", { found: !!skip });
     if (actName) check(skip?.activityName === actName, "chip activity id resolved to a name", { name: skip?.activityName });
 
-    const exp = events.find((e) => e.kind === "expense" && e.actorName === `Feed Payer ${suffix}`);
-    check(!!exp, "expense appears with the payer name", { found: !!exp });
-    check(!!exp && exp.amountCents === 1250 && exp.currency === "EUR", "expense carries amount + currency", { cents: exp?.amountCents, cur: exp?.currency });
-    if (actName) check(exp?.activityName === actName, "expense activity id resolved to a name", { name: exp?.activityName });
-
-    // ordering: newest-first (expense seeded last → before chip → before join)
+    // ordering: newest-first (chip seeded last → before join)
     const idx = (id?: string) => (id ? events.findIndex((e) => e.id === id) : -1);
-    check(idx(exp?.id) < idx(skip?.id) && idx(skip?.id) < idx(join?.id), "stream is newest-first", { exp: idx(exp?.id), skip: idx(skip?.id), join: idx(join?.id) });
+    check(idx(skip?.id) < idx(join?.id), "stream is newest-first", { skip: idx(skip?.id), join: idx(join?.id) });
 
     // invalid token rejected
     const badRes = await fetch(`${BASE}/api/shared/not-a-uuid/feed`, { cache: "no-store" as RequestCache });
     check(badRes.status === 400, "invalid token → 400", badRes.status);
   } finally {
-    await admin.from("trip_expenses").delete().eq("trip_id", tripId).like("created_by_cookie_id", "probe_feed_%");
     await admin.from("trip_today_actions").delete().eq("trip_id", tripId).like("actor_cookie_id", "probe_feed_%");
     await admin.from("trip_participants").delete().eq("trip_id", tripId).like("participant_cookie_id", "probe_feed_%");
     console.log("\ncleanup: probe rows deleted");

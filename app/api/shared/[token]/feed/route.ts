@@ -1,11 +1,11 @@
 /**
  * GET /api/shared/[token]/feed — the Today activity feed (Phase 3.5)
  *
- * Participant joins + chip actions + expenses, merged into one chronological
+ * Participant joins + chip actions, merged into one chronological
  * stream (lib/feed/snapshot). Service-role read behind the token check; the
  * mt_anon_voter cookie / owner session only sets whose actions read as "you"
- * downstream. Never mints a cookie. TodayView refetches this after chip and
- * expense mutations, so no separate realtime channel is needed.
+ * downstream. Never mints a cookie. TodayView refetches this after chip
+ * changes, so no separate realtime channel is needed.
  */
 import { NextRequest } from "next/server";
 import { cookies } from "next/headers";

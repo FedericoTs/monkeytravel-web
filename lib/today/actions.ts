@@ -24,7 +24,7 @@ export function parseTodayActionType(value: unknown): TodayActionType | null {
 }
 
 /**
- * The broadcast a trip's chip and payment changes are announced on. The
+ * The broadcast a trip's chip changes are announced on. The
  * message carries nothing: listeners re-fetch through Today's routes, so the
  * tables are never read from the browser. The channel is private: anyone may
  * listen, but only the server may send (realtime.messages policy).

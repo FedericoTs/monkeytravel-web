@@ -3,7 +3,7 @@
  * explain in English for the logs, so the screen picks its own words from the
  * status instead of showing theirs.
  */
-export type TodayErrorKey = "failed" | "rateLimited" | "amount";
+export type TodayErrorKey = "failed" | "rateLimited";
 
 export function todayErrorKey(status: number): TodayErrorKey {
   return status === 429 ? "rateLimited" : "failed";
