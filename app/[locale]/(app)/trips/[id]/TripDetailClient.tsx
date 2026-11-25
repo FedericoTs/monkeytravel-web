@@ -7,7 +7,7 @@ import { CrewShareNudge, CrewVotesSummary, useCrewVotes, useSendAskDismissed } f
 import { leadsWithSendAsk } from "@/lib/trips/crew-share";
 import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, CollaboratorRole, VoteType } from "@/types";
 import { ROLE_PERMISSIONS } from "@/types";
-import { getTripDestination } from "@/lib/trips/destination";
+import { getTripDestination, placeOfDay } from "@/lib/trips/destination";
 import { shownTripStatus } from "@/lib/trips/status";
 import { localTodayISO, toLocalISODate } from "@/lib/utils/date-local";
 import { hasCoordinates } from "@/lib/trips/has-coordinates";
@@ -1169,7 +1169,10 @@ export default function TripDetailClient({
             isOpen={proposeModalState.isOpen}
             onClose={handleCloseProposeModal}
             tripId={trip.id}
-            destination={destination}
+            destination={placeOfDay(
+              displayItinerary.find((day) => day.day_number === proposeModalState.targetDay),
+              destination
+            )}
             targetDay={proposeModalState.targetDay}
             targetTimeSlot={proposeModalState.targetTimeSlot}
             targetActivityId={proposeModalState.targetActivityId}
