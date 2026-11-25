@@ -115,17 +115,6 @@ export const TIER_EMOJIS: Record<ReferralTierLevel, string> = {
   3: '👑',
 };
 
-/**
- * Badge image paths for each tier
- * Tier 0 has no badge image
- */
-export const TIER_BADGE_IMAGES: Record<ReferralTierLevel, string | null> = {
-  0: null,
-  1: '/images/badges/explorer.png',
-  2: '/images/badges/ambassador.png',
-  3: '/images/badges/champion.png',
-};
-
 // =============================================================================
 // EXPIRATION
 // =============================================================================
@@ -171,19 +160,4 @@ export function getNextTierThreshold(currentConversions: number): number {
  */
 export function isUnlimited(value: number): boolean {
   return value === -1;
-}
-
-/**
- * Calculate progress percentage to next tier
- */
-export function getTierProgress(conversions: number): number {
-  const currentTier = getTierForConversions(conversions);
-  if (currentTier === 3) return 100;
-
-  const currentThreshold = TIER_THRESHOLDS[currentTier];
-  const nextThreshold = TIER_THRESHOLDS[(currentTier + 1) as ReferralTierLevel];
-  const progressInTier = conversions - currentThreshold;
-  const tierRange = nextThreshold - currentThreshold;
-
-  return Math.round((progressInTier / tierRange) * 100);
 }

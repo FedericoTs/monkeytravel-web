@@ -1,16 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
 import { Link } from '@/lib/i18n/routing';
 import { useAuth } from '@/components/auth/AuthProvider';
-import { Gift } from 'lucide-react';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useTranslations } from 'next-intl';
-import { referralsShown } from '@/lib/referral/shown';
-
-// Loaded on demand, when first opened.
-const ReferralModal = dynamic(() => import('@/components/referral/ReferralModal'), { ssr: false });
 
 interface NavLink {
   href: string;
@@ -26,7 +20,6 @@ interface NavbarClientProps {
  * - scroll-based background opacity
  * - auth state (logged in vs out CTAs)
  * - mobile menu toggle
- * - referral modal
  *
  * The static <nav> structure with primary links is rendered by the
  * server-side Navbar parent so Googlebot's first-pass crawl sees them.
@@ -66,12 +59,6 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
     };
   }, [userId]);
   const showAdmin = Boolean(userId) && adminId === userId;
-  const [referralModalOpen, setReferralModalOpen] = useState(false);
-  const [referralModalMounted, setReferralModalMounted] = useState(false);
-  const openReferralModal = () => {
-    setReferralModalMounted(true);
-    setReferralModalOpen(true);
-  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -122,15 +109,6 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
                 </svg>
                 {t('navigation.admin')}
               </Link>
-            )}
-            {referralsShown() && (
-              <button
-                onClick={openReferralModal}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium text-sm hover:from-amber-600 hover:to-orange-600 transition-colors shadow-md"
-              >
-                <Gift className="w-4 h-4" />
-                {t('buttons.share')}
-              </button>
             )}
             <Link
               href="/trips"
@@ -221,18 +199,6 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
                       {t('navigation.admin')}
                     </Link>
                   )}
-                  {referralsShown() && (
-                    <button
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        openReferralModal();
-                      }}
-                      className="mt-2 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium"
-                    >
-                      <Gift className="w-5 h-5" />
-                      {t('buttons.share')}
-                    </button>
-                  )}
                   <Link
                     href="/trips"
                     className="mt-2 inline-flex items-center justify-center px-5 py-3 rounded-xl bg-[var(--primary)] text-white font-medium"
@@ -290,14 +256,6 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
             </div>
           </div>
         </div>
-      )}
-
-      {/* Referral Modal */}
-      {referralModalMounted && (
-        <ReferralModal
-          isOpen={referralModalOpen}
-          onClose={() => setReferralModalOpen(false)}
-        />
       )}
     </>
   );

@@ -29,7 +29,6 @@ vi.mock("@/components/ui/Toast", () => ({ useToast: () => ({ addToast: () => {} 
 vi.mock("@/components/ui/MobileBottomNav", () => ({ default: () => null }));
 vi.mock("@/components/profile/DeleteAccountModal", () => ({ default: () => null }));
 vi.mock("@/components/beta", () => ({ BetaCodeInput: () => null }));
-vi.mock("@/components/bananas", () => ({ ReferralDashboard: () => null }));
 vi.mock("@/lib/supabase/client", () => ({
   createClient: () => ({
     from: () => ({

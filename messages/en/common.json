@@ -2101,31 +2101,6 @@
       "saveAndContinue": "Save & Continue"
     }
   },
-  "referral": {
-    "title": "Invite friends, earn bananas",
-    "subtitle": "50 bananas for every friend who joins",
-    "tryAgain": "Try again",
-    "howItWorks": "How it works",
-    "steps": {
-      "step1": "Share your unique link with friends",
-      "step2": "They sign up and create their first trip",
-      "step3": "You earn 50 bananas — spend them on extra generations or priority queue"
-    },
-    "yourReferralLink": "Your referral link",
-    "copy": "Copy",
-    "copied": "Copied!",
-    "shareVia": "Share via",
-    "stats": {
-      "friendsJoined": "Friends joined",
-      "linkClicks": "Link clicks"
-    },
-    "share": {
-      "twitterText": "I've been planning trips with MonkeyTravel — the AI builds a full day-by-day itinerary in about 30 seconds, free. Join me:",
-      "whatsappText": "Hey! I've been using MonkeyTravel to plan trips — the AI builds a full day-by-day itinerary in about 30 seconds, and it's free. Try it:",
-      "emailSubject": "You're invited to MonkeyTravel",
-      "emailBody": "Hey!\n\nI've been using MonkeyTravel to plan trips with AI, and I thought you'd like it.\n\nDrop in a city and it builds a full day-by-day itinerary in about 30 seconds — free, and you don't need an account to try it.\n\nHappy travels!"
-    }
-  },
   "dataExport": {
     "title": "Export Your Data",
     "description": "Download all your personal data in JSON format (GDPR Article 20).",
@@ -2137,12 +2112,6 @@
     "includes": "Includes: Profile, trips, conversations, preferences"
   },
   "profile": {
-    "referralShare": {
-      "title": "Join MonkeyTravel",
-      "text": "Join me on MonkeyTravel and get a FREE AI-powered trip! 🌴✈️",
-      "copied": "Invite link copied",
-      "failed": "Couldn't get your invite link. Please try again."
-    },
     "avatarTooLarge": "That photo is over 5 MB. Please choose a smaller one.",
     "avatarWrongType": "Please choose a JPEG, PNG, WebP or GIF photo.",
     "avatarFailed": "Your photo couldn't be uploaded. Please try again.",
@@ -2158,7 +2127,6 @@
     "sections": {
       "personalInfo": "Personal Info",
       "travelPreferences": "Travel Preferences",
-      "referrals": "Referrals & Rewards",
       "betaAccess": "Beta Access",
       "account": "Account"
     },

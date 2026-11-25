@@ -15,7 +15,7 @@ const db = () =>
   fakeSupabase((q) => {
     if (q.table === refusing) return { data: null, error: REFUSED };
     if (q.table === "trips") return { data: [{ id: "trip-1", title: "Rome" }], error: null };
-    if (q.table === "users") return { data: { display_name: "Ana", lifetime_referral_conversions: 2 }, error: null };
+    if (q.table === "users") return { data: { display_name: "Ana" }, error: null };
     return { data: [], error: null };
   }).client;
 
@@ -37,7 +37,7 @@ vi.mock("@/components/trips/TripsPageClient", () => ({ default: () => null }));
 vi.mock("@/lib/blog/api", () => ({ getAllFrontmatter: () => [], tOr: (_t: unknown, _key: string, fallback: string) => fallback }));
 
 const { default: TripsPage } = await import("./page");
-type Props = { trips: unknown[]; sharedTrips: unknown[]; displayName: string; lifetimeConversions: number };
+type Props = { trips: unknown[]; sharedTrips: unknown[]; displayName: string };
 const props = async () =>
   ((await TripsPage({ params: Promise.resolve({ locale: "en" }) })) as { props: Props }).props;
 
@@ -47,7 +47,7 @@ beforeEach(() => {
 
 describe("My Trips", () => {
   it("lists what it read", async () => {
-    expect(await props()).toMatchObject({ trips: [{ id: "trip-1" }], displayName: "Ana", lifetimeConversions: 2 });
+    expect(await props()).toMatchObject({ trips: [{ id: "trip-1" }], displayName: "Ana" });
   });
 
   it("goes to the error page when the trips can't be read, instead of saying there are none", async () => {
@@ -58,7 +58,7 @@ describe("My Trips", () => {
   it("still lists the trips when the profile can't be read, and logs it", async () => {
     const logged = vi.spyOn(console, "error").mockImplementation(() => {});
     refusing = "users";
-    expect(await props()).toMatchObject({ trips: [{ id: "trip-1" }], displayName: "ana", lifetimeConversions: 0 });
+    expect(await props()).toMatchObject({ trips: [{ id: "trip-1" }], displayName: "ana" });
     expect(logged).toHaveBeenCalledWith("[my trips: profile] read failed:", REFUSED.message);
     logged.mockRestore();
   });
