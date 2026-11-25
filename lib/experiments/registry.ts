@@ -27,7 +27,19 @@ export const STEP2_DEFAULT = {
   reviewBy: "2026-12-22",
 } as const satisfies Experiment;
 
-export const EXPERIMENTS: readonly Experiment[] = [STEP2_DEFAULT];
+/**
+ * The box a signed-out planner gets when keeping a plan: as today, a sentence naming the two ways in ("words"), or
+ * what an account gives on the trip and before it ("benefits"), in the same space. Starts after the sky test's
+ * verdict (both share the plan screen).
+ */
+export const SAVE_BOX_BENEFITS = {
+  key: "save_box_benefits",
+  arms: ["words", "benefits"],
+  starts: Date.UTC(2026, 10, 29),
+  reviewBy: "2027-01-12",
+} as const satisfies Experiment;
+
+export const EXPERIMENTS: readonly Experiment[] = [STEP2_DEFAULT, SAVE_BOX_BENEFITS];
 
 export function experimentByKey(key: string): Experiment | undefined {
   return EXPERIMENTS.find((experiment) => experiment.key === key);

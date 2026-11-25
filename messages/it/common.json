@@ -2244,6 +2244,12 @@
       "saveEdit": "Salva e accedi da qualsiasi dispositivo",
       "realTime": "Condividi e vota con gli amici"
     },
+    "saveBenefits": {
+      "free": "Gratis, senza password.",
+      "dayPlan": "Ogni giorno del viaggio, il programma del giorno via email",
+      "reminders": "Promemoria su meteo e valigia prima di partire",
+      "group": "Il tuo gruppo può unirsi al viaggio"
+    },
     "redirecting": "Reindirizzamento...",
     "googleFailed": "Non siamo riusciti a continuare con Google. Riprova o usa la tua email.",
     "createAccount": "Crea Account Gratis",

@@ -368,6 +368,50 @@ describe("what sits above the sign-in buttons", () => {
   });
 });
 
+/**
+ * The save_box_benefits experiment's "benefits" arm: what an account gives, above the two ways in, in the room the
+ * header's icon and its sentence leave. The cap keeps its own list, and the sent state its own words.
+ */
+describe("the box that says what an account gives", () => {
+  const lines = ["saveBenefits.dayPlan", "saveBenefits.reminders", "saveBenefits.group"];
+
+  it("lists the three things above both ways in, with the short line instead of the sentence", () => {
+    render(<AuthPromptModal isOpen onClose={() => {}} destination="Lisboa" saveBenefits />);
+    for (const line of lines) expect(screen.getByText(line)).toBeTruthy();
+    expect(screen.getByText("saveBenefits.free")).toBeTruthy();
+    expect(screen.queryByText("subtitle")).toBeNull();
+    expect(screen.getByRole("button", { name: "googleButton" })).toBeTruthy();
+    expect(screen.getByPlaceholderText("magicLink.emailPlaceholder")).toBeTruthy();
+    // The header's icon gives up its room, so the list doesn't push the email field below a phone's fold.
+    expect(screen.queryByTestId("auth-header-icon")).toBeNull();
+  });
+
+  it("is today's box without it", () => {
+    render(<AuthPromptModal isOpen onClose={() => {}} destination="Lisboa" />);
+    for (const line of [...lines, "saveBenefits.free"]) expect(screen.queryByText(line)).toBeNull();
+    expect(screen.getByText("subtitle")).toBeTruthy();
+    expect(screen.getByTestId("auth-header-icon")).toBeTruthy();
+  });
+
+  it("never changes the free-generation cap", () => {
+    render(
+      <AuthPromptModal isOpen onClose={() => {}} destination="Kutaisi" reason="generation_limit" location="wizard_generation_limit" saveBenefits />
+    );
+    for (const line of [...lines, "saveBenefits.free"]) expect(screen.queryByText(line)).toBeNull();
+    expect(screen.getByText("benefits.aiPowered")).toBeTruthy();
+    expect(screen.getByText("generationLimit.subtitle")).toBeTruthy();
+  });
+
+  it.each(["en", "es", "it", "pt"])("has its words in %s", async (locale) => {
+    const messages = (await import(`../../messages/${locale}/common.json`)).default as {
+      authPrompt: { saveBenefits?: Record<string, string> };
+    };
+    for (const key of ["free", "dayPlan", "reminders", "group"]) {
+      expect(messages.authPrompt.saveBenefits?.[key]?.trim(), `${locale} ${key}`).toBeTruthy();
+    }
+  });
+});
+
 describe("the save copy names both sign-in paths in every language", () => {
   it.each(["en", "es", "it", "pt"])("%s", async (locale) => {
     const messages = (await import(`../../messages/${locale}/common.json`)).default as {
