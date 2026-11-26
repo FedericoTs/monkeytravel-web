@@ -75,7 +75,8 @@ export type EmailTemplate =
   | { id: "finish_trip"; props: FinishTripEmailProps }
   | { id: "feedback_outreach"; props: FeedbackOutreachEmailProps }
   | { id: "participant_plan"; props: ParticipantPlanEmailProps }
-  | { id: "kept_plan"; props: ParticipantPlanEmailProps };
+  | { id: "kept_plan"; props: ParticipantPlanEmailProps }
+  | { id: "plan_reminder"; props: ParticipantPlanEmailProps };
 
 /** Stable outcome shape. */
 export interface SendOutcome {
@@ -216,6 +217,9 @@ export const NOTIFICATION_SETTING_KEY: Record<EmailTemplate["id"], string | null
   participant_plan: null,
   // Asked for: one email with a kept plan's link, to the address someone types.
   kept_plan: null,
+  // Asked for with a tick: reminders before a kept plan's trip. The tick is a row in plan_reminders, and its footer
+  // link deletes that row (lib/plans/plan-reminders.ts).
+  plan_reminder: null,
 };
 
 /**
@@ -235,7 +239,8 @@ const UNSUB_KEY: Record<EmailTemplate["id"], UnsubKey | null> = {
   finish_trip: "marketingNotifications",
   feedback_outreach: "marketingNotifications",
   participant_plan: null, // the sender passes the guest link
-  kept_plan: null, // one email, with nothing after it to stop
+  kept_plan: null, // one email, with nothing after it to stop, or the reminders' link from the sender
+  plan_reminder: null, // the sender passes the reminder's link
 };
 
 /**
@@ -791,7 +796,8 @@ async function renderTemplate(
       return { html, text, subject };
     }
     case "participant_plan":
-    case "kept_plan": {
+    case "kept_plan":
+    case "plan_reminder": {
       const html = await render(ParticipantPlanEmail(template.props));
       const text = participantPlanEmailText(template.props);
       const subject = participantPlanSubject(template.props);

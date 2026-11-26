@@ -143,6 +143,7 @@ import { useScrollTopOnNewPlan } from "@/hooks/useScrollTopOnNewPlan";
 import { useKeptPlanOpening } from "@/hooks/useKeptPlanOpening";
 import { usePlanPhotos } from "@/hooks/usePlanPhotos";
 import type { KeptPlan } from "@/lib/plans/kept-plan";
+import { reminderKind, utcToday } from "@/lib/plans/plan-reminder-dates";
 // Step-1 editorial entry; see lib/wizard/entry-state.ts for the arrival model.
 import WizardMasthead from "@/components/wizard/WizardMasthead";
 import type { OneTapPlace } from "@/components/wizard/OneTapStarts";
@@ -1761,6 +1762,7 @@ export default function NewTripPage({
           isUnsaved={isUnsaved}
           keptPlan={keptPlan}
           offerPlanEmail={saveBoxClosed}
+          planReminder={reminderKind(startDate, utcToday(), flexibleDates)}
           saving={loading || claimingSharedPlan}
           onSave={handleSaveTrip}
           onStartOver={() => setShowStartOverModal(true)}

@@ -2746,7 +2746,23 @@
     "intro": "Here's the link to the plan you made. It opens on any device and stays for 30 days after you last open it.",
     "cta": "Open my plan",
     "footerReason": "You asked us to send this, and we won't email you again about it.",
-    "footerLink": "Privacy policy"
+    "footerLink": "Privacy policy",
+    "introReminder": "Here's the link to the plan you made. It opens on any device, and it stays until two weeks after your trip.",
+    "reminderLineWeek": "We'll email you again a week before your trip, and the day before.",
+    "reminderLineDay": "We'll email you again the day before your trip.",
+    "footerReasonReminder": "You asked for this plan and for reminders before the trip: they're the only emails we'll send you.",
+    "footerLinkReminder": "Stop the reminders"
+  },
+  "planReminderEmail": {
+    "weekHeading": "{destination} is coming up",
+    "weekHeadingNoPlace": "Your trip is coming up",
+    "weekIntro": "Your plan is ready for the trip. Look it over, change what you like, and book what needs booking.",
+    "dayHeading": "{destination} tomorrow",
+    "dayHeadingNoPlace": "Your trip starts tomorrow",
+    "dayIntro": "Here's your plan for the trip. Have a wonderful time.",
+    "cta": "Open my plan",
+    "footerReason": "You asked us to remind you before this trip. We delete your address once it begins.",
+    "footerLink": "Stop the reminders"
   },
   "liveStats": {
     "title": "Live from the planner",

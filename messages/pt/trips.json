@@ -103,7 +103,13 @@
       "emailSent": "Enviado para {email}. O link abre este plano em qualquer dispositivo.",
       "emailInvalid": "Esse endereço não parece correto. Confira e tente de novo.",
       "emailLimited": "Muitos e-mails por agora. Tente mais tarde ou copie o link.",
-      "emailFailed": "Não foi possível enviar. Tente de novo ou copie o link."
+      "emailFailed": "Não foi possível enviar. Tente de novo ou copie o link.",
+      "emailOfferRemind": "Ainda não quer criar uma conta? Podemos enviar este plano por e-mail e lembrar você antes da viagem.",
+      "emailNoteRemind": "Não precisa de conta.",
+      "remindWeek": "Também quero um lembrete antes da viagem: um e-mail uma semana antes e outro na véspera. Cancele quando quiser.",
+      "remindDay": "Também quero um lembrete na véspera da viagem. Cancele quando quiser.",
+      "remindPrivacy": "Privacidade",
+      "remindSent": "Enviado para {email}. Vamos lembrar você antes da viagem."
     },
     "draftRecovery": {
       "title": "Viagem não salva encontrada",

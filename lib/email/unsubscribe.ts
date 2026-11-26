@@ -216,46 +216,39 @@ export function unsubKeyToSettingPatch(key: UnsubKey): Record<string, boolean> {
 }
 
 /**
- * Guest tokens: a trip's daily plan sent to an "I'm going" row with no account
- * (trip_participants.id). Same secret, shape and expiry as the tokens above,
- * but the MAC covers a purpose tag, so a guest token, an account token and a
- * day link (lib/trips/day-link.ts) never verify as one another.
+ * Row tokens: emails to an address with no account, each stopped by one row. A guest's token is a trip's daily plan
+ * to an "I'm going" row (trip_participants.id); a reminder's is the reminders before a kept plan's trip
+ * (plan_reminders.id). Same secret, shape and expiry as the tokens above, but the MAC covers a purpose tag, so a
+ * guest token, a reminder token, an account token and a day link (lib/trips/day-link.ts) never verify as one another.
  */
 const PARTICIPANT_PURPOSE = "mt-participant-unsub:v1";
+const PLAN_REMINDER_PURPOSE = "mt-plan-reminder-unsub:v1";
 
-interface ParticipantUnsubPayload {
-  t: "participant";
-  p: string; // trip_participants.id
+type RowKind = "participant" | "plan_reminder";
+
+interface RowUnsubPayload {
+  t: RowKind;
+  p: string; // the row's id
   e: number; // unix seconds
 }
 
-function participantMac(secret: string, payloadB64: string): string {
-  return createHmac("sha256", secret).update(`${PARTICIPANT_PURPOSE}|${payloadB64}`).digest("base64url");
+function rowMac(secret: string, purpose: string, payloadB64: string): string {
+  return createHmac("sha256", secret).update(`${purpose}|${payloadB64}`).digest("base64url");
 }
 
-/** Mint a guest's token for one trip_participants row. Throws without a usable secret. */
-export function signParticipantUnsubscribeToken(
-  participantId: string,
-  ttlDays: number = DEFAULT_TTL_DAYS
-): string {
-  if (!isUuid(participantId)) throw new Error("invalid participant id");
-  const payload: ParticipantUnsubPayload = {
-    t: "participant",
-    p: participantId,
-    e: Math.floor(Date.now() / 1000) + ttlDays * 86400,
-  };
+function signRowToken(kind: RowKind, purpose: string, id: string, ttlDays: number): string {
+  if (!isUuid(id)) throw new Error(`invalid ${kind === "participant" ? "participant" : "reminder"} id`);
+  const payload: RowUnsubPayload = { t: kind, p: id, e: Math.floor(Date.now() / 1000) + ttlDays * 86400 };
   const payloadB64 = Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
-  return `${payloadB64}.${participantMac(getSecret(), payloadB64)}`;
+  return `${payloadB64}.${rowMac(getSecret(), purpose, payloadB64)}`;
 }
 
-export interface ParticipantVerifyResult {
-  ok: boolean;
-  participantId?: string;
-  reason?: VerifyResult["reason"];
-}
-
-/** Verify a guest's token. Never throws; every failure is a reason. */
-export function verifyParticipantUnsubscribeToken(token: string): ParticipantVerifyResult {
+/** Verify a row token of one kind. Never throws; every failure is a reason. */
+function verifyRowToken(
+  kind: RowKind,
+  purpose: string,
+  token: string
+): { ok: true; id: string } | { ok: false; reason: NonNullable<VerifyResult["reason"]> } {
   const parts = typeof token === "string" ? token.split(".") : [];
   if (parts.length !== 2 || !parts[0] || !parts[1]) return { ok: false, reason: "format" };
 
@@ -268,27 +261,66 @@ export function verifyParticipantUnsubscribeToken(token: string): ParticipantVer
 
   // Compared as encoded text: decoding would accept other spellings of one MAC.
   const given = Buffer.from(parts[1]);
-  const expected = Buffer.from(participantMac(secret, parts[0]));
+  const expected = Buffer.from(rowMac(secret, purpose, parts[0]));
   if (given.length !== expected.length || !timingSafeEqual(given, expected)) {
     return { ok: false, reason: "signature" };
   }
 
-  let payload: Partial<ParticipantUnsubPayload> | null;
+  let payload: Partial<RowUnsubPayload> | null;
   try {
     payload = JSON.parse(Buffer.from(parts[0], "base64url").toString("utf8"));
   } catch {
     return { ok: false, reason: "format" };
   }
-  if (
-    payload?.t !== "participant" ||
-    typeof payload.p !== "string" ||
-    !isUuid(payload.p) ||
-    typeof payload.e !== "number"
-  ) {
+  if (payload?.t !== kind || typeof payload.p !== "string" || !isUuid(payload.p) || typeof payload.e !== "number") {
     return { ok: false, reason: "format" };
   }
   if (payload.e * 1000 < Date.now()) return { ok: false, reason: "expired" };
-  return { ok: true, participantId: payload.p };
+  return { ok: true, id: payload.p };
+}
+
+/** Mint a guest's token for one trip_participants row. Throws without a usable secret. */
+export function signParticipantUnsubscribeToken(
+  participantId: string,
+  ttlDays: number = DEFAULT_TTL_DAYS
+): string {
+  return signRowToken("participant", PARTICIPANT_PURPOSE, participantId, ttlDays);
+}
+
+export interface ParticipantVerifyResult {
+  ok: boolean;
+  participantId?: string;
+  reason?: VerifyResult["reason"];
+}
+
+/** Verify a guest's token. Never throws; every failure is a reason. */
+export function verifyParticipantUnsubscribeToken(token: string): ParticipantVerifyResult {
+  const result = verifyRowToken("participant", PARTICIPANT_PURPOSE, token);
+  return result.ok ? { ok: true, participantId: result.id } : { ok: false, reason: result.reason };
+}
+
+/** Mint the token that stops one plan_reminders row's reminders. Throws without a usable secret. */
+export function signPlanReminderUnsubscribeToken(reminderId: string, ttlDays: number = DEFAULT_TTL_DAYS): string {
+  return signRowToken("plan_reminder", PLAN_REMINDER_PURPOSE, reminderId, ttlDays);
+}
+
+export interface PlanReminderVerifyResult {
+  ok: boolean;
+  reminderId?: string;
+  reason?: VerifyResult["reason"];
+}
+
+/** Verify a reminder's token. Never throws; every failure is a reason. */
+export function verifyPlanReminderUnsubscribeToken(token: string): PlanReminderVerifyResult {
+  const result = verifyRowToken("plan_reminder", PLAN_REMINDER_PURPOSE, token);
+  return result.ok ? { ok: true, reminderId: result.id } : { ok: false, reason: result.reason };
+}
+
+/** A reminder's link: the same /unsubscribe page, which deletes the address on confirming. */
+export function buildPlanReminderUnsubscribeUrl(reminderId: string, appUrl?: string): string {
+  const base = appUrl ?? (process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app");
+  const token = signPlanReminderUnsubscribeToken(reminderId);
+  return `${base}/unsubscribe?token=${encodeURIComponent(token)}`;
 }
 
 /** A guest's link: the same /unsubscribe page an account's link opens. */
