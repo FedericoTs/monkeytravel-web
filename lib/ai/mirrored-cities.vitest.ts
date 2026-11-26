@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { GeneratedItinerary } from "@/types";
-import { unmirroredCities } from "./mirrored-cities";
+import { apartFromTheRest, unmirroredCities } from "./mirrored-cities";
 
 /** A city's plan: one day per list of [name, lat, lng] stops. */
 const city = (...days: Array<Array<[string, number, number]>>): GeneratedItinerary =>
@@ -68,6 +68,16 @@ describe("unmirroredCities", () => {
     expect(pins(results[1])).toEqual([["Plaza de Mayo", -34.6083, -58.3712], ["La Boca", -34.6345, -58.3631]]);
   });
 
+  it("turns a city written with both signs left out back to its side of the world", () => {
+    // Salvador da Bahia, north of the equator and east of Greenwich: in Ethiopia.
+    const rio = city([["Christ the Redeemer", -22.9519, -43.2105]]);
+    const salvador = city([["Pelourinho", 12.9716, 38.5108], ["Farol da Barra", 13.0102, 38.5326]]);
+    const recife = city([["Recife Antigo", -8.0631, -34.8711]]);
+    const { results, turned } = unmirroredCities([rio, salvador, recife], [null, null, null]);
+    expect(turned).toEqual([1]);
+    expect(pins(results[1])).toEqual([["Pelourinho", -12.9716, -38.5108], ["Farol da Barra", -13.0102, -38.5326]]);
+  });
+
   it("leaves a stop of a turned city that was already written right", () => {
     const mixed = city([["Lowell Observatory", 35.2029, 111.6646], ["Museum of Northern Arizona", 35.2347, 111.6655], ["Walnut Canyon", 35.172, -111.509]]);
     const { results } = unmirroredCities([sedona, mixed], [null, FLAGSTAFF]);
@@ -108,5 +118,21 @@ describe("unmirroredCities", () => {
     // Turned, the city lands 900 km from the other: not beside it.
     const far = city([["C", 34.82, 121.7]]);
     expect(unmirroredCities([sedona, far], [null, { lat: 34.82, lng: -121.7 }]).turned).toEqual([]);
+  });
+});
+
+describe("apartFromTheRest", () => {
+  const rome = city([["Colosseum", 41.89, 12.49]]);
+  const tokyo = city([["Senso-ji", 35.71, 139.8]]);
+
+  it("says one plan sits thousands of kilometres from every other one", () => {
+    expect(apartFromTheRest([rome, rome, tokyo])).toBe(true);
+    expect(apartFromTheRest([rome, tokyo])).toBe(true);
+  });
+
+  it("says no when each has another beside it, when one is alone, or when the others have no real pin", () => {
+    expect(apartFromTheRest([rome, rome, tokyo, tokyo])).toBe(false);
+    expect(apartFromTheRest([rome])).toBe(false);
+    expect(apartFromTheRest([rome, city([["Nowhere", 48, 10]])])).toBe(false);
   });
 });

@@ -15,6 +15,8 @@ import { getModelForPurpose } from "@/lib/ai/model-router";
 import { isModelOutOfCredit } from "@/lib/ai/model-outage";
 import { placeDays } from "@/lib/ai/server-fields";
 import { splitIntoParts, type OutlineDay } from "@/lib/ai/trip-outline";
+import { apartFromTheRest, unmirroredCities } from "@/lib/ai/mirrored-cities";
+import { cityPointsFor } from "@/lib/ai/city-points";
 import type { SupportedLanguage } from "@/lib/ai/language";
 import type { GeneratedItinerary, ItineraryDay, TripCreationParams } from "@/types";
 
@@ -135,9 +137,23 @@ export async function* writeInParts(
     }
   }
 
+  // A part can come back with its pins' signs left out: its days on the far side of the world. The other parts say
+  // where the trip is; of two, where the cities table puts the destination says which (lib/ai/mirrored-cities.ts).
+  const parts: GeneratedItinerary[] = runs.map((run) => ({
+    ...run.itinerary!,
+    days: placeDays<ItineraryDay>(run.itinerary!.days, run.range, params.startDate),
+  }));
+  let placed = unmirroredCities(parts, parts.map(() => null));
+  if (placed.turned.length === 0 && apartFromTheRest(parts)) {
+    const [point] = await cityPointsFor([params.destination.split(",")[0].trim()]);
+    if (point) placed = unmirroredCities(parts, parts.map(() => point));
+  }
+  if (placed.turned.length > 0) {
+    console.warn(`[plan-in-parts] turned back from the far side of the world: days ${placed.turned.map((i) => `${runs[i].range.from}-${runs[i].range.to}`).join(", ")}`);
+  }
   const itinerary: GeneratedItinerary = {
     ...runs[0].itinerary!,
-    days: runs.flatMap((run) => placeDays<ItineraryDay>(run.itinerary!.days, run.range, params.startDate)),
+    days: placed.results.flatMap((part) => part.days),
   };
   yield { type: "done", itinerary, costUsd: spent(), parts: runs.length, retries: runs.filter((run) => run.retried).length };
 }

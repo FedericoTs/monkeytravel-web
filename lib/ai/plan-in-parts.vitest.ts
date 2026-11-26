@@ -17,6 +17,8 @@ type Behaviour = {
   fail?: boolean;
   firstAttempt?: "throws" | "breaks" | "short";
   refusal?: string;
+  /** Where the part's stops are pinned. */
+  pin?: { lat: number; lng: number };
 };
 let behaviour: Record<number, Behaviour> = {};
 let attempts: Record<number, number> = {};
@@ -27,7 +29,7 @@ const itineraryFor = (part: Part, b: Behaviour, attempt: number, days = b.days ?
     day_number: b.numberFromOne ? i + 1 : part.from + i,
     date: "1999-01-01",
     theme: `Theme ${part.from + i}, attempt ${attempt}`,
-    activities: [{ name: `Place ${part.from + i}` }],
+    activities: [{ name: `Place ${part.from + i}`, ...(b.pin ? { coordinates: b.pin } : {}) }],
   })),
   trip_summary: { highlights: [`summary from part ${part.from}`] },
 });
@@ -48,6 +50,10 @@ vi.mock("@/lib/gemini", () => ({
   },
 }));
 vi.mock("@/lib/ai/itinerary-text", () => ({ parseStreamedItinerary: (text: string) => JSON.parse(text) }));
+// Where the cities table puts the destination, asked only when two parts can't tell which of them is turned.
+let destinationPoint: { lat: number; lng: number } | null = null;
+const cityPointsFor = vi.fn(async (cities: string[]) => cities.map(() => destinationPoint));
+vi.mock("@/lib/ai/city-points", () => ({ cityPointsFor }));
 
 const { writeInParts, PartsError } = await import("./plan-in-parts");
 
@@ -67,6 +73,8 @@ async function collect(totalDays = 10) {
 beforeEach(() => {
   behaviour = {};
   attempts = {};
+  destinationPoint = null;
+  cityPointsFor.mockClear();
 });
 
 describe("writeInParts", () => {
@@ -144,5 +152,42 @@ describe("writeInParts", () => {
   it("stops when a part comes back short twice", async () => {
     behaviour = { 8: { delayMs: 0, days: 1 } };
     await expect(collect()).rejects.toThrow(/days 8-10 came back with 1 days/);
+  });
+});
+
+// An 11-day trip to a village in Bahia came back with its last part's pins north of the equator and east of
+// Greenwich: three days on the Gulf of Aden, each dinner thousands of kilometres from its day.
+describe("a part written on the far side of the world", () => {
+  const ROME = { lat: 41.9, lng: 12.5 };
+  const MIRRORED = { lat: -41.9, lng: -12.5 };
+  const pinsOf = (done: Extract<PartsYield, { type: "done" }>) =>
+    done.itinerary.days.map((d) => (d.activities[0] as { coordinates?: { lat: number; lng: number } }).coordinates);
+
+  it("is turned back beside the other parts", async () => {
+    behaviour = { 1: { delayMs: 0, pin: ROME }, 5: { delayMs: 0, pin: ROME }, 8: { delayMs: 0, pin: MIRRORED } };
+    const { done } = await collect();
+    expect(pinsOf(done)).toEqual(Array.from({ length: 10 }, () => ROME));
+    expect(cityPointsFor).not.toHaveBeenCalled();
+  });
+
+  it("of two, is the one the destination's place isn't beside", async () => {
+    behaviour = { 1: { delayMs: 0, pin: ROME }, 4: { delayMs: 0, pin: MIRRORED } };
+    destinationPoint = { lat: 41.89, lng: 12.49 };
+    const { done } = await collect(6);
+    expect(pinsOf(done)).toEqual(Array.from({ length: 6 }, () => ROME));
+    expect(cityPointsFor).toHaveBeenCalledWith(["Rome"]);
+  });
+
+  it("of two, stays when the destination's place isn't known: either could be the turned one", async () => {
+    behaviour = { 1: { delayMs: 0, pin: ROME }, 4: { delayMs: 0, pin: MIRRORED } };
+    const { done } = await collect(6);
+    expect(pinsOf(done)).toEqual([ROME, ROME, ROME, MIRRORED, MIRRORED, MIRRORED]);
+  });
+
+  it("leaves parts that agree, and asks the cities table nothing", async () => {
+    behaviour = { 1: { delayMs: 0, pin: ROME }, 4: { delayMs: 0, pin: { lat: 41.95, lng: 12.45 } } };
+    const { done } = await collect(6);
+    expect(pinsOf(done)).toEqual([ROME, ROME, ROME, { lat: 41.95, lng: 12.45 }, { lat: 41.95, lng: 12.45 }, { lat: 41.95, lng: 12.45 }]);
+    expect(cityPointsFor).not.toHaveBeenCalled();
   });
 });
