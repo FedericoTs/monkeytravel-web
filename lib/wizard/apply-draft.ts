@@ -159,31 +159,36 @@ export function applyKeptPlan(
 }
 
 /**
+ * A session tray plan's answers: every answer the entry holds, a fresh wizard's value for those an older entry
+ * lacks.
+ */
+export function sessionTripAnswers(trip: SessionTripSnapshot): WizardAnswers {
+  return {
+    destination: trip.destination,
+    startDate: trip.startDate,
+    endDate: trip.endDate,
+    pace: trip.pace as WizardAnswers["pace"],
+    vibes: trip.vibes as TripVibe[],
+    budgetTier: trip.budgetTier as WizardAnswers["budgetTier"],
+    travelStyle: trip.travelStyle === "backpacker" ? "backpacker" : "classic",
+    anchors: trip.anchors ?? FRESH_ANSWERS.anchors,
+    mustDos: trip.mustDos ?? FRESH_ANSWERS.mustDos,
+    dietary: dietsFrom(trip.dietary),
+    tripIntent: trip.tripIntent ?? FRESH_ANSWERS.tripIntent,
+    arrival: isArrival(trip.arrival) ? trip.arrival : null,
+    departure: isDeparture(trip.departure) ? trip.departure : null,
+    flexibleDates: trip.flexibleDates === true,
+    stay: readStay(trip.stay),
+  };
+}
+
+/**
  * Put a plan from the session tray back on screen, in place of the one there:
- * every answer the entry holds, a fresh wizard's value for those an older entry
- * lacks, no coordinates and one city. The tray has already made it current.
+ * its answers (sessionTripAnswers), no coordinates and one city. The tray has
+ * already made it current.
  */
 export function applySessionTrip(trip: SessionTripSnapshot, to: KeptPlanTargets): void {
-  applyAnswers(
-    {
-      destination: trip.destination,
-      startDate: trip.startDate,
-      endDate: trip.endDate,
-      pace: trip.pace as WizardAnswers["pace"],
-      vibes: trip.vibes as TripVibe[],
-      budgetTier: trip.budgetTier as WizardAnswers["budgetTier"],
-      travelStyle: trip.travelStyle === "backpacker" ? "backpacker" : "classic",
-      anchors: trip.anchors ?? FRESH_ANSWERS.anchors,
-      mustDos: trip.mustDos ?? FRESH_ANSWERS.mustDos,
-      dietary: dietsFrom(trip.dietary),
-      tripIntent: trip.tripIntent ?? FRESH_ANSWERS.tripIntent,
-      arrival: isArrival(trip.arrival) ? trip.arrival : null,
-      departure: isDeparture(trip.departure) ? trip.departure : null,
-      flexibleDates: trip.flexibleDates === true,
-      stay: readStay(trip.stay),
-    },
-    to
-  );
+  applyAnswers(sessionTripAnswers(trip), to);
   to.setDestinationCoords(null);
   to.setMultiCityMode(false);
   to.setGeneratedItinerary(trip.itinerary);

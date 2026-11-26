@@ -786,7 +786,8 @@
     "subtitle": "Crea un account per salvare e accedere al tuo viaggio in qualsiasi momento",
     "saving": "Salvataggio del tuo viaggio...",
     "success": "Viaggio salvato con successo!",
-    "error": "Impossibile salvare il viaggio. Riprova."
+    "error": "Impossibile salvare il viaggio. Riprova.",
+    "keptToo": "Salvato anche tra I Miei Viaggi: {places}"
   },
   "startOver": {
     "title": "Ricominciare?",
