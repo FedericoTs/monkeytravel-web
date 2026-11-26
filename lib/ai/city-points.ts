@@ -16,9 +16,14 @@ export interface CityCandidate {
   latitude: number;
   longitude: number;
   population: number | null;
+  /** ISO 3166 alpha-2, as the table keeps it. */
+  country_code?: string | null;
 }
 
 type Point = { lat: number; lng: number };
+
+/** A city's point, with its country when the source names it (a code from the cities table, a name when curated). */
+export type CityPoint = Point & { country?: string };
 
 /** A city further than this from the middle of the route is a namesake elsewhere in the world, not the one meant. */
 const FARTHEST_KM = 3000;
@@ -29,7 +34,7 @@ const median = (xs: number[]): number => {
   return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 };
 
-const pointOf = (c: CityCandidate): Point => ({ lat: c.latitude, lng: c.longitude });
+const pointOf = (c: CityCandidate): CityPoint => ({ lat: c.latitude, lng: c.longitude, ...(c.country_code ? { country: c.country_code } : {}) });
 
 /**
  * Each city's point among the places found for it: only places of the city's own name ("Oban", not "Obando"), and
@@ -37,7 +42,7 @@ const pointOf = (c: CityCandidate): Point => ({ lat: c.latitude, lng: c.longitud
  * from each city's first place of its name (the search puts the biggest first), the median of them, so one namesake
  * can't move it. Null for a city with no place of its name, or none within FARTHEST_KM of the middle.
  */
-export function chooseCityPoints(found: CityCandidate[][], cities: string[]): Array<Point | null> {
+export function chooseCityPoints(found: CityCandidate[][], cities: string[]): Array<CityPoint | null> {
   const named = found.map((candidates, i) => {
     const name = foldText(cities[i] ?? "");
     return candidates.filter((c) => foldText(c.name) === name || foldText(c.ascii_name ?? "") === name);
@@ -56,7 +61,7 @@ type Db = {
 };
 
 /** The cities' points (chooseCityPoints). A city the lookup fails for, or every city without a database, is null. */
-export async function cityPointsFor(cities: string[], db: Db | null = cacheAdminDb()): Promise<Array<Point | null>> {
+export async function cityPointsFor(cities: string[], db: Db | null = cacheAdminDb()): Promise<Array<CityPoint | null>> {
   if (!db) return cities.map(() => null);
   const found = await Promise.all(
     cities.map(async (city) => {

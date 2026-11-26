@@ -16,7 +16,7 @@ const whatsOns: Array<{ destination: string; whatsOn: TripCreationParams["whatsO
 /** What each stay was told an earlier stay in its city already has. */
 const alreadyPlannedAsks: Array<{ destination: string; startDate: string; alreadyPlanned: TripCreationParams["alreadyPlanned"] }> = [];
 /** Where the cities table puts each city, when a test says, and each list of names asked of it. */
-let pointsByCity: Record<string, { lat: number; lng: number }> = {};
+let pointsByCity: Record<string, { lat: number; lng: number; country?: string }> = {};
 const citiesAsked: string[][] = [];
 vi.mock("./city-points", () => ({
   cityPointsFor: async (cities: string[]) => {
@@ -257,6 +257,31 @@ describe("generateMultiCityItinerary", () => {
   });
 
   // A route back to a city planned both stays at the same time, and the second came back with the first's sights.
+  // A Kochi-and-Munnar trip had all three Kochi days in Kochi, Japan: each city's plan knew the route and still chose
+  // the namesake. The route's points know which Kochi it is: that city is asked again with its country named.
+  it("plans again, with its country named, a city planned at a namesake on another continent", async () => {
+    pointsByCity = { kochi: { lat: 9.93, lng: 76.26, country: "IN" }, munnar: { lat: 10.09, lng: 77.06, country: "IN" } };
+    placesFor = (p) =>
+      p.destination === "kochi"
+        ? [[["Kochi Castle", 33.56, 133.53]], [["Hirome Market", 33.56, 133.54]]]
+        : p.destination === "kochi, India"
+          ? [[["Fort Kochi Beach", 9.96, 76.24]], [["Mattancherry Palace", 9.96, 76.26]]]
+          : [[["Tea Museum", 10.09, 77.06]], [["Echo Point", 10.12, 77.08]]];
+    for (const list of [generated, asked, routes, events, daylights] as unknown[][]) list.length = 0;
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const base = { budgetTier: "balanced", pace: "moderate", vibes: [], interests: [] } as unknown as Parameters<typeof generateMultiCityItinerary>[0];
+    const trip = await generateMultiCityItinerary(base, [{ city: "kochi", nights: 2 }, { city: "munnar", nights: 2 }], "2027-01-10");
+    expect(asked.map((a) => a.destination).sort()).toEqual(["kochi", "kochi, India", "munnar"]);
+    const stops = trip.days.flatMap((d) => d.activities.map((a) => a.name));
+    expect(stops).toEqual(expect.arrayContaining(["Fort Kochi Beach", "Mattancherry Palace", "Tea Museum"]));
+    expect(stops).not.toContain("Kochi Castle");
+    expect(trip.days.map((d) => d.city)).toEqual(["kochi", "kochi", "munnar", "munnar"]);
+    warn.mockRestore();
+    pointsByCity = {};
+    placesFor = null;
+    for (const list of [generated, asked, routes, events, daylights] as unknown[][]) list.length = 0;
+  });
+
   it("asks a later stay that repeats an earlier stay in its city once more, told what that stay has", async () => {
     alreadyPlannedAsks.length = 0;
     placesFor = (p) => {

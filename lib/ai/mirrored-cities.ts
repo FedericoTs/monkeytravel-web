@@ -18,6 +18,8 @@ type Point = { lat: number; lng: number };
 const APART_KM = 3000;
 /** A mirrored city's stops, turned, land at most this far from another city of the route. */
 const BESIDE_KM = 800;
+/** A city whose stops sit farther than this from its own point was planned at a namesake elsewhere. */
+const NAMESAKE_KM = 1500;
 
 /** A point with the sign of its longitude turned, or of its latitude, or of both. */
 const MIRRORS: Array<(p: Point) => Point> = [
@@ -40,6 +42,20 @@ export function apartFromTheRest(results: GeneratedItinerary[]): boolean {
   return middles.some((middle, i) => {
     const others = middles.filter((m, j): m is Point => j !== i && m !== null);
     return !!middle && others.length > 0 && others.every((m) => haversineKm(middle, m) >= APART_KM);
+  });
+}
+
+/**
+ * The route's cities planned at a namesake elsewhere in the world ("kochi" in Japan on a trip through Kerala): their
+ * stops thousands of kilometres from the city's own point, and not its mirror image (unmirroredCities turns those
+ * back). Only a city whose point names its country is told: it is asked again with the country named.
+ */
+export function namesakesElsewhere(results: GeneratedItinerary[], points: Array<(Point & { country?: string }) | null>): number[] {
+  return results.flatMap((result, i) => {
+    const point = points[i];
+    const middle = middleOf(result);
+    if (!point?.country || !middle || haversineKm(middle, point) <= NAMESAKE_KM) return [];
+    return MIRRORS.some((turn) => haversineKm(turn(middle), point) <= BESIDE_KM) ? [] : [i];
   });
 }
 
