@@ -56,7 +56,9 @@ describe("asksToDriveTheRoute", () => {
 
   it.each([
     ["no car: trains only", "we don't have a car, trains only please"],
+    ["no car, said with the car's own words", "we don't have a car for the whole trip"],
     ["a car weighed up", "is it better to drive or take the train?"],
+    ["renting a car weighed up", "should we rent a car for the whole trip?"],
     ["a drive as a thing to do", "add a scenic drive"],
     ["one day", "we'll drive on day 3 instead"],
     ["a city of the route named", "we'll drive from Lyon to Nice instead"],
