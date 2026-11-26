@@ -252,6 +252,27 @@ test.describe("wizard: a kept plan", () => {
     expect(plans.writes).toEqual([]);
   });
 
+  test("the benefits arm says at the plan's end what keeping it gives, and its button opens the save box", async ({ page }) => {
+    await isolate(page);
+    await page.goto(`/trips/new?exp_save_box_benefits=benefits#plan=${LINKED}`);
+    await expectPlanShown(page);
+    await dismissConsent(page);
+    const card = page.getByRole("region", { name: "Take this plan on your trip" });
+    await expect(card).toBeVisible();
+    await expect(card.getByRole("listitem")).toHaveCount(3);
+    await card.getByRole("button", { name: "Save my trip, it's free" }).click();
+    const wall = page.getByRole("dialog").filter({ hasText: /continue with google/i });
+    await expect(wall).toBeVisible({ timeout: 5_000 });
+    await expect(wall.getByText("Each trip day, that day's plan by email")).toBeVisible();
+  });
+
+  test("outside the benefits arm, the plan ends as it did", async ({ page }) => {
+    await isolate(page);
+    await page.goto(`/trips/new#plan=${LINKED}`);
+    await expectPlanShown(page);
+    await expect(page.getByRole("region", { name: "Take this plan on your trip" })).toHaveCount(0);
+  });
+
   test("the plan's link can be asked for by email without opening the save box", async ({ page }) => {
     const plans = await isolate(page);
     await page.goto(`/trips/new#plan=${LINKED}`);

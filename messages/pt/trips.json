@@ -381,7 +381,9 @@
         "stickySaving": "Salvando...",
         "stickyHint": "Sua viagem será salva na sua conta",
         "dismiss": "Fechar"
-      }
+      },
+      "benefitsTitle": "Leve este plano para a sua viagem",
+      "benefitsCta": "Salvar minha viagem, é grátis"
     },
     "anchors": {
       "cta": "Tenho planos fixos (voo, casamento, hotel…)",

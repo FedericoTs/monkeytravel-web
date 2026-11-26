@@ -205,6 +205,7 @@ import { shouldAutoSave } from "@/lib/trips/autoSaveGate";
 import { useSameTripCheck } from "@/hooks/useSameTripCheck";
 import SameTripPrompt from "@/components/wizard/SameTripPrompt";
 import ResultActionBars from "@/components/wizard/ResultActionBars";
+import { SaveBenefitsCard } from "@/components/wizard/SaveBenefitsCard";
 import ResultItinerary, { MAP_SECTION_ID, ResultOverview } from "@/components/wizard/ResultItinerary";
 import SkyPlan from "@/components/sky/SkyPlan";
 import { assignSky, syncSkyArm, type SkyAssignment } from "@/lib/experiments/result-sky";
@@ -995,6 +996,11 @@ export default function NewTripPage({
 
   // ── Unsaved-state derivation + nudge/exit instrumentation ────────────────
   const hasResult = Boolean(generatedItinerary);
+  // The save test's arms first differ on the plan a signed-out planner sees (the benefits arm says what keeping it
+  // gives, at its end): counted from there, once.
+  useEffect(() => {
+    if (hasResult && isAuthenticated === false) reportExposure(SAVE_BOX_BENEFITS, saveBoxTest);
+  }, [hasResult, isAuthenticated, saveBoxTest]);
   // The tray's restore-swap must never run while the auto-save arm is live:
   // useAutoSaveTrip's effect would UPDATE the persisted row with a DIFFERENT
   // trip's content on swap (verified in hooks/useAutoSaveTrip.ts persist()).
@@ -1868,6 +1874,10 @@ export default function NewTripPage({
               loading={loading}
               onAskAssistant={askAssistant}
             />
+          )}
+
+          {saveBoxTest.arm === "benefits" && isAuthenticated === false && isUnsaved && !savedTripId && (
+            <SaveBenefitsCard onSave={handleSaveTrip} saving={loading || claimingSharedPlan} />
           )}
 
           <AiDisclaimer title={t("wizard.result.aiVerifiedTitle")} className="mt-10">
