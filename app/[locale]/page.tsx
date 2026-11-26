@@ -89,6 +89,9 @@ const APP_SCREENSHOTS = {
    ============================================================================ */
 const FAQ_KEYS = ['free', 'noApp', 'howAiWorks', 'editItinerary', 'destinations', 'planWithFriends'] as const;
 
+/** The facts a searcher (or an AI answer) can take from the page in one look, each true of the product today. */
+const FACT_KEYS = ['price', 'speed', 'languages', 'checks', 'routes', 'group', 'changes', 'onTheTrip'] as const;
+
 export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   // The logged-in → /trips redirect lives in middleware.ts (a cookie-presence
@@ -290,6 +293,25 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 <div className="text-sm text-[var(--foreground-muted)]">{t('stats.friendsPerTrip')}</div>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* ================================================================
+            2b. AT A GLANCE - the facts, said plainly
+            ================================================================ */}
+        <section aria-labelledby="facts-title" className="py-12 bg-white border-b border-gray-100">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 id="facts-title" className="text-2xl sm:text-3xl font-bold text-[var(--foreground)] text-center mb-8">
+              {t('facts.title')}
+            </h2>
+            <dl className="grid gap-x-10 gap-y-5 sm:grid-cols-2">
+              {FACT_KEYS.map((key) => (
+                <div key={key} className="flex flex-col gap-1">
+                  <dt className="text-sm font-semibold text-[var(--foreground)]">{t(`facts.items.${key}.term`)}</dt>
+                  <dd className="text-[var(--foreground-muted)] leading-relaxed">{t(`facts.items.${key}.detail`)}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </section>
 

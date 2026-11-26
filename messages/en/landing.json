@@ -36,6 +36,43 @@
     "personalizedToYou": "Personalized to you",
     "friendsPerTrip": "Friends per trip"
   },
+  "facts": {
+    "title": "MonkeyTravel at a glance",
+    "items": {
+      "price": {
+        "term": "Price",
+        "detail": "Free. No card, and no account needed to see your plan."
+      },
+      "speed": {
+        "term": "Speed",
+        "detail": "A day-by-day plan in about 30 seconds."
+      },
+      "languages": {
+        "term": "Languages",
+        "detail": "English, Spanish, Italian and Portuguese."
+      },
+      "checks": {
+        "term": "Checked",
+        "detail": "Closing days and public holidays for the sights it plans, and the opening hours of the best-known ones."
+      },
+      "routes": {
+        "term": "Several cities",
+        "detail": "It plans the route, and the ride between each city."
+      },
+      "group": {
+        "term": "Groups",
+        "detail": "Friends can join the trip, vote and add what they don't want to miss."
+      },
+      "changes": {
+        "term": "Changes",
+        "detail": "Ask the assistant to change any day, in your own words."
+      },
+      "onTheTrip": {
+        "term": "On the trip",
+        "detail": "With a free account: each trip day's plan by email, and weather and packing reminders before you go."
+      }
+    }
+  },
   "problem": {
     "title": "Planning a trip still takes 47 browser tabs",
     "subtitle": "Sound familiar? You're not alone.",
