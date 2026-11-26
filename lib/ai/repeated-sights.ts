@@ -95,8 +95,9 @@ function wantedFor({ day, stops, i }: Visit, destination: string): SightRepeat[]
 export function repeatedSights(days: Day[], destination: string, named: (stop: { name?: string }) => boolean = () => false): SightRepeat[] {
   const visits: Visit[] = days.flatMap((day, d) => {
     const stops = [...(day.activities ?? [])].sort((a, b) => (minutesOf(a.start_time) ?? 24 * 60) - (minutesOf(b.start_time) ?? 24 * 60));
+    // A dated event at a place (New Year's Eve at its square) isn't a second visit to it.
     return stops.flatMap((stop, i) =>
-      stop.name && !NOT_A_SIGHT.has(stop.type ?? "") ? [{ day, d, stops, i, words: nameTokens(stop.name) }] : []
+      stop.name && !NOT_A_SIGHT.has(stop.type ?? "") && stop.type !== "event" ? [{ day, d, stops, i, words: nameTokens(stop.name) }] : []
     );
   });
   const kept: Visit[] = [];

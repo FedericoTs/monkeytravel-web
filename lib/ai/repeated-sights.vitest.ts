@@ -88,10 +88,17 @@ describe("repeatedSights", () => {
     expect(repeatedSights(days, "Hong Kong")).toEqual([]);
   });
 
+  it("leaves a dated event at a place the plan visits on another day: New Year's Eve at the tower", () => {
+    const days = [day(1, [stop("10:00", "Victoria Peak", "landmark")]), day(2, [stop("23:00", "Victoria Peak", "event")])];
+    expect(repeatedSights(days, "Hong Kong")).toEqual([]);
+    // The same visit twice is still a repeat.
+    expect(repeatedSights([day(1, [stop("10:00", "Victoria Peak", "landmark")]), day(2, [stop("15:00", "Victoria Peak", "landmark")])], "Hong Kong")).toHaveLength(1);
+  });
+
   it("keeps the visit they asked for by name and replaces the other, even when it comes first", () => {
     const days = [day(1, [stop("14:30", "Hong Kong Disneyland", "attraction")]), day(2, [stop("09:00", "Hong Kong Disneyland", "attraction")])];
     expect(repeatedSights(days, "Hong Kong", named("Hong Kong Disneyland")).map((w) => w.date)).toEqual(["2026-12-02"]);
-    const later = [day(1, [stop("14:30", "Disneyland Park", "attraction")]), day(2, [stop("09:00", "Hong Kong Disneyland Park", "event")])];
+    const later = [day(1, [stop("14:30", "Disneyland Park", "attraction")]), day(2, [stop("09:00", "Hong Kong Disneyland Park", "attraction")])];
     expect(repeatedSights(later, "Hong Kong", named("Hong Kong Disneyland Park")).map((w) => `${w.date} ${w.name}`)).toEqual([
       "2026-12-01 Disneyland Park",
     ]);
