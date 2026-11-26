@@ -45,6 +45,54 @@ describe("a Japanese museum's Mondays", () => {
   });
 });
 
+// Kraków over Christmas: a plan kept the castle on the 26th and the museums on the 25th. From the official pages.
+describe("Kraków over Christmas, and the London Eye", () => {
+  const krakow = "Kraków, Poland";
+
+  it("shuts Wawel Castle on 24, 25 and 26 December and New Year's Day, not its cathedral", () => {
+    const castle = entry("Wawel Royal Castle", krakow);
+    for (const date of ["2026-12-24", "2026-12-25", "2026-12-26", "2027-01-01"]) expect(shutBy(castle, date)).toBe(true);
+    for (const date of ["2026-12-27", "2026-12-31", "2027-01-02"]) expect(shutBy(castle, date)).toBe(false);
+    expect(knownClosingFor("Wawel Cathedral", krakow)).toBeUndefined();
+    // The castle and the cathedral in one stop: the cathedral keeps its own days, so the list doesn't decide it.
+    expect(knownClosingFor("Wawel Castle & Cathedral", krakow)).toBeUndefined();
+    expect(hoursOn(castle, "2026-12-28")).toEqual({ open: 10 * 60, close: 16 * 60, lastEntry: 15 * 60 });
+    expect(hoursOn(castle, "2026-12-29")).toEqual({ open: 9 * 60, close: 17 * 60, lastEntry: 16 * 60 });
+  });
+
+  it("shuts the Sukiennice gallery on Mondays, not the Cloth Hall's market", () => {
+    const gallery = entry("Gallery of 19th-Century Polish Art (Sukiennice)", krakow);
+    expect(shutBy(gallery, "2026-12-28")).toBe(true);
+    expect(shutBy(gallery, "2026-12-29")).toBe(false);
+    expect(knownClosingFor("Cloth Hall (Sukiennice)", krakow)).toBeUndefined();
+  });
+
+  it("shuts Kraków's Barbican for the winter, not London's", () => {
+    expect(shutBy(entry("The Barbican", krakow), "2027-01-15")).toBe(true);
+    expect(knownClosingFor("Barbican Centre", "London")).toBeUndefined();
+  });
+
+  it("shuts Schindler's Factory on the first Tuesday, at Christmas and on Epiphany", () => {
+    const factory = entry("Oskar Schindler's Enamel Factory", krakow);
+    for (const date of ["2026-12-01", "2027-02-02", "2026-12-24", "2026-12-25", "2027-01-06"]) expect(shutBy(factory, date)).toBe(true);
+    for (const date of ["2026-12-29", "2026-12-26", "2027-01-07"]) expect(shutBy(factory, date)).toBe(false);
+    expect(hoursOn(factory, "2026-12-31")).toEqual({ open: 10 * 60, close: 15 * 60 });
+  });
+
+  it("shuts the Rynek Underground on the second Monday, at Christmas and on Epiphany", () => {
+    const underground = entry("Rynek Underground Museum", krakow);
+    for (const date of ["2026-12-14", "2027-01-11", "2026-12-25", "2027-01-06"]) expect(shutBy(underground, date)).toBe(true);
+    for (const date of ["2026-12-21", "2026-12-07", "2026-12-26"]) expect(shutBy(underground, date)).toBe(false);
+    expect(hoursOn(underground, "2027-01-12")).toEqual({ open: 10 * 60, close: 15 * 60 });
+  });
+
+  it("shuts the London Eye on Christmas Day and through January", () => {
+    const eye = entry("The London Eye", "London, United Kingdom");
+    for (const date of ["2026-12-25", "2027-01-15"]) expect(shutBy(eye, date)).toBe(true);
+    for (const date of ["2026-12-26", "2026-12-31", "2027-02-01"]) expect(shutBy(eye, date)).toBe(false);
+  });
+});
+
 describe("the other rules", () => {
   it("shuts the Met on Wednesdays and on Thanksgiving, the fourth Thursday of November", () => {
     const met = entry("The Metropolitan Museum of Art", "New York City");

@@ -98,6 +98,7 @@ const MADRID = /\bmadrid\b|\bmadri\b/i;
 /** Neuschwanstein is a day out from Munich or Füssen. */
 const BAVARIA = /\bm[uü]nchen\b|\bmunich\b|\bm[uú]nich\b|\bmunique\b|\bmonaco di baviera\b|\bf[uü]ssen\b|\bschwangau\b|\bbavaria\b|\bbaviera\b|\bbayern\b/i;
 const VIENNA = /\bvienna\b|\bwien\b|\bviena\b|\bvienne\b/i;
+const KRAKOW = /\bkrak[oó]w\b|\bcrac[oó]via\b|\bkrakau\b|\bcracow\b/i;
 const HANOI = /\bha ?noi\b|\bh[aà] n[oộ]i\b/i;
 const BALI = /\bbali\b|\bubud\b|\bseminyak\b|\bcanggu\b|\bcanga\b|\bkuta\b|\buluwat[ui]\b|\bsanur\b|\bnusa dua\b|\bdenpasar\b|\bjimbaran\b|\btampaksiring\b/i;
 const GOA = /\bgoa\b|\bpanaji\b|\bpanjim\b/i;
@@ -990,6 +991,68 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
     source: "https://www.vam.ac.uk/south-kensington/visit",
   },
   { names: /\bcamden (?:lock )?market\b|\bmercado de camden\b|\bmercato di camden\b/i, city: LONDON, rules: [yearly("12-25")], source: "https://camdenmarket.com/faqs/when-are-you-open" },
+  {
+    names: /\blondon eye\b|\bocchio di londra\b|\bolho de londres\b|\bojo de londres\b/i,
+    city: LONDON,
+    // Shut on Christmas Day, and for its yearly maintenance "throughout January" (the page's FAQ).
+    rules: [yearly("12-25"), { from: "2027-01-01", to: "2027-01-31" }],
+    hours: [{ from: "01-01", to: "12-31", open: "10:00", close: "20:30", lastEntry: "19:45" }],
+    source: "https://www.londoneye.com/plan-your-visit/before-you-visit/opening-hours/",
+  },
+  // Kraków
+  {
+    names: /\bwawel (?:royal )?castle\b|\broyal castle (?:on|at) wawel\b|\bzamek kr[oó]lewski\b|\bcastello (?:reale )?(?:del |di )?wawel\b|\bcastillo (?:real )?de wawel\b|\bcastelo (?:real )?de wawel\b/i,
+    // The cathedral and the dragon's den on the same hill are others' to open; on 26 December only the castle's
+    // underground tour opens, which plans name apart.
+    notNames: /\bcathedral\b|\bcattedrale\b|\bcatedral\b|\bkatedra\b|\bdragon\b|\bdrago\b|\bdrag[aã]o\b|\bunderground\b|\bsotterrane[io]\b|\bsubterr[aâ]neo\b/i,
+    city: KRAKOW,
+    rules: [{ from: "2026-12-24", to: "2026-12-26" }, { from: "2027-01-01", to: "2027-01-01" }],
+    hours: [
+      { from: "11-01", to: "03-31", days: ["Monday"], open: "10:00", close: "16:00", lastEntry: "15:00" },
+      { from: "11-01", to: "03-31", open: "09:00", close: "17:00", lastEntry: "16:00" },
+    ],
+    source: "https://wawel.krakow.pl/en/what-to-see",
+  },
+  {
+    // The gallery upstairs in the Cloth Hall, not the hall's market stalls, which open every day.
+    names: /\bgallery of 19th[- ]century polish art\b|\b19th[- ]century polish art\b|\bsukiennice (?:museum|gallery)\b|\bgaleria sztuki polskiej xix\b|\bmuseo (?:de |di )?(?:las |le )?sukiennice\b/i,
+    city: KRAKOW,
+    rules: [{ weekly: ["Monday"] }],
+    hours: [{ from: "01-01", to: "12-31", open: "10:00", close: "18:00" }],
+    source: "https://mnk.pl/en/opening-hours/",
+  },
+  {
+    names: /\bbarbican\b|\bbarbakan\b|\bbarbacana?\b|\bbarbac[aã]\b/i,
+    city: KRAKOW,
+    // The branch page reads "Oddział tymczasowo zamknięty" (temporarily closed); it opens for the tourist season.
+    rules: [{ from: "2026-11-15", to: "2027-03-31" }],
+    source: "https://muzeumkrakowa.pl/oddzialy/barbakan",
+  },
+  {
+    names: /\bschindler'?s? (?:enamel )?factory\b|\boskar schindler\b|\bfabryka emalia\b|\bfabryka schindlera\b|\bfabbrica (?:di )?schindler\b|\bf[aá]brica (?:de )?schindler\b/i,
+    city: KRAKOW,
+    rules: [{ nth: "Tuesday", of: [1] }, { from: "2026-12-24", to: "2026-12-25" }, { from: "2027-01-01", to: "2027-01-01" }, { from: "2027-01-06", to: "2027-01-06" }],
+    hours: [
+      { from: "12-26", to: "12-26", open: "10:00", close: "18:00" },
+      { from: "12-31", to: "12-31", open: "10:00", close: "15:00" },
+      { from: "01-01", to: "12-31", days: ["Monday"], open: "10:00", close: "15:00" },
+      { from: "01-01", to: "12-31", open: "09:00", close: "20:00" },
+    ],
+    source: "https://muzeumkrakowa.pl/godziny-otwarcia-i-ceny-biletow",
+  },
+  {
+    names: /\brynek underground\b|\bpodziemia rynku\b|\brynek podziemny\b|\bmain (?:market )?square underground\b|\bunderground museum (?:of|under|beneath) the (?:main )?market square\b/i,
+    city: KRAKOW,
+    rules: [{ nth: "Monday", of: [2] }, { from: "2026-12-24", to: "2026-12-25" }, { from: "2027-01-01", to: "2027-01-01" }, { from: "2027-01-06", to: "2027-01-06" }],
+    hours: [
+      { from: "12-26", to: "12-26", open: "10:00", close: "18:00" },
+      { from: "12-31", to: "12-31", open: "10:00", close: "15:00" },
+      { from: "01-01", to: "12-31", days: ["Tuesday"], open: "10:00", close: "15:00" },
+      { from: "01-01", to: "12-31", days: ["Friday", "Saturday", "Sunday"], open: "10:00", close: "20:00" },
+      { from: "01-01", to: "12-31", open: "10:00", close: "19:00" },
+    ],
+    source: "https://muzeumkrakowa.pl/godziny-otwarcia-i-ceny-biletow",
+  },
   // Edinburgh
   {
     names: /\bnational museum of scotland\b|\bmuseo nacional de escocia\b|\bmuseo nazionale di scozia\b|\bmuseu nacional da esc[oó]cia\b/i,
