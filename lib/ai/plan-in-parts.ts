@@ -15,7 +15,7 @@ import { getModelForPurpose } from "@/lib/ai/model-router";
 import { isModelOutOfCredit } from "@/lib/ai/model-outage";
 import { placeDays } from "@/lib/ai/server-fields";
 import { splitIntoParts, type OutlineDay } from "@/lib/ai/trip-outline";
-import { apartFromTheRest, unmirroredCities } from "@/lib/ai/mirrored-cities";
+import { apartFromTheRest, besideOneOf, unmirroredCities } from "@/lib/ai/mirrored-cities";
 import { cityPointsFor } from "@/lib/ai/city-points";
 import type { SupportedLanguage } from "@/lib/ai/language";
 import type { GeneratedItinerary, ItineraryDay, TripCreationParams } from "@/types";
@@ -145,8 +145,9 @@ export async function* writeInParts(
   }));
   let placed = unmirroredCities(parts, parts.map(() => null));
   if (placed.turned.length === 0 && apartFromTheRest(parts)) {
+    // Only a place beside one of them can say which: the biggest place of the name may be a namesake far away.
     const [point] = await cityPointsFor([params.destination.split(",")[0].trim()]);
-    if (point) placed = unmirroredCities(parts, parts.map(() => point));
+    if (point && besideOneOf(parts, point)) placed = unmirroredCities(parts, parts.map(() => point));
   }
   if (placed.turned.length > 0) {
     console.warn(`[plan-in-parts] turned back from the far side of the world: days ${placed.turned.map((i) => `${runs[i].range.from}-${runs[i].range.to}`).join(", ")}`);

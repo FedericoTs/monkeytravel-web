@@ -184,6 +184,14 @@ describe("a part written on the far side of the world", () => {
     expect(pinsOf(done)).toEqual([ROME, ROME, ROME, MIRRORED, MIRRORED, MIRRORED]);
   });
 
+  it("of two, stays when the destination's place is a namesake beside neither", async () => {
+    behaviour = { 1: { delayMs: 0, pin: ROME }, 4: { delayMs: 0, pin: MIRRORED } };
+    // The biggest place of the name on another continent: Rome's mirror lands nearer it than Rome does.
+    destinationPoint = { lat: -34.6, lng: -58.4 };
+    const { done } = await collect(6);
+    expect(pinsOf(done)).toEqual([ROME, ROME, ROME, MIRRORED, MIRRORED, MIRRORED]);
+  });
+
   it("leaves parts that agree, and asks the cities table nothing", async () => {
     behaviour = { 1: { delayMs: 0, pin: ROME }, 4: { delayMs: 0, pin: { lat: 41.95, lng: 12.45 } } };
     const { done } = await collect(6);

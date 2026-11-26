@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { GeneratedItinerary } from "@/types";
-import { apartFromTheRest, unmirroredCities } from "./mirrored-cities";
+import { apartFromTheRest, besideOneOf, unmirroredCities } from "./mirrored-cities";
 
 /** A city's plan: one day per list of [name, lat, lng] stops. */
 const city = (...days: Array<Array<[string, number, number]>>): GeneratedItinerary =>
@@ -128,6 +128,11 @@ describe("apartFromTheRest", () => {
   it("says one plan sits thousands of kilometres from every other one", () => {
     expect(apartFromTheRest([rome, rome, tokyo])).toBe(true);
     expect(apartFromTheRest([rome, tokyo])).toBe(true);
+  });
+
+  it("says whether a place lies beside one of them", () => {
+    expect(besideOneOf([rome, tokyo], { lat: 41.95, lng: 12.6 })).toBe(true);
+    expect(besideOneOf([rome, tokyo], { lat: -34.6, lng: -58.4 })).toBe(false);
   });
 
   it("says no when each has another beside it, when one is alone, or when the others have no real pin", () => {

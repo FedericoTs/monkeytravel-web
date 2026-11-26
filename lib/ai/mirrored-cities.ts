@@ -43,6 +43,14 @@ export function apartFromTheRest(results: GeneratedItinerary[]): boolean {
   });
 }
 
+/** Whether `point` lies beside one of the plans' stops: only then can it say which of two is the turned one. */
+export function besideOneOf(results: GeneratedItinerary[], point: Point): boolean {
+  return results.some((result) => {
+    const middle = middleOf(result);
+    return !!middle && haversineKm(middle, point) <= BESIDE_KM;
+  });
+}
+
 /** The city's plan with each stop on the far side turned back beside `middle`; a stop already there stays. */
 function turnedBack(result: GeneratedItinerary, mirror: (p: Point) => Point, middle: Point): GeneratedItinerary {
   return {
