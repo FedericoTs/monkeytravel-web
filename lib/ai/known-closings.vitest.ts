@@ -768,3 +768,84 @@ describe("a second batch of official hours", () => {
     expect(knownClosingFor("British Museum", "Paris")).toBeUndefined();
   });
 });
+
+describe("a third batch of official hours", () => {
+  const hm = (time: string) => Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5));
+  const at = (name: string, destination: string, date: string) => hoursOn(entry(name, destination), date);
+  const shut = (name: string, destination: string, date: string) => shutBy(entry(name, destination), date);
+
+  it("keep Florence's galleries shut on Mondays, and Boboli to its seasons and its first and last Mondays", () => {
+    // Tuesday 13 April 2027; Monday 12 April.
+    expect(at("Uffizi Gallery", "Florence, Italy", "2027-04-13")).toEqual({ open: hm("08:15"), close: hm("18:30"), lastEntry: hm("17:30") });
+    expect(at("Galleria degli Uffizi", "Firenze", "2027-04-12")).toBeNull();
+    expect(at("Uffizi", "Florence", "2026-12-25")).toBeNull();
+    // Its one Monday opening, 7 December 2026.
+    expect(at("Uffizi", "Florence", "2026-12-07")).not.toBeNull();
+    expect(at("Galleria dell'Accademia", "Florence", "2027-04-13")).toEqual({ open: hm("08:15"), close: hm("18:50"), lastEntry: hm("18:10") });
+    expect(at("Galería de la Academia", "Florencia", "2027-04-12")).toBeNull();
+    expect(at("Boboli Gardens", "Florence", "2027-01-12")).toEqual({ open: hm("08:15"), close: hm("16:30"), lastEntry: hm("15:30") });
+    expect(at("Giardino di Boboli", "Florence", "2027-07-13")?.close).toBe(hm("19:10"));
+    // Monday 1 February 2027 is the month's first, 22 February its last; 8 February neither.
+    expect(at("Boboli Gardens", "Florence", "2027-02-01")).toBeNull();
+    expect(at("Boboli Gardens", "Florence", "2027-02-22")).toBeNull();
+    expect(at("Boboli Gardens", "Florence", "2027-02-08")).not.toBeNull();
+    expect(at("Palazzo Pitti", "Florence", "2027-04-12")).toBeNull();
+    // A stop naming both keeps neither's: they shut on other days.
+    expect(knownClosingFor("Pitti Palace & Boboli Gardens", "Florence")).toBeUndefined();
+  });
+
+  it("keep Amsterdam's to their days: the Rijksmuseum every day, Van Gogh's seasons, Anne Frank's evenings", () => {
+    expect(at("Rijksmuseum", "Amsterdam", "2027-01-12")).toEqual({ open: hm("09:00"), close: hm("17:00") });
+    expect(at("Rijksmuseum", "Ámsterdam", "2026-12-25")).not.toBeNull();
+    expect(at("Van Gogh Museum", "Amsterdam", "2027-01-12")?.close).toBe(hm("17:00"));
+    expect(at("Museo Van Gogh", "Amsterdam", "2027-06-15")?.close).toBe(hm("18:00"));
+    expect(at("Anne Frank House", "Amsterdam", "2027-01-12")).toEqual({ open: hm("09:00"), close: hm("22:00") });
+    // Yom Kippur 2027.
+    expect(at("Casa de Ana Frank", "Amsterdam", "2027-10-11")).toBeNull();
+  });
+
+  it("shut Istanbul's palaces on their own weekdays, and keep the tower and the modern museum to their hours", () => {
+    // Tuesday 12 January 2027 shuts Topkapı, Monday 11 January Dolmabahçe and Istanbul Modern; Wednesday 13 neither.
+    expect(shut("Topkapı Palace Museum", "Istanbul", "2027-01-12")).toBe(true);
+    expect(shut("Palacio de Topkapi", "Estambul", "2027-01-13")).toBe(false);
+    expect(shut("Dolmabahçe Palace", "Istanbul", "2027-01-11")).toBe(true);
+    expect(shut("Dolmabahce Palace", "Istanbul, Turkey", "2027-01-12")).toBe(false);
+    // Only their ticket offices' hours are published: the list keeps no hours for them.
+    expect(at("Topkapi Palace", "Istanbul", "2027-01-13")).toBeNull();
+    expect(at("Istanbul Modern", "Istanbul", "2027-01-11")).toBeNull();
+    expect(at("Istanbul Modern", "Istanbul", "2027-01-15")).toEqual({ open: hm("10:00"), close: hm("20:00"), lastEntry: hm("19:30") });
+    expect(at("Istanbul Modern", "Istanbul", "2027-01-13")?.close).toBe(hm("18:00"));
+    expect(at("Galata Tower", "Istanbul", "2027-01-13")).toEqual({ open: hm("08:30"), close: hm("22:00") });
+  });
+
+  it("keep Venice's palace to its seasons and holidays, and the Guggenheim shut on Tuesdays", () => {
+    expect(at("Doge's Palace", "Venice", "2027-06-15")).toEqual({ open: hm("09:00"), close: hm("19:00"), lastEntry: hm("18:00") });
+    expect(at("Palazzo Ducale", "Venezia", "2027-01-12")?.close).toBe(hm("18:00"));
+    expect(at("Doge's Palace", "Venice", "2026-12-25")?.open).toBe(hm("10:00"));
+    expect(at("Peggy Guggenheim Collection", "Venice", "2027-01-12")).toBeNull();
+    expect(at("Peggy Guggenheim Collection", "Venice", "2027-01-13")).toEqual({ open: hm("10:00"), close: hm("18:00"), lastEntry: hm("17:00") });
+  });
+
+  it("keep the Last Supper shut on Mondays, Osaka's art museum to its holidays and changes, Gyeongju's museum to its days", () => {
+    expect(at("The Last Supper (Cenacolo Vinciano)", "Milan", "2027-01-11")).toBeNull();
+    expect(at("Cenacolo Vinciano", "Milano", "2027-01-12")).toEqual({ open: hm("08:15"), close: hm("19:00"), lastEntry: hm("18:45") });
+    // Monday 11 January 2027 is a national holiday: open, and shut the Tuesday after. Fridays run to eight.
+    expect(at("National Museum of Art, Osaka", "Osaka", "2027-01-11")).not.toBeNull();
+    expect(at("National Museum of Art, Osaka", "Osaka", "2027-01-12")).toBeNull();
+    expect(at("National Museum of Art, Osaka", "Osaka", "2027-01-15")).toEqual({ open: hm("10:00"), close: hm("20:00"), lastEntry: hm("19:30") });
+    // Shut while its exhibitions change.
+    expect(at("National Museum of Art, Osaka", "Osaka", "2026-11-20")).toBeNull();
+    expect(at("Gyeongju National Museum", "Gyeongju", "2027-04-10")?.close).toBe(hm("20:00"));
+    expect(at("Gyeongju National Museum", "Busan & Gyeongju", "2027-01-12")).toEqual({ open: hm("10:00"), close: hm("18:00"), lastEntry: hm("17:30") });
+    // Seollal 2027, and the halls' second Monday of December.
+    expect(at("Gyeongju National Museum", "Gyeongju", "2027-02-07")).toBeNull();
+    expect(at("Gyeongju National Museum", "Gyeongju", "2026-12-14")).toBeNull();
+  });
+
+  it("leave out the places that only share a name or a city", () => {
+    expect(knownClosingFor("Santa Maria delle Grazie", "Milan")).toBeUndefined();
+    expect(knownClosingFor("National Museum of Modern Art, Kyoto", "Kyoto & Osaka")).toBeUndefined();
+    expect(knownClosingFor("Uffizi", "Rome")).toBeUndefined();
+    expect(knownClosingFor("Guggenheim Museum Bilbao", "Bilbao")).toBeUndefined();
+  });
+});

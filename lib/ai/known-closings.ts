@@ -118,6 +118,13 @@ const MUMBAI = /\bmumbai\b|\bbombay\b|\bbombaim\b|मुंबई/i;
 const MYSURU = /\bmysuru\b|\bmysore\b/i;
 const KOCHI = /\bkochi\b|\bcochin\b|\bmattancherry\b|\bernakulam\b|\bkerala\b/i;
 const CHENNAI = /\bchennai\b|\bmadras\b/i;
+const FLORENCE = /\bflorence\b|\bfirenze\b|\bfloren[cç]i?a\b/i;
+const AMSTERDAM = /\bamsterdam\b|ámsterdam\b|\bamsterdã|\bamesterdão/i;
+const ISTANBUL = /\bistanbul\b|İstanbul|\bestambul\b|\bistambul\b/i;
+const VENICE = /\bvenice\b|\bvenezia\b|\bvenecia\b|\bveneza\b/i;
+const MILAN = /\bmilano?\b|\bmil[aá]n\b|\bmil[aã]o\b/i;
+/** Gyeongju is a day out from Busan as often as a stay. */
+const GYEONGJU_BUSAN = /\bgyeongju\b|\bkyongju\b|\bkyeongju\b|경주|\bbusan\b|\bpusan\b|부산/i;
 
 const day = (date: string) => ({ from: date, to: date });
 /** Shut every year from one month-day to another (or on one), e.g. yearly("12-29", "01-03"). */
@@ -1521,6 +1528,203 @@ export const KNOWN_CLOSINGS: KnownClosing[] = [
       { from: "01-01", to: "12-31", open: "09:15", close: "23:45", lastEntry: "22:45" },
     ],
     source: "https://www.toureiffel.paris/en/rates-opening-times",
+  },
+  // Florence
+  {
+    // The Uffizi Galleries' name also covers Pitti and Boboli, which keep other hours: a stop naming them is theirs.
+    names: /\buffizi\b/i,
+    notNames: /\bpitti\b|\bboboli\b/i,
+    city: FLORENCE,
+    rules: [{ weekly: ["Monday"] }, yearly("01-01"), yearly("12-25")],
+    // Open on Monday 7 December 2026 (https://www.uffizi.it/en/notices/7-december-2026-special-opening-of-the-uffizi).
+    openOn: ["2026-12-07"],
+    hours: [{ from: "01-01", to: "12-31", open: "08:15", close: "18:30", lastEntry: "17:30" }],
+    source: "https://www.uffizi.it/en/the-uffizi",
+  },
+  {
+    names: /\bgalleria dell['’]? ?accademia\b|\baccademia gallery\b|\bgaler[ií]a de la academia\b|\bgaleria da academia\b/i,
+    city: FLORENCE,
+    rules: [{ weekly: ["Monday"] }, yearly("01-01"), yearly("12-25")],
+    hours: [{ from: "01-01", to: "12-31", open: "08:15", close: "18:50", lastEntry: "18:10" }],
+    source: "https://www.galleriaaccademiafirenze.it/en/visit/",
+  },
+  {
+    // Shut the first and the last Monday of each month. The nth rule can't say "last", so the window's last Mondays are
+    // listed. Its closing follows the clock change in March and October: those weeks take the earlier time.
+    names: /\bboboli\b/i,
+    // Pitti and Boboli in one stop: the palace keeps other days, so the list doesn't decide it.
+    notNames: /\bpitti\b/i,
+    city: FLORENCE,
+    rules: [
+      { nth: "Monday", of: [1] },
+      day("2026-11-30"),
+      day("2026-12-28"),
+      day("2027-01-25"),
+      day("2027-02-22"),
+      day("2027-03-29"),
+      yearly("12-25"),
+    ],
+    hours: [
+      { from: "11-01", to: "02-29", open: "08:15", close: "16:30", lastEntry: "15:30" },
+      { from: "03-01", to: "03-31", open: "08:15", close: "17:30", lastEntry: "16:30" },
+      { from: "04-01", to: "05-31", open: "08:15", close: "18:30", lastEntry: "17:30" },
+      { from: "06-01", to: "08-31", open: "08:15", close: "19:10", lastEntry: "18:10" },
+      { from: "09-01", to: "10-24", open: "08:15", close: "18:30", lastEntry: "17:30" },
+      { from: "10-25", to: "10-31", open: "08:15", close: "17:30", lastEntry: "16:30" },
+    ],
+    source: "https://www.uffizi.it/en/boboli-garden",
+  },
+  {
+    names: /\bpitti palace\b|\bpalazzo pitti\b|\bpal[aá]cio pitti\b|\bpalatine gallery\b|\bgalleria palatina\b|\bgaler[ií]a palatina\b/i,
+    notNames: /\bboboli\b/i,
+    city: FLORENCE,
+    rules: [{ weekly: ["Monday"] }, yearly("01-01"), yearly("12-25")],
+    hours: [{ from: "01-01", to: "12-31", open: "08:15", close: "18:30", lastEntry: "17:30" }],
+    hoursSource: "https://www.uffizi.it/palazzo-pitti",
+    source: "https://www.uffizi.it/en/pitti-palace",
+  },
+  // Amsterdam
+  {
+    names: /\brijks ?museum\b/i,
+    city: AMSTERDAM,
+    rules: OPEN_EVERY_DAY,
+    hours: [{ from: "01-01", to: "12-31", open: "09:00", close: "17:00" }],
+    source: "https://www.rijksmuseum.nl/en/visit/practical-info/opening-hours-and-prices",
+  },
+  {
+    // Its hours are published date by date; where two years differ the earlier closing is kept. Its Fridays run to nine
+    // except on named Fridays a row can't hold, so Fridays keep the day's usual closing.
+    names: /\bvan gogh museum\b|\bmuse[ou] (?:de |di )?van gogh\b/i,
+    city: AMSTERDAM,
+    rules: OPEN_EVERY_DAY,
+    hours: [
+      { from: "01-01", to: "01-01", open: "11:00", close: "18:00" },
+      { from: "01-02", to: "01-10", open: "09:00", close: "18:00" },
+      { from: "01-11", to: "02-12", open: "09:00", close: "17:00" },
+      { from: "02-13", to: "10-03", open: "09:00", close: "18:00" },
+      { from: "10-04", to: "10-10", days: ["Saturday", "Sunday"], open: "09:00", close: "18:00" },
+      { from: "10-04", to: "10-10", open: "09:00", close: "17:00" },
+      { from: "10-11", to: "11-01", open: "09:00", close: "18:00" },
+      { from: "11-02", to: "12-26", open: "09:00", close: "17:00" },
+      { from: "12-27", to: "12-30", open: "09:00", close: "18:00" },
+      { from: "12-31", to: "12-31", open: "09:00", close: "17:00" },
+    ],
+    source: "https://www.vangoghmuseum.nl/en/visit/address-and-opening-hours",
+  },
+  {
+    // Shut on Yom Kippur, whose date moves.
+    names: /\ban(?:ne|na|a) frank(?:['’]s)? (?:house|huis)\b|\banne ?frank ?huis\b|\bcasa (?:de |di |da )?an(?:ne|na|a) frank\b/i,
+    city: AMSTERDAM,
+    rules: [day("2027-10-11")],
+    hours: [
+      { from: "01-01", to: "01-01", open: "12:00", close: "22:00" },
+      { from: "04-27", to: "04-27", open: "09:00", close: "17:00" },
+      { from: "05-04", to: "05-04", open: "09:00", close: "17:00" },
+      { from: "12-25", to: "12-25", open: "09:00", close: "17:00" },
+      { from: "12-31", to: "12-31", open: "09:00", close: "17:00" },
+      { from: "01-01", to: "12-31", open: "09:00", close: "22:00" },
+    ],
+    source: "https://www.annefrank.org/en/museum/tickets/",
+  },
+  // Istanbul
+  {
+    // Only its ticket offices' hours are published (9 to 5), not when it shuts, so the list keeps its closing days
+    // only. Its Turkish page shuts it on New Year's Day, its English page doesn't; the Turkish is kept. Shut the first
+    // day of Ramazan Bayramı too (9 March 2027, a Tuesday anyway).
+    names: /\btopkap[iı] (?:palace|saray[iı]|museum|m[uü]zesi)|\bpal[aá]cio (?:de )?topkap[iı]|\bpalazzo (?:di )?topkap[iı]/i,
+    city: ISTANBUL,
+    rules: [{ weekly: ["Tuesday"] }, yearly("01-01")],
+    source: "https://www.millisaraylar.gov.tr/Lokasyon/2/Topkapi-Sarayi",
+  },
+  {
+    // Its own page says 8:30 to 23:00, last entry 22:00; the ministry's museum pass page ends its night session at
+    // 22:00 (https://muze.gov.tr/muze-detay?SectionId=GLT04&DistId=MRK). A visit ends by ten either way.
+    names: /\bg[aá]lata (?:tower|kulesi)\b|\btorre (?:de |di |da )?g[aá]lata\b/i,
+    city: ISTANBUL,
+    rules: OPEN_EVERY_DAY,
+    hours: [{ from: "01-01", to: "12-31", open: "08:30", close: "22:00" }],
+    source: "https://galatakulesi.gov.tr/ziyaret",
+  },
+  {
+    // Only its ticket offices' hours are published (9 to 5), not when it shuts, so the list keeps its closing days
+    // only. Shut the first day of both Bayrams, dated by Diyanet (https://vakithesaplama.diyanet.gov.tr/icerik.php?icerik=154).
+    names: /\bdolmabah[cç]e (?:palace|saray[iı])|\bpal[aá]cio (?:de )?dolmabah[cç]e\b|\bpalazzo (?:di )?dolmabah[cç]e\b/i,
+    city: ISTANBUL,
+    rules: [{ weekly: ["Monday"] }, yearly("01-01"), day("2027-03-09"), day("2027-05-16")],
+    source: "https://www.millisaraylar.gov.tr/Lokasyon/3/Dolmabahce-Sarayi",
+  },
+  {
+    // Shut the first day of both Bayrams, dated by Diyanet (https://vakithesaplama.diyanet.gov.tr/icerik.php?icerik=154).
+    names: /[iİ]stanbul modern\b|[iİ]stanbul museum of modern art\b|\bmuseo de arte moderno de estambul\b|\bmuseo d['’]arte moderna di istanbul\b|\bmuseu de arte moderna de istambul\b/i,
+    city: ISTANBUL,
+    rules: [{ weekly: ["Monday"] }, yearly("01-01"), day("2027-03-09"), day("2027-05-16")],
+    hours: [
+      { from: "01-01", to: "12-31", days: ["Friday"], open: "10:00", close: "20:00", lastEntry: "19:30" },
+      { from: "01-01", to: "12-31", open: "10:00", close: "18:00", lastEntry: "17:30" },
+    ],
+    source: "https://www.istanbulmodern.org/en/visit/museum",
+  },
+  // Venice
+  {
+    // It opens at ten on Christmas Day and New Year's Day (the 2026/27 notice).
+    names: /\bdoge['’]?s['’]? palace\b|\bpalazzo ducale\b|\bpal[aá]cio ducal\b|\bpalacio del dux\b|\bpal[aá]cio dos doges\b/i,
+    city: VENICE,
+    rules: OPEN_EVERY_DAY,
+    hours: [
+      { from: "12-25", to: "12-25", open: "10:00", close: "18:00", lastEntry: "17:00" },
+      { from: "01-01", to: "01-01", open: "10:00", close: "18:00", lastEntry: "17:00" },
+      { from: "04-01", to: "10-31", open: "09:00", close: "19:00", lastEntry: "18:00" },
+      { from: "11-01", to: "03-31", open: "09:00", close: "18:00", lastEntry: "17:00" },
+    ],
+    source: "https://palazzoducale.visitmuve.it/en/visitor-information/",
+  },
+  {
+    names: /\bguggenheim\b/i,
+    city: VENICE,
+    rules: [{ weekly: ["Tuesday"] }, yearly("12-25")],
+    hours: [{ from: "01-01", to: "12-31", open: "10:00", close: "18:00", lastEntry: "17:00" }],
+    source: "https://www.guggenheim-venice.it/en/visit/",
+  },
+  // Milan
+  {
+    // The refectory with the painting, not the church of Santa Maria delle Grazie beside it. Meal stops never reach the
+    // list, so an Italian "ultima cena" dinner isn't taken for it.
+    names: /\blast supper\b|\bcenacolo\b|(?<![a-z])[uú]ltima ce[ni]a\b/i,
+    city: MILAN,
+    rules: [{ weekly: ["Monday"] }, yearly("01-01"), yearly("12-25")],
+    hours: [{ from: "01-01", to: "12-31", open: "08:15", close: "19:00", lastEntry: "18:45" }],
+    source: "https://cenacolovinciano.org/en/info/",
+  },
+  // Osaka
+  {
+    // Shut while its exhibitions change, dated on its calendar (https://www.nmao.go.jp/event/calendar/); April 2027
+    // isn't published yet.
+    names: /\bnational museum of (?:international )?art\b|\bnmao\b|国立国際美術館|\bmuseo nacional de arte(?: internacional)?\b|\bmuseo nazionale d['’]arte(?: internazionale)?\b|\bmuseu nacional de arte(?: internacional)?\b/i,
+    city: OSAKA,
+    rules: [
+      { weekly: ["Monday"], holidayShift: "jp" },
+      { from: "2026-11-04", to: "2026-11-30" },
+      { from: "2026-12-28", to: "2027-01-04" },
+      { from: "2027-03-23", to: "2027-03-31" },
+    ],
+    hours: [
+      { from: "01-01", to: "12-31", days: ["Friday"], open: "10:00", close: "20:00", lastEntry: "19:30" },
+      { from: "01-01", to: "12-31", open: "10:00", close: "17:00", lastEntry: "16:30" },
+    ],
+    source: "https://www.nmao.go.jp/en/visit/hours_admission/",
+  },
+  // Gyeongju
+  {
+    // Shut on Seollal and Chuseok (lunar; Seollal 2027 from KASI's calendar). Its halls shut the second Monday of March,
+    // June, September and December, its garden and outdoor exhibits staying open; the window's two are listed.
+    names: /\b(?:gyeongju|kyongju|kyeongju) national museum\b|국립경주박물관|\bmuse[ou] nacional de (?:gyeongju|kyongju)\b|\bmuseo nazionale di (?:gyeongju|kyongju)\b/i,
+    city: GYEONGJU_BUSAN,
+    rules: [yearly("01-01"), day("2027-02-07"), day("2026-12-14"), day("2027-03-08")],
+    hours: [
+      { from: "03-01", to: "10-31", days: ["Saturday"], open: "10:00", close: "20:00", lastEntry: "19:30" },
+      { from: "01-01", to: "12-31", open: "10:00", close: "18:00", lastEntry: "17:30" },
+    ],
+    source: "https://gyeongju.museum.go.kr/kor/html/sub01/0101.html",
   },
 ];
 
