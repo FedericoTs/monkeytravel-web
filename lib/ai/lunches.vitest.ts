@@ -43,6 +43,21 @@ const plan = () => [
 ];
 const fritanga = { n: 1, name: "El Fish Fritanga", description: "Fish tacos by the water.", location: "Hotel Zone", coordinates: { lat: 21.2072, lng: -86.7193 }, cost_per_person_usd: 25 };
 const middle = (days: ReturnType<typeof plan>) => days[1].activities;
+// A route's arrival day: the ride (a card with no pin) gets in at noon, and the new place's visits follow it.
+const TULUM_RUINS = at(20.2148, -87.429);
+const COBA = at(20.4947, -87.7362);
+const arrivalDay = (ride = { ...stop("08:30", "Bus to Tulum", "transport", 210), coordinates: undefined }): Stop[] => [
+  ride,
+  stop("12:30", "Tulum Ruins", "landmark", 120, TULUM_RUINS),
+  stop("15:00", "Gran Cenote", "nature", 90, at(20.2465, -87.4642)),
+  stop("19:00", "Hartwood", "restaurant", 90, at(20.1534, -87.4651)),
+];
+const withArrival = (activities: Stop[]) => {
+  const days = plan();
+  days[1].activities = activities;
+  return days;
+};
+const aluxes = { n: 1, name: "Taqueria Los Aluxes", description: "Tacos by the ruins.", location: "Tulum", coordinates: { lat: 20.2105, lng: -87.4335 }, cost_per_person_usd: 10 };
 /** What a lunch step did: how many lunches went in, and why the days asked about that still have none. */
 const outcome = ({ added, left }: { added: number; left?: unknown }) => ({ added, left });
 
@@ -112,6 +127,58 @@ describe("the full days without lunch", () => {
     // Ending at half past one is not the whole of it.
     trip[1].activities[0] = stop("09:00", "Isla Contoy day trip", "tour", 270, MUSA);
     expect(daysWithoutLunch(trip, "Cancun")[0]).toMatchObject({ after: "Isla Contoy day trip", time: "14:00" });
+  });
+
+  it("take a day whose ride gets in by one o'clock: lunch after it, looked for near the first place visited on arriving", () => {
+    expect(daysWithoutLunch(withArrival(arrivalDay()), "Cancun")).toEqual([
+      { after: "Bus to Tulum", near: "Tulum Ruins", at: TULUM_RUINS, date: "2027-03-11", city: "Cancun", time: "12:30" },
+    ]);
+    // Only what comes after arriving, the earliest first: not a walk before the bus, nor the later sight listed first.
+    const walk = stop("07:00", "Playa del Carmen beach walk", "beach", 60, at(20.6296, -87.0739));
+    const [bus, ruins, cenote, dinner] = arrivalDay();
+    expect(daysWithoutLunch(withArrival([walk, bus, cenote, ruins, dinner]), "Cancun")[0]).toMatchObject({
+      after: "Bus to Tulum",
+      near: "Tulum Ruins",
+      at: TULUM_RUINS,
+    });
+  });
+
+  it("make room on arriving for a quicker lunch than a day's: 45 minutes, where an hour would push a sight too late", () => {
+    const packed = withArrival([
+      { ...stop("08:30", "Bus to Tulum", "transport", 240), coordinates: undefined },
+      stop("13:30", "Tulum Ruins", "landmark", 120, TULUM_RUINS),
+      // After an hour's lunch the cenote would start at 16:40, past the late afternoon; after 45 minutes, at 16:25.
+      stop("15:45", "Gran Cenote", "nature", 90, at(20.2465, -87.4642)),
+      stop("19:00", "Hartwood", "restaurant", 90, at(20.1534, -87.4651)),
+    ]);
+    expect(daysWithoutLunch(packed, "Cancun")).toEqual([
+      { after: "Bus to Tulum", near: "Tulum Ruins", at: TULUM_RUINS, date: "2027-03-11", city: "Cancun", time: "13:00" },
+    ]);
+  });
+
+  it("leave a ride day alone when the ride gets in after one, there are two rides, nothing follows it, or lunch is planned", () => {
+    // In at half past one, the afternoon after it: lunch was on the way.
+    const late = withArrival([
+      { ...stop("08:30", "Bus to Tulum", "transport", 300), coordinates: undefined },
+      stop("14:00", "Tulum Ruins", "landmark", 120, TULUM_RUINS),
+      stop("19:00", "Hartwood", "restaurant", 90, at(20.1534, -87.4651)),
+    ]);
+    expect(daysWithoutLunch(late, "Cancun")).toEqual([]);
+    const back = withArrival([...arrivalDay(), { ...stop("17:00", "Bus back to Cancun", "transport", 120), coordinates: undefined }]);
+    expect(daysWithoutLunch(back, "Cancun")).toEqual([]);
+    expect(daysWithoutLunch(withArrival([arrivalDay()[0], arrivalDay()[3]]), "Cancun")).toEqual([]);
+    const fed = withArrival([...arrivalDay(), stop("12:45", "El Camello Jr.", "restaurant", 60, at(20.2085, -87.4652))]);
+    expect(daysWithoutLunch(fed, "Cancun")).toEqual([]);
+  });
+
+  it("leave an early ride's day to its visits: lunch follows one of them, not the ride", () => {
+    const early = withArrival([
+      { ...stop("06:00", "Bus to Coba", "transport", 90), coordinates: undefined },
+      stop("09:00", "Coba Ruins", "landmark", 180, COBA),
+      stop("14:30", "Cenote Choo-Ha", "nature", 90, at(20.4769, -87.7194)),
+    ]);
+    const [wanted] = daysWithoutLunch(early, "Cancun");
+    expect(wanted).toEqual({ after: "Coba Ruins", at: COBA, date: "2027-03-11", city: "Cancun", time: "12:30" });
   });
 
   it("leave out the first and last days, a day with a ride, and a visit with no pin", () => {
@@ -235,6 +302,25 @@ describe("a lunch answered", () => {
     expect(answered(fritanga)).toEqual({ added: 1, left: {} });
   });
 
+  it("goes in after a ride that gets in by lunch, near the first place on arriving, and the day moves on", () => {
+    const days = withArrival(arrivalDay());
+    const wanted = daysWithoutLunch(days, "Cancun");
+    const out = withLunches(days, wanted, { lunches: [aluxes] });
+    expect(outcome(out)).toEqual({ added: 1, left: {} });
+    // A quicker lunch on arriving, 45 minutes: the afternoon there is already planned.
+    expect(names(out.days[1])).toEqual([
+      "08:30 Bus to Tulum",
+      "12:30 Taqueria Los Aluxes",
+      "13:35 Tulum Ruins",
+      "15:55 Gran Cenote",
+      "19:00 Hartwood",
+    ]);
+    expect(out.days[1].activities[1]).toMatchObject({ type: "restaurant", duration_minutes: 45, coordinates: aluxes.coordinates });
+    // Far from the first place on arriving (a hotel back in Cancun): left out, and said so.
+    const far = { ...aluxes, coordinates: { lat: 21.1333, lng: -86.7466 } };
+    expect(outcome(withLunches(days, wanted, { lunches: [far] }))).toEqual({ added: 0, left: { far: 1 } });
+  });
+
   it("is left out when the visit it follows has left the plan or lost its pin, and says so", () => {
     const gone = plan();
     middle(gone).shift();
@@ -288,6 +374,12 @@ describe("a lunch answered", () => {
 
 describe("the lunch question", () => {
   const wanted = daysWithoutLunch(plan(), "Cancun");
+
+  it("says a ride day's lunch is on arriving, a short walk from the first place visited", () => {
+    const q = lunchQuestion(daysWithoutLunch(withArrival(arrivalDay()), "Cancun"), { language: "en" });
+    expect(q).toContain("1. Cancun, 2027-03-11: lunch at 12:30, on arriving, a short walk from Tulum Ruins (20.21480, -87.42900)");
+    expect(q).not.toContain("after Bus to Tulum");
+  });
 
   it("says each day's visit, its pin and lunch's time, the budget, the diets and the places the plan has", () => {
     const q = lunchQuestion(wanted, { language: "en", budgetTier: "budget", diets: ["vegetarian"], taken: ["Lorenzillo's", "La Habichuela"] });
