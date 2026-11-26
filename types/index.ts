@@ -535,6 +535,11 @@ export interface TripCreationParams {
    */
   arrival?: { when: Arrival; date: string };
   departure?: { when: Departure; date: string };
+  /**
+   * On a trip through several cities, how a later city's first day begins: the ride from the city before, and about
+   * when it gets in (lib/ai/multi-city.ts), so its plan starts then rather than having its morning moved after it.
+   */
+  arrivesBy?: { from: string; mode: "train" | "flight" | "bus" | "ferry" | "ground"; at: string };
   /** Sunrise and sunset at the destination, worked out by the server (lib/ai/daylight.ts). */
   daylight?: TripDaylight;
   /**

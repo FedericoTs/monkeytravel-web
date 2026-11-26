@@ -14,7 +14,7 @@ import type { GeneratedItinerary, TripCreationParams } from "@/types";
 import { generateItinerary } from "@/lib/gemini";
 import { knownPlacesFor } from "./known-places";
 import { askForTransfers } from "./transfer-question";
-import { answeredTransfer } from "./transfer-legs";
+import { answeredTransfer, rideIn } from "./transfer-legs";
 import { cityPointsFor } from "./city-points";
 import { curatedPointFor } from "./place-point";
 import { namesakesElsewhere, unmirroredCities } from "./mirrored-cities";
@@ -95,6 +95,9 @@ export async function generateMultiCityItinerary(
     const cityEnd = addDaysISO(tripStartDate, cursor + leg.nights - 1);
     cursor += leg.nights;
     const daylight = daylightFor(points[i], cityStart, cityEnd);
+    // A later city's first day begins with the ride from the city before: its plan starts when the ride gets in,
+    // instead of planning a whole day whose morning the ride then takes (lib/ai/transfer-legs.ts arrivalDay).
+    const ride = i > 0 ? rideIn(points[i - 1] ?? null, points[i] ?? null) : null;
     // Each city's plan knows the whole route: a name that fits several places
     // (Córdoba, Mérida) or a misspelled one means the one on it. And what is on
     // there on its own dates (lib/ai/whats-on.ts).
@@ -106,6 +109,7 @@ export async function generateMultiCityItinerary(
       endDate: cityEnd,
       ...(daylight ? { daylight } : {}),
       whatsOn: whatsOn(points[i], cityStart, cityEnd),
+      ...(ride ? { arrivesBy: { from: legs[i - 1].city.trim(), ...ride } } : {}),
     };
   });
 

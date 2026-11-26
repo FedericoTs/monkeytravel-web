@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   haversineKm,
+  rideIn,
   estimateTransfer,
   buildTransferActivity,
   buildJourneyStops,
@@ -618,5 +619,29 @@ describe("dayWithWayBack", () => {
     const long = { ...back, duration_minutes: 400 } as Activity;
     const stops = [stop("10:00", 60), stop("19:00", 90)];
     expect(dayWithWayBack(long, stops)).toEqual(stops);
+  });
+});
+
+describe("rideIn", () => {
+  const LONDON = { lat: 51.5074, lng: -0.1278 };
+  const EDINBURGH = { lat: 55.9533, lng: -3.1883 };
+  const PARIS = { lat: 48.8566, lng: 2.3522 };
+  const ROME = { lat: 41.9028, lng: 12.4964 };
+  const LISBON = { lat: 38.7223, lng: -9.1393 };
+  const SYDNEY = { lat: -33.8688, lng: 151.2093 };
+
+  it("gets in when the ride that leaves at 08:30 ends, to the quarter hour", () => {
+    // 534 km by rail: 4 h 40 with getting to the station, in at 13:10, so 13:15.
+    expect(rideIn(LONDON, EDINBURGH)).toEqual({ mode: "train", at: "13:15" });
+    // 1,105 km is a flight: 4 h with the airports, in at 12:30.
+    expect(rideIn(PARIS, ROME)).toEqual({ mode: "flight", at: "12:30" });
+    // 580 km where trains aren't the usual way between cities: a flight, 3 h 20 with the airports, in by noon.
+    expect(rideIn({ lat: 13.7563, lng: 100.5018 }, { lat: 18.7883, lng: 98.9853 })).toEqual({ mode: "flight", at: "12:00" });
+  });
+
+  it("gets in by a quarter to midnight at the latest, and has no estimate without both points", () => {
+    expect(rideIn(LISBON, SYDNEY)).toEqual({ mode: "flight", at: "23:45" });
+    expect(rideIn(null, ROME)).toBeNull();
+    expect(rideIn(PARIS, null)).toBeNull();
   });
 });

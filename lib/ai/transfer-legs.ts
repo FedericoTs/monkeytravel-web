@@ -317,6 +317,22 @@ export function answeredTransfer(known: KnownHop | undefined, fromDays: Itinerar
  * ensureActivityIds. Marked `transport_mode` so the JourneyRibbon (and any
  * future transport UI) can find it without string-matching names.
  */
+/** When the ride to a route's next city leaves, in minutes after midnight. */
+const RIDE_LEAVES = 8 * 60 + 30;
+
+/**
+ * When the ride from one city of a route to the next gets in, estimated from the cities' points before either is
+ * planned, so the next city's plan can begin then (lib/ai/multi-city.ts): how, and the time, to the quarter hour,
+ * by a quarter to midnight at the latest. The card itself later takes the answered hop. None without both points.
+ */
+export function rideIn(from: LatLng | null, to: LatLng | null): { mode: TransferMode; at: string } | null {
+  if (!from || !to) return null;
+  const byRail = inRailRegion(from) && inRailRegion(to) && railJoins(from, to);
+  const { mode, durationMinutes } = estimateTransfer(haversineKm(from, to), byRail);
+  const at = Math.min(Math.ceil((RIDE_LEAVES + durationMinutes) / 15) * 15, 23 * 60 + 45);
+  return { mode, at: formatMinutesToTime(at) };
+}
+
 export function buildTransferActivity(opts: {
   fromCity: string;
   toCity: string;
@@ -338,7 +354,7 @@ export function buildTransferActivity(opts: {
 
   return {
     time_slot: "morning",
-    start_time: "08:30",
+    start_time: formatMinutesToTime(RIDE_LEAVES),
     duration_minutes: estimate.durationMinutes,
     name: labels.name[estimate.mode](opts.toCity),
     type: "transport",

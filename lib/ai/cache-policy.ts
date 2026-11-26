@@ -29,6 +29,7 @@ export function cachePolicy(params: TripCreationParams, fresh: boolean, totalDay
         params.whatsOn?.length ||
         params.occasion ||
         params.arrival ||
+        params.arrivesBy ||
         params.departure ||
         altitudeLine(params)
     ),
