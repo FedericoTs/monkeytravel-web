@@ -36,6 +36,43 @@
     "personalizedToYou": "Personalizado para ti",
     "friendsPerTrip": "Amigos por viaje"
   },
+  "facts": {
+    "title": "MonkeyTravel en pocas palabras",
+    "items": {
+      "price": {
+        "term": "Precio",
+        "detail": "Gratis. Sin tarjeta y sin cuenta para ver tu plan."
+      },
+      "speed": {
+        "term": "Rapidez",
+        "detail": "Un plan día a día en unos 30 segundos."
+      },
+      "languages": {
+        "term": "Idiomas",
+        "detail": "Español, inglés, italiano y portugués."
+      },
+      "checks": {
+        "term": "Comprobado",
+        "detail": "Los días de cierre y los festivos de los lugares que planifica, y el horario de los más conocidos."
+      },
+      "routes": {
+        "term": "Varias ciudades",
+        "detail": "Planifica la ruta y el trayecto entre cada ciudad."
+      },
+      "group": {
+        "term": "Grupos",
+        "detail": "Tus amigos pueden unirse al viaje, votar y añadir lo que no quieren perderse."
+      },
+      "changes": {
+        "term": "Cambios",
+        "detail": "Pide al asistente que cambie cualquier día, con tus propias palabras."
+      },
+      "onTheTrip": {
+        "term": "Durante el viaje",
+        "detail": "Con una cuenta gratis: el plan de cada día del viaje por correo, y avisos del tiempo y de la maleta antes de salir."
+      }
+    }
+  },
   "problem": {
     "title": "Planificar un viaje sigue costando 47 pestañas",
     "subtitle": "¿Te suena? No estás solo.",
