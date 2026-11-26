@@ -206,6 +206,83 @@ describe("a dinner where the day ends", () => {
   });
 });
 
+// A day out of town (a gorge an hour up the coast) ended there with no dinner: the model named one back in town, and a
+// dinner far from the day's last place was turned away. It can now be back in town, after the ride back.
+describe("a dinner after a day out of town", () => {
+  const cairns = (gorgeAt = "15:00") => [
+    day("2027-06-10", [stop("10:00", "Esplanade", "park", 90, at(-16.92, 145.77)), stop("14:00", "Marina", "attraction", 90, at(-16.921, 145.771))]),
+    day("2027-06-11", [
+      stop("08:00", "Daintree River", "nature", 90, at(-16.45, 145.77)),
+      stop("10:30", "Cape Tribulation", "beach", 120, at(-16.46, 145.77)),
+      stop(gorgeAt, "Mossman Gorge", "nature", 120, at(-16.47, 145.77)),
+    ]),
+    day("2027-06-12", [
+      stop("09:00", "Botanic Gardens", "park", 90, at(-16.92, 145.77)),
+      stop("13:00", "Art Gallery", "museum", 90, at(-16.919, 145.769)),
+      stop("19:00", "Prawn Star", "restaurant", 90, at(-16.92, 145.78)),
+    ]),
+    day("2027-06-13", [stop("09:00", "Airport", "attraction", 60, at(-16.92, 145.77))]),
+  ];
+  const inTown = { n: 1, name: "Ochre Restaurant", description: "Native produce.", location: "Marlin Parade", coordinates: { lat: -16.921, lng: 145.78 } };
+  const byTheGorge = { ...inTown, name: "Mossman Gorge Cafe", coordinates: { lat: -16.472, lng: 145.772 } };
+  const usual = { from: 18 * 60 + 30, by: 21 * 60 };
+
+  it("can be back in town, where the days come back to: the middle of their pins, or the stay", () => {
+    // The gorge is 50 km up the coast from the middle of the days' pins.
+    expect(daysWithoutDinner(cairns(), "Cairns")).toEqual([
+      { after: "Mossman Gorge", at: at(-16.47, 145.77), date: "2027-06-11", city: "Cairns", hours: usual, town: at(-16.92, 145.77) },
+    ]);
+    const stay = cairns();
+    stay[0].activities.push(stop("16:00", "Pullman Reef Hotel", "accommodation", 30, at(-16.926, 145.781)));
+    expect(daysWithoutDinner(stay, "Cairns")[0].town).toEqual(at(-16.926, 145.781));
+    // Three pins don't say where the days gather: dinner is looked for where the day ends only.
+    const few = [
+      day("2027-06-10", [stop("10:00", "Esplanade", "park", 90, at(-16.92, 145.77))]),
+      day("2027-06-11", [stop("15:00", "Mossman Gorge", "nature", 120, at(-16.47, 145.77))]),
+      day("2027-06-12", [stop("09:00", "Airport", "attraction", 60, at(-16.92, 145.77))]),
+    ];
+    expect(daysWithoutDinner(few, "Cairns")).toEqual([{ after: "Mossman Gorge", at: at(-16.47, 145.77), date: "2027-06-11", city: "Cairns", hours: usual }]);
+  });
+
+  it("goes in back in town once the ride back is done, or where the day ends half an hour after it", () => {
+    const wanted = daysWithoutDinner(cairns(), "Cairns");
+    // The gorge ends at 17:00: 50 km back is 75 minutes, so 18:15, and half an hour later is 18:45.
+    expect(names(withDinners(cairns(), wanted, { dinners: [inTown] }).days[1]).at(-1)).toBe("18:45 Ochre Restaurant");
+    expect(names(withDinners(cairns(), wanted, { dinners: [byTheGorge] }).days[1]).at(-1)).toBe("18:30 Mossman Gorge Cafe");
+    // On the way back, 25 km from the gorge (38 minutes): from 18:30.
+    const onTheWay = { ...inTown, name: "Port Douglas Inn", coordinates: { lat: -16.7, lng: 145.77 } };
+    expect(names(withDinners(cairns(), wanted, { dinners: [onTheWay] }).days[1]).at(-1)).toBe("18:30 Port Douglas Inn");
+  });
+
+  it("is far when it is near neither, and late when the ride back takes it past the last dinner hour", () => {
+    const beyond = { ...inTown, coordinates: { lat: -16.6, lng: 145.77 } };
+    expect(withDinners(cairns(), daysWithoutDinner(cairns(), "Cairns"), { dinners: [beyond] })).toMatchObject({ added: 0, left: { far: 1 } });
+    // A day near town has no dinner back in town: the plain 5 km.
+    expect(withDinners(plan(), daysWithoutDinner(plan(), "Kyoto"), { dinners: [{ ...gionDinner, coordinates: { lat: 35.0, lng: 135.86 } }] })).toMatchObject({ added: 0, left: { far: 1 } });
+    // The gorge ends at 19:30: back in town at 20:45, half an hour later is 21:15, past 21:00.
+    const wanted = daysWithoutDinner(cairns("17:30"), "Cairns");
+    expect(withDinners(cairns("17:30"), wanted, { dinners: [inTown] })).toMatchObject({ added: 0, left: { late: 1 } });
+    expect(names(withDinners(cairns("17:30"), wanted, { dinners: [byTheGorge] }).days[1]).at(-1)).toBe("20:00 Mossman Gorge Cafe");
+  });
+
+  it("tells a day out of town by its own city's days on a route", () => {
+    const route = [
+      day("2027-06-08", [stop("10:00", "South Bank", "park", 90, at(-27.48, 153.02)), stop("13:00", "Lone Pine", "attraction", 90, at(-27.53, 152.97))], "Brisbane"),
+      day("2027-06-09", [stop("10:00", "Story Bridge", "landmark", 90, at(-27.46, 153.04)), stop("14:00", "GOMA", "museum", 120, at(-27.47, 153.02))], "Brisbane"),
+      ...cairns().map((d) => ({ ...d, city: "Cairns" })),
+    ];
+    const wanted = daysWithoutDinner(route, "Brisbane & Cairns");
+    expect(wanted.find((w) => w.after === "GOMA")).toEqual({ after: "GOMA", at: at(-27.47, 153.02), date: "2027-06-09", city: "Brisbane", hours: usual });
+    expect(wanted.find((w) => w.after === "Mossman Gorge")?.town).toEqual(at(-16.92, 145.77));
+  });
+
+  it("says in the question where the day ends and where in town dinner can be", () => {
+    expect(dinnerQuestion(daysWithoutDinner(cairns(), "Cairns"), { language: "en" })).toContain(
+      "1. Cairns, 2027-06-11, dinner from 18:30: the day ends out of town at Mossman Gorge (-16.47000, 145.77000), and dinner is back in town: near (-16.92000, 145.77000)"
+    );
+  });
+});
+
 // The model named a restaurant the plan already has, or one too far away, and those evenings stayed without dinner.
 // The question's answers vary, so it is asked twice at once.
 describe("the dinner question, asked", () => {
