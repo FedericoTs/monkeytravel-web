@@ -789,6 +789,13 @@
     "error": "Impossibile salvare il viaggio. Riprova.",
     "keptToo": "Salvato anche tra I Miei Viaggi: {places}"
   },
+  "keepBoth": {
+    "titleTwo": "Tieni entrambi i viaggi",
+    "titleMany": "Tieni tutti e {count} i viaggi",
+    "body": "Accedi gratis e ogni posto che hai pianificato oggi resta tra I Miei Viaggi.",
+    "signIn": "Accedi gratis",
+    "notNow": "Non ora"
+  },
   "startOver": {
     "title": "Ricominciare?",
     "message": "Questo eliminerà il tuo itinerario attuale e ripartirà da zero.",

@@ -789,6 +789,13 @@
     "error": "Failed to save trip. Please try again.",
     "keptToo": "Also kept in My Trips: {places}"
   },
+  "keepBoth": {
+    "titleTwo": "Keep both trips",
+    "titleMany": "Keep all {count} trips",
+    "body": "Sign in free and every place you planned today stays in My Trips.",
+    "signIn": "Sign in free",
+    "notNow": "Not now"
+  },
   "startOver": {
     "title": "Start Over?",
     "message": "This will discard your current itinerary and start fresh.",
