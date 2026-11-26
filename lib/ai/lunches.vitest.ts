@@ -8,7 +8,7 @@ vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
   genAI: { getGenerativeModel: () => ({ generateContent }) },
 }));
 
-import { askForLunches, daysWithoutLunch, lunchQuestion, withLunches, type LunchAnswer } from "@/lib/ai/lunches";
+import { askForLunches, daysWithoutLunch, lunchesLeftTogether, lunchQuestion, withLunches, type LunchAnswer } from "@/lib/ai/lunches";
 
 type Stop = {
   name: string;
@@ -43,6 +43,8 @@ const plan = () => [
 ];
 const fritanga = { n: 1, name: "El Fish Fritanga", description: "Fish tacos by the water.", location: "Hotel Zone", coordinates: { lat: 21.2072, lng: -86.7193 }, cost_per_person_usd: 25 };
 const middle = (days: ReturnType<typeof plan>) => days[1].activities;
+/** What a lunch step did: how many lunches went in, and why the days asked about that still have none. */
+const outcome = ({ added, left }: { added: number; left?: unknown }) => ({ added, left });
 
 describe("the full days without lunch", () => {
   it("are the days between the first and the last with no midday meal, each with the visit lunch follows and its time", () => {
@@ -219,21 +221,45 @@ describe("a lunch answered", () => {
     middle(moved)[0] = { ...middle(moved)[0], start_time: "08:30", duration_minutes: 90 };
     middle(moved).splice(1, 0, stop("10:30", "Ixchel temple", "landmark", 60));
     // The museum now ends at ten, and the temple starts before lunch could.
-    expect(withLunches(moved, wanted, { lunches: [fritanga] }).added).toBe(0);
+    expect(outcome(withLunches(moved, wanted, { lunches: [fritanga] }))).toEqual({ added: 0, left: { full: 1 } });
   });
 
-  it("is left out when it is far from that visit, a place the plan holds, or not a real place", () => {
-    expect(withLunches(plan(), wanted, { lunches: [{ ...fritanga, coordinates: { lat: 21.161, lng: -86.851 } }] }).added).toBe(0);
-    expect(withLunches(plan(), wanted, { lunches: [{ ...fritanga, name: "Lorenzillo's" }] }).added).toBe(0);
-    expect(withLunches(plan(), wanted, { lunches: [{ ...fritanga, coordinates: { lat: 0, lng: 0 } }] }).added).toBe(0);
-    expect(withLunches(plan(), wanted, { lunches: [{ ...fritanga, name: "" }] }).added).toBe(0);
-    expect(withLunches(plan(), wanted, { lunches: [{ ...fritanga, n: 2 }] }).added).toBe(0);
+  it("is left out when it is far from that visit, a place the plan holds, or not a real place, and says which", () => {
+    const answered = (lunch: Record<string, unknown>) => outcome(withLunches(plan(), wanted, { lunches: [lunch] }));
+    expect(answered({ ...fritanga, coordinates: { lat: 21.161, lng: -86.851 } })).toEqual({ added: 0, left: { far: 1 } });
+    expect(answered({ ...fritanga, name: "Lorenzillo's" })).toEqual({ added: 0, left: { taken: 1 } });
+    expect(answered({ ...fritanga, coordinates: { lat: 0, lng: 0 } })).toEqual({ added: 0, left: { unreal: 1 } });
+    expect(answered({ ...fritanga, name: "" })).toEqual({ added: 0, left: { unreal: 1 } });
+    // An answer for a day not asked about leaves the one asked about unanswered.
+    expect(answered({ ...fritanga, n: 2 })).toEqual({ added: 0, left: { unanswered: 1 } });
+    expect(answered(fritanga)).toEqual({ added: 1, left: {} });
+  });
+
+  it("is left out when the visit it follows has left the plan or lost its pin, and says so", () => {
+    const gone = plan();
+    middle(gone).shift();
+    expect(outcome(withLunches(gone, wanted, { lunches: [fritanga] }))).toEqual({ added: 0, left: { gone: 1 } });
+    const unpinned = plan();
+    middle(unpinned)[0] = { ...middle(unpinned)[0], coordinates: undefined };
+    expect(outcome(withLunches(unpinned, wanted, { lunches: [fritanga] }))).toEqual({ added: 0, left: { unplaced: 1 } });
+  });
+
+  it("counts each day once: a second answer that fits fills it, and of two turned away the first says why", () => {
+    const far = { ...fritanga, coordinates: { lat: 21.161, lng: -86.851 } };
+    expect(outcome(withLunches(plan(), wanted, { lunches: [far, fritanga] }))).toEqual({ added: 1, left: {} });
+    expect(outcome(withLunches(plan(), wanted, { lunches: [far, { ...fritanga, name: "Lorenzillo's" }] }))).toEqual({ added: 0, left: { far: 1 } });
+  });
+
+  it("adds up the days left without lunch by why, from two or more counts", () => {
+    expect(lunchesLeftTogether({ far: 1 }, { far: 2, late: 1 }, {})).toEqual({ far: 3, late: 1 });
+    expect(lunchesLeftTogether()).toEqual({});
   });
 
   it("is left out when the day eats at midday by now, the visit ends too late, or the day has no room", () => {
     const fed = plan();
     middle(fed).push(stop("13:00", "Lolo Lorena's", "restaurant", 60));
-    expect(withLunches(fed, wanted, { lunches: [fritanga] }).added).toBe(0);
+    // A day that eats at midday by now isn't one left without lunch.
+    expect(outcome(withLunches(fed, wanted, { lunches: [fritanga] }))).toEqual({ added: 0, left: {} });
     // A day with room left, and a lunch of its own by now.
     const lunched = plan();
     lunched[1].activities = [
@@ -242,16 +268,21 @@ describe("a lunch answered", () => {
       stop("14:30", "Turtle Farm", "nature", 90),
       stop("18:30", "Lorenzillo's", "restaurant"),
     ];
-    expect(withLunches(lunched, wanted, { lunches: [fritanga] }).added).toBe(0);
+    expect(outcome(withLunches(lunched, wanted, { lunches: [fritanga] }))).toEqual({ added: 0, left: {} });
+    // The museum from noon to half past two: a visit over midday has its lunch there.
+    const over = plan();
+    middle(over)[0] = { ...middle(over)[0], start_time: "12:00" };
+    expect(outcome(withLunches(over, wanted, { lunches: [fritanga] }))).toEqual({ added: 0, left: {} });
+    // From a quarter past twelve to a quarter past two: lunch would start after half past two.
     const late = plan();
-    middle(late)[0] = { ...middle(late)[0], start_time: "12:00" };
-    expect(withLunches(late, wanted, { lunches: [fritanga] }).added).toBe(0);
+    middle(late)[0] = { ...middle(late)[0], start_time: "12:15", duration_minutes: 120 };
+    expect(outcome(withLunches(late, wanted, { lunches: [fritanga] }))).toEqual({ added: 0, left: { late: 1 } });
     const booked = plan();
     middle(booked)[2].locked = true;
     const out = withLunches(booked, wanted, { lunches: [fritanga] });
-    expect(out.added).toBe(0);
+    expect(outcome(out)).toEqual({ added: 0, left: { full: 1 } });
     expect(out.days).toEqual(booked);
-    expect(withLunches(plan(), wanted, {}).days).toEqual(plan());
+    expect(withLunches(plan(), wanted, {})).toEqual({ days: plan(), added: 0, left: { unanswered: 1 } });
   });
 });
 

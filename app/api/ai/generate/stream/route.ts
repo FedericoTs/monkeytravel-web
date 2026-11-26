@@ -42,7 +42,7 @@ import { askForDinners, daysWithoutDinner, dinnersLeftTogether, placesToEat, wit
 import { atLocalDinnerHour, eatsEarly } from "@/lib/ai/meal-hours";
 import { askForReplacements, repeatedRestaurants, withReplacements } from "@/lib/ai/repeated-meals";
 import { askForSights, repeatedSights, sightNames, withSightReplacements } from "@/lib/ai/repeated-sights";
-import { askForLunches, daysWithoutLunch, withLunches } from "@/lib/ai/lunches";
+import { askForLunches, daysWithoutLunch, lunchesLeftTogether, withLunches } from "@/lib/ai/lunches";
 import { swapClosedStops } from "@/lib/ai/closed-swaps";
 import { withoutLongClosures } from "@/lib/ai/long-closures";
 import { askedByName, keepMustDos } from "@/lib/ai/must-dos";
@@ -431,6 +431,7 @@ export async function POST(request: NextRequest) {
       const lunches = withLunches(finalItinerary.days, lunchesWanted, lunchAnswer.answer);
       const movedLunchAnswer = await movedLunchesAsked;
       const movedLunches = withLunches(lunches.days, movedLunchesWanted, movedLunchAnswer.answer);
+      const lunchesLeft = lunchesLeftTogether(lunches.left, movedLunches.left);
       finalItinerary = { ...finalItinerary, days: movedLunches.days };
       generationCost += lunchAnswer.costUsd + movedLunchAnswer.costUsd;
       // 5b'. Each visit to a place of known hours inside them: a garden that
@@ -589,6 +590,8 @@ export async function POST(request: NextRequest) {
                         missing: lunchesWanted.length + movedLunchesWanted.length,
                         added: lunches.added + movedLunches.added,
                         ...(movedLunchesWanted.length > 0 ? { after_move: movedLunchesWanted.length } : {}),
+                        // Why the days still without one have none (lib/ai/lunches.ts LunchLeftOut).
+                        ...(Object.keys(lunchesLeft).length > 0 ? { left: lunchesLeft } : {}),
                       },
                     }
                   : {}),

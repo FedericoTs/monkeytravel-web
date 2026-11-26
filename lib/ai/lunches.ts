@@ -216,23 +216,66 @@ export async function askForLunches(wanted: LunchWanted[], opts: LunchOptions): 
 }
 
 /**
+ * Why a day asked about is still without lunch: no answer for it, the visit it follows has left the plan or has no real
+ * pin, lunch would start after half past two, the answer is no real place (no name, no pin), is farther than 3 km from
+ * that visit, or is a place the plan already holds, or the day has no room for it there (another stop starts first, a
+ * sight would leave the afternoon, or a booked stop would move).
+ */
+export type LunchLeftOut = "unanswered" | "gone" | "unplaced" | "late" | "unreal" | "far" | "taken" | "full";
+
+/** How many days asked about still have no lunch, by why: the first answer turned away for each, or no answer. */
+export type LunchesLeft = Partial<Record<LunchLeftOut, number>>;
+
+/** Two or more counts of days left without lunch, as one. */
+export function lunchesLeftTogether(...lefts: LunchesLeft[]): LunchesLeft {
+  const out: LunchesLeft = {};
+  for (const left of lefts) {
+    for (const [why, n] of Object.entries(left) as Array<[LunchLeftOut, number]>) out[why] = (out[why] ?? 0) + n;
+  }
+  return out;
+}
+
+/**
  * The days with each answered lunch right after the visit it was chosen near, wherever that visit now is: twenty
  * minutes after it ends, from noon, as a restaurant, the day's later stops moved on. Left out when it isn't a real
  * place within 3 km of that visit, the plan already holds it, it would start after half past two, the day eats at
- * midday by now, or the day has no room for it. Pure.
+ * midday by now, or the day has no room for it. `left` says, for the days asked about that still have none, why. Pure.
  */
-export function withLunches<D extends Day>(days: D[], wanted: LunchWanted[], answer: LunchAnswer): { days: D[]; added: number } {
+export function withLunches<D extends Day>(
+  days: D[],
+  wanted: LunchWanted[],
+  answer: LunchAnswer
+): { days: D[]; added: number; left: LunchesLeft } {
   let out = days;
   let added = 0;
+  // For each day asked about, the first reason an answer for it was turned away; and the days that have lunch now.
+  const why = new Map<number, LunchLeftOut>();
+  const fed = new Set<number>();
   for (const entry of Array.isArray(answer.lunches) ? answer.lunches : []) {
-    const n = entry?.n;
-    const want = typeof n === "number" ? wanted[n - 1] : undefined;
+    const number = entry?.n;
+    const n = typeof number === "number" ? number - 1 : -1;
+    const want = wanted[n];
     if (!want) continue;
+    const turnedAway = (reason: LunchLeftOut) => void (why.has(n) || why.set(n, reason));
     const at = out.findIndex((d) => (d.activities ?? []).some((s) => s.name === want.after));
-    if (at < 0 || eatsAtMidday(out[at].activities ?? [])) continue;
+    if (at < 0) {
+      turnedAway("gone");
+      continue;
+    }
+    if (eatsAtMidday(out[at].activities ?? [])) {
+      fed.add(n);
+      continue;
+    }
     const visit = (out[at].activities ?? []).find((s) => s.name === want.after)!;
     const time = lunchAfter(visit);
-    if (time === null || !isRealPoint(visit.coordinates)) continue;
+    if (time === null) {
+      turnedAway("late");
+      continue;
+    }
+    if (!isRealPoint(visit.coordinates)) {
+      turnedAway("unplaced");
+      continue;
+    }
     const cost = Number(entry.cost_per_person_usd);
     const activity = activityOf({
       ...entry,
@@ -241,14 +284,34 @@ export function withLunches<D extends Day>(days: D[], wanted: LunchWanted[], ans
       duration_minutes: LUNCH_MINUTES,
       ...(Number.isFinite(cost) && cost > 0 ? { estimated_cost: { amount: Math.round(cost), currency: "USD", tier: "moderate" } } : {}),
     });
-    if (!activity?.coordinates || haversineKm(activity.coordinates, visit.coordinates) > NEAR_KM) continue;
+    const words = activity ? nameTokens(activity.name) : [];
+    if (!activity?.coordinates || words.length === 0) {
+      turnedAway("unreal");
+      continue;
+    }
+    if (haversineKm(activity.coordinates, visit.coordinates) > NEAR_KM) {
+      turnedAway("far");
+      continue;
+    }
     const names = out.flatMap((d) => d.activities ?? []).map((s) => nameTokens(s.name ?? ""));
-    const words = nameTokens(activity.name);
-    if (words.length === 0 || held(words, names)) continue;
+    if (held(words, names)) {
+      turnedAway("taken");
+      continue;
+    }
     const day = withLunchAfter(out[at], visit, { ...activity, type: "restaurant" });
-    if (!day) continue;
+    if (!day) {
+      turnedAway("full");
+      continue;
+    }
     out = out.map((d, i) => (i === at ? day : d));
     added++;
+    fed.add(n);
   }
-  return { days: out, added };
+  const left: LunchesLeft = {};
+  wanted.forEach((_, n) => {
+    if (fed.has(n)) return;
+    const reason = why.get(n) ?? "unanswered";
+    left[reason] = (left[reason] ?? 0) + 1;
+  });
+  return { days: out, added, left };
 }
