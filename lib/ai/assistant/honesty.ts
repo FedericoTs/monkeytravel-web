@@ -529,6 +529,31 @@ export function daysNotAddedNote(language: string | undefined, days: number[]): 
  * Appended when a changed day still plans something outside the hours around
  * an arrival or a departure, after the model was asked to fix it.
  */
+/**
+ * What holding a changed day to the traveller's times did, one note each (lib/ai/assistant/travel-times.ts
+ * fitTravelTimes): what moved after the arrival or the ride, what was cut to end before they set off, what came out.
+ */
+export function travelTimesFitNotes(
+  language: string | undefined,
+  fit: { day: number; arrives?: string; leaves?: string; from: string | null; until: string | null; journey?: true; moved: string[]; shortened: string[]; left: string[] },
+): string[] {
+  const day = String(fit.day);
+  const notes: string[] = [];
+  if (fit.moved.length > 0) {
+    const names = fit.moved.join(", ");
+    notes.push(
+      fit.journey
+        ? note(language, "travelTimesMovedBetween", { day, leaves: String(fit.leaves), arrives: String(fit.arrives), from: String(fit.from), names })
+        : note(language, "travelTimesMoved", { day, arrives: String(fit.arrives), from: String(fit.from), names }),
+    );
+  }
+  if (fit.shortened.length > 0) {
+    notes.push(note(language, "travelTimesShortened", { day, leaves: String(fit.leaves), until: String(fit.until), names: fit.shortened.join(", ") }));
+  }
+  if (fit.left.length > 0) notes.push(note(language, "travelTimesLeftOut", { day, names: fit.left.join(", "), count: fit.left.length }));
+  return notes;
+}
+
 export function travelTimesNote(
   language: string | undefined,
   v: { day: number; arrives?: string; leaves?: string; from: string | null; until: string | null; journey?: true; names: string[] },
