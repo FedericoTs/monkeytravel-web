@@ -13,6 +13,8 @@ let placesFor: ((p: TripCreationParams, call: number) => Array<Array<[string, nu
 const daylights: Array<{ destination: string; daylight: TripCreationParams["daylight"] }> = [];
 /** What each city was told is on there. */
 const whatsOns: Array<{ destination: string; whatsOn: TripCreationParams["whatsOn"] }> = [];
+/** How each city was told its first day begins. */
+const arrivals: Array<{ destination: string; arrivesBy: TripCreationParams["arrivesBy"] }> = [];
 /** What each stay was told an earlier stay in its city already has. */
 const alreadyPlannedAsks: Array<{ destination: string; startDate: string; alreadyPlanned: TripCreationParams["alreadyPlanned"] }> = [];
 /** Where the cities table puts each city, when a test says, and each list of names asked of it. */
@@ -33,6 +35,7 @@ vi.mock("@/lib/gemini", () => ({
   generateItinerary: async (p: TripCreationParams, options: { knownPlaces?: unknown }) => {
     daylights.push({ destination: p.destination, daylight: p.daylight });
     whatsOns.push({ destination: p.destination, whatsOn: p.whatsOn });
+    arrivals.push({ destination: p.destination, arrivesBy: p.arrivesBy });
     alreadyPlannedAsks.push({ destination: p.destination, startDate: p.startDate, alreadyPlanned: p.alreadyPlanned });
     events.push(`plan ${p.destination}`);
     generated.push({ destination: p.destination, knownPlaces: options.knownPlaces });
@@ -107,6 +110,20 @@ describe("generateMultiCityItinerary", () => {
     pointsByCity = {};
     curatedByCity = {};
     for (const list of [generated, asked, routes, events, daylights, citiesAsked] as unknown[][]) list.length = 0;
+  });
+
+  it("tells each later city when the ride from the one before gets in, so its first day begins then", async () => {
+    pointsByCity = { London: { lat: 51.5074, lng: -0.1278 }, Edinburgh: { lat: 55.9533, lng: -3.1883 } };
+    arrivals.length = 0;
+    const base = { budgetTier: "balanced", pace: "moderate", vibes: [], interests: [] } as unknown as Parameters<typeof generateMultiCityItinerary>[0];
+    await generateMultiCityItinerary(base, [{ city: "London", nights: 2 }, { city: " Edinburgh ", nights: 2 }, { city: "Nowhere", nights: 1 }], "2027-03-10");
+    const of = (city: string) => arrivals.find((a) => a.destination.trim() === city)?.arrivesBy;
+    // The first city is where the trip begins; a city with no point gets no estimate.
+    expect(of("London")).toBeUndefined();
+    expect(of("Edinburgh")).toEqual({ from: "London", mode: "train", at: "13:15" });
+    expect(of("Nowhere")).toBeUndefined();
+    pointsByCity = {};
+    for (const list of [generated, asked, routes, events, daylights, arrivals] as unknown[][]) list.length = 0;
   });
 
   it("tells each city what's on there, on its own dates", async () => {
