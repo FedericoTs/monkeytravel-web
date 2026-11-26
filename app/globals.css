@@ -1938,3 +1938,50 @@ nav[data-monkey-nav].monkey-nav-scrolled {
     transform: scaleX(0.85);
   }
 }
+
+/* The trip's story (components/story): the board turns its letters over one after
+   another, and the route draws itself once. Both stand still, already drawn, for
+   those who ask for less motion. */
+@keyframes story-flap {
+  from {
+    transform: rotateX(-90deg);
+    opacity: 0;
+  }
+  to {
+    transform: rotateX(0);
+    opacity: 1;
+  }
+}
+.story-flap {
+  animation: story-flap 0.42s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes story-route {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.story-route {
+  stroke-dasharray: 1;
+  animation: story-route 1.8s ease-in-out both;
+}
+@keyframes story-dot {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.story-dot {
+  animation: story-dot 0.3s ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .story-flap,
+  .story-route,
+  .story-dot {
+    animation: none;
+  }
+}

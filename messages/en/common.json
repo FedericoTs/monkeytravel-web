@@ -2824,5 +2824,66 @@
       "description": "Plan a trip together in about 30 seconds. 30 AI-planned itineraries a month, free — no card, no trial.",
       "shortDescription": "Plan a trip together in about 30 seconds. Free — no card, no trial."
     }
+  },
+  "story": {
+    "metaTitleGuess": "Guess where this trip goes",
+    "metaTitle": "{place}, told as a story",
+    "metaDescription": "Three clues, four answers, then the whole trip. Made with MonkeyTravel.",
+    "progress": "Part {current} of {total}",
+    "fullPlan": "See the full plan",
+    "next": "Next",
+    "back": "Back",
+    "guess": {
+      "title": "Guess where this trip goes",
+      "lead": "The fewer clues you need, the better.",
+      "hidden": "A place still hidden",
+      "clue": "Clue {number}",
+      "when": "{days, plural, one {One day} other {# days}} in {month}, {where}",
+      "whenNoMonth": "{days, plural, one {One day} other {# days}}, {where}",
+      "whenNoWhere": "{days, plural, one {One day} other {# days}} in {month}",
+      "whenBare": "{days, plural, one {A one-day trip} other {A trip of # days}}",
+      "where": {
+        "europe": "somewhere in Europe",
+        "asia": "somewhere in Asia",
+        "africa": "somewhere in Africa",
+        "americas": "somewhere in the Americas",
+        "oceania": "somewhere in Oceania",
+        "atlantic": "on an island in the Atlantic",
+        "indian": "on an island in the Indian Ocean"
+      },
+      "mix": "On the plan: {list}.",
+      "sights": "{count, plural, one {# sight} other {# sights}}",
+      "meals": "{count, plural, one {# food stop} other {# food stops}}",
+      "outdoors": "{count, plural, one {# stop outdoors} other {# stops outdoors}}",
+      "letters": "It starts with {first} and has {letters, plural, one {# letter} other {# letters}}.",
+      "lettersWords": "It starts with {first}: {words} words, {letters} letters.",
+      "another": "Show another clue",
+      "pick": "Where is it?",
+      "right": "{clues, plural, one {You got it with one clue.} other {You got it with # clues.}}",
+      "wrong": "Not this time. It's {place}.",
+      "see": "See the trip",
+      "skip": "Skip the guess"
+    },
+    "reveal": {
+      "facts": "{days, plural, one {One day} other {# days}} and {stops, plural, one {# stop} other {# stops}}.",
+      "factsKm": "{days, plural, one {One day} other {# days}} and {stops, plural, one {# stop} other {# stops}}, about {km} km between them.",
+      "factsCities": "{days, plural, one {One day} other {# days}}, {cities} cities and {stops, plural, one {# stop} other {# stops}}.",
+      "route": "The trip's stops, joined in the order of the plan"
+    },
+    "day": {
+      "label": "Day {number}",
+      "in": "in {city}",
+      "more": "{count, plural, one {and # more stop} other {and # more stops}}",
+      "moreDays": "{count, plural, one {And # more day in the full plan.} other {And # more days in the full plan.}}"
+    },
+    "end": {
+      "title": "Want a trip like this?",
+      "body": "Tell the planner where and when, and get your own day-by-day plan in about 30 seconds. Free, no account needed.",
+      "plan": "Plan my trip",
+      "mineTitle": "This is what your friends see",
+      "mineBody": "Send them the link and let them guess where you're going.",
+      "copy": "Copy the story link",
+      "copied": "Link copied. Paste it in a chat or a story."
+    }
   }
 }

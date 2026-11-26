@@ -71,6 +71,15 @@ describe("client-fired funnel events", () => {
     expect(inserted[0]?.metadata).toEqual({ destination: "Rajasthan & North India", referral_code: null, surface: "article_place" });
   });
 
+  it("records a plan pressed at the end of a trip's story, under that trip", async () => {
+    const tripId = "99999999-2222-4333-8444-555555555555";
+    const res = await post({ event_type: "plan_own_clicked", trip_id: tripId, destination: "Lisbon", surface: "story" });
+    expect(res.status).toBe(204);
+    expect(inserted[0]?.trip_id).toBe(tripId);
+    expect(inserted[0]?.metadata).toEqual({ destination: "Lisbon", referral_code: null, surface: "story" });
+    expect((await post({ event_type: "plan_own_clicked", destination: "Lisbon", surface: "storybook" })).status).toBe(400);
+  });
+
   it("records a plan pressed on a match result, with no trip to point to", async () => {
     const res = await post({ event_type: "plan_own_clicked", destination: "kyoto", surface: "match" });
     expect(res.status).toBe(204);
