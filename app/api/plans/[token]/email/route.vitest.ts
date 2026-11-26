@@ -165,9 +165,7 @@ describe("POST /api/plans/<token>/email with the reminder box ticked", () => {
     const res = await post(TOKEN, { email: "Ana@Example.com", locale: "it", remind: true });
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ sent: true, reminder: true });
-    expect(calls.keep).toEqual([
-      [{ token: TOKEN, email: "ana@example.com", locale: "it", start: "2099-11-12", end: "2099-11-14" }],
-    ]);
+    expect(calls.keep).toEqual([[{ token: TOKEN, email: "ana@example.com", locale: "it" }]]);
     expect(calls.send).toEqual([
       [PLAN, { token: TOKEN, email: "ana@example.com", locale: "it", reminder: { id: "rem-1", kind: "week" } }],
     ]);
@@ -199,6 +197,24 @@ describe("POST /api/plans/<token>/email with the reminder box ticked", () => {
     const res = await post(TOKEN, { email: "ana@example.com", remind: true });
     expect(await res.json()).toEqual({ sent: true, reminder: false });
     expect((calls.send[0][1] as { reminder: unknown }).reminder).toBeNull();
+  });
+
+  it("keeps the plan's link until two weeks after the trip, never shortening it", async () => {
+    today("2099-11-01");
+    await post(TOKEN, { email: "ana@example.com", remind: true });
+    const keep = log.find((q) => q.table === "kept_plans" && q.op === "update");
+    expect(keep?.value).toEqual({ expires_at: "2099-11-29T00:00:00.000Z" });
+    expect(eqOf(keep!, "token")).toBe(TOKEN);
+    expect(keep?.filters).toContainEqual(["lt", "expires_at", "2099-11-29T00:00:00.000Z"]);
+  });
+
+  it("leaves the plan's expiry alone without a kept tick", async () => {
+    today("2099-11-01");
+    await post(TOKEN, { email: "ana@example.com" });
+    expect(log.some((q) => q.op === "update")).toBe(false);
+    keptId = null;
+    await post(TOKEN, { email: "ana@example.com", remind: true });
+    expect(log.some((q) => q.op === "update")).toBe(false);
   });
 
   it("reads whether the plan's dates were chosen", async () => {

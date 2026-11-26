@@ -15,9 +15,9 @@ import { escapeHtmlText } from "@/lib/email/verify-render";
 import { eqOf, fakeSupabase, type FakeQuery } from "@/tests/fake-supabase";
 
 /**
- * The reminders before a kept plan's trip: a tick is kept with its time and words, and the plan's link through the
- * trip; each day's run sends what is due once, with the link that deletes the address, and deletes the addresses
- * whose trip has begun, whose plan is gone or whose dates nobody chose.
+ * The reminders before a kept plan's trip: a tick is kept with its time and words; each day's run sends what is due
+ * once, with the link that deletes the address, and deletes the addresses whose trip has begun, whose plan is gone or
+ * whose dates nobody chose.
  */
 
 const MESSAGES = { en: enMessages, es: esMessages, it: itMessages, pt: ptMessages };
@@ -68,14 +68,7 @@ afterEach(() => {
 });
 
 describe("keepPlanReminder", () => {
-  const keep = () =>
-    keepPlanReminder(client(), {
-      token: TOKEN,
-      email: "ana@example.com",
-      locale: "it",
-      start: "2099-11-12",
-      end: "2099-11-14",
-    });
+  const keep = () => keepPlanReminder(client(), { token: TOKEN, email: "ana@example.com", locale: "it" });
 
   it("keeps the tick with its time and words, one row per plan and address", async () => {
     answer = (q) => (q.table === "plan_reminders" ? { data: { id: ID }, error: null } : { data: null, error: null });
@@ -88,16 +81,7 @@ describe("keepPlanReminder", () => {
     expect(Date.parse(row.consented_at)).toBeGreaterThanOrEqual(before);
   });
 
-  it("keeps the plan's link until two weeks after the trip, never shortening it", async () => {
-    answer = (q) => (q.table === "plan_reminders" ? { data: { id: ID }, error: null } : { data: null, error: null });
-    await keep();
-    const update = log[1];
-    expect(update).toMatchObject({ table: "kept_plans", op: "update", value: { expires_at: "2099-11-29T00:00:00.000Z" } });
-    expect(eqOf(update, "token")).toBe(TOKEN);
-    expect(update.filters).toContainEqual(["lt", "expires_at", "2099-11-29T00:00:00.000Z"]);
-  });
-
-  it("answers null, and leaves the plan alone, when the tick can't be kept", async () => {
+  it("answers null when the tick can't be kept, and touches nothing else", async () => {
     answer = () => ({ data: null, error: { message: "down" } });
     expect(await keep()).toBeNull();
     expect(log.map((q) => q.table)).toEqual(["plan_reminders"]);
@@ -126,6 +110,7 @@ describe("sendDuePlanReminders", () => {
   let rows: Row[];
   let plans: Plan[];
   let failing: "rows" | "plans" | null;
+  let asked: string[][];
 
   const row = (over: Partial<Row> = {}): Row => ({
     id: ID,
@@ -150,18 +135,22 @@ describe("sendDuePlanReminders", () => {
     rows = [row()];
     plans = [plan()];
     failing = null;
+    asked = [];
     answer = (q) => {
       if (q.table === "plan_reminders" && q.op === "select") {
         return failing === "rows" ? { data: null, error: { message: "down" } } : { data: rows, error: null };
-      }
-      if (q.table === "kept_plans") {
-        return failing === "plans" ? { data: null, error: { message: "down" } } : { data: plans, error: null };
       }
       return { data: null, error: null };
     };
   });
 
-  const run = (today: string) => sendDuePlanReminders(client(), today);
+  /** The route's reader: the kept plans under these tokens. */
+  const plansFor = async (tokens: string[]) => {
+    asked.push(tokens);
+    if (failing === "plans") throw new Error("their plans not read: down");
+    return plans.filter((p) => tokens.includes(p.token)) as never;
+  };
+  const run = (today: string) => sendDuePlanReminders(client(), today, plansFor);
   const marks = () => log.filter((q) => q.table === "plan_reminders" && q.op === "update");
   const deletes = () => log.filter((q) => q.table === "plan_reminders" && q.op === "delete");
 
@@ -239,16 +228,16 @@ describe("sendDuePlanReminders", () => {
     }
   });
 
-  it("reads nothing more when there's no reminder, and reads plans by their tokens only", async () => {
+  it("reads nothing more when there's no reminder, and asks for each plan once", async () => {
     rows = [];
     expect(await run("2099-11-13")).toEqual({ sent: 0, failed: 0, removed: 0 });
     expect(log.map((q) => q.table)).toEqual(["plan_reminders"]);
     expect(log[0].limitTo).toBe(500);
+    expect(asked).toEqual([]);
 
     rows = [row(), row({ id: "b" })];
     await run("2099-11-13");
-    const read = log.find((q) => q.table === "kept_plans");
-    expect(read?.filters).toEqual([["in", "token", [TOKEN]]]);
+    expect(asked).toEqual([[TOKEN]]);
   });
 
   it("throws when the rows or their plans can't be read", async () => {

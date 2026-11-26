@@ -5,19 +5,15 @@ import { dispatchEmail } from "@/lib/email/send";
 import { formatDateRange, resolveLocale } from "@/lib/email/reminder-locale";
 import { buildPlanReminderUnsubscribeUrl } from "@/lib/email/unsubscribe";
 import { placeForEmail, planEmailCheck, type PlanForEmail } from "@/lib/plans/kept-plan-email";
-import {
-  PLAN_REMINDER_DAY,
-  dueReminder,
-  planKeptUntil,
-  reminderIsOver,
-  type PlanReminderSlot,
-} from "@/lib/plans/plan-reminder-dates";
+import { PLAN_REMINDER_DAY, dueReminder, reminderIsOver, type PlanReminderSlot } from "@/lib/plans/plan-reminder-dates";
 
 /**
  * Reminders before a kept plan's trip, for a planner with no account who ticked "remind me" when the plan was
  * emailed to them (app/api/plans/[token]/email). The tick is a plan_reminders row: the address, when it was ticked
  * and which words it answered. The row goes from the trip's first day, at once from any reminder's stop link
- * (app/api/unsubscribe), or with its plan. Nothing but these reminders is ever sent from it.
+ * (app/api/unsubscribe), or with its plan. Nothing but these reminders is ever sent from it. The kept plans
+ * themselves are read and written by the routes only (lib/security/kept-plans-private.vitest.ts): they hand their
+ * plans in.
  */
 
 /** The words the tick answered (trips.wizard.kept.remindWeek and remindDay): new words, a new version. */
@@ -32,13 +28,11 @@ interface KeepArgs {
   token: string;
   email: string;
   locale: string | null;
-  start: unknown;
-  end: unknown;
 }
 
 /**
- * Keeps the tick for this plan and address, and the plan's link through the trip. Ticked again, it is the same row,
- * its time and words renewed. The row's id, or null when it couldn't be kept.
+ * Keeps the tick for this plan and address. Ticked again, it is the same row, its time and words renewed. The row's
+ * id, or null when it couldn't be kept.
  */
 export async function keepPlanReminder(admin: SupabaseClient, args: KeepArgs): Promise<string | null> {
   const { data, error } = await admin
@@ -60,16 +54,7 @@ export async function keepPlanReminder(admin: SupabaseClient, args: KeepArgs): P
     console.error("[plan-reminders] tick not kept:", error?.message ?? "no row");
     return null;
   }
-  await keepPlanThroughTrip(admin, args.token, args.start, args.end);
   return id;
-}
-
-/** The plan's link stays until two weeks after the trip; an expiry already later is left alone. */
-async function keepPlanThroughTrip(admin: SupabaseClient, token: string, start: unknown, end: unknown) {
-  const until = planKeptUntil(start, end);
-  if (!until) return;
-  const { error } = await admin.from("kept_plans").update({ expires_at: until }).eq("token", token).lt("expires_at", until);
-  if (error) console.error("[plan-reminders] plan's link not kept through the trip:", error.message);
 }
 
 /** Deletes a tick: its address and everything kept with it. Whether there was one; throws when the database fails. */
@@ -91,9 +76,14 @@ interface ReminderRow {
   consented_at: string;
 }
 
-interface ReminderPlan extends PlanForEmail {
+/** A kept plan as the run needs it, read by the cron route (KEPT_PLAN_FIELDS). */
+export interface ReminderPlan extends PlanForEmail {
   token: string;
 }
+
+/** What the run reads of each kept plan: its token, dates, whether they were chosen, and its place. */
+export const KEPT_PLAN_FIELDS =
+  "token, start_date:plan->>startDate, end_date:plan->>endDate, flexible:plan->>flexibleDates, name:plan->itinerary->destination->>name, destination:plan->>destination";
 
 export interface ReminderRun {
   sent: number;
@@ -103,10 +93,14 @@ export interface ReminderRun {
 
 /**
  * One day's run: each reminder due today goes once, and the addresses whose trip has begun, or whose plan is gone
- * or has no chosen dates, are deleted. Throws when the rows can't be read; a failed send stays due while its window
- * lasts.
+ * or has no chosen dates, are deleted. `plansFor` reads the reminders' kept plans by token. Throws when the rows or
+ * the plans can't be read; a failed send stays due while its window lasts.
  */
-export async function sendDuePlanReminders(admin: SupabaseClient, today: string): Promise<ReminderRun> {
+export async function sendDuePlanReminders(
+  admin: SupabaseClient,
+  today: string,
+  plansFor: (tokens: string[]) => Promise<ReminderPlan[]>,
+): Promise<ReminderRun> {
   const run: ReminderRun = { sent: 0, failed: 0, removed: 0 };
   const { data: rows, error } = await admin
     .from("plan_reminders")
@@ -117,14 +111,8 @@ export async function sendDuePlanReminders(admin: SupabaseClient, today: string)
   const reminders = (rows ?? []) as ReminderRow[];
   if (reminders.length === 0) return run;
 
-  const { data: planRows, error: planError } = await admin
-    .from("kept_plans")
-    .select(
-      "token, start_date:plan->>startDate, end_date:plan->>endDate, flexible:plan->>flexibleDates, name:plan->itinerary->destination->>name, destination:plan->>destination",
-    )
-    .in("token", [...new Set(reminders.map((r) => r.kept_token))]);
-  if (planError) throw new Error(`their plans not read: ${planError.message}`);
-  const plans = new Map(((planRows ?? []) as ReminderPlan[]).map((plan) => [plan.token, plan]));
+  const found = await plansFor([...new Set(reminders.map((r) => r.kept_token))]);
+  const plans = new Map(found.map((plan) => [plan.token, plan]));
 
   const over: string[] = [];
   for (const row of reminders) {

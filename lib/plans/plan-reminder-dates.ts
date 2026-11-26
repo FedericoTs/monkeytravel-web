@@ -25,7 +25,7 @@ function isDay(day: unknown): day is string {
   return !Number.isNaN(time) && new Date(time).toISOString().slice(0, 10) === day;
 }
 
-/** Days from `today` to `day`; null when either isn't a real calendar day (2026-02-31 isn't). */
+/** Days from `today` to `day`; null when either isn't a real calendar day (a 31 February isn't). */
 export function daysFrom(today: string, day: unknown): number | null {
   if (!isDay(today) || !isDay(day)) return null;
   return Math.round((Date.parse(`${day}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / DAY_MS);

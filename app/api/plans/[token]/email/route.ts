@@ -5,7 +5,7 @@ import { apiSuccess, errors } from "@/lib/api/response-wrapper";
 import { normalizeEmail } from "@/lib/participants/shared";
 import { isKeptToken } from "@/lib/plans/kept-plan";
 import { mayEmailKeptPlan, sendKeptPlanEmail, type PlanForEmail } from "@/lib/plans/kept-plan-email";
-import { reminderKind, utcToday } from "@/lib/plans/plan-reminder-dates";
+import { planKeptUntil, reminderKind, utcToday } from "@/lib/plans/plan-reminder-dates";
 import { keepPlanReminder } from "@/lib/plans/plan-reminders";
 
 /**
@@ -56,9 +56,17 @@ export async function POST(request: NextRequest, context: Context) {
   const locale = typeof body.locale === "string" ? body.locale.slice(0, 8) : null;
   // Only a tick asks, and only for a trip with chosen dates that can still be reminded of.
   const kind = body.remind === true ? reminderKind(found.start_date, utcToday(), found.flexible === "true") : null;
-  const reminderId = kind
-    ? await keepPlanReminder(admin, { token, email, locale, start: found.start_date, end: found.end_date })
-    : null;
+  const reminderId = kind ? await keepPlanReminder(admin, { token, email, locale }) : null;
+  // A plan with reminders keeps its link until two weeks after the trip; an expiry already later is left alone.
+  const until = reminderId ? planKeptUntil(found.start_date, found.end_date) : null;
+  if (until) {
+    const { error: keepError } = await admin
+      .from("kept_plans")
+      .update({ expires_at: until })
+      .eq("token", token)
+      .lt("expires_at", until);
+    if (keepError) console.error("[plans] link not kept through the trip:", keepError.message);
+  }
 
   const outcome = await sendKeptPlanEmail(found, {
     token,
