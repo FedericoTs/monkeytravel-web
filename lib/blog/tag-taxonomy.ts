@@ -134,6 +134,7 @@ export const POSTS: Record<string, { c: string[]; d?: string[] }> = {
   "ai-trip-planner-accuracy-2026":         { c: ["ai-trip-planner", "travel-data", "travel-technology", "trip-planning"] },
   "ai-trip-planner-vs-travel-agent":       { c: ["ai-trip-planner", "comparison", "travel-technology", "trip-planning"] },
   "best-ai-trip-planners-2026-compared":   { c: ["ai-trip-planner", "comparison", "review", "travel-technology"] },
+  "best-ai-trip-planners-2027-compared":   { c: ["ai-trip-planner", "comparison", "review", "travel-technology"] },
   "can-you-trust-ai-travel-itinerary":     { c: ["ai-trip-planner", "travel-technology", "trip-planning", "itinerary"] },
   "how-ai-is-changing-travel-planning":    { c: ["ai-trip-planner", "travel-technology", "trip-planning"] },
   "how-to-plan-a-trip-with-ai":            { c: ["ai-trip-planner", "trip-planning", "first-time-travel"] },
