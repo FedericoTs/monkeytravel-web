@@ -96,3 +96,26 @@ describe("in-body links are locale-prefixed", () => {
     expect(post!.html).not.toContain('href="/trips/new?multi=1"');
   });
 });
+
+describe("our own pages written as full addresses", () => {
+  // "[MonkeyTravel](https://monkeytravel.app)" in a Spanish article sent its readers, and Google, to the English home.
+  for (const locale of ["es", "it", "pt"] as const) {
+    it(`${locale}: lead to the reader's own language`, async () => {
+      const post = await getPostBySlug("3-day-paris-itinerary", locale);
+      expect(post).not.toBeNull();
+      expect(post!.html).not.toMatch(/href="https?:\/\/(?:www\.)?monkeytravel\.app\/?"/);
+      expect(post!.html).toContain(`href="/${locale}"`);
+    });
+  }
+
+  it("en keeps them as written", async () => {
+    const post = await getPostBySlug("3-day-paris-itinerary", "en");
+    expect(post!.html).not.toMatch(/href="\/(es|it|pt)"/);
+  });
+
+  it("leaves files at their full address", async () => {
+    const post = await getPostBySlug("solar-eclipse-2027", "es");
+    expect(post!.html).toContain('href="https://monkeytravel.app/images/blog/solar-eclipse-2027-strait-es.svg"');
+  });
+});
+
