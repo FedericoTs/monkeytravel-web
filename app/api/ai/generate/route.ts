@@ -31,7 +31,7 @@ import { knownPlacesFor } from "@/lib/ai/known-places";
 import { keepOffClosingDays, keepOffClosingDaysByCity } from "@/lib/ai/closing-days";
 import { keepInsideHours } from "@/lib/ai/visit-hours";
 import { askForDinners, daysWithoutDinner, placesToEat, withDinners } from "@/lib/ai/dinners";
-import { eatsEarly } from "@/lib/ai/meal-hours";
+import { atLocalDinnerHour, eatsEarly } from "@/lib/ai/meal-hours";
 import { askForReplacements, repeatedRestaurants, withReplacements } from "@/lib/ai/repeated-meals";
 import { askForSights, repeatedSights, sightNames, withSightReplacements } from "@/lib/ai/repeated-sights";
 import { askForLunches, daysWithoutLunch, withLunches } from "@/lib/ai/lunches";
@@ -324,6 +324,9 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     itinerary = { ...itinerary, days: repeats.days };
     const sights = withSightReplacements(itinerary.days, sightsWanted, sightsAsked.answer);
     itinerary = { ...itinerary, days: sights.days };
+    // The plan's own last dinner of a day at the local hour (lib/ai/meal-hours.ts): 19:30 in Cádiz is 20:30.
+    const atHour = atLocalDinnerHour(itinerary.days, eatsEarly(params));
+    itinerary = { ...itinerary, days: atHour.days };
 
     // Assign activity images server-side (prevents a client race), cached
     // plans included: ZERO Google here. Every activity still gets an image — a
@@ -415,6 +418,8 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
               },
             }
           : {}),
+        // The plan's own dinners moved to the local hour.
+        ...(atHour.moved > 0 ? { dinners_at_hour: atHour.moved } : {}),
         ...(repeatsWanted.length > 0 ? { repeated_restaurants: { found: repeatsWanted.length, replaced: repeats.replaced } } : {}),
         // Sights visited again on another day, and how many got another place.
         ...(sightsWanted.length > 0 ? { repeated_sights: { found: sightsWanted.length, replaced: sights.replaced } } : {}),

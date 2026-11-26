@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dinnerHours, eatsEarly } from "./meal-hours";
+import { atLocalDinnerHour, dinnerHours, eatsEarly } from "./meal-hours";
 
 /**
  * When a dinner can start where a day ends. Restaurants in Spain open for dinner around 20:00 to 20:30, in Italy,
@@ -48,5 +48,48 @@ describe("eatsEarly", () => {
     expect(eatsEarly({ tripIntent: "family", childrenAges: ["teen"] })).toBe(false);
     expect(eatsEarly({ tripIntent: "couple" })).toBe(false);
     expect(eatsEarly({})).toBe(false);
+  });
+});
+
+// Told dinner in Spain is from about 20:30, plans still ended days in Cádiz and Barcelona with dinner at 19:30.
+describe("atLocalDinnerHour", () => {
+  type Stop = { name: string; type: string; start_time: string; duration_minutes: number; coordinates?: { lat: number; lng: number } };
+  const CADIZ = { lat: 36.5298, lng: -6.2927 };
+  const ROME = { lat: 41.8986, lng: 12.4769 };
+  const LONDON = { lat: 51.5074, lng: -0.1278 };
+  const stop = (start_time: string, name: string, type: string, at = CADIZ): Stop => ({ name, type, start_time, duration_minutes: 90, coordinates: at });
+  const day = (...activities: Stop[]) => ({ activities });
+  const times = (out: { days: Array<{ activities: Stop[] }> }) => out.days.map((d) => d.activities.map((s) => `${s.start_time} ${s.name}`));
+
+  it("moves a day's last dinner before the hour there to that hour: 20:30 in Spain, 19:30 in Italy", () => {
+    const out = atLocalDinnerHour([
+      day(stop("10:00", "Catedral de Cádiz", "landmark"), stop("19:30", "La Pescadería", "restaurant")),
+      day(stop("10:00", "Pantheon", "landmark", ROME), stop("18:30", "Armando al Pantheon", "restaurant", ROME)),
+    ]);
+    expect(out.moved).toBe(2);
+    expect(times(out)).toEqual([
+      ["10:00 Catedral de Cádiz", "20:30 La Pescadería"],
+      ["10:00 Pantheon", "19:30 Armando al Pantheon"],
+    ]);
+  });
+
+  it("leaves a dinner within half an hour of the hour, one at a usual hour elsewhere, a late lunch, a café, and one with no pin", () => {
+    const days = [
+      day(stop("10:00", "Catedral de Cádiz", "landmark"), stop("20:00", "El Faro", "restaurant")),
+      day(stop("10:00", "British Museum", "museum", LONDON), stop("18:00", "Dishoom", "restaurant", LONDON)),
+      day(stop("10:00", "Catedral de Cádiz", "landmark"), stop("16:30", "Mesón El Pícaro", "restaurant")),
+      day(stop("10:00", "Catedral de Cádiz", "landmark"), stop("18:00", "Café Royalty", "cafe")),
+      // The placeholder pin sits in Germany, where 17:30 would be early too.
+      day(stop("10:00", "Catedral de Cádiz", "landmark"), { ...stop("17:30", "Casa Manteca", "restaurant"), coordinates: { lat: 48, lng: 10 } }),
+    ];
+    const out = atLocalDinnerHour(days);
+    expect(out).toEqual({ days, moved: 0 });
+  });
+
+  it("leaves a dinner with a stop after it, and the dinners of a family that eats early", () => {
+    const show = [day(stop("10:00", "Catedral de Cádiz", "landmark"), stop("19:30", "La Pescadería", "restaurant"), stop("21:30", "Flamenco", "entertainment"))];
+    expect(atLocalDinnerHour(show)).toEqual({ days: show, moved: 0 });
+    const family = [day(stop("10:00", "Catedral de Cádiz", "landmark"), stop("19:30", "La Pescadería", "restaurant"))];
+    expect(atLocalDinnerHour(family, true)).toEqual({ days: family, moved: 0 });
   });
 });

@@ -39,7 +39,7 @@ import { knownPlacesFor, knownPlacesUsed, type KnownPlace } from "@/lib/ai/known
 import { keepOffClosingDays } from "@/lib/ai/closing-days";
 import { keepInsideHours } from "@/lib/ai/visit-hours";
 import { askForDinners, daysWithoutDinner, dinnersLeftTogether, placesToEat, withDinners } from "@/lib/ai/dinners";
-import { eatsEarly } from "@/lib/ai/meal-hours";
+import { atLocalDinnerHour, eatsEarly } from "@/lib/ai/meal-hours";
 import { askForReplacements, repeatedRestaurants, withReplacements } from "@/lib/ai/repeated-meals";
 import { askForSights, repeatedSights, sightNames, withSightReplacements } from "@/lib/ai/repeated-sights";
 import { askForLunches, daysWithoutLunch, withLunches } from "@/lib/ai/lunches";
@@ -455,6 +455,9 @@ export async function POST(request: NextRequest) {
       const sightAnswer = await sightsAsked;
       const sights = withSightReplacements(finalItinerary.days, sightsWanted, sightAnswer.answer);
       finalItinerary = { ...finalItinerary, days: sights.days };
+      // 5b'''''. The plan's own last dinner of a day at the local hour (lib/ai/meal-hours.ts): 19:30 in Cádiz is 20:30.
+      const atHour = atLocalDinnerHour(finalItinerary.days, eatsEarly(params));
+      finalItinerary = { ...finalItinerary, days: atHour.days };
       generationCost += sightAnswer.costUsd;
       if (!cacheHit) {
         try {
@@ -576,6 +579,8 @@ export async function POST(request: NextRequest) {
                       },
                     }
                   : {}),
+                // The plan's own dinners moved to the local hour.
+                ...(atHour.moved > 0 ? { dinners_at_hour: atHour.moved } : {}),
                 // Full days the plan left without lunch, and how many got one; after_move: those found only
                 // once the closing days had moved the days.
                 ...(lunchesWanted.length + movedLunchesWanted.length > 0
