@@ -993,13 +993,14 @@ describe("assistTrip on a day that doesn't fit when they leave", () => {
     expect(out.edits[0].activities.map((a) => a.name)).toEqual(["Breakfast near the hotel", "Transfer to BKK airport"]);
   });
 
-  it("says what still doesn't fit when the second try can't be had", async () => {
+  it("holds the day to the flight itself when the second try can't be had, and says what came out", async () => {
     generateContent
       .mockResolvedValueOnce(lastDay([["Breakfast near the hotel", "08:30"], ["Lunch at Baan Khanitha", "12:30"]]))
       .mockRejectedValueOnce(overloaded());
     const out = await run(message);
+    expect(out.edits[0].activities.map((a) => a.name)).toEqual(["Breakfast near the hotel"]);
     expect(out.reply).toBe(
-      "Day 5 is set for your 2 PM flight. (Check Day 5: you leave at 14:00, so plans should end by 11:00, and the day still has: Lunch at Baan Khanitha (12:30).)",
+      "Day 5 is set for your 2 PM flight. (Day 5: there's no time for Lunch at Baan Khanitha around your travel, so I left it out.)",
     );
   });
 
@@ -1016,7 +1017,25 @@ describe("assistTrip on a day that doesn't fit when they leave", () => {
     generateContent.mockResolvedValueOnce(lastDay([["Breakfast near the hotel", "08:30"], ["Lunch at Baan Khanitha", "12:30"]])).mockResolvedValueOnce(noTimes);
     const out = await run(message);
     expect(generateContent).toHaveBeenCalledTimes(2);
-    expect(out.edits[0].activities.map((a) => a.name)).toEqual(["Breakfast near the hotel", "Lunch at Baan Khanitha"]);
+    // The first reply stands, held to the flight: its lunch after 11:00 comes out.
+    expect(out.edits[0].activities.map((a) => a.name)).toEqual(["Breakfast near the hotel"]);
+  });
+
+  it("moves what a first day plans before the landing to after it, and says so", async () => {
+    const landing = {
+      response: {
+        text: () =>
+          JSON.stringify({
+            reply: "Day 1 now has the Grand Palace.",
+            travel_times: [{ day: 1, arrives: "14:00", by: "flight" }],
+            edits: [{ day_number: 1, activities: [{ name: "Grand Palace", start_time: "10:00", duration_minutes: 120 }] }],
+          }),
+      },
+    };
+    generateContent.mockResolvedValueOnce(landing).mockRejectedValueOnce(overloaded());
+    const out = await run({ ...message, message: "We land at 2 pm on day 1, add the Grand Palace that day" });
+    expect(out.edits[0].activities.map((a) => [a.name, a.start_time])).toEqual([["Grand Palace", "15:30"]]);
+    expect(out.reply).toBe("Day 1 now has the Grand Palace. (Day 1: you arrive at 14:00, so I moved Grand Palace to after 15:30.)");
   });
 });
 
