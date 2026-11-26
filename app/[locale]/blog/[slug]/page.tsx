@@ -256,19 +256,21 @@ export default async function BlogDetailPage({ params }: PageProps) {
   const { prev: prevPost, next: nextPost } = getPrevNextPosts(slug, locale);
   const toc = extractToc(html);
   const readerChoosing = readerIsChoosing(frontmatter, primaryDestination !== null);
-  // A month's guide: under each place it ranks, a link that opens the planner
-  // on that place with dates pencilled in that month.
+  // A list of where to go: under each place it ranks, a link that opens the
+  // planner on that place, with dates pencilled in the guide's month if it has one.
   const guideMonth = readerChoosing ? monthFromSlug(slug) : null;
-  const bodyHtml =
-    guideMonth === null
-      ? html
-      : withPlacePlanLinks(html, {
-          month: guideMonth,
-          localePrefix,
-          label: t("detail.planPlace", {
-            month: new Intl.DateTimeFormat(locale, { month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(2000, guideMonth - 1, 15))),
-          }),
-        });
+  const bodyHtml = !readerChoosing
+    ? html
+    : withPlacePlanLinks(html, {
+        month: guideMonth,
+        localePrefix,
+        label:
+          guideMonth === null
+            ? t("detail.planPlaceAnyTime")
+            : t("detail.planPlace", {
+                month: new Intl.DateTimeFormat(locale, { month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(2000, guideMonth - 1, 15))),
+              }),
+      });
 
   // ItemList schema for ranked-list posts — the cheapest-X / where-to-go /
   // best-of listicles whose H2/H3 sections ARE the ranking (the GSC anchors
@@ -465,7 +467,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
                     )
                   }
                 />
-                {guideMonth !== null && <PlacePlanClicks />}
+                {readerChoosing && <PlacePlanClicks />}
                 {primaryDestination && (
                   <BlogPlanThisCta
                     destination={primaryDestination}
