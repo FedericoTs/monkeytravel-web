@@ -1,6 +1,7 @@
 /** @vitest-environment node */
 import { describe, expect, it } from "vitest";
 import type { ItineraryDay } from "@/types";
+import type { DayEdit } from "./edit-validation";
 import { fitTravelTimes, keepDepartureTime, outsideTravelTimes, planDeparture, toldTravelTimes, withPlanDeparture } from "./travel-times";
 
 const stop = (name: string, start_time: string, extra: Record<string, unknown> = {}) => ({
@@ -94,7 +95,7 @@ describe("toldTravelTimes: the times the plan is held to", () => {
 });
 
 describe("fitTravelTimes: a changed day held to the times they gave", () => {
-  const edit = (n: number, ...activities: unknown[]) => ({ day_number: n, summary: "", activities }) as never;
+  const edit = (n: number, ...activities: unknown[]) => ({ day_number: n, summary: "", activities }) as unknown as DayEdit;
   const names = (e: { activities: Array<{ name: string; start_time: string; duration_minutes?: number }> }) =>
     e.activities.map((a) => `${a.name} ${a.start_time}${a.duration_minutes === 90 ? "" : ` (${a.duration_minutes})`}`);
 
@@ -193,7 +194,7 @@ describe("fitTravelTimes: a changed day held to the times they gave", () => {
 });
 
 describe("fitTravelTimes: the edges of a departure", () => {
-  const edit = (n: number, ...activities: unknown[]) => ({ day_number: n, summary: "", activities }) as never;
+  const edit = (n: number, ...activities: unknown[]) => ({ day_number: n, summary: "", activities }) as unknown as DayEdit;
   const timed = (e: { activities: Array<{ name: string; start_time: string; duration_minutes?: number }> }) =>
     e.activities.map((a) => [a.name, a.start_time, a.duration_minutes]);
 
