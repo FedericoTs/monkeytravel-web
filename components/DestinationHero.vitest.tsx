@@ -175,3 +175,59 @@ describe("DestinationHero Wikimedia credits", () => {
     vi.unstubAllGlobals();
   });
 });
+
+/**
+ * Where the dates can be changed and the page gives the words (a saved trip, for its owner before it starts), the date
+ * chip says so: travellers rebuilt saved trips in the planner to move them by a few days, the pencil alone being easy
+ * to miss.
+ */
+describe("DestinationHero dates", () => {
+  it("says in words that the dates can be changed, and opens the change when pressed", () => {
+    const onEditDates = vi.fn();
+    const { getByRole } = render(
+      <DestinationHero
+        destination="Lisbon, Portugal"
+        title="Lisbon Trip"
+        disableApiCalls
+        dateRange="May 1 – 3"
+        onEditDates={onEditDates}
+        editDatesLabel="Change dates"
+        editDatesText="Change dates"
+      />
+    );
+    const button = getByRole("button", { name: "Change dates: May 1 – 3" });
+    expect(button.textContent).toBe("May 1 – 3Change dates");
+    fireEvent.click(button);
+    expect(onEditDates).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the pencil alone where the page gives no words", () => {
+    const { getByRole } = render(
+      <DestinationHero
+        destination="Lisbon, Portugal"
+        title="Lisbon Trip"
+        disableApiCalls
+        dateRange="May 1 – 3"
+        onEditDates={() => {}}
+        editDatesLabel="Change dates"
+      />
+    );
+    expect(getByRole("button", { name: "Change dates: May 1 – 3" }).textContent).toBe("May 1 – 3");
+  });
+
+  it("shows the dates alone where they can't be changed", () => {
+    const { container, queryByRole } = render(
+      <DestinationHero
+        destination="Lisbon, Portugal"
+        title="Lisbon Trip"
+        disableApiCalls
+        dateRange="May 1 – 3"
+        editDatesLabel="Change dates"
+        editDatesText="Change dates"
+      />
+    );
+    expect(queryByRole("button", { name: /change dates/i })).toBeNull();
+    expect(container.textContent).toContain("May 1 – 3");
+    expect(container.textContent).not.toContain("Change dates");
+  });
+});
