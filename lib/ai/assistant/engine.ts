@@ -29,6 +29,7 @@ import {
   isConfirmation,
   statedDayCounts,
   offersChange,
+  replyLanguage,
 } from "@/lib/ai/assistant/honesty";
 import { planCosts, planCurrency } from "@/lib/ai/assistant/plan-costs";
 import { dayMentioned } from "@/lib/ai/assistant/day-target";
@@ -65,6 +66,7 @@ import {
 } from "./message-asks";
 import { alsoInTheirCity, daysOfCity, keepDayCities, placesAway, withoutPlacesAway, type PlacesAway } from "./city-days";
 import { keepRides } from "./rides";
+import { askLanguage, asksToDriveTheRoute, driveTheRoute } from "./drive-rides";
 import { dropLeftoverMeals } from "./leftover-meals";
 import { type TravelTime, readTravelTimes, toldTravelTimes, outsideTravelTimes, fitTravelTimes, minutesOf, keepDepartureTime, withPlanDeparture } from "./travel-times";
 import { composeReply, type PlaceOnDay } from "./edit-reply";
@@ -704,6 +706,29 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   }
   const startedAt = Date.now();
   const cur = planCurrency(input.days);
+  // "We'll travel by car for the whole trip": the route's rides become drives here, in code (drive-rides.ts). The
+  // model, told that how they get around is a question, answered it as one as often as not.
+  if (asksToDriveTheRoute(input.message, input.days)) {
+    const language = askLanguage(input.message, replyLanguage(input.message) ?? resolveAiLanguage(input.locale));
+    const driving = driveTheRoute(input.days, { currency: cur, language });
+    if (driving.edits.length > 0 || driving.kept.length > 0) {
+      return {
+        reply: composeReply({
+          reply: driving.reply,
+          edits: driving.edits,
+          lockedDays: [],
+          lengthRefused: false,
+          locale: input.locale,
+          destination: input.destination,
+          currentDays: input.days.length,
+          autoApplied: input.autoApply,
+          ownLead: input.ownLead,
+        }),
+        edits: driving.edits,
+        meta: { model: "none", costUsd: 0, generationTimeMs: Date.now() - startedAt },
+      };
+    }
+  }
   let modelId = getModelForPurpose("assistant-edits");
 
   const generationConfig: GenerationConfig = {
