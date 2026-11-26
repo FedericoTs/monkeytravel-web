@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import {
   UNSUB_KEYS,
   verifyParticipantUnsubscribeToken,
+  verifyPlanReminderUnsubscribeToken,
   verifyUnsubscribeToken,
   type UnsubKey,
 } from "@/lib/email/unsubscribe";
@@ -48,11 +49,14 @@ interface PageProps {
 export default async function UnsubscribePage({ params, searchParams }: PageProps) {
   const [{ locale }, { token }] = await Promise.all([params, searchParams]);
   const t = await getTranslations({ locale, namespace: "profile.unsubscribe" });
-  // A guest's link stops one trip's daily plan. An expired one is reported as
-  // expired, not checked again as an account's link.
+  // A guest's link stops one trip's daily plan, a reminder's link the
+  // reminders before a kept plan's trip. An expired one is reported as
+  // expired, not checked again as another kind of link.
   const guest = verifyParticipantUnsubscribeToken(token || "");
-  const result = guest.ok || guest.reason === "expired" ? null : verifyUnsubscribeToken(token || "");
-  const expired = (result ?? guest).reason === "expired";
+  const reminder = guest.ok || guest.reason === "expired" ? null : verifyPlanReminderUnsubscribeToken(token || "");
+  const settled = guest.ok || guest.reason === "expired" || reminder?.ok || reminder?.reason === "expired";
+  const result = settled ? null : verifyUnsubscribeToken(token || "");
+  const expired = (result ?? reminder ?? guest).reason === "expired";
 
   let confirm: ReactNode = null;
   if (guest.ok && guest.participantId) {
@@ -64,6 +68,8 @@ export default async function UnsubscribePage({ params, searchParams }: PageProp
     }
     const what = trip ? t("guest.what", { trip }) : t("guest.whatThisTrip");
     confirm = <UnsubscribeConfirmButton token={token || ""} what={what} guest />;
+  } else if (reminder?.ok) {
+    confirm = <UnsubscribeConfirmButton token={token || ""} what={t("reminder.what")} reminder />;
   } else if (result?.ok && result.payload) {
     // Every UnsubKey has a phrase in profile.unsubscribe.what, shaped to fit
     // "Stop receiving {what}?" in each language (checked by

@@ -2746,7 +2746,23 @@
     "intro": "Aquí tienes el enlace al plan que creaste. Se abre en cualquier dispositivo y se guarda durante 30 días desde la última vez que lo abras.",
     "cta": "Abrir mi plan",
     "footerReason": "Nos pediste que te lo enviáramos, y no volveremos a escribirte sobre esto.",
-    "footerLink": "Política de privacidad"
+    "footerLink": "Política de privacidad",
+    "introReminder": "Aquí tienes el enlace al plan que creaste. Se abre en cualquier dispositivo y se guarda hasta dos semanas después del viaje.",
+    "reminderLineWeek": "Te escribiremos de nuevo una semana antes del viaje y el día antes.",
+    "reminderLineDay": "Te escribiremos de nuevo el día antes del viaje.",
+    "footerReasonReminder": "Nos pediste este plan y recordatorios antes del viaje: son los únicos correos que te enviaremos.",
+    "footerLinkReminder": "Dejar de recibir recordatorios"
+  },
+  "planReminderEmail": {
+    "weekHeading": "{destination} ya se acerca",
+    "weekHeadingNoPlace": "Tu viaje ya se acerca",
+    "weekIntro": "Tu plan está listo para el viaje. Revísalo, cambia lo que quieras y reserva lo que haga falta.",
+    "dayHeading": "{destination}, mañana",
+    "dayHeadingNoPlace": "Tu viaje empieza mañana",
+    "dayIntro": "Aquí tienes tu plan para el viaje. ¡Que lo disfrutes!",
+    "cta": "Abrir mi plan",
+    "footerReason": "Nos pediste que te lo recordáramos antes de este viaje. Borramos tu dirección cuando empieza.",
+    "footerLink": "Dejar de recibir recordatorios"
   },
   "liveStats": {
     "title": "En directo desde el planificador",

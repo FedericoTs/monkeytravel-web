@@ -2746,7 +2746,23 @@
     "intro": "Aqui está o link do plano que você criou. Ele abre em qualquer dispositivo e fica guardado por 30 dias depois da última vez que você abrir.",
     "cta": "Abrir meu plano",
     "footerReason": "Você pediu para enviarmos isto, e não vamos escrever de novo sobre este assunto.",
-    "footerLink": "Política de privacidade"
+    "footerLink": "Política de privacidade",
+    "introReminder": "Aqui está o link do plano que você criou. Ele abre em qualquer dispositivo e fica guardado até duas semanas depois da viagem.",
+    "reminderLineWeek": "Vamos escrever de novo uma semana antes da viagem e na véspera.",
+    "reminderLineDay": "Vamos escrever de novo na véspera da viagem.",
+    "footerReasonReminder": "Você pediu este plano e lembretes antes da viagem: são os únicos e-mails que vamos enviar.",
+    "footerLinkReminder": "Parar os lembretes"
+  },
+  "planReminderEmail": {
+    "weekHeading": "{destination} está chegando",
+    "weekHeadingNoPlace": "Sua viagem está chegando",
+    "weekIntro": "Seu plano está pronto para a viagem. Revise, mude o que quiser e reserve o que precisar.",
+    "dayHeading": "{destination} amanhã",
+    "dayHeadingNoPlace": "Sua viagem começa amanhã",
+    "dayIntro": "Aqui está seu plano para a viagem. Boa viagem!",
+    "cta": "Abrir meu plano",
+    "footerReason": "Você pediu um lembrete antes desta viagem. Apagamos seu endereço quando ela começa.",
+    "footerLink": "Parar os lembretes"
   },
   "liveStats": {
     "title": "Ao vivo do planejador",

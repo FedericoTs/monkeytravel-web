@@ -1183,6 +1183,13 @@
     "rls_enabled": true
   },
   {
+    "table": "plan_reminders",
+    "grants": {},
+    "policies": [],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
     "table": "proposal_votes",
     "grants": {
       "anon": [

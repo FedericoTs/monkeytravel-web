@@ -103,7 +103,13 @@
       "emailSent": "Enviado a {email}. El enlace abre este plan en cualquier dispositivo.",
       "emailInvalid": "Esa dirección no parece correcta. Revísala e inténtalo de nuevo.",
       "emailLimited": "Demasiados correos por ahora. Inténtalo más tarde o copia el enlace.",
-      "emailFailed": "No se pudo enviar. Inténtalo de nuevo o copia el enlace."
+      "emailFailed": "No se pudo enviar. Inténtalo de nuevo o copia el enlace.",
+      "emailOfferRemind": "¿Aún no quieres crear una cuenta? Podemos enviarte este plan por correo y recordártelo antes del viaje.",
+      "emailNoteRemind": "No necesitas cuenta.",
+      "remindWeek": "Recuérdamelo también antes del viaje: un correo una semana antes y otro el día antes. Puedes darte de baja cuando quieras.",
+      "remindDay": "Recuérdamelo también el día antes del viaje. Puedes darte de baja cuando quieras.",
+      "remindPrivacy": "Privacidad",
+      "remindSent": "Enviado a {email}. Te lo recordaremos antes del viaje."
     },
     "draftRecovery": {
       "title": "Viaje sin guardar encontrado",

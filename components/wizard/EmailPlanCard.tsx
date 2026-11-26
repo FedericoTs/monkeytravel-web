@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { emailKeptPlan, type PlanEmailOutcome } from "@/lib/plans/kept-plans-client";
+import type { ReminderKind } from "@/lib/plans/plan-reminder-dates";
 import { capture } from "@/lib/posthog";
 
 /**
@@ -10,14 +11,29 @@ import { capture } from "@/lib/posthog";
  * account (lib/plans/kept-plan-email.ts). A card beside the plan rather than a
  * dialog over it, so reading goes on behind it. `offered` when the planner
  * didn't ask for it: it then says why it's there, and leaves the keyboard shut.
+ *
+ * `remind`, for a trip with chosen dates far enough away, adds an unticked
+ * "remind me before the trip" box saying which emails follow: the tick is the
+ * consent to them (lib/plans/plan-reminders.ts), and nothing else asks for it.
  */
-export function EmailPlanCard({ token, offered, onClose }: { token: string; offered: boolean; onClose: () => void }) {
+export function EmailPlanCard({
+  token,
+  offered,
+  onClose,
+  remind = null,
+}: {
+  token: string;
+  offered: boolean;
+  onClose: () => void;
+  remind?: ReminderKind | null;
+}) {
   const t = useTranslations("trips");
   const tButtons = useTranslations("common.buttons");
   const locale = useLocale();
   const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const [email, setEmail] = useState("");
+  const [wantsReminder, setWantsReminder] = useState(false);
   const [status, setStatus] = useState<"idle" | "sending" | PlanEmailOutcome>("idle");
 
   useEffect(() => {
@@ -36,9 +52,10 @@ export function EmailPlanCard({ token, offered, onClose }: { token: string; offe
     event.preventDefault();
     if (!email || status === "sending") return;
     setStatus("sending");
-    const outcome = await emailKeptPlan(token, email, locale);
+    const asked = Boolean(remind) && wantsReminder;
+    const outcome = await emailKeptPlan(token, email, locale, asked);
     setStatus(outcome);
-    void capture("kept_plan_email", { outcome, offered });
+    void capture("kept_plan_email", { outcome, offered, remind: asked });
   };
 
   return (
@@ -48,7 +65,7 @@ export function EmailPlanCard({ token, offered, onClose }: { token: string; offe
     >
       <div className="flex items-start justify-between gap-3">
         <h2 id={`${id}-title`} className="text-sm font-semibold text-slate-900">
-          {offered ? t("wizard.kept.emailOffer") : t("wizard.kept.emailAction")}
+          {offered ? t(remind ? "wizard.kept.emailOfferRemind" : "wizard.kept.emailOffer") : t("wizard.kept.emailAction")}
         </h2>
         <button
           type="button"
@@ -62,13 +79,35 @@ export function EmailPlanCard({ token, offered, onClose }: { token: string; offe
         </button>
       </div>
 
-      {status === "sent" ? (
+      {status === "sent" || status === "reminded" ? (
         <p role="status" className="text-sm text-slate-700">
-          {t("wizard.kept.emailSent", { email })}
+          {t(status === "reminded" ? "wizard.kept.remindSent" : "wizard.kept.emailSent", { email })}
         </p>
       ) : (
         <>
-          <p className="text-xs text-slate-600">{t("wizard.kept.emailNote")}</p>
+          <p className="text-xs text-slate-600">{t(remind ? "wizard.kept.emailNoteRemind" : "wizard.kept.emailNote")}</p>
+          {remind && (
+            <div className="flex items-start gap-2 text-xs text-slate-700">
+              <input
+                id={`${id}-remind`}
+                type="checkbox"
+                checked={wantsReminder}
+                onChange={(event) => setWantsReminder(event.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--secondary-ink)]"
+              />
+              <label htmlFor={`${id}-remind`}>
+                {t(remind === "week" ? "wizard.kept.remindWeek" : "wizard.kept.remindDay")}{" "}
+                <a
+                  href="/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline decoration-slate-400 underline-offset-2 hover:decoration-slate-700"
+                >
+                  {t("wizard.kept.remindPrivacy")}
+                </a>
+              </label>
+            </div>
+          )}
           <form onSubmit={(event) => void send(event)} className="flex items-center gap-2">
             <label htmlFor={`${id}-email`} className="sr-only">
               {t("wizard.kept.emailLabel")}

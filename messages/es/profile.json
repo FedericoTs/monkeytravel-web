@@ -177,6 +177,11 @@
       "whatThisTrip": "el plan diario de este viaje",
       "confirmBody": "Confirma y dejaremos de enviarte por correo el plan de cada día. Seguirás en la lista de quienes van.",
       "doneBody": "Ya no recibirás {what}, pero sigues en la lista de quienes van."
+    },
+    "reminder": {
+      "what": "los recordatorios antes de tu viaje",
+      "confirmBody": "Confirma y dejaremos de enviarte recordatorios y borraremos tu dirección. El enlace de tu plan sigue funcionando.",
+      "doneBody": "No más recordatorios: hemos borrado tu dirección. El enlace de tu plan sigue funcionando."
     }
   }
 }
