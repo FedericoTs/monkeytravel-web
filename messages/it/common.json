@@ -2824,5 +2824,66 @@
       "description": "Pianificate un viaggio insieme in circa 30 secondi. 30 itinerari con l'AI al mese, gratis: senza carta né prova.",
       "shortDescription": "Pianificate un viaggio insieme in circa 30 secondi. Gratis: senza carta né prova."
     }
+  },
+  "story": {
+    "metaTitleGuess": "Indovina dove va questo viaggio",
+    "metaTitle": "{place}, in forma di storia",
+    "metaDescription": "Tre indizi, quattro risposte e poi tutto il viaggio. Fatto con MonkeyTravel.",
+    "progress": "Parte {current} di {total}",
+    "fullPlan": "Vedi il piano completo",
+    "next": "Avanti",
+    "back": "Indietro",
+    "guess": {
+      "title": "Indovina dove va questo viaggio",
+      "lead": "Meno indizi ti servono, meglio è.",
+      "hidden": "Un posto ancora nascosto",
+      "clue": "Indizio {number}",
+      "when": "{days, plural, one {Un giorno} other {# giorni}} a {month}, {where}",
+      "whenNoMonth": "{days, plural, one {Un giorno} other {# giorni}}, {where}",
+      "whenNoWhere": "{days, plural, one {Un giorno} other {# giorni}} a {month}",
+      "whenBare": "{days, plural, one {Un viaggio di un giorno} other {Un viaggio di # giorni}}",
+      "where": {
+        "europe": "da qualche parte in Europa",
+        "asia": "da qualche parte in Asia",
+        "africa": "da qualche parte in Africa",
+        "americas": "da qualche parte nelle Americhe",
+        "oceania": "da qualche parte in Oceania",
+        "atlantic": "su un'isola dell'Atlantico",
+        "indian": "su un'isola dell'oceano Indiano"
+      },
+      "mix": "Nel piano: {list}.",
+      "sights": "{count, plural, one {# visita} other {# visite}}",
+      "meals": "{count, plural, one {# tappa per mangiare} other {# tappe per mangiare}}",
+      "outdoors": "{count, plural, one {# tappa all'aperto} other {# tappe all'aperto}}",
+      "letters": "Inizia per {first} e ha {letters, plural, one {# lettera} other {# lettere}}.",
+      "lettersWords": "Inizia per {first}: {words} parole, {letters} lettere.",
+      "another": "Mostra un altro indizio",
+      "pick": "Dov'è?",
+      "right": "{clues, plural, one {Hai indovinato con un indizio.} other {Hai indovinato con # indizi.}}",
+      "wrong": "Stavolta no. È {place}.",
+      "see": "Vedi il viaggio",
+      "skip": "Salta l'indovinello"
+    },
+    "reveal": {
+      "facts": "{days, plural, one {Un giorno} other {# giorni}} e {stops, plural, one {# tappa} other {# tappe}}.",
+      "factsKm": "{days, plural, one {Un giorno} other {# giorni}} e {stops, plural, one {# tappa} other {# tappe}}, con circa {km} km tra una e l'altra.",
+      "factsCities": "{days, plural, one {Un giorno} other {# giorni}}, {cities} città e {stops, plural, one {# tappa} other {# tappe}}.",
+      "route": "Le tappe del viaggio, unite nell'ordine del piano"
+    },
+    "day": {
+      "label": "Giorno {number}",
+      "in": "a {city}",
+      "more": "{count, plural, one {e # altra tappa} other {e altre # tappe}}",
+      "moreDays": "{count, plural, one {E # altro giorno nel piano completo.} other {E altri # giorni nel piano completo.}}"
+    },
+    "end": {
+      "title": "Vuoi un viaggio così?",
+      "body": "Di' al pianificatore dove e quando, e avrai il tuo piano giorno per giorno in circa 30 secondi. Gratis e senza account.",
+      "plan": "Pianifica il mio viaggio",
+      "mineTitle": "Ecco cosa vedono i tuoi amici",
+      "mineBody": "Manda loro il link e lascia che indovinino dove vai.",
+      "copy": "Copia il link della storia",
+      "copied": "Link copiato. Incollalo in una chat o in una storia."
+    }
   }
 }

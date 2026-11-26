@@ -2824,5 +2824,66 @@
       "description": "Planejem uma viagem juntos em cerca de 30 segundos. 30 roteiros com AI por mês, de graça: sem cartão e sem teste.",
       "shortDescription": "Planejem uma viagem juntos em cerca de 30 segundos. De graça: sem cartão e sem teste."
     }
+  },
+  "story": {
+    "metaTitleGuess": "Adivinhe para onde vai esta viagem",
+    "metaTitle": "{place}, em forma de história",
+    "metaDescription": "Três pistas, quatro respostas e depois a viagem inteira. Feito com MonkeyTravel.",
+    "progress": "Parte {current} de {total}",
+    "fullPlan": "Ver o plano completo",
+    "next": "Avançar",
+    "back": "Voltar",
+    "guess": {
+      "title": "Adivinhe para onde vai esta viagem",
+      "lead": "Quanto menos pistas você precisar, melhor.",
+      "hidden": "Um lugar ainda escondido",
+      "clue": "Pista {number}",
+      "when": "{days, plural, one {Um dia} other {# dias}} em {month}, {where}",
+      "whenNoMonth": "{days, plural, one {Um dia} other {# dias}}, {where}",
+      "whenNoWhere": "{days, plural, one {Um dia} other {# dias}} em {month}",
+      "whenBare": "{days, plural, one {Uma viagem de um dia} other {Uma viagem de # dias}}",
+      "where": {
+        "europe": "em algum lugar da Europa",
+        "asia": "em algum lugar da Ásia",
+        "africa": "em algum lugar da África",
+        "americas": "em algum lugar das Américas",
+        "oceania": "em algum lugar da Oceania",
+        "atlantic": "em uma ilha do Atlântico",
+        "indian": "em uma ilha do oceano Índico"
+      },
+      "mix": "No plano: {list}.",
+      "sights": "{count, plural, one {# visita} other {# visitas}}",
+      "meals": "{count, plural, one {# parada para comer} other {# paradas para comer}}",
+      "outdoors": "{count, plural, one {# parada ao ar livre} other {# paradas ao ar livre}}",
+      "letters": "Começa com {first} e tem {letters, plural, one {# letra} other {# letras}}.",
+      "lettersWords": "Começa com {first}: {words} palavras, {letters} letras.",
+      "another": "Mostrar outra pista",
+      "pick": "Onde é?",
+      "right": "{clues, plural, one {Você acertou com uma pista.} other {Você acertou com # pistas.}}",
+      "wrong": "Desta vez não. É {place}.",
+      "see": "Ver a viagem",
+      "skip": "Pular a adivinhação"
+    },
+    "reveal": {
+      "facts": "{days, plural, one {Um dia} other {# dias}} e {stops, plural, one {# parada} other {# paradas}}.",
+      "factsKm": "{days, plural, one {Um dia} other {# dias}} e {stops, plural, one {# parada} other {# paradas}}, com cerca de {km} km entre elas.",
+      "factsCities": "{days, plural, one {Um dia} other {# dias}}, {cities} cidades e {stops, plural, one {# parada} other {# paradas}}.",
+      "route": "As paradas da viagem, ligadas na ordem do plano"
+    },
+    "day": {
+      "label": "Dia {number}",
+      "in": "em {city}",
+      "more": "{count, plural, one {e mais # parada} other {e mais # paradas}}",
+      "moreDays": "{count, plural, one {E mais # dia no plano completo.} other {E mais # dias no plano completo.}}"
+    },
+    "end": {
+      "title": "Quer uma viagem assim?",
+      "body": "Diga ao planejador para onde e quando, e receba seu próprio plano dia a dia em cerca de 30 segundos. Grátis e sem conta.",
+      "plan": "Planejar minha viagem",
+      "mineTitle": "É isto que seus amigos veem",
+      "mineBody": "Envie o link e deixe que adivinhem para onde você vai.",
+      "copy": "Copiar o link da história",
+      "copied": "Link copiado. Cole em um chat ou em um story."
+    }
   }
 }

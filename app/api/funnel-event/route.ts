@@ -20,8 +20,8 @@ import { writesTelemetry } from "@/lib/analytics/telemetry-env";
 import { readJsonBody } from "@/lib/api/json-body";
 
 // Which "plan your own" button was pressed, so each can be read: on a trip
-// page, a match result, or under a place in a month's guide.
-const PLAN_OWN_SURFACES = ["shared_footer", "public_footer", "public_top", "after_vote", "page_footer", "bottom_bar", "match", "article_place"] as const;
+// page, a match result, under a place in a month's guide, or at the end of a trip's story.
+const PLAN_OWN_SURFACES = ["shared_footer", "public_footer", "public_top", "after_vote", "page_footer", "bottom_bar", "match", "article_place", "story"] as const;
 
 const MATCH_SHARE_METHODS = ["native_image", "native_link", "whatsapp", "copy", "download"] as const;
 
