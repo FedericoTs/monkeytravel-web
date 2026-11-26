@@ -381,7 +381,9 @@
         "stickySaving": "Salvataggio...",
         "stickyHint": "Il viaggio verrà salvato nel tuo account",
         "dismiss": "Chiudi"
-      }
+      },
+      "benefitsTitle": "Porta questo piano con te in viaggio",
+      "benefitsCta": "Salva il mio viaggio, è gratis"
     },
     "anchors": {
       "cta": "Ho già impegni fissi (volo, matrimonio, hotel…)",
