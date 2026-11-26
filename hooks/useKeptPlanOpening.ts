@@ -60,7 +60,7 @@ export function useKeptPlanOpening({
   const [openingKeptPlan, setOpeningKeptPlan] = useState<string | null>(null);
   const [keptPlanGone, setKeptPlanGone] = useState(false);
 
-  const handleOpenKeptPlan = async (token: string, source: "link" | "list") => {
+  const handleOpenKeptPlan = async (token: string, source: "link" | "list" | "card") => {
     setOpeningKeptPlan(token);
     const opened = await openKeptPlan(token);
     setOpeningKeptPlan(null);

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import enTrips from "@/messages/en/trips.json";
 import esTrips from "@/messages/es/trips.json";
@@ -31,19 +31,53 @@ function list(locale: keyof typeof TRIPS, plans: KeptPlanEntry[]) {
 }
 
 describe("KeptPlansList", () => {
+  it("puts the latest plan first, as a card with one button that opens it", () => {
+    const onOpen = vi.fn();
+    render(
+      <NextIntlClientProvider locale="en" messages={{ trips: TRIPS.en }} onError={() => {}}>
+        <KeptPlansList plans={[entry("LATESTxxxxxxxxxxxxxxxx")]} locale="en" opening={null} onOpen={onOpen} />
+      </NextIntlClientProvider>
+    );
+    const card = document.querySelector("[data-kept-plan-card]")!;
+    expect(card.textContent).toContain("Your Tokyo plan");
+    expect(card.textContent).toContain("Apr 2 – Apr 11 · 10 days");
+    fireEvent.click(screen.getByRole("button", { name: "Open my plan" }));
+    expect(onOpen).toHaveBeenCalledWith("LATESTxxxxxxxxxxxxxxxx", "card");
+    expect(screen.queryByText("Your other plans")).toBeNull();
+  });
+
+  it("lists up to two older plans under it, each opened from the list", () => {
+    const onOpen = vi.fn();
+    const plans = [entry("Axxxxxxxxxxxxxxxxxxxxx"), entry("Bxxxxxxxxxxxxxxxxxxxxx", { destination: "Kyoto, Japan" }), entry("Cxxxxxxxxxxxxxxxxxxxxx", { destination: "Osaka, Japan" }), entry("Dxxxxxxxxxxxxxxxxxxxxx", { destination: "Nara, Japan" })];
+    render(
+      <NextIntlClientProvider locale="en" messages={{ trips: TRIPS.en }} onError={() => {}}>
+        <KeptPlansList plans={plans} locale="en" opening={null} onOpen={onOpen} />
+      </NextIntlClientProvider>
+    );
+    expect(screen.getByText("Your other plans")).toBeTruthy();
+    const older = screen.getAllByRole("listitem").map((li) => li.textContent);
+    expect(older).toHaveLength(2);
+    expect(older[0]).toContain("Kyoto");
+    expect(older[1]).toContain("Osaka");
+    fireEvent.click(screen.getAllByRole("listitem")[0].querySelector("button")!);
+    expect(onOpen).toHaveBeenCalledWith("Bxxxxxxxxxxxxxxxxxxxxx", "list");
+  });
+
   it("tells the plan they changed from a newer one for the same trip", () => {
     list("en", [entry("NEWxxxxxxxxxxxxxxxxxxx"), entry("EDITEDxxxxxxxxxxxxxxxx", { changed: true })]);
-    const buttons = screen.getAllByRole("button");
-    expect(buttons[0].textContent).not.toContain("With your changes");
-    expect(buttons[1].textContent).toContain("With your changes");
+    expect(document.querySelector("[data-kept-plan-card]")!.textContent).not.toContain("With your changes");
+    expect(screen.getAllByRole("listitem")[0].textContent).toContain("With your changes");
   });
 
   it.each([
-    ["es", "Con tus cambios"],
-    ["it", "Con le tue modifiche"],
-    ["pt", "Com suas alterações"],
-  ] as const)("says it in %s", (locale, words) => {
+    ["es", "Tu plan para Tokyo", "Abrir mi plan", "Con tus cambios"],
+    ["it", "Il tuo piano per Tokyo", "Apri il mio piano", "Con le tue modifiche"],
+    ["pt", "Seu plano para Tokyo", "Abrir meu plano", "Com suas alterações"],
+  ] as const)("says it in %s", (locale, title, open, changed) => {
     list(locale, [entry("EDITEDxxxxxxxxxxxxxxxx", { changed: true })]);
-    expect(screen.getByRole("button").textContent).toContain(words);
+    const card = document.querySelector("[data-kept-plan-card]")!.textContent;
+    expect(card).toContain(title);
+    expect(card).toContain(changed);
+    expect(screen.getByRole("button").textContent).toBe(open);
   });
 });

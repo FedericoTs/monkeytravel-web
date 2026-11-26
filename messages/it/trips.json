@@ -83,7 +83,9 @@
     "usageLimitDefault": "Hai esaurito le tue generazioni AI gratuite.",
     "yourTripTo": "Il tuo viaggio a",
     "kept": {
-      "yourPlans": "I tuoi piani",
+      "planFor": "Il tuo piano per {place}",
+      "open": "Apri il mio piano",
+      "otherPlans": "I tuoi altri piani",
       "days": "{count, plural, one {# giorno} other {# giorni}}",
       "changed": "Con le tue modifiche",
       "copyLink": "Copia link",
