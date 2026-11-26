@@ -381,7 +381,9 @@
         "stickySaving": "Guardando...",
         "stickyHint": "Tu viaje se guardará en tu cuenta",
         "dismiss": "Cerrar"
-      }
+      },
+      "benefitsTitle": "Llévate este plan a tu viaje",
+      "benefitsCta": "Guardar mi viaje, es gratis"
     },
     "anchors": {
       "cta": "Tengo planes fijos (vuelo, boda, hotel…)",
