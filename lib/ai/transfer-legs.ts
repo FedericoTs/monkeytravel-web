@@ -91,6 +91,11 @@ const ISLANDS = [
 const inBox = (p: LatLng, r: { lat: number[]; lng: number[] }) =>
   p.lat >= r.lat[0] && p.lat <= r.lat[1] && p.lng >= r.lng[0] && p.lng <= r.lng[1];
 
+/** Whether no sea lies between two points that a box of ISLANDS tells apart: both on one island, or both off them. */
+export function onSameLand(a: LatLng, b: LatLng): boolean {
+  return ISLANDS.findIndex((r) => inBox(a, r)) === ISLANDS.findIndex((r) => inBox(b, r));
+}
+
 /** Is the point somewhere trains are the usual way between nearby cities? */
 export function inRailRegion(p: LatLng): boolean {
   return RAIL_REGIONS.some((r) => inBox(p, r));
@@ -296,7 +301,7 @@ function resolveLocale(language?: string): TransferLocale {
  * The middle of a city's places, as many north of it as south and east as
  * west, so one place pinned far away can't move it. Null with no usable pin.
  */
-function middleOf(days: ItineraryDay[]): LatLng | null {
+export function middleOf(days: ItineraryDay[]): LatLng | null {
   const points = days
     .flatMap((day) => day.activities ?? [])
     .map((a) => a.coordinates)
