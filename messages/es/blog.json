@@ -74,6 +74,7 @@
     "inlineCtaButton": "Generar Mi Itinerario",
     "stickyCtaButton": "Planificar Gratis →",
     "planPlace": "Planifica este viaje para {month}",
+    "planPlaceAnyTime": "Planifica este viaje",
     "exploreDestinations": "Explora Estos Destinos",
     "moreFromRegion": "Más de {region}",
     "relatedTools": "Planifica Tu Viaje con AI",
