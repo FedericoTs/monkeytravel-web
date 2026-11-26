@@ -19,6 +19,7 @@
 import type { Activity, ItineraryDay } from "@/types";
 import { isPlaceholderPoint } from "@/lib/trip/placeholder-point";
 import { formatMinutesToTime } from "@/lib/datetime/format";
+import { isDaytimeSight, keepsToTheDay } from "@/lib/trip/day-room";
 
 /**
  * "ground" names no mode: a car, or a hop estimated from distance where trains aren't the usual way. A bus or a
@@ -381,9 +382,16 @@ export function dayWithTransfer(transfer: Activity, activities: Activity[]): Act
 /**
  * dayWithTransfer's day, and the sights it left out for want of a gap: they
  * can go to another day of the city (lib/ai/multi-city-core.ts). A meal left
- * out isn't among them: it belongs to its hour of that day.
+ * out isn't among them: it belongs to its hour of that day. With `daytime`, a
+ * sight only moves to a gap that keeps it in the daytime (in by half past
+ * four, done by six: a fort or a museum shuts by then), else it is left out
+ * too; a show, a night out or a shop still moves into the evening.
  */
-export function arrivalDay(transfer: Activity, activities: Activity[]): { activities: Activity[]; left: Activity[] } {
+export function arrivalDay(
+  transfer: Activity,
+  activities: Activity[],
+  { daytime = false }: { daytime?: boolean } = {}
+): { activities: Activity[]; left: Activity[] } {
   const leave = minutesOf(transfer.start_time) ?? 8 * 60 + 30;
   const arrive = leave + (transfer.duration_minutes || 0) + ARRIVAL_BUFFER_MINUTES;
   const length = (a: Activity) => a.duration_minutes || 60;
@@ -408,7 +416,8 @@ export function arrivalDay(transfer: Activity, activities: Activity[]): { activi
       if (at < end && at + length(a) > start) at = end;
     }
     const meal = MEAL.test(plain(`${a.type} ${a.name}`));
-    if (at + length(a) > MOVED_BY) {
+    const pastTheDay = daytime && !meal && isDaytimeSight(a) && !keepsToTheDay({ ...a, start_time: formatMinutesToTime(at) });
+    if (at + length(a) > MOVED_BY || pastTheDay) {
       if (!meal) left.push(a);
       continue;
     }

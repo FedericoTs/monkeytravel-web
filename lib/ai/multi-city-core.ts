@@ -354,8 +354,8 @@ export function mergeCityItineraries(
     // P4 transport spine v1: an estimated inter-city transfer leg on each
     // leg-boundary morning ("otherwise it's just a list of activities"). See
     // lib/ai/transfer-legs.ts. The day's own plan makes room for it
-    // (arrivalDay), and a sight no gap after arriving holds goes to another
-    // day of the same city that has room (withStopAt) rather than out.
+    // (arrivalDay), and a sight no gap after arriving holds in the daytime goes
+    // to another day of the same city that has room (withStopAt) rather than out.
     if (insertTransfers && i > 0 && own.length > 0) {
       const transfer = buildTransferActivity({
         fromCity: legs[i - 1].city.trim(),
@@ -367,7 +367,7 @@ export function mergeCityItineraries(
         known: opts?.hops?.[i - 1],
       });
       if (transfer.estimated_cost?.currency === currency) transfersCost += transfer.estimated_cost.amount;
-      const arrival = arrivalDay(transfer, own[0].activities ?? []);
+      const arrival = arrivalDay(transfer, own[0].activities ?? [], { daytime: true });
       own[0] = { ...own[0], activities: arrival.activities };
       own = withCarried(own, arrival.left);
     }

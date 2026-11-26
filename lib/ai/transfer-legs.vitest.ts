@@ -534,6 +534,43 @@ describe("a sight the arrival day can't hold", () => {
     expect(merged.days[2].activities.map((a) => a.name)).not.toContain("Taj Mahal");
   });
 
+  it("goes to another day of the city when the only gap after arriving is in the evening: a fort shuts by then", () => {
+    // The train gets in at 11:00; lunch and the Taj Mahal fill the afternoon, so the fort's gap is 17:00 to 19:00.
+    const arrival = [
+      stop("Agra Fort", "landmark", "09:00", 120),
+      stop("Pinch of Spice", "restaurant", "12:30", 60),
+      stop("Taj Mahal", "landmark", "14:00", 180),
+      stop("Esphahan", "restaurant", "19:00", 90),
+    ];
+    const merged = trip([arrival, [stop("Fatehpur Sikri", "landmark", "10:00", 180)]]);
+    expect(timed(merged.days[1])).toEqual(["08:30 Train to Agra", "12:30 Pinch of Spice", "14:00 Taj Mahal", "19:00 Esphahan"]);
+    expect(timed(merged.days[2])).toEqual(["09:00 Agra Fort", "11:20 Fatehpur Sikri"]);
+  });
+
+  it("stays on the arrival day when a gap after arriving keeps it in the daytime", () => {
+    const arrival = [stop("Agra Fort", "landmark", "09:00", 120), stop("Pinch of Spice", "restaurant", "12:30", 60), stop("Esphahan", "restaurant", "19:00", 90)];
+    const merged = trip([arrival, [stop("Fatehpur Sikri", "landmark", "10:00", 180)]]);
+    expect(timed(merged.days[1])).toEqual(["08:30 Train to Agra", "12:30 Pinch of Spice", "13:30 Agra Fort", "19:00 Esphahan"]);
+    expect(timed(merged.days[2])).toEqual(["10:00 Fatehpur Sikri"]);
+  });
+
+  it("still moves a show, a night out or a shop into the evening gap after arriving", () => {
+    const arrival = [
+      stop("Mohabbat the Taj", "entertainment", "09:00", 120),
+      stop("Pinch of Spice", "restaurant", "12:30", 60),
+      stop("Taj Mahal", "landmark", "14:00", 180),
+      stop("Esphahan", "restaurant", "19:00", 90),
+    ];
+    const merged = trip([arrival, [stop("Fatehpur Sikri", "landmark", "10:00", 180)]]);
+    expect(timed(merged.days[1])).toEqual([
+      "08:30 Train to Agra",
+      "12:30 Pinch of Spice",
+      "14:00 Taj Mahal",
+      "17:00 Mohabbat the Taj",
+      "19:00 Esphahan",
+    ]);
+  });
+
   it("is left out when no other day of the city has room, and a meal is never carried", () => {
     // A city of one day: nowhere else to go.
     expect(trip([firstDay()]).days[1].activities.map((a) => a.name)).not.toContain("Taj Mahal");
