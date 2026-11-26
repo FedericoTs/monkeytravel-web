@@ -181,6 +181,16 @@ import { useSessionTripStack } from "@/hooks/useSessionTripStack";
 import { useKeepVisitTrips } from "@/hooks/useKeepVisitTrips";
 import { interestsFromVibes } from "@/lib/wizard/interests";
 import { markVisitToKeep, otherPlacesOfVisit } from "@/lib/wizard/visit-trips";
+import { KeepBothCard } from "@/components/wizard/KeepBothCard";
+import {
+  dismissKeepBoth,
+  firstKeepBothShow,
+  forgetSignInFromCard,
+  keepBothCardShows,
+  keepBothDismissed,
+  markSignInFromCard,
+  takeSignInFromCard,
+} from "@/lib/wizard/keep-both";
 import { useCurrency } from "@/lib/locale";
 import { trackDestinationSelected } from "@/lib/analytics";
 import { captureTripWizardStepCompleted } from "@/lib/posthog/events";
@@ -1010,6 +1020,29 @@ export default function NewTripPage({
   const sessionTrayVisible =
     hasResult && isUnsaved && !autoSaveArmActive && sessionTrips.length >= 2;
 
+  // Signed out with two or more places planned in the tab: the card asks to keep them all (lib/wizard/keep-both.ts),
+  // once a visit, counted once, and its sign-ins told apart on the signed-in return.
+  const visitPlaces = hasResult ? 1 + otherPlacesOfVisit(sessionTrips, { destination, itinerary: generatedItinerary }).length : 0;
+  // Turned down earlier in the tab, read on the first render. The server reads nothing, and the card needs a plan on
+  // screen, which the server never renders, so the two renders agree.
+  const [keepBothTurnedDown, setKeepBothTurnedDown] = useState(keepBothDismissed);
+  const keepBothShows = keepBothCardShows({
+    signedOut: isAuthenticated === false,
+    planOnScreen: hasResult,
+    unsaved: isUnsaved,
+    places: visitPlaces,
+    dismissed: keepBothTurnedDown,
+    boxOpen: showAuthModal,
+  });
+  useEffect(() => {
+    if (keepBothShows && firstKeepBothShow()) void trackWizardEvent("keep_both_shown", { destination, locale });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [keepBothShows]);
+  useEffect(() => {
+    if (isAuthenticated === true && takeSignInFromCard()) void trackWizardEvent("keep_both_signed_in", { destination, locale });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
+
   // A plan on screen and not saved: the save nudges, the leave guard and the
   // exit event (hooks/useUnsavedPlan.ts).
   const { noteEditApplied } = useUnsavedPlan({ hasResult, isUnsaved, sessionTrayVisible, showAuthModal, getGenCount });
@@ -1622,6 +1655,20 @@ export default function NewTripPage({
     const tripsTray = sessionTrayVisible && (
       <SessionTripsTray trips={sessionTrips} currentId={sessionTripCurrentId} onRestore={handleSessionTrayRestore} />
     );
+    const keepBothCard = keepBothShows && (
+      <KeepBothCard
+        places={visitPlaces}
+        onSignIn={() => {
+          markSignInFromCard();
+          openKeepAuth("wizard_keep_both");
+        }}
+        onDismiss={() => {
+          dismissKeepBoth();
+          setKeepBothTurnedDown(true);
+          void trackWizardEvent("keep_both_dismissed", { destination, locale });
+        }}
+      />
+    );
     // Save/generation error, shown here as well as in the form view: without
     // it an authed Save failure on the result looks like a dead button.
     const errorAlert = error && (
@@ -1706,6 +1753,8 @@ export default function NewTripPage({
           onClose={() => {
             setShowAuthModal(false);
             if (authPromptReason === "save") setSaveBoxClosed(true);
+            // Closed without a sign-in: a later one isn't the card's.
+            forgetSignInFromCard();
           }}
           destination={destination}
           location={authPromptLocation}
@@ -1781,9 +1830,10 @@ export default function NewTripPage({
 
         {sky && (
           <>
-            {(tripsTray || errorAlert) && (
+            {(tripsTray || keepBothCard || errorAlert) && (
               <div className="max-w-6xl mx-auto px-4 pt-6">
                 {tripsTray}
+                {keepBothCard}
                 {errorAlert}
               </div>
             )}
@@ -1810,6 +1860,7 @@ export default function NewTripPage({
               sessionTrayVisible: ≥2 stacked trips, current trip unsaved,
               auto-save arm not active. */}
           {!sky && tripsTray}
+          {!sky && keepBothCard}
           {!sky && errorAlert}
           {/* AI assistant — Q&A + day-scoped edits at peak intent. */}
           <div className="mb-8">

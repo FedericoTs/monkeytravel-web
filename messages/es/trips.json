@@ -797,6 +797,13 @@
     "error": "Error al guardar el viaje. Por favor, inténtalo de nuevo.",
     "keptToo": "También guardado en Mis Viajes: {places}"
   },
+  "keepBoth": {
+    "titleTwo": "Guarda los dos viajes",
+    "titleMany": "Guarda los {count} viajes",
+    "body": "Inicia sesión gratis y cada lugar que planeaste hoy se queda en Mis Viajes.",
+    "signIn": "Iniciar sesión gratis",
+    "notNow": "Ahora no"
+  },
   "startOver": {
     "title": "¿Empezar de nuevo?",
     "message": "Esto descartara tu itinerario actual y empezara desde cero.",
