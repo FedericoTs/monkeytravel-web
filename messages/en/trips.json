@@ -786,7 +786,8 @@
     "subtitle": "Create an account to save and access your trip anytime",
     "saving": "Saving your trip...",
     "success": "Trip saved successfully!",
-    "error": "Failed to save trip. Please try again."
+    "error": "Failed to save trip. Please try again.",
+    "keptToo": "Also kept in My Trips: {places}"
   },
   "startOver": {
     "title": "Start Over?",

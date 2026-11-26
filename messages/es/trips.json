@@ -786,7 +786,8 @@
     "subtitle": "Crea una cuenta para guardar y acceder a tu viaje en cualquier momento",
     "saving": "Guardando tu viaje...",
     "success": "¡Viaje guardado exitosamente!",
-    "error": "Error al guardar el viaje. Por favor, inténtalo de nuevo."
+    "error": "Error al guardar el viaje. Por favor, inténtalo de nuevo.",
+    "keptToo": "También guardado en Mis Viajes: {places}"
   },
   "startOver": {
     "title": "¿Empezar de nuevo?",

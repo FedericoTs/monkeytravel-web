@@ -177,6 +177,9 @@ import {
 } from "@/lib/wizard/generation-failure";
 // Session generation counter + per-session trip stack.
 import { useSessionTripStack } from "@/hooks/useSessionTripStack";
+import { useKeepVisitTrips } from "@/hooks/useKeepVisitTrips";
+import { interestsFromVibes } from "@/lib/wizard/interests";
+import { markVisitToKeep, otherPlacesOfVisit } from "@/lib/wizard/visit-trips";
 import { useCurrency } from "@/lib/locale";
 import { trackDestinationSelected } from "@/lib/analytics";
 import { captureTripWizardStepCompleted } from "@/lib/posthog/events";
@@ -233,18 +236,6 @@ import { isChosenTripIntent } from "@/lib/wizard/answers";
 
 // Upper bound for the wizard start date (see lib/dates/iso-date.ts).
 const MAX_TRIP_START_DATE = maxTripStartDate();
-
-// Vibe to interests mapping - automatically derives interests from selected vibes
-// This ensures the AI receives relevant interest signals based on vibe selection
-// Streamlined to 6 core vibes for cleaner UX
-const VIBE_TO_INTERESTS: Record<string, string[]> = {
-  adventure: ["adventure", "nature", "photography"],
-  cultural: ["culture", "history", "art"],
-  foodie: ["food", "culture"],
-  romantic: ["relaxation", "photography"],
-  nature: ["nature", "photography", "adventure"],
-  urban: ["nightlife", "shopping", "art"],
-};
 
 // Popular-destination pills for step 1: the most-planned destinations on the
 // platform plus two seasonal favourites (Santorini, Lisbon). Keep the list
@@ -931,6 +922,8 @@ export default function NewTripPage({
     if (generatedItinerary) {
       saveDraft({ generatedItinerary, ...answers });
     }
+    // The visit's other places are kept too once they sign in (lib/wizard/visit-trips.ts).
+    markVisitToKeep(otherPlacesOfVisit(sessionTrips, { destination, itinerary: generatedItinerary }).map((trip) => trip.id));
     setAuthPromptLocation(location);
     setAuthPromptReason("save");
     setShowAuthModal(true);
@@ -995,6 +988,9 @@ export default function NewTripPage({
     setLoading,
     setError,
   });
+
+  // After a sign-in from the save box, the visit's other places follow the plan on screen into the account.
+  useKeepVisitTrips({ trips: sessionTrips, userId: authUser?.id ?? null, currentSaved: Boolean(savedTripId), locale });
 
   // ── Unsaved-state derivation + nudge/exit instrumentation ────────────────
   const hasResult = Boolean(generatedItinerary);
@@ -1159,13 +1155,7 @@ export default function NewTripPage({
   // Declared as a `function` (not `const` arrow) so it's hoisted and
   // can be called by the auto-save hook setup that lives further up.
   function deriveInterestsFromVibes(): string[] {
-    const interestSet = new Set<string>();
-    selectedVibes.forEach((vibe) => {
-      // TripVibe is a string type, use directly as key
-      const interests = VIBE_TO_INTERESTS[vibe] || [];
-      interests.forEach((interest) => interestSet.add(interest));
-    });
-    return Array.from(interestSet);
+    return interestsFromVibes(selectedVibes);
   }
 
   // The 21-day ceiling only holds when the request ACTUALLY fans out per city.
