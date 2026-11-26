@@ -66,7 +66,7 @@ import {
 import { alsoInTheirCity, daysOfCity, keepDayCities, placesAway, withoutPlacesAway, type PlacesAway } from "./city-days";
 import { keepRides } from "./rides";
 import { dropLeftoverMeals } from "./leftover-meals";
-import { type TravelTime, readTravelTimes, toldTravelTimes, outsideTravelTimes, minutesOf, keepDepartureTime, withPlanDeparture } from "./travel-times";
+import { type TravelTime, readTravelTimes, toldTravelTimes, outsideTravelTimes, fitTravelTimes, minutesOf, keepDepartureTime, withPlanDeparture } from "./travel-times";
 import { composeReply, type PlaceOnDay } from "./edit-reply";
 import { maxTripDays } from "./structural";
 import { offeredAgain } from "./ideas-rule";
@@ -1076,8 +1076,13 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
     tripLength = firstMissing - 1 > current ? firstMissing - 1 : undefined;
     lengthRefused = tripLength === undefined;
   }
-  // Rarely, a changed day still doesn't fit an arrival or a departure after
-  // the correction: the reply says so rather than leave it for the airport.
+  // A changed day that still plans past a time the traveller gave, after the
+  // correction, is held to it here, and the reply says what moved, was cut or
+  // came out. The plan's own way home is only its guess at when they leave: a
+  // day that still plans past it, or anything else that can't fit, is named,
+  // rather than left for the airport.
+  const held = fitTravelTimes(edits, outcome.travelTimes);
+  edits = held.edits;
   const outsideTimes = outsideTravelTimes(edits, withPlanDeparture(outcome.travelTimes, input.days));
   // A list that still came back short says what's missing, whatever the reply claims.
   const listMissing = daysLeft.length === 0 ? missingFromList(input, edits) : [];
@@ -1103,6 +1108,7 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
     daysLeft,
     notAdded,
     outsideTimes,
+    timesFitted: held.fits,
     askedForMoreDays: asksForMoreDays(input.message, input.days.length),
     // Unless they asked for something to go for good: a swap can take out more than they named.
     takenOut: input.explainRemovals && !asksToTakeOut(input.message) ? takenOut(input.days, edits) : [],

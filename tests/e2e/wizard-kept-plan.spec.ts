@@ -17,6 +17,8 @@ import draft from "./fixtures/wizard-draft-paris.json";
 const LINKED = "L".repeat(22);
 const LISTED = "M".repeat(22);
 const EXPIRED = "X".repeat(22);
+/** A plan whose dates were chosen, a month out: its email card may offer reminders. */
+const DATED = "R".repeat(22);
 const EXPIRES = "2099-01-01T00:00:00.000Z";
 const KEPT_KEY = "mt_kept_plans";
 
@@ -35,6 +37,8 @@ const plan = {
   mustDos: ["Musée d'Orsay at opening"],
   dietary: ["vegetarian"],
 };
+const dayFromNow = (days: number) => new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
+const datedPlan = { ...plan, flexibleDates: false, startDate: dayFromNow(40), endDate: dayFromNow(42) };
 const ANSWERS = [
   "destination", "startDate", "endDate", "pace", "vibes", "budgetTier",
   "travelStyle", "tripIntent", "flexibleDates", "mustDos", "dietary",
@@ -68,8 +72,13 @@ async function isolate(page: Page) {
       return route.abort();
     }
     if (url.pathname.endsWith("/email") && url.pathname.startsWith("/api/plans/")) {
-      plans.emailed.push({ token: url.pathname.split("/")[3], ...req.postDataJSON() });
-      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ sent: true }) });
+      const asked = req.postDataJSON();
+      plans.emailed.push({ token: url.pathname.split("/")[3], ...asked });
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ sent: true, reminder: asked.remind === true }),
+      });
     }
     if (url.pathname === "/api/plans" || url.pathname.startsWith("/api/plans/")) {
       if (req.method() !== "GET") {
@@ -80,7 +89,11 @@ async function isolate(page: Page) {
       plans.reads.push(token);
       return token === EXPIRED
         ? route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ error: "Not found" }) })
-        : route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ plan, expiresAt: EXPIRES }) });
+        : route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: JSON.stringify({ plan: token === DATED ? datedPlan : plan, expiresAt: EXPIRES }),
+          });
     }
     if (/^\/api\/(wizard-event|consent-event|page-engaged|page-view|session)/.test(url.pathname)) {
       return route.fulfill({ status: 204, body: "" });
@@ -207,11 +220,57 @@ test.describe("wizard: a kept plan", () => {
     await expect(wall).toHaveCount(0);
 
     await expect(card).toBeVisible();
+    // Its dates were pencilled in, not chosen: no reminders to offer.
+    await expect(card.getByRole("checkbox")).toHaveCount(0);
     await card.getByLabel("Your email").fill("ana@example.com");
     await card.getByRole("button", { name: "Send" }).click();
     await expect(card.getByRole("status")).toContainText("Sent to ana@example.com");
     expect(plans.emailed).toEqual([{ token: LINKED, email: "ana@example.com", locale: "en" }]);
     expect(plans.writes).toEqual([]);
+  });
+
+  test("a plan with chosen dates offers reminders before the trip, asked for only with the tick", async ({ page }) => {
+    const plans = await isolate(page);
+    await page.goto(`/trips/new#plan=${DATED}`);
+    await expectPlanShown(page);
+    await dismissConsent(page);
+
+    await page.getByRole("button", { name: /Save Trip/ }).filter({ visible: true }).first().click();
+    const wall = page.getByRole("dialog").filter({ hasText: /continue with google/i });
+    await expect(wall).toBeVisible({ timeout: 5_000 });
+    await wall.getByRole("button", { name: "Close modal" }).click();
+
+    const card = page.getByRole("region", { name: /remind you before the trip/ });
+    await expect(card).toBeVisible();
+    const box = card.getByRole("checkbox", { name: /a week before and one the day before/ });
+    await expect(box).not.toBeChecked();
+    await box.check();
+    await card.getByLabel("Your email").fill("ana@example.com");
+    await card.getByRole("button", { name: "Send" }).click();
+    await expect(card.getByRole("status")).toContainText("We'll remind you before the trip");
+    expect(plans.emailed).toEqual([{ token: DATED, email: "ana@example.com", locale: "en", remind: true }]);
+    expect(plans.writes).toEqual([]);
+  });
+
+  test("the benefits arm says at the plan's end what keeping it gives, and its button opens the save box", async ({ page }) => {
+    await isolate(page);
+    await page.goto(`/trips/new?exp_save_box_benefits=benefits#plan=${LINKED}`);
+    await expectPlanShown(page);
+    await dismissConsent(page);
+    const card = page.getByRole("region", { name: "Take this plan on your trip" });
+    await expect(card).toBeVisible();
+    await expect(card.getByRole("listitem")).toHaveCount(3);
+    await card.getByRole("button", { name: "Save my trip, it's free" }).click();
+    const wall = page.getByRole("dialog").filter({ hasText: /continue with google/i });
+    await expect(wall).toBeVisible({ timeout: 5_000 });
+    await expect(wall.getByText("Each trip day, that day's plan by email")).toBeVisible();
+  });
+
+  test("outside the benefits arm, the plan ends as it did", async ({ page }) => {
+    await isolate(page);
+    await page.goto(`/trips/new#plan=${LINKED}`);
+    await expectPlanShown(page);
+    await expect(page.getByRole("region", { name: "Take this plan on your trip" })).toHaveCount(0);
   });
 
   test("the plan's link can be asked for by email without opening the save box", async ({ page }) => {

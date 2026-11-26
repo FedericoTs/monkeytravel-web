@@ -23,6 +23,7 @@ import {
   tripCapReply,
   type TripSpan,
   travelTimesNote,
+  travelTimesFitNotes,
   notAppliedLead,
   claimsItineraryChange,
   lengthUnchangedNote,
@@ -43,7 +44,7 @@ import { currencySwitchedNote, withoutCurrencyTalk } from "@/lib/ai/assistant/cu
 import type { PlacesAway } from "./city-days";
 import type { DayEdit } from "./edit-validation";
 import { nameTokens, ownWords, sameWord } from "./saved-activities";
-import type { OutsideTravelTimes } from "./travel-times";
+import type { OutsideTravelTimes, TravelTimesFit } from "./travel-times";
 
 /** A place, and the day of the plan that has it. */
 export type PlaceOnDay = { name: string; day: number };
@@ -89,6 +90,8 @@ export function composeReply(p: {
   notAdded?: number[];
   /** Changed days that still plan past an arrival or a departure. */
   outsideTimes?: OutsideTravelTimes[];
+  /** Changed days held to an arrival or a departure in code: what moved, was cut or came out. */
+  timesFitted?: TravelTimesFit[];
   /** The traveller asked for a longer trip. */
   askedForMoreDays?: boolean;
   /** Activities the change takes out that the traveller didn't ask to remove. */
@@ -192,6 +195,7 @@ export function composeReply(p: {
   if (uncovered.length > 0 && covered.length > 0) text = `${text} ${uncoveredDaysNote(locale, covered, uncovered)}`;
   if (left.length > 0) text = `${text} ${daysLeftNote(locale, left)}`;
   if (notAdded.length > 0) text = `${text} ${daysNotAddedNote(locale, notAdded)}`;
+  for (const fit of p.timesFitted ?? []) for (const line of travelTimesFitNotes(locale, fit)) text = `${text} ${line}`;
   for (const v of p.outsideTimes ?? []) text = `${text} ${travelTimesNote(locale, v)}`;
   // A reply that gives the trip more days than the change leaves it ("I've
   // updated your trip to have 16 days" on 14 days) says so too.

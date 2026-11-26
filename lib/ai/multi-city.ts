@@ -14,10 +14,10 @@ import type { GeneratedItinerary, TripCreationParams } from "@/types";
 import { generateItinerary } from "@/lib/gemini";
 import { knownPlacesFor } from "./known-places";
 import { askForTransfers } from "./transfer-question";
-import { answeredTransfer } from "./transfer-legs";
+import { answeredTransfer, rideIn } from "./transfer-legs";
 import { cityPointsFor } from "./city-points";
 import { curatedPointFor } from "./place-point";
-import { unmirroredCities } from "./mirrored-cities";
+import { namesakesElsewhere, unmirroredCities } from "./mirrored-cities";
 import { daylightFor } from "./daylight";
 import { whatsOn } from "./whats-on";
 import {
@@ -44,6 +44,19 @@ export interface TransfersReport {
   hops: number;
   answered: number;
   used: number;
+}
+
+/** A city with its country named: "kochi, India" from the table's code, or the curated destination's country. */
+function withCountry(city: string, country: string): string {
+  let name = country;
+  if (/^[A-Z]{2}$/.test(country)) {
+    try {
+      name = new Intl.DisplayNames(["en"], { type: "region" }).of(country) ?? country;
+    } catch {
+      // The code as it is.
+    }
+  }
+  return `${city.trim()}, ${name}`;
 }
 
 /**
@@ -82,6 +95,9 @@ export async function generateMultiCityItinerary(
     const cityEnd = addDaysISO(tripStartDate, cursor + leg.nights - 1);
     cursor += leg.nights;
     const daylight = daylightFor(points[i], cityStart, cityEnd);
+    // A later city's first day begins with the ride from the city before: its plan starts when the ride gets in,
+    // instead of planning a whole day whose morning the ride then takes (lib/ai/transfer-legs.ts arrivalDay).
+    const ride = i > 0 ? rideIn(points[i - 1] ?? null, points[i] ?? null) : null;
     // Each city's plan knows the whole route: a name that fits several places
     // (Córdoba, Mérida) or a misspelled one means the one on it. And what is on
     // there on its own dates (lib/ai/whats-on.ts).
@@ -93,6 +109,7 @@ export async function generateMultiCityItinerary(
       endDate: cityEnd,
       ...(daylight ? { daylight } : {}),
       whatsOn: whatsOn(points[i], cityStart, cityEnd),
+      ...(ride ? { arrivesBy: { from: legs[i - 1].city.trim(), ...ride } } : {}),
     };
   });
 
@@ -114,6 +131,19 @@ export async function generateMultiCityItinerary(
       returns.map(async ({ index, earlier }) => {
         perCityParams[index] = { ...perCityParams[index], alreadyPlanned: earlier };
         results[index] = await generate(perCityParams[index], index);
+      }),
+    );
+  }
+
+  // A city planned at a namesake on another continent ("kochi" in Japan on a trip through Kerala, though each city's
+  // plan knows the whole route) is asked once more with its country named: the route's points know which it is.
+  const elsewhere = namesakesElsewhere(results, points);
+  if (elsewhere.length > 0) {
+    console.warn(`[multi-city] planned at a namesake elsewhere, asked again: ${elsewhere.map((i) => cities[i]).join(", ")}`);
+    await Promise.all(
+      elsewhere.map(async (i) => {
+        perCityParams[i] = { ...perCityParams[i], destination: withCountry(legs[i].city, points[i]!.country!) };
+        results[i] = await generate(perCityParams[i], i);
       }),
     );
   }

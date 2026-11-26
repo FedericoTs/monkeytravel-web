@@ -2746,7 +2746,23 @@
     "intro": "Ecco il link al piano che hai creato. Si apre su qualsiasi dispositivo e resta disponibile per 30 giorni dall'ultima apertura.",
     "cta": "Apri il mio piano",
     "footerReason": "Ci hai chiesto di inviartelo, e non ti scriveremo più su questo.",
-    "footerLink": "Informativa sulla privacy"
+    "footerLink": "Informativa sulla privacy",
+    "introReminder": "Ecco il link al piano che hai creato. Si apre su qualsiasi dispositivo e resta disponibile fino a due settimane dopo il viaggio.",
+    "reminderLineWeek": "Ti scriveremo di nuovo una settimana prima del viaggio e il giorno prima.",
+    "reminderLineDay": "Ti scriveremo di nuovo il giorno prima del viaggio.",
+    "footerReasonReminder": "Ci hai chiesto questo piano e dei promemoria prima del viaggio: sono le uniche email che ti invieremo.",
+    "footerLinkReminder": "Interrompi i promemoria"
+  },
+  "planReminderEmail": {
+    "weekHeading": "{destination} si avvicina",
+    "weekHeadingNoPlace": "Il tuo viaggio si avvicina",
+    "weekIntro": "Il tuo piano è pronto per il viaggio. Ricontrollalo, cambia quello che vuoi e prenota ciò che va prenotato.",
+    "dayHeading": "{destination}, domani",
+    "dayHeadingNoPlace": "Il tuo viaggio inizia domani",
+    "dayIntro": "Ecco il tuo piano per il viaggio. Buon viaggio!",
+    "cta": "Apri il mio piano",
+    "footerReason": "Ci hai chiesto di ricordartelo prima di questo viaggio. Cancelliamo il tuo indirizzo quando inizia.",
+    "footerLink": "Interrompi i promemoria"
   },
   "liveStats": {
     "title": "In diretta dal pianificatore",

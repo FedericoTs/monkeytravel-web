@@ -17,6 +17,8 @@ const SEOUL = { lat: 37.5665, lng: 126.978 };
 
 const MARKETS = /Christmas markets are open/;
 const AFTER = /Most Christmas markets close on 23 or 24 December/;
+const NEW_YEAR = /^31 December is New Year's Eve: .*from about 23:00 to 00:30, as a stop of type 'event'/;
+const SYDNEY = { lat: -33.8688, lng: 151.2093 };
 
 describe("whatsOn", () => {
   it("tells a December trip in Europe that the Christmas markets are open", () => {
@@ -32,7 +34,11 @@ describe("whatsOn", () => {
     expect(whatsOn(PRAGUE, "2026-11-16", "2026-11-20")).toEqual([]);
     expect(whatsOn(PRAGUE, "2026-11-20", "2026-11-21")[0]).toMatch(MARKETS);
     expect(whatsOn(PRAGUE, "2026-12-23", "2026-12-23")).toHaveLength(1);
-    expect(whatsOn(PRAGUE, "2026-11-01", "2026-12-31")).toHaveLength(2);
+    expect(whatsOn(PRAGUE, "2026-11-01", "2026-12-31")).toEqual([
+      expect.stringMatching(MARKETS),
+      expect.stringMatching(AFTER),
+      expect.stringMatching(NEW_YEAR),
+    ]);
   });
 
   it("warns that most close at Christmas, from 24 December to 6 January", () => {
@@ -44,6 +50,20 @@ describe("whatsOn", () => {
     expect(across).toHaveLength(2);
     expect(across[0]).toMatch(MARKETS);
     expect(across[1]).toMatch(AFTER);
+  });
+
+  it("tells a trip over 31 December, anywhere, to see the New Year in where the place celebrates it", () => {
+    expect(whatsOn(BANGKOK, "2026-12-29", "2027-01-02")).toEqual([expect.stringMatching(NEW_YEAR)]);
+    expect(whatsOn(SYDNEY, "2026-12-31", "2026-12-31")).toEqual([expect.stringMatching(NEW_YEAR)]);
+    expect(whatsOn(NEW_YORK, "2027-12-30", "2028-01-01")).toEqual([expect.stringMatching(NEW_YEAR)]);
+    expect(whatsOn(PRAGUE, "2026-12-28", "2027-01-02")).toEqual([expect.stringMatching(AFTER), expect.stringMatching(NEW_YEAR)]);
+    // The dinner before it is booked ahead, and the next morning starts late.
+    expect(whatsOn(SEOUL, "2026-12-31", "2027-01-01")[0]).toMatch(/after dinner.*book ahead.*1 January starts late/);
+  });
+
+  it("says nothing of New Year's Eve to a trip that ends before it or starts after it", () => {
+    expect(whatsOn(BANGKOK, "2026-12-27", "2026-12-30")).toEqual([]);
+    expect(whatsOn(BANGKOK, "2027-01-01", "2027-01-04")).toEqual([]);
   });
 
   it("holds in any year", () => {

@@ -9,6 +9,10 @@ const trip = (over: Partial<TripCreationParams> = {}) =>
 
 describe("cachePolicy", () => {
   // The shared pool is keyed without dates: a plan told the Christmas markets are open would answer a July trip.
+  it("counts a route city told when its ride gets in as tailored: the shared plans have no arrival", () => {
+    expect(cachePolicy(trip({ arrivesBy: { from: "London", mode: "train", at: "13:15" } }), false, 3).tailored).toBe(true);
+  });
+
   it("counts a plan told what's on at its dates as tailored", () => {
     expect(cachePolicy(trip({ whatsOn: ["Christmas markets are open."] }), false, 3).tailored).toBe(true);
     expect(cachePolicy(trip({ whatsOn: [] }), false, 3).tailored).toBe(false);

@@ -95,6 +95,10 @@ function wrapTables(html: string): string {
 const LOCALES = ["en", "es", "it", "pt"] as const;
 const DEFAULT_LOCALE = "en";
 const ALREADY_PREFIXED = new RegExp(`^/(${LOCALES.join("|")})(/|$)`);
+/** One of our own pages written as a full address ("https://monkeytravel.app", "https://www.monkeytravel.app/x"). */
+const OWN_SITE = /href="https?:\/\/(?:www\.)?monkeytravel\.app(\/[^"]*)?"/g;
+/** A file rather than a page (an image, a feed): it keeps its full address. */
+const FILE_LIKE = /\.[a-z0-9]{2,5}(?:[?#]|$)/i;
 
 /**
  * Locale-prefix root-relative links inside rendered post HTML.
@@ -116,16 +120,24 @@ const ALREADY_PREFIXED = new RegExp(`^/(${LOCALES.join("|")})(/|$)`);
  * skips anything that already starts with a locale segment rather than
  * prefixing blindly.
  *
- * Only root-relative hrefs are touched. Every root-relative target in the blog
- * is an app route (/blog, /trips, /destinations, /tools, the planner pages, and
- * "/"), so there is nothing asset-like to mis-prefix; external, anchor,
- * mailto and protocol-relative hrefs are all left alone.
+ * Root-relative hrefs are touched, and our own pages written as full addresses
+ * ("[MonkeyTravel](https://monkeytravel.app)" sent every es/it/pt reader to the
+ * English home page), which become root-relative first; files keep their full
+ * address. Every root-relative target in the blog is an app route (/blog,
+ * /trips, /destinations, /tools, the planner pages, and "/"), so there is
+ * nothing asset-like to mis-prefix; external, anchor, mailto and
+ * protocol-relative hrefs are all left alone.
  */
 function localizeInternalLinks(rendered: string, locale: string): string {
   if (locale === DEFAULT_LOCALE) return rendered;
   if (!(LOCALES as readonly string[]).includes(locale)) return rendered;
 
-  return rendered.replace(/href="(\/[^"]*)"/g, (match, href: string) => {
+  const own = rendered.replace(OWN_SITE, (match, path: string | undefined) => {
+    const target = path ?? "/";
+    if (target.startsWith("/api/") || target.startsWith("/_next/") || FILE_LIKE.test(target)) return match;
+    return `href="${target}"`;
+  });
+  return own.replace(/href="(\/[^"]*)"/g, (match, href: string) => {
     // Protocol-relative (//host/path) is external despite the leading slash.
     if (href.startsWith("//")) return match;
     // Idempotent: leave links that already carry a locale segment.

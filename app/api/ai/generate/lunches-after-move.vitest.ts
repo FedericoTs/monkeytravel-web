@@ -77,6 +77,9 @@ const plan = () => ({
 vi.mock("@/lib/gemini", () => ({ generateItinerary: async () => plan() }));
 vi.mock("@/lib/ai/multi-city", () => ({ validateLegs: () => {}, generateMultiCityItinerary: async () => plan() }));
 const lunchQuestions: string[] = [];
+// Where the lunch answered is: by the museum, unless a test moves it.
+const BY_THE_MUSEUM = { lat: 37.3925, lng: -5.9958 };
+let lunchAt = BY_THE_MUSEUM;
 vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/ai/gemini-call")>()),
   genAI: {
@@ -87,7 +90,7 @@ vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
         });
         if (question.startsWith("Name one real restaurant for lunch")) {
           lunchQuestions.push(question);
-          return reply({ lunches: [{ n: 1, name: "La Azotea", description: "Modern Andalusian.", location: "Feria", coordinates: { lat: 37.3925, lng: -5.9958 } }] });
+          return reply({ lunches: [{ n: 1, name: "La Azotea", description: "Modern Andalusian.", location: "Feria", coordinates: lunchAt }] });
         }
         if (question.startsWith("Name one real restaurant for dinner")) return reply({ dinners: [] });
         const museum = question.split("\n").find((line) => line.includes("Bellas Artes"));
@@ -116,6 +119,7 @@ const plannedDays = async () => {
 beforeEach(() => {
   logged.length = 0;
   lunchQuestions.length = 0;
+  lunchAt = BY_THE_MUSEUM;
   days = [SATURDAY, SUNDAY, MONDAY];
   vi.spyOn(console, "log").mockImplementation(() => {});
 });
@@ -127,6 +131,13 @@ describe("the JSON route, when the closing days move a day into the middle of th
     expect(lunchQuestions).toHaveLength(2);
     expect(lunchQuestions[0]).toContain("1. Seville, Spain, 2026-11-29: lunch at 12:00, after Museo de Bellas Artes");
     expect(logged.find((row) => row.status === 200)?.metadata?.lunches).toEqual({ missing: 1, added: 1, after_move: 1 });
+  });
+
+  it("logs why the moved day is still without lunch: here the answer is in Cádiz, far from the museum", async () => {
+    lunchAt = { lat: 36.5298, lng: -6.2924 };
+    const out = await plannedDays();
+    expect(out[1]).toBe("2026-11-29: 10:00 Museo de Bellas Artes, 14:30 Metropol Parasol");
+    expect(logged.find((row) => row.status === 200)?.metadata?.lunches).toEqual({ missing: 1, added: 0, after_move: 1, left: { far: 1 } });
   });
 
   it("asks a day without lunch once when it doesn't move", async () => {

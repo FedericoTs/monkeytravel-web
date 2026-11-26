@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { GeneratedItinerary } from "@/types";
-import { apartFromTheRest, besideOneOf, unmirroredCities } from "./mirrored-cities";
+import { apartFromTheRest, besideOneOf, namesakesElsewhere, unmirroredCities } from "./mirrored-cities";
 
 /** A city's plan: one day per list of [name, lat, lng] stops. */
 const city = (...days: Array<Array<[string, number, number]>>): GeneratedItinerary =>
@@ -118,6 +118,26 @@ describe("unmirroredCities", () => {
     // Turned, the city lands 900 km from the other: not beside it.
     const far = city([["C", 34.82, 121.7]]);
     expect(unmirroredCities([sedona, far], [null, { lat: 34.82, lng: -121.7 }]).turned).toEqual([]);
+  });
+});
+
+describe("namesakesElsewhere", () => {
+  const INDIA_KOCHI = { lat: 9.93, lng: 76.26, country: "IN" };
+  const kochiJapan = city([["Kochi Castle", 33.56, 133.53], ["Hirome Market", 33.56, 133.54]]);
+  const kochiIndia = city([["Fort Kochi Beach", 9.96, 76.24]]);
+
+  it("is a city whose stops sit thousands of kilometres from its own point", () => {
+    expect(namesakesElsewhere([kochiJapan, kochiIndia], [INDIA_KOCHI, INDIA_KOCHI])).toEqual([0]);
+    // 2,000 km north of it, and no mirror of it.
+    expect(namesakesElsewhere([city([["Far", 27.93, 76.26]])], [INDIA_KOCHI])).toEqual([0]);
+  });
+
+  it("isn't a city near its point, one with no point or no country, or one at its mirror image", () => {
+    expect(namesakesElsewhere([kochiIndia], [INDIA_KOCHI])).toEqual([]);
+    expect(namesakesElsewhere([city([["Near", 18.93, 76.26]])], [INDIA_KOCHI])).toEqual([]);
+    expect(namesakesElsewhere([kochiJapan], [null])).toEqual([]);
+    expect(namesakesElsewhere([kochiJapan], [{ lat: 9.93, lng: 76.26 }])).toEqual([]);
+    expect(namesakesElsewhere([flagstaff], [{ ...FLAGSTAFF, country: "US" }])).toEqual([]);
   });
 });
 

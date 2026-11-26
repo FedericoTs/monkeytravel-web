@@ -143,6 +143,7 @@ import { useScrollTopOnNewPlan } from "@/hooks/useScrollTopOnNewPlan";
 import { useKeptPlanOpening } from "@/hooks/useKeptPlanOpening";
 import { usePlanPhotos } from "@/hooks/usePlanPhotos";
 import type { KeptPlan } from "@/lib/plans/kept-plan";
+import { reminderKind, utcToday } from "@/lib/plans/plan-reminder-dates";
 // Step-1 editorial entry; see lib/wizard/entry-state.ts for the arrival model.
 import WizardMasthead from "@/components/wizard/WizardMasthead";
 import type { OneTapPlace } from "@/components/wizard/OneTapStarts";
@@ -214,6 +215,7 @@ import { shouldAutoSave } from "@/lib/trips/autoSaveGate";
 import { useSameTripCheck } from "@/hooks/useSameTripCheck";
 import SameTripPrompt from "@/components/wizard/SameTripPrompt";
 import ResultActionBars from "@/components/wizard/ResultActionBars";
+import { SaveBenefitsCard } from "@/components/wizard/SaveBenefitsCard";
 import ResultItinerary, { MAP_SECTION_ID, ResultOverview } from "@/components/wizard/ResultItinerary";
 import SkyPlan from "@/components/sky/SkyPlan";
 import { assignSky, syncSkyArm, type SkyAssignment } from "@/lib/experiments/result-sky";
@@ -1004,6 +1006,11 @@ export default function NewTripPage({
 
   // ── Unsaved-state derivation + nudge/exit instrumentation ────────────────
   const hasResult = Boolean(generatedItinerary);
+  // The save test's arms first differ on the plan a signed-out planner sees (the benefits arm says what keeping it
+  // gives, at its end): counted from there, once.
+  useEffect(() => {
+    if (hasResult && isAuthenticated === false) reportExposure(SAVE_BOX_BENEFITS, saveBoxTest);
+  }, [hasResult, isAuthenticated, saveBoxTest]);
   // The tray's restore-swap must never run while the auto-save arm is live:
   // useAutoSaveTrip's effect would UPDATE the persisted row with a DIFFERENT
   // trip's content on swap (verified in hooks/useAutoSaveTrip.ts persist()).
@@ -1809,6 +1816,7 @@ export default function NewTripPage({
           isUnsaved={isUnsaved}
           keptPlan={keptPlan}
           offerPlanEmail={saveBoxClosed}
+          planReminder={reminderKind(startDate, utcToday(), flexibleDates)}
           saving={loading || claimingSharedPlan}
           onSave={handleSaveTrip}
           onStartOver={() => setShowStartOverModal(true)}
@@ -1916,6 +1924,10 @@ export default function NewTripPage({
               loading={loading}
               onAskAssistant={askAssistant}
             />
+          )}
+
+          {saveBoxTest.arm === "benefits" && isAuthenticated === false && isUnsaved && !savedTripId && (
+            <SaveBenefitsCard onSave={handleSaveTrip} saving={loading || claimingSharedPlan} />
           )}
 
           <AiDisclaimer title={t("wizard.result.aiVerifiedTitle")} className="mt-10">
