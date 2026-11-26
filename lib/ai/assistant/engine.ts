@@ -112,6 +112,11 @@ type Outcome = ReturnType<typeof validateEdits> & {
   route: RouteStop[];
 };
 
+/** What they ask: the message, and the one a "yes" answers. */
+function askedNow(input: AssistInput): string {
+  return [input.message, [...(input.history ?? [])].reverse().find((t) => t.role === "user")?.text ?? ""].join("\n");
+}
+
 /** The model's JSON, as the reply and checked edits this engine works with. */
 function readOutcome(input: AssistInput, obj: Record<string, unknown>, cur: string): Outcome {
   const reply = plainText(str(obj.reply, "").trim());
@@ -125,10 +130,8 @@ function readOutcome(input: AssistInput, obj: Record<string, unknown>, cur: stri
     asksForFreeDay(input.message) || asksForFreeDay([...(input.history ?? [])].reverse().find((t) => t.role === "user")?.text ?? ""),
   );
   const told = [input.message, ...(input.history ?? []).slice(-4).filter((t) => t.role === "user").map((t) => t.text)].join("\n");
-  // Asked now, or in the message a "yes" answers.
-  const asked = [input.message, [...(input.history ?? [])].reverse().find((t) => t.role === "user")?.text ?? ""].join("\n");
   const cityEdits = keepDayCities(input.days, keepSavedActivities(input.days, checked.edits, { reply, message: input.message }), told);
-  const edits = keepDepartureTime(input.days, keepRides(input.days, dropLeftoverMeals(input.days, cityEdits, { reply, asked }), asked), input.message);
+  const edits = keepDepartureTime(input.days, keepRides(input.days, cityEdits, askedNow(input)), input.message);
   // The other days the change concerns, past what one reply holds.
   const length = checked.tripLength ?? input.days.length;
   const done = new Set(edits.map((e) => e.day_number));
@@ -907,8 +910,10 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   }
   // The edits as they stand, with the places of another city that a reply or
   // part still put on a day taken off it (`away`).
+  // Meals a reply says it took out, judged on the whole change: a long one comes in parts, and a part sees only its days.
+  const mealTalk = { reply, asked: askedNow(input) };
   const settle = (list: DayEdit[]): { edits: DayEdit[]; away: PlacesAway[] } => {
-    let kept = list;
+    let kept = dropLeftoverMeals(input.days, list, mealTalk);
     // Told to keep everything, a day that takes something out isn't part of the
     // change, whichever reply or part made it: what it added is named as missing.
     if (keepAll) {
