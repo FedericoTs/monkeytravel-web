@@ -1023,8 +1023,9 @@ export default function NewTripPage({
   // Signed out with two or more places planned in the tab: the card asks to keep them all (lib/wizard/keep-both.ts),
   // once a visit, counted once, and its sign-ins told apart on the signed-in return.
   const visitPlaces = hasResult ? 1 + otherPlacesOfVisit(sessionTrips, { destination, itinerary: generatedItinerary }).length : 0;
-  const [keepBothTurnedDown, setKeepBothTurnedDown] = useState(false);
-  useEffect(() => setKeepBothTurnedDown(keepBothDismissed()), []);
+  // Turned down earlier in the tab, read on the first render. The server reads nothing, and the card needs a plan on
+  // screen, which the server never renders, so the two renders agree.
+  const [keepBothTurnedDown, setKeepBothTurnedDown] = useState(keepBothDismissed);
   const keepBothShows = keepBothCardShows({
     signedOut: isAuthenticated === false,
     planOnScreen: hasResult,
