@@ -45,7 +45,7 @@ export function KeptPlansList({
           onClick={() => onOpen(latest.token, "card")}
           disabled={opening !== null}
           aria-busy={opening === latest.token}
-          className="mt-3 inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-[var(--accent)] px-4 text-sm font-semibold text-slate-900 transition-colors hover:bg-[var(--accent)]/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 disabled:opacity-60"
+          className="mt-3 inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-[var(--accent)] px-4 text-sm sm:w-auto sm:px-8 font-semibold text-slate-900 transition-colors hover:bg-[var(--accent)]/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 disabled:opacity-60"
         >
           {t("wizard.kept.open")}
         </button>
