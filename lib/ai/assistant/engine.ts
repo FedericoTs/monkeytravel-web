@@ -131,7 +131,7 @@ function readOutcome(input: AssistInput, obj: Record<string, unknown>, cur: stri
   );
   const told = [input.message, ...(input.history ?? []).slice(-4).filter((t) => t.role === "user").map((t) => t.text)].join("\n");
   const cityEdits = keepDayCities(input.days, keepSavedActivities(input.days, checked.edits, { reply, message: input.message }), told);
-  const edits = keepDepartureTime(input.days, keepRides(input.days, cityEdits, askedNow(input)), input.message);
+  const edits = keepDepartureTime(input.days, keepRides(input.days, cityEdits, askedNow(input), { currency: cur, language: input.locale }), input.message);
   // The other days the change concerns, past what one reply holds.
   const length = checked.tripLength ?? input.days.length;
   const done = new Set(edits.map((e) => e.day_number));

@@ -85,9 +85,67 @@ describe("keepRides", () => {
     expect(keepRides(longer, day3, "no restaurants please")).toEqual(day3);
   });
 
-  it("makes up no ride for a hop the plan doesn't have", () => {
+  it("makes up no ride for a hop the plan doesn't have, unless asked to make new ones", () => {
     const reversed = [edit(1, [stop("c1", "Serralves", "10:00")], "Porto"), edit(2, [stop("a1", "Belém Tower", "10:00")], "Lisbon")];
     expect(keepRides(days, reversed, "start in Porto, then Lisbon")).toEqual(reversed);
+  });
+
+  // A change that moves the cities ("Seville instead of Porto") makes a hop the plan never had.
+  describe("a hop the change made", () => {
+    const pinned = (id: string, name: string, start_time: string, lat: number, lng: number, minutes = 90) =>
+      ({ ...stop(id, name, start_time, "attraction", minutes), coordinates: { lat, lng } }) as unknown as Activity;
+    const route = [
+      { day_number: 1, date: "2027-04-01", city: "Lisbon", activities: [pinned("l1", "Belém Tower", "10:00", 38.6916, -9.216)] },
+      { day_number: 2, date: "2027-04-02", city: "Lisbon", activities: [pinned("l2", "Alfama walk", "10:00", 38.7114, -9.1305)] },
+      { day_number: 3, date: "2027-04-03", city: "Porto", activities: [ride, pinned("p1", "Ribeira", "15:30", 41.1407, -8.6131)] },
+    ] as unknown as ItineraryDay[];
+    const made = { currency: "EUR", language: "en" };
+    const seville = (activities: Activity[]) => [edit(3, activities, "Seville, Spain")];
+
+    it("gets a ride made from the two cities' places, at the start of the day", () => {
+      const out = keepRides(route, seville([pinned("s1", "Plaza de España", "16:00", 37.3772, -5.9869)]), "Seville instead of Porto", made);
+      const [first, then] = out[0].activities;
+      expect(first).toMatchObject({ type: "transport", start_time: "08:30", location: "Lisbon" });
+      expect(first.transport_mode).toBeTruthy();
+      expect(first.name).toContain("Seville");
+      expect(`${then.start_time} ${then.name}`).toBe("16:00 Plaza de España");
+    });
+
+    it("gets none when the ride would push one of the day's stops out of it", () => {
+      const full = seville([
+        pinned("s1", "Real Alcázar", "09:00", 37.3831, -5.9902, 300),
+        pinned("s2", "Catedral de Sevilla", "14:30", 37.3858, -5.9933, 240),
+        pinned("s3", "Flamenco show", "19:00", 37.3891, -5.9845, 60),
+      ]);
+      expect(keepRides(route, full, "Seville instead of Porto", made)).toEqual(full);
+    });
+
+    it("gets none when the new city's places have no pins, or no new rides are asked for", () => {
+      const unpinned = seville([stop("s1", "Plaza de España", "16:00")]);
+      expect(keepRides(route, unpinned, "Seville instead of Porto", made)).toEqual(unpinned);
+      const plain = seville([pinned("s1", "Plaza de España", "16:00", 37.3772, -5.9869)]);
+      expect(keepRides(route, plain, "Seville instead of Porto")).toEqual(plain);
+    });
+
+    it("gets none when the ride would take a meal off the day", () => {
+      // The café at 09:00 would have to wait until after the ride: a breakfast at noon is no breakfast.
+      const morning = seville([
+        { ...pinned("s0", "Confitería La Campana", "09:00", 37.393, -5.9945, 45), type: "cafe" } as Activity,
+        pinned("s1", "Plaza de España", "16:00", 37.3772, -5.9869),
+      ]);
+      expect(keepRides(route, morning, "Seville instead of Porto", made)).toEqual(morning);
+    });
+
+    it("gets none on a hop the plan had without a ride: one taken out stays out", () => {
+      const noRide = route.map((d) => (d.day_number === 3 ? { ...d, activities: d.activities.filter((a) => a.type !== "transport") } : d)) as ItineraryDay[];
+      const porto = [edit(3, [pinned("p2", "Livraria Lello", "12:00", 41.1469, -8.6149)])];
+      expect(keepRides(noRide, porto, "add Livraria Lello on day 3", made)).toEqual(porto);
+    });
+
+    it("gets none when the traveller talks about getting there", () => {
+      const plain = seville([pinned("s1", "Plaza de España", "16:00", 37.3772, -5.9869)]);
+      expect(keepRides(route, plain, "Seville instead of Porto, we'll drive", made)).toEqual(plain);
+    });
   });
 
   it("changes nothing on a trip to one place", () => {
