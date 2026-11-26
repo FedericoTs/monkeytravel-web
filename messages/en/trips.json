@@ -381,7 +381,9 @@
         "stickySaving": "Saving...",
         "stickyHint": "Your trip will be saved to your account",
         "dismiss": "Dismiss"
-      }
+      },
+      "benefitsTitle": "Take this plan on your trip",
+      "benefitsCta": "Save my trip, it's free"
     },
     "anchors": {
       "cta": "I have fixed plans (flight, wedding, hotel…)",
