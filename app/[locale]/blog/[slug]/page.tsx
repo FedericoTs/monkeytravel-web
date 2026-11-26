@@ -27,6 +27,7 @@ import ShareRow from "@/components/ShareRow";
 import { getPrimaryDestinationFromTags } from "@/lib/blog/primaryDestination";
 import { readerIsChoosing } from "@/lib/blog/choosing";
 import { withPlacePlanLinks } from "@/lib/blog/place-plan-links";
+import { extractFAQs } from "@/lib/blog/faq";
 import { monthFromSlug } from "@/lib/blog/seasonal-window";
 import PlacePlanClicks from "@/components/blog/PlacePlanClicks";
 import MatchInvite from "@/components/match/MatchInvite";
@@ -134,31 +135,6 @@ export async function generateMetadata({
       images: [`${SITE_URL}${frontmatter.image}`],
     },
   };
-}
-
-// ============================================================================
-// FAQ extraction from markdown
-// ============================================================================
-
-function extractFAQs(html: string): { question: string; answer: string }[] {
-  const faqs: { question: string; answer: string }[] = [];
-  // Match FAQ section: everything after an <h2> containing "FAQ"
-  const faqSectionMatch = html.match(
-    /<h2[^>]*>[^<]*?(?:FAQ|Frequently Asked Questions|Common Questions)[^<]*?<\/h2>([\s\S]*?)(?=<hr|$)/i
-  );
-  if (!faqSectionMatch) return faqs;
-
-  const faqHtml = faqSectionMatch[1];
-  // Match h3 questions followed by paragraph answers
-  const questionRegex = /<h3[^>]*>(.*?)<\/h3>\s*<p>([\s\S]*?)<\/p>/gi;
-  let match;
-  while ((match = questionRegex.exec(faqHtml)) !== null) {
-    faqs.push({
-      question: match[1].replace(/<[^>]*>/g, "").trim(),
-      answer: match[2].replace(/<[^>]*>/g, "").trim(),
-    });
-  }
-  return faqs;
 }
 
 // ============================================================================
