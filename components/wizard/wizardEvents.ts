@@ -77,8 +77,8 @@ export const WIZARD_EVENT_STEPS = [
   "auth_onetap_offered",
   "auth_onetap_signed_in",
   "auth_onetap_failed",
-  // The card that asks a signed-out planner starting a second trip to sign in and keep both: shown, signed in
-  // from it, or "Not now".
+  // The card on the plan of a visit's second place that asks a signed-out planner to sign in and keep them all
+  // (components/wizard/KeepBothCard.tsx): shown, signed in from it, or "Not now".
   "keep_both_shown",
   "keep_both_signed_in",
   "keep_both_dismissed",

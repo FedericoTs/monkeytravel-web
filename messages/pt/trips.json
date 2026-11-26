@@ -797,6 +797,13 @@
     "error": "Não foi possível salvar a viagem. Tente novamente.",
     "keptToo": "Também salvo em Minhas Viagens: {places}"
   },
+  "keepBoth": {
+    "titleTwo": "Guarde as duas viagens",
+    "titleMany": "Guarde as {count} viagens",
+    "body": "Entre grátis e cada lugar que você planejou hoje fica em Minhas Viagens.",
+    "signIn": "Entrar grátis",
+    "notNow": "Agora não"
+  },
   "startOver": {
     "title": "Recomeçar?",
     "message": "Isto descartará seu roteiro atual e começará do zero.",
