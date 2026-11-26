@@ -41,6 +41,20 @@ test.describe("plan a place from a month's guide", () => {
     await expect(underJapan).toHaveAttribute("href", "/es/trips/new?destination=Jap%C3%B3n&month=3&from=place");
   });
 
+  test("a list of places with no month links each one, with no month, and counts the press", async ({ page }) => {
+    await page.route("**/api/funnel-event", (route) => route.fulfill({ status: 204, body: "" }));
+    await page.goto("/blog/where-to-spend-christmas");
+    const links = page.locator("p.plan-place a");
+    expect(await links.count()).toBeGreaterThanOrEqual(13);
+    const first = links.first();
+    await expect(first).toHaveText("Plan this trip");
+    const href = (await first.getAttribute("href")) ?? "";
+    expect(href).toMatch(/^\/trips\/new\?destination=[^&]+&from=place$/);
+    const counted = page.waitForRequest((r) => r.url().endsWith("/api/funnel-event") && r.method() === "POST");
+    await first.click();
+    expect((await counted).postDataJSON()).toMatchObject({ event_type: "plan_own_clicked", surface: "article_place" });
+  });
+
   test("the planner links around the guide open on its month too, and a guide to one city has none", async ({ page }) => {
     await page.goto("/blog/where-to-go-in-october");
     const months = await page.locator("a[href*='/trips/new?']").evaluateAll((links) =>
