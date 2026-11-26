@@ -512,10 +512,10 @@ ${
     : 'Another part fills the trip-level fields: give "destination" only its name and country, and leave "trip_summary" out.'
 }
 
-The whole trip, day by day (theme, area, the places it is built around):
-${part.outline.map((d) => `- Day ${d.day_number}: ${d.theme} (${d.area}): ${d.places.join("; ")}`).join("\n")}
+The whole trip, day by day (theme, area, the places it is built around, where it has lunch and dinner):
+${part.outline.map((d) => `- Day ${d.day_number}: ${d.theme} (${d.area}): ${[d.places.join("; "), d.lunch ? `lunch at ${d.lunch}` : "", d.dinner ? `dinner at ${d.dinner}` : ""].filter(Boolean).join("; ")}`).join("\n")}
 
-Build each of your days around its own places, at the pace asked for above. Never use a place listed for another day.
+Build each of your days around its own places, at the pace asked for above, with lunch and dinner where the day has them. Never use a place or a restaurant listed for another day.
 
 `
     : "";

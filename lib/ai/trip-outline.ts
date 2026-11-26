@@ -1,8 +1,11 @@
 /**
- * A fast outline of a whole trip: for each day a theme, an area and the
- * places it is built around. A long trip is then written in parts at the same
- * time (app/api/ai/generate/stream), each part told which places belong to
- * the other days, so the parts never repeat a place.
+ * A fast outline of a whole trip: for each day a theme, an area, the places it
+ * is built around, and where it has lunch and dinner. A long trip is then
+ * written in parts at the same time (app/api/ai/generate/stream), each part
+ * told which places and restaurants belong to the other days, so the parts
+ * never repeat one. The outline sees every day, the parts only their own:
+ * without the meals here a part left days without dinner, and parts chose the
+ * same restaurants.
  */
 
 import { GoogleGenerativeAI, SchemaType, type ResponseSchema } from "@/lib/ai/genai-compat";
@@ -20,6 +23,9 @@ export interface OutlineDay {
   theme: string;
   area: string;
   places: string[];
+  /** The day's lunch and dinner restaurants; empty when the traveller isn't there then (arriving after, leaving before). */
+  lunch?: string;
+  dinner?: string;
 }
 
 export interface TripOutline {
@@ -43,8 +49,16 @@ const SCHEMA: ResponseSchema = {
             description: "2 to 4 real, named places the day is built around: sights and experiences, and any must-do put on this day.",
             items: { type: SchemaType.STRING },
           },
+          lunch: {
+            type: SchemaType.STRING,
+            description: "A real restaurant for lunch near the day's places, open at midday on this date. Empty only when the traveller isn't there at midday.",
+          },
+          dinner: {
+            type: SchemaType.STRING,
+            description: "A real restaurant for dinner near where the day ends, open at the local dinner hour. Empty only when the traveller isn't there in the evening.",
+          },
         },
-        required: ["day_number", "theme", "area", "places"],
+        required: ["day_number", "theme", "area", "places", "lunch", "dinner"],
       },
     },
   },
@@ -73,7 +87,8 @@ export async function generateTripOutline(
       temperature: 0.7,
       responseMimeType: "application/json",
       responseSchema: SCHEMA,
-      maxOutputTokens: 2048,
+      // Two restaurants a day on top of the places: a 14-day outline runs past 2,048 tokens.
+      maxOutputTokens: 3072,
       thinkingConfig: thinkingConfigFor(modelName),
     },
   });
@@ -100,6 +115,7 @@ export async function generateTripOutline(
       : "",
     "",
     `Return exactly ${totalDays} days, numbered 1 to ${totalDays}. Give each day its own area, keep each day's places close together, and never use a place on two days. The best-known sights come early; later days can go further out or off the beaten path. Use real place names as Google Maps shows them.`,
+    "Give each day its lunch, near its places at midday, and its dinner, near where it ends at the local dinner hour: real restaurants open then, suited to the budget, and never the same restaurant on two days.",
     // The outline is shown while the plan is written, so it speaks the page's language.
     language && language !== "en" ? `Write each theme and area in ${LANGUAGE_NAMES[language]}.` : "",
   ];
@@ -115,8 +131,10 @@ export async function generateTripOutline(
     days.sort((a, b) => a.day_number - b.day_number);
     if (days.some((d, i) => d.day_number !== i + 1)) return null;
 
-    // A place the model put on two days stays on the first.
+    // A place the model put on two days stays on the first, and so does a restaurant: the later day's part then
+    // chooses its own.
     const seen = new Set<string>();
+    const eaten = new Set<string>();
     for (const day of days) {
       day.places = day.places.filter((p) => {
         const key = normalize(p);
@@ -124,6 +142,13 @@ export async function generateTripOutline(
         seen.add(key);
         return true;
       });
+      for (const meal of ["lunch", "dinner"] as const) {
+        const raw = day[meal];
+        const name = typeof raw === "string" ? raw.trim() : "";
+        const key = normalize(name);
+        day[meal] = key && !eaten.has(key) ? name : "";
+        if (key) eaten.add(key);
+      }
     }
     return { days, costUsd: geminiCostUsd(modelName, usage) };
   } catch (err) {
