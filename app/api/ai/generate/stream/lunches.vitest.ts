@@ -76,6 +76,9 @@ vi.mock("@/lib/gemini", () => ({
 vi.mock("@/lib/ai/itinerary-text", () => ({ parseStreamedItinerary: (text: string) => JSON.parse(text) }));
 // The closing-day question finds nothing shut; the lunch question names a restaurant by Fushimi Inari.
 const lunchQuestions: string[] = [];
+// Where the lunch answered is: by the shrine, unless a test moves it.
+const BY_THE_SHRINE = { lat: 34.9677, lng: 135.7716 };
+let lunchAt = BY_THE_SHRINE;
 vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/ai/gemini-call")>()),
   genAI: {
@@ -86,7 +89,7 @@ vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
         const answer = lunch
           ? {
               lunches: [
-                { n: 1, name: "Inari Sushi Koji", description: "Inari sushi by the shrine.", location: "Fushimi", coordinates: { lat: 34.9677, lng: 135.7716 }, cost_per_person_usd: 15 },
+                { n: 1, name: "Inari Sushi Koji", description: "Inari sushi by the shrine.", location: "Fushimi", coordinates: lunchAt, cost_per_person_usd: 15 },
               ],
             }
           : { places: [] };
@@ -117,6 +120,7 @@ const complete = async () => {
 beforeEach(() => {
   logged.length = 0;
   lunchQuestions.length = 0;
+  lunchAt = BY_THE_SHRINE;
   vi.spyOn(console, "log").mockImplementation(() => {});
 });
 
@@ -134,5 +138,13 @@ describe("a plan with a full day left without lunch", () => {
     expect(lunchQuestions[0]).toContain("None the plan already has: Okonomiyaki Kiraku; Gion Karyo; Pontocho Robin; Honke Owariya.");
     await vi.waitFor(() => expect(logged.find((row) => row.status === 200)).toBeTruthy());
     expect(logged.find((row) => row.status === 200)?.metadata?.lunches).toEqual({ missing: 1, added: 1 });
+  });
+
+  it("logs why the day is still without lunch: here the answer is in Osaka, far from the shrine", async () => {
+    lunchAt = { lat: 34.6687, lng: 135.5013 };
+    const days = await complete();
+    expect(days[1]).toEqual(["10:00 Fushimi Inari", "13:30 Kiyomizu-dera", "19:00 Pontocho Robin"]);
+    await vi.waitFor(() => expect(logged.find((row) => row.status === 200)).toBeTruthy());
+    expect(logged.find((row) => row.status === 200)?.metadata?.lunches).toEqual({ missing: 1, added: 0, left: { far: 1 } });
   });
 });

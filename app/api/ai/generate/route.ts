@@ -34,7 +34,7 @@ import { askForDinners, daysWithoutDinner, placesToEat, withDinners } from "@/li
 import { atLocalDinnerHour, eatsEarly } from "@/lib/ai/meal-hours";
 import { askForReplacements, repeatedRestaurants, withReplacements } from "@/lib/ai/repeated-meals";
 import { askForSights, repeatedSights, sightNames, withSightReplacements } from "@/lib/ai/repeated-sights";
-import { askForLunches, daysWithoutLunch, withLunches } from "@/lib/ai/lunches";
+import { askForLunches, daysWithoutLunch, lunchesLeftTogether, withLunches } from "@/lib/ai/lunches";
 import { swapClosedStops } from "@/lib/ai/closed-swaps";
 import { withoutLongClosures } from "@/lib/ai/long-closures";
 import { askedByName, keepMustDos } from "@/lib/ai/must-dos";
@@ -292,6 +292,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     const movedLunchesAsked = askForLunches(movedLunchesWanted, lunchOptions);
     const lunches = withLunches(itinerary.days, lunchesWanted, (await lunchesAsked).answer);
     const movedLunches = withLunches(lunches.days, movedLunchesWanted, (await movedLunchesAsked).answer);
+    const lunchesLeft = lunchesLeftTogether(lunches.left, movedLunches.left);
     itinerary = { ...itinerary, days: movedLunches.days };
 
     // Each visit to a place of known hours inside them (lib/ai/visit-hours.ts).
@@ -392,6 +393,8 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
                 missing: lunchesWanted.length + movedLunchesWanted.length,
                 added: lunches.added + movedLunches.added,
                 ...(movedLunchesWanted.length > 0 ? { after_move: movedLunchesWanted.length } : {}),
+                // Why the days still without one have none (lib/ai/lunches.ts LunchLeftOut).
+                ...(Object.keys(lunchesLeft).length > 0 ? { left: lunchesLeft } : {}),
               },
             }
           : {}),
