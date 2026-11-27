@@ -37,6 +37,7 @@ import { PartsError, writeInParts, writesInParts } from "@/lib/ai/plan-in-parts"
 import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/generation-result";
 import { knownPlacesFor, knownPlacesUsed, type KnownPlace } from "@/lib/ai/known-places";
 import { keepOffClosingDays } from "@/lib/ai/closing-days";
+import { planChecks } from "@/lib/ai/plan-checks";
 import { keepInsideHours } from "@/lib/ai/visit-hours";
 import { askForDinners, daysWithoutDinner, dinnersLeftTogether, placesToEat, withDinners } from "@/lib/ai/dinners";
 import { atLocalDinnerHour, eatsEarly } from "@/lib/ai/meal-hours";
@@ -614,7 +615,14 @@ export async function POST(request: NextRequest) {
       // 9. Terminal complete event.
       // Phase 1.3: the save arms read this into trip_meta.locale.
       // Phase 1.3 language + Phase 3.1 timezone (derived server-side).
-      const completeItinerary = { ...sanitized, language: userLanguage, timezone: deriveTimezoneFromItinerary(sanitized.days) ?? undefined };
+      // What the closing-day check found, for the plan to say to its reader.
+      const checked = planChecks(openDays);
+      const completeItinerary = {
+        ...sanitized,
+        language: userLanguage,
+        timezone: deriveTimezoneFromItinerary(sanitized.days) ?? undefined,
+        ...(checked ? { checked } : {}),
+      };
       const completeMeta = {
         generationTimeMs,
         model: cacheHit ? "cache" : getModelForPurpose("trip-generation"),

@@ -29,6 +29,7 @@ import {
 import { generateAnchoredItinerary, validateAnchors } from "@/lib/ai/anchored";
 import { knownPlacesFor } from "@/lib/ai/known-places";
 import { keepOffClosingDays, keepOffClosingDaysByCity } from "@/lib/ai/closing-days";
+import { planChecks } from "@/lib/ai/plan-checks";
 import { keepInsideHours } from "@/lib/ai/visit-hours";
 import { askForDinners, daysWithoutDinner, placesToEat, withDinners } from "@/lib/ai/dinners";
 import { atLocalDinnerHour, eatsEarly } from "@/lib/ai/meal-hours";
@@ -486,7 +487,14 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
 
     // The save arms read language into trip_meta.locale and timezone (derived
     // server-side from the itinerary coordinates) into trip_meta.timezone.
-    const finishedItinerary = { ...sanitizedItinerary, language: userLanguage, timezone: deriveTimezoneFromItinerary(sanitizedItinerary.days) ?? undefined };
+    // What the closing-day check found, for the plan to say to its reader (a plan of fixed stops isn't checked).
+    const checked = closing ? planChecks(closing) : null;
+    const finishedItinerary = {
+      ...sanitizedItinerary,
+      language: userLanguage,
+      timezone: deriveTimezoneFromItinerary(sanitizedItinerary.days) ?? undefined,
+      ...(checked ? { checked } : {}),
+    };
     const meta = {
       generationTimeMs: generationTime,
       model: cacheHit ? "cache" : getModelForPurpose("trip-generation"),
