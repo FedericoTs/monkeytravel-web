@@ -49,9 +49,18 @@ function plainFileName(place: string): string {
   return name || "trip";
 }
 
-/** Only reaches visitors who accepted analytics. */
-function capture(event: string, properties: Record<string, string | number | boolean>): void {
+/**
+ * Counts how a friend's guess ended, or a story watched to its last part: the site's own row, the same for
+ * everyone, and PostHog for the visitors who accepted analytics.
+ */
+function count(event: "story_guessed" | "story_finished", tripId: string, properties: Record<string, number | boolean>): void {
   onPostHogReady((posthog) => posthog.capture(event, properties));
+  void fetch("/api/funnel-event", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ event_type: event, trip_id: tripId, ...properties }),
+    keepalive: true,
+  }).catch(() => {});
 }
 
 /**
@@ -184,9 +193,16 @@ export default function TripStoryView({ story, locale, tripId, planHref, fullPla
   const go = (to: number) => {
     if (to < 0 || to >= slides.length || to === index) return;
     moved.current = true;
-    if (to === slides.length - 1 && !mine) capture("story_finished", { guessed: over });
     setIndex(to);
   };
+
+  // The last part reached, however it was reached, counts once for a friend.
+  const finished = useRef(false);
+  useEffect(() => {
+    if (index !== slides.length - 1 || mine || finished.current) return;
+    finished.current = true;
+    count("story_finished", tripId, { guessed: over });
+  }, [index, slides.length, mine, over, tripId]);
 
   // A new part is announced by its heading: a reader of the screen hears what just changed.
   useEffect(() => {
@@ -207,7 +223,7 @@ export default function TripStoryView({ story, locale, tripId, planHref, fullPla
     const next = [...picked, key];
     setPicked(next);
     const after = guessState(story.place, next, GUESS_MISSES);
-    if ((after.solved || after.lost) && !mine) capture("story_guessed", { right: after.solved, misses: after.misses });
+    if ((after.solved || after.lost) && !mine) count("story_guessed", tripId, { right: after.solved, misses: after.misses });
   };
 
   const copyLink = async () => {
