@@ -1,13 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { createTranslator } from "next-intl";
-import { destinations } from "@/lib/destinations/data";
 import en from "@/messages/en/common.json";
 import es from "@/messages/es/common.json";
 import itMessages from "@/messages/it/common.json";
 import pt from "@/messages/pt/common.json";
 import { buildTripStory, plainName, STORY_DAY_SLIDES, type StoryClue, type StorySource } from "./trip-story";
-
-const SEED = "11111111-2222-4333-8444-555555555555";
 
 const stop = (name: string, type: string, lat?: number, lng?: number, extra: Record<string, unknown> = {}) => ({
   name,
@@ -54,7 +51,7 @@ const clue = <K extends StoryClue["kind"]>(clues: StoryClue[], kind: K) => clues
 
 describe("a trip as a story", () => {
   it("names the place short, counts what the days are busy with, and measures between each day's stops", () => {
-    const story = buildTripStory(lisbon, "en", SEED);
+    const story = buildTripStory(lisbon, "en");
     expect(story.place).toBe("Lisbon");
     expect(story.destination).toBe("Lisbon, Portugal");
     expect(story.dayCount).toBe(2);
@@ -68,7 +65,7 @@ describe("a trip as a story", () => {
   });
 
   it("tells a day by its sights first, three names, and counts the rest", () => {
-    const [first, second] = buildTripStory(lisbon, "en", SEED).days;
+    const [first, second] = buildTripStory(lisbon, "en").days;
     expect(first).toMatchObject({
       day: 1,
       date: "2027-01-09",
@@ -81,11 +78,11 @@ describe("a trip as a story", () => {
   });
 
   it("draws each day's own shape from its stops, the hotel left out, and none from a single pin", () => {
-    const [first, second] = buildTripStory(lisbon, "en", SEED).days;
+    const [first, second] = buildTripStory(lisbon, "en").days;
     expect(first.route?.points).toHaveLength(5);
     expect(second.route?.points).toHaveLength(3);
     expect(first.route).toMatchObject({ width: 300, height: 190, labels: [] });
-    const onePin = buildTripStory({ ...lisbon, itinerary: [{ day_number: 1, activities: [stop("Sé de Lisboa", "landmark", 38.7098, -9.1326), stop("A walk", "activity")] }] }, "en", SEED);
+    const onePin = buildTripStory({ ...lisbon, itinerary: [{ day_number: 1, activities: [stop("Sé de Lisboa", "landmark", 38.7098, -9.1326), stop("A walk", "activity")] }] }, "en");
     expect(onePin.days[0].route).toBeNull();
   });
 
@@ -105,8 +102,7 @@ describe("a trip as a story", () => {
           },
         ],
       },
-      "en",
-      SEED
+      "en"
     );
     expect(story.days[0].stops).toEqual(["Livraria Lello"]);
     expect(story.stopCount).toBe(1);
@@ -115,94 +111,120 @@ describe("a trip as a story", () => {
 
   it("gives a long trip a slide for its first days and counts the others", () => {
     const days = Array.from({ length: 10 }, (_, i) => ({ day_number: i + 1, activities: [stop(`Sight ${i + 1}`, "landmark")] }));
-    const story = buildTripStory({ ...lisbon, itinerary: days, end_date: "2027-01-18" }, "en", SEED);
+    const story = buildTripStory({ ...lisbon, itinerary: days, end_date: "2027-01-18" }, "en");
     expect(story.days).toHaveLength(STORY_DAY_SLIDES);
     expect(story.moreDays).toBe(10 - STORY_DAY_SLIDES);
     expect(story.dayCount).toBe(10);
   });
 
   it("reads a trip with no plan without failing", () => {
-    const story = buildTripStory({ title: "Rome Trip", itinerary: null }, "en", SEED);
+    const story = buildTripStory({ title: "Rome Trip", itinerary: null }, "en");
     expect(story).toMatchObject({ place: "Rome", dayCount: 0, stopCount: 0, km: null, route: null, days: [], guess: null });
   });
 });
 
 describe("the guess that opens a story", () => {
-  it("gives three clues, from far to near, none naming the place", () => {
-    const { guess } = buildTripStory(lisbon, "en", SEED);
-    expect(guess?.clues.map((c) => c.kind)).toEqual(["when", "mix", "letters"]);
-    expect(clue(guess!.clues, "when")).toEqual({ kind: "when", days: 2, month: 1, region: "europe" });
-    // Meals are 3, the park is outdoors, the other four are sights.
-    expect(clue(guess!.clues, "mix")).toEqual({ kind: "mix", sights: 4, meals: 3, outdoors: 1 });
-    expect(clue(guess!.clues, "letters")).toEqual({ kind: "letters", first: "L", letters: 6, words: 1 });
-    expect(JSON.stringify(guess!.clues)).not.toMatch(/lisbon|portugal/i);
+  it("gives clues taken from the trip, from far to near, none naming the place", () => {
+    const { guess, place } = buildTripStory(lisbon, "en", { sunset: "17:32" });
+    expect(place).toBe("Lisbon");
+    expect(guess?.clues).toEqual([
+      { kind: "when", days: 2, month: 1, region: "europe" },
+      { kind: "sunset", time: "17:32" },
+      { kind: "day", title: "Tiles and trams" },
+      { kind: "stop", name: "Jerónimos Monastery" },
+    ]);
+    expect(JSON.stringify(guess!.clues)).not.toMatch(/lisbon|lisboa|portugal/i);
   });
 
-  it("offers four places, the trip's once, with wrong answers from the same part of the world", () => {
-    const { guess } = buildTripStory(lisbon, "en", SEED);
-    expect(guess!.options).toHaveLength(4);
-    expect(new Set(guess!.options).size).toBe(4);
-    expect(guess!.options[guess!.answer]).toBe("Lisbon");
-    const european = new Set(destinations.filter((d) => d.continent === "europe").map((d) => d.name.en));
-    for (const option of guess!.options) expect(european.has(option)).toBe(true);
+  it("leaves out the sunset when it isn't known, or isn't a time", () => {
+    expect(buildTripStory(lisbon, "en").guess!.clues.map((c) => c.kind)).toEqual(["when", "day", "stop"]);
+    expect(buildTripStory(lisbon, "en", { sunset: "soon" }).guess!.clues.map((c) => c.kind)).toEqual(["when", "day", "stop"]);
   });
 
-  it("shows everyone who opens one link the same four in the same order, and another link another draw", () => {
-    const again = buildTripStory(lisbon, "en", SEED).guess!;
-    expect(buildTripStory(lisbon, "en", SEED).guess).toEqual(again);
-    const draws = new Set(
-      ["a", "b", "c", "d", "e", "f", "g", "h"].map((seed) => JSON.stringify(buildTripStory(lisbon, "en", seed).guess!.options))
-    );
-    expect(draws.size).toBeGreaterThan(1);
+  it("never uses a day's title or a stop that gives the place away, in any of its names or by its country", () => {
+    const telling = {
+      ...lisbon,
+      itinerary: [
+        { day_number: 1, date: "2027-01-09", title: "Arrival in Lisbon", activities: [stop("Sé de Lisboa", "landmark", 38.7098, -9.1326), stop("Oceanário de Lisboa", "attraction", 38.7633, -9.0937)] },
+        { day_number: 2, date: "2027-01-10", title: "The best of Portugal", activities: [stop("Lisbon Story Centre", "museum", 38.7077, -9.1365), stop("Time Out Market", "restaurant", 38.7067, -9.1459)] },
+        { day_number: 3, date: "2027-01-11", title: "Hills and viewpoints", activities: [stop("Miradouro da Graça", "attraction", 38.7163, -9.1313)] },
+      ],
+    };
+    expect(buildTripStory(telling, "en").guess!.clues).toEqual([
+      { kind: "when", days: 3, month: 1, region: "europe" },
+      { kind: "day", title: "Hills and viewpoints" },
+      { kind: "stop", name: "Miradouro da Graça" },
+    ]);
+  });
+
+  it("keeps the country of a place we have no page for out too, as its destination line writes it", () => {
+    const tbilisi = {
+      ...lisbon,
+      trip_meta: { destination: "Tbilisi, Georgia", timezone: "Asia/Tbilisi" },
+      itinerary: [
+        { day_number: 1, title: "Old town", activities: [stop("National Museum of Georgia", "museum"), stop("Narikala Fortress", "landmark")] },
+        { day_number: 2, title: "Wine country of Georgia", activities: [stop("Chronicle of Georgia", "landmark")] },
+      ],
+    };
+    const clues = buildTripStory(tbilisi, "en").guess!.clues;
+    expect(clue(clues, "day").title).toBe("Old town");
+    expect(clue(clues, "stop").name).toBe("Narikala Fortress");
+  });
+
+  it("takes a day's title from the second day on before the first, which is often about arriving", () => {
+    const days = [
+      { day_number: 1, title: "Arrival and first walk", activities: [stop("Old Town Square", "landmark")] },
+      { day_number: 2, title: "Castles and bridges", activities: [stop("Charles Bridge", "landmark")] },
+    ];
+    expect(clue(buildTripStory({ ...lisbon, trip_meta: { destination: "Prague" }, itinerary: days }, "en").guess!.clues, "day").title).toBe("Castles and bridges");
+    const oneDay = [{ day_number: 1, title: "Arrival and first walk", activities: [stop("Old Town Square", "landmark")] }];
+    expect(clue(buildTripStory({ ...lisbon, trip_meta: { destination: "Prague" }, itinerary: oneDay }, "en").guess!.clues, "day").title).toBe("Arrival and first walk");
+  });
+
+  it("names a sight as the last clue, never a place to eat, and never the line already used as the day's title", () => {
+    const days = [
+      { day_number: 1, title: "Charles Bridge", activities: [stop("Lokál", "restaurant"), stop("Charles Bridge", "landmark"), stop("Prague Castle", "landmark"), stop("Vyšehrad", "landmark")] },
+    ];
+    const clues = buildTripStory({ ...lisbon, trip_meta: { destination: "Prague" }, itinerary: days }, "en").guess!.clues;
+    expect(clue(clues, "day").title).toBe("Charles Bridge");
+    // "Prague Castle" names the place; "Charles Bridge" is the title; the restaurant is no sight.
+    expect(clue(clues, "stop").name).toBe("Vyšehrad");
+  });
+
+  it("keeps a telling word of the place out, but not a word many names share", () => {
+    const york = {
+      ...lisbon,
+      trip_meta: { destination: "New York City, United States", timezone: "America/New_York" },
+      itinerary: [
+        { day_number: 1, title: "A walk through the city that never sleeps", activities: [stop("York Avenue Deli", "landmark"), stop("New Museum", "museum"), stop("Central Park", "park")] },
+      ],
+    };
+    const clues = buildTripStory(york, "en").guess!.clues;
+    // "city" and "new" alone give nothing away; "York" would.
+    expect(clue(clues, "day").title).toBe("A walk through the city that never sleeps");
+    expect(clue(clues, "stop").name).toBe("New Museum");
   });
 
   it("shows a place we have a page for by its name in the reader's language", () => {
     const italianPlan = { ...lisbon, title: "Viaggio a Lisbona", trip_meta: { destination: "Lisbona, Portogallo", timezone: "Europe/Lisbon" } };
-    const english = buildTripStory(italianPlan, "en", SEED);
-    expect(english.place).toBe("Lisbon");
-    expect(english.guess!.options[english.guess!.answer]).toBe("Lisbon");
-    const italian = buildTripStory(lisbon, "it", SEED);
-    expect(italian.place).toBe("Lisbona");
-    expect(clue(italian.guess!.clues, "letters")).toMatchObject({ first: "L", letters: 7 });
-    // Its wrong answers are in Italian too.
-    expect(italian.guess!.options).not.toContain("London");
+    expect(buildTripStory(italianPlan, "en").place).toBe("Lisbon");
+    expect(buildTripStory(lisbon, "it").place).toBe("Lisbona");
   });
 
-  it("keeps a place we have no page for as the plan writes it, and counts its letters past spaces", () => {
-    const story = buildTripStory({ ...lisbon, trip_meta: { destination: "São Miguel, Azores", timezone: "Atlantic/Azores" } }, "en", SEED);
+  it("keeps a place we have no page for as the plan writes it", () => {
+    const story = buildTripStory({ ...lisbon, trip_meta: { destination: "São Miguel, Azores", timezone: "Atlantic/Azores" } }, "en");
     expect(story.place).toBe("São Miguel");
     expect(clue(story.guess!.clues, "when").region).toBe("atlantic");
-    expect(clue(story.guess!.clues, "letters")).toEqual({ kind: "letters", first: "S", letters: 9, words: 2 });
-    expect(story.guess!.options).toContain("São Miguel");
-  });
-
-  it("never offers a city of the trip's own country as a wrong answer, when the place may be the country itself", () => {
-    const japan = { ...lisbon, trip_meta: { destination: "Japan", country_code: "jp", timezone: "Asia/Tokyo" } };
-    const seeds = Array.from({ length: 40 }, (_, i) => `seed-${i}`);
-    const offered = new Set(seeds.flatMap((seed) => buildTripStory(japan, "en", seed).guess!.options));
-    expect(offered.has("Japan")).toBe(true);
-    expect(offered.has("Tokyo")).toBe(false);
-    // The same seeds do offer Tokyo for a trip elsewhere in Asia: it is left out for Japan, not missing.
-    const korea = { ...lisbon, trip_meta: { destination: "Jeju", country_code: "KR", timezone: "Asia/Seoul" } };
-    expect(seeds.some((seed) => buildTripStory(korea, "en", seed).guess!.options.includes("Tokyo"))).toBe(true);
-  });
-
-  it("still offers another city of the same country against a city we know", () => {
-    const pool = destinations.filter((d) => d.countryCode === destinations.find((x) => x.name.en === "Barcelona")!.countryCode && d.name.en !== "Barcelona");
-    expect(pool.length).toBeGreaterThan(0);
-    const barcelona = { ...lisbon, trip_meta: { destination: "Barcelona, Spain", country_code: "ES", timezone: "Europe/Madrid" } };
-    const seeds = Array.from({ length: 60 }, (_, i) => `seed-${i}`);
-    expect(seeds.some((seed) => buildTripStory(barcelona, "en", seed).guess!.options.some((option) => pool.some((d) => d.name.en === option)))).toBe(true);
   });
 
   it("names no part of the world when the trip stores no time zone, and no month without dates", () => {
-    const story = buildTripStory({ ...lisbon, start_date: null, end_date: null, itinerary: lisbonDays.map(({ date: _date, ...day }) => day), trip_meta: { destination: "Lisbon" } }, "en", SEED);
+    const story = buildTripStory({ ...lisbon, start_date: null, end_date: null, itinerary: lisbonDays.map(({ date: _date, ...day }) => day), trip_meta: { destination: "Lisbon" } }, "en");
     expect(clue(story.guess!.clues, "when")).toEqual({ kind: "when", days: 2, month: null, region: null });
   });
 
-  it("skips the plan's mix when the days hold no stops", () => {
-    const story = buildTripStory({ ...lisbon, itinerary: [{ day_number: 1, activities: [] }] }, "en", SEED);
-    expect(story.guess!.clues.map((c) => c.kind)).toEqual(["when", "letters"]);
+  it("still asks the guess of a plan with no titles and no sights: the letters are the game", () => {
+    const story = buildTripStory({ ...lisbon, itinerary: [{ day_number: 1, activities: [stop("Time Out Market", "restaurant")] }] }, "en");
+    expect(story.guess!.clues.map((c) => c.kind)).toEqual(["when"]);
   });
 
   it("asks no guess of a trip through several cities, and names it whole", () => {
@@ -215,8 +237,7 @@ describe("the guess that opens a story", () => {
           { day_number: 2, city: "Madrid", activities: [stop("Museo del Prado", "museum", 40.4138, -3.6921)] },
         ],
       },
-      "en",
-      SEED
+      "en"
     );
     expect(story.guess).toBeNull();
     expect(story.place).toBe("Barcelona, Madrid & Sevilla");
@@ -224,10 +245,11 @@ describe("the guess that opens a story", () => {
     expect(story.route?.labels.map((l) => l.text)).toEqual(["Barcelona", "Madrid"]);
   });
 
-  it("asks no guess when the place's name is no answer to pick: too long, or not a name", () => {
-    for (const destination of ["San Marco Argentano and Fuscaldo, Calabria", "3 days of food", "NY"]) {
-      expect(buildTripStory({ ...lisbon, trip_meta: { destination } }, "en", SEED).guess).toBeNull();
+  it("asks no guess when the place's name can't be spelled out on the board: too long, too short, or not a name", () => {
+    for (const destination of ["San Marco Argentano and Fuscaldo di Calabria, Calabria", "3 days of food", "NY", "X-Y"]) {
+      expect(buildTripStory({ ...lisbon, trip_meta: { destination } }, "en").guess).toBeNull();
     }
+    expect(buildTripStory({ ...lisbon, trip_meta: { destination: "Ho Chi Minh City" } }, "en").guess).not.toBeNull();
   });
 
   it("compares names without accents or case", () => {
@@ -250,12 +272,19 @@ describe("the story's words", () => {
         t("guess.whenNoMonth", { days: 1, where: t("guess.where.atlantic") }),
         t("guess.whenNoWhere", { days: 5, month: "January" }),
         t("guess.whenBare", { days: 5 }),
-        t("guess.mix", { list: [t("guess.sights", { count: 4 }), t("guess.meals", { count: 1 }), t("guess.outdoors", { count: 2 })].join(", ") }),
-        t("guess.letters", { first: "L", letters: 6 }),
-        t("guess.lettersWords", { first: "S", words: 2, letters: 9 }),
-        t("guess.right", { clues: 1 }),
-        t("guess.right", { clues: 3 }),
-        t("guess.wrong", { place: "Lisbon" }),
+        t("guess.lead", { max: 6 }),
+        t("guess.misses", { count: 2, max: 6 }),
+        t("guess.sunset", { time: "17:32" }),
+        t("guess.dayTitle", { title: "Tiles and trams" }),
+        t("guess.stop", { name: "Belém Tower" }),
+        t("guess.solved", { misses: 0 }),
+        t("guess.solved", { misses: 1 }),
+        t("guess.solved", { misses: 4 }),
+        t("guess.lost", { place: "Lisbon" }),
+        t("guess.tellSolved", { misses: 0 }),
+        t("guess.tellSolved", { misses: 1 }),
+        t("guess.tellSolved", { misses: 3 }),
+        t("guess.tellLost"),
         t("reveal.facts", { days: 5, stops: 20 }),
         t("reveal.factsKm", { days: 1, stops: 1, km: 12 }),
         t("reveal.factsCities", { days: 8, cities: 4, stops: 30 }),
@@ -264,6 +293,7 @@ describe("the story's words", () => {
         t("day.moreDays", { count: 3 }),
         t("progress", { current: 2, total: 7 }),
         t("metaTitle", { place: "Lisbon" }),
+        t("mine.note"),
       ];
       for (const sentence of said) {
         expect(sentence).not.toMatch(/[{}#]|plural|undefined/);

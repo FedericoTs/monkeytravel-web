@@ -1,12 +1,13 @@
 /**
- * The trip's story as pictures to post: the guess (the place hidden, its clues) and the answer (the place, its
- * dates, each day's shape). Story-sized, with what matters kept clear of the top and bottom strips an app lays
- * its own controls over. Drawn from the same story the share link tells (lib/story/trip-story.ts), in the same
- * colours, and with no photo: a photo from a map service may not leave the site.
+ * The trip's story as pictures to post: the guess (the place's letters hidden, its clues) and the answer (the
+ * place, its dates, each day's shape). Story-sized, with what matters kept clear of the top and bottom strips an
+ * app lays its own controls over. Drawn from the same story the share link tells (lib/story/trip-story.ts), in the
+ * site's own colours, and with no photo: a photo from a map service may not leave the site.
  */
 import type { ReactElement } from "react";
 import { dayColor } from "@/lib/map/day-colors";
 import { sketchDataUri, type Sketch } from "@/lib/og/route-sketch";
+import { boardOf } from "@/lib/story/letters";
 import type { TripStory } from "@/lib/story/trip-story";
 
 export type SlideFormat = "guess" | "place";
@@ -19,6 +20,8 @@ export function slideFormat(raw: string | null | undefined): SlideFormat | null 
 
 /** A slide's sentences, already in the reader's language (lib/story/words.ts builds them). */
 export interface SlideWords {
+  /** The place, as the story names it: the guess shows only how many letters it has. */
+  place: string;
   guessTitle: string;
   clues: { label: string; text: string }[];
   reply: string;
@@ -27,11 +30,14 @@ export interface SlideWords {
   planYours: string;
 }
 
-const NAVY = "#2D3436";
-const FLAP = "#171B1C";
+// The site's palette (app/globals.css): cream ground, charcoal ink, coral, gold on the board's charcoal.
+const CREAM = "#FFFAF5";
+const INK = "#2D3436";
+const MUTED = "#636E72";
+const CORAL = "#FF6B6B";
 const GOLD = "#FFD93D";
 const WHITE = "#FFFFFF";
-const SOFT = "rgba(255,255,255,0.75)";
+const RULE = "#E2E8F0";
 const DISPLAY = "Fraunces";
 const BODY = "Source Sans 3";
 
@@ -49,8 +55,8 @@ function Frame(p: { children: ReactElement | (ReactElement | null)[]; logo: stri
         flexDirection: "column",
         width: SLIDE_SIZE.width,
         height: SLIDE_SIZE.height,
-        background: NAVY,
-        color: WHITE,
+        background: CREAM,
+        color: INK,
         fontFamily: BODY,
         padding: `${TOP}px ${SIDE}px ${BOTTOM}px`,
       }}
@@ -58,7 +64,7 @@ function Frame(p: { children: ReactElement | (ReactElement | null)[]; logo: stri
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={p.logo} alt="" width={52} height={52} style={{ width: 52, height: 52, borderRadius: 12 }} />
-        <div style={{ display: "flex", marginLeft: 16, fontWeight: 600, fontSize: 32, color: SOFT }}>MonkeyTravel</div>
+        <div style={{ display: "flex", marginLeft: 16, fontWeight: 600, fontSize: 32, color: INK }}>MonkeyTravel</div>
       </div>
       {p.children}
     </div>
@@ -95,7 +101,7 @@ function Centred(p: { children: string; size: number; top: number; color?: strin
         fontSize: p.size,
         lineHeight: p.line ?? 1.25,
         letterSpacing: p.display ? -1 : 0,
-        color: p.color ?? WHITE,
+        color: p.color ?? INK,
       }}
     >
       {lines.map((line, i) => (
@@ -107,24 +113,58 @@ function Centred(p: { children: string; size: number; top: number; color?: strin
   );
 }
 
-/** A day's stops joined in order, in the day's colour, with its first stop ringed. */
+/** A day's stops joined in order: the line in the site's ink, the stops in the day's colour, the first one larger. */
 export function dayShapeSvg(route: Sketch, tint: string): string {
   const dots = route.points
-    .map((point, i) =>
-      i === 0
-        ? `<circle cx="${point.x}" cy="${point.y}" r="12" fill="${WHITE}" stroke="${tint}" stroke-width="7"/>`
-        : `<circle cx="${point.x}" cy="${point.y}" r="8" fill="${tint}"/>`
-    )
+    .map((point, i) => `<circle cx="${point.x}" cy="${point.y}" r="${i === 0 ? 13 : 9}" fill="${tint}" stroke="${INK}" stroke-width="3"/>`)
     .join("");
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${route.width}" height="${route.height}" viewBox="0 0 ${route.width} ${route.height}"><path d="${route.path}" fill="none" stroke="${tint}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>${dots}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${route.width}" height="${route.height}" viewBox="0 0 ${route.width} ${route.height}"><path d="${route.path}" fill="none" stroke="${INK}" stroke-opacity="0.55" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>${dots}</svg>`;
 }
 
 /** The whole trip's stops joined in order, each in its day's colour. */
 export function tripRouteSvg(route: Sketch): string {
   const dots = route.points
-    .map((point, i) => `<circle cx="${point.x}" cy="${point.y}" r="${i === 0 ? 7 : 5}" fill="${dayColor(point.day)}" stroke="${NAVY}" stroke-width="2"/>`)
+    .map((point, i) => `<circle cx="${point.x}" cy="${point.y}" r="${i === 0 ? 7 : 5}" fill="${dayColor(point.day)}" stroke="${INK}" stroke-width="1.5"/>`)
     .join("");
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${route.width}" height="${route.height}" viewBox="0 0 ${route.width} ${route.height}"><path d="${route.path}" fill="none" stroke="${WHITE}" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>${dots}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${route.width}" height="${route.height}" viewBox="0 0 ${route.width} ${route.height}"><path d="${route.path}" fill="none" stroke="${INK}" stroke-opacity="0.55" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>${dots}</svg>`;
+}
+
+/** The departures board with every letter still hidden: a flap for each, in the place's own words. */
+function HiddenBoard(p: { place: string }): ReactElement {
+  const words = boardOf(p.place, "en");
+  const longest = Math.max(...words.map((word) => word.length));
+  // The widest word fills the board; a short name keeps a flap a thumb could cover, and a name of several words
+  // gets smaller ones so its rows leave room for the clues.
+  const tallest = words.length === 1 ? 128 : words.length === 2 ? 104 : 84;
+  const flap = Math.min(tallest, Math.floor((INNER - 52 - (longest - 1) * 12) / longest));
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: 54, padding: 26, borderRadius: 32, background: INK }}>
+      {words.map((word, w) => (
+        <div key={w} style={{ display: "flex", justifyContent: "center", marginTop: w === 0 ? 0 : 14 }}>
+          {word.map((tile, i) => (
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: flap,
+                height: Math.round(flap * 1.33),
+                marginLeft: i === 0 ? 0 : 12,
+                borderRadius: Math.round(flap * 0.12),
+                background: "rgba(0,0,0,0.4)",
+                color: GOLD,
+                fontWeight: 600,
+                fontSize: Math.round(flap * 0.72),
+              }}
+            >
+              {tile.key === null ? tile.ch : ""}
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function GuessSlide(p: { words: SlideWords; logo: string }): ReactElement {
@@ -133,43 +173,20 @@ function GuessSlide(p: { words: SlideWords; logo: string }): ReactElement {
       <Centred size={92} top={64} display line={1.05}>
         {p.words.guessTitle}
       </Centred>
-      <div style={{ display: "flex", justifyContent: "center", marginTop: 54, padding: 26, borderRadius: 32, background: "rgba(0,0,0,0.25)" }}>
-        {[0, 1, 2, 3, 4].map((i) => (
-          <div
-            key={i}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 128,
-              height: 170,
-              marginLeft: i === 0 ? 0 : 14,
-              borderRadius: 16,
-              background: FLAP,
-              color: GOLD,
-              fontWeight: 600,
-              fontSize: 104,
-            }}
-          >
-            ?
-          </div>
-        ))}
-      </div>
+      <HiddenBoard place={p.words.place} />
       <div style={{ display: "flex", flexDirection: "column", marginTop: 26 }}>
         {p.words.clues.map((clue, i) => (
           <div
             key={i}
-            style={{ display: "flex", flexDirection: "column", marginTop: 20, padding: "24px 34px", borderRadius: 26, background: "rgba(255,255,255,0.10)" }}
+            style={{ display: "flex", flexDirection: "column", marginTop: 20, padding: "24px 34px", borderRadius: 26, background: WHITE, border: `2px solid ${RULE}` }}
           >
-            <div style={{ display: "flex", fontSize: 28, color: SOFT }}>{clue.label}</div>
+            <div style={{ display: "flex", fontSize: 28, color: MUTED }}>{clue.label}</div>
             <div style={{ display: "flex", marginTop: 4, fontSize: 40, lineHeight: 1.25 }}>{clue.text}</div>
           </div>
         ))}
       </div>
-      <div style={{ display: "flex", flexDirection: "column", marginTop: "auto" }}>
-        <Centred size={46} top={0} weight={600} color={GOLD}>
-          {p.words.reply}
-        </Centred>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: "auto", paddingTop: 36 }}>
+        <div style={{ display: "flex", padding: "18px 44px", borderRadius: 999, background: CORAL, color: WHITE, fontWeight: 600, fontSize: 44 }}>{p.words.reply}</div>
       </div>
     </Frame>
   );
@@ -202,7 +219,7 @@ function DayShapes(p: { story: TripStory }): ReactElement | null {
               <div key={day.day} style={{ display: "flex", flexDirection: "column", alignItems: "center", width, marginLeft: i === 0 ? 0 : gap }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={sketchDataUri(dayShapeSvg(route, dayColor(day.day)))} alt="" width={width} height={height} style={{ width, height }} />
-                <div style={{ display: "flex", marginTop: 6, fontWeight: 600, fontSize: 34, color: SOFT }}>{String(day.day)}</div>
+                <div style={{ display: "flex", marginTop: 6, fontWeight: 600, fontSize: 34, color: MUTED }}>{String(day.day)}</div>
               </div>
             );
           })}
@@ -234,8 +251,8 @@ function TripRoute(p: { route: Sketch }): ReactElement {
                 ...(leftward ? { right: Math.round((p.route.width - label.x) * scale) + 20 } : { left: Math.round(label.x * scale) + 20 }),
                 fontWeight: 600,
                 fontSize: 30,
-                color: WHITE,
-                background: "rgba(45,52,54,0.85)",
+                color: INK,
+                background: "rgba(255,250,245,0.9)",
                 borderRadius: 8,
                 padding: "0 8px",
               }}
@@ -257,7 +274,7 @@ function PlaceSlide(p: { story: TripStory; words: SlideWords; logo: string }): R
         {p.story.place}
       </Centred>
       {p.words.dates ? (
-        <Centred size={44} top={30} color={SOFT}>
+        <Centred size={44} top={30} color={MUTED}>
           {p.words.dates}
         </Centred>
       ) : null}
@@ -266,7 +283,7 @@ function PlaceSlide(p: { story: TripStory; words: SlideWords; logo: string }): R
         {p.words.facts}
       </Centred>
       <div style={{ display: "flex", flexDirection: "column", marginTop: "auto" }}>
-        <Centred size={36} top={0} color={SOFT}>
+        <Centred size={36} top={0} color={MUTED}>
           {p.words.planYours}
         </Centred>
       </div>
