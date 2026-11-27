@@ -2881,9 +2881,26 @@
       "body": "Diga ao planejador para onde e quando, e receba seu próprio plano dia a dia em cerca de 30 segundos. Grátis e sem conta.",
       "plan": "Planejar minha viagem",
       "mineTitle": "É isto que seus amigos veem",
-      "mineBody": "Envie o link e deixe que adivinhem para onde você vai.",
+      "mineBody": "Poste a adivinhação no seu story e deixe que respondam, ou envie o link.",
+      "mineBodyPlain": "Poste no seu story ou envie o link.",
       "copy": "Copiar o link da história",
       "copied": "Link copiado. Cole em um chat ou em um story."
+    },
+    "post": {
+      "guessTitle": "Adivinhe para onde eu vou",
+      "reply": "Me mande seu palpite",
+      "planYours": "Planeje a sua grátis em monkeytravel.app",
+      "guess": "Postar a adivinhação",
+      "place": "Postar a resposta",
+      "trip": "Postar a viagem",
+      "preparing": "Preparando a imagem…",
+      "shared": "Seu link também foi copiado: adicione como figurinha de link.",
+      "saved": "Imagem salva. Adicione ao seu story pelas suas fotos.",
+      "failed": "Não foi possível criar a imagem. Tente de novo em instantes."
+    },
+    "wayIn": {
+      "note": "Vai mostrar a amigos que não vão? Conte como uma história para adivinhar.",
+      "cta": "Ver a história"
     }
   }
 }

@@ -35,7 +35,7 @@ export function ogImages(alt: string) {
 /** `twitter.images` — same asset; 1200x630 satisfies summary_large_image. */
 export const twitterImages = [OG_IMAGE_PATH];
 
-export type TripCardFormat = "og" | "square" | "story";
+export type TripCardFormat = "og" | "square" | "story" | "guess" | "place";
 
 /** Path of the generated card for one trip (app/api/og/trip), by share token or public slug. */
 export function tripCardPath(

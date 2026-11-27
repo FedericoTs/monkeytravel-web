@@ -437,6 +437,41 @@ describe("the sharer opening their own link", { timeout: 20_000 }, () => {
   });
 });
 
+// The story is how the trip is shown off (/shared/[token]/story): the way in is for the one who made the link.
+describe("the way in to the trip's story", { timeout: 20_000 }, () => {
+  const wayIn = () => screen.queryByTestId("story-way-in");
+
+  it("is shown to the trip's owner, and opens the story of this link", async () => {
+    show({ isOwner: true });
+    await settled();
+    expect(within(wayIn()!).getByRole("link", { name: "story.wayIn.cta" }).getAttribute("href")).toBe(`/shared/${TOKEN}/story`);
+    expect(within(wayIn()!).getByText("story.wayIn.note")).toBeTruthy();
+  });
+
+  it("is shown to the browser that made a signed-out link", async () => {
+    state.claim = { shareToken: TOKEN };
+    show();
+    await waitFor(() => expect(wayIn()).not.toBeNull());
+  });
+
+  it("is not shown to a friend, nor to the holder of another trip's link", async () => {
+    show();
+    await settled();
+    expect(wayIn()).toBeNull();
+    cleanup();
+    state.claim = { shareToken: "another-token" };
+    show();
+    await settled();
+    expect(wayIn()).toBeNull();
+  });
+
+  it("is not on the public page, which has no link of its own to tell", async () => {
+    showPublic({ isOwner: true });
+    await settled();
+    expect(wayIn()).toBeNull();
+  });
+});
+
 describe("a member of the trip", { timeout: 20_000 }, () => {
   it("is sent to the editor, and without it sees no such bar", async () => {
     show({ editorHref: "/trips/trip-1" });

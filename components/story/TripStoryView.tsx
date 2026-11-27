@@ -6,8 +6,10 @@ import { Link } from "@/lib/i18n/routing";
 import { dayColor } from "@/lib/map/day-colors";
 import type { Sketch } from "@/lib/og/route-sketch";
 import { onPostHogReady } from "@/lib/posthog/client";
-import type { StoryClue, StoryDay, TripStory } from "@/lib/story/trip-story";
+import type { StoryDay, TripStory } from "@/lib/story/trip-story";
+import { storyClueText, storyDate, storyDates, storyFacts, type StoryTranslator } from "@/lib/story/words";
 import { reportPlanOwnClicked } from "@/lib/trips/plan-own";
+import StoryPost from "./StoryPost";
 
 interface Props {
   story: TripStory;
@@ -19,6 +21,8 @@ interface Props {
   fullPlanHref: string;
   /** This page's address, for the one who made the link to pass on. */
   storyUrl: string;
+  /** The share link's token: its pictures to post are drawn for it. */
+  shareToken: string;
   /** The trip's owner, or the browser that made its link: shown how friends see it, and how to send it. */
   mine: boolean;
 }
@@ -30,23 +34,20 @@ const BUTTON = `inline-flex min-h-[48px] items-center justify-center rounded-ful
 const MAIN_BUTTON = `${BUTTON} bg-[var(--accent)] text-[var(--foreground)]`;
 const QUIET_BUTTON = `${BUTTON} border border-white/30 text-white`;
 
+/** A file name from a place's name: "São Miguel" saves as "sao-miguel". */
+function plainFileName(place: string): string {
+  const name = place
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  return name || "trip";
+}
+
 /** Only reaches visitors who accepted analytics. */
 function capture(event: string, properties: Record<string, string | number | boolean>): void {
   onPostHogReady((posthog) => posthog.capture(event, properties));
-}
-
-function utcDate(iso: string | null): Date | null {
-  if (!iso || !/^\d{4}-\d{2}-\d{2}/.test(iso)) return null;
-  const date = new Date(`${iso.slice(0, 10)}T00:00:00Z`);
-  return Number.isNaN(date.getTime()) ? null : date;
-}
-
-function dateRange(start: string | null, end: string | null, locale: string): string | null {
-  const from = utcDate(start);
-  const to = utcDate(end);
-  if (!from) return null;
-  const format = new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
-  return to && to.getTime() !== from.getTime() ? format.formatRange(from, to) : format.format(from);
 }
 
 /** The place on a departures board: hidden behind three flaps, then turned over a letter at a time. */
@@ -152,8 +153,9 @@ function DayShapes({ days, label }: { days: StoryDay[]; label: string }) {
   );
 }
 
-export default function TripStoryView({ story, locale, tripId, planHref, fullPlanHref, storyUrl, mine }: Props) {
+export default function TripStoryView({ story, locale, tripId, planHref, fullPlanHref, storyUrl, shareToken, mine }: Props) {
   const t = useTranslations("common.story");
+  const say = t as unknown as StoryTranslator;
   const slides = useMemo<Slide[]>(
     () => [
       ...(story.guess ? [{ kind: "guess" } as const] : []),
@@ -211,33 +213,9 @@ export default function TripStoryView({ story, locale, tripId, planHref, fullPla
     }
   };
 
-  const clueText = (clue: StoryClue): string => {
-    if (clue.kind === "when") {
-      const month = clue.month
-        ? new Intl.DateTimeFormat(locale, { month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(2024, clue.month - 1, 1)))
-        : null;
-      const where = clue.region ? t(`guess.where.${clue.region}`) : null;
-      if (month && where) return t("guess.when", { days: clue.days, month, where });
-      if (where) return t("guess.whenNoMonth", { days: clue.days, where });
-      if (month) return t("guess.whenNoWhere", { days: clue.days, month });
-      return t("guess.whenBare", { days: clue.days });
-    }
-    if (clue.kind === "mix") {
-      const parts = [
-        clue.sights > 0 ? t("guess.sights", { count: clue.sights }) : null,
-        clue.meals > 0 ? t("guess.meals", { count: clue.meals }) : null,
-        clue.outdoors > 0 ? t("guess.outdoors", { count: clue.outdoors }) : null,
-      ].filter((part): part is string => part !== null);
-      return t("guess.mix", { list: new Intl.ListFormat(locale, { type: "conjunction" }).format(parts) });
-    }
-    return clue.words > 1
-      ? t("guess.lettersWords", { first: clue.first, words: clue.words, letters: clue.letters })
-      : t("guess.letters", { first: clue.first, letters: clue.letters });
-  };
-
-  const dates = dateRange(story.startDate, story.endDate, locale);
+  const dates = storyDates(story.startDate, story.endDate, locale);
   const severalCities = story.cities.length > 1;
-  const dayDate = slide.kind === "day" ? utcDate(slide.day.date) : null;
+  const dayDate = slide.kind === "day" ? storyDate(slide.day.date) : null;
 
   return (
     <main className="flex min-h-dvh justify-center bg-[var(--navy)] text-white">
@@ -271,7 +249,7 @@ export default function TripStoryView({ story, locale, tripId, planHref, fullPla
                 {guess.clues.slice(0, picked === null ? cluesShown : guess.clues.length).map((clue, i) => (
                   <li key={clue.kind} className="rounded-lg bg-white/10 px-4 py-3">
                     <span className="block text-sm text-white/75">{t("guess.clue", { number: i + 1 })}</span>
-                    <span className="text-lg leading-snug">{clueText(clue)}</span>
+                    <span className="text-lg leading-snug">{storyClueText(clue, say, locale)}</span>
                   </li>
                 ))}
               </ol>
@@ -337,11 +315,7 @@ export default function TripStoryView({ story, locale, tripId, planHref, fullPla
                 )}
               </div>
               <p className="mt-8 text-balance text-center text-xl leading-snug">
-                {severalCities
-                  ? t("reveal.factsCities", { days: story.dayCount, cities: story.cities.length, stops: story.stopCount })
-                  : story.km
-                    ? t("reveal.factsKm", { days: story.dayCount, stops: story.stopCount, km: story.km })
-                    : t("reveal.facts", { days: story.dayCount, stops: story.stopCount })}
+                {storyFacts(story, say)}
               </p>
             </>
           )}
@@ -376,14 +350,28 @@ export default function TripStoryView({ story, locale, tripId, planHref, fullPla
 
           {slide.kind === "end" && (
             <>
-              <h1 id="story-heading" ref={heading} tabIndex={-1} className="text-balance text-4xl font-semibold leading-tight outline-none">
+              <h1 id="story-heading" ref={heading} tabIndex={-1} className={`text-balance font-semibold leading-tight outline-none ${mine ? "text-3xl" : "text-4xl"}`}>
                 {mine ? t("end.mineTitle") : t("end.title")}
               </h1>
-              <p className="mt-4 text-lg leading-relaxed text-white/85">{mine ? t("end.mineBody") : t("end.body")}</p>
+              <p className="mt-4 text-lg leading-relaxed text-white/85">
+                {mine ? (guess ? t("end.mineBody") : t("end.mineBodyPlain")) : t("end.body")}
+              </p>
               {story.moreDays > 0 && <p className="mt-3 text-white/75">{t("day.moreDays", { count: story.moreDays })}</p>}
-              <div className="mt-8 flex flex-col gap-3">
+              {mine && (
+                <div className="mt-6">
+                  <StoryPost
+                    shareToken={shareToken}
+                    locale={locale}
+                    tripId={tripId}
+                    withGuess={guess !== null}
+                    storyUrl={storyUrl}
+                    fileStem={plainFileName(story.place)}
+                  />
+                </div>
+              )}
+              <div className={`flex flex-col gap-3 ${mine ? "mt-2" : "mt-8"}`}>
                 {mine ? (
-                  <button type="button" onClick={copyLink} className={MAIN_BUTTON}>
+                  <button type="button" onClick={copyLink} className={QUIET_BUTTON}>
                     {t("end.copy")}
                   </button>
                 ) : (

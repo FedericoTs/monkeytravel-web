@@ -37,7 +37,7 @@ const BodySchema = z.union([
   z.object({
     event_type: z.literal("trip_card_shared"),
     trip_id: z.string().uuid(),
-    format: z.enum(["story", "square"]),
+    format: z.enum(["story", "square", "guess", "place"]),
     method: z.enum(["native_share", "download"]),
   }),
   // A "Where should I go?" result, which belongs to no trip.
