@@ -157,6 +157,14 @@ interface DestinationAutocompleteProps {
    * name without its country.
    */
   compact?: boolean;
+  /**
+   * The field holds a whole trip in words, which the page offers to read (the planner's request reader): no list
+   * and no "Continue with …" panel cover that offer, and Enter reads the trip rather than taking its words for a
+   * place.
+   */
+  isRequest?: boolean;
+  /** Enter on such a field. */
+  onRequestEnter?: () => void;
 }
 
 export default function DestinationAutocomplete({
@@ -171,6 +179,8 @@ export default function DestinationAutocomplete({
   ariaLabelledBy,
   ariaRequired,
   compact = false,
+  isRequest = false,
+  onRequestEnter,
 }: DestinationAutocompleteProps) {
   const t = useTranslations("common.destinationSearch");
   // App locale (it/es/en/pt). Forwarded to the search API so the Photon
@@ -386,9 +396,9 @@ export default function DestinationAutocomplete({
     [onChange, onSelect, compact]
   );
 
-  // A request typed here is too long to be a place: the list stays closed,
-  // leaving the room under the field to what can be done with it.
-  const open = isOpen && value.length <= DESTINATION_MAX_LENGTH;
+  // A request typed here, or anything too long to be a place: the list stays
+  // closed, leaving the room under the field to what can be done with it.
+  const open = isOpen && value.length <= DESTINATION_MAX_LENGTH && !isRequest;
   // The rows on screen. The popular list answers an empty field; while a typed
   // place is still being searched it shows only the popular places that match
   // the text, so a quick tap can't pick a place nobody typed.
@@ -406,6 +416,13 @@ export default function DestinationAutocomplete({
 
   // Keyboard navigation
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    // A whole trip in words: Enter reads it, as the offer under the field
+    // does, and never takes the words, or the top match, for the place.
+    if (isRequest && e.key === "Enter") {
+      e.preventDefault();
+      onRequestEnter?.();
+      return;
+    }
     if (!listShown) {
       if (e.key === "ArrowDown" && rows.length > 0) {
         // Down opens a closed list (WAI-ARIA combobox).

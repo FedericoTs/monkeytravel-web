@@ -7,8 +7,26 @@ import itTrips from "@/messages/it/trips.json";
 import ptTrips from "@/messages/pt/trips.json";
 
 vi.mock("@/components/ui/DestinationAutocomplete", () => ({
-  default: ({ value, onChange }: { value: string; onChange: (v: string) => void }) => (
-    <input aria-label="Destination" value={value} onChange={(e) => onChange(e.target.value)} />
+  default: ({
+    value,
+    onChange,
+    isRequest,
+    onRequestEnter,
+  }: {
+    value: string;
+    onChange: (v: string) => void;
+    isRequest?: boolean;
+    onRequestEnter?: () => void;
+  }) => (
+    <input
+      aria-label="Destination"
+      data-request={isRequest ? "yes" : "no"}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" && isRequest) onRequestEnter?.();
+      }}
+    />
   ),
 }));
 vi.mock("@/components/wizard/OneTapStarts", () => ({ default: () => null }));
@@ -130,6 +148,36 @@ describe("a whole trip typed as a request", () => {
       show("");
       expect(screen.getByText(step1.movedToNotes)).toBeTruthy();
     });
+  });
+
+  it("tells the field it holds a request, and reads it on Enter", () => {
+    const onReadRequest = vi.fn(async () => "filled" as const);
+    field(TRIP, vi.fn(), { requestLike: true, onReadRequest });
+    const input = screen.getByLabelText("Destination");
+    expect(input.getAttribute("data-request")).toBe("yes");
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(onReadRequest).toHaveBeenCalledTimes(1);
+  });
+
+  it("says the words were kept when Enter read no place from them", async () => {
+    const { show } = field(TRIP, vi.fn(), { requestLike: true, onReadRequest: async () => "kept" as const });
+    fireEvent.keyDown(screen.getByLabelText("Destination"), { key: "Enter" });
+    await vi.waitFor(() => {
+      show("");
+      expect(screen.getByText(step1.movedToNotes)).toBeTruthy();
+    });
+  });
+
+  it("reads once at a time: Enter does nothing while it reads", () => {
+    const onReadRequest = vi.fn();
+    field(TRIP, vi.fn(), { requestLike: true, readingRequest: true, onReadRequest });
+    fireEvent.keyDown(screen.getByLabelText("Destination"), { key: "Enter" });
+    expect(onReadRequest).not.toHaveBeenCalled();
+  });
+
+  it("leaves a place's name to the field as before", () => {
+    field("Lisbon", vi.fn(), { requestLike: false, onReadRequest: vi.fn() });
+    expect(screen.getByLabelText("Destination").getAttribute("data-request")).toBe("no");
   });
 
   it("shows it is reading, and takes no second press meanwhile", () => {
