@@ -144,7 +144,7 @@ Per uno spettacolo che capita una volta l'anno: i campi di bulbi olandesi, la Fe
 
 ### Quand'è la Pasqua 2027 e come influisce su aprile?
 
-La Pasqua è il [28 marzo 2027](https://www.officeholidays.com/countries/netherlands/2027), quindi la Settimana Santa (21–27 marzo) e il suo rincaro cadono a marzo, e aprile è soprattutto mezza stagione nell'Europa cattolica e in America Latina. La Pasqua ortodossa è il 2 maggio, il che mette la Settimana Santa greca dal 26 aprile al 1° maggio.
+La Pasqua è il [28 marzo 2027](https://www.officeholidays.com/countries/netherlands/2027), quindi la Settimana Santa (21–27 marzo) e il suo rincaro cadono a marzo, e aprile è soprattutto mezza stagione nell'Europa cattolica e in America Latina. La Pasqua ortodossa è il 2 maggio, il che mette la Settimana Santa greca dal 26 aprile al 1° maggio. Dove passarla, dalle processioni di Siviglia alle fughe più tranquille, lo trovi nella nostra [guida alla Pasqua 2027](/blog/where-to-go-at-easter).
 
 ### Dove fa caldo ad aprile?
 

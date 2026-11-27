@@ -145,7 +145,7 @@ Para um espetáculo que só acontece uma vez por ano: os campos de bulbos holand
 
 ### Quando é a Páscoa de 2027 e como afeta abril?
 
-O Domingo de Páscoa é em [28 de março de 2027](https://www.officeholidays.com/countries/netherlands/2027), então a Semana Santa (21 a 27 de março) e a alta de preços caem em março, e abril é principalmente meia-estação na Europa católica e na América Latina. A Páscoa ortodoxa é em 2 de maio, o que coloca a Semana Santa grega de 26 de abril a 1º de maio.
+O Domingo de Páscoa é em [28 de março de 2027](https://www.officeholidays.com/countries/netherlands/2027), então a Semana Santa (21 a 27 de março) e a alta de preços caem em março, e abril é principalmente meia-estação na Europa católica e na América Latina. A Páscoa ortodoxa é em 2 de maio, o que coloca a Semana Santa grega de 26 de abril a 1º de maio. Onde passá-la, das procissões de Sevilha a fugas mais tranquilas, está no nosso [guia da Páscoa 2027](/blog/where-to-go-at-easter).
 
 ### Onde faz calor em abril?
 
