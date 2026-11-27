@@ -111,3 +111,17 @@ describe("the result view's packing suggestions", () => {
     expect(screen.getByText("Umbrella")).toBeTruthy();
   });
 });
+
+describe("the packing suggestions on a phone's rows", () => {
+  it("are a plain list under their heading, one line each", () => {
+    render(<ResultPacking items={["Shoes", "Umbrella"]} plain />);
+    const items = screen.getAllByRole("listitem");
+    expect(items.map((item) => item.textContent)).toEqual(["Shoes", "Umbrella"]);
+    expect(items[0].parentElement!.tagName).toBe("UL");
+  });
+
+  it("are tags, not a list, elsewhere", () => {
+    render(<ResultPacking items={["Raincoat"]} />);
+    expect(screen.getByText("Raincoat").tagName).toBe("SPAN");
+  });
+});

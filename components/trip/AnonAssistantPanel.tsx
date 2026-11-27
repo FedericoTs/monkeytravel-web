@@ -90,6 +90,8 @@ interface AnonAssistantPanelProps {
    * what each may be (lib/ai/assistant/trip-facts.ts).
    */
   facts?: { [K in keyof TripFacts]?: unknown };
+  /** A phone's look: the title, the ideas in one row and the field, without the icon and the note. */
+  compact?: boolean;
 }
 
 interface Msg {
@@ -125,6 +127,7 @@ export default function AnonAssistantPanel({
   shareSlot,
   asked,
   facts,
+  compact = false,
 }: AnonAssistantPanelProps) {
   const t = useTranslations("trips");
   const tAssistant = useTranslations("common.ai.assistant");
@@ -353,9 +356,9 @@ export default function AnonAssistantPanel({
         }));
 
   return (
-    <section ref={panelRef} className="rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm">
+    <section ref={panelRef} className={`rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 shadow-sm ${compact ? "p-4" : "p-5"}`}>
       <div className="flex items-start gap-3">
-        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--primary)]/10 text-[var(--primary-ink)]">
+        <div className={`h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--primary)]/10 text-[var(--primary-ink)] ${compact ? "hidden" : "flex"}`}>
           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
@@ -367,7 +370,7 @@ export default function AnonAssistantPanel({
         </div>
         <div className="min-w-0 flex-1">
           <h3 className="font-semibold text-slate-900">{t("assistant.title")}</h3>
-          <p className="text-sm text-slate-500">{t("assistant.note")}</p>
+          {!compact && <p className="text-sm text-slate-500">{t("assistant.note")}</p>}
         </div>
       </div>
 
@@ -585,7 +588,8 @@ export default function AnonAssistantPanel({
       )}
 
       {messages.length === 0 && (
-        <div className="mt-4 flex flex-wrap gap-2">
+        // On a phone the ideas keep to one row that scrolls sideways.
+        <div className={compact ? "-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : "mt-4 flex flex-wrap gap-2"}>
           {suggestions.map((s) => (
             <button
               key={s.source}
@@ -598,7 +602,7 @@ export default function AnonAssistantPanel({
                 ask(s.prompt);
               }}
               disabled={loading}
-              className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-600 transition-colors hover:border-[var(--primary)] hover:text-[var(--primary-ink)] disabled:opacity-50"
+              className={`rounded-full border border-slate-200 bg-white text-sm text-slate-600 transition-colors hover:border-[var(--primary)] hover:text-[var(--primary-ink)] disabled:opacity-50 ${compact ? "min-h-[44px] flex-shrink-0 whitespace-nowrap px-4" : "px-3 py-1.5"}`}
             >
               {s.label}
             </button>
@@ -613,7 +617,7 @@ export default function AnonAssistantPanel({
           e.preventDefault();
           ask(input);
         }}
-        className="mt-4 flex items-center gap-2"
+        className={`flex items-center gap-2 ${compact ? "mt-3" : "mt-4"}`}
       >
         <input
           type="text"

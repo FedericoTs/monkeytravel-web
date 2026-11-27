@@ -39,7 +39,19 @@ export const SAVE_BOX_BENEFITS = {
   reviewBy: "2027-01-12",
 } as const satisfies Experiment;
 
-export const EXPERIMENTS: readonly Experiment[] = [STEP2_DEFAULT, SAVE_BOX_BENEFITS];
+/**
+ * How a phone reads a plan: as today, a tall card for every stop with its picture, description, address and
+ * buttons ("cards"), or the days in a row to jump between and every stop a short row that opens its sheet, with
+ * the assistant after the first day ("rows"). Counted from the plan on a phone's screen, where the arms differ.
+ */
+export const PHONE_PLAN_ROWS = {
+  key: "phone_plan_rows",
+  arms: ["cards", "rows"],
+  starts: Date.UTC(2026, 10, 28, 12, 0),
+  reviewBy: "2026-12-19",
+} as const satisfies Experiment;
+
+export const EXPERIMENTS: readonly Experiment[] = [STEP2_DEFAULT, SAVE_BOX_BENEFITS, PHONE_PLAN_ROWS];
 
 export function experimentByKey(key: string): Experiment | undefined {
   return EXPERIMENTS.find((experiment) => experiment.key === key);
