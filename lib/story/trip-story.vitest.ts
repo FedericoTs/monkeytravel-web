@@ -176,6 +176,25 @@ describe("the guess that opens a story", () => {
     expect(story.guess!.options).toContain("São Miguel");
   });
 
+  it("never offers a city of the trip's own country as a wrong answer, when the place may be the country itself", () => {
+    const japan = { ...lisbon, trip_meta: { destination: "Japan", country_code: "jp", timezone: "Asia/Tokyo" } };
+    const seeds = Array.from({ length: 40 }, (_, i) => `seed-${i}`);
+    const offered = new Set(seeds.flatMap((seed) => buildTripStory(japan, "en", seed).guess!.options));
+    expect(offered.has("Japan")).toBe(true);
+    expect(offered.has("Tokyo")).toBe(false);
+    // The same seeds do offer Tokyo for a trip elsewhere in Asia: it is left out for Japan, not missing.
+    const korea = { ...lisbon, trip_meta: { destination: "Jeju", country_code: "KR", timezone: "Asia/Seoul" } };
+    expect(seeds.some((seed) => buildTripStory(korea, "en", seed).guess!.options.includes("Tokyo"))).toBe(true);
+  });
+
+  it("still offers another city of the same country against a city we know", () => {
+    const pool = destinations.filter((d) => d.countryCode === destinations.find((x) => x.name.en === "Barcelona")!.countryCode && d.name.en !== "Barcelona");
+    expect(pool.length).toBeGreaterThan(0);
+    const barcelona = { ...lisbon, trip_meta: { destination: "Barcelona, Spain", country_code: "ES", timezone: "Europe/Madrid" } };
+    const seeds = Array.from({ length: 60 }, (_, i) => `seed-${i}`);
+    expect(seeds.some((seed) => buildTripStory(barcelona, "en", seed).guess!.options.some((option) => pool.some((d) => d.name.en === option)))).toBe(true);
+  });
+
   it("names no part of the world when the trip stores no time zone, and no month without dates", () => {
     const story = buildTripStory({ ...lisbon, start_date: null, end_date: null, itinerary: lisbonDays.map(({ date: _date, ...day }) => day), trip_meta: { destination: "Lisbon" } }, "en", SEED);
     expect(clue(story.guess!.clues, "when")).toEqual({ kind: "when", days: 2, month: null, region: null });

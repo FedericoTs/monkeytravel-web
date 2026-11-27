@@ -227,6 +227,8 @@ function buildGuess(input: {
   days: RawDay[];
   locale: Locale;
   seed: string;
+  /** The trip's country, when it stores one. */
+  countryCode: string | null;
 }): { guess: StoryGuess; place: string } | null {
   // A place we have a page for is shown by its name in the reader's language.
   const known = destinations.find((d) => Object.values(d.name).some((n) => plainName(n) === plainName(input.place)));
@@ -234,7 +236,11 @@ function buildGuess(input: {
   if (!GUESSABLE.test(place)) return null;
 
   const next = seededOrder(input.seed);
-  const others = destinations.filter((d) => d !== known && plainName(d.name[input.locale]) !== plainName(place));
+  // A place we have no page for may be a country or a region: a city inside it would be a second right answer.
+  const within = known ? null : input.countryCode;
+  const others = destinations.filter(
+    (d) => d !== known && plainName(d.name[input.locale]) !== plainName(place) && d.countryCode.toUpperCase() !== within
+  );
   const near = input.region ? CONTINENTS_OF[input.region] : [];
   // Wrong answers from the same part of the world first: the first clue names it.
   const pool = [...shuffled(others.filter((d) => near.includes(d.continent)), next), ...shuffled(others.filter((d) => !near.includes(d.continent)), next)];
@@ -271,7 +277,16 @@ export function buildTripStory(trip: StorySource, locale: Locale, seed: string):
 
   const guessed =
     cities.length <= 1 && days.length > 0
-      ? buildGuess({ place: shortName, region: regionOf(meta), dayCount: days.length, startDate, days, locale, seed })
+      ? buildGuess({
+          place: shortName,
+          region: regionOf(meta),
+          dayCount: days.length,
+          startDate,
+          days,
+          locale,
+          seed,
+          countryCode: str(meta?.country_code).toUpperCase() || null,
+        })
       : null;
 
   return {
