@@ -151,6 +151,24 @@ describe("a trip's card", () => {
   });
 
   // The estimate saved with the plan never moves after a change; the page adds up its stops.
+  it("draws the trip's cover only when it may leave the site, with the credit a Commons photo asks for", async () => {
+    s.row = { ...TRIP, cover_image_url: "/api/images/wikimedia/abc123-1280.jpg?a=Yann+Caradec&l=CC+BY-SA+2.0&f=Tour+Eiffel.jpg" };
+    await card(`token=${TOKEN}`);
+    expect(s.card?.cover).toBe("https://monkeytravel.app/api/images/wikimedia/abc123-1280.jpg?a=Yann+Caradec&l=CC+BY-SA+2.0&f=Tour+Eiffel.jpg");
+    expect(s.card?.coverCredit).toEqual({ author: "Yann Caradec", license: "CC BY-SA 2.0" });
+
+    // A Google photo stays on the site: the card is drawn without it.
+    s.row = { ...TRIP, cover_image_url: "/api/places/photo?name=places%2Fabc&w=600&h=400" };
+    await card(`token=${TOKEN}&format=story`);
+    expect(s.card?.cover).toBeNull();
+    expect(s.card?.coverCredit).toBeNull();
+
+    s.row = { ...TRIP, cover_image_url: "https://images.pexels.com/photos/1/p.jpeg" };
+    await card(`token=${TOKEN}`);
+    expect(s.card?.cover).toBe("https://images.pexels.com/photos/1/p.jpeg?w=1200&h=1200&fit=crop");
+    expect(s.card?.coverCredit).toBeNull();
+  });
+
   it("prices the trip as its page does: the stops added up, per person, never the estimate saved with it", async () => {
     s.row = {
       ...TRIP,

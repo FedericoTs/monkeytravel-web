@@ -16,7 +16,7 @@ import {
   cardBudget,
   cardFormat,
   cardLocale,
-  coverForCard,
+  cardCover,
   formatRange,
   renderBrandCard,
   renderTripCard,
@@ -218,6 +218,7 @@ export async function GET(request: NextRequest) {
 
   logDrawn(format);
 
+  const picture = cardCover(data.cover_image_url, url.origin);
   return respond(
     renderTripCard(
       {
@@ -225,7 +226,8 @@ export async function GET(request: NextRequest) {
         destination,
         dates: formatRange(data.start_date, data.end_date, locale),
         days,
-        cover: coverForCard(data.cover_image_url, url.origin),
+        cover: picture.cover,
+        coverCredit: picture.credit,
         logo,
         goingCount: count ?? 0,
         activityCount,
