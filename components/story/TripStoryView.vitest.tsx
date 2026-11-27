@@ -194,6 +194,8 @@ describe("the guess", () => {
     expect(clues()).toBe(4);
     expect(screen.queryByRole("group", { name: "guess.keys" })).toBeNull();
     expect(captured).toEqual([["story_guessed", { right: true, misses: 2 }]]);
+    // The site's own row, for the friends PostHog never sees.
+    expect(posted).toEqual([{ event_type: "story_guessed", trip_id: "99999999-2222-4333-8444-555555555555", right: true, misses: 2 }]);
     press("guess.see");
     expect(heading()).toBe("Lisbon");
   });
@@ -207,6 +209,7 @@ describe("the guess", () => {
     expect(board().textContent).toBe("LISBON");
     expect(screen.queryByRole("group", { name: "guess.keys" })).toBeNull();
     expect(captured).toEqual([["story_guessed", { right: false, misses: 6 }]]);
+    expect(posted).toEqual([{ event_type: "story_guessed", trip_id: "99999999-2222-4333-8444-555555555555", right: false, misses: 6 }]);
     expect(screen.getByRole("button", { name: "guess.see" })).toBeTruthy();
   });
 
@@ -329,6 +332,8 @@ describe("the last part", () => {
     expect(heading()).toBe("end.title");
     expect(screen.queryByRole("button", { name: "next" })).toBeNull();
     expect(captured).toEqual([["story_finished", { guessed: false }]]);
+    expect(posted).toEqual([{ event_type: "story_finished", trip_id: "99999999-2222-4333-8444-555555555555", guessed: false }]);
+    posted.length = 0;
     const plan = screen.getByRole("link", { name: "end.plan" });
     expect(plan.getAttribute("href")).toBe("/trips/new?destination=Lisbon&days=2&from=trip");
     fireEvent.click(plan);
@@ -339,6 +344,35 @@ describe("the last part", () => {
     // The pictures to post and the teller's bar are the teller's.
     expect(screen.queryByTestId("story-post")).toBeNull();
     expect(screen.queryByTestId("story-mine-bar")).toBeNull();
+  });
+
+  it("sends the site's rows to the funnel endpoint, in a request that outlives the page", () => {
+    view();
+    letters("LISBON");
+    const [url, init] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("/api/funnel-event");
+    expect(init.method).toBe("POST");
+    expect(init.keepalive).toBe(true);
+  });
+
+  it("counts the story watched to its end once, however often the last part is reached", () => {
+    view();
+    toEnd();
+    press("back");
+    press("next");
+    expect(captured).toEqual([["story_finished", { guessed: false }]]);
+    expect(posted).toHaveLength(1);
+  });
+
+  it("counts it when the arrow keys brought the friend there, and says a guess was played", () => {
+    view();
+    letters("LISBON");
+    posted.length = 0;
+    captured.length = 0;
+    for (let part = 0; part < 4; part += 1) fireEvent.keyDown(window, { key: "ArrowRight" });
+    expect(heading()).toBe("end.title");
+    expect(captured).toEqual([["story_finished", { guessed: true }]]);
+    expect(posted).toEqual([{ event_type: "story_finished", trip_id: "99999999-2222-4333-8444-555555555555", guessed: true }]);
   });
 
   it("tells the days it left out", () => {

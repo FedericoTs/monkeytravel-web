@@ -34,6 +34,9 @@ export const FUNNEL_EVENT_TYPES = [
   "trip_card_shared",
   // A reminder or digest email's link opened (lib/analytics/email-click.ts).
   "email_clicked",
+  // A trip's story: a friend's guess played to its end, and the story watched to its last part.
+  "story_guessed",
+  "story_finished",
 ] as const;
 
 export type FunnelEventType = (typeof FUNNEL_EVENT_TYPES)[number];

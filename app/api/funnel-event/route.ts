@@ -5,8 +5,9 @@
 // vote_cast) insert into funnel_events directly via the service-role helper
 // (lib/analytics/funnel-events.ts); only the client-fired events need an
 // HTTP endpoint: plan_own_clicked, fired from the /shared "plan your own"
-// CTAs, and trip_card_shared, fired when the owner shares or downloads the
-// trip card. Mirrors /api/wizard-event's composite IP+session rate limit and its
+// CTAs, trip_card_shared, fired when the owner shares or downloads the
+// trip card, and a trip's story: how a friend's guess ended (story_guessed)
+// and the story watched to its last part (story_finished). Mirrors /api/wizard-event's composite IP+session rate limit and its
 // anon-friendly insert (the funnel_events INSERT RLS policy enforces
 // user_id IS NULL OR user_id = auth.uid(), so we pass auth.uid() when present
 // and let the DB reject mismatches).
@@ -18,6 +19,7 @@ import { errors } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { writesTelemetry } from "@/lib/analytics/telemetry-env";
 import { readJsonBody } from "@/lib/api/json-body";
+import { GUESS_MISSES } from "@/lib/story/letters";
 
 // Which "plan your own" button was pressed, so each can be read: on a trip
 // page, a match result, under a place in a month's guide, or at the end of a trip's story.
@@ -46,6 +48,19 @@ const BodySchema = z.union([
     kind: z.literal("match"),
     method: z.enum(MATCH_SHARE_METHODS),
   }),
+  // A trip's story: a friend's guess played to its end, with how many letters were wrong.
+  z.object({
+    event_type: z.literal("story_guessed"),
+    trip_id: z.string().uuid(),
+    right: z.boolean(),
+    misses: z.number().int().min(0).max(GUESS_MISSES),
+  }),
+  // A trip's story watched to its last part, after a guess played to its end or not.
+  z.object({
+    event_type: z.literal("story_finished"),
+    trip_id: z.string().uuid(),
+    guessed: z.boolean(),
+  }),
 ]);
 
 function metadataOf(body: z.infer<typeof BodySchema>) {
@@ -56,6 +71,8 @@ function metadataOf(body: z.infer<typeof BodySchema>) {
       ...(body.surface ? { surface: body.surface } : {}),
     };
   }
+  if (body.event_type === "story_guessed") return { right: body.right, misses: body.misses };
+  if (body.event_type === "story_finished") return { guessed: body.guessed };
   return "kind" in body ? { kind: body.kind, method: body.method } : { format: body.format, method: body.method };
 }
 
