@@ -2835,9 +2835,10 @@
     "back": "Back",
     "guess": {
       "title": "Guess where this trip goes",
-      "lead": "The fewer clues you need, the better.",
+      "lead": "Pick letters. {max} wrong ones and the place is shown.",
       "hidden": "A place still hidden",
       "clue": "Clue {number}",
+      "clues": "Clues",
       "when": "{days, plural, one {One day} other {# days}} in {month}, {where}",
       "whenNoMonth": "{days, plural, one {One day} other {# days}}, {where}",
       "whenNoWhere": "{days, plural, one {One day} other {# days}} in {month}",
@@ -2851,18 +2852,20 @@
         "atlantic": "on an island in the Atlantic",
         "indian": "on an island in the Indian Ocean"
       },
-      "mix": "On the plan: {list}.",
-      "sights": "{count, plural, one {# sight} other {# sights}}",
-      "meals": "{count, plural, one {# food stop} other {# food stops}}",
-      "outdoors": "{count, plural, one {# stop outdoors} other {# stops outdoors}}",
-      "letters": "It starts with {first} and has {letters, plural, one {# letter} other {# letters}}.",
-      "lettersWords": "It starts with {first}: {words} words, {letters} letters.",
-      "another": "Show another clue",
-      "pick": "Where is it?",
-      "right": "{clues, plural, one {You got it with one clue.} other {You got it with # clues.}}",
-      "wrong": "Not this time. It's {place}.",
       "see": "See the trip",
-      "skip": "Skip the guess"
+      "skip": "Skip the guess",
+      "blank": "blank",
+      "keys": "Letters to pick",
+      "misses": "Wrong letters: {count} of {max}",
+      "sunset": "On the first evening the sun sets at {time}.",
+      "dayTitle": "One of its days is called “{title}”.",
+      "stop": "One stop on the plan: {name}.",
+      "solved": "{misses, plural, =0 {You got it without one wrong letter.} one {You got it with one wrong letter.} other {You got it with # wrong letters.}}",
+      "lost": "Out of tries. It's {place}.",
+      "tell": "Tell them how you did",
+      "told": "Copied. Paste it to them.",
+      "tellSolved": "{misses, plural, =0 {I guessed your trip without one wrong letter.} one {I guessed your trip with one wrong letter.} other {I guessed your trip with # wrong letters.}}",
+      "tellLost": "Your trip beat me: I couldn't guess it."
     },
     "reveal": {
       "facts": "{days, plural, one {One day} other {# days}} and {stops, plural, one {# stop} other {# stops}}.",
@@ -2901,6 +2904,10 @@
     "wayIn": {
       "note": "Showing it to friends who aren't coming? Tell it as a story they can guess.",
       "cta": "See the story"
+    },
+    "mine": {
+      "note": "This is what your friends see.",
+      "post": "Post it"
     }
   }
 }

@@ -25,15 +25,11 @@ describe("a clue", () => {
     expect(storyClueText({ kind: "when", days: 8, month: 1, region: "europe" }, tIt, "it")).toBe("8 giorni a gennaio, da qualche parte in Europa");
   });
 
-  it("lists what the plan holds, leaving out what it holds none of", () => {
-    expect(storyClueText({ kind: "mix", sights: 15, meals: 6, outdoors: 1 }, t, "en")).toBe("On the plan: 15 sights, 6 food stops, and 1 stop outdoors.");
-    expect(storyClueText({ kind: "mix", sights: 1, meals: 0, outdoors: 0 }, t, "en")).toBe("On the plan: 1 sight.");
-    expect(storyClueText({ kind: "mix", sights: 0, meals: 2, outdoors: 3 }, t, "en")).toBe("On the plan: 2 food stops and 3 stops outdoors.");
-  });
-
-  it("gives the first letter and the length, by words for a name of several", () => {
-    expect(storyClueText({ kind: "letters", first: "L", letters: 6, words: 1 }, t, "en")).toBe("It starts with L and has 6 letters.");
-    expect(storyClueText({ kind: "letters", first: "S", letters: 9, words: 2 }, t, "en")).toBe("It starts with S: 2 words, 9 letters.");
+  it("tells the first evening's sunset, a day by its title and a stop by its name", () => {
+    expect(storyClueText({ kind: "sunset", time: "17:32" }, t, "en")).toBe("On the first evening the sun sets at 17:32.");
+    expect(storyClueText({ kind: "day", title: "Tiles and trams" }, t, "en")).toBe("One of its days is called “Tiles and trams”.");
+    expect(storyClueText({ kind: "stop", name: "Belém Tower" }, t, "en")).toBe("One stop on the plan: Belém Tower.");
+    expect(storyClueText({ kind: "day", title: "Azulejos e bondes" }, tIt, "it")).toBe("Uno dei suoi giorni si chiama «Azulejos e bondes».");
   });
 });
 
@@ -77,20 +73,22 @@ describe("what the pictures to post say", () => {
     guess: {
       clues: [
         { kind: "when", days: 5, month: 1, region: "europe" },
-        { kind: "letters", first: "L", letters: 6, words: 1 },
+        { kind: "sunset", time: "17:32" },
+        { kind: "day", title: "Tiles and trams" },
+        { kind: "stop", name: "Belém Tower" },
       ],
-      options: ["Lisbon", "Prague", "Vienna", "Rome"],
-      answer: 0,
     },
   } as unknown as TripStory;
 
-  it("is the story's own clues, numbered, with its dates and numbers", () => {
+  it("is the story's clues, numbered, without the stop the game keeps for last, with its dates and numbers", () => {
     const words = slideWords(story, t, "en");
     expect({ ...words, dates: plain(words.dates) }).toEqual({
+      place: "Lisbon",
       guessTitle: "Guess where I'm going",
       clues: [
         { label: "Clue 1", text: "5 days in January, somewhere in Europe" },
-        { label: "Clue 2", text: "It starts with L and has 6 letters." },
+        { label: "Clue 2", text: "On the first evening the sun sets at 17:32." },
+        { label: "Clue 3", text: "One of its days is called “Tiles and trams”." },
       ],
       reply: "Send me your guess",
       dates: "January 9 – 13, 2027",

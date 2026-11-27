@@ -23,7 +23,7 @@ interface Props {
 /** A story that opens on a guess has the guess and its answer to post; another has the trip alone. */
 const picturesFor = (withGuess: boolean): Picture[] => (withGuess ? ["guess", "place"] : ["place"]);
 
-const FOCUS = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]";
+const FOCUS = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--foreground)]";
 
 /**
  * The story's pictures, for the one telling the trip to post. Each is fetched as soon as this shows, because a
@@ -85,7 +85,7 @@ export default function StoryPost({ shareToken, locale, tripId, withGuess, story
                 type="button"
                 disabled={!ready}
                 onClick={() => post(picture)}
-                className={`flex w-full flex-col items-center gap-2 rounded-lg border border-white/30 p-2 text-base font-semibold text-white ${FOCUS} ${ready ? "" : "opacity-70"}`}
+                className={`flex w-full flex-col items-center gap-2 rounded-lg border-2 border-gray-200 bg-white p-2 text-base font-semibold text-[var(--foreground)] ${FOCUS} ${ready ? "" : "opacity-70"}`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -93,7 +93,7 @@ export default function StoryPost({ shareToken, locale, tripId, withGuess, story
                   alt=""
                   width={270}
                   height={480}
-                  className="aspect-[9/16] w-full rounded-sm bg-black/30 object-cover"
+                  className="aspect-[9/16] w-full rounded-sm bg-[var(--background-warm)] object-cover"
                 />
                 <span className="flex min-h-[44px] items-center text-center">{ready || files[picture] === "failed" ? label : t("post.preparing")}</span>
               </button>
@@ -101,7 +101,7 @@ export default function StoryPost({ shareToken, locale, tripId, withGuess, story
           );
         })}
       </ul>
-      <p role="status" className="mt-3 min-h-[24px] text-white/85">
+      <p role="status" className="mt-3 min-h-[24px]">
         {failed ? t("post.failed") : said === "shared" ? t("post.shared") : said === "saved" ? t("post.saved") : ""}
       </p>
     </div>

@@ -10,6 +10,7 @@ import { classifySharedVisit, sharedBySomeone } from "@/lib/analytics/share-visi
 import type { Locale } from "@/lib/destinations/types";
 import { routing } from "@/lib/i18n/routing-config";
 import { ogImages, twitterImages } from "@/lib/seo/og-image";
+import { firstSunset } from "@/lib/story/sunset";
 import { buildTripStory } from "@/lib/story/trip-story";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { signedInUserId } from "@/lib/supabase/server";
@@ -55,7 +56,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return { title: t("unavailable.metaTitle"), robots: { index: false, follow: false } };
   }
   const t = await getTranslations({ locale, namespace: "common.story" });
-  const story = buildTripStory(trip, storyLocale(locale), token);
+  const story = buildTripStory(trip, storyLocale(locale), { sunset: firstSunset(trip) });
   // A story that opens on a guess keeps the place out of its link preview too.
   const title = story.guess ? t("metaTitleGuess") : t("metaTitle", { place: story.place });
   const description = t("metaDescription");
@@ -89,7 +90,7 @@ export default async function TripStoryPage({ params }: PageProps) {
   });
   if (verdict === "counted" && !madeIt) waitUntil(logSharedTripVisit(trip.id, { crewAsk: false, story: true }));
 
-  const story = buildTripStory(trip, storyLocale(locale), token);
+  const story = buildTripStory(trip, storyLocale(locale), { sunset: firstSunset(trip) });
   const prefix = locale === routing.defaultLocale ? "" : `/${locale}`;
 
   return (

@@ -2835,9 +2835,10 @@
     "back": "Indietro",
     "guess": {
       "title": "Indovina dove va questo viaggio",
-      "lead": "Meno indizi ti servono, meglio è.",
+      "lead": "Scegli le lettere. Con {max} errori il posto viene mostrato.",
       "hidden": "Un posto ancora nascosto",
       "clue": "Indizio {number}",
+      "clues": "Indizi",
       "when": "{days, plural, one {Un giorno} other {# giorni}} a {month}, {where}",
       "whenNoMonth": "{days, plural, one {Un giorno} other {# giorni}}, {where}",
       "whenNoWhere": "{days, plural, one {Un giorno} other {# giorni}} a {month}",
@@ -2851,18 +2852,20 @@
         "atlantic": "su un'isola dell'Atlantico",
         "indian": "su un'isola dell'oceano Indiano"
       },
-      "mix": "Nel piano: {list}.",
-      "sights": "{count, plural, one {# visita} other {# visite}}",
-      "meals": "{count, plural, one {# tappa per mangiare} other {# tappe per mangiare}}",
-      "outdoors": "{count, plural, one {# tappa all'aperto} other {# tappe all'aperto}}",
-      "letters": "Inizia per {first} e ha {letters, plural, one {# lettera} other {# lettere}}.",
-      "lettersWords": "Inizia per {first}: {words} parole, {letters} lettere.",
-      "another": "Mostra un altro indizio",
-      "pick": "Dov'è?",
-      "right": "{clues, plural, one {Hai indovinato con un indizio.} other {Hai indovinato con # indizi.}}",
-      "wrong": "Stavolta no. È {place}.",
       "see": "Vedi il viaggio",
-      "skip": "Salta l'indovinello"
+      "skip": "Salta l'indovinello",
+      "blank": "vuoto",
+      "keys": "Lettere da scegliere",
+      "misses": "Lettere sbagliate: {count} su {max}",
+      "sunset": "La prima sera il sole tramonta alle {time}.",
+      "dayTitle": "Uno dei suoi giorni si chiama «{title}».",
+      "stop": "Una tappa del piano: {name}.",
+      "solved": "{misses, plural, =0 {Hai indovinato senza sbagliare una lettera.} one {Hai indovinato con una lettera sbagliata.} other {Hai indovinato con # lettere sbagliate.}}",
+      "lost": "Tentativi finiti. È {place}.",
+      "tell": "Racconta com'è andata",
+      "told": "Copiato. Incollalo per mandarglielo.",
+      "tellSolved": "{misses, plural, =0 {Ho indovinato il tuo viaggio senza sbagliare una lettera.} one {Ho indovinato il tuo viaggio con una lettera sbagliata.} other {Ho indovinato il tuo viaggio con # lettere sbagliate.}}",
+      "tellLost": "Il tuo viaggio mi ha battuto: non sono riuscito a indovinarlo."
     },
     "reveal": {
       "facts": "{days, plural, one {Un giorno} other {# giorni}} e {stops, plural, one {# tappa} other {# tappe}}.",
@@ -2901,6 +2904,10 @@
     "wayIn": {
       "note": "Lo mostri ad amici che non vengono? Raccontalo come una storia da indovinare.",
       "cta": "Vedi la storia"
+    },
+    "mine": {
+      "note": "Ecco cosa vedono i tuoi amici.",
+      "post": "Pubblicalo"
     }
   }
 }
