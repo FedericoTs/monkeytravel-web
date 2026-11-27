@@ -12,6 +12,8 @@ import TripStoryView from "./TripStoryView";
  */
 
 const captured = vi.hoisted(() => [] as Array<[string, Record<string, unknown>]>);
+// What the pictures to post were given (the block itself is in StoryPost.vitest.tsx).
+const postProps = vi.hoisted(() => [] as Array<Record<string, unknown>>);
 
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string, values?: Record<string, unknown>) => (values ? `${key} ${JSON.stringify(values)}` : key),
@@ -29,6 +31,12 @@ vi.mock("@/lib/i18n/routing", () => ({
       {children}
     </a>
   ),
+}));
+vi.mock("./StoryPost", () => ({
+  default: (props: Record<string, unknown>) => {
+    postProps.push(props);
+    return <div data-testid="story-post" />;
+  },
 }));
 vi.mock("@/lib/posthog/client", () => ({
   onPostHogReady: (fn: (posthog: { capture: (event: string, properties: Record<string, unknown>) => void }) => void) =>
@@ -92,6 +100,7 @@ const view = (overrides: Partial<Parameters<typeof TripStoryView>[0]> = {}) =>
       planHref="/trips/new?destination=Lisbon&days=2&from=trip"
       fullPlanHref="/shared/abc"
       storyUrl="https://monkeytravel.app/shared/abc/story"
+      shareToken="11111111-2222-4333-8444-555555555555"
       mine={false}
       {...overrides}
     />
@@ -104,6 +113,7 @@ let posted: Array<Record<string, unknown>>;
 
 beforeEach(() => {
   captured.length = 0;
+  postProps.length = 0;
   posted = [];
   vi.stubGlobal(
     "fetch",
@@ -280,6 +290,8 @@ describe("the last part", () => {
       { event_type: "plan_own_clicked", trip_id: "99999999-2222-4333-8444-555555555555", destination: "Lisbon", surface: "story" },
     ]);
     expect(screen.getAllByRole("link", { name: "fullPlan" }).every((a) => a.getAttribute("href") === "/shared/abc")).toBe(true);
+    // The pictures to post are the teller's.
+    expect(screen.queryByTestId("story-post")).toBeNull();
   });
 
   it("tells the days it left out", () => {
@@ -298,11 +310,29 @@ describe("the last part", () => {
     press("next");
     press("next");
     expect(heading()).toBe("end.mineTitle");
+    expect(screen.getByText("end.mineBody")).toBeTruthy();
     expect(screen.queryByRole("link", { name: "end.plan" })).toBeNull();
+    expect(postProps.at(-1)).toEqual({
+      shareToken: "11111111-2222-4333-8444-555555555555",
+      locale: "en",
+      tripId: "99999999-2222-4333-8444-555555555555",
+      withGuess: true,
+      storyUrl: "https://monkeytravel.app/shared/abc/story",
+      fileStem: "lisbon",
+    });
     press("end.copy");
     expect(writeText).toHaveBeenCalledWith("https://monkeytravel.app/shared/abc/story");
     expect(await screen.findByText("end.copied")).toBeTruthy();
     expect(captured).toEqual([]);
     expect(posted).toEqual([]);
+  });
+
+  it("gives the teller of a trip with no guess its one picture, saved under a plain name", () => {
+    view({ mine: true, story: { ...story, guess: null, place: "São Miguel" } });
+    press("next");
+    press("next");
+    press("next");
+    expect(screen.getByText("end.mineBodyPlain")).toBeTruthy();
+    expect(postProps.at(-1)).toMatchObject({ withGuess: false, fileStem: "sao-miguel" });
   });
 });

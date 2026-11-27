@@ -71,6 +71,17 @@ describe("client-fired funnel events", () => {
     expect(inserted[0]?.metadata).toEqual({ destination: "Rajasthan & North India", referral_code: null, surface: "article_place" });
   });
 
+  it("records a story's picture posted, by which one and how", async () => {
+    const tripId = "99999999-2222-4333-8444-555555555555";
+    for (const format of ["guess", "place"]) {
+      inserted.length = 0;
+      const res = await post({ event_type: "trip_card_shared", trip_id: tripId, format, method: "native_share" });
+      expect(res.status).toBe(204);
+      expect(inserted[0]?.metadata).toEqual({ format, method: "native_share" });
+    }
+    expect((await post({ event_type: "trip_card_shared", trip_id: tripId, format: "poster", method: "native_share" })).status).toBe(400);
+  });
+
   it("records a plan pressed at the end of a trip's story, under that trip", async () => {
     const tripId = "99999999-2222-4333-8444-555555555555";
     const res = await post({ event_type: "plan_own_clicked", trip_id: tripId, destination: "Lisbon", surface: "story" });

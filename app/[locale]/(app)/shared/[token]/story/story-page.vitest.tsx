@@ -106,6 +106,7 @@ describe("the trip a story link opens", () => {
     expect(props.story).toMatchObject({ place: "Lisbon", dayCount: 2 });
     expect(props.fullPlanHref).toBe(`/shared/${TOKEN}`);
     expect(props.storyUrl).toBe(`https://monkeytravel.app/shared/${TOKEN}/story`);
+    expect(props.shareToken).toBe(TOKEN);
     expect(props.planHref).toBe("/trips/new?destination=Lisbon&days=2&from=trip");
   });
 

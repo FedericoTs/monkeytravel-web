@@ -100,6 +100,7 @@ export default async function TripStoryPage({ params }: PageProps) {
       planHref={planOwnHref({ destination: story.place, days: likeThisDays(undefined, story.place, story.dayCount), referralCode: null })}
       fullPlanHref={`/shared/${token}`}
       storyUrl={`https://monkeytravel.app${prefix}/shared/${token}/story`}
+      shareToken={token}
       mine={isOwner || madeIt}
     />
   );

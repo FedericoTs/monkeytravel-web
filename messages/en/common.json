@@ -2881,9 +2881,26 @@
       "body": "Tell the planner where and when, and get your own day-by-day plan in about 30 seconds. Free, no account needed.",
       "plan": "Plan my trip",
       "mineTitle": "This is what your friends see",
-      "mineBody": "Send them the link and let them guess where you're going.",
+      "mineBody": "Post the guess to your story and let them answer, or send them the link.",
+      "mineBodyPlain": "Post it to your story, or send them the link.",
       "copy": "Copy the story link",
       "copied": "Link copied. Paste it in a chat or a story."
+    },
+    "post": {
+      "guessTitle": "Guess where I'm going",
+      "reply": "Send me your guess",
+      "planYours": "Plan yours free at monkeytravel.app",
+      "guess": "Post the guess",
+      "place": "Post the answer",
+      "trip": "Post the trip",
+      "preparing": "Preparing the image…",
+      "shared": "Your link is copied too: add it as a link sticker.",
+      "saved": "Image saved. Add it to your story from your photos.",
+      "failed": "The image couldn't be made. Try again in a moment."
+    },
+    "wayIn": {
+      "note": "Showing it to friends who aren't coming? Tell it as a story they can guess.",
+      "cta": "See the story"
     }
   }
 }
