@@ -17,7 +17,7 @@ const s = vi.hoisted(() => ({
   jpegFails: false,
   log: [] as unknown[],
   // What the trip card was drawn with.
-  card: null as { budget: string | null } | null,
+  card: null as { budget: string | null; cover: string | null; coverCredit?: { author: string; license: string } | null } | null,
   // What a story's picture was drawn with, and at what size.
   slide: null as { format: string; place: string; guess: unknown; clues: number } | null,
   size: null as { width?: number; height?: number } | null,
