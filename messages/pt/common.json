@@ -2835,9 +2835,10 @@
     "back": "Voltar",
     "guess": {
       "title": "Adivinhe para onde vai esta viagem",
-      "lead": "Quanto menos pistas você precisar, melhor.",
+      "lead": "Escolha letras. Com {max} erros o lugar é mostrado.",
       "hidden": "Um lugar ainda escondido",
       "clue": "Pista {number}",
+      "clues": "Pistas",
       "when": "{days, plural, one {Um dia} other {# dias}} em {month}, {where}",
       "whenNoMonth": "{days, plural, one {Um dia} other {# dias}}, {where}",
       "whenNoWhere": "{days, plural, one {Um dia} other {# dias}} em {month}",
@@ -2851,18 +2852,20 @@
         "atlantic": "em uma ilha do Atlântico",
         "indian": "em uma ilha do oceano Índico"
       },
-      "mix": "No plano: {list}.",
-      "sights": "{count, plural, one {# visita} other {# visitas}}",
-      "meals": "{count, plural, one {# parada para comer} other {# paradas para comer}}",
-      "outdoors": "{count, plural, one {# parada ao ar livre} other {# paradas ao ar livre}}",
-      "letters": "Começa com {first} e tem {letters, plural, one {# letra} other {# letras}}.",
-      "lettersWords": "Começa com {first}: {words} palavras, {letters} letras.",
-      "another": "Mostrar outra pista",
-      "pick": "Onde é?",
-      "right": "{clues, plural, one {Você acertou com uma pista.} other {Você acertou com # pistas.}}",
-      "wrong": "Desta vez não. É {place}.",
       "see": "Ver a viagem",
-      "skip": "Pular a adivinhação"
+      "skip": "Pular a adivinhação",
+      "blank": "vazio",
+      "keys": "Letras para escolher",
+      "misses": "Letras erradas: {count} de {max}",
+      "sunset": "Na primeira tarde, o sol se põe às {time}.",
+      "dayTitle": "Um dos dias se chama “{title}”.",
+      "stop": "Uma parada do plano: {name}.",
+      "solved": "{misses, plural, =0 {Você acertou sem errar nenhuma letra.} one {Você acertou com uma letra errada.} other {Você acertou com # letras erradas.}}",
+      "lost": "As tentativas acabaram. É {place}.",
+      "tell": "Conte como você se saiu",
+      "told": "Copiado. Cole para enviar.",
+      "tellSolved": "{misses, plural, =0 {Adivinhei sua viagem sem errar nenhuma letra.} one {Adivinhei sua viagem com uma letra errada.} other {Adivinhei sua viagem com # letras erradas.}}",
+      "tellLost": "Sua viagem me venceu: não consegui adivinhar."
     },
     "reveal": {
       "facts": "{days, plural, one {Um dia} other {# dias}} e {stops, plural, one {# parada} other {# paradas}}.",
@@ -2901,6 +2904,10 @@
     "wayIn": {
       "note": "Vai mostrar a amigos que não vão? Conte como uma história para adivinhar.",
       "cta": "Ver a história"
+    },
+    "mine": {
+      "note": "É isto que seus amigos veem.",
+      "post": "Postar"
     }
   }
 }

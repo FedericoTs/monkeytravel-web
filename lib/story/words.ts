@@ -24,27 +24,17 @@ export function storyDates(start: string | null, end: string | null, locale: str
 }
 
 export function storyClueText(clue: StoryClue, t: StoryTranslator, locale: string): string {
-  if (clue.kind === "when") {
-    const month = clue.month
-      ? new Intl.DateTimeFormat(locale, { month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(2024, clue.month - 1, 1)))
-      : null;
-    const where = clue.region ? t(`guess.where.${clue.region}`) : null;
-    if (month && where) return t("guess.when", { days: clue.days, month, where });
-    if (where) return t("guess.whenNoMonth", { days: clue.days, where });
-    if (month) return t("guess.whenNoWhere", { days: clue.days, month });
-    return t("guess.whenBare", { days: clue.days });
-  }
-  if (clue.kind === "mix") {
-    const parts = [
-      clue.sights > 0 ? t("guess.sights", { count: clue.sights }) : null,
-      clue.meals > 0 ? t("guess.meals", { count: clue.meals }) : null,
-      clue.outdoors > 0 ? t("guess.outdoors", { count: clue.outdoors }) : null,
-    ].filter((part): part is string => part !== null);
-    return t("guess.mix", { list: new Intl.ListFormat(locale, { type: "conjunction" }).format(parts) });
-  }
-  return clue.words > 1
-    ? t("guess.lettersWords", { first: clue.first, words: clue.words, letters: clue.letters })
-    : t("guess.letters", { first: clue.first, letters: clue.letters });
+  if (clue.kind === "sunset") return t("guess.sunset", { time: clue.time });
+  if (clue.kind === "day") return t("guess.dayTitle", { title: clue.title });
+  if (clue.kind === "stop") return t("guess.stop", { name: clue.name });
+  const month = clue.month
+    ? new Intl.DateTimeFormat(locale, { month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(2024, clue.month - 1, 1)))
+    : null;
+  const where = clue.region ? t(`guess.where.${clue.region}`) : null;
+  if (month && where) return t("guess.when", { days: clue.days, month, where });
+  if (where) return t("guess.whenNoMonth", { days: clue.days, where });
+  if (month) return t("guess.whenNoWhere", { days: clue.days, month });
+  return t("guess.whenBare", { days: clue.days });
 }
 
 /** The trip in one sentence: its days and stops, with its cities when it has several, or the distance between a day's stops. */
@@ -57,8 +47,12 @@ export function storyFacts(story: Pick<TripStory, "dayCount" | "stopCount" | "km
 /** What the pictures made to post say (lib/og/story-slides.tsx): the same clues and numbers as the story's screen. */
 export function slideWords(story: TripStory, t: StoryTranslator, locale: string): SlideWords {
   return {
+    place: story.place,
     guessTitle: t("post.guessTitle"),
-    clues: (story.guess?.clues ?? []).map((clue, i) => ({ label: t("guess.clue", { number: i + 1 }), text: storyClueText(clue, t, locale) })),
+    // The picture keeps the plan's own stop back: it is the last clue of the game the link opens.
+    clues: (story.guess?.clues ?? [])
+      .filter((clue) => clue.kind !== "stop")
+      .map((clue, i) => ({ label: t("guess.clue", { number: i + 1 }), text: storyClueText(clue, t, locale) })),
     reply: t("post.reply"),
     dates: storyDates(story.startDate, story.endDate, locale),
     facts: storyFacts(story, t),
