@@ -336,3 +336,63 @@ describe("a route row's field (compact)", () => {
     expect(input.value).toBe("Qqzzk");
   });
 });
+
+/**
+ * A whole trip typed in the field ("Mumbai to Goa for 3 days with friends"):
+ * the planner offers, under the field, to read it into the place and dates.
+ * The "no match, continue with …" panel used to cover that offer, and Enter
+ * took the whole sentence, or its top match, for the place.
+ */
+describe("a whole trip typed in the field", () => {
+  const TRIP = "Mumbai to Goa for 3 days with friends in December";
+
+  function renderRequest() {
+    const onSelect = vi.fn();
+    const onRequestEnter = vi.fn();
+    function Harness() {
+      const [value, setValue] = useState("");
+      return (
+        <DestinationAutocomplete value={value} onChange={setValue} onSelect={onSelect} isRequest={value === TRIP} onRequestEnter={onRequestEnter} />
+      );
+    }
+    render(<Harness />);
+    return { input: screen.getByRole("combobox"), onSelect, onRequestEnter };
+  }
+
+  it("leaves the room under the field to the offer: no panel when nothing matches", async () => {
+    RESULTS[TRIP] = [];
+    const { input } = renderRequest();
+    await type(input, TRIP);
+    await settle();
+    expect(screen.queryByText("noResultsExciting")).toBeNull();
+    expect(screen.queryByText("continueWith")).toBeNull();
+    expect(input.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("and no list when something does", async () => {
+    delete RESULTS[TRIP];
+    const { input } = renderRequest();
+    await type(input, TRIP);
+    await settle();
+    expect(screen.queryByRole("listbox")).toBeNull();
+  });
+
+  it("Enter reads the trip, and takes neither the words nor a match for the place", async () => {
+    delete RESULTS[TRIP];
+    const { input, onSelect, onRequestEnter } = renderRequest();
+    await type(input, TRIP);
+    await settle();
+    // Only Enter reads it.
+    fireEvent.keyDown(input, { key: "ArrowDown" });
+    fireEvent.keyDown(input, { key: "Escape" });
+    expect(onRequestEnter).not.toHaveBeenCalled();
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(onRequestEnter).toHaveBeenCalledTimes(1);
+    expect(onSelect).not.toHaveBeenCalled();
+    RESULTS[TRIP] = [];
+    fireEvent.keyDown(input, { key: "Enter" });
+    await settle();
+    expect(onRequestEnter).toHaveBeenCalledTimes(2);
+    expect(onSelect).not.toHaveBeenCalled();
+  });
+});
