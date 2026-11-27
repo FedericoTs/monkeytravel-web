@@ -144,7 +144,7 @@ Para un espectáculo de una vez al año: los campos de bulbos holandeses, la Fer
 
 ### ¿Cuándo es la Semana Santa de 2027 y cómo afecta a abril?
 
-El Domingo de Resurrección es el [28 de marzo de 2027](https://www.officeholidays.com/countries/netherlands/2027), así que la Semana Santa (21–27 de marzo) y su subida de precios caen en marzo, y abril es sobre todo temporada media en la Europa católica y en Latinoamérica. La Pascua ortodoxa es el 2 de mayo, lo que sitúa la Semana Santa griega del 26 de abril al 1 de mayo.
+El Domingo de Resurrección es el [28 de marzo de 2027](https://www.officeholidays.com/countries/netherlands/2027), así que la Semana Santa (21–27 de marzo) y su subida de precios caen en marzo, y abril es sobre todo temporada media en la Europa católica y en Latinoamérica. La Pascua ortodoxa es el 2 de mayo, lo que sitúa la Semana Santa griega del 26 de abril al 1 de mayo. Dónde pasarla, de las procesiones de Sevilla a escapadas tranquilas, lo tienes en nuestra [guía de Semana Santa 2027](/blog/where-to-go-at-easter).
 
 ### ¿Dónde hace calor en abril?
 
