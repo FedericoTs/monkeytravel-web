@@ -63,8 +63,11 @@ export default function TripDatesField({
     <div>
       <div className="text-sm font-medium text-slate-700 mb-2">{t("wizard.step1.travelDatesLabel")}</div>
       {multiCity ? (
-        // Multi-city: trip length = sum of per-city nights, so only the
-        // START date is a free choice; the end is derived (sync effect).
+        // Multi-city: each city's nights are that many days of the plan
+        // (the multi-city page's promise), so the trip is their sum in days
+        // and the total says days: the end date is that many days on, one
+        // night fewer. Only the START date is a free choice; the end is
+        // derived (sync effect).
         <div>
           <input
             type="date"
@@ -89,7 +92,7 @@ export default function TripDatesField({
             className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-[var(--primary)] focus:outline-none"
           />
           <p className="mt-1.5 text-xs text-slate-500">
-            {t("wizard.multiCity.nightsTotal", { count: cityRows.reduce((s, r) => s + (Number(r.nights) || 0), 0) })}
+            {t("wizard.multiCity.daysTotal", { count: cityRows.reduce((s, r) => s + (Number(r.nights) || 0), 0) })}
             {endDate ? ` · ${t("wizard.multiCity.endsOn", { date: endDate })}` : ""}
           </p>
         </div>

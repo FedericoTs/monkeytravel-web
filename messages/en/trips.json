@@ -136,7 +136,7 @@
       "removeCityAria": "Remove city {number}",
       "addCity": "+ Add city",
       "startDateAria": "Trip start date",
-      "nightsTotal": "{count, plural, one {# night} other {# nights}} total across your cities",
+      "daysTotal": "{count, plural, one {# day} other {# days}} across your cities",
       "endsOn": "ends {date}",
       "longTripNudge": "Planning {days} days? Trips this long usually work better as multiple stops — tap to split your route into cities."
     },

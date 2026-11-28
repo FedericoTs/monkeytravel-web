@@ -32,7 +32,7 @@ const NEW_KEYS: Record<string, string[]> = {
   "trips.json": [
     "wizard.step2.customizeDefaults",
     "wizard.multiCity.startDateAria",
-    "wizard.multiCity.nightsTotal",
+    "wizard.multiCity.daysTotal",
     "wizard.multiCity.endsOn",
     "detail.routeOptimized",
     "detail.routeOptimizedSave",
