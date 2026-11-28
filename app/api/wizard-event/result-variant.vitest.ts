@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
 /**
- * No test draws a result screen any more (the sky test ended 2026-11-28 with
+ * No test draws a result screen any more (the sky test ended with
  * the classic screen kept). Pages cached from before still send an arm under
  * `result_variant`: the event lands, and the arm is never kept.
  */

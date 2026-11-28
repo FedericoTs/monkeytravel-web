@@ -131,7 +131,7 @@ export const FLAG_EXPLORE_UGC = "explore-ugc-v1";
 /*
  * RETIRED — no constant, nothing to re-wire.
  *
- * result-sky (first-party, not a PostHog flag): from 2026-11-14 to 11-27 half the
+ * result-sky (first-party, not a PostHog flag): for two weeks half the
  * browsers that reached a plan saw it drawn as a sky, half the classic screen.
  * The two could not be told apart on Save presses, so
  * the classic screen, the simpler one, stays. The arm each counted session saw is

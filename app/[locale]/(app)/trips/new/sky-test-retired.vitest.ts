@@ -1,6 +1,6 @@
 /** @vitest-environment node */
 /**
- * The sky test ended on 2026-11-28 with the classic plan screen kept. Every
+ * The sky test is over, with the classic plan screen kept. Every
  * browser sees the classic screen, and the property the test registered on a
  * counted browser's PostHog events (result_variant) is cleared, because PostHog
  * keeps such a property in the browser until it is. Asserted against the source:

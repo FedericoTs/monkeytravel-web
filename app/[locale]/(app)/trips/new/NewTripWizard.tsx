@@ -362,7 +362,7 @@ export default function NewTripPage({
 }: NewTripWizardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  // The sky test (ended 2026-11-28, the classic screen kept) registered result_variant on a counted browser's
+  // The sky test (now over, the classic screen kept) registered result_variant on a counted browser's
   // PostHog events, and PostHog keeps such a property in the browser until it is cleared: clear it.
   useEffect(() => {
     onPostHogReady((posthog) => posthog.unregister("result_variant"));
