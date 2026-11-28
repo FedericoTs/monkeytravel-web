@@ -5,15 +5,11 @@
  * 13:00 …", deep-linked to Today. It is the re-open trigger for the days of
  * a trip, so that Today mode doesn't rely on the traveller remembering.
  *
- * DELIVERY MODEL. The notifications cron runs ONCE daily at 07:00 UTC
- * (vercel.json). A slot stamped for "19:00 trip-local" would not be due at
- * that run and would slip to the next day, a 22h lag the pre-trip cascade
- * avoids by stamping 06:00 UTC, below the cron hour (see 20260827120000). So
- * the digest for day K is stamped 06:00 UTC on the trip-local calendar day
- * BEFORE day K, i.e. it is a reliable ~1-day-ahead heads-up delivered by the
- * same 07:00 UTC run — not literally 19:00 local.
- * True evening-local delivery would need an hourly cron; that's a separate
- * infra call.
+ * DELIVERY MODEL. Every slot is stamped 06:00 UTC on its day (see
+ * 20260827120000), and the digest for day K is stamped on the trip-local
+ * calendar day BEFORE day K. The notifications cron runs hourly and sends it at
+ * 07:00 trip-local that day (lib/notifications/local-morning.ts): a reliable
+ * ~1-day-ahead heads-up in the morning, not 19:00 local.
  *
  * This module is PURE (no imports) so the migration's SQL, the cron dispatcher
  * and the probe can all be checked against the same arithmetic. The migration
@@ -32,7 +28,7 @@ export const DIGEST_SLOT_PREFIX = "in_trip_day_";
  */
 export const DIGEST_MAX_DAY = 21;
 
-/** 06:00 UTC — the proven slot hour, strictly below the 07:00 UTC cron. */
+/** 06:00 UTC — the hour every slot is stamped at; the slot's date is its day. */
 export const DIGEST_SLOT_HOUR_UTC = 6;
 
 export function digestSlot(day: number): string {
