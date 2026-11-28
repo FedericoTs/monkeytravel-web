@@ -78,14 +78,8 @@ const BodySchema = z.object({
   // last, on abandoned rows the one it touched last. A name the list doesn't
   // know (a page cached before a field was added) lands without it.
   field: z.string().trim().max(40).optional().transform(wizardField),
-  // The sky test's arm, kept on `result` rows only. Pages cached from the
-  // retired crew-first test may still send its arms: accepted, not kept.
-  result_variant: z
-    .string()
-    .trim()
-    .max(32)
-    .optional()
-    .transform((value) => (value === "sky" || value === "classic" ? value : undefined)),
+  // result_variant: no test draws a result screen any more. Pages cached from
+  // before still send one: it is dropped with the other unknown keys.
 });
 
 // Day-4 bug fix (P2.5): composite IP + session rate limit.
@@ -222,7 +216,6 @@ export async function POST(request: NextRequest) {
     failure_code: body.failure_code ?? null,
     failure_detail: body.failure_detail || null,
     step1_variant: body.step1_variant ?? null,
-    result_variant: body.step === "result" ? (body.result_variant ?? null) : null,
     field: body.step === "step1_heartbeat" || body.step === "abandoned" ? (body.field ?? null) : null,
     referrer: body.referrer || null,
     utm_source: body.utm_source || null,
