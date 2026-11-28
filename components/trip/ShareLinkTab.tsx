@@ -4,6 +4,7 @@ import { Check, Copy, Eye, Globe, Mail, Share2, TrendingUp } from "lucide-react"
 import { useTranslations } from "next-intl";
 import type { useShareLink } from "@/hooks/useShareLink";
 import { cn } from "@/lib/utils";
+import { StoryWayIn } from "@/components/story/StoryWayIn";
 
 /** The share window's link tab; its state is the window's (hooks/useShareLink.ts). */
 export default function ShareLinkTab({
@@ -159,6 +160,9 @@ export default function ShareLinkTab({
               </button>
             </div>
           </div>
+
+          {/* The trip told as a story, for friends who aren't coming: a guess to play. */}
+          {shareToken && <StoryWayIn token={shareToken} from="saved_trip" newTab />}
 
           {/* The trip as a picture, for stories, chats and feeds. */}
           {shareToken && (

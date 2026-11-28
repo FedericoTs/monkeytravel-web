@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EXPERIMENTS, experimentByKey, STEP2_DEFAULT } from "./registry";
+import { EXPERIMENTS, experimentByKey, STEP2_DEFAULT, STORY_WAY_IN } from "./registry";
 
 /**
  * Every experiment is well formed for the table that records it, and none runs past the day it must be read and
@@ -29,6 +29,11 @@ describe("the experiments", () => {
 
   it("are found by key, and nothing else is", () => {
     expect(experimentByKey("step2_default")).toBe(STEP2_DEFAULT);
+    expect(experimentByKey("story_way_in")).toBe(STORY_WAY_IN);
     expect(experimentByKey("no_such_experiment")).toBeUndefined();
+  });
+
+  it("story_way_in keeps today's share as its control", () => {
+    expect(STORY_WAY_IN.arms[0]).toBe("none");
   });
 });

@@ -27,6 +27,7 @@ vi.mock("@/lib/posthog/events", () => ({
   captureAnonShareSent: async (e: Record<string, unknown>) => {
     events.sent.push(e);
   },
+  captureStoryWayInOpened: async () => {},
 }));
 vi.mock("@/lib/trips/anonymous-claim-client", () => ({
   shareAnonymousTrip: async () => ({ shareUrl: SHARE_URL, tripId: "trip-1", claimToken: "claim-1", expiresAt: "2099-01-01T00:00:00Z" }),
@@ -72,12 +73,17 @@ beforeEach(() => {
   });
   Reflect.deleteProperty(navigator, "share");
   vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ tallies: {} }))));
+  // The story_way_in draw stays out of the way unless a test asks for it.
+  window.localStorage.clear();
+  vi.stubEnv("NEXT_PUBLIC_EXP_STORY_WAY_IN", "off");
 });
 
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
+  vi.useRealTimers();
 });
 
 describe("AnonymousShareButton", () => {
@@ -287,3 +293,4 @@ describe("AnonymousShareButton in a bar", () => {
     expect(clipboard.writeText).not.toHaveBeenCalled();
   });
 });
+

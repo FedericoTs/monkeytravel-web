@@ -444,6 +444,17 @@ export async function captureAnonShareKeepClicked(event: AnonShareKeepClickedEve
   ph.capture("anon_share_keep_clicked", event);
 }
 
+export interface StoryWayInOpenedEvent {
+  /** Where the way to the story was offered: the planner's share, a saved trip's share, or the shared page. */
+  from: "planner" | "saved_trip" | "shared";
+}
+
+/** The one sharing a trip opened its story, to send to friends who aren't coming. */
+export async function captureStoryWayInOpened(event: StoryWayInOpenedEvent) {
+  const ph = await getPosthog();
+  ph.capture("story_way_in_opened", event);
+}
+
 export interface PendingClaimBannerEvent {
   action: "surfaced" | "keep" | "open_link" | "dismissed";
   destination?: string;
