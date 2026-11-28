@@ -1,12 +1,14 @@
 "use client";
 
-import { Fragment, type Dispatch, type SetStateAction } from "react";
+import { Fragment, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import DayHeader, { DayBudget } from "@/components/trip/DayHeader";
+import DayJump from "@/components/trip/DayJump";
 import { DayRouteLink } from "@/components/trip/DayRouteLink";
 import { DayTimeline } from "@/components/trip/DayTimeline";
 import { PackedDayNote } from "@/components/trip/PackedDayNote";
+import StopRow, { StopRows } from "@/components/trip/StopRow";
 import { MapToggle, ViewModeToggle } from "@/components/trip/ViewControls";
 import { ResultBookingLinks, ResultPacking, ResultStats } from "@/components/wizard/ResultSections";
 import type { DayTravelData } from "@/hooks/useTravelDistances";
@@ -60,6 +62,10 @@ const TripMap = dynamic(() => import("@/components/TripMap"), {
  * that's what was asked for, with the save banner after the first; then the map,
  * the trip's numbers and booking links, and the packing list. The view mode and
  * the map's visibility belong to the page, so a regenerate keeps them.
+ *
+ * `phoneRows` is the plan as a phone reads it best: the days in a row to jump
+ * between, each day one box of short rows that open a stop's sheet, and less
+ * after the days. `afterFirstDay` is what the page puts under the first day.
  */
 export default function ResultItinerary({
   generatedItinerary,
@@ -74,6 +80,8 @@ export default function ResultItinerary({
   handleSaveTrip,
   loading,
   onAskAssistant,
+  phoneRows = false,
+  afterFirstDay,
 }: {
   generatedItinerary: GeneratedItinerary;
   /** "City, Country", for the map. */
@@ -91,12 +99,22 @@ export default function ResultItinerary({
   loading: boolean;
   /** Puts a question to the assistant above the plan. */
   onAskAssistant: (message: string) => void;
+  phoneRows?: boolean;
+  afterFirstDay?: ReactNode;
 }) {
   const t = useTranslations("trips");
   const { convert: convertCurrency, format: formatCurrency } = useCurrency();
   return (
     <>
-      {/* Day by Day with ActivityCards */}
+      {phoneRows ? (
+        <DayJump
+          days={generatedItinerary.days.map((day) => day.day_number)}
+          dayId={(day) => `day-${day}`}
+          dayLabel={(day) => t("wizard.result.dayLabel", { n: day })}
+          label={t("wizard.result.dayByDay")}
+          map={{ id: MAP_SECTION_ID, label: t("wizard.result.showMap"), onOpen: () => setShowMap(true) }}
+        />
+      ) : (
       <div className="flex items-center justify-between gap-3 mb-4">
         <h2 className="hidden sm:block text-lg font-semibold text-slate-900">{t("wizard.result.dayByDay")}</h2>
         <div className="flex items-center gap-2 shrink-0">
@@ -117,6 +135,7 @@ export default function ResultItinerary({
           />
         </div>
       </div>
+      )}
       <div className="space-y-8">
         {generatedItinerary.days.map((day, dayIndex) => (
           <Fragment key={day.day_number}>
@@ -134,7 +153,7 @@ export default function ResultItinerary({
                   />
                 )}
               </DayHeader>
-              <DayRouteLink activities={day.activities} surface="result" className="-mt-2 mb-2" />
+              {!phoneRows && <DayRouteLink activities={day.activities} surface="result" className="-mt-2 mb-2" />}
               <PackedDayNote
                 activities={day.activities}
                 pace={pace}
@@ -142,8 +161,18 @@ export default function ResultItinerary({
                 className="mb-3"
               />
 
-              {/* Activities — Cards or Timeline view */}
-              {resultViewMode === "cards" ? (
+              {/* Activities: rows on a phone, else cards or the timeline */}
+              {phoneRows ? (
+                <>
+                  <StopRows label={t("wizard.result.dayLabel", { n: day.day_number })}>
+                    {day.activities.map((activity, idx) => (
+                      <StopRow key={activity.id || idx} activity={activity} currency={generatedItinerary.trip_summary.currency} />
+                    ))}
+                  </StopRows>
+                  {/* After the day has been read, where its route is wanted. */}
+                  <DayRouteLink activities={day.activities} surface="result" className="mt-1 px-1" />
+                </>
+              ) : resultViewMode === "cards" ? (
                 <div className="grid gap-4">
                   {day.activities.map((activity, idx) => (
                     // disableAutoFetch: auto-fetch pays a Text Search Pro call per
@@ -169,6 +198,7 @@ export default function ResultItinerary({
                 />
               )}
             </div>
+            {dayIndex === 0 && afterFirstDay}
             {/* Asks once there's a day to want to keep. */}
             {dayIndex === 0 && (
               <div className="hidden sm:block">
@@ -185,6 +215,7 @@ export default function ResultItinerary({
         pace={pace}
         showMap={showMap}
         setShowMap={setShowMap}
+        phoneRows={phoneRows}
       />
     </>
   );
@@ -197,12 +228,15 @@ export function ResultOverview({
   pace,
   showMap,
   setShowMap,
+  phoneRows = false,
 }: {
   generatedItinerary: GeneratedItinerary;
   fullDestination: string;
   pace: string;
   showMap: boolean;
   setShowMap: Dispatch<SetStateAction<boolean>>;
+  /** A phone's plan: the header already says the trip's length and cost, and the packing list is plain. */
+  phoneRows?: boolean;
 }) {
   const t = useTranslations("trips");
   return (
@@ -240,12 +274,12 @@ export function ResultOverview({
         )}
       </div>
 
-      <ResultStats itinerary={generatedItinerary} pace={pace} />
+      {!phoneRows && <ResultStats itinerary={generatedItinerary} pace={pace} />}
 
       {generatedItinerary.booking_links && <ResultBookingLinks links={generatedItinerary.booking_links} />}
 
       {generatedItinerary.trip_summary.packing_suggestions.length > 0 && (
-        <ResultPacking items={generatedItinerary.trip_summary.packing_suggestions} />
+        <ResultPacking items={generatedItinerary.trip_summary.packing_suggestions} plain={phoneRows} />
       )}
     </>
   );

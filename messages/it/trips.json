@@ -311,6 +311,7 @@
       "hotels": "Hotel",
       "aiVerifiedTitle": "Itinerario generato dall'AI",
       "aiVerifiedBody": "Questo itinerario è stato creato dall'AI. Fai clic su \"Altro\" su qualsiasi attività per vedere foto, valutazioni e fasce di prezzo di Google. Ti consigliamo di ricontrollare gli orari di apertura prima del viaggio.",
+      "aiVerifiedBodyRows": "Questo piano è stato creato dall'AI. Tocca una tappa per vederne dettagli e foto, e controlla gli orari di apertura prima di andare.",
       "notQuiteRight": "Non è quello che cercavi?",
       "viewCards": "Schede",
       "viewTimeline": "Cronologia",

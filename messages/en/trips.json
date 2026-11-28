@@ -311,6 +311,7 @@
       "hotels": "Hotels",
       "aiVerifiedTitle": "AI-Generated Itinerary",
       "aiVerifiedBody": "This itinerary was created by AI. Click \"More\" on any activity to see Google's photos, ratings, and price levels. We recommend double-checking opening hours before your trip.",
+      "aiVerifiedBodyRows": "This plan was created by AI. Tap a stop for its details and photos, and check opening hours before you go.",
       "notQuiteRight": "Not quite right?",
       "viewCards": "Cards",
       "viewTimeline": "Timeline",
