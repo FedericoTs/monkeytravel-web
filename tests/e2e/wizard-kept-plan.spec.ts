@@ -307,7 +307,7 @@ test.describe("wizard: a kept plan", () => {
 
     await page.goto("/trips/new");
     await dismissConsent(page);
-    const listed = page.getByRole("region", { name: "Your plans" }).getByRole("button", { name: /^Paris/ });
+    const listed = page.getByRole("region", { name: "Your Paris plan" }).getByRole("button", { name: "Open my plan" });
     await listed.click({ timeout: 30_000 });
     await expect(listed).toHaveAttribute("aria-busy", "true");
     await expect(listed).toBeDisabled();
@@ -327,9 +327,9 @@ test.describe("wizard: a kept plan", () => {
     await page.goto(`/trips/new#plan=${EXPIRED}`);
     await expect(page.getByText("That plan's link has expired.", { exact: false })).toBeVisible({ timeout: 30_000 });
     expect(new URL(page.url()).hash).toBe("");
-    const list = page.getByRole("region", { name: "Your plans" });
-    await expect(list.getByRole("button", { name: /^Paris/ })).toBeVisible();
-    await expect(list.getByRole("button", { name: /^Lisbon/ })).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "Your Paris plan" }).getByRole("button", { name: "Open my plan" })).toBeVisible();
+    await expect(page.getByText("Your Lisbon plan")).toHaveCount(0);
+    await expect(page.getByText("Your other plans")).toHaveCount(0);
     expect(await keptList(page)).toEqual([entry(LISTED, plan.destination)]);
     expect(plans.reads).toEqual([EXPIRED]);
   });

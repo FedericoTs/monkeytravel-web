@@ -53,7 +53,7 @@ export default function Step1Notices({
   keptPlans: KeptPlanEntry[];
   locale: string;
   openingKeptPlan: string | null;
-  handleOpenKeptPlan: (token: string, source: "link" | "list") => Promise<void>;
+  handleOpenKeptPlan: (token: string, source: "link" | "list" | "card") => Promise<void>;
   showDraftRecovery: boolean;
   handleRestoreDraft: () => void;
   handleDiscardDraft: () => void;
@@ -100,7 +100,7 @@ export default function Step1Notices({
           plans={keptPlans}
           locale={locale}
           opening={openingKeptPlan}
-          onOpen={(token) => void handleOpenKeptPlan(token, "list")}
+          onOpen={(token, from) => void handleOpenKeptPlan(token, from)}
         />
       )}
       {/* Returning-visitor draft recovery. A valid unsaved draft exists

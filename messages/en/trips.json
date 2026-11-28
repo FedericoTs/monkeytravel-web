@@ -83,7 +83,9 @@
     "usageLimitDefault": "You've used your free AI generations.",
     "yourTripTo": "Your trip to",
     "kept": {
-      "yourPlans": "Your plans",
+      "planFor": "Your {place} plan",
+      "open": "Open my plan",
+      "otherPlans": "Your other plans",
       "days": "{count, plural, one {# day} other {# days}}",
       "changed": "With your changes",
       "copyLink": "Copy link",
