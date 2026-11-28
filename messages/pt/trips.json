@@ -134,7 +134,7 @@
       "removeCityAria": "Remover cidade {number}",
       "addCity": "+ Adicionar cidade",
       "startDateAria": "Data de início da viagem",
-      "nightsTotal": "{count, plural, one {# noite} other {# noites}} no total entre suas cidades",
+      "daysTotal": "{count, plural, one {# dia} other {# dias}} entre suas cidades",
       "endsOn": "termina em {date}",
       "longTripNudge": "{days} dias de viagem? Viagens tão longas funcionam melhor com várias paradas — toque para dividir o roteiro em cidades."
     },
