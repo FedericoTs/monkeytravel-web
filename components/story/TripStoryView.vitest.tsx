@@ -6,14 +6,15 @@ import type { TripStory } from "@/lib/story/trip-story";
 import TripStoryView from "./TripStoryView";
 
 /**
- * The story a friend taps through: the guess holds the trip back until it is answered or skipped, the
- * answer shows on the board, each day gets its part, and the last part sends a friend to the planner
- * and the trip's teller to their link.
+ * The story a friend taps through. The guess is a board of hidden letters: a friend picks letters, a wrong one
+ * costs a try and opens the next clue, and the trip is held back until the guess is solved, lost or skipped.
+ * Then each day gets its part, and the last part sends a friend to the planner and the trip's teller to post.
  */
 
 const captured = vi.hoisted(() => [] as Array<[string, Record<string, unknown>]>);
 // What the pictures to post were given (the block itself is in StoryPost.vitest.tsx).
 const postProps = vi.hoisted(() => [] as Array<Record<string, unknown>>);
+const copiedText = vi.hoisted(() => [] as string[]);
 
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string, values?: Record<string, unknown>) => (values ? `${key} ${JSON.stringify(values)}` : key),
@@ -36,6 +37,12 @@ vi.mock("./StoryPost", () => ({
   default: (props: Record<string, unknown>) => {
     postProps.push(props);
     return <div data-testid="story-post" />;
+  },
+}));
+vi.mock("@/lib/native/share", () => ({
+  copyToClipboard: async (text: string) => {
+    copiedText.push(text);
+    return true;
   },
 }));
 vi.mock("@/lib/posthog/client", () => ({
@@ -83,11 +90,10 @@ const story: TripStory = {
   guess: {
     clues: [
       { kind: "when", days: 2, month: 1, region: "europe" },
-      { kind: "mix", sights: 4, meals: 3, outdoors: 0 },
-      { kind: "letters", first: "L", letters: 6, words: 1 },
+      { kind: "sunset", time: "17:32" },
+      { kind: "day", title: "Tiles and trams" },
+      { kind: "stop", name: "Belém Tower" },
     ],
-    options: ["Prague", "Lisbon", "Vienna", "Rome"],
-    answer: 1,
   },
 };
 
@@ -107,13 +113,18 @@ const view = (overrides: Partial<Parameters<typeof TripStoryView>[0]> = {}) =>
   );
 
 const press = (name: RegExp | string) => fireEvent.click(screen.getByRole("button", { name }));
+const letter = (key: string) => fireEvent.click(within(screen.getByRole("group", { name: "guess.keys" })).getByRole("button", { name: key }));
+const letters = (keys: string) => [...keys].forEach(letter);
 const heading = () => screen.getByRole("heading", { level: 1 }).textContent;
+const board = () => document.querySelector('p[role="img"]') as HTMLElement;
+const clues = () => within(screen.getByRole("list", { name: "guess.clues" })).getAllByRole("listitem").length;
 
 let posted: Array<Record<string, unknown>>;
 
 beforeEach(() => {
   captured.length = 0;
   postProps.length = 0;
+  copiedText.length = 0;
   posted = [];
   vi.stubGlobal(
     "fetch",
@@ -130,54 +141,92 @@ afterEach(() => {
 });
 
 describe("the guess", () => {
-  it("opens the story with the place hidden, one clue, and no way on but an answer or a skip", () => {
+  it("opens the story with every letter hidden, one clue, the keys, and no way on but the game or a skip", () => {
     view();
     expect(heading()).toBe("guess.title");
-    expect(screen.getByRole("img", { name: "guess.hidden" })).toBeTruthy();
-    expect(screen.queryByRole("img", { name: "Lisbon" })).toBeNull();
-    expect(screen.getByRole("img", { name: "guess.hidden" }).textContent).toBe("???");
-    expect(screen.getAllByText(/^guess\.clue /)).toHaveLength(1);
-    expect(screen.getByText(/^guess\.when /).textContent).toContain('"days":2');
+    expect(board().getAttribute("aria-label")).toBe("guess.blank guess.blank guess.blank guess.blank guess.blank guess.blank");
+    expect(board().textContent).toBe("");
+    expect(clues()).toBe(1);
     expect(screen.getByText(/^guess\.when /).textContent).toContain('"month":"January"');
+    expect(within(screen.getByRole("group", { name: "guess.keys" })).getAllByRole("button")).toHaveLength(26);
+    expect(screen.getByText('guess.misses {"count":0,"max":6}')).toBeTruthy();
     expect(screen.queryByRole("button", { name: "next" })).toBeNull();
     expect(screen.queryByRole("button", { name: "guess.see" })).toBeNull();
     expect(screen.getByRole("button", { name: "guess.skip" })).toBeTruthy();
   });
 
-  it("shows a further clue each time it is asked, then none left to ask for", () => {
-    view();
-    press("guess.another");
-    expect(screen.getByText(/^guess\.mix /).textContent).toContain('guess.sights {\\"count\\":4}');
-    // Nothing outdoors on this plan: the sentence leaves it out.
-    expect(screen.getByText(/^guess\.mix /).textContent).not.toContain("guess.outdoors");
-    press("guess.another");
-    expect(screen.getByText(/^guess\.letters /).textContent).toContain('"first":"L"');
-    expect(screen.queryByRole("button", { name: "guess.another" })).toBeNull();
+  it("opens a right letter everywhere it stands, and uses its key up", () => {
+    view({ story: { ...story, place: "São Paulo" } });
+    letter("A");
+    // The accent is the board's to show.
+    expect(board().textContent).toBe("ÃA");
+    expect(board().getAttribute("aria-label")).toBe("guess.blank Ã guess.blank, guess.blank A guess.blank guess.blank guess.blank");
+    expect((within(screen.getByRole("group", { name: "guess.keys" })).getByRole("button", { name: "A" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByText('guess.misses {"count":0,"max":6}')).toBeTruthy();
   });
 
-  it("turns the board to the place on a right answer and says how many clues it took", () => {
+  it("counts a wrong letter and opens the next clue with it, the last one only after four", () => {
     view();
-    press("guess.another");
-    press("Lisbon");
-    expect(screen.getByRole("img", { name: "Lisbon" })).toBeTruthy();
-    expect(screen.getByText('guess.right {"clues":2}')).toBeTruthy();
-    for (const option of ["Prague", "Lisbon", "Vienna", "Rome"]) {
-      expect((screen.getByRole("button", { name: option }) as HTMLButtonElement).disabled).toBe(true);
-    }
-    // Every clue is laid open once it is over.
-    expect(screen.getAllByText(/^guess\.clue /)).toHaveLength(3);
-    expect(captured).toEqual([["story_guessed", { right: true, clues: 2 }]]);
+    letter("A");
+    expect(screen.getByText('guess.misses {"count":1,"max":6}')).toBeTruthy();
+    expect(clues()).toBe(2);
+    expect(screen.getByText('guess.sunset {"time":"17:32"}')).toBeTruthy();
+    letter("E");
+    expect(clues()).toBe(3);
+    expect(screen.getByText('guess.dayTitle {"title":"Tiles and trams"}')).toBeTruthy();
+    letter("U");
+    expect(clues()).toBe(3);
+    letter("T");
+    expect(clues()).toBe(4);
+    expect(screen.getByText('guess.stop {"name":"Belém Tower"}')).toBeTruthy();
+    // A right letter opens no clue.
+    letter("L");
+    expect(clues()).toBe(4);
+    expect(board().textContent).toBe("L");
+  });
+
+  it("is solved when every letter is open: says how many were wrong, lays every clue open, and lets the trip on", () => {
+    view();
+    letters("AELISBON");
+    expect(board().getAttribute("aria-label")).toBe("Lisbon");
+    expect(board().textContent).toBe("LISBON");
+    expect(screen.getByText('guess.solved {"misses":2}')).toBeTruthy();
+    expect(clues()).toBe(4);
+    expect(screen.queryByRole("group", { name: "guess.keys" })).toBeNull();
+    expect(captured).toEqual([["story_guessed", { right: true, misses: 2 }]]);
+    // The site's own row, for the friends PostHog never sees.
+    expect(posted).toEqual([{ event_type: "story_guessed", trip_id: "99999999-2222-4333-8444-555555555555", right: true, misses: 2 }]);
     press("guess.see");
     expect(heading()).toBe("Lisbon");
   });
 
-  it("names the place on a wrong answer", () => {
+  it("is lost at the sixth wrong letter: names the place and turns the board to it", () => {
     view();
-    press("Rome");
-    expect(screen.getByText('guess.wrong {"place":"Lisbon"}')).toBeTruthy();
-    expect(screen.getByRole("img", { name: "Lisbon" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Rome" }).getAttribute("aria-pressed")).toBe("true");
-    expect(captured).toEqual([["story_guessed", { right: false, clues: 1 }]]);
+    letters("AEUTR");
+    expect(screen.queryByText(/^guess\.lost /)).toBeNull();
+    letter("M");
+    expect(screen.getByText('guess.lost {"place":"Lisbon"}')).toBeTruthy();
+    expect(board().textContent).toBe("LISBON");
+    expect(screen.queryByRole("group", { name: "guess.keys" })).toBeNull();
+    expect(captured).toEqual([["story_guessed", { right: false, misses: 6 }]]);
+    expect(posted).toEqual([{ event_type: "story_guessed", trip_id: "99999999-2222-4333-8444-555555555555", right: false, misses: 6 }]);
+    expect(screen.getByRole("button", { name: "guess.see" })).toBeTruthy();
+  });
+
+  it("lets a friend send their result back: the share sheet where there is one, else copied to paste", async () => {
+    const share = vi.fn(async () => {});
+    vi.stubGlobal("navigator", { share });
+    view();
+    letters("LISBON");
+    press("guess.tell");
+    expect(share).toHaveBeenCalledWith({ text: 'guess.tellSolved {"misses":0} https://monkeytravel.app/shared/abc/story' });
+    cleanup();
+    vi.stubGlobal("navigator", {});
+    view();
+    letters("AEUTRM");
+    press("guess.tell");
+    expect(await screen.findByRole("button", { name: "guess.told" })).toBeTruthy();
+    expect(copiedText).toEqual(["guess.tellLost https://monkeytravel.app/shared/abc/story"]);
   });
 
   it("can be skipped, and the right arrow doesn't skip it", () => {
@@ -283,6 +332,8 @@ describe("the last part", () => {
     expect(heading()).toBe("end.title");
     expect(screen.queryByRole("button", { name: "next" })).toBeNull();
     expect(captured).toEqual([["story_finished", { guessed: false }]]);
+    expect(posted).toEqual([{ event_type: "story_finished", trip_id: "99999999-2222-4333-8444-555555555555", guessed: false }]);
+    posted.length = 0;
     const plan = screen.getByRole("link", { name: "end.plan" });
     expect(plan.getAttribute("href")).toBe("/trips/new?destination=Lisbon&days=2&from=trip");
     fireEvent.click(plan);
@@ -290,8 +341,38 @@ describe("the last part", () => {
       { event_type: "plan_own_clicked", trip_id: "99999999-2222-4333-8444-555555555555", destination: "Lisbon", surface: "story" },
     ]);
     expect(screen.getAllByRole("link", { name: "fullPlan" }).every((a) => a.getAttribute("href") === "/shared/abc")).toBe(true);
-    // The pictures to post are the teller's.
+    // The pictures to post and the teller's bar are the teller's.
     expect(screen.queryByTestId("story-post")).toBeNull();
+    expect(screen.queryByTestId("story-mine-bar")).toBeNull();
+  });
+
+  it("sends the site's rows to the funnel endpoint, in a request that outlives the page", () => {
+    view();
+    letters("LISBON");
+    const [url, init] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("/api/funnel-event");
+    expect(init.method).toBe("POST");
+    expect(init.keepalive).toBe(true);
+  });
+
+  it("counts the story watched to its end once, however often the last part is reached", () => {
+    view();
+    toEnd();
+    press("back");
+    press("next");
+    expect(captured).toEqual([["story_finished", { guessed: false }]]);
+    expect(posted).toHaveLength(1);
+  });
+
+  it("counts it when the arrow keys brought the friend there, and says a guess was played", () => {
+    view();
+    letters("LISBON");
+    posted.length = 0;
+    captured.length = 0;
+    for (let part = 0; part < 4; part += 1) fireEvent.keyDown(window, { key: "ArrowRight" });
+    expect(heading()).toBe("end.title");
+    expect(captured).toEqual([["story_finished", { guessed: true }]]);
+    expect(posted).toEqual([{ event_type: "story_finished", trip_id: "99999999-2222-4333-8444-555555555555", guessed: true }]);
   });
 
   it("tells the days it left out", () => {
@@ -299,12 +380,33 @@ describe("the last part", () => {
     toEnd();
     expect(screen.getByText('day.moreDays {"count":3}')).toBeTruthy();
   });
+});
 
-  it("gives the trip's teller their link to copy, and counts nothing of theirs", async () => {
+describe("the one telling the trip", () => {
+  it("is told from the first part that this is the friends' view, and taken straight to the posting", () => {
+    view({ mine: true });
+    const bar = screen.getByTestId("story-mine-bar");
+    expect(within(bar).getByText("mine.note")).toBeTruthy();
+    fireEvent.click(within(bar).getByRole("button", { name: "mine.post" }));
+    expect(heading()).toBe("end.mineTitle");
+    // The bar has done its work on the last part.
+    expect(screen.queryByTestId("story-mine-bar")).toBeNull();
+    expect(screen.getByTestId("story-post")).toBeTruthy();
+  });
+
+  it("is the only one shown that bar: a friend has none on the first part", () => {
+    view();
+    expect(screen.getByRole("group", { name: "guess.keys" })).toBeTruthy();
+    expect(screen.queryByTestId("story-mine-bar")).toBeNull();
+  });
+
+  it("gets the pictures to post and their link to copy, and counts nothing of their own", async () => {
     const writeText = vi.fn(async () => {});
     vi.stubGlobal("navigator", { clipboard: { writeText } });
     view({ mine: true });
-    press("Lisbon");
+    letters("LISBON");
+    // Their own result is nobody's to hear.
+    expect(screen.queryByRole("button", { name: "guess.tell" })).toBeNull();
     press("guess.see");
     press("next");
     press("next");
@@ -327,7 +429,7 @@ describe("the last part", () => {
     expect(posted).toEqual([]);
   });
 
-  it("gives the teller of a trip with no guess its one picture, saved under a plain name", () => {
+  it("of a trip with no guess gets its one picture, saved under a plain name", () => {
     view({ mine: true, story: { ...story, guess: null, place: "São Miguel" } });
     press("next");
     press("next");

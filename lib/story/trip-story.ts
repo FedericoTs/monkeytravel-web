@@ -3,10 +3,9 @@
  * Everything comes from the plan itself, so a story costs no model call and can't say what the plan doesn't.
  */
 import { destinations } from "@/lib/destinations/data";
-import type { Continent, Locale } from "@/lib/destinations/types";
+import type { Locale } from "@/lib/destinations/types";
 import { haversineKm } from "@/lib/map/geo";
 import { routeSketch, type Sketch } from "@/lib/og/route-sketch";
-import { normalizeActivityType } from "@/lib/trip/activity-type";
 import { isRide } from "@/lib/trip/far-pins";
 import { isDayStop, isMealStop } from "@/lib/trip/pace";
 import { isRealPoint } from "@/lib/trip/placeholder-point";
@@ -14,17 +13,23 @@ import { getTripDestination } from "@/lib/trips/destination";
 
 export type StoryRegion = "europe" | "asia" | "africa" | "americas" | "oceania" | "atlantic" | "indian";
 
-/** A clue never names the place. They run from far to near: the last one all but gives it away. */
+/**
+ * A clue is taken from the trip and never names the place. They run from far to near: where and when, the
+ * evening's sunset, what one of its days is called, one of its stops.
+ */
 export type StoryClue =
   | { kind: "when"; days: number; month: number | null; region: StoryRegion | null }
-  | { kind: "mix"; sights: number; meals: number; outdoors: number }
-  | { kind: "letters"; first: string; letters: number; words: number };
+  | { kind: "sunset"; time: string }
+  | { kind: "day"; title: string }
+  | { kind: "stop"; name: string };
 
+/**
+ * The guess that opens a story: the place's letters are hidden on a board and a friend picks letters. The first
+ * clue shows from the start; each further one opens after wrong letters (lib/story/letters.ts has the rules, which
+ * the browser runs).
+ */
 export interface StoryGuess {
   clues: StoryClue[];
-  /** Four places, the trip's among them, in an order that is the same for everyone who opens the link. */
-  options: string[];
-  answer: number;
 }
 
 export interface StoryDay {
@@ -87,18 +92,6 @@ const REGION_BY_ZONE: Record<string, StoryRegion> = {
   Indian: "indian",
 };
 
-const CONTINENTS_OF: Record<StoryRegion, Continent[]> = {
-  europe: ["europe"],
-  asia: ["asia", "middle-east"],
-  africa: ["africa"],
-  americas: ["americas"],
-  oceania: ["oceania"],
-  atlantic: [],
-  indian: [],
-};
-
-const OUTDOORS = new Set(["nature", "park", "beach", "adventure"]);
-
 type RawActivity = {
   name?: unknown;
   type?: unknown;
@@ -135,7 +128,6 @@ function dayStops(day: RawDay): RawActivity[] {
 }
 
 const isMeal = (a: RawActivity) => isMealStop({ type: str(a.type) });
-const isOutdoors = (a: RawActivity) => OUTDOORS.has(normalizeActivityType(a.type, a.name));
 
 function storyDay(day: RawDay): StoryDay {
   const stops = dayStops(day);
@@ -190,83 +182,64 @@ function regionOf(meta: Record<string, unknown> | null): StoryRegion | null {
   return REGION_BY_ZONE[zone.split("/")[0]] ?? null;
 }
 
-// A guess is offered for one place with a name short enough to be an answer.
-const GUESSABLE = /^\p{L}[\p{L} .'’-]{2,17}$/u;
+// A guess is offered for one place whose name can be spelled out on the board.
+const GUESSABLE = /^\p{L}[\p{L} .'’-]{2,23}$/u;
 
-/** A small, repeatable shuffle: the same link shows everyone the same four answers in the same order. */
-function seededOrder(seed: string): () => number {
-  let h = 2166136261;
-  for (let i = 0; i < seed.length; i += 1) {
-    h ^= seed.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  let state = h >>> 0;
-  return () => {
-    state = (state + 0x6d2b79f5) >>> 0;
-    let t = state;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
+/** Words that are part of many names without naming a place: "New" in New York, "City" in Mexico City. */
+const COMMON_WORDS = new Set(["city", "town", "island", "islands", "saint", "santa", "santo", "north", "south", "east", "west", "isla", "ilha", "isola", "ciudad", "cidade"]);
 
-function shuffled<T>(items: T[], next: () => number): T[] {
-  const out = [...items];
-  for (let i = out.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(next() * (i + 1));
-    [out[i], out[j]] = [out[j], out[i]];
-  }
-  return out;
+/**
+ * Whether a line of the plan gives the place away: it holds one of the place's names, or a telling word of one
+ * ("York" for New York, "Portugal" for a trip written "Lisbon, Portugal").
+ */
+function givesAway(text: string, names: string[]): boolean {
+  const line = ` ${plainName(text)} `;
+  return names.some((name) => {
+    const plain = plainName(name);
+    if (plain && line.includes(` ${plain} `)) return true;
+    return plain.split(" ").some((word) => word.length >= 4 && !COMMON_WORDS.has(word) && line.includes(` ${word} `));
+  });
 }
 
 function buildGuess(input: {
   place: string;
+  destination: string;
   region: StoryRegion | null;
-  dayCount: number;
   startDate: string | null;
   days: RawDay[];
   locale: Locale;
-  seed: string;
-  /** The trip's country, when it stores one. */
-  countryCode: string | null;
+  sunset: string | null;
 }): { guess: StoryGuess; place: string } | null {
   // A place we have a page for is shown by its name in the reader's language.
   const known = destinations.find((d) => Object.values(d.name).some((n) => plainName(n) === plainName(input.place)));
   const place = known ? known.name[input.locale] : input.place;
-  if (!GUESSABLE.test(place)) return null;
+  if (!GUESSABLE.test(place) || [...place].filter((ch) => /\p{L}/u.test(ch)).length < 3) return null;
 
-  const next = seededOrder(input.seed);
-  // A place we have no page for may be a country or a region: a city inside it would be a second right answer.
-  const within = known ? null : input.countryCode;
-  const others = destinations.filter(
-    (d) => d !== known && plainName(d.name[input.locale]) !== plainName(place) && d.countryCode.toUpperCase() !== within
-  );
-  const near = input.region ? CONTINENTS_OF[input.region] : [];
-  // Wrong answers from the same part of the world first: the first clue names it.
-  const pool = [...shuffled(others.filter((d) => near.includes(d.continent)), next), ...shuffled(others.filter((d) => !near.includes(d.continent)), next)];
-  const decoys = pool.slice(0, 3).map((d) => d.name[input.locale]);
-  if (decoys.length < 3) return null;
-  const options = shuffled([place, ...decoys], next);
-
-  const stops = input.days.flatMap(dayStops);
-  const meals = stops.filter(isMeal).length;
-  const outdoors = stops.filter((a) => !isMeal(a) && isOutdoors(a)).length;
-  const sights = stops.length - meals - outdoors;
+  // Every way the plan may write the place, and the rest of its destination line (its country or region).
+  const names = [place, input.place, ...(known ? [...Object.values(known.name), ...Object.values(known.country)] : []), ...input.destination.split(",")];
   const month = input.startDate && /^\d{4}-\d{2}-\d{2}/.test(input.startDate) ? Number(input.startDate.slice(5, 7)) : null;
-  const letters = [...place].filter((ch) => /\p{L}/u.test(ch));
 
-  const clues: StoryClue[] = [{ kind: "when", days: input.dayCount, month: month && month >= 1 && month <= 12 ? month : null, region: input.region }];
-  if (stops.length > 0) clues.push({ kind: "mix", sights, meals, outdoors });
-  clues.push({ kind: "letters", first: letters[0].toLocaleUpperCase(input.locale), letters: letters.length, words: place.trim().split(/\s+/).length });
+  const clues: StoryClue[] = [{ kind: "when", days: input.days.length, month: month && month >= 1 && month <= 12 ? month : null, region: input.region }];
+  if (input.sunset && /^\d{2}:\d{2}$/.test(input.sunset)) clues.push({ kind: "sunset", time: input.sunset });
+  // A day's title from the second day on, when it has one: the first is often about arriving.
+  const titled = [...input.days.slice(1), ...input.days.slice(0, 1)].find((day) => day.title && !givesAway(day.title, names));
+  if (titled?.title) clues.push({ kind: "day", title: titled.title });
+  // Then a sight of the plan: the nearest thing to the answer that still isn't it.
+  const sight = input.days
+    .flatMap(dayStops)
+    .filter((a) => !isMeal(a))
+    .map((a) => str(a.name))
+    .find((name) => !givesAway(name, names) && name !== titled?.title);
+  if (sight) clues.push({ kind: "stop", name: sight });
 
-  return { guess: { clues, options, answer: options.indexOf(place) }, place };
+  return { guess: { clues }, place };
 }
 
 /**
- * The story of a stored trip, for a reader in `locale`. `seed` fixes the order of the guess's answers:
- * the share token, so the link shows everyone the same four.
+ * The story of a stored trip, for a reader in `locale`. `sunset` is when the sun sets on its first evening
+ * ("17:32"), when the caller can tell (lib/story/sunset.ts): one of the guess's clues.
  */
-export function buildTripStory(trip: StorySource, locale: Locale, seed: string): TripStory {
+export function buildTripStory(trip: StorySource, locale: Locale, options: { sunset?: string | null } = {}): TripStory {
   const meta = trip.trip_meta && typeof trip.trip_meta === "object" ? (trip.trip_meta as Record<string, unknown>) : null;
   const destination = getTripDestination({ title: trip.title, trip_meta: trip.trip_meta });
   const days = readDays(trip.itinerary);
@@ -277,16 +250,7 @@ export function buildTripStory(trip: StorySource, locale: Locale, seed: string):
 
   const guessed =
     cities.length <= 1 && days.length > 0
-      ? buildGuess({
-          place: shortName,
-          region: regionOf(meta),
-          dayCount: days.length,
-          startDate,
-          days,
-          locale,
-          seed,
-          countryCode: str(meta?.country_code).toUpperCase() || null,
-        })
+      ? buildGuess({ place: shortName, destination, region: regionOf(meta), startDate, days, locale, sunset: options.sunset ?? null })
       : null;
 
   return {

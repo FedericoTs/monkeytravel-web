@@ -16,7 +16,7 @@ import {
   cardBudget,
   cardFormat,
   cardLocale,
-  coverForCard,
+  cardCover,
   formatRange,
   renderBrandCard,
   renderTripCard,
@@ -24,6 +24,7 @@ import {
   type CardFormat,
 } from "@/lib/og/trip-card";
 import { renderStorySlide, slideFormat, SLIDE_SIZE } from "@/lib/og/story-slides";
+import { firstSunset } from "@/lib/story/sunset";
 import { buildTripStory } from "@/lib/story/trip-story";
 import { slideWords, type StoryTranslator } from "@/lib/story/words";
 import { logReadError } from "@/lib/supabase/log-read-error";
@@ -161,10 +162,10 @@ export async function GET(request: NextRequest) {
     "Vercel-Cache-Tag": tripCardTag(data.id),
   };
 
-  // The story's pictures belong to the share link: the guess's answers are drawn from its token.
+  // The story's pictures belong to the share link, which is what tells the story.
   const slide = slideFormat(url.searchParams.get("format"));
   if (slide && token && isUuid(token)) {
-    const story = buildTripStory(data, locale, token);
+    const story = buildTripStory(data, locale, { sunset: firstSunset(data) });
     const t = (await getTranslations({ locale, namespace: "common.story" })) as unknown as StoryTranslator;
     logDrawn(story.guess ? slide : "place");
     return new ImageResponse(renderStorySlide(slide, story, slideWords(story, t, locale), logo), {
@@ -218,6 +219,7 @@ export async function GET(request: NextRequest) {
 
   logDrawn(format);
 
+  const picture = cardCover(data.cover_image_url, url.origin);
   return respond(
     renderTripCard(
       {
@@ -225,7 +227,8 @@ export async function GET(request: NextRequest) {
         destination,
         dates: formatRange(data.start_date, data.end_date, locale),
         days,
-        cover: coverForCard(data.cover_image_url, url.origin),
+        cover: picture.cover,
+        coverCredit: picture.credit,
         logo,
         goingCount: count ?? 0,
         activityCount,

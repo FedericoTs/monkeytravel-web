@@ -654,7 +654,7 @@ describe("questions about money", () => {
     const base = { lockedDays: [], lengthRefused: false, locale: "it", currentDays: 2, edits: [] };
     const costs = { currency: "USD", perDay: [], total: 150, shown: { currency: "EUR", perDay: [], total: 135 } };
     const text = composeReply({ ...base, reply: "Mi scuso ancora per l'inconveniente! Ecco il calcolo completo del costo totale stimato per il tuo viaggio.", costs });
-    expect(text).toBe("Le attività del tuo piano costano in tutto circa 135 EUR. Hotel e voli non sono nel piano, quindi aggiungili a parte.");
+    expect(text).toBe("Le attività del tuo piano costano circa 135 EUR a persona. Hotel e voli non sono nel piano, quindi aggiungili a parte.");
   });
 
   it("keeps an answer that gives its figures", () => {
@@ -704,7 +704,7 @@ describe("composeReply: what a change said and didn't do", () => {
   it("gives the figures a change's reply announced, from the plan as changed", () => {
     const costsAfter = { currency: "EUR", perDay: [], total: 640 };
     const text = composeReply({ ...base, reply: "Here's how the revised costs look for your trip:", edits: [d2], costsAfter });
-    expect(text).toBe("The activities in your plan come to about 640 EUR. Hotels and flights aren't in the plan, so add those on top.");
+    expect(text).toBe("The activities in your plan come to about 640 EUR per person. Hotels and flights aren't in the plan, so add those on top.");
   });
 
   it("lists what each day now does when a change's reply ends on a colon", () => {

@@ -104,6 +104,10 @@ describe("the trip a story link opens", () => {
     expect(state.selected[0]).not.toMatch(/\*|share_token|budget|packing|cover/);
     expect(props.tripId).toBe("trip-1");
     expect(props.story).toMatchObject({ place: "Lisbon", dayCount: 2 });
+    // The first evening's sunset there, worked out from the trip's own first pin and date, is one of its clues.
+    const clues = (props.story as { guess: { clues: Array<{ kind: string; time?: string }> } }).guess.clues;
+    expect(clues.map((clue) => clue.kind)).toEqual(["when", "sunset", "day", "stop"]);
+    expect(clues[1].time).toMatch(/^17:[2-4]\d$/);
     expect(props.fullPlanHref).toBe(`/shared/${TOKEN}`);
     expect(props.storyUrl).toBe(`https://monkeytravel.app/shared/${TOKEN}/story`);
     expect(props.shareToken).toBe(TOKEN);

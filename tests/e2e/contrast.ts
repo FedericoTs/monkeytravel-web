@@ -4,7 +4,7 @@ import type { Locator } from "@playwright/test";
  * The contrast of the words in `locator` against what is behind them: every
  * background from the page down to the words, laid over white, with the words'
  * own opacity. For words on flat colour; words over a photo or a gradient need
- * their own measure (result-sky.spec.ts).
+ * their own measure.
  */
 export function contrastOf(locator: Locator): Promise<number> {
   return locator.evaluate((element) => {

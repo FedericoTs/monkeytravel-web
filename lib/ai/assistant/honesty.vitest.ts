@@ -570,7 +570,7 @@ describe("the replies that stand in for a missing answer", () => {
 
   it("gives the plan's activity total in the currency the traveller sees", () => {
     expect(planCostsReply("en", costs)).toBe(
-      "The activities in your plan come to about 12,345 EUR. Hotels and flights aren't in the plan, so add those on top."
+      "The activities in your plan come to about 12,345 EUR per person. Hotels and flights aren't in the plan, so add those on top."
     );
     expect(planCostsReply("it", costs)).toContain("circa 12.345 EUR");
     expect(planCostsReply("es", costs)).toContain("unos 12.345 EUR");

@@ -131,6 +131,12 @@ export const FLAG_EXPLORE_UGC = "explore-ugc-v1";
 /*
  * RETIRED — no constant, nothing to re-wire.
  *
+ * result-sky (first-party, not a PostHog flag): for two weeks half the
+ * browsers that reached a plan saw it drawn as a sky, half the classic screen.
+ * The two could not be told apart on Save presses, so
+ * the classic screen, the simpler one, stays. The arm each counted session saw is
+ * in wizard_step_events.result_variant.
+ *
  * result-crew-first (first-party, not a PostHog flag): signed-out planners of
  * group trips saw either today's result screen or one that led with the crew
  * vote, 50/50. Crew-first did not lift shares, the bar the test had to clear,
@@ -180,7 +186,4 @@ export const FLAG_DEFAULTS: Record<string, boolean | string> = {
  * Remove the entry when the flag is ramped to 100% or reverted.
  */
 export const FLAG_REVIEW_DATES: Record<string, string> = {
-  // First-party, not a PostHog flag: lib/experiments/result-sky.ts. Two weeks
-  // from its start rather than one: a result screen needs that many plans.
-  "result-sky": "2026-11-28",
 };

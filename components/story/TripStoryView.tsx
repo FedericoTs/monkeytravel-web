@@ -4,8 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/lib/i18n/routing";
 import { dayColor } from "@/lib/map/day-colors";
+import { copyToClipboard } from "@/lib/native/share";
 import type { Sketch } from "@/lib/og/route-sketch";
 import { onPostHogReady } from "@/lib/posthog/client";
+import { boardOf, CLUE_AFTER_MISSES, cluesInSight, GUESS_MISSES, guessState, KEYS, keysOf } from "@/lib/story/letters";
 import type { StoryDay, TripStory } from "@/lib/story/trip-story";
 import { storyClueText, storyDate, storyDates, storyFacts, type StoryTranslator } from "@/lib/story/words";
 import { reportPlanOwnClicked } from "@/lib/trips/plan-own";
@@ -29,10 +31,12 @@ interface Props {
 
 type Slide = { kind: "guess" } | { kind: "reveal" } | { kind: "day"; day: StoryDay } | { kind: "end" };
 
-const FOCUS = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]";
-const BUTTON = `inline-flex min-h-[48px] items-center justify-center rounded-full px-6 text-base font-semibold ${FOCUS}`;
-const MAIN_BUTTON = `${BUTTON} bg-[var(--accent)] text-[var(--foreground)]`;
-const QUIET_BUTTON = `${BUTTON} border border-white/30 text-white`;
+// The site's own colours: its cream ground and charcoal ink, coral for the one main action of a screen.
+const FOCUS = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--foreground)]";
+const BUTTON = `inline-flex min-h-[48px] items-center justify-center rounded-xl px-6 text-base font-semibold ${FOCUS}`;
+const MAIN_BUTTON = `${BUTTON} bg-[var(--primary)] text-white`;
+const QUIET_BUTTON = `${BUTTON} border-2 border-gray-200 bg-white text-[var(--foreground)]`;
+const CARD = "rounded-lg border border-slate-200 bg-white";
 
 /** A file name from a place's name: "São Miguel" saves as "sao-miguel". */
 function plainFileName(place: string): string {
@@ -45,30 +49,40 @@ function plainFileName(place: string): string {
   return name || "trip";
 }
 
-/** Only reaches visitors who accepted analytics. */
-function capture(event: string, properties: Record<string, string | number | boolean>): void {
+/**
+ * Counts how a friend's guess ended, or a story watched to its last part: the site's own row, the same for
+ * everyone, and PostHog for the visitors who accepted analytics.
+ */
+function count(event: "story_guessed" | "story_finished", tripId: string, properties: Record<string, number | boolean>): void {
   onPostHogReady((posthog) => posthog.capture(event, properties));
+  void fetch("/api/funnel-event", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ event_type: event, trip_id: tripId, ...properties }),
+    keepalive: true,
+  }).catch(() => {});
 }
 
-/** The place on a departures board: hidden behind three flaps, then turned over a letter at a time. */
-function Board({ place, hidden, hiddenLabel, locale }: { place: string; hidden: boolean; hiddenLabel: string; locale: string }) {
-  const words = hidden ? ["???"] : place.toLocaleUpperCase(locale).split(/\s+/);
-  const longest = Math.max(...words.map((word) => [...word].length));
+/**
+ * The place on a departures board, the one dark thing on the screen: a flap for each letter, turned over when a
+ * friend picks its key, and all of them once the guess is over.
+ */
+function Board({ place, open, locale, label }: { place: string; open: (key: string) => boolean; locale: string; label: string }) {
+  const words = boardOf(place, locale);
+  const longest = Math.max(...words.map((word) => word.length));
   const size = longest <= 7 ? "text-4xl" : longest <= 11 ? "text-2xl" : "text-lg";
-  let turn = 0;
   return (
-    <p role="img" aria-label={hidden ? hiddenLabel : place} className="flex flex-col items-center gap-2 rounded-lg bg-black/25 p-3">
+    <p role="img" aria-label={label} className="flex flex-col items-center gap-2 rounded-lg bg-[var(--navy)] p-3">
       {words.map((word, w) => (
         <span key={w} aria-hidden="true" className="flex w-full justify-center gap-1">
-          {[...word].map((letter, i) => {
-            turn += 1;
+          {word.map((tile, i) => {
+            const shown = tile.key === null || open(tile.key);
             return (
               <span
-                key={`${hidden ? "hidden" : "shown"}-${i}`}
-                style={{ animationDelay: `${turn * 60}ms` }}
-                className={`story-flap relative flex aspect-[3/4] min-w-0 max-w-12 flex-1 items-center justify-center rounded-sm bg-black/50 font-semibold text-[var(--accent)] after:absolute after:inset-x-0 after:top-1/2 after:h-px after:bg-black/70 ${size}`}
+                key={`${i}-${shown ? "shown" : "hidden"}`}
+                className={`relative flex aspect-[3/4] min-w-0 max-w-12 flex-1 items-center justify-center rounded-sm bg-black/40 font-semibold text-[var(--accent)] after:absolute after:inset-x-0 after:top-1/2 after:h-px after:bg-black/50 ${size} ${shown && tile.key ? "story-flap" : ""}`}
               >
-                {letter}
+                {shown ? tile.ch : ""}
               </span>
             );
           })}
@@ -78,24 +92,19 @@ function Board({ place, hidden, hiddenLabel, locale }: { place: string; hidden: 
   );
 }
 
-/** Stops joined in the order of the plan, drawn once: the line first, the dots along it. */
-function Route({ route, label, tint, small, className }: { route: Sketch; label?: string; tint?: string; small?: boolean; className: string }) {
-  const line = small ? 9 : tint ? 3 : 2;
-  const dot = small ? 11 : 5;
-  const first = small ? 16 : 8;
+/** Stops joined in the order of the plan, drawn once: the line in the site's ink, each stop in its day's colour. */
+function Route({ route, label, small, className }: { route: Sketch; label?: string; small?: boolean; className: string }) {
+  const line = small ? 8 : 2.5;
+  const dot = small ? 12 : 6;
   return (
-    <svg
-      viewBox={`0 0 ${route.width} ${route.height}`}
-      {...(label ? { role: "img", "aria-label": label } : { "aria-hidden": true })}
-      className={className}
-    >
+    <svg viewBox={`0 0 ${route.width} ${route.height}`} {...(label ? { role: "img", "aria-label": label } : { "aria-hidden": true })} className={className}>
       <path
         d={route.path}
         pathLength={1}
         className="story-route"
         fill="none"
-        stroke={tint ?? "white"}
-        strokeOpacity={tint ? 0.9 : 0.5}
+        stroke="var(--foreground)"
+        strokeOpacity={0.55}
         strokeWidth={line}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -105,10 +114,10 @@ function Route({ route, label, tint, small, className }: { route: Sketch; label?
           key={i}
           cx={point.x}
           cy={point.y}
-          r={i === 0 ? first : dot}
-          fill={i === 0 && tint ? "white" : (tint ?? dayColor(point.day))}
-          stroke={i === 0 && tint ? tint : "var(--navy)"}
-          strokeWidth={i === 0 && tint ? first / 2 : small ? 0 : 2}
+          r={i === 0 ? dot * 1.35 : dot}
+          fill={dayColor(point.day)}
+          stroke="var(--foreground)"
+          strokeWidth={small ? 4 : 1.5}
           className="story-dot"
           style={{ animationDelay: `${Math.round((i / route.points.length) * 1400)}ms` }}
         />
@@ -121,9 +130,10 @@ function Route({ route, label, tint, small, className }: { route: Sketch; label?
             x={place.x + (leftward ? -12 : 12)}
             y={place.y + 5}
             textAnchor={leftward ? "end" : "start"}
-            fill="white"
+            fill="var(--foreground)"
             fontSize={14}
-            stroke="var(--navy)"
+            fontWeight={600}
+            stroke="var(--background)"
             strokeWidth={5}
             paintOrder="stroke"
           >
@@ -135,7 +145,7 @@ function Route({ route, label, tint, small, className }: { route: Sketch; label?
   );
 }
 
-/** The trip at a glance: each day's shape in its own colour, under its number. */
+/** The trip at a glance: each day's shape, under its number. */
 function DayShapes({ days, label }: { days: StoryDay[]; label: string }) {
   const drawn = days.filter((day) => day.route);
   if (drawn.length === 0) return null;
@@ -145,8 +155,8 @@ function DayShapes({ days, label }: { days: StoryDay[]; label: string }) {
     <ul aria-label={label} className="mx-auto grid max-w-[340px] gap-x-3 gap-y-4" style={{ gridTemplateColumns: `repeat(${perRow}, minmax(0, 1fr))` }}>
       {drawn.map((day) => (
         <li key={day.day} className="flex flex-col items-center">
-          <Route route={day.route as Sketch} tint={dayColor(day.day)} small className="h-[48px] w-full max-w-[76px]" />
-          <span className="mt-1 text-sm font-semibold text-white/75">{day.day}</span>
+          <Route route={day.route as Sketch} small className="h-[48px] w-full max-w-[76px]" />
+          <span className="mt-1 text-sm font-semibold text-[var(--foreground-muted)]">{day.day}</span>
         </li>
       ))}
     </ul>
@@ -166,23 +176,33 @@ export default function TripStoryView({ story, locale, tripId, planHref, fullPla
     [story]
   );
   const [index, setIndex] = useState(0);
-  const [cluesShown, setCluesShown] = useState(1);
-  const [picked, setPicked] = useState<number | null>(null);
+  const [picked, setPicked] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
+  const [told, setTold] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
   const moved = useRef(false);
 
   const slide = slides[index];
   const guess = story.guess;
-  const guessing = slide.kind === "guess" && picked === null;
+  const { misses, solved, lost } = guessState(story.place, picked, GUESS_MISSES);
+  const over = solved || lost;
+  const guessing = slide.kind === "guess" && !over;
   const atEnd = index === slides.length - 1;
+  const answer = useMemo(() => keysOf(story.place), [story.place]);
 
   const go = (to: number) => {
     if (to < 0 || to >= slides.length || to === index) return;
     moved.current = true;
-    if (to === slides.length - 1 && !mine) capture("story_finished", { guessed: picked !== null });
     setIndex(to);
   };
+
+  // The last part reached, however it was reached, counts once for a friend.
+  const finished = useRef(false);
+  useEffect(() => {
+    if (index !== slides.length - 1 || mine || finished.current) return;
+    finished.current = true;
+    count("story_finished", tripId, { guessed: over });
+  }, [index, slides.length, mine, over, tripId]);
 
   // A new part is announced by its heading: a reader of the screen hears what just changed.
   useEffect(() => {
@@ -198,10 +218,12 @@ export default function TripStoryView({ story, locale, tripId, planHref, fullPla
     return () => window.removeEventListener("keydown", onKey);
   }, [guessing, slides.length]);
 
-  const pick = (option: number) => {
-    if (!guess || picked !== null) return;
-    setPicked(option);
-    if (!mine) capture("story_guessed", { right: option === guess.answer, clues: cluesShown });
+  const pick = (key: string) => {
+    if (!guess || over || picked.includes(key)) return;
+    const next = [...picked, key];
+    setPicked(next);
+    const after = guessState(story.place, next, GUESS_MISSES);
+    if ((after.solved || after.lost) && !mine) count("story_guessed", tripId, { right: after.solved, misses: after.misses });
   };
 
   const copyLink = async () => {
@@ -213,86 +235,115 @@ export default function TripStoryView({ story, locale, tripId, planHref, fullPla
     }
   };
 
+  // A friend's result, sent back to the one going: the share sheet where there is one, else copied to paste.
+  const tell = async () => {
+    const text = `${solved ? t("guess.tellSolved", { misses }) : t("guess.tellLost")} ${storyUrl}`;
+    if (typeof navigator.share === "function") {
+      try {
+        await navigator.share({ text });
+      } catch {
+        // Closed without sending: nothing to say.
+      }
+      return;
+    }
+    if (await copyToClipboard(text)) setTold(true);
+  };
+
   const dates = storyDates(story.startDate, story.endDate, locale);
   const severalCities = story.cities.length > 1;
   const dayDate = slide.kind === "day" ? storyDate(slide.day.date) : null;
+  const cluesShown = guess ? (over ? guess.clues.length : cluesInSight(guess.clues.length, misses, CLUE_AFTER_MISSES)) : 0;
+  const open = (key: string) => over || picked.includes(key);
+  const boardLabel = over
+    ? story.place
+    : boardOf(story.place, locale)
+        .map((word) => word.map((tile) => (tile.key === null || picked.includes(tile.key) ? tile.ch : t("guess.blank"))).join(" "))
+        .join(", ");
 
   return (
-    <main className="flex min-h-dvh justify-center bg-[var(--navy)] text-white">
+    <main className="flex min-h-dvh justify-center bg-[var(--background)] text-[var(--foreground)]">
       <div className="flex min-h-dvh w-full max-w-[480px] flex-col px-5 pb-6 pt-3">
         <ol aria-hidden="true" className="flex gap-1.5">
           {slides.map((_, i) => (
-            <li key={i} className={`h-1 flex-1 rounded-full ${i <= index ? "bg-[var(--accent)]" : "bg-white/20"}`} />
+            <li key={i} className={`h-1 flex-1 rounded-full ${i <= index ? "bg-[var(--primary)]" : "bg-[var(--foreground)]/15"}`} />
           ))}
         </ol>
         <p className="sr-only" role="status">
           {t("progress", { current: index + 1, total: slides.length })}
         </p>
         <div className="mt-2 flex items-center justify-between">
-          <span className="text-sm font-semibold text-white/80">MonkeyTravel</span>
-          <Link href={fullPlanHref} className={`inline-flex min-h-[44px] items-center text-sm text-white/80 underline underline-offset-4 ${FOCUS}`}>
+          <span className="text-sm font-semibold">MonkeyTravel</span>
+          <Link href={fullPlanHref} className={`inline-flex min-h-[44px] items-center text-sm underline underline-offset-4 ${FOCUS}`}>
             {t("fullPlan")}
           </Link>
         </div>
+        {mine && !atEnd && (
+          <div data-testid="story-mine-bar" className="flex items-center justify-between gap-3 rounded-lg bg-[var(--background-warm)] px-3 py-1">
+            <p className="text-sm">{t("mine.note")}</p>
+            <button type="button" onClick={() => go(slides.length - 1)} className={`inline-flex min-h-[44px] shrink-0 items-center text-sm font-semibold underline underline-offset-4 ${FOCUS}`}>
+              {t("mine.post")}
+            </button>
+          </div>
+        )}
 
         <section aria-labelledby="story-heading" className="flex flex-1 flex-col justify-center py-5">
           {slide.kind === "guess" && guess && (
             <>
-              <h1 id="story-heading" ref={heading} tabIndex={-1} className="text-balance text-center text-3xl font-semibold leading-tight outline-none">
+              <h1 id="story-heading" ref={heading} tabIndex={-1} className="text-balance text-center text-2xl font-semibold leading-tight outline-none">
                 {t("guess.title")}
               </h1>
-              <p className="mt-2 text-center text-white/75">{t("guess.lead")}</p>
-              <div className="mt-5">
-                <Board place={story.place} hidden={picked === null} hiddenLabel={t("guess.hidden")} locale={locale} />
+              {!over && <p className="mt-1 text-center text-sm text-[var(--foreground-muted)]">{t("guess.lead", { max: GUESS_MISSES })}</p>}
+              <div className="mt-3">
+                <Board place={story.place} open={open} locale={locale} label={boardLabel} />
               </div>
-              <ol className="mt-5 space-y-2">
-                {guess.clues.slice(0, picked === null ? cluesShown : guess.clues.length).map((clue, i) => (
-                  <li key={clue.kind} className="rounded-lg bg-white/10 px-4 py-3">
-                    <span className="block text-sm text-white/75">{t("guess.clue", { number: i + 1 })}</span>
-                    <span className="text-lg leading-snug">{storyClueText(clue, say, locale)}</span>
-                  </li>
+              {/* One card for every clue, so the keys stay on the screen as clues open. */}
+              <ol aria-label={t("guess.clues")} className={`${CARD} mt-3 list-decimal space-y-1 py-2.5 pl-9 pr-4 leading-snug`}>
+                {guess.clues.slice(0, cluesShown).map((clue) => (
+                  <li key={clue.kind}>{storyClueText(clue, say, locale)}</li>
                 ))}
               </ol>
-              {picked === null && cluesShown < guess.clues.length && (
-                <button
-                  type="button"
-                  onClick={() => setCluesShown((shown) => shown + 1)}
-                  className={`mt-1 inline-flex min-h-[44px] items-center self-start text-base text-white underline underline-offset-4 ${FOCUS}`}
-                >
-                  {t("guess.another")}
+              {!over && (
+                <>
+                  <p className="mt-3 flex items-center justify-between text-sm text-[var(--foreground-muted)]">
+                    <span>{t("guess.misses", { count: misses, max: GUESS_MISSES })}</span>
+                    <span aria-hidden="true" className="flex gap-1">
+                      {Array.from({ length: GUESS_MISSES }, (_, i) => (
+                        <span key={i} className={`h-2.5 w-2.5 rounded-full ${i < misses ? "bg-[var(--primary)]" : "bg-[var(--foreground)]/15"}`} />
+                      ))}
+                    </span>
+                  </p>
+                  <div role="group" aria-label={t("guess.keys")} className="mt-2 grid grid-cols-7 gap-1.5">
+                    {KEYS.map((key) => {
+                      const used = picked.includes(key);
+                      const state = !used
+                        ? "border-gray-200 bg-white text-[var(--foreground)]"
+                        : answer.has(key)
+                          ? "border-[var(--secondary-ink)] bg-[var(--secondary-ink)] text-white"
+                          : "border-slate-200 bg-slate-100 text-slate-500 line-through";
+                      return (
+                        <button
+                          key={key}
+                          type="button"
+                          disabled={used}
+                          onClick={() => pick(key)}
+                          className={`min-h-[44px] rounded-md border-2 text-base font-semibold ${FOCUS} ${state}`}
+                        >
+                          {key}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+              <p role="status" className={`text-center text-lg font-semibold ${over ? "mt-4" : ""}`}>
+                {solved && t("guess.solved", { misses })}
+                {lost && t("guess.lost", { place: story.place })}
+              </p>
+              {over && !mine && (
+                <button type="button" onClick={tell} className={`${QUIET_BUTTON} mt-2`}>
+                  {told ? t("guess.told") : t("guess.tell")}
                 </button>
               )}
-              <fieldset className="mt-3">
-                <legend className="text-lg font-semibold">{t("guess.pick")}</legend>
-                <div className="mt-2 grid grid-cols-2 gap-2">
-                  {guess.options.map((option, i) => {
-                    const state =
-                      picked === null
-                        ? "border-white/30 text-white"
-                        : i === guess.answer
-                          ? "border-[var(--accent)] bg-[var(--accent)] text-[var(--foreground)]"
-                          : i === picked
-                            ? "border-white/20 text-white/60 line-through"
-                            : "border-white/20 text-white/60";
-                    return (
-                      <button
-                        key={option}
-                        type="button"
-                        disabled={picked !== null}
-                        aria-pressed={picked === i}
-                        onClick={() => pick(i)}
-                        className={`min-h-[52px] rounded-lg border px-3 text-base font-semibold ${FOCUS} ${state}`}
-                      >
-                        {option}
-                      </button>
-                    );
-                  })}
-                </div>
-              </fieldset>
-              <p role="status" className="mt-4 min-h-[28px] text-center text-lg font-semibold">
-                {picked !== null &&
-                  (picked === guess.answer ? t("guess.right", { clues: cluesShown }) : t("guess.wrong", { place: story.place }))}
-              </p>
             </>
           )}
 
@@ -306,7 +357,7 @@ export default function TripStoryView({ story, locale, tripId, planHref, fullPla
               >
                 {story.place}
               </h1>
-              {dates && <p className="mt-4 text-center text-lg text-white/75">{dates}</p>}
+              {dates && <p className="mt-4 text-center text-lg text-[var(--foreground-muted)]">{dates}</p>}
               <div className="mt-8">
                 {severalCities && story.route ? (
                   <Route route={story.route} label={t("reveal.route")} className="mx-auto max-h-[36dvh] w-full" />
@@ -314,21 +365,23 @@ export default function TripStoryView({ story, locale, tripId, planHref, fullPla
                   <DayShapes days={story.days} label={t("reveal.route")} />
                 )}
               </div>
-              <p className="mt-8 text-balance text-center text-xl leading-snug">
-                {storyFacts(story, say)}
-              </p>
+              <p className="mt-8 text-balance text-center text-xl leading-snug">{storyFacts(story, say)}</p>
             </>
           )}
 
           {slide.kind === "day" && (
             <>
               <div className="flex items-end justify-between gap-4">
-                <p aria-hidden="true" className="font-[family-name:var(--font-display)] text-[8.5rem] font-semibold leading-[0.8] tabular-nums" style={{ color: dayColor(slide.day.day) }}>
+                <p
+                  aria-hidden="true"
+                  className="flex h-28 w-28 shrink-0 items-center justify-center rounded-3xl font-[family-name:var(--font-display)] text-7xl font-semibold tabular-nums"
+                  style={{ backgroundColor: dayColor(slide.day.day) }}
+                >
                   {slide.day.day}
                 </p>
-                {slide.day.route && <Route route={slide.day.route} tint={dayColor(slide.day.day)} className="h-[120px] w-[190px] shrink-0" />}
+                {slide.day.route && <Route route={slide.day.route} className="h-[112px] w-[178px] shrink-0" />}
               </div>
-              <p className="mt-6 flex flex-wrap gap-x-2 text-white/75">
+              <p className="mt-6 flex flex-wrap gap-x-2 text-[var(--foreground-muted)]">
                 <span className="sr-only">{t("day.label", { number: slide.day.day })}</span>
                 {dayDate && <span>{new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).format(dayDate)}</span>}
                 {slide.day.city && severalCities && <span>{t("day.in", { city: slide.day.city })}</span>}
@@ -339,24 +392,31 @@ export default function TripStoryView({ story, locale, tripId, planHref, fullPla
               <ul className="mt-5 space-y-3">
                 {slide.day.stops.map((stop) => (
                   <li key={stop} className="flex items-start gap-3 text-xl leading-snug">
-                    <span aria-hidden="true" className="mt-2 h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: dayColor(slide.day.day) }} />
+                    <span
+                      aria-hidden="true"
+                      className="mt-2 h-3 w-3 shrink-0 rounded-full border border-[var(--foreground)]"
+                      style={{ backgroundColor: dayColor(slide.day.day) }}
+                    />
                     {stop}
                   </li>
                 ))}
               </ul>
-              {slide.day.more > 0 && <p className="mt-3 pl-6 text-white/75">{t("day.more", { count: slide.day.more })}</p>}
+              {slide.day.more > 0 && <p className="mt-3 pl-6 text-[var(--foreground-muted)]">{t("day.more", { count: slide.day.more })}</p>}
             </>
           )}
 
           {slide.kind === "end" && (
             <>
-              <h1 id="story-heading" ref={heading} tabIndex={-1} className={`text-balance font-semibold leading-tight outline-none ${mine ? "text-3xl" : "text-4xl"}`}>
+              <h1
+                id="story-heading"
+                ref={heading}
+                tabIndex={-1}
+                className={`text-balance font-semibold leading-tight outline-none ${mine ? "text-3xl" : "text-4xl"}`}
+              >
                 {mine ? t("end.mineTitle") : t("end.title")}
               </h1>
-              <p className="mt-4 text-lg leading-relaxed text-white/85">
-                {mine ? (guess ? t("end.mineBody") : t("end.mineBodyPlain")) : t("end.body")}
-              </p>
-              {story.moreDays > 0 && <p className="mt-3 text-white/75">{t("day.moreDays", { count: story.moreDays })}</p>}
+              <p className="mt-4 text-lg leading-relaxed">{mine ? (guess ? t("end.mineBody") : t("end.mineBodyPlain")) : t("end.body")}</p>
+              {story.moreDays > 0 && <p className="mt-3 text-[var(--foreground-muted)]">{t("day.moreDays", { count: story.moreDays })}</p>}
               {mine && (
                 <div className="mt-6">
                   <StoryPost
@@ -387,7 +447,7 @@ export default function TripStoryView({ story, locale, tripId, planHref, fullPla
                   {t("fullPlan")}
                 </Link>
               </div>
-              <p role="status" className="mt-3 min-h-[24px] text-white/85">
+              <p role="status" className="mt-3 min-h-[24px]">
                 {copied && t("end.copied")}
               </p>
             </>

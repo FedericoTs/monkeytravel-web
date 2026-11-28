@@ -11,7 +11,6 @@ import { join } from "path";
 
 const read = (file: string) => readFileSync(join(__dirname, file), "utf8").replace(/\r\n/g, "\n");
 const SRC = read("NewTripWizard.tsx");
-const SKY = readFileSync(join(__dirname, "../../../../../components/sky/SkyPlan.tsx"), "utf8").replace(/\r\n/g, "\n");
 
 describe("the planner's totals", () => {
   it("add up the plan's stops, per person", () => {
@@ -21,14 +20,11 @@ describe("the planner's totals", () => {
     expect(SRC).toContain('const totalCost = planTotal ? `${convertCurrency(planTotal.total, planTotal.currency).formatted} ${tTotal("perPerson")}` : "";');
   });
 
-  it("show that sum in the header, the action bars and the sky's line, never the model's estimate", () => {
+  it("show that sum in the header and the action bars, never the model's estimate", () => {
     expect(SRC).toContain("budget={planTotal ? { total: planTotal.total, currency: planTotal.currency } : undefined}");
     expect(SRC).toContain('budgetNote={tTotal("perPerson")}');
-    expect(SRC.match(/totalCost=\{totalCost\}/g)).toHaveLength(2);
+    expect(SRC.match(/totalCost=\{totalCost\}/g)).toHaveLength(1);
     expect(SRC).not.toMatch(/total_estimated_cost/);
   });
 
-  it("leave the sky's line without a figure when the plan prices nothing", () => {
-    expect(SKY).toMatch(/\{totalCost && \(\n\s*<>\n\s*\{", "\}\n\s*\{t\("wizard\.result\.sky\.about", \{ cost: totalCost \}\)\}/);
-  });
 });

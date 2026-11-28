@@ -101,10 +101,11 @@ describe("reportGenerated", () => {
     });
   });
 
-  it("puts the sky test's arm on the result row, and only there", () => {
-    reportGenerated({ ...report, resultVariant: "sky" }, true, 1_012_345);
+  it("puts no result-screen arm on any row (the sky test is over)", () => {
+    reportGenerated(report, true, 1_012_345);
     const [result, firstValue] = rows();
-    expect(result).toMatchObject({ step: "result", result_variant: "sky" });
+    expect(result).toMatchObject({ step: "result" });
+    expect(result).not.toHaveProperty("result_variant");
     expect(firstValue).not.toHaveProperty("result_variant");
   });
 

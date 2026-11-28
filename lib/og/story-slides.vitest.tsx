@@ -51,7 +51,7 @@ function flatten(node: unknown): string[] {
 }
 
 const drawn = (source: StorySource, format: "guess" | "place") => {
-  const story = buildTripStory(source, "en", "seed");
+  const story = buildTripStory(source, "en", { sunset: "17:32" });
   return flatten(renderStorySlide(format, story, slideWords(story, t, "en"), LOGO));
 };
 const images = (parts: string[]) => parts.filter((part) => /^(https?:|data:)/.test(part));
@@ -66,18 +66,33 @@ describe("the picture's format", () => {
 });
 
 describe("the guess to post", () => {
-  it("asks in the first person, shows every clue, and asks for an answer", () => {
+  it("asks in the first person, hides a flap for each letter, shows its clues and asks for an answer", () => {
     const parts = drawn(lisbon, "guess");
     expect(parts).toContain("Guess where");
     expect(parts).toContain("I'm going");
-    expect(parts.filter((part) => part === "?")).toHaveLength(5);
-    expect(parts).toEqual(expect.arrayContaining(["Clue 1", "2 days in January, somewhere in Europe", "Clue 2", "Clue 3", "It starts with L and has 6 letters."]));
+    // Six letters, none of them shown.
+    expect(parts.filter((part) => part === "")).toHaveLength(6);
+    expect(parts).toEqual(
+      expect.arrayContaining(["Clue 1", "2 days in January, somewhere in Europe", "Clue 2", "On the first evening the sun sets at 17:32.", "Clue 3", "One of its days is called “Belém”."])
+    );
     expect(parts).toContain("Send me your guess");
   });
 
-  it("gives nothing away: no place, no dates, no day of the plan", () => {
+  it("keeps the plan's own stop for the game the link opens", () => {
     const text = drawn(lisbon, "guess").join("\n");
-    expect(text).not.toMatch(/lisbon|portugal|alfama|bel[eé]m|2027|9\b.*10/i);
+    expect(text).not.toMatch(/One stop on the plan|Clue 4/);
+  });
+
+  it("gives nothing away: no place, no country, no dates", () => {
+    const text = drawn(lisbon, "guess").join("\n");
+    expect(text).not.toMatch(/lisbon|lisboa|portugal|2027/i);
+  });
+
+  it("lays a place of several words on a row each, with what is no letter in sight", () => {
+    const source = { ...lisbon, trip_meta: { destination: "Baden-Baden", timezone: "Europe/Berlin" } };
+    const parts = drawn(source, "guess");
+    expect(parts.filter((part) => part === "")).toHaveLength(10);
+    expect(parts).toContain("-");
   });
 
   it("carries the brand mark and no other image", () => {
@@ -129,19 +144,20 @@ describe("the answer to post", () => {
 });
 
 describe("the drawings", () => {
-  const story = buildTripStory(lisbon, "en", "seed");
+  const story = buildTripStory(lisbon, "en");
   const route = story.days[0].route!;
 
-  it("draw a day in its colour, with its first stop ringed", () => {
+  it("draw a day's line in the site's ink and its stops in the day's colour, the first one larger", () => {
     const svg = dayShapeSvg(route, "#00B4A6");
-    expect(svg).toContain(`d="${route.path}"`);
+    expect(svg).toContain(`d="${route.path}" fill="none" stroke="#2D3436"`);
     expect(svg.match(/<circle/g)).toHaveLength(route.points.length);
-    expect(svg.match(/stroke="#00B4A6"/g)).toHaveLength(2);
-    expect(svg).toContain(`cx="${route.points[0].x}" cy="${route.points[0].y}" r="12" fill="#FFFFFF"`);
+    expect(svg.match(/fill="#00B4A6"/g)).toHaveLength(route.points.length);
+    expect(svg).toContain(`cx="${route.points[0].x}" cy="${route.points[0].y}" r="13"`);
+    expect(svg).toContain(`cx="${route.points[1].x}" cy="${route.points[1].y}" r="9"`);
   });
 
   it("draw the whole trip with each stop in its day's colour", () => {
-    const whole = buildTripStory(spain, "en", "seed").route!;
+    const whole = buildTripStory(spain, "en").route!;
     const svg = tripRouteSvg(whole);
     expect(svg.match(/<circle/g)).toHaveLength(whole.points.length);
     expect(svg).toContain('fill="#FF6B6B"');

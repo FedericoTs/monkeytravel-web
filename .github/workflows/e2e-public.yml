@@ -35,8 +35,6 @@ jobs:
       NEXT_PUBLIC_MAP_ROUTES_ENABLED: "true"
       NEXT_PUBLIC_MULTI_CITY_ENABLED: "true"
       NEXT_PUBLIC_TRIP_NOTIFICATIONS_ENABLED: "true"
-      # No random result screen in tests: a test that wants the sky asks for it with a link.
-      NEXT_PUBLIC_RESULT_SKY: "off"
       # Nor a random arm of the experiments (lib/experiments/registry.ts): a test that wants one asks with its link.
       NEXT_PUBLIC_EXP_STEP2_DEFAULT: "off"
       NEXT_PUBLIC_EXP_SAVE_BOX_BENEFITS: "off"
@@ -79,7 +77,6 @@ jobs:
           tests/e2e/backpacker-page.spec.ts
           tests/e2e/where-should-i-go.spec.ts
           tests/e2e/month-guide-place-links.spec.ts
-          tests/e2e/result-sky.spec.ts
           tests/e2e/daylight-request.spec.ts
           tests/e2e/stay-request.spec.ts
           tests/e2e/read-request.spec.ts

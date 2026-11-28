@@ -2,8 +2,7 @@
  * The experiments the app runs with its own draw. Each has its arms (the first is today's experience, the control),
  * when the draw starts, and the day by which it must be read and decided: a test fails after that day, so none runs
  * on unread. The draw (assign.ts), the record of which arm a visitor saw (exposure.ts, the experiment_exposures
- * table) and the PostHog property follow the same rules for every experiment. The sky test predates this
- * (result-sky.ts) and ends on its own.
+ * table) and the PostHog property follow the same rules for every experiment.
  */
 export interface Experiment {
   /** Lower case, digits and underscores: the table checks it. */
@@ -47,8 +46,8 @@ export const SAVE_BOX_BENEFITS = {
 export const PHONE_PLAN_ROWS = {
   key: "phone_plan_rows",
   arms: ["cards", "rows"],
-  starts: Date.UTC(2026, 10, 28, 12, 0),
-  reviewBy: "2026-12-19",
+  starts: Date.UTC(2026, 10, 29, 0, 0),
+  reviewBy: "2026-12-20",
 } as const satisfies Experiment;
 
 export const EXPERIMENTS: readonly Experiment[] = [STEP2_DEFAULT, SAVE_BOX_BENEFITS, PHONE_PLAN_ROWS];
