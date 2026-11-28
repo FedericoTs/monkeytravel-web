@@ -38,7 +38,19 @@ export const SAVE_BOX_BENEFITS = {
   reviewBy: "2027-01-12",
 } as const satisfies Experiment;
 
-export const EXPERIMENTS: readonly Experiment[] = [STEP2_DEFAULT, SAVE_BOX_BENEFITS];
+/**
+ * What a signed-out planner sharing a plan is offered: as today, the link and the ways to send it ("none"), or also
+ * the way to the trip's story for friends who aren't coming, a guess they can play ("story"). Counted when the
+ * share's panel shows a link, where the arms first differ.
+ */
+export const STORY_WAY_IN = {
+  key: "story_way_in",
+  arms: ["none", "story"],
+  starts: Date.UTC(2026, 10, 28, 20, 0),
+  reviewBy: "2027-01-09",
+} as const satisfies Experiment;
+
+export const EXPERIMENTS: readonly Experiment[] = [STEP2_DEFAULT, SAVE_BOX_BENEFITS, STORY_WAY_IN];
 
 export function experimentByKey(key: string): Experiment | undefined {
   return EXPERIMENTS.find((experiment) => experiment.key === key);

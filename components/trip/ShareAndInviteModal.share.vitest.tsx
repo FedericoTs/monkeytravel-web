@@ -517,3 +517,22 @@ describe("a closed window", () => {
     expect(screen.queryByTestId("sheet")).toBeNull();
   });
 });
+
+// Friends who aren't coming get the trip as a story to guess, not the plan.
+describe("the trip as a story", () => {
+  const storyLink = () => screen.queryByRole("link", { name: en.story.wayIn.cta });
+
+  it("is offered with the link, opening that link's story in a new tab", async () => {
+    show();
+    await settled();
+    expect(screen.getByText(en.story.wayIn.note)).toBeTruthy();
+    expect(storyLink()?.getAttribute("href")).toBe(`/shared/${TOKEN}/story`);
+    expect(storyLink()?.getAttribute("target")).toBe("_blank");
+  });
+
+  it("isn't offered for a link with no token to tell it from", async () => {
+    show({ shareUrl: "https://monkeytravel.app/trip/lisbon" });
+    await settled();
+    expect(storyLink()).toBeNull();
+  });
+});

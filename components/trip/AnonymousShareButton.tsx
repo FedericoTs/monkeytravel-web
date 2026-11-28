@@ -14,6 +14,37 @@ import {
 } from "@/lib/posthog/events";
 import { canShareNatively, openWhatsApp } from "@/lib/share/channels";
 import { Spinner } from "@/components/ui/Spinner";
+import { StoryWayIn } from "@/components/story/StoryWayIn";
+import { assignArm, type Assignment } from "@/lib/experiments/assign";
+import { createExposureReporter } from "@/lib/experiments/exposure";
+import { STORY_WAY_IN } from "@/lib/experiments/registry";
+import { onPostHogReady } from "@/lib/posthog/client";
+
+const reportExposure = createExposureReporter({ post: (url, init) => fetch(url, init), onPostHog: onPostHogReady });
+
+/** story_way_in's arm for this browser: drawn once and kept, or a link's choice (?exp_story_way_in=), or the switch. */
+function drawStoryWayIn(): Assignment<(typeof STORY_WAY_IN.arms)[number]> {
+  if (typeof window === "undefined") return { arm: "none", counted: false };
+  let store: Storage | null = null;
+  try {
+    store = window.localStorage;
+  } catch {
+    store = null;
+  }
+  let asked: string | null = null;
+  try {
+    asked = new URLSearchParams(window.location.search).get(`exp_${STORY_WAY_IN.key}`);
+  } catch {
+    asked = null;
+  }
+  return assignArm(STORY_WAY_IN, {
+    asked,
+    store,
+    now: Date.now(),
+    random: Math.random,
+    pin: process.env.NEXT_PUBLIC_EXP_STORY_WAY_IN,
+  });
+}
 
 /**
  * Share control for a trip generated while signed OUT.
@@ -104,6 +135,8 @@ export default function AnonymousShareButton({
   const crew = mode === "crew";
   const t = useTranslations("trips");
   const tButtons = useTranslations("common.buttons");
+  // Whether the panel also offers the trip's story, for friends who aren't coming (story_way_in).
+  const [storyTest] = useState(drawStoryWayIn);
   const [state, setState] = useState<"idle" | "creating" | "ready" | "error">("idle");
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -152,6 +185,13 @@ export default function AnonymousShareButton({
   const effectiveState = state === "creating" ? "creating" : effectiveUrl ? "ready" : state;
 
   const shareToken = shareTokenFromUrl(rawUrl);
+
+  // story_way_in is counted where its arms first differ: the link's controls on screen (a bar's panel open, or in
+  // the button's place). A share sent straight from the phone's sheet shows no controls, so it isn't counted.
+  const controlsShown = effectiveState === "ready" && Boolean(effectiveUrl) && (!panel || open);
+  useEffect(() => {
+    if (controlsShown && shareToken) reportExposure(STORY_WAY_IN, storyTest);
+  }, [controlsShown, shareToken, storyTest]);
 
   // Read the tally on mount and again whenever the planner comes back.
   // Coming back IS the signal: they leave for a messaging app to send the
@@ -358,6 +398,15 @@ export default function AnonymousShareButton({
               {t("wizard.result.shareAnonKeepCta")}
             </button>
           </div>
+        )}
+        {/* Last, under the ask to keep the plan: the trip's story, for friends who aren't coming. */}
+        {storyTest.arm === "story" && shareToken && (
+          <StoryWayIn
+            token={shareToken}
+            from="planner"
+            newTab
+            className="mt-1 flex flex-col gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between"
+          />
         )}
       </>
     );
