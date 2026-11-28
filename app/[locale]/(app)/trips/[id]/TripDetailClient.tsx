@@ -1044,6 +1044,7 @@ export default function TripDetailClient({
           dateRange={dateRange}
           onEditDates={ambientEdit ? () => setShowChangeDates(true) : undefined}
           editDatesLabel={t("wizard.changeDates.button")}
+          editDatesText={t("wizard.changeDates.button")}
           budget={planTotal ? { total: planTotal.total, currency: planTotal.currency } : undefined}
           budgetNote={tCommon("tripTotal.perPerson")}
           budgetHint={tCommon("tripTotal.hint")}

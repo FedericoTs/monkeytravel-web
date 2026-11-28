@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   haversineKm,
+  rideIn,
   estimateTransfer,
   buildTransferActivity,
   buildJourneyStops,
@@ -534,6 +535,43 @@ describe("a sight the arrival day can't hold", () => {
     expect(merged.days[2].activities.map((a) => a.name)).not.toContain("Taj Mahal");
   });
 
+  it("goes to another day of the city when the only gap after arriving is in the evening: a fort shuts by then", () => {
+    // The train gets in at 11:00; lunch and the Taj Mahal fill the afternoon, so the fort's gap is 17:00 to 19:00.
+    const arrival = [
+      stop("Agra Fort", "landmark", "09:00", 120),
+      stop("Pinch of Spice", "restaurant", "12:30", 60),
+      stop("Taj Mahal", "landmark", "14:00", 180),
+      stop("Esphahan", "restaurant", "19:00", 90),
+    ];
+    const merged = trip([arrival, [stop("Fatehpur Sikri", "landmark", "10:00", 180)]]);
+    expect(timed(merged.days[1])).toEqual(["08:30 Train to Agra", "12:30 Pinch of Spice", "14:00 Taj Mahal", "19:00 Esphahan"]);
+    expect(timed(merged.days[2])).toEqual(["09:00 Agra Fort", "11:20 Fatehpur Sikri"]);
+  });
+
+  it("stays on the arrival day when a gap after arriving keeps it in the daytime", () => {
+    const arrival = [stop("Agra Fort", "landmark", "09:00", 120), stop("Pinch of Spice", "restaurant", "12:30", 60), stop("Esphahan", "restaurant", "19:00", 90)];
+    const merged = trip([arrival, [stop("Fatehpur Sikri", "landmark", "10:00", 180)]]);
+    expect(timed(merged.days[1])).toEqual(["08:30 Train to Agra", "12:30 Pinch of Spice", "13:30 Agra Fort", "19:00 Esphahan"]);
+    expect(timed(merged.days[2])).toEqual(["10:00 Fatehpur Sikri"]);
+  });
+
+  it("still moves a show, a night out or a shop into the evening gap after arriving", () => {
+    const arrival = [
+      stop("Mohabbat the Taj", "entertainment", "09:00", 120),
+      stop("Pinch of Spice", "restaurant", "12:30", 60),
+      stop("Taj Mahal", "landmark", "14:00", 180),
+      stop("Esphahan", "restaurant", "19:00", 90),
+    ];
+    const merged = trip([arrival, [stop("Fatehpur Sikri", "landmark", "10:00", 180)]]);
+    expect(timed(merged.days[1])).toEqual([
+      "08:30 Train to Agra",
+      "12:30 Pinch of Spice",
+      "14:00 Taj Mahal",
+      "17:00 Mohabbat the Taj",
+      "19:00 Esphahan",
+    ]);
+  });
+
   it("is left out when no other day of the city has room, and a meal is never carried", () => {
     // A city of one day: nowhere else to go.
     expect(trip([firstDay()]).days[1].activities.map((a) => a.name)).not.toContain("Taj Mahal");
@@ -581,5 +619,29 @@ describe("dayWithWayBack", () => {
     const long = { ...back, duration_minutes: 400 } as Activity;
     const stops = [stop("10:00", 60), stop("19:00", 90)];
     expect(dayWithWayBack(long, stops)).toEqual(stops);
+  });
+});
+
+describe("rideIn", () => {
+  const LONDON = { lat: 51.5074, lng: -0.1278 };
+  const EDINBURGH = { lat: 55.9533, lng: -3.1883 };
+  const PARIS = { lat: 48.8566, lng: 2.3522 };
+  const ROME = { lat: 41.9028, lng: 12.4964 };
+  const LISBON = { lat: 38.7223, lng: -9.1393 };
+  const SYDNEY = { lat: -33.8688, lng: 151.2093 };
+
+  it("gets in when the ride that leaves at 08:30 ends, to the quarter hour", () => {
+    // 534 km by rail: 4 h 40 with getting to the station, in at 13:10, so 13:15.
+    expect(rideIn(LONDON, EDINBURGH)).toEqual({ mode: "train", at: "13:15" });
+    // 1,105 km is a flight: 4 h with the airports, in at 12:30.
+    expect(rideIn(PARIS, ROME)).toEqual({ mode: "flight", at: "12:30" });
+    // 580 km where trains aren't the usual way between cities: a flight, 3 h 20 with the airports, in by noon.
+    expect(rideIn({ lat: 13.7563, lng: 100.5018 }, { lat: 18.7883, lng: 98.9853 })).toEqual({ mode: "flight", at: "12:00" });
+  });
+
+  it("gets in by a quarter to midnight at the latest, and has no estimate without both points", () => {
+    expect(rideIn(LISBON, SYDNEY)).toEqual({ mode: "flight", at: "23:45" });
+    expect(rideIn(null, ROME)).toBeNull();
+    expect(rideIn(PARIS, null)).toBeNull();
   });
 });

@@ -103,7 +103,13 @@
       "emailSent": "Sent to {email}. The link opens this plan on any device.",
       "emailInvalid": "That address doesn't look right. Check it and try again.",
       "emailLimited": "Too many emails for now. Try again later, or copy the link instead.",
-      "emailFailed": "That didn't send. Try again, or copy the link instead."
+      "emailFailed": "That didn't send. Try again, or copy the link instead.",
+      "emailOfferRemind": "Not ready for an account? We can email you this plan, and remind you before the trip.",
+      "emailNoteRemind": "No account needed.",
+      "remindWeek": "Also remind me before the trip: one email a week before and one the day before. Unsubscribe anytime.",
+      "remindDay": "Also remind me the day before the trip. Unsubscribe anytime.",
+      "remindPrivacy": "Privacy",
+      "remindSent": "Sent to {email}. We'll remind you before the trip."
     },
     "draftRecovery": {
       "title": "Unsaved trip found",
@@ -375,7 +381,9 @@
         "stickySaving": "Saving...",
         "stickyHint": "Your trip will be saved to your account",
         "dismiss": "Dismiss"
-      }
+      },
+      "benefitsTitle": "Take this plan on your trip",
+      "benefitsCta": "Save my trip, it's free"
     },
     "anchors": {
       "cta": "I have fixed plans (flight, wedding, hotel…)",
@@ -786,7 +794,15 @@
     "subtitle": "Create an account to save and access your trip anytime",
     "saving": "Saving your trip...",
     "success": "Trip saved successfully!",
-    "error": "Failed to save trip. Please try again."
+    "error": "Failed to save trip. Please try again.",
+    "keptToo": "Also kept in My Trips: {places}"
+  },
+  "keepBoth": {
+    "titleTwo": "Keep both trips",
+    "titleMany": "Keep all {count} trips",
+    "body": "Sign in free and every place you planned today stays in My Trips.",
+    "signIn": "Sign in free",
+    "notNow": "Not now"
   },
   "startOver": {
     "title": "Start Over?",

@@ -127,9 +127,10 @@ export function keepInsideHours<T extends Day>(days: T[], destination: string, h
     if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !day.activities?.length) return day;
     // A multi-city trip's day names its own city: a "Pantheon" in Paris isn't Rome's.
     const place = day.city || destination;
-    // A meal is never the place it is named after ("Armando al Pantheon" is a restaurant), and a booked commitment
-    // or a stop named for its hour keeps its time.
-    const checkedHere = (stop: Stop) => !stop.locked && !isMealStop(stop) && !TIED_TO_HOUR.test(stop.name ?? "");
+    // A meal is never the place it is named after ("Armando al Pantheon" is a restaurant), and a booked commitment, a
+    // dated event (New Year's Eve at a tower that shuts at ten) or a stop named for its hour keeps its time.
+    const checkedHere = (stop: Stop) =>
+      !stop.locked && stop.type !== "event" && !isMealStop(stop) && !TIED_TO_HOUR.test(stop.name ?? "");
     for (const stop of day.activities) {
       const hours = checkedHere(stop) ? hoursFor(stop.name, place, date) : null;
       const start = minutesOf(stop.start_time);

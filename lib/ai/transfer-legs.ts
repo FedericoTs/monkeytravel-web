@@ -19,6 +19,7 @@
 import type { Activity, ItineraryDay } from "@/types";
 import { isPlaceholderPoint } from "@/lib/trip/placeholder-point";
 import { formatMinutesToTime } from "@/lib/datetime/format";
+import { isDaytimeSight, keepsToTheDay } from "@/lib/trip/day-room";
 
 /**
  * "ground" names no mode: a car, or a hop estimated from distance where trains aren't the usual way. A bus or a
@@ -89,6 +90,11 @@ const ISLANDS = [
 
 const inBox = (p: LatLng, r: { lat: number[]; lng: number[] }) =>
   p.lat >= r.lat[0] && p.lat <= r.lat[1] && p.lng >= r.lng[0] && p.lng <= r.lng[1];
+
+/** Whether no sea lies between two points that a box of ISLANDS tells apart: both on one island, or both off them. */
+export function onSameLand(a: LatLng, b: LatLng): boolean {
+  return ISLANDS.findIndex((r) => inBox(a, r)) === ISLANDS.findIndex((r) => inBox(b, r));
+}
 
 /** Is the point somewhere trains are the usual way between nearby cities? */
 export function inRailRegion(p: LatLng): boolean {
@@ -295,7 +301,7 @@ function resolveLocale(language?: string): TransferLocale {
  * The middle of a city's places, as many north of it as south and east as
  * west, so one place pinned far away can't move it. Null with no usable pin.
  */
-function middleOf(days: ItineraryDay[]): LatLng | null {
+export function middleOf(days: ItineraryDay[]): LatLng | null {
   const points = days
     .flatMap((day) => day.activities ?? [])
     .map((a) => a.coordinates)
@@ -316,6 +322,22 @@ export function answeredTransfer(known: KnownHop | undefined, fromDays: Itinerar
  * ensureActivityIds. Marked `transport_mode` so the JourneyRibbon (and any
  * future transport UI) can find it without string-matching names.
  */
+/** When the ride to a route's next city leaves, in minutes after midnight. */
+const RIDE_LEAVES = 8 * 60 + 30;
+
+/**
+ * When the ride from one city of a route to the next gets in, estimated from the cities' points before either is
+ * planned, so the next city's plan can begin then (lib/ai/multi-city.ts): how, and the time, to the quarter hour,
+ * by a quarter to midnight at the latest. The card itself later takes the answered hop. None without both points.
+ */
+export function rideIn(from: LatLng | null, to: LatLng | null): { mode: TransferMode; at: string } | null {
+  if (!from || !to) return null;
+  const byRail = inRailRegion(from) && inRailRegion(to) && railJoins(from, to);
+  const { mode, durationMinutes } = estimateTransfer(haversineKm(from, to), byRail);
+  const at = Math.min(Math.ceil((RIDE_LEAVES + durationMinutes) / 15) * 15, 23 * 60 + 45);
+  return { mode, at: formatMinutesToTime(at) };
+}
+
 export function buildTransferActivity(opts: {
   fromCity: string;
   toCity: string;
@@ -337,7 +359,7 @@ export function buildTransferActivity(opts: {
 
   return {
     time_slot: "morning",
-    start_time: "08:30",
+    start_time: formatMinutesToTime(RIDE_LEAVES),
     duration_minutes: estimate.durationMinutes,
     name: labels.name[estimate.mode](opts.toCity),
     type: "transport",
@@ -381,9 +403,16 @@ export function dayWithTransfer(transfer: Activity, activities: Activity[]): Act
 /**
  * dayWithTransfer's day, and the sights it left out for want of a gap: they
  * can go to another day of the city (lib/ai/multi-city-core.ts). A meal left
- * out isn't among them: it belongs to its hour of that day.
+ * out isn't among them: it belongs to its hour of that day. With `daytime`, a
+ * sight only moves to a gap that keeps it in the daytime (in by half past
+ * four, done by six: a fort or a museum shuts by then), else it is left out
+ * too; a show, a night out or a shop still moves into the evening.
  */
-export function arrivalDay(transfer: Activity, activities: Activity[]): { activities: Activity[]; left: Activity[] } {
+export function arrivalDay(
+  transfer: Activity,
+  activities: Activity[],
+  { daytime = false }: { daytime?: boolean } = {}
+): { activities: Activity[]; left: Activity[] } {
   const leave = minutesOf(transfer.start_time) ?? 8 * 60 + 30;
   const arrive = leave + (transfer.duration_minutes || 0) + ARRIVAL_BUFFER_MINUTES;
   const length = (a: Activity) => a.duration_minutes || 60;
@@ -408,7 +437,8 @@ export function arrivalDay(transfer: Activity, activities: Activity[]): { activi
       if (at < end && at + length(a) > start) at = end;
     }
     const meal = MEAL.test(plain(`${a.type} ${a.name}`));
-    if (at + length(a) > MOVED_BY) {
+    const pastTheDay = daytime && !meal && isDaytimeSight(a) && !keepsToTheDay({ ...a, start_time: formatMinutesToTime(at) });
+    if (at + length(a) > MOVED_BY || pastTheDay) {
       if (!meal) left.push(a);
       continue;
     }

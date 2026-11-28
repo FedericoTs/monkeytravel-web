@@ -1,5 +1,5 @@
 /** Which "plan your own trip" link on a shared or public trip was pressed. */
-export type PlanOwnSurface = "shared_footer" | "public_footer" | "public_top" | "after_vote" | "page_footer" | "bottom_bar";
+export type PlanOwnSurface = "shared_footer" | "public_footer" | "public_top" | "after_vote" | "page_footer" | "bottom_bar" | "story";
 
 /**
  * The public page asks for "a trip like this one", so its links also carry the

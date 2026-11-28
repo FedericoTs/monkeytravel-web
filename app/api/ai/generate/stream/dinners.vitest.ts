@@ -57,13 +57,15 @@ const stop = (start_time: string, name: string, type: string, lat = 35.0, lng = 
 const madrid = () => ({
   destination: { name: "Madrid", country: "Spain" },
   days: [
-    [stop("09:00", "Royal Palace", "attraction", 40.418, -3.7143), stop("12:30", "Casa Labra", "restaurant", 40.4177, -3.7039), stop("21:00", "Sobrino de Botin", "restaurant", 40.4142, -3.7081)],
+    [stop("09:00", "Royal Palace", "attraction", 40.418, -3.7143), stop("12:30", "Casa Labra", "restaurant", 40.4177, -3.7039), stop(botinAt, "Sobrino de Botin", "restaurant", 40.4142, -3.7081)],
     [stop("09:00", "Retiro Park", "park", 40.4153, -3.6845), stop("12:30", "Cafe Comercial", "cafe", 40.4321, -3.7029), stop("15:00", "Prado Museum", "museum", 40.4138, -3.6921)],
     [stop("09:00", "Retiro Park", "park", 40.4153, -3.6845), stop("12:30", "Cafe Comercial", "cafe", 40.4321, -3.7029), stop("15:00", "Prado Museum", "museum", 40.4138, -3.6921)],
     [stop("09:00", "Reina Sofia", "museum", 40.4086, -3.6943), stop("13:30", "Lhardy", "restaurant", 40.4166, -3.7019)],
   ].map((activities, i) => ({ day_number: i + 1, date: `2027-04-0${5 + i}`, theme: "t", activities })),
 });
 let inMadrid = false;
+// When the plan's own first-day dinner starts.
+let botinAt = "21:00";
 const plan = () => (inMadrid ? madrid() : kyoto());
 const kyoto = () => ({
   destination: { name: "Kyoto", country: "Japan" },
@@ -125,6 +127,7 @@ beforeEach(() => {
   dinnerQuestions.length = 0;
   dinnerAt = NEAR_GION;
   inMadrid = false;
+  botinAt = "21:00";
   vi.spyOn(console, "log").mockImplementation(() => {});
 });
 
@@ -152,6 +155,13 @@ describe("a plan with a full day left without dinner", () => {
     dinnerQuestions.length = 0;
     expect((await complete({ tripIntent: "family", childrenAges: ["under3"] }))[1]).toContain("18:30 Casa Lucio");
     expect(dinnerQuestions[0]).toContain("dinner from 18:30");
+  });
+
+  it("moves the plan's own dinner, at 19:30 in Madrid and the day's last stop, to the local hour", async () => {
+    inMadrid = true;
+    botinAt = "19:30";
+    dinnerAt = { lat: 40.4122, lng: -3.7092 };
+    expect((await complete())[0]).toEqual(["09:00 Royal Palace", "12:30 Casa Labra", "20:30 Sobrino de Botin"]);
   });
 
   it("logs why the day still has none when the answer is turned away: here, a restaurant in Osaka", async () => {

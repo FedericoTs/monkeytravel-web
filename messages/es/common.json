@@ -2746,7 +2746,23 @@
     "intro": "Aquí tienes el enlace al plan que creaste. Se abre en cualquier dispositivo y se guarda durante 30 días desde la última vez que lo abras.",
     "cta": "Abrir mi plan",
     "footerReason": "Nos pediste que te lo enviáramos, y no volveremos a escribirte sobre esto.",
-    "footerLink": "Política de privacidad"
+    "footerLink": "Política de privacidad",
+    "introReminder": "Aquí tienes el enlace al plan que creaste. Se abre en cualquier dispositivo y se guarda hasta dos semanas después del viaje.",
+    "reminderLineWeek": "Te escribiremos de nuevo una semana antes del viaje y el día antes.",
+    "reminderLineDay": "Te escribiremos de nuevo el día antes del viaje.",
+    "footerReasonReminder": "Nos pediste este plan y recordatorios antes del viaje: son los únicos correos que te enviaremos.",
+    "footerLinkReminder": "Dejar de recibir recordatorios"
+  },
+  "planReminderEmail": {
+    "weekHeading": "{destination} ya se acerca",
+    "weekHeadingNoPlace": "Tu viaje ya se acerca",
+    "weekIntro": "Tu plan está listo para el viaje. Revísalo, cambia lo que quieras y reserva lo que haga falta.",
+    "dayHeading": "{destination}, mañana",
+    "dayHeadingNoPlace": "Tu viaje empieza mañana",
+    "dayIntro": "Aquí tienes tu plan para el viaje. ¡Que lo disfrutes!",
+    "cta": "Abrir mi plan",
+    "footerReason": "Nos pediste que te lo recordáramos antes de este viaje. Borramos tu dirección cuando empieza.",
+    "footerLink": "Dejar de recibir recordatorios"
   },
   "liveStats": {
     "title": "En directo desde el planificador",
@@ -2807,6 +2823,91 @@
       "title": "¡{name} te ha invitado a MonkeyTravel!",
       "description": "Planifica un viaje en grupo en unos 30 segundos. 30 itinerarios con AI al mes, gratis: sin tarjeta ni prueba.",
       "shortDescription": "Planifica un viaje en grupo en unos 30 segundos. Gratis: sin tarjeta ni prueba."
+    }
+  },
+  "story": {
+    "metaTitleGuess": "Adivina adónde va este viaje",
+    "metaTitle": "{place}, en forma de historia",
+    "metaDescription": "Tres pistas, cuatro respuestas y luego el viaje entero. Hecho con MonkeyTravel.",
+    "progress": "Parte {current} de {total}",
+    "fullPlan": "Ver el plan completo",
+    "next": "Siguiente",
+    "back": "Atrás",
+    "guess": {
+      "title": "Adivina adónde va este viaje",
+      "lead": "Elige letras. Con {max} fallos se muestra el lugar.",
+      "hidden": "Un lugar todavía oculto",
+      "clue": "Pista {number}",
+      "clues": "Pistas",
+      "when": "{days, plural, one {Un día} other {# días}} en {month}, {where}",
+      "whenNoMonth": "{days, plural, one {Un día} other {# días}}, {where}",
+      "whenNoWhere": "{days, plural, one {Un día} other {# días}} en {month}",
+      "whenBare": "{days, plural, one {Un viaje de un día} other {Un viaje de # días}}",
+      "where": {
+        "europe": "en algún lugar de Europa",
+        "asia": "en algún lugar de Asia",
+        "africa": "en algún lugar de África",
+        "americas": "en algún lugar de América",
+        "oceania": "en algún lugar de Oceanía",
+        "atlantic": "en una isla del Atlántico",
+        "indian": "en una isla del océano Índico"
+      },
+      "see": "Ver el viaje",
+      "skip": "Saltar la adivinanza",
+      "blank": "hueco",
+      "keys": "Letras para elegir",
+      "misses": "Letras falladas: {count} de {max}",
+      "sunset": "La primera tarde, el sol se pone a las {time}.",
+      "dayTitle": "Uno de sus días se llama «{title}».",
+      "stop": "Una parada del plan: {name}.",
+      "solved": "{misses, plural, =0 {Acertaste sin fallar una sola letra.} one {Acertaste con una letra fallada.} other {Acertaste con # letras falladas.}}",
+      "lost": "Se acabaron los intentos. Es {place}.",
+      "tell": "Cuéntales cómo te fue",
+      "told": "Copiado. Pégalo para enviárselo.",
+      "tellSolved": "{misses, plural, =0 {Adiviné tu viaje sin fallar una sola letra.} one {Adiviné tu viaje con una letra fallada.} other {Adiviné tu viaje con # letras falladas.}}",
+      "tellLost": "Tu viaje me ganó: no conseguí adivinarlo."
+    },
+    "reveal": {
+      "facts": "{days, plural, one {Un día} other {# días}} y {stops, plural, one {# parada} other {# paradas}}.",
+      "factsKm": "{days, plural, one {Un día} other {# días}} y {stops, plural, one {# parada} other {# paradas}}, con unos {km} km entre ellas.",
+      "factsCities": "{days, plural, one {Un día} other {# días}}, {cities} ciudades y {stops, plural, one {# parada} other {# paradas}}.",
+      "route": "Las paradas del viaje, unidas en el orden del plan"
+    },
+    "day": {
+      "label": "Día {number}",
+      "in": "en {city}",
+      "more": "{count, plural, one {y # parada más} other {y # paradas más}}",
+      "moreDays": "{count, plural, one {Y # día más en el plan completo.} other {Y # días más en el plan completo.}}"
+    },
+    "end": {
+      "title": "¿Quieres un viaje así?",
+      "body": "Dile al planificador adónde y cuándo, y tendrás tu propio plan día a día en unos 30 segundos. Gratis y sin cuenta.",
+      "plan": "Planificar mi viaje",
+      "mineTitle": "Esto es lo que ven tus amigos",
+      "mineBody": "Publica la adivinanza en tu historia y deja que respondan, o envíales el enlace.",
+      "mineBodyPlain": "Publícalo en tu historia o envíales el enlace.",
+      "copy": "Copiar el enlace de la historia",
+      "copied": "Enlace copiado. Pégalo en un chat o en una historia."
+    },
+    "post": {
+      "guessTitle": "Adivina adónde voy",
+      "reply": "Mándame tu respuesta",
+      "planYours": "Planifica el tuyo gratis en monkeytravel.app",
+      "guess": "Publicar la adivinanza",
+      "place": "Publicar la respuesta",
+      "trip": "Publicar el viaje",
+      "preparing": "Preparando la imagen…",
+      "shared": "Tu enlace también está copiado: añádelo como sticker de enlace.",
+      "saved": "Imagen guardada. Añádela a tu historia desde tus fotos.",
+      "failed": "No se pudo crear la imagen. Inténtalo de nuevo en un momento."
+    },
+    "wayIn": {
+      "note": "¿Se lo enseñas a amigos que no van? Cuéntalo como una historia que puedan adivinar.",
+      "cta": "Ver la historia"
+    },
+    "mine": {
+      "note": "Esto es lo que ven tus amigos.",
+      "post": "Publicarlo"
     }
   }
 }

@@ -17,13 +17,17 @@ const s = vi.hoisted(() => ({
   jpegFails: false,
   log: [] as unknown[],
   // What the trip card was drawn with.
-  card: null as { budget: string | null } | null,
+  card: null as { budget: string | null; cover: string | null; coverCredit?: { author: string; license: string } | null } | null,
+  // What a story's picture was drawn with, and at what size.
+  slide: null as { format: string; place: string; guess: unknown; clues: number } | null,
+  size: null as { width?: number; height?: number } | null,
 }));
 
 vi.mock("next/og", () => ({
   ImageResponse: class extends Response {
-    constructor(_element: unknown, options: { headers: Record<string, string> }) {
+    constructor(_element: unknown, options: { headers: Record<string, string>; width?: number; height?: number }) {
       super("png", { headers: { "Content-Type": "image/png", ...options.headers } });
+      s.size = { width: options.width, height: options.height };
     }
   },
 }));
@@ -38,6 +42,20 @@ vi.mock("@/lib/og/trip-card", async (importOriginal) => {
     },
   };
 });
+vi.mock("@/lib/og/story-slides", async (importOriginal) => {
+  const real = await importOriginal<typeof import("@/lib/og/story-slides")>();
+  return {
+    ...real,
+    renderStorySlide: (...args: Parameters<typeof real.renderStorySlide>) => {
+      const [format, story, words] = args;
+      s.slide = { format, place: story.place, guess: story.guess, clues: words.clues.length };
+      return real.renderStorySlide(...args);
+    },
+  };
+});
+vi.mock("next-intl/server", () => ({
+  getTranslations: async () => (key: string, values?: Record<string, unknown>) => (values ? `${key} ${JSON.stringify(values)}` : key),
+}));
 vi.mock("@/lib/og/link-card-jpeg", () => ({
   linkCardJpeg: async () => {
     if (s.jpegFails) throw new Error("no jpeg");
@@ -90,6 +108,8 @@ beforeEach(() => {
   s.jpegFails = false;
   s.log = [];
   s.card = null;
+  s.slide = null;
+  s.size = null;
   vi.spyOn(console, "warn").mockImplementation(() => {});
 });
 
@@ -131,6 +151,24 @@ describe("a trip's card", () => {
   });
 
   // The estimate saved with the plan never moves after a change; the page adds up its stops.
+  it("draws the trip's cover only when it may leave the site, with the credit a Commons photo asks for", async () => {
+    s.row = { ...TRIP, cover_image_url: "/api/images/wikimedia/abc123-1280.jpg?a=Yann+Caradec&l=CC+BY-SA+2.0&f=Tour+Eiffel.jpg" };
+    await card(`token=${TOKEN}`);
+    expect(s.card?.cover).toBe("https://monkeytravel.app/api/images/wikimedia/abc123-1280.jpg?a=Yann+Caradec&l=CC+BY-SA+2.0&f=Tour+Eiffel.jpg");
+    expect(s.card?.coverCredit).toEqual({ author: "Yann Caradec", license: "CC BY-SA 2.0" });
+
+    // A Google photo stays on the site: the card is drawn without it.
+    s.row = { ...TRIP, cover_image_url: "/api/places/photo?name=places%2Fabc&w=600&h=400" };
+    await card(`token=${TOKEN}&format=story`);
+    expect(s.card?.cover).toBeNull();
+    expect(s.card?.coverCredit).toBeNull();
+
+    s.row = { ...TRIP, cover_image_url: "https://images.pexels.com/photos/1/p.jpeg" };
+    await card(`token=${TOKEN}`);
+    expect(s.card?.cover).toBe("https://images.pexels.com/photos/1/p.jpeg?w=1200&h=1200&fit=crop");
+    expect(s.card?.coverCredit).toBeNull();
+  });
+
   it("prices the trip as its page does: the stops added up, per person, never the estimate saved with it", async () => {
     s.row = {
       ...TRIP,
@@ -155,6 +193,46 @@ describe("a trip's card", () => {
     const res = await card(`token=${TOKEN}&format=${format}`);
     expect(res.headers.get("Content-Type")).toBe("image/png");
     expectTripCard(res);
+  });
+});
+
+describe("a story's pictures to post", () => {
+  it.each(["guess", "place"] as const)("draws the %s for a share link, story-sized, kept like the trip's cards", async (format) => {
+    const res = await card(`token=${TOKEN}&format=${format}&locale=it`);
+    expectTripCard(res);
+    expect(res.headers.get("Content-Type")).toBe("image/png");
+    expect(s.size).toEqual({ width: 1080, height: 1920 });
+    // The story of that link, in the language asked for.
+    expect(s.slide).toMatchObject({ format, place: "Lisbona" });
+    expect(s.slide?.clues).toBeGreaterThan(0);
+    expect(s.card).toBeNull();
+    expect(tripRead()?.filters).toEqual(expect.arrayContaining([["eq", "share_token", TOKEN]]));
+  });
+
+  it("belong to the share link: a public trip's address gets its card, not a picture", async () => {
+    const res = await card(`slug=${SLUG}&format=guess`);
+    expectTripCard(res);
+    expect(s.slide).toBeNull();
+    expect(s.card).not.toBeNull();
+  });
+
+  it("are the trip's place for a story that asks no guess", async () => {
+    s.row = {
+      ...TRIP,
+      trip_meta: { destination: "Lisbon & Porto" },
+      itinerary: [
+        { day_number: 1, city: "Lisbon", activities: [{ name: "Alfama" }] },
+        { day_number: 2, city: "Porto", activities: [{ name: "Ribeira" }] },
+      ],
+    };
+    expectTripCard(await card(`token=${TOKEN}&format=guess`));
+    expect(s.slide).toMatchObject({ format: "guess", place: "Lisbon & Porto", guess: null, clues: 0 });
+  });
+
+  it("are the brand card for a link that finds no trip", async () => {
+    s.row = null;
+    expectBrandCard(await card(`token=${TOKEN}&format=guess`));
+    expect(s.slide).toBeNull();
   });
 });
 

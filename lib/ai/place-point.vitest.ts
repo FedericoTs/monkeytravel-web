@@ -28,13 +28,15 @@ function curated(rows: Record<string, { latitude: number; longitude: number }>, 
   const asked: string[] = [];
   const db = {
     from: (table: string) => ({
-      select: () => ({
+      // Only the columns asked for come back, as from PostgREST.
+      select: (columns: string) => ({
         ilike: (column: string, name: string) => ({
           limit: async () => {
             asked.push(`${table}.${column}=${name}`);
             if (fail) throw new Error("down");
             const hit = Object.entries(rows).find(([key]) => key.toLowerCase() === name.toLowerCase());
-            return { data: hit ? [hit[1]] : [], error: null };
+            const picked = hit && Object.fromEntries(Object.entries(hit[1]).filter(([key]) => columns.split(/,\s*/).includes(key)));
+            return { data: picked ? [picked] : [], error: null };
           },
         }),
       }),
@@ -54,6 +56,11 @@ describe("placePointFor", () => {
     expect(await placePointFor("Bali", db)).toEqual({ lat: -8.34, lng: 115.09 });
     expect(asked).toEqual(["destinations.name=Bali"]);
     expect(cities.asked).toEqual([]);
+  });
+
+  it("says the curated destination's country", async () => {
+    const { db } = curated({ Bali: { ...BALI, country: "Indonesia" } as never });
+    expect(await placePointFor("Bali", db)).toEqual({ lat: -8.34, lng: 115.09, country: "Indonesia" });
   });
 
   it("whatever case it is typed in, and with stray spaces", async () => {

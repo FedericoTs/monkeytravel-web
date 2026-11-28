@@ -5,11 +5,15 @@ import { getTranslations } from "next-intl/server";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { dispatchEmail } from "@/lib/email/send";
 import { formatDateRange, resolveLocale } from "@/lib/email/reminder-locale";
+import { buildPlanReminderUnsubscribeUrl } from "@/lib/email/unsubscribe";
 import { blockingDefects, summarizeDefects, verifyRenderedEmail } from "@/lib/email/verify-render";
+import type { ReminderKind } from "@/lib/plans/plan-reminder-dates";
 
 /**
  * A kept plan's link (lib/plans/kept-plan.ts), by email, to the address someone
- * types. One email, and nothing after it. Anyone holding the plan can type any
+ * types. One email, and nothing after it, unless they also ticked "remind me":
+ * then it says which reminders follow and carries their stop link
+ * (lib/plans/plan-reminders.ts). Anyone holding the plan can type any
  * address, and the place in a plan is text its maker sent, so the sends are
  * limited three ways and whatever reads like a link stays out of the email.
  */
@@ -48,6 +52,8 @@ export interface PlanForEmail {
   /** The place in the plan's itinerary. */
   name: unknown;
   destination: unknown;
+  /** "true" when the plan's dates are a placeholder the planner didn't choose. */
+  flexible?: unknown;
 }
 
 interface KeptPlanEmailArgs {
@@ -55,6 +61,16 @@ interface KeptPlanEmailArgs {
   email: string;
   /** The page's language. */
   locale: string | null;
+  /** The reminders asked for with it (a plan_reminders row), or null. */
+  reminder?: { id: string; kind: ReminderKind } | null;
+}
+
+/** The check every plan email passes before it goes: the place and the plan's link where they belong. */
+export function planEmailCheck(place: string | null, planUrl: string) {
+  return ({ html, subject }: { html: string; subject: string }) => {
+    const defects = blockingDefects(verifyRenderedEmail({ subject, html, destination: place, ctaUrl: planUrl, ownStrings: [] }));
+    return defects.length ? { ok: false as const, reason: summarizeDefects(defects) } : { ok: true as const };
+  };
 }
 
 /** Sends the plan's link. Never throws; what happened is the return value. */
@@ -67,32 +83,31 @@ export async function sendKeptPlanEmail(plan: PlanForEmail, args: KeptPlanEmailA
     const prefix = locale === "en" ? "" : `/${locale}`;
     // The token stays in the fragment, as in every link to a kept plan (keptPlanLink).
     const planUrl = `${appUrl}${prefix}/trips/new?slot=${KEPT_PLAN_SLOT}#plan=${args.token}`;
+    const reminder = args.reminder ?? null;
     const outcome = await dispatchEmail({
       recipientEmail: args.email,
       recipientUserId: null,
-      idempotencyKey: `kept_plan:${hashed(`${args.token}:${args.email}`)}`,
+      // Asked again with the tick, it goes again: it is the one that says what follows.
+      idempotencyKey: `${reminder ? "kept_plan_reminder" : "kept_plan"}:${hashed(`${args.token}:${args.email}`)}`,
+      ...(reminder ? { guestUnsubscribeUrl: buildPlanReminderUnsubscribeUrl(reminder.id, appUrl) } : {}),
       locale,
       template: {
         id: "kept_plan",
         props: {
           heading: place ? t("heading", { destination: place }) : t("headingNoPlace"),
           dates: formatDateRange(String(plan.start_date), plan.end_date as string | null, locale),
-          intro: t("intro"),
+          intro: t(reminder ? "introReminder" : "intro"),
+          ...(reminder ? { digestLine: t(reminder.kind === "week" ? "reminderLineWeek" : "reminderLineDay") } : {}),
           ctaLabel: t("cta"),
           planUrl,
-          footerReason: t("footerReason"),
-          footerLink: t("footerLink"),
+          footerReason: t(reminder ? "footerReasonReminder" : "footerReason"),
+          footerLink: t(reminder ? "footerLinkReminder" : "footerLink"),
           unsubscribeUrl: `${appUrl}${prefix}/privacy`,
           locale,
         },
       },
-      metadata: { slot: KEPT_PLAN_SLOT },
-      verify: ({ html, subject }) => {
-        const defects = blockingDefects(
-          verifyRenderedEmail({ subject, html, destination: place, ctaUrl: planUrl, ownStrings: [] }),
-        );
-        return defects.length ? { ok: false, reason: summarizeDefects(defects) } : { ok: true };
-      },
+      metadata: reminder ? { slot: KEPT_PLAN_SLOT, reminder: true } : { slot: KEPT_PLAN_SLOT },
+      verify: planEmailCheck(place, planUrl),
     });
     return outcome.status;
   } catch (err) {

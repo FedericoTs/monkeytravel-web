@@ -4,10 +4,12 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import {
   verifyUnsubscribeToken,
   verifyParticipantUnsubscribeToken,
+  verifyPlanReminderUnsubscribeToken,
   unsubKeyToSettingPatch,
   type UnsubKey,
 } from "@/lib/email/unsubscribe";
 import { stopGuestDigest } from "@/lib/participants/digest-unsubscribe";
+import { stopPlanReminder } from "@/lib/plans/plan-reminders";
 
 /**
  * Headers required to keep email-scanner / link-prefetcher caches from
@@ -63,8 +65,10 @@ async function applyUnsubscribe(
 
 /**
  * What a token stops, and how: a guest's token one trip's daily plan
- * (lib/participants/digest-unsubscribe.ts), an account's token one kind of
- * email. `info` is what a response may say about it.
+ * (lib/participants/digest-unsubscribe.ts), a reminder's token the reminders
+ * before a kept plan's trip, deleting the address (lib/plans/plan-reminders.ts),
+ * an account's token one kind of email. `info` is what a response may say
+ * about it.
  */
 function readToken(token: string):
   | { ok: true; info: Record<string, unknown>; apply: () => Promise<{ applied: boolean }> }
@@ -74,8 +78,14 @@ function readToken(token: string):
     const participantId = guest.participantId;
     return { ok: true, info: { guest: true }, apply: () => stopGuestDigest(createAdminClient(), participantId) };
   }
-  // An expired guest token says so, rather than failing as an account token.
+  // An expired guest or reminder token says so, rather than failing as an account token.
   if (guest.reason === "expired") return { ok: false, reason: "expired" };
+  const reminder = verifyPlanReminderUnsubscribeToken(token);
+  if (reminder.ok && reminder.reminderId) {
+    const reminderId = reminder.reminderId;
+    return { ok: true, info: { reminder: true }, apply: () => stopPlanReminder(createAdminClient(), reminderId) };
+  }
+  if (reminder.reason === "expired") return { ok: false, reason: "expired" };
   const result = verifyUnsubscribeToken(token);
   if (!result.ok || !result.payload) return { ok: false, reason: result.reason ?? "format" };
   const { u, k } = result.payload;

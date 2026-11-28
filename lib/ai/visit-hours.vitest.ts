@@ -163,6 +163,23 @@ describe("a visit planned before its place opens", () => {
   });
 });
 
+describe("a dated event at a place of known hours", () => {
+  it("keeps its time: New Year's Eve at a tower that shuts at ten isn't moved into the morning", () => {
+    const { hoursFor } = listed({ "Taipei 101": hours("09:00", "22:00", "21:15") });
+    const eve = [
+      day([stop("10:00", "Longshan Temple", "landmark"), stop("19:00", "Din Tai Fung", "restaurant"), stop("23:00", "Taipei 101", "event")], {
+        date: "2026-12-31",
+      }),
+    ];
+    const out = keepInsideHours(eve, "Taipei", hoursFor);
+    expect(out.days).toEqual(eve);
+    expect(out).toMatchObject({ checked: 0, outside: 0, moved: 0, shortened: 0 });
+    // The same place as a visit is still held to its hours.
+    const visit = [day([stop("10:00", "Longshan Temple", "landmark"), stop("23:00", "Taipei 101", "landmark")], { date: "2026-12-31" })];
+    expect(names(keepInsideHours(visit, "Taipei", hoursFor).days[0])).toEqual(["Taipei 101", "Longshan Temple"]);
+  });
+});
+
 describe("what a late visit may trade with", () => {
   const LATE = stop("15:00", "Garden", "park", 90);
 

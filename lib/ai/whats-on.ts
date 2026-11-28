@@ -97,6 +97,20 @@ function inEurope(p: Point): boolean {
   return zone.startsWith("Europe/") && !NOT_THE_CUSTOM.has(zone);
 }
 
+/**
+ * New Year's Eve, wherever the trip is. Told the date is a holiday, a plan still ends it at dinner and leaves out the
+ * midnight the city is known for. As an "event" stop it keeps its date and its time when later steps move the days
+ * (lib/ai/closing-days.ts) or check opening hours (lib/ai/visit-hours.ts), and it isn't a repeat of a visit to the
+ * same place (lib/ai/repeated-sights.ts).
+ */
+const NEW_YEARS_EVE: Happening = {
+  from: [12, 31],
+  to: [12, 31],
+  where: () => true,
+  line:
+    "31 December is New Year's Eve: where the place celebrates it (a countdown, fireworks, a square or waterfront that fills), end that day there from about 23:00 to 00:30, as a stop of type 'event' named for the night and the place it is at, after dinner; dinner that night is busy and often a set menu, so its tips say to book ahead. If the trip goes on, 1 January starts late, from about 11:00.",
+};
+
 const HAPPENINGS: readonly Happening[] = [
   {
     from: [11, 21],
@@ -111,6 +125,7 @@ const HAPPENINGS: readonly Happening[] = [
     where: inEurope,
     line: "Most Christmas markets close on 23 or 24 December and a few stay open into early January: include one only where you know it is open on that day.",
   },
+  NEW_YEARS_EVE,
   ...BLOSSOM,
 ];
 

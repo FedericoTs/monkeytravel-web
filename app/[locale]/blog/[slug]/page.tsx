@@ -27,6 +27,7 @@ import ShareRow from "@/components/ShareRow";
 import { getPrimaryDestinationFromTags } from "@/lib/blog/primaryDestination";
 import { readerIsChoosing } from "@/lib/blog/choosing";
 import { withPlacePlanLinks } from "@/lib/blog/place-plan-links";
+import { extractFAQs } from "@/lib/blog/faq";
 import { monthFromSlug } from "@/lib/blog/seasonal-window";
 import PlacePlanClicks from "@/components/blog/PlacePlanClicks";
 import MatchInvite from "@/components/match/MatchInvite";
@@ -137,31 +138,6 @@ export async function generateMetadata({
 }
 
 // ============================================================================
-// FAQ extraction from markdown
-// ============================================================================
-
-function extractFAQs(html: string): { question: string; answer: string }[] {
-  const faqs: { question: string; answer: string }[] = [];
-  // Match FAQ section: everything after an <h2> containing "FAQ"
-  const faqSectionMatch = html.match(
-    /<h2[^>]*>[^<]*?(?:FAQ|Frequently Asked Questions|Common Questions)[^<]*?<\/h2>([\s\S]*?)(?=<hr|$)/i
-  );
-  if (!faqSectionMatch) return faqs;
-
-  const faqHtml = faqSectionMatch[1];
-  // Match h3 questions followed by paragraph answers
-  const questionRegex = /<h3[^>]*>(.*?)<\/h3>\s*<p>([\s\S]*?)<\/p>/gi;
-  let match;
-  while ((match = questionRegex.exec(faqHtml)) !== null) {
-    faqs.push({
-      question: match[1].replace(/<[^>]*>/g, "").trim(),
-      answer: match[2].replace(/<[^>]*>/g, "").trim(),
-    });
-  }
-  return faqs;
-}
-
-// ============================================================================
 // Page
 // ============================================================================
 
@@ -256,19 +232,21 @@ export default async function BlogDetailPage({ params }: PageProps) {
   const { prev: prevPost, next: nextPost } = getPrevNextPosts(slug, locale);
   const toc = extractToc(html);
   const readerChoosing = readerIsChoosing(frontmatter, primaryDestination !== null);
-  // A month's guide: under each place it ranks, a link that opens the planner
-  // on that place with dates pencilled in that month.
+  // A list of where to go: under each place it ranks, a link that opens the
+  // planner on that place, with dates pencilled in the guide's month if it has one.
   const guideMonth = readerChoosing ? monthFromSlug(slug) : null;
-  const bodyHtml =
-    guideMonth === null
-      ? html
-      : withPlacePlanLinks(html, {
-          month: guideMonth,
-          localePrefix,
-          label: t("detail.planPlace", {
-            month: new Intl.DateTimeFormat(locale, { month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(2000, guideMonth - 1, 15))),
-          }),
-        });
+  const bodyHtml = !readerChoosing
+    ? html
+    : withPlacePlanLinks(html, {
+        month: guideMonth,
+        localePrefix,
+        label:
+          guideMonth === null
+            ? t("detail.planPlaceAnyTime")
+            : t("detail.planPlace", {
+                month: new Intl.DateTimeFormat(locale, { month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(2000, guideMonth - 1, 15))),
+              }),
+      });
 
   // ItemList schema for ranked-list posts — the cheapest-X / where-to-go /
   // best-of listicles whose H2/H3 sections ARE the ranking (the GSC anchors
@@ -465,7 +443,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
                     )
                   }
                 />
-                {guideMonth !== null && <PlacePlanClicks />}
+                {readerChoosing && <PlacePlanClicks />}
                 {primaryDestination && (
                   <BlogPlanThisCta
                     destination={primaryDestination}

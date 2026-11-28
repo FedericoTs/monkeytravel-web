@@ -74,6 +74,7 @@
     "inlineCtaButton": "Genera il Mio Itinerario",
     "stickyCtaButton": "Pianifica Gratis →",
     "planPlace": "Organizza questo viaggio a {month}",
+    "planPlaceAnyTime": "Organizza questo viaggio",
     "exploreDestinations": "Esplora Queste Destinazioni",
     "moreFromRegion": "Altro da {region}",
     "relatedTools": "Pianifica il Tuo Viaggio con AI",
@@ -326,6 +327,10 @@
     "best-ai-trip-planners-2026-compared": {
       "title": "Miglior AI per viaggi 2026: 8 pianificatori a confronto",
       "description": "Abbiamo testato Mindtrip, Layla, Wonderplan, Gemini, ChatGPT e iPlan.ai su viaggi veri. Quali ti danno una giornata percorribile e quali solo un elenco."
+    },
+    "best-ai-trip-planners-2027-compared": {
+      "title": "Migliori pianificatori di viaggio con AI 2027: 11 a confronto",
+      "description": "Abbiamo confrontato 11 pianificatori di viaggio a fine 2026: prezzi, limiti gratuiti, prenotazioni, gruppi e chi scopre luoghi chiusi e orari sbagliati."
     },
     "first-trip-to-vietnam-2026": {
       "title": "Primo Viaggio in Vietnam: Guida di 10 Giorni",

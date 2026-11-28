@@ -58,6 +58,21 @@ describe("assistTrip asked to take the food out", () => {
     expect(out.edits.find((e) => e.day_number === 1)!.activities.map((a) => a.name)).toEqual(["Jerónimos Monastery"]);
   });
 
+  // A long change comes in parts: the first reply holds some days and names the rest, and a part sees only its days.
+  it("takes them out when the change comes in parts, judged on all of it", async () => {
+    const all = JSON.parse(answer("I've removed all the restaurants and cafés from your trip.").response.text());
+    // As live: the first reply takes day 1's lunch out and leaves its café, and names days 2 and 3 for later.
+    const day1 = { ...all.edits[0], activities: all.edits[0].activities.slice(0, 2) };
+    const first = { reply: all.reply, edits: [day1], more_days: [2, 3] };
+    const rest = { reply: "Days 2 and 3 have no food now.", edits: all.edits.slice(1) };
+    generateContent
+      .mockResolvedValueOnce({ response: { text: () => JSON.stringify(first), usageMetadata: {} } })
+      .mockResolvedValue({ response: { text: () => JSON.stringify(rest), usageMetadata: {} } });
+    const out = await assistTrip(input);
+    expect(generateContent.mock.calls.length).toBeGreaterThan(1);
+    expect(out.edits.find((e) => e.day_number === 1)!.activities.map((a) => a.name)).toEqual(["Jerónimos Monastery"]);
+  });
+
   it("leaves them when the reply doesn't say it took them all", async () => {
     generateContent.mockResolvedValue(answer("All set: days 2 and 3 have no meals now."));
     const out = await assistTrip(input);

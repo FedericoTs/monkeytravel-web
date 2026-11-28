@@ -70,6 +70,9 @@ const plan = () => ({
 vi.mock("@/lib/gemini", () => ({ generateItinerary: async () => plan() }));
 vi.mock("@/lib/ai/multi-city", () => ({ validateLegs: () => {}, generateMultiCityItinerary: async () => plan() }));
 const lunchQuestions: string[] = [];
+// Where the lunch answered is: by the shrine, unless a test moves it.
+const BY_THE_SHRINE = { lat: 34.9677, lng: 135.7716 };
+let lunchAt = BY_THE_SHRINE;
 vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/ai/gemini-call")>()),
   genAI: {
@@ -78,7 +81,7 @@ vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
         const lunch = question.startsWith("Name one real restaurant for lunch");
         if (lunch) lunchQuestions.push(question);
         const answer = lunch
-          ? { lunches: [{ n: 1, name: "Inari Sushi Koji", description: "Inari sushi by the shrine.", location: "Fushimi", coordinates: { lat: 34.9677, lng: 135.7716 } }] }
+          ? { lunches: [{ n: 1, name: "Inari Sushi Koji", description: "Inari sushi by the shrine.", location: "Fushimi", coordinates: lunchAt }] }
           : { places: [] };
         return { response: { text: () => JSON.stringify(answer), usageMetadata: { promptTokenCount: 80, candidatesTokenCount: 20 } } };
       },
@@ -91,6 +94,7 @@ const { POST } = await import("./route");
 beforeEach(() => {
   logged.length = 0;
   lunchQuestions.length = 0;
+  lunchAt = BY_THE_SHRINE;
   vi.spyOn(console, "log").mockImplementation(() => {});
 });
 
@@ -116,5 +120,21 @@ describe("the JSON route", () => {
     // The plan's own places to eat are named, so the answer isn't one of them.
     expect(lunchQuestions[0]).toContain("None the plan already has: Pontocho Robin.");
     expect(logged.find((row) => row.status === 200)?.metadata?.lunches).toEqual({ missing: 1, added: 1 });
+  });
+
+  it("logs why a day is still without lunch: here the answer is in Osaka, far from the shrine", async () => {
+    lunchAt = { lat: 34.6687, lng: 135.5013 };
+    const legs = { destinations: [{ city: "Kyoto", nights: 2 }, { city: "Osaka", nights: 1 }] };
+    const res = await POST(
+      new NextRequest("https://monkeytravel.app/api/ai/generate", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ destination: "Kyoto & Osaka", startDate: "2027-04-05", endDate: "2027-04-07", vibes: ["cultural"], ...legs }),
+      })
+    );
+    expect(res.status).toBe(200);
+    const days = (await res.json()).itinerary.days as Array<{ activities: Array<{ name: string; start_time: string }> }>;
+    expect(days[1].activities.map((a) => `${a.start_time} ${a.name}`)).toEqual(["10:00 Fushimi Inari", "13:30 Kiyomizu-dera", "19:00 Pontocho Robin"]);
+    expect(logged.find((row) => row.status === 200)?.metadata?.lunches).toEqual({ missing: 1, added: 0, left: { far: 1 } });
   });
 });

@@ -1,15 +1,15 @@
 # MonkeyTravel
 
-> MonkeyTravel is a free AI-powered trip planner that generates personalized day-by-day travel itineraries with real venues, actual prices, and smart routing. Available in English, Spanish, Italian, and Portuguese. No signup required.
+> MonkeyTravel is a free AI-powered trip planner that generates personalized day-by-day travel itineraries with real places, AI cost estimates, and smart routing. Available in English, Spanish, Italian, and Portuguese. No signup required.
 
 ## Core Pages
 
 - [Homepage](https://monkeytravel.app): Free AI trip planner — enter a destination, get a personalized day-by-day itinerary in minutes
-- [Free AI Trip Planner](https://monkeytravel.app/free-ai-trip-planner): Generate personalized itineraries with real venues and prices, 100% free, no credit card
+- [Free AI Trip Planner](https://monkeytravel.app/free-ai-trip-planner): Generate personalized itineraries with real places and AI cost estimates, 100% free, no credit card
 - [AI Itinerary Generator](https://monkeytravel.app/ai-itinerary-generator): AI-powered day-by-day travel itinerary generator with Budget, Balanced, and Premium options
 - [Group Trip Planner](https://monkeytravel.app/group-trip-planner): Plan group trips with AI — invite friends, vote on activities, reach consensus
 - [Solo Trip Planner](https://monkeytravel.app/solo-trip-planner): AI itineraries for solo travelers with safety tips, social spots, and local experiences
-- [Budget Trip Planner](https://monkeytravel.app/budget-trip-planner): AI trip planning optimized for budget travelers with real daily cost breakdowns
+- [Budget Trip Planner](https://monkeytravel.app/budget-trip-planner): AI trip planning optimized for budget travelers, with daily cost estimates
 - [Family Trip Planner](https://monkeytravel.app/family-trip-planner): Family-friendly AI itineraries with kid-appropriate activities and logistics
 - [Weekend Trip Planner](https://monkeytravel.app/weekend-trip-planner): AI-powered weekend getaway planning with 2-3 day optimized itineraries
 
@@ -38,6 +38,7 @@
 
 ## Blog — AI Travel Planning
 
+- [Best AI Trip Planners 2027 Compared](https://monkeytravel.app/blog/best-ai-trip-planners-2027-compared): Honest comparison of 11 AI trip planners as of November 2026, on price, free limits, booking, group features and which ones check closing days and opening hours
 - [Best AI Trip Planners 2026 Compared](https://monkeytravel.app/blog/best-ai-trip-planners-2026-compared): Honest comparison of 7 AI trip planning tools with real testing
 - [AI Trip Planner vs Travel Agent](https://monkeytravel.app/blog/ai-trip-planner-vs-travel-agent): Side-by-side test of AI planner vs travel agent for the same trip
 - [How AI is Changing Travel Planning](https://monkeytravel.app/blog/how-ai-is-changing-travel-planning): Overview of AI's impact on the travel planning industry in 2026

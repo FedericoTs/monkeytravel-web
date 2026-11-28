@@ -1,8 +1,9 @@
 /**
  * A city of a route planned at the mirror image of where it is. The model now and then writes a city's longitudes
- * without their minus (or its latitudes without theirs): a town in the Americas lands in Asia. The card from the city
- * before is then a day-long flight that takes the arrival day, its sights go to late at night on the city's other
- * days, and the trip closes with a flight back.
+ * without their minus (or its latitudes without theirs, or both): a town in the Americas lands in Asia. The card from
+ * the city before is then a day-long flight that takes the arrival day, its sights go to late at night on the city's
+ * other days, and the trip closes with a flight back. A long trip written in parts (lib/ai/plan-in-parts.ts) can get
+ * one part so: its days then sit on the far side of the world from the rest.
  *
  * The route shows it: such a city is thousands of kilometres from every other city of the route, and its stops with
  * the sign turned land beside one of them. Pure.
@@ -17,11 +18,14 @@ type Point = { lat: number; lng: number };
 const APART_KM = 3000;
 /** A mirrored city's stops, turned, land at most this far from another city of the route. */
 const BESIDE_KM = 800;
+/** A city whose stops sit farther than this from its own point was planned at a namesake elsewhere. */
+const NAMESAKE_KM = 1500;
 
-/** A point with the sign of its longitude turned, or of its latitude. */
+/** A point with the sign of its longitude turned, or of its latitude, or of both. */
 const MIRRORS: Array<(p: Point) => Point> = [
   (p) => ({ lat: p.lat, lng: -p.lng }),
   (p) => ({ lat: -p.lat, lng: p.lng }),
+  (p) => ({ lat: -p.lat, lng: -p.lng }),
 ];
 
 /** The middle of a city's stops, as many north of it as south and east as west. Null with no real pin. */
@@ -30,6 +34,37 @@ function middleOf(result: GeneratedItinerary): Point | null {
   if (points.length === 0) return null;
   const mid = (xs: number[]) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)];
   return { lat: mid(points.map((p) => p.lat)), lng: mid(points.map((p) => p.lng)) };
+}
+
+/** Whether one plan's stops sit APART_KM or more from every other plan's: it may be the turned one. */
+export function apartFromTheRest(results: GeneratedItinerary[]): boolean {
+  const middles = results.map(middleOf);
+  return middles.some((middle, i) => {
+    const others = middles.filter((m, j): m is Point => j !== i && m !== null);
+    return !!middle && others.length > 0 && others.every((m) => haversineKm(middle, m) >= APART_KM);
+  });
+}
+
+/**
+ * The route's cities planned at a namesake elsewhere in the world ("kochi" in Japan on a trip through Kerala): their
+ * stops thousands of kilometres from the city's own point, and not its mirror image (unmirroredCities turns those
+ * back). Only a city whose point names its country is told: it is asked again with the country named.
+ */
+export function namesakesElsewhere(results: GeneratedItinerary[], points: Array<(Point & { country?: string }) | null>): number[] {
+  return results.flatMap((result, i) => {
+    const point = points[i];
+    const middle = middleOf(result);
+    if (!point?.country || !middle || haversineKm(middle, point) <= NAMESAKE_KM) return [];
+    return MIRRORS.some((turn) => haversineKm(turn(middle), point) <= BESIDE_KM) ? [] : [i];
+  });
+}
+
+/** Whether `point` lies beside one of the plans' stops: only then can it say which of two is the turned one. */
+export function besideOneOf(results: GeneratedItinerary[], point: Point): boolean {
+  return results.some((result) => {
+    const middle = middleOf(result);
+    return !!middle && haversineKm(middle, point) <= BESIDE_KM;
+  });
 }
 
 /** The city's plan with each stop on the far side turned back beside `middle`; a stop already there stays. */

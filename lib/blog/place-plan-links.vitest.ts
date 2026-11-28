@@ -94,6 +94,14 @@ describe("withPlacePlanLinks", () => {
     expect(es).toContain(">Planifica este viaje para marzo</a>");
   });
 
+  it("links the place alone in a list with no month: the planner asks when", () => {
+    const anyTime = withPlacePlanLinks(html, { month: null, localePrefix: "/it", label: "Organizza questo viaggio" });
+    expect(anyTime).toContain(
+      '<h2 id="1-japan">1. Japan — Cherry Blossom</h2>\n<p class="plan-place"><a href="/it/trips/new?destination=Japan&amp;from=place" rel="nofollow" data-plan-place="Japan">Organizza questo viaggio</a></p>',
+    );
+    expect(anyTime).not.toContain("month=");
+  });
+
   it("escapes the label", () => {
     expect(withPlacePlanLinks(html, { month: 3, localePrefix: "", label: "Plan <it>" })).toContain(">Plan &lt;it&gt;</a>");
   });
@@ -103,6 +111,17 @@ describe("withPlacePlanLinks", () => {
       const post = await getPostBySlug("where-to-go-in-march", locale);
       const out = withPlacePlanLinks(post!.html, { month: 3, localePrefix: "", label: "x" });
       expect(out.match(/class="plan-place"/g), locale).toHaveLength(12);
+    }
+  });
+
+  it("links every place of a real list with no month, in each language", async () => {
+    for (const locale of ["en", "es", "it", "pt"]) {
+      const post = await getPostBySlug("where-to-spend-christmas", locale);
+      const out = withPlacePlanLinks(post!.html, { month: null, localePrefix: "", label: "x" });
+      const links = [...out.matchAll(/<p class="plan-place"><a href="([^"]+)"/g)].map((m) => m[1]);
+      expect(links.length, locale).toBeGreaterThanOrEqual(13);
+      // The article's own planner links may name a month; the place links don't.
+      expect(links.filter((href) => href.includes("month=")), locale).toEqual([]);
     }
   });
 

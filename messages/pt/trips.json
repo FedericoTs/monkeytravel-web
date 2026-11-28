@@ -103,7 +103,13 @@
       "emailSent": "Enviado para {email}. O link abre este plano em qualquer dispositivo.",
       "emailInvalid": "Esse endereço não parece correto. Confira e tente de novo.",
       "emailLimited": "Muitos e-mails por agora. Tente mais tarde ou copie o link.",
-      "emailFailed": "Não foi possível enviar. Tente de novo ou copie o link."
+      "emailFailed": "Não foi possível enviar. Tente de novo ou copie o link.",
+      "emailOfferRemind": "Ainda não quer criar uma conta? Podemos enviar este plano por e-mail e lembrar você antes da viagem.",
+      "emailNoteRemind": "Não precisa de conta.",
+      "remindWeek": "Também quero um lembrete antes da viagem: um e-mail uma semana antes e outro na véspera. Cancele quando quiser.",
+      "remindDay": "Também quero um lembrete na véspera da viagem. Cancele quando quiser.",
+      "remindPrivacy": "Privacidade",
+      "remindSent": "Enviado para {email}. Vamos lembrar você antes da viagem."
     },
     "draftRecovery": {
       "title": "Viagem não salva encontrada",
@@ -375,7 +381,9 @@
         "stickySaving": "Salvando...",
         "stickyHint": "Sua viagem será salva na sua conta",
         "dismiss": "Fechar"
-      }
+      },
+      "benefitsTitle": "Leve este plano para a sua viagem",
+      "benefitsCta": "Salvar minha viagem, é grátis"
     },
     "anchors": {
       "cta": "Tenho planos fixos (voo, casamento, hotel…)",
@@ -786,7 +794,15 @@
     "subtitle": "Crie uma conta para salvar e acessar sua viagem a qualquer momento",
     "saving": "Salvando sua viagem...",
     "success": "Viagem salva com sucesso!",
-    "error": "Não foi possível salvar a viagem. Tente novamente."
+    "error": "Não foi possível salvar a viagem. Tente novamente.",
+    "keptToo": "Também salvo em Minhas Viagens: {places}"
+  },
+  "keepBoth": {
+    "titleTwo": "Guarde as duas viagens",
+    "titleMany": "Guarde as {count} viagens",
+    "body": "Entre grátis e cada lugar que você planejou hoje fica em Minhas Viagens.",
+    "signIn": "Entrar grátis",
+    "notNow": "Agora não"
   },
   "startOver": {
     "title": "Recomeçar?",

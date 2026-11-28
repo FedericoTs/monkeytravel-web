@@ -143,6 +143,7 @@ import { useScrollTopOnNewPlan } from "@/hooks/useScrollTopOnNewPlan";
 import { useKeptPlanOpening } from "@/hooks/useKeptPlanOpening";
 import { usePlanPhotos } from "@/hooks/usePlanPhotos";
 import type { KeptPlan } from "@/lib/plans/kept-plan";
+import { reminderKind, utcToday } from "@/lib/plans/plan-reminder-dates";
 // Step-1 editorial entry; see lib/wizard/entry-state.ts for the arrival model.
 import WizardMasthead from "@/components/wizard/WizardMasthead";
 import type { OneTapPlace } from "@/components/wizard/OneTapStarts";
@@ -177,6 +178,19 @@ import {
 } from "@/lib/wizard/generation-failure";
 // Session generation counter + per-session trip stack.
 import { useSessionTripStack } from "@/hooks/useSessionTripStack";
+import { useKeepVisitTrips } from "@/hooks/useKeepVisitTrips";
+import { interestsFromVibes } from "@/lib/wizard/interests";
+import { markVisitToKeep, otherPlacesOfVisit } from "@/lib/wizard/visit-trips";
+import { KeepBothCard } from "@/components/wizard/KeepBothCard";
+import {
+  dismissKeepBoth,
+  firstKeepBothShow,
+  forgetSignInFromCard,
+  keepBothCardShows,
+  keepBothDismissed,
+  markSignInFromCard,
+  takeSignInFromCard,
+} from "@/lib/wizard/keep-both";
 import { useCurrency } from "@/lib/locale";
 import { trackDestinationSelected } from "@/lib/analytics";
 import { captureTripWizardStepCompleted } from "@/lib/posthog/events";
@@ -201,6 +215,7 @@ import { shouldAutoSave } from "@/lib/trips/autoSaveGate";
 import { useSameTripCheck } from "@/hooks/useSameTripCheck";
 import SameTripPrompt from "@/components/wizard/SameTripPrompt";
 import ResultActionBars from "@/components/wizard/ResultActionBars";
+import { SaveBenefitsCard } from "@/components/wizard/SaveBenefitsCard";
 import ResultItinerary, { MAP_SECTION_ID, ResultOverview } from "@/components/wizard/ResultItinerary";
 import SkyPlan from "@/components/sky/SkyPlan";
 import { assignSky, syncSkyArm, type SkyAssignment } from "@/lib/experiments/result-sky";
@@ -233,18 +248,6 @@ import { isChosenTripIntent } from "@/lib/wizard/answers";
 
 // Upper bound for the wizard start date (see lib/dates/iso-date.ts).
 const MAX_TRIP_START_DATE = maxTripStartDate();
-
-// Vibe to interests mapping - automatically derives interests from selected vibes
-// This ensures the AI receives relevant interest signals based on vibe selection
-// Streamlined to 6 core vibes for cleaner UX
-const VIBE_TO_INTERESTS: Record<string, string[]> = {
-  adventure: ["adventure", "nature", "photography"],
-  cultural: ["culture", "history", "art"],
-  foodie: ["food", "culture"],
-  romantic: ["relaxation", "photography"],
-  nature: ["nature", "photography", "adventure"],
-  urban: ["nightlife", "shopping", "art"],
-};
 
 // Popular-destination pills for step 1: the most-planned destinations on the
 // platform plus two seasonal favourites (Santorini, Lisbon). Keep the list
@@ -931,6 +934,8 @@ export default function NewTripPage({
     if (generatedItinerary) {
       saveDraft({ generatedItinerary, ...answers });
     }
+    // The visit's other places are kept too once they sign in (lib/wizard/visit-trips.ts).
+    markVisitToKeep(otherPlacesOfVisit(sessionTrips, { destination, itinerary: generatedItinerary }).map((trip) => trip.id));
     setAuthPromptLocation(location);
     setAuthPromptReason("save");
     setShowAuthModal(true);
@@ -996,8 +1001,16 @@ export default function NewTripPage({
     setError,
   });
 
+  // After a sign-in from the save box, the visit's other places follow the plan on screen into the account.
+  useKeepVisitTrips({ trips: sessionTrips, userId: authUser?.id ?? null, currentSaved: Boolean(savedTripId), locale });
+
   // ── Unsaved-state derivation + nudge/exit instrumentation ────────────────
   const hasResult = Boolean(generatedItinerary);
+  // The save test's arms first differ on the plan a signed-out planner sees (the benefits arm says what keeping it
+  // gives, at its end): counted from there, once.
+  useEffect(() => {
+    if (hasResult && isAuthenticated === false) reportExposure(SAVE_BOX_BENEFITS, saveBoxTest);
+  }, [hasResult, isAuthenticated, saveBoxTest]);
   // The tray's restore-swap must never run while the auto-save arm is live:
   // useAutoSaveTrip's effect would UPDATE the persisted row with a DIFFERENT
   // trip's content on swap (verified in hooks/useAutoSaveTrip.ts persist()).
@@ -1006,6 +1019,29 @@ export default function NewTripPage({
   const autoSaveArmActive = autoSaveEnabled && isAuthenticated === true;
   const sessionTrayVisible =
     hasResult && isUnsaved && !autoSaveArmActive && sessionTrips.length >= 2;
+
+  // Signed out with two or more places planned in the tab: the card asks to keep them all (lib/wizard/keep-both.ts),
+  // once a visit, counted once, and its sign-ins told apart on the signed-in return.
+  const visitPlaces = hasResult ? 1 + otherPlacesOfVisit(sessionTrips, { destination, itinerary: generatedItinerary }).length : 0;
+  // Turned down earlier in the tab, read on the first render. The server reads nothing, and the card needs a plan on
+  // screen, which the server never renders, so the two renders agree.
+  const [keepBothTurnedDown, setKeepBothTurnedDown] = useState(keepBothDismissed);
+  const keepBothShows = keepBothCardShows({
+    signedOut: isAuthenticated === false,
+    planOnScreen: hasResult,
+    unsaved: isUnsaved,
+    places: visitPlaces,
+    dismissed: keepBothTurnedDown,
+    boxOpen: showAuthModal,
+  });
+  useEffect(() => {
+    if (keepBothShows && firstKeepBothShow()) void trackWizardEvent("keep_both_shown", { destination, locale });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [keepBothShows]);
+  useEffect(() => {
+    if (isAuthenticated === true && takeSignInFromCard()) void trackWizardEvent("keep_both_signed_in", { destination, locale });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   // A plan on screen and not saved: the save nudges, the leave guard and the
   // exit event (hooks/useUnsavedPlan.ts).
@@ -1159,13 +1195,7 @@ export default function NewTripPage({
   // Declared as a `function` (not `const` arrow) so it's hoisted and
   // can be called by the auto-save hook setup that lives further up.
   function deriveInterestsFromVibes(): string[] {
-    const interestSet = new Set<string>();
-    selectedVibes.forEach((vibe) => {
-      // TripVibe is a string type, use directly as key
-      const interests = VIBE_TO_INTERESTS[vibe] || [];
-      interests.forEach((interest) => interestSet.add(interest));
-    });
-    return Array.from(interestSet);
+    return interestsFromVibes(selectedVibes);
   }
 
   // The 21-day ceiling only holds when the request ACTUALLY fans out per city.
@@ -1625,6 +1655,20 @@ export default function NewTripPage({
     const tripsTray = sessionTrayVisible && (
       <SessionTripsTray trips={sessionTrips} currentId={sessionTripCurrentId} onRestore={handleSessionTrayRestore} />
     );
+    const keepBothCard = keepBothShows && (
+      <KeepBothCard
+        places={visitPlaces}
+        onSignIn={() => {
+          markSignInFromCard();
+          openKeepAuth("wizard_keep_both");
+        }}
+        onDismiss={() => {
+          dismissKeepBoth();
+          setKeepBothTurnedDown(true);
+          void trackWizardEvent("keep_both_dismissed", { destination, locale });
+        }}
+      />
+    );
     // Save/generation error, shown here as well as in the form view: without
     // it an authed Save failure on the result looks like a dead button.
     const errorAlert = error && (
@@ -1709,6 +1753,8 @@ export default function NewTripPage({
           onClose={() => {
             setShowAuthModal(false);
             if (authPromptReason === "save") setSaveBoxClosed(true);
+            // Closed without a sign-in: a later one isn't the card's.
+            forgetSignInFromCard();
           }}
           destination={destination}
           location={authPromptLocation}
@@ -1771,6 +1817,7 @@ export default function NewTripPage({
           isUnsaved={isUnsaved}
           keptPlan={keptPlan}
           offerPlanEmail={saveBoxClosed}
+          planReminder={reminderKind(startDate, utcToday(), flexibleDates)}
           saving={loading || claimingSharedPlan}
           onSave={handleSaveTrip}
           onStartOver={() => setShowStartOverModal(true)}
@@ -1783,9 +1830,10 @@ export default function NewTripPage({
 
         {sky && (
           <>
-            {(tripsTray || errorAlert) && (
+            {(tripsTray || keepBothCard || errorAlert) && (
               <div className="max-w-6xl mx-auto px-4 pt-6">
                 {tripsTray}
+                {keepBothCard}
                 {errorAlert}
               </div>
             )}
@@ -1812,6 +1860,7 @@ export default function NewTripPage({
               sessionTrayVisible: ≥2 stacked trips, current trip unsaved,
               auto-save arm not active. */}
           {!sky && tripsTray}
+          {!sky && keepBothCard}
           {!sky && errorAlert}
           {/* AI assistant — Q&A + day-scoped edits at peak intent. */}
           <div className="mb-8">
@@ -1876,6 +1925,10 @@ export default function NewTripPage({
               loading={loading}
               onAskAssistant={askAssistant}
             />
+          )}
+
+          {saveBoxTest.arm === "benefits" && isAuthenticated === false && isUnsaved && !savedTripId && (
+            <SaveBenefitsCard onSave={handleSaveTrip} saving={loading || claimingSharedPlan} />
           )}
 
           <AiDisclaimer title={t("wizard.result.aiVerifiedTitle")} className="mt-10">

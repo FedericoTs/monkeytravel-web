@@ -292,7 +292,10 @@ test.describe("Editing a saved trip by hand", () => {
 
   test("new dates move the days, add empty ones, and the assistant opens asking for them", async ({ page }) => {
     await openTrip(page, tripId);
-    await page.getByRole("button", { name: /^change dates:/i }).click();
+    // The dates say in words that they can be changed: travellers rebuilt saved trips to move them by a few days.
+    const dates = page.getByRole("button", { name: /^change dates:/i });
+    await expect(dates).toContainText("Change dates");
+    await dates.click();
     await page.getByLabel("End", { exact: true }).fill(iso(34));
     await saved(page, tripId, () => page.getByRole("button", { name: "Change dates", exact: true }).click());
 

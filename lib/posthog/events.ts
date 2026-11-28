@@ -577,6 +577,8 @@ export async function capture(eventName: string, properties?: Record<string, unk
  */
 export type AuthPromptLocation =
   | "wizard_save"
+  /** The keep-both card on a visit's second place (components/wizard/KeepBothCard.tsx). */
+  | "wizard_keep_both"
   | "anon_share_keep"
   | "pending_claim"
   | "explore_like"

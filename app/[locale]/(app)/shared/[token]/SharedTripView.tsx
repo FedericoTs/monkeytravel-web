@@ -294,6 +294,21 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
             </Link>
           </div>
         )}
+        {/* The one who made the link can also show the trip off: its story, which opens on a guess. */}
+        {shareToken && (isOwner || ownerPending) && (
+          <div
+            data-testid="story-way-in"
+            className="mb-6 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <p className="text-sm text-slate-700">{t("story.wayIn.note")}</p>
+            <Link
+              href={`/shared/${shareToken}/story`}
+              className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-slate-900 px-5 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
+            >
+              {t("story.wayIn.cta")}
+            </Link>
+          </div>
+        )}
         <SharedTripTopAsk
           participantsEnabled={participantsEnabled}
           isOwner={isOwner}

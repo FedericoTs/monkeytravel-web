@@ -169,9 +169,9 @@ export async function GET(request: NextRequest) {
 
   // Automation gets the curated stock image instead of a paid Google download.
   // `no-store` keeps the redirect out of the CDN, so a human request for the
-  // same URL still fetches the photo. og=1 marks the OG card renderer: its
-  // fetch sends a library user-agent, but the card is a human share preview.
-  if (searchParams.get("og") !== "1" && isAnalyticsBot(request.headers.get("user-agent"))) {
+  // same URL still fetches the photo. The share card no longer asks for one
+  // (a Google photo stays on the site), so nothing is let past this.
+  if (isAnalyticsBot(request.headers.get("user-agent"))) {
     return new Response(null, {
       status: 307,
       headers: { Location: curatedFallbackForName(name ?? ref!, typeHint), "Cache-Control": "no-store" },

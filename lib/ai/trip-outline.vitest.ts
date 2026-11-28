@@ -5,12 +5,15 @@ import type { TripCreationParams } from "@/types";
 
 let answer = "";
 const prompts: string[] = [];
+// What the outline's model was set up with: its answer's shape (responseSchema) among it.
+const configs: Array<{ generationConfig?: { responseSchema?: { properties: { days: { items: { required: string[] } } } } } }> = [];
 vi.mock("@/lib/ai/genai-compat", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/ai/genai-compat")>();
   return {
     ...actual,
     GoogleGenerativeAI: class {
-      getGenerativeModel() {
+      getGenerativeModel(config: (typeof configs)[number]) {
+        configs.push(config);
         return {
           generateContent: async (prompt: string) => {
             prompts.push(prompt);
@@ -53,6 +56,33 @@ describe("splitIntoParts", () => {
 });
 
 describe("generateTripOutline", () => {
+  it("asks for every day's lunch and dinner, never the same restaurant on two days, and can't be answered without them", async () => {
+    answer = JSON.stringify({ days: [1, 2, 3].map((n) => ({ ...day(n, [`Place ${n}`]), lunch: `Lunch ${n}`, dinner: `Dinner ${n}` })) });
+    await generateTripOutline(params, 3);
+    expect(prompts[0]).toContain(
+      "Give each day its lunch, near its places at midday, and its dinner, near where it ends at the local dinner hour: real restaurants open then, suited to the budget, and never the same restaurant on two days."
+    );
+    expect(configs.at(-1)?.generationConfig?.responseSchema?.properties.days.items.required).toEqual(
+      expect.arrayContaining(["lunch", "dinner"])
+    );
+  });
+
+  it("keeps each day's lunch and dinner, a restaurant named again on a later day staying on the first", async () => {
+    answer = JSON.stringify({
+      days: [
+        { ...day(1, ["Pantheon"]), lunch: "Roscioli", dinner: "Armando al Pantheon" },
+        { ...day(2, ["Colosseum"]), lunch: " Roscioli ", dinner: " Da Enzo al 29 " },
+        { ...day(3, ["Villa Borghese"]), lunch: 42, dinner: "ARMANDO AL PANTHEON" },
+      ],
+    });
+    const outline = await generateTripOutline(params, 3);
+    expect(outline?.days.map((d) => [d.lunch, d.dinner])).toEqual([
+      ["Roscioli", "Armando al Pantheon"],
+      ["", "Da Enzo al 29"],
+      ["", ""],
+    ]);
+  });
+
   it("keeps a place the model put on two days on the first one only", async () => {
     answer = JSON.stringify({ days: [day(1, ["Colosseum", "Roman Forum"]), day(2, ["colosseum!", "Pantheon"]), day(3, ["Trastevere"])] });
     const outline = await generateTripOutline(params, 3);

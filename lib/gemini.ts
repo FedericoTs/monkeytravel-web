@@ -2,6 +2,7 @@ import type { GeneratedItinerary, TripCreationParams } from "@/types";
 import { getPrompt } from "./prompts";
 import { captureLLMGeneration, type GeminiUsageMetadata } from "./posthog/llm-analytics";
 import { getModelForPurpose, thinkingConfigFor } from "./ai/model-router";
+import { PLAN_SCHEMA } from "@/lib/ai/plan-schema";
 import { logCacheMetrics } from "./ai/cache-metrics";
 import { withDeduplication, getItineraryDedupKey } from "./gemini-dedup";
 import { validateAndFixCoordinates } from "./trip/coordinate-fallback";
@@ -97,6 +98,8 @@ async function itineraryAttempt(
       // Keep in sync with generateItineraryStream (same model, same prompt).
       maxOutputTokens: 16000,
       responseMimeType: "application/json",
+      // The plan's shape as its schema: always valid JSON of it (lib/ai/plan-schema.ts).
+      responseSchema: PLAN_SCHEMA,
       thinkingConfig: thinkingConfigFor(modelName),
     },
   });
@@ -327,6 +330,8 @@ export async function* generateItineraryStream(
       // Keep in sync with generateItineraryInternal (same model, same prompt).
       maxOutputTokens: 16000,
       responseMimeType: "application/json",
+      // The same schema as generateItineraryInternal: the days stream in its order (lib/ai/plan-schema.ts).
+      responseSchema: PLAN_SCHEMA,
       // Thinking at its lowest, as in generateItineraryInternal. Thinking tokens
       // count against `maxOutputTokens`, so more of it can push the answer past the cap: the SSE stream then
       // emits a valid prefix of an invalid JSON ("Unterminated string" in

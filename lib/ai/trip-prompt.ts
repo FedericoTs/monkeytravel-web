@@ -350,13 +350,48 @@ const LEAVING: Record<Departure, string> = {
   evening: "They leave on the last day in the evening: plan that day until about 16:00, ending on the way out.",
 };
 
+/** How a ride gets there, in the arrival's words. */
+const BY_RIDE: Record<NonNullable<TripCreationParams["arrivesBy"]>["mode"], string> = {
+  train: "by train",
+  flight: "by plane",
+  bus: "by bus",
+  ferry: "by ferry",
+  ground: "by road",
+};
+
+/**
+ * A later city of a route: its first day begins when the ride from the city before gets in, and the day from half an
+ * hour after it: lunch near where they arrive when that is by half past two, as late as a lunch starts
+ * (lib/ai/lunches.ts). Only ever these fixed words.
+ */
+function rideInLine(destination: string, arrivesBy: NonNullable<TripCreationParams["arrivesBy"]>): string {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(arrivesBy.at);
+  if (!m) return "";
+  const start = Number(m[1]) * 60 + Number(m[2]) + 30;
+  const startText = `${String(Math.floor(start / 60)).padStart(2, "0")}:${String(start % 60).padStart(2, "0")}`;
+  const head = `They reach ${destination} on day 1 ${BY_RIDE[arrivesBy.mode] ?? "by road"} from ${arrivesBy.from}, in at about ${arrivesBy.at}:`;
+  if (start <= 14 * 60 + 30) return `${head} plan nothing that day before about ${startText}, then lunch near where they arrive, and the afternoon.`;
+  if (start <= 17 * 60) return `${head} plan nothing that day before about ${startText}, then a light afternoon, and dinner.`;
+  if (start <= 20 * 60 + 30) return `${head} plan only dinner that day, close to where they're staying.`;
+  return `${head} plan nothing that day but the arrival and the check-in.`;
+}
+
 /**
  * When they arrive and leave, on the trip's first and last days. On a trip through several cities each city has its
- * own dates: the arrival goes to the city that starts the trip, the leaving to the one that ends it.
+ * own dates: the arrival goes to the city that starts the trip, the leaving to the one that ends it, and each later
+ * city begins when the ride from the one before gets in.
  */
-function travelDaysLine({ arrival, departure, startDate, endDate }: Pick<TripCreationParams, "arrival" | "departure" | "startDate" | "endDate">): string {
+function travelDaysLine({
+  arrival,
+  departure,
+  startDate,
+  endDate,
+  destination,
+  arrivesBy,
+}: Pick<TripCreationParams, "arrival" | "departure" | "startDate" | "endDate" | "destination" | "arrivesBy">): string {
   const said = [
     arrival && arrival.date === startDate ? ARRIVING[arrival.when] : "",
+    arrivesBy ? rideInLine(destination, arrivesBy) : "",
     departure && departure.date === endDate ? LEAVING[departure.when] : "",
   ].filter(Boolean);
   return said.length > 0 ? `Travel days: ${said.join(" ")}` : "";
@@ -512,10 +547,10 @@ ${
     : 'Another part fills the trip-level fields: give "destination" only its name and country, and leave "trip_summary" out.'
 }
 
-The whole trip, day by day (theme, area, the places it is built around):
-${part.outline.map((d) => `- Day ${d.day_number}: ${d.theme} (${d.area}): ${d.places.join("; ")}`).join("\n")}
+The whole trip, day by day (theme, area, the places it is built around, where it has lunch and dinner):
+${part.outline.map((d) => `- Day ${d.day_number}: ${d.theme} (${d.area}): ${[d.places.join("; "), d.lunch ? `lunch at ${d.lunch}` : "", d.dinner ? `dinner at ${d.dinner}` : ""].filter(Boolean).join("; ")}`).join("\n")}
 
-Build each of your days around its own places, at the pace asked for above. Never use a place listed for another day.
+Build each of your days around its own places, at the pace asked for above, with lunch and dinner where the day has them. Never use a place or a restaurant listed for another day.
 
 `
     : "";

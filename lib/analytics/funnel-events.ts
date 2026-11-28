@@ -34,6 +34,9 @@ export const FUNNEL_EVENT_TYPES = [
   "trip_card_shared",
   // A reminder or digest email's link opened (lib/analytics/email-click.ts).
   "email_clicked",
+  // A trip's story: a friend's guess played to its end, and the story watched to its last part.
+  "story_guessed",
+  "story_finished",
 ] as const;
 
 export type FunnelEventType = (typeof FUNNEL_EVENT_TYPES)[number];
@@ -89,10 +92,11 @@ export { CRAWLER_UA_RE } from "./share-visit-classifier";
  * `crewAsk` records how the link was framed (?vote=1 = the crew ask) as
  * metadata.crew_ask, so recipients per shared trip can be read by framing.
  * `day` is set when the link was a day the owner sent from the digest email.
+ * `story` is set when the link opened as the trip's story (/shared/[token]/story).
  */
 export async function logSharedTripVisit(
   tripId: string,
-  opts: { crewAsk: boolean; day?: number | null } = { crewAsk: false }
+  opts: { crewAsk: boolean; day?: number | null; story?: boolean } = { crewAsk: false }
 ): Promise<void> {
   try {
     const c = await cookies();
@@ -101,7 +105,7 @@ export async function logSharedTripVisit(
       event_type: "share_link_visited",
       trip_id: tripId,
       session_id: sessionId,
-      metadata: { crew_ask: opts.crewAsk, ...(opts.day ? { day: opts.day } : {}) },
+      metadata: { crew_ask: opts.crewAsk, ...(opts.day ? { day: opts.day } : {}), ...(opts.story ? { story: true } : {}) },
     });
   } catch {
     // never break the render

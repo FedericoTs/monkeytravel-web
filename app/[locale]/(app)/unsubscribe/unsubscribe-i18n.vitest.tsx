@@ -54,7 +54,7 @@ vi.mock("next-intl/server", async () => {
 
 import UnsubscribePage from "./page";
 import { UnsubscribeConfirmButton } from "./UnsubscribeConfirmButton";
-import { signParticipantUnsubscribeToken } from "@/lib/email/unsubscribe";
+import { signParticipantUnsubscribeToken, signPlanReminderUnsubscribeToken } from "@/lib/email/unsubscribe";
 
 const reply = (body: unknown, status = 200) => ({ ok: status < 400, status, json: async () => body });
 const fetchMock = vi.fn();
@@ -192,6 +192,62 @@ describe("a guest's link to a trip's daily plan", () => {
 
   it("an expired guest link shows the expired state", async () => {
     await renderGuest("en", signParticipantUnsubscribeToken(ROW, -1));
+    expect(screen.getByRole("heading", { name: "Link expired" })).toBeTruthy();
+    expect(verify).not.toHaveBeenCalled();
+  });
+});
+
+describe("a reminder's link, before a kept plan's trip", () => {
+  const ROW = "2c9e7a41-5b3d-4f8e-9a1c-6d4b2e8f0a73";
+
+  beforeEach(() => {
+    vi.stubEnv("EMAIL_UNSUBSCRIBE_SECRET", randomBytes(32).toString("hex"));
+    verify.mockClear();
+  });
+  afterEach(() => vi.unstubAllEnvs());
+
+  async function renderReminder(locale: Locale, token = signPlanReminderUnsubscribeToken(ROW)) {
+    const element = await UnsubscribePage({
+      params: Promise.resolve({ locale }),
+      searchParams: Promise.resolve({ token }),
+    });
+    render(
+      <NextIntlClientProvider locale={locale} messages={{ profile: PROFILE[locale] }}>
+        {element}
+      </NextIntlClientProvider>
+    );
+  }
+
+  it.each([
+    ["en", "Stop receiving reminders before your trip?"],
+    ["es", "¿Dejar de recibir los recordatorios antes de tu viaje?"],
+    ["it", "Vuoi smettere di ricevere i promemoria prima del viaggio?"],
+    ["pt", "Parar de receber os lembretes antes da sua viagem?"],
+  ] as const)("%s: asks in its own words and points to no account settings", async (locale, heading) => {
+    await renderReminder(locale);
+    expect(screen.getByRole("heading", { name: heading })).toBeTruthy();
+    expect(screen.queryByRole("link")).toBeNull();
+    expect(verify).not.toHaveBeenCalled();
+  });
+
+  it("Spanish: confirming says the address is deleted and the plan's link still works", async () => {
+    fetchMock.mockResolvedValue(reply({ ok: true, applied: true, reminder: true }));
+    await renderReminder("es");
+    expect(
+      screen.getByText(
+        "Confirma y dejaremos de enviarte recordatorios y borraremos tu dirección. El enlace de tu plan sigue funcionando."
+      )
+    ).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
+    expect(await screen.findByRole("heading", { name: "Te has dado de baja" })).toBeTruthy();
+    expect(
+      screen.getByText("No más recordatorios: hemos borrado tu dirección. El enlace de tu plan sigue funcionando.")
+    ).toBeTruthy();
+    expect(screen.queryByRole("link")).toBeNull();
+  });
+
+  it("an expired reminder link shows the expired state", async () => {
+    await renderReminder("en", signPlanReminderUnsubscribeToken(ROW, -1));
     expect(screen.getByRole("heading", { name: "Link expired" })).toBeTruthy();
     expect(verify).not.toHaveBeenCalled();
   });

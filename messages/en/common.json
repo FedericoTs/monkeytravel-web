@@ -2746,7 +2746,23 @@
     "intro": "Here's the link to the plan you made. It opens on any device and stays for 30 days after you last open it.",
     "cta": "Open my plan",
     "footerReason": "You asked us to send this, and we won't email you again about it.",
-    "footerLink": "Privacy policy"
+    "footerLink": "Privacy policy",
+    "introReminder": "Here's the link to the plan you made. It opens on any device, and it stays until two weeks after your trip.",
+    "reminderLineWeek": "We'll email you again a week before your trip, and the day before.",
+    "reminderLineDay": "We'll email you again the day before your trip.",
+    "footerReasonReminder": "You asked for this plan and for reminders before the trip: they're the only emails we'll send you.",
+    "footerLinkReminder": "Stop the reminders"
+  },
+  "planReminderEmail": {
+    "weekHeading": "{destination} is coming up",
+    "weekHeadingNoPlace": "Your trip is coming up",
+    "weekIntro": "Your plan is ready for the trip. Look it over, change what you like, and book what needs booking.",
+    "dayHeading": "{destination} tomorrow",
+    "dayHeadingNoPlace": "Your trip starts tomorrow",
+    "dayIntro": "Here's your plan for the trip. Have a wonderful time.",
+    "cta": "Open my plan",
+    "footerReason": "You asked us to remind you before this trip. We delete your address once it begins.",
+    "footerLink": "Stop the reminders"
   },
   "liveStats": {
     "title": "Live from the planner",
@@ -2807,6 +2823,91 @@
       "title": "{name} invited you to MonkeyTravel!",
       "description": "Plan a trip together in about 30 seconds. 30 AI-planned itineraries a month, free — no card, no trial.",
       "shortDescription": "Plan a trip together in about 30 seconds. Free — no card, no trial."
+    }
+  },
+  "story": {
+    "metaTitleGuess": "Guess where this trip goes",
+    "metaTitle": "{place}, told as a story",
+    "metaDescription": "Three clues, four answers, then the whole trip. Made with MonkeyTravel.",
+    "progress": "Part {current} of {total}",
+    "fullPlan": "See the full plan",
+    "next": "Next",
+    "back": "Back",
+    "guess": {
+      "title": "Guess where this trip goes",
+      "lead": "Pick letters. {max} wrong ones and the place is shown.",
+      "hidden": "A place still hidden",
+      "clue": "Clue {number}",
+      "clues": "Clues",
+      "when": "{days, plural, one {One day} other {# days}} in {month}, {where}",
+      "whenNoMonth": "{days, plural, one {One day} other {# days}}, {where}",
+      "whenNoWhere": "{days, plural, one {One day} other {# days}} in {month}",
+      "whenBare": "{days, plural, one {A one-day trip} other {A trip of # days}}",
+      "where": {
+        "europe": "somewhere in Europe",
+        "asia": "somewhere in Asia",
+        "africa": "somewhere in Africa",
+        "americas": "somewhere in the Americas",
+        "oceania": "somewhere in Oceania",
+        "atlantic": "on an island in the Atlantic",
+        "indian": "on an island in the Indian Ocean"
+      },
+      "see": "See the trip",
+      "skip": "Skip the guess",
+      "blank": "blank",
+      "keys": "Letters to pick",
+      "misses": "Wrong letters: {count} of {max}",
+      "sunset": "On the first evening the sun sets at {time}.",
+      "dayTitle": "One of its days is called “{title}”.",
+      "stop": "One stop on the plan: {name}.",
+      "solved": "{misses, plural, =0 {You got it without one wrong letter.} one {You got it with one wrong letter.} other {You got it with # wrong letters.}}",
+      "lost": "Out of tries. It's {place}.",
+      "tell": "Tell them how you did",
+      "told": "Copied. Paste it to them.",
+      "tellSolved": "{misses, plural, =0 {I guessed your trip without one wrong letter.} one {I guessed your trip with one wrong letter.} other {I guessed your trip with # wrong letters.}}",
+      "tellLost": "Your trip beat me: I couldn't guess it."
+    },
+    "reveal": {
+      "facts": "{days, plural, one {One day} other {# days}} and {stops, plural, one {# stop} other {# stops}}.",
+      "factsKm": "{days, plural, one {One day} other {# days}} and {stops, plural, one {# stop} other {# stops}}, about {km} km between them.",
+      "factsCities": "{days, plural, one {One day} other {# days}}, {cities} cities and {stops, plural, one {# stop} other {# stops}}.",
+      "route": "The trip's stops, joined in the order of the plan"
+    },
+    "day": {
+      "label": "Day {number}",
+      "in": "in {city}",
+      "more": "{count, plural, one {and # more stop} other {and # more stops}}",
+      "moreDays": "{count, plural, one {And # more day in the full plan.} other {And # more days in the full plan.}}"
+    },
+    "end": {
+      "title": "Want a trip like this?",
+      "body": "Tell the planner where and when, and get your own day-by-day plan in about 30 seconds. Free, no account needed.",
+      "plan": "Plan my trip",
+      "mineTitle": "This is what your friends see",
+      "mineBody": "Post the guess to your story and let them answer, or send them the link.",
+      "mineBodyPlain": "Post it to your story, or send them the link.",
+      "copy": "Copy the story link",
+      "copied": "Link copied. Paste it in a chat or a story."
+    },
+    "post": {
+      "guessTitle": "Guess where I'm going",
+      "reply": "Send me your guess",
+      "planYours": "Plan yours free at monkeytravel.app",
+      "guess": "Post the guess",
+      "place": "Post the answer",
+      "trip": "Post the trip",
+      "preparing": "Preparing the image…",
+      "shared": "Your link is copied too: add it as a link sticker.",
+      "saved": "Image saved. Add it to your story from your photos.",
+      "failed": "The image couldn't be made. Try again in a moment."
+    },
+    "wayIn": {
+      "note": "Showing it to friends who aren't coming? Tell it as a story they can guess.",
+      "cta": "See the story"
+    },
+    "mine": {
+      "note": "This is what your friends see.",
+      "post": "Post it"
     }
   }
 }

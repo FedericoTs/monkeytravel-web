@@ -31,7 +31,7 @@ export default async function PrivacyPolicy({
 }) {
   const { locale } = await params;
   const t = await getTranslations('common');
-  const lastUpdated = 'November 7, 2026';
+  const lastUpdated = 'November 26, 2026';
   const contactEmail = 'privacy@monkeytravel.app';
 
   // The body is English-only until a reviewed legal translation exists,
@@ -101,6 +101,7 @@ export default async function PrivacyPolicy({
                 <li><strong>Trip Data:</strong> Destinations, dates, itineraries, and trip plans you create</li>
                 <li><strong>Communication Data:</strong> Messages and feedback you send to us</li>
                 <li><strong>An Address You Give Us for a Plan:</strong> If you ask us to email you a plan&apos;s link, or give your address on a shared trip, we use it to send that email and keep a record of the send, without creating an account</li>
+                <li><strong>An Address You Give Us for Reminders:</strong> If you also tick &quot;remind me before the trip&quot;, we keep your address, your plan&apos;s link and when you ticked the box, with your consent, only to email you before that trip (a week before and the day before). Every one of those emails has a one-click unsubscribe</li>
               </ul>
 
               <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">2.2 Automatically Collected Information</h3>
@@ -163,6 +164,7 @@ export default async function PrivacyPolicy({
               <ul className="list-disc pl-6 text-[var(--foreground-muted)] space-y-2 mb-4">
                 <li><strong>Google (Gemini AI):</strong> For generating personalized travel itineraries. <a href="https://policies.google.com/privacy" className="text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 hover:decoration-2" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
                 <li><strong>Supabase:</strong> For authentication and data storage (hosted in the EU). <a href="https://supabase.com/privacy" className="text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 hover:decoration-2" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+                <li><strong>Resend:</strong> For sending the emails you ask for or receive from us. <a href="https://resend.com/legal/privacy-policy" className="text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 hover:decoration-2" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
                 <li><strong>Vercel:</strong> For hosting and content delivery. <a href="https://vercel.com/legal/privacy-policy" className="text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 hover:decoration-2" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
               </ul>
 
@@ -188,6 +190,7 @@ export default async function PrivacyPolicy({
               <ul className="list-disc pl-6 text-[var(--foreground-muted)] space-y-2 mb-4">
                 <li><strong>Account Data:</strong> Retained until you delete your account</li>
                 <li><strong>Trip Data:</strong> Retained until you delete your account or the specific trip</li>
+                <li><strong>Reminder Addresses:</strong> Deleted when your trip begins, or as soon as you unsubscribe</li>
                 <li><strong>Analytics Data:</strong> Anonymized after 26 months</li>
                 <li><strong>Session Recordings:</strong> Automatically deleted after 30 days</li>
                 <li><strong>Error Logs:</strong> Retained for 90 days for debugging purposes</li>
@@ -207,7 +210,7 @@ export default async function PrivacyPolicy({
                 <li><strong>Portability (Art. 20):</strong> Export your data in a machine-readable format via your profile settings</li>
                 <li><strong>Restrict Processing (Art. 18):</strong> Request limitation of data processing</li>
                 <li><strong>Object (Art. 21):</strong> Object to processing based on legitimate interests</li>
-                <li><strong>Withdraw Consent (Art. 7):</strong> Withdraw consent at any time via cookie settings</li>
+                <li><strong>Withdraw Consent (Art. 7):</strong> Withdraw consent at any time via cookie settings, or with the unsubscribe link in any email</li>
               </ul>
               <p className="text-[var(--foreground-muted)] mt-4">
                 To exercise these rights, use the &quot;Export My Data&quot; button in your profile settings, or contact us at <a href={`mailto:${contactEmail}`} className="text-[var(--foreground)] underline decoration-[var(--primary)] underline-offset-2 hover:decoration-2">{contactEmail}</a>. We will respond within 30 days.

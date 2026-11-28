@@ -2746,7 +2746,23 @@
     "intro": "Aqui está o link do plano que você criou. Ele abre em qualquer dispositivo e fica guardado por 30 dias depois da última vez que você abrir.",
     "cta": "Abrir meu plano",
     "footerReason": "Você pediu para enviarmos isto, e não vamos escrever de novo sobre este assunto.",
-    "footerLink": "Política de privacidade"
+    "footerLink": "Política de privacidade",
+    "introReminder": "Aqui está o link do plano que você criou. Ele abre em qualquer dispositivo e fica guardado até duas semanas depois da viagem.",
+    "reminderLineWeek": "Vamos escrever de novo uma semana antes da viagem e na véspera.",
+    "reminderLineDay": "Vamos escrever de novo na véspera da viagem.",
+    "footerReasonReminder": "Você pediu este plano e lembretes antes da viagem: são os únicos e-mails que vamos enviar.",
+    "footerLinkReminder": "Parar os lembretes"
+  },
+  "planReminderEmail": {
+    "weekHeading": "{destination} está chegando",
+    "weekHeadingNoPlace": "Sua viagem está chegando",
+    "weekIntro": "Seu plano está pronto para a viagem. Revise, mude o que quiser e reserve o que precisar.",
+    "dayHeading": "{destination} amanhã",
+    "dayHeadingNoPlace": "Sua viagem começa amanhã",
+    "dayIntro": "Aqui está seu plano para a viagem. Boa viagem!",
+    "cta": "Abrir meu plano",
+    "footerReason": "Você pediu um lembrete antes desta viagem. Apagamos seu endereço quando ela começa.",
+    "footerLink": "Parar os lembretes"
   },
   "liveStats": {
     "title": "Ao vivo do planejador",
@@ -2807,6 +2823,91 @@
       "title": "{name} convidou você para o MonkeyTravel!",
       "description": "Planejem uma viagem juntos em cerca de 30 segundos. 30 roteiros com AI por mês, de graça: sem cartão e sem teste.",
       "shortDescription": "Planejem uma viagem juntos em cerca de 30 segundos. De graça: sem cartão e sem teste."
+    }
+  },
+  "story": {
+    "metaTitleGuess": "Adivinhe para onde vai esta viagem",
+    "metaTitle": "{place}, em forma de história",
+    "metaDescription": "Três pistas, quatro respostas e depois a viagem inteira. Feito com MonkeyTravel.",
+    "progress": "Parte {current} de {total}",
+    "fullPlan": "Ver o plano completo",
+    "next": "Avançar",
+    "back": "Voltar",
+    "guess": {
+      "title": "Adivinhe para onde vai esta viagem",
+      "lead": "Escolha letras. Com {max} erros o lugar é mostrado.",
+      "hidden": "Um lugar ainda escondido",
+      "clue": "Pista {number}",
+      "clues": "Pistas",
+      "when": "{days, plural, one {Um dia} other {# dias}} em {month}, {where}",
+      "whenNoMonth": "{days, plural, one {Um dia} other {# dias}}, {where}",
+      "whenNoWhere": "{days, plural, one {Um dia} other {# dias}} em {month}",
+      "whenBare": "{days, plural, one {Uma viagem de um dia} other {Uma viagem de # dias}}",
+      "where": {
+        "europe": "em algum lugar da Europa",
+        "asia": "em algum lugar da Ásia",
+        "africa": "em algum lugar da África",
+        "americas": "em algum lugar das Américas",
+        "oceania": "em algum lugar da Oceania",
+        "atlantic": "em uma ilha do Atlântico",
+        "indian": "em uma ilha do oceano Índico"
+      },
+      "see": "Ver a viagem",
+      "skip": "Pular a adivinhação",
+      "blank": "vazio",
+      "keys": "Letras para escolher",
+      "misses": "Letras erradas: {count} de {max}",
+      "sunset": "Na primeira tarde, o sol se põe às {time}.",
+      "dayTitle": "Um dos dias se chama “{title}”.",
+      "stop": "Uma parada do plano: {name}.",
+      "solved": "{misses, plural, =0 {Você acertou sem errar nenhuma letra.} one {Você acertou com uma letra errada.} other {Você acertou com # letras erradas.}}",
+      "lost": "As tentativas acabaram. É {place}.",
+      "tell": "Conte como você se saiu",
+      "told": "Copiado. Cole para enviar.",
+      "tellSolved": "{misses, plural, =0 {Adivinhei sua viagem sem errar nenhuma letra.} one {Adivinhei sua viagem com uma letra errada.} other {Adivinhei sua viagem com # letras erradas.}}",
+      "tellLost": "Sua viagem me venceu: não consegui adivinhar."
+    },
+    "reveal": {
+      "facts": "{days, plural, one {Um dia} other {# dias}} e {stops, plural, one {# parada} other {# paradas}}.",
+      "factsKm": "{days, plural, one {Um dia} other {# dias}} e {stops, plural, one {# parada} other {# paradas}}, com cerca de {km} km entre elas.",
+      "factsCities": "{days, plural, one {Um dia} other {# dias}}, {cities} cidades e {stops, plural, one {# parada} other {# paradas}}.",
+      "route": "As paradas da viagem, ligadas na ordem do plano"
+    },
+    "day": {
+      "label": "Dia {number}",
+      "in": "em {city}",
+      "more": "{count, plural, one {e mais # parada} other {e mais # paradas}}",
+      "moreDays": "{count, plural, one {E mais # dia no plano completo.} other {E mais # dias no plano completo.}}"
+    },
+    "end": {
+      "title": "Quer uma viagem assim?",
+      "body": "Diga ao planejador para onde e quando, e receba seu próprio plano dia a dia em cerca de 30 segundos. Grátis e sem conta.",
+      "plan": "Planejar minha viagem",
+      "mineTitle": "É isto que seus amigos veem",
+      "mineBody": "Poste a adivinhação no seu story e deixe que respondam, ou envie o link.",
+      "mineBodyPlain": "Poste no seu story ou envie o link.",
+      "copy": "Copiar o link da história",
+      "copied": "Link copiado. Cole em um chat ou em um story."
+    },
+    "post": {
+      "guessTitle": "Adivinhe para onde eu vou",
+      "reply": "Me mande seu palpite",
+      "planYours": "Planeje a sua grátis em monkeytravel.app",
+      "guess": "Postar a adivinhação",
+      "place": "Postar a resposta",
+      "trip": "Postar a viagem",
+      "preparing": "Preparando a imagem…",
+      "shared": "Seu link também foi copiado: adicione como figurinha de link.",
+      "saved": "Imagem salva. Adicione ao seu story pelas suas fotos.",
+      "failed": "Não foi possível criar a imagem. Tente de novo em instantes."
+    },
+    "wayIn": {
+      "note": "Vai mostrar a amigos que não vão? Conte como uma história para adivinhar.",
+      "cta": "Ver a história"
+    },
+    "mine": {
+      "note": "É isto que seus amigos veem.",
+      "post": "Postar"
     }
   }
 }
