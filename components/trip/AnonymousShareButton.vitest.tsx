@@ -104,6 +104,60 @@ describe("AnonymousShareButton", () => {
     expect(events.sent).toEqual([expect.objectContaining({ channel: "whatsapp" })]);
   });
 
+  it("says where each day goes in the message, the link after", async () => {
+    const planned = {
+      ...trip,
+      itinerary: [
+        { day_number: 1, activities: [{ name: "Belém Tower", type: "landmark" }, { name: "Pastéis de Belém", type: "cafe" }, { name: "Jerónimos Monastery", type: "landmark" }] },
+        { day_number: 2, activities: [{ name: "Alfama", type: "attraction" }] },
+        { day_number: 3, activities: [] },
+      ],
+    };
+    asPhone(async () => {});
+    renderButton("crew", { trip: planned });
+    fireEvent.click(screen.getByRole("button", { name: copy.shareCrewCta }));
+    await waitFor(() => expect(events.sent).toHaveLength(1));
+    expect(vi.mocked(navigator.share).mock.calls[0][0]?.text).toBe(
+      [
+        "I planned our trip to Lisbon:",
+        "Day 1: Belém Tower, Jerónimos Monastery",
+        "Day 2: Alfama",
+        `Vote on what we should do, no account needed: ${SHARE_URL}?vote=1`,
+      ].join("\n")
+    );
+    cleanup();
+    vi.mocked(navigator.share).mockClear();
+
+    // Shared to show, not to vote; and a long trip counts the days it doesn't write out.
+    const long = { ...trip, itinerary: Array.from({ length: 9 }, (_, i) => ({ day_number: i + 1, activities: [{ name: `Sight ${i + 1}`, type: "museum" }] })) };
+    renderButton("share", { trip: long });
+    fireEvent.click(screen.getByRole("button", { name: copy.shareAnonCta }));
+    await waitFor(() => expect(vi.mocked(navigator.share)).toHaveBeenCalled());
+    const message = vi.mocked(navigator.share).mock.calls[0][0]?.text ?? "";
+    expect(message.split("\n")).toEqual([
+      "Here's the plan for my trip to Lisbon:",
+      ...Array.from({ length: 7 }, (_, i) => `Day ${i + 1}: Sight ${i + 1}`),
+      "and 2 more days",
+      `See it on the map, and vote: ${SHARE_URL}`,
+    ]);
+    cleanup();
+    vi.mocked(navigator.share).mockClear();
+
+    // A trip through two cities says which one each day is in.
+    const route = {
+      ...trip,
+      destination: "Portugal",
+      itinerary: [
+        { day_number: 1, city: "Lisbon", activities: [{ name: "Alfama", type: "attraction" }] },
+        { day_number: 2, city: "Sintra", activities: [{ name: "Pena Palace", type: "landmark" }] },
+      ],
+    };
+    renderButton("share", { trip: route });
+    fireEvent.click(screen.getByRole("button", { name: copy.shareAnonCta }));
+    await waitFor(() => expect(vi.mocked(navigator.share)).toHaveBeenCalled());
+    expect(vi.mocked(navigator.share).mock.calls[0][0]?.text?.split("\n").slice(1, 3)).toEqual(["Day 1, Lisbon: Alfama", "Day 2, Sintra: Pena Palace"]);
+  });
+
   it("keeps the buttons when the share sheet refuses, so a fresh tap can send it", async () => {
     asPhone(async () => {
       throw new DOMException("Not allowed", "NotAllowedError");

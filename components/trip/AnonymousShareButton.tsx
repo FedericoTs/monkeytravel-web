@@ -13,6 +13,7 @@ import {
   captureAnonShareSent,
 } from "@/lib/posthog/events";
 import { canShareNatively, openWhatsApp } from "@/lib/share/channels";
+import { sharedDays } from "@/lib/share/plan-days";
 import { Spinner } from "@/components/ui/Spinner";
 
 /**
@@ -205,11 +206,24 @@ export default function AnonymousShareButton({
   };
 
   // The words that go with the link, so a chat says what it is and that no
-  // account is needed to vote, instead of arriving as a bare URL.
-  const messageFor = (url: string) =>
-    crew
-      ? t("wizard.result.shareCrewMessage", { destination: trip.destination, url })
-      : t("wizard.result.shareAnonMessage", { destination: trip.destination, url });
+  // account is needed to vote, instead of arriving as a bare URL: where each
+  // day goes, when the plan names its places.
+  const messageFor = (url: string) => {
+    const shared = sharedDays(Array.isArray(trip.itinerary) ? trip.itinerary : []);
+    const days = [
+      ...shared.days.map(({ n, city, places }) =>
+        city
+          ? t("wizard.result.shareDayInCity", { n, city, places: places.join(", ") })
+          : t("wizard.result.shareDay", { n, places: places.join(", ") })
+      ),
+      ...(shared.more > 0 ? [t("wizard.result.shareMoreDays", { count: shared.more })] : []),
+    ].join("\n");
+    const values = { destination: trip.destination, url, days };
+    if (shared.days.length === 0) {
+      return crew ? t("wizard.result.shareCrewMessage", values) : t("wizard.result.shareAnonMessage", values);
+    }
+    return crew ? t("wizard.result.shareCrewMessageDays", values) : t("wizard.result.shareAnonMessageDays", values);
+  };
 
   /** "refused" when the phone wouldn't open its sheet (the tap that started it went stale): a fresh tap will. */
   async function sendNatively(url: string): Promise<"sent" | "closed" | "refused"> {
