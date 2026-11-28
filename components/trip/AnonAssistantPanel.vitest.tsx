@@ -314,3 +314,43 @@ describe("figures in the answers", () => {
     expect(JSON.parse(fetchMock.mock.calls[0][1].body).display).toBeUndefined();
   });
 });
+
+describe("its short look, for a phone's rows", () => {
+  const panel = (compact: boolean) =>
+    render(<AnonAssistantPanel destination="Lisbon, Portugal" tripTitle="Lisbon" days={days} onApplyEdits={() => "edit-1"} compact={compact} />);
+
+  it("keeps the title, the ideas and the field, and drops the note", () => {
+    const { unmount } = panel(true);
+    expect(screen.getByRole("heading", { name: "assistant.title" })).toBeTruthy();
+    expect(screen.queryByText("assistant.note")).toBeNull();
+    expect(screen.getByRole("button", { name: "assistant.suggest1" })).toBeTruthy();
+    expect(screen.getByPlaceholderText("assistant.placeholder")).toBeTruthy();
+    unmount();
+  });
+
+  it("puts the ideas in one row that scrolls sideways, each a target a thumb can hit", () => {
+    const { unmount } = panel(true);
+    const idea = screen.getByRole("button", { name: "assistant.suggest1" });
+    expect(idea.parentElement!.className).toContain("overflow-x-auto");
+    expect(idea.parentElement!.className).not.toContain("flex-wrap");
+    expect(idea.className).toContain("min-h-[44px]");
+    expect(idea.className).toContain("whitespace-nowrap");
+    unmount();
+  });
+
+  it("asks an idea on a tap, as the full look does", async () => {
+    const { unmount } = panel(true);
+    fireEvent.click(screen.getByRole("button", { name: "assistant.suggest1" }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    unmount();
+  });
+
+  it("is not the look elsewhere: the note is said and the ideas wrap", () => {
+    const { unmount } = panel(false);
+    expect(screen.getByText("assistant.note")).toBeTruthy();
+    const idea = screen.getByRole("button", { name: "assistant.suggest1" });
+    expect(idea.parentElement!.className).toContain("flex-wrap");
+    expect(idea.className).not.toContain("min-h-[44px]");
+    unmount();
+  });
+});

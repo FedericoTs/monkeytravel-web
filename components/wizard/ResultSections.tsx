@@ -84,9 +84,21 @@ export function ResultBookingLinks({ links }: { links: NonNullable<GeneratedItin
   );
 }
 
-/** What the plan suggests packing. */
-export function ResultPacking({ items }: { items: string[] }) {
+/** What the plan suggests packing: as tags, or `plain`, a short list a phone reads in one look. */
+export function ResultPacking({ items, plain = false }: { items: string[]; plain?: boolean }) {
   const t = useTranslations("trips");
+  if (plain) {
+    return (
+      <div className="mt-8">
+        <h3 className="mb-2 font-semibold text-slate-900">{t("wizard.result.packingSuggestions")}</h3>
+        <ul className="list-disc space-y-1 pl-5 text-base text-slate-700 marker:text-[var(--primary)]">
+          {items.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
   return (
     <div className="mt-10 bg-slate-50 rounded-xl p-6">
       <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">

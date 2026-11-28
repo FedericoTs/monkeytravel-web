@@ -139,6 +139,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { useDraftRestore } from "@/hooks/useDraftRestore";
 import { useGeneratedPlan } from "@/hooks/useGeneratedPlan";
 import { useKeptPlan } from "@/hooks/useKeptPlan";
+import { useIsPhone } from "@/hooks/useMediaQuery";
 import { useScrollTopOnNewPlan } from "@/hooks/useScrollTopOnNewPlan";
 import { useKeptPlanOpening } from "@/hooks/useKeptPlanOpening";
 import { usePlanPhotos } from "@/hooks/usePlanPhotos";
@@ -219,7 +220,7 @@ import { SaveBenefitsCard } from "@/components/wizard/SaveBenefitsCard";
 import ResultItinerary from "@/components/wizard/ResultItinerary";
 import { assignArm, type Assignment } from "@/lib/experiments/assign";
 import { createExposureReporter } from "@/lib/experiments/exposure";
-import { SAVE_BOX_BENEFITS, STEP2_DEFAULT } from "@/lib/experiments/registry";
+import { PHONE_PLAN_ROWS, SAVE_BOX_BENEFITS, STEP2_DEFAULT } from "@/lib/experiments/registry";
 import { placeKind, step2Default } from "@/lib/wizard/step2-default";
 import PreferencesStep from "@/components/wizard/PreferencesStep";
 import WizardFooter from "@/components/wizard/WizardFooter";
@@ -402,6 +403,26 @@ export default function NewTripPage({
       pin: process.env.NEXT_PUBLIC_EXP_SAVE_BOX_BENEFITS,
     });
   });
+  // How a phone reads the plan (phone_plan_rows): a tall card for every stop, or the days as short rows.
+  const [phonePlanTest] = useState<Assignment<(typeof PHONE_PLAN_ROWS.arms)[number]>>(() => {
+    if (typeof window === "undefined") return { arm: "cards", counted: false };
+    let store: Storage | null = null;
+    try {
+      store = window.localStorage;
+    } catch {
+      store = null;
+    }
+    return assignArm(PHONE_PLAN_ROWS, {
+      asked: searchParams?.get("exp_phone_plan_rows"),
+      store,
+      now: Date.now(),
+      random: Math.random,
+      pin: process.env.NEXT_PUBLIC_EXP_PHONE_PLAN_ROWS,
+    });
+  });
+  const isPhone = useIsPhone();
+  // The rows are a phone's way to read the plan (the experiment's rows arm).
+  const phoneRowsOffered = isPhone;
   // Snapshot ?auth_event on the FIRST render. AuthEventTracker strips it with
   // history.replaceState as soon as auth resolves, and useSearchParams follows
   // — so a live read a few hundred milliseconds later sees nothing and a
@@ -994,6 +1015,10 @@ export default function NewTripPage({
   useEffect(() => {
     if (hasResult && isAuthenticated === false) reportExposure(SAVE_BOX_BENEFITS, saveBoxTest);
   }, [hasResult, isAuthenticated, saveBoxTest]);
+  // The phone plan's arms first differ when a plan is on a phone's screen: counted from there, once.
+  useEffect(() => {
+    if (hasResult && phoneRowsOffered) reportExposure(PHONE_PLAN_ROWS, phonePlanTest);
+  }, [hasResult, phoneRowsOffered, phonePlanTest]);
   // The tray's restore-swap must never run while the auto-save arm is live:
   // useAutoSaveTrip's effect would UPDATE the persisted row with a DIFFERENT
   // trip's content on swap (verified in hooks/useAutoSaveTrip.ts persist()).
@@ -1627,6 +1652,7 @@ export default function NewTripPage({
 
     // Calculate total activities for modal
     const totalActivities = generatedItinerary.days.reduce((acc, day) => acc + day.activities.length, 0);
+    const phoneRows = phoneRowsOffered && phonePlanTest.arm === "rows";
     const askAssistant = (message: string) => {
       void captureRefineSuggestionClicked({ source: "packedDay", derived: true });
       setAssistantAsked((last) => ({ id: (last?.id ?? 0) + 1, message }));
@@ -1672,6 +1698,45 @@ export default function NewTripPage({
       onKeep: handleKeepSharedTrip,
     };
 
+    const assistantPanel = (
+        <AssistantPanelView
+          key={planNumber}
+          destination={fullDestination}
+          tripTitle={tripTitle}
+          days={generatedItinerary.days}
+          language={generatedItinerary.language}
+          startDate={startDate}
+          endDate={endDate}
+          onApplyEdits={applyEdits}
+          onUndoEdits={undoEdits}
+          onPlanElsewhere={handlePlanElsewhere}
+          onPlanRoute={MULTI_CITY_ENABLED ? handlePlanRoute : undefined}
+          asked={assistantAsked}
+          facts={assistantFacts}
+          // Post-edit save bridge. Only offered while the
+          // trip is unsaved AND the manual save arm owns persistence —
+          // when the auto-save arm is active the edit is already being
+          // persisted, so the ask would be false.
+          onRequestSave={
+            isUnsaved && !autoSaveArmActive
+              ? () => {
+                  void handleSaveTrip();
+                }
+              : undefined
+          }
+          // The deliverable half of the bridge. A share link needs no
+          // account, and the "Keep this trip, free" row rides on it, so
+          // the refiner can leave holding the plan instead of only being
+          // asked to sign up. Signed-out and unsaved only — for everyone
+          // else the owner-based share flow is the right one.
+          shareSlot={
+            isAuthenticated === false && !savedTripId && generatedItinerary ? (
+              <ShareButtonView {...anonShare} />
+            ) : undefined
+          }
+          compact={phoneRows}
+        />
+    );
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white pb-24 sm:pb-8">
         <ChangeDatesModal
@@ -1754,7 +1819,8 @@ export default function NewTripPage({
           budgetNote={tTotal("perPerson")}
           budgetHint={tTotal("hint")}
           days={generatedItinerary.days.length}
-          tags={generatedItinerary.destination.best_for}
+          // The rows open with the days as pills to tap: the place's "best for" pills above them would read as more of the same.
+          tags={phoneRows ? undefined : generatedItinerary.destination.best_for}
           showBackButton={false}
           freePhotosOnly
         />
@@ -1814,45 +1880,8 @@ export default function NewTripPage({
           {tripsTray}
           {keepBothCard}
           {errorAlert}
-          {/* AI assistant — Q&A + day-scoped edits at peak intent. */}
-          <div className="mb-8">
-            <AssistantPanelView
-              key={planNumber}
-              destination={fullDestination}
-              tripTitle={tripTitle}
-              days={generatedItinerary.days}
-              language={generatedItinerary.language}
-              startDate={startDate}
-              endDate={endDate}
-              onApplyEdits={applyEdits}
-              onUndoEdits={undoEdits}
-              onPlanElsewhere={handlePlanElsewhere}
-              onPlanRoute={MULTI_CITY_ENABLED ? handlePlanRoute : undefined}
-              asked={assistantAsked}
-              facts={assistantFacts}
-              // Post-edit save bridge. Only offered while the
-              // trip is unsaved AND the manual save arm owns persistence —
-              // when the auto-save arm is active the edit is already being
-              // persisted, so the ask would be false.
-              onRequestSave={
-                isUnsaved && !autoSaveArmActive
-                  ? () => {
-                      void handleSaveTrip();
-                    }
-                  : undefined
-              }
-              // The deliverable half of the bridge. A share link needs no
-              // account, and the "Keep this trip, free" row rides on it, so
-              // the refiner can leave holding the plan instead of only being
-              // asked to sign up. Signed-out and unsaved only — for everyone
-              // else the owner-based share flow is the right one.
-              shareSlot={
-                isAuthenticated === false && !savedTripId && generatedItinerary ? (
-                  <ShareButtonView {...anonShare} />
-                ) : undefined
-              }
-            />
-          </div>
+          {/* AI assistant — Q&A + day-scoped edits at peak intent. On a phone's rows it comes after the first day. */}
+          {!phoneRows && <div className="mb-8">{assistantPanel}</div>}
 
             <ResultItinerary
               generatedItinerary={generatedItinerary}
@@ -1867,6 +1896,8 @@ export default function NewTripPage({
               handleSaveTrip={handleSaveTrip}
               loading={loading}
               onAskAssistant={askAssistant}
+              phoneRows={phoneRows}
+              afterFirstDay={phoneRows ? <div>{assistantPanel}</div> : undefined}
             />
 
           {saveBoxTest.arm === "benefits" && isAuthenticated === false && isUnsaved && !savedTripId && (
@@ -1874,7 +1905,7 @@ export default function NewTripPage({
           )}
 
           <AiDisclaimer title={t("wizard.result.aiVerifiedTitle")} className="mt-10">
-            {t("wizard.result.aiVerifiedBody")}
+            {phoneRows ? t("wizard.result.aiVerifiedBodyRows") : t("wizard.result.aiVerifiedBody")}
           </AiDisclaimer>
 
           {/* Simple Regenerate CTA for users who scrolled to the bottom */}
