@@ -14,7 +14,7 @@ import { getModelForPurpose, thinkingConfigFor } from "@/lib/ai/model-router";
 import { geminiCostUsd, recordGeminiUsage } from "@/lib/ai/gemini-cost";
 import { LANGUAGE_NAMES, type SupportedLanguage } from "@/lib/ai/language";
 import { activityOf, held } from "@/lib/ai/must-dos";
-import { nameTokens } from "@/lib/ai/assistant/saved-activities";
+import { nameTokens, ownWords } from "@/lib/ai/assistant/saved-activities";
 import { isRealPoint } from "@/lib/trip/placeholder-point";
 import { haversineKm } from "@/lib/map/geo";
 import type { Activity, BudgetTier } from "@/types";
@@ -36,8 +36,20 @@ const minutesOf = (time?: string): number | null => {
 /** A restaurant the trip goes back to is a repeat; a hotel's breakfast isn't. */
 const isRestaurant = (s: Stop) => (s.type === "restaurant" || s.type === "food") && !/\b(hotel|hostel|breakfast)\b/i.test(s.name ?? "");
 
-/** The same place, written either way round: each name's words are all in the other's. */
-const sameRestaurant = (a: string[], b: string[]) => held(a, [b]) && held(b, [a]);
+/** A restaurant's words, and those of its own: "Trattoria da Enzo al 29" is enzo (ownWords). */
+type Named = { words: string[]; own: string[] };
+const eachInOther = (a: string[], b: string[]) => held(a, [b]) && held(b, [a]);
+/** A name's other words: the kind of place (trattoria, ristorante) and the city's name. */
+const others = (n: Named) => n.words.filter((w) => !n.own.includes(w));
+/**
+ * The same place, written either way round: each name's words of its own are all in the other's ("Da Enzo al 29" is
+ * "Trattoria da Enzo al 29") and, when both say what kind of place they are, they share it ("Osteria da Enzo" is not
+ * "Trattoria da Enzo"); when a name has no words of its own, all its words are in the other's.
+ */
+const sameRestaurant = (a: Named, b: Named) =>
+  a.own.length > 0 && b.own.length > 0
+    ? eachInOther(a.own, b.own) && (others(a).length === 0 || others(b).length === 0 || others(a).some((w) => others(b).includes(w)))
+    : eachInOther(a.words, b.words);
 
 /** A restaurant the plan visits again on a later day, and where another is looked for. */
 export interface RepeatWanted {
@@ -54,17 +66,17 @@ export interface RepeatWanted {
 
 /** Each later day's visit to a restaurant the plan already visits on an earlier day. */
 export function repeatedRestaurants(days: Day[], destination: string): RepeatWanted[] {
-  const earlier: string[][] = [];
+  const earlier: Named[] = [];
   const wanted: RepeatWanted[] = [];
   for (const day of days) {
     const stops = [...(day.activities ?? [])].sort((a, b) => (minutesOf(a.start_time) ?? 24 * 60) - (minutesOf(b.start_time) ?? 24 * 60));
-    const today: string[][] = [];
+    const today: Named[] = [];
     stops.forEach((stop, i) => {
       if (!isRestaurant(stop) || !stop.name) return;
-      const words = nameTokens(stop.name);
-      if (words.length === 0) return;
-      today.push(words);
-      if (!day.date || !stop.start_time || !earlier.some((w) => sameRestaurant(words, w))) return;
+      const named = { words: nameTokens(stop.name), own: ownWords(stop.name, day.city || destination) };
+      if (named.words.length === 0) return;
+      today.push(named);
+      if (!day.date || !stop.start_time || !earlier.some((w) => sameRestaurant(named, w))) return;
       const before = stops
         .slice(0, i)
         .reverse()

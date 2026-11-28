@@ -37,6 +37,8 @@ import {
   claimsToRemember,
   withoutDanglingLead,
   elsewhereNote,
+  budgetUncheckedReply,
+  withoutBudgetClaims,
 } from "@/lib/ai/assistant/honesty";
 import { type PlanCosts } from "@/lib/ai/assistant/plan-costs";
 import { daysMentioned } from "@/lib/ai/assistant/day-target";
@@ -114,6 +116,8 @@ export function composeReply(p: {
   tripCap?: { max: number; days: number };
   /** Stops asked for shorter than a stop can be, set to the shortest. */
   shortest?: string[];
+  /** The reply says the plan fits their budget with no figure but theirs (honesty.ts unshownBudgetClaim). */
+  budgetUnshown?: boolean;
 }): string {
   const prepared = p.edits.length > 0 || p.tripLength !== undefined;
   // Notes join the reply, in its language: a Spanish message about a plan
@@ -156,6 +160,9 @@ export function composeReply(p: {
     }
     // "I've noted that your trip starts from Toronto" kept nothing: only the last few messages come back.
     if (claimsToRemember(p.reply)) return wizardNothingKeptReply(locale);
+    // "We're keeping it well under your budget", worked out from nothing: say
+    // it wasn't checked, and give the plan's own figure.
+    if (p.budgetUnshown) return budgetUncheckedReply(locale, p.costs ?? null);
     // "Here is the total…" with no total: give the plan's own figures instead,
     // unless figures came before an announcement that ends the reply.
     const missing = announcedButMissing(p.reply);
@@ -177,6 +184,11 @@ export function composeReply(p: {
   if (missing) {
     const answer = missing === "cost" && p.costsAfter ? planCostsReply(locale, p.costsAfter) : daySummaries(locale, p.edits);
     text = [withoutDanglingLead(text), answer].filter(Boolean).join("\n") || wizardFallbackReply(locale, true);
+  }
+  // The change stays; a claim beside it that it fits their budget, worked out
+  // from nothing, gives way to the changed plan's own figure.
+  if (p.budgetUnshown) {
+    text = [withoutBudgetClaims(text), budgetUncheckedReply(locale, p.costsAfter ?? null)].filter(Boolean).join(" ");
   }
   // The reply names days the edit doesn't include (a "swap" with one side
   // missing): say so rather than let the Apply card look like the whole of it.

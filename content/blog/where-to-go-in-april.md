@@ -144,7 +144,7 @@ For a once-a-year spectacle: the Dutch bulb fields, Seville's Feria (expected 13
 
 ### When is Easter 2027 and does it affect April travel?
 
-Western Easter Sunday is [28 March 2027](https://www.officeholidays.com/countries/netherlands/2027), so Holy Week (21–27 March) and its price spike fall in March, and April is mostly shoulder season across Catholic Europe and Latin America. Orthodox Easter is 2 May, which puts Greek Holy Week on 26 April–1 May.
+Western Easter Sunday is [28 March 2027](https://www.officeholidays.com/countries/netherlands/2027), so Holy Week (21–27 March) and its price spike fall in March, and April is mostly shoulder season across Catholic Europe and Latin America. Orthodox Easter is 2 May, which puts Greek Holy Week on 26 April–1 May. Where to spend Holy Week itself, from Seville's processions to quieter escapes, is in our [Easter 2027 guide](/blog/where-to-go-at-easter).
 
 ### Where is it warm in April?
 

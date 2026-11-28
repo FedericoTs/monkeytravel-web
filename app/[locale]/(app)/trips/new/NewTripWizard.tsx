@@ -217,9 +217,7 @@ import { useSameTripCheck } from "@/hooks/useSameTripCheck";
 import SameTripPrompt from "@/components/wizard/SameTripPrompt";
 import ResultActionBars from "@/components/wizard/ResultActionBars";
 import { SaveBenefitsCard } from "@/components/wizard/SaveBenefitsCard";
-import ResultItinerary, { MAP_SECTION_ID, ResultOverview } from "@/components/wizard/ResultItinerary";
-import SkyPlan from "@/components/sky/SkyPlan";
-import { assignSky, syncSkyArm, type SkyAssignment } from "@/lib/experiments/result-sky";
+import ResultItinerary from "@/components/wizard/ResultItinerary";
 import { assignArm, type Assignment } from "@/lib/experiments/assign";
 import { createExposureReporter } from "@/lib/experiments/exposure";
 import { PHONE_PLAN_ROWS, SAVE_BOX_BENEFITS, STEP2_DEFAULT } from "@/lib/experiments/registry";
@@ -366,26 +364,11 @@ export default function NewTripPage({
 }: NewTripWizardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  // Which result screen this browser sees: the sky or the classic one (lib/experiments/result-sky).
-  const [skyTest] = useState<SkyAssignment>(() => {
-    if (typeof window === "undefined") return { arm: "classic", counted: false };
-    let store: Storage | null = null;
-    try {
-      store = window.localStorage;
-    } catch {
-      store = null;
-    }
-    return assignSky({
-      asked: searchParams?.get("result_variant"),
-      store,
-      now: Date.now(),
-      random: Math.random,
-      pin: process.env.NEXT_PUBLIC_RESULT_SKY,
-    });
-  });
+  // The sky test (now over, the classic screen kept) registered result_variant on a counted browser's
+  // PostHog events, and PostHog keeps such a property in the browser until it is cleared: clear it.
   useEffect(() => {
-    onPostHogReady((posthog) => syncSkyArm(posthog, skyTest));
-  }, [skyTest]);
+    onPostHogReady((posthog) => posthog.unregister("result_variant"));
+  }, []);
   // What step 2 starts with (lib/experiments, step2_default): the season's suggestion, or the two styles most chosen
   // for the kind of place and company.
   const [step2Test] = useState<Assignment<(typeof STEP2_DEFAULT.arms)[number]>>(() => {
@@ -439,8 +422,8 @@ export default function NewTripPage({
     });
   });
   const isPhone = useIsPhone();
-  // The rows are the classic plan's on a phone; the sky screen draws its own stops.
-  const phoneRowsOffered = isPhone && skyTest.arm !== "sky";
+  // The rows are a phone's way to read the plan (the experiment's rows arm).
+  const phoneRowsOffered = isPhone;
   // Snapshot ?auth_event on the FIRST render. AuthEventTracker strips it with
   // history.replaceState as soon as auth resolves, and useSearchParams follows
   // — so a live read a few hundred milliseconds later sees nothing and a
@@ -1562,8 +1545,6 @@ export default function NewTripPage({
       travelStyle,
       locale,
       startedAt: Date.now(),
-      // A trip across cities always gets the classic screen, so it isn't in the test.
-      resultVariant: skyTest.counted && !(MULTI_CITY_ENABLED && multiCityMode) ? skyTest.arm : undefined,
     };
     captureTripWizardStepCompleted({
       step_number: 2,
@@ -1672,8 +1653,6 @@ export default function NewTripPage({
 
     // Calculate total activities for modal
     const totalActivities = generatedItinerary.days.reduce((acc, day) => acc + day.activities.length, 0);
-    // The sky draws one place's days; a trip across cities keeps the classic plan.
-    const sky = skyTest.arm === "sky" && mcStops.length <= 1;
     const phoneRows = phoneRowsOffered && phonePlanTest.arm === "rows";
     const askAssistant = (message: string) => {
       void captureRefineSuggestionClicked({ source: "packedDay", derived: true });
@@ -1830,7 +1809,6 @@ export default function NewTripPage({
         />
 
         {/* Hero with Cover Image */}
-        {!sky && (
         <DestinationHero
           destination={fullDestination}
           title={fullDestination}
@@ -1847,7 +1825,6 @@ export default function NewTripPage({
           showBackButton={false}
           freePhotosOnly
         />
-        )}
 
         {/* This place and these dates are already saved: replace or keep both. */}
         {awaitingTwinChoice && sameTrip.twin && <SameTripPrompt twin={sameTrip.twin} onChoose={chooseTwin} />}
@@ -1895,54 +1872,20 @@ export default function NewTripPage({
           RegenerateButton={RegenerateButtonView}
         />
 
-        {sky && (
-          <>
-            {(tripsTray || keepBothCard || errorAlert) && (
-              <div className="max-w-6xl mx-auto px-4 pt-6">
-                {tripsTray}
-                {keepBothCard}
-                {errorAlert}
-              </div>
-            )}
-            <SkyPlan
-              itinerary={generatedItinerary}
-              dateRange={formatDateRange(startDate, endDate, locale)}
-              totalCost={totalCost}
-              onEditDates={planningExtraDays ? undefined : () => setShowChangeDates(true)}
-              editDatesLabel={t("wizard.changeDates.button")}
-              pace={pace}
-              onAskAssistant={askAssistant}
-              onShowMap={() => {
-                setShowMap(true);
-                requestAnimationFrame(() => document.getElementById(MAP_SECTION_ID)?.scrollIntoView({ behavior: "smooth", block: "start" }));
-              }}
-            />
-          </>
-        )}
-
         <main className="max-w-6xl mx-auto px-4 py-8">
           {/* Session trips tray. Sits at the top of the scrollable result
               content (directly under the sticky header) so it never disturbs
               the hero or sticky layers. Visibility gated on
               sessionTrayVisible: ≥2 stacked trips, current trip unsaved,
               auto-save arm not active. */}
-          {!sky && tripsTray}
-          {!sky && keepBothCard}
-          {!sky && errorAlert}
+          {tripsTray}
+          {keepBothCard}
+          {errorAlert}
           {/* What was checked for these dates, said first: under the header on every layout, before anything asks. */}
           <PlanChecksNote checked={generatedItinerary.checked} className="mb-6" />
           {/* AI assistant — Q&A + day-scoped edits at peak intent. On a phone's rows it comes after the first day. */}
           {!phoneRows && <div className="mb-8">{assistantPanel}</div>}
 
-          {sky ? (
-            <ResultOverview
-              generatedItinerary={generatedItinerary}
-              fullDestination={fullDestination}
-              pace={pace}
-              showMap={showMap}
-              setShowMap={setShowMap}
-            />
-          ) : (
             <ResultItinerary
               generatedItinerary={generatedItinerary}
               fullDestination={fullDestination}
@@ -1959,7 +1902,6 @@ export default function NewTripPage({
               phoneRows={phoneRows}
               afterFirstDay={phoneRows ? <div>{assistantPanel}</div> : undefined}
             />
-          )}
 
           {saveBoxTest.arm === "benefits" && isAuthenticated === false && isUnsaved && !savedTripId && (
             <SaveBenefitsCard onSave={handleSaveTrip} saving={loading || claimingSharedPlan} />

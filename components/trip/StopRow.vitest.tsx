@@ -148,7 +148,7 @@ describe("what can't wait for a tap", () => {
   });
 
   it("shows what the page adds under a stop, outside the row's button", () => {
-    show(orsay(), <button type="button">I'd skip this</button>);
+    show(orsay(), <button type="button">{"I'd skip this"}</button>);
     const row = screen.getByRole("button", { name: /Musée d'Orsay/ });
     expect(row.contains(screen.getByRole("button", { name: "I'd skip this" }))).toBe(false);
   });

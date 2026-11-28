@@ -12,7 +12,6 @@ vi.mock("@/lib/locale", () => ({
 vi.mock("@/lib/stats/useSavedTrips", () => ({ useSavedTrips: () => null }));
 
 import ActivityCard from "@/components/ActivityCard";
-import SkyStop from "@/components/sky/SkyStop";
 import EditableActivityCard from "./EditableActivityCard";
 
 const louvre: Activity = {
@@ -39,11 +38,10 @@ const page = (node: ReactNode) =>
     </NextIntlClientProvider>
   );
 
-// The note is on every card a plan's stop is drawn with: the plan's two looks and the saved trip.
+// The note is on every card a plan's stop is drawn with: the plan's and the saved trip's.
 describe("a stop the checked list shuts on a date of the trip", () => {
   it.each([
     ["the plan's card", () => <ActivityCard activity={louvre} index={0} currency="EUR" showGallery={false} />],
-    ["the plan's sky line", () => <SkyStop activity={louvre} currency="EUR" minutes={570} until={720} />],
     [
       "the saved trip's card",
       () => (

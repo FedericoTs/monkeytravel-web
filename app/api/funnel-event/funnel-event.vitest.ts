@@ -91,6 +91,41 @@ describe("client-fired funnel events", () => {
     expect((await post({ event_type: "plan_own_clicked", destination: "Lisbon", surface: "storybook" })).status).toBe(400);
   });
 
+  it("records how a friend's guess on a trip's story ended", async () => {
+    const tripId = "99999999-2222-4333-8444-555555555555";
+    expect((await post({ event_type: "story_guessed", trip_id: tripId, right: true, misses: 2 })).status).toBe(204);
+    expect(inserted[0]).toMatchObject({ event_type: "story_guessed", trip_id: tripId, session_id: "e2eprobe-test" });
+    expect(inserted[0]?.metadata).toEqual({ right: true, misses: 2 });
+    inserted.length = 0;
+    expect((await post({ event_type: "story_guessed", trip_id: tripId, right: false, misses: 6 })).status).toBe(204);
+    expect(inserted[0]?.metadata).toEqual({ right: false, misses: 6 });
+  });
+
+  it("refuses a guess that couldn't have been played", async () => {
+    const tripId = "99999999-2222-4333-8444-555555555555";
+    for (const body of [
+      { right: true, misses: 7 },
+      { right: true, misses: -1 },
+      { right: true, misses: 1.5 },
+      { right: "yes", misses: 1 },
+      { misses: 1 },
+      { right: true },
+    ]) {
+      expect((await post({ event_type: "story_guessed", trip_id: tripId, ...body })).status, JSON.stringify(body)).toBe(400);
+    }
+    expect((await post({ event_type: "story_guessed", right: true, misses: 1 })).status).toBe(400);
+    expect(inserted).toHaveLength(0);
+  });
+
+  it("records a trip's story watched to its last part, after a guess or not", async () => {
+    const tripId = "99999999-2222-4333-8444-555555555555";
+    expect((await post({ event_type: "story_finished", trip_id: tripId, guessed: true })).status).toBe(204);
+    expect(inserted[0]).toMatchObject({ event_type: "story_finished", trip_id: tripId });
+    expect(inserted[0]?.metadata).toEqual({ guessed: true });
+    expect((await post({ event_type: "story_finished", trip_id: tripId })).status).toBe(400);
+    expect((await post({ event_type: "story_finished", guessed: false })).status).toBe(400);
+  });
+
   it("records a plan pressed on a match result, with no trip to point to", async () => {
     const res = await post({ event_type: "plan_own_clicked", destination: "kyoto", surface: "match" });
     expect(res.status).toBe(204);

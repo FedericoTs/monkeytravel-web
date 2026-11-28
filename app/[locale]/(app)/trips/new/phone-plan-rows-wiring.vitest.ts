@@ -31,6 +31,7 @@ describe("a phone's plan, by the experiment's arm", () => {
 
   it("counts a browser from a plan on a phone's screen, where the arms first differ", () => {
     expect(SRC).toContain("const isPhone = useIsPhone();");
+    expect(SRC).toContain("const phoneRowsOffered = isPhone;");
     expect(SRC).toContain("if (hasResult && phoneRowsOffered) reportExposure(PHONE_PLAN_ROWS, phonePlanTest);");
   });
 

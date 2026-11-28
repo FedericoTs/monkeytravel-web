@@ -9,6 +9,7 @@
  * with more than one child says display:flex, why text is clipped here and
  * not by CSS, and why the route sketch is a data-URI SVG image.
  */
+import { readCredit, WIKIMEDIA_IMAGE_PATH } from "@/lib/images/wikimedia-credit";
 import type { ReactElement } from "react";
 import { dayColor } from "@/lib/map/day-colors";
 import { routeSketch, sketchDataUri, sketchSvg, type Sketch } from "@/lib/og/route-sketch";
@@ -47,6 +48,7 @@ const COPY = {
     more: (n: number) => `+${n} more days`,
     tagline: "Planned on MonkeyTravel",
     perPerson: "per person",
+    photo: "Photo",
   },
   es: {
     day: (n: number) => `Día ${n}`,
@@ -58,6 +60,7 @@ const COPY = {
     more: (n: number) => `+${n} días más`,
     tagline: "Planificado en MonkeyTravel",
     perPerson: "por persona",
+    photo: "Foto",
   },
   it: {
     day: (n: number) => `Giorno ${n}`,
@@ -69,6 +72,7 @@ const COPY = {
     more: (n: number) => `+${n} altri giorni`,
     tagline: "Pianificato su MonkeyTravel",
     perPerson: "a persona",
+    photo: "Foto",
   },
   pt: {
     day: (n: number) => `Dia ${n}`,
@@ -80,6 +84,7 @@ const COPY = {
     more: (n: number) => `+${n} dias a mais`,
     tagline: "Planejado no MonkeyTravel",
     perPerson: "por pessoa",
+    photo: "Foto",
   },
 } as const;
 
@@ -173,7 +178,16 @@ export function dayLines(days: CardDay[], locale: CardLocale, max: number, maxCh
   return { rows, more: sorted.length - rows.length };
 }
 
-/** The cover at a size the card can use. Pexels and the Places proxy take a size; anything else is left alone. */
+/** A photo from Google's Places or Maps: ours through the Places proxy, or straight from Google's hosts. */
+function isGooglePhoto(url: URL): boolean {
+  return url.pathname === "/api/places/photo" || /(^|\.)(googleusercontent\.com|googleapis\.com|ggpht\.com)$/.test(url.hostname);
+}
+
+/**
+ * The cover at a size the card can use: Pexels takes a size, anything else is left alone. A card is a picture
+ * that leaves the site (a chat's link preview, a post), and a Google photo may be shown on the site only: a trip
+ * whose cover is one gets the card without a photo.
+ */
 export function coverForCard(url: string | null | undefined, origin: string, size = 1200): string | null {
   if (!url) return null;
   let abs: URL;
@@ -182,18 +196,33 @@ export function coverForCard(url: string | null | undefined, origin: string, siz
   } catch {
     return null;
   }
+  if (isGooglePhoto(abs)) return null;
   if (abs.hostname === "images.pexels.com") {
     abs.searchParams.set("w", String(size));
     abs.searchParams.set("h", String(size));
     abs.searchParams.set("fit", "crop");
-  } else if (abs.pathname === "/api/places/photo") {
-    abs.searchParams.set("w", String(size));
-    abs.searchParams.set("h", String(size));
-    // The card renderer's fetch sends a library user-agent; og=1 keeps the
-    // proxy from treating it as automation (app/api/places/photo/route.ts).
-    abs.searchParams.set("og", "1");
   }
   return abs.toString();
+}
+
+export interface CoverCredit {
+  author: string;
+  license: string;
+}
+
+/**
+ * The cover a card may carry, with the credit to draw on it. A photo from Wikimedia Commons goes with its author
+ * and licence, which the licence asks to be said wherever the photo goes; one that can't be credited stays off
+ * the card.
+ */
+export function cardCover(url: string | null | undefined, origin: string, size = 1200): { cover: string | null; credit: CoverCredit | null } {
+  const cover = coverForCard(url, origin, size);
+  if (!cover) return { cover: null, credit: null };
+  const { pathname, search } = new URL(cover);
+  if (!pathname.startsWith(WIKIMEDIA_IMAGE_PATH)) return { cover, credit: null };
+  const credit = readCredit(pathname + search);
+  if (!credit) return { cover: null, credit: null };
+  return { cover, credit: { author: credit.author || "Wikimedia Commons", license: credit.license } };
 }
 
 export interface TripCardData {
@@ -203,6 +232,8 @@ export interface TripCardData {
   days: CardDay[];
   /** Absolute, already sized (coverForCard). */
   cover: string | null;
+  /** The cover's author and licence, drawn on it (cardCover). */
+  coverCredit?: CoverCredit | null;
   /** Absolute URL of the brand mark. */
   logo: string;
   goingCount: number;
@@ -293,7 +324,15 @@ function Pills(p: { items: Pill[]; fontSize: number; onPaper?: boolean }): React
   );
 }
 
-function Cover(p: { src: string | null; width: number; height: number }): ReactElement {
+/** How far down a story's screen a phone keeps its own header over the picture. */
+const STORY_TOP = 250;
+
+/** "Photo: Author · licence", as the cover's licence asks. */
+function creditLine(d: TripCardData): string | null {
+  return d.coverCredit ? `${COPY[d.locale].photo}: ${clip(d.coverCredit.author, 40)} · ${d.coverCredit.license}` : null;
+}
+
+function Cover(p: { src: string | null; width: number; height: number; credit?: string | null; creditTop?: number; creditSize?: number }): ReactElement {
   return (
     <div style={{ display: "flex", position: "absolute", top: 0, left: 0, width: p.width, height: p.height, background: NAVY }}>
       {p.src ? (
@@ -311,6 +350,25 @@ function Cover(p: { src: string | null; width: number; height: number }): ReactE
           background: `linear-gradient(180deg, rgba(28,35,38,0.10) 0%, rgba(28,35,38,0.35) 50%, rgba(28,35,38,0.94) 100%)`,
         }}
       />
+      {p.src && p.credit ? (
+        <div
+          style={{
+            display: "flex",
+            position: "absolute",
+            left: 24,
+            top: p.creditTop ?? 20,
+            maxWidth: p.width - 48,
+            padding: "4px 10px",
+            borderRadius: 8,
+            background: "rgba(28,35,38,0.55)",
+            color: "rgba(255,255,255,0.92)",
+            fontFamily: BODY,
+            fontSize: p.creditSize ?? 18,
+          }}
+        >
+          {p.credit}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -476,7 +534,7 @@ function story(d: TripCardData): ReactElement {
   return (
     <div style={{ display: "flex", flexDirection: "column", position: "relative", width, height, background: DEEP, fontFamily: BODY }}>
       <div style={{ display: "flex", position: "relative", width, height: coverH, overflow: "hidden" }}>
-        <Cover src={d.cover} width={width} height={coverH} />
+        <Cover src={d.cover} width={width} height={coverH} credit={creditLine(d)} creditTop={STORY_TOP} creditSize={24} />
         <div style={{ display: "flex", position: "absolute", left: 64, bottom: 84 }}>
           <Headline d={d} logoSize={56} brandFont={26} titleFont={displaySize(d.destination, 104, 88, 68)} subFont={40} width={width - 128} />
         </div>
@@ -549,7 +607,7 @@ function square(d: TripCardData): ReactElement {
   return (
     <div style={{ display: "flex", flexDirection: "column", position: "relative", width, height, background: DEEP, fontFamily: BODY }}>
       <div style={{ display: "flex", position: "relative", width, height: coverH, overflow: "hidden" }}>
-        <Cover src={d.cover} width={width} height={coverH} />
+        <Cover src={d.cover} width={width} height={coverH} credit={creditLine(d)} creditSize={22} />
         <div style={{ display: "flex", position: "absolute", left: 56, bottom: 72 }}>
           <Headline d={d} logoSize={44} brandFont={22} titleFont={displaySize(d.destination, 80, 66, 52)} subFont={32} width={width - 112} />
         </div>
@@ -608,7 +666,7 @@ function og(d: TripCardData): ReactElement {
   const textWidth = sketch ? width - 64 - 400 : width - 128;
   return (
     <div style={{ display: "flex", position: "relative", width, height, background: DEEP, fontFamily: BODY }}>
-      <Cover src={d.cover} width={width} height={height} />
+      <Cover src={d.cover} width={width} height={height} credit={creditLine(d)} />
       {sketch ? (
         <div
           style={{

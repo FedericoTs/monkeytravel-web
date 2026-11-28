@@ -53,6 +53,35 @@ describe("the restaurants a plan repeats", () => {
     expect(repeatedRestaurants(days, "Ljubljana")).toEqual([expect.objectContaining({ name: "Restavracija JB" })]);
   });
 
+  // "Trattoria da Enzo al 29" for lunch on day 1 and "Da Enzo al 29" for dinner on day 4: one place, two spellings.
+  it("know one written with or without the kind of place, but not two places of one kind", () => {
+    const days = plan();
+    days[0].activities[1] = stop("13:00", "Trattoria da Enzo al 29", "restaurant");
+    days[2].activities[2] = stop("19:30", "Da Enzo al 29", "restaurant");
+    expect(repeatedRestaurants(days, "Rome")).toEqual([expect.objectContaining({ name: "Da Enzo al 29", near: "Pontocho Alley" })]);
+    days[2].activities[2] = stop("19:30", "Osteria da Fortunata", "restaurant");
+    expect(repeatedRestaurants(days, "Rome")).toEqual([]);
+    days[2].activities[2] = stop("19:30", "Osteria da Enzo", "restaurant");
+    expect(repeatedRestaurants(days, "Rome")).toEqual([]);
+    // The city in one name only: "Gion Karyo Kyoto" is Gion Karyo.
+    days[0].activities[1] = stop("19:00", "Gion Karyo Kyoto", "restaurant");
+    days[2].activities[2] = stop("19:00", "Gion Karyo", "restaurant");
+    expect(repeatedRestaurants(days, "Kyoto")).toEqual([expect.objectContaining({ name: "Gion Karyo" })]);
+    days[0].activities[1] = stop("13:00", "Casa Lucio", "restaurant");
+    days[2].activities[2] = stop("19:30", "Casa Labra", "restaurant");
+    expect(repeatedRestaurants(days, "Madrid")).toEqual([]);
+  });
+
+  // "Ristorante Roma" and "Trattoria Roma" on a trip to "Rome, Italy": two places, each named by its kind and the city.
+  it("tell two places of other kinds apart, though both bear the city's name", () => {
+    const days = plan();
+    days[0].activities[1] = stop("13:00", "Ristorante Roma", "restaurant");
+    days[2].activities[2] = stop("19:30", "Roma Ristorante", "restaurant");
+    expect(repeatedRestaurants(days, "Rome, Italy")).toEqual([expect.objectContaining({ name: "Roma Ristorante" })]);
+    days[2].activities[2] = stop("19:30", "Trattoria Roma", "restaurant");
+    expect(repeatedRestaurants(days, "Rome, Italy")).toEqual([]);
+  });
+
   it("leave cafés, bars and a hotel's breakfast alone: going back to them is natural", () => {
     const days = plan();
     days[2].activities[2] = stop("19:00", "Kinkaku-ji", "attraction");
