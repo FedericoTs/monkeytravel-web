@@ -45,7 +45,7 @@ describe("the save box's words, by the experiment's arm", () => {
     expect(SRC.split('saveBenefits={saveBoxTest.arm === "benefits"}').length - 1).toBe(2);
   });
 
-  it("draws on its own while the sky test still reads the same plan screen, so each arm of one meets both of the other", () => {
+  it("draws on its own, independent of any other draw on the plan screen", () => {
     expect(SAVE_BOX_BENEFITS.starts).toBe(Date.UTC(2026, 10, 26, 20, 0));
     const draw = SRC.slice(SRC.indexOf("return assignArm(SAVE_BOX_BENEFITS, {"));
     expect(draw.slice(0, draw.indexOf("});"))).toContain("random: Math.random,");

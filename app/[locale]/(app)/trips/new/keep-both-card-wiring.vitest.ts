@@ -20,10 +20,8 @@ describe("the keep-both card in the planner", () => {
     expect(SRC).toMatch(/keepBothCardShows\(\{\s*signedOut: isAuthenticated === false,\s*planOnScreen: hasResult,\s*unsaved: isUnsaved,\s*places: visitPlaces,\s*dismissed: keepBothTurnedDown,\s*boxOpen: showAuthModal,\s*\}\)/);
   });
 
-  it("sits above the plan in both layouts", () => {
+  it("sits above the plan", () => {
     expect(SRC).toMatch(/\{tripsTray\}\s*\{keepBothCard\}\s*\{errorAlert\}/);
-    expect(SRC).toContain("{(tripsTray || keepBothCard || errorAlert) && (");
-    expect(SRC).toMatch(/\{!sky && tripsTray\}\s*\{!sky && keepBothCard\}/);
   });
 
   it("opens the box that keeps a plan under its own name, and is turned down for the visit", () => {

@@ -2,8 +2,7 @@
  * The experiments the app runs with its own draw. Each has its arms (the first is today's experience, the control),
  * when the draw starts, and the day by which it must be read and decided: a test fails after that day, so none runs
  * on unread. The draw (assign.ts), the record of which arm a visitor saw (exposure.ts, the experiment_exposures
- * table) and the PostHog property follow the same rules for every experiment. The sky test predates this
- * (result-sky.ts) and ends on its own.
+ * table) and the PostHog property follow the same rules for every experiment.
  */
 export interface Experiment {
   /** Lower case, digits and underscores: the table checks it. */
