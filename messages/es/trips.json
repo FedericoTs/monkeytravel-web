@@ -314,6 +314,13 @@
       "aiVerifiedTitle": "Itinerario generado por AI",
       "aiVerifiedBody": "Este itinerario fue creado por AI. Haz clic en \"Más\" en cualquier actividad para ver las fotos, valoraciones y niveles de precio de Google. Te recomendamos comprobar los horarios de apertura antes de tu viaje.",
       "aiVerifiedBodyRows": "Este plan fue creado por AI. Toca una parada para ver sus detalles y fotos, y comprueba los horarios de apertura antes de ir.",
+      "checked": {
+        "lead": "{count, plural, one {Días de cierre comprobados para tus fechas: # lugar.} other {Días de cierre comprobados para tus fechas: # lugares.}}",
+        "noneShut": "No encontramos ninguno en un día de cierre.",
+        "fixed": "{count, plural, one {# estaba en un día de cierre y lo hemos corregido.} other {# estaban en un día de cierre y los hemos corregido.}}",
+        "left": "{count, plural, one {# sigue en un día de cierre: mira su nota.} other {# siguen en un día de cierre: mira sus notas.}}",
+        "fixedAndLeft": "{fixed, plural, one {# estaba en un día de cierre y lo hemos corregido;} other {# estaban en un día de cierre y los hemos corregido;}} {left, plural, one {# sigue: mira su nota.} other {# siguen: mira sus notas.}}"
+      },
       "notQuiteRight": "¿No es lo que buscabas?",
       "viewCards": "Tarjetas",
       "viewTimeline": "Cronología",

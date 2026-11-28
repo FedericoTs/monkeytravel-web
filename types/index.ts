@@ -1,4 +1,5 @@
 import type { SupportedLanguage } from "@/lib/ai/language";
+import type { PlanChecks } from "@/lib/ai/plan-checks";
 import type { Arrival, ChildAgeBand, ChosenTripIntent, Departure, Occasion } from "@/lib/wizard/answers";
 // Bananas currency system types
 export * from './bananas';
@@ -202,6 +203,12 @@ export interface GeneratedItinerary {
    * writes trip_meta.timezone without importing the coordinate table.
    */
   timezone?: string;
+  /**
+   * What was checked for the trip's own dates before the plan was shown
+   * (lib/ai/plan-checks.ts). Stamped on the response by the generate routes;
+   * the plan screen says it. Absent when nothing was looked at.
+   */
+  checked?: PlanChecks;
   trip_summary: {
     total_estimated_cost: number;
     currency: string;

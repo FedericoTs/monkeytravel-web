@@ -114,7 +114,7 @@ vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
 
 const { POST } = await import("./route");
 
-const themes = async (extra: Record<string, unknown> = {}) => {
+const planOf = async (extra: Record<string, unknown> = {}) => {
   const res = await POST(
     new NextRequest("https://monkeytravel.app/api/ai/generate", {
       method: "POST",
@@ -123,8 +123,9 @@ const themes = async (extra: Record<string, unknown> = {}) => {
     })
   );
   expect(res.status).toBe(200);
-  return ((await res.json()).itinerary.days as Array<{ theme: string }>).map((d) => d.theme);
+  return (await res.json()).itinerary as { days: Array<{ theme: string }>; checked?: unknown };
 };
+const themes = async (extra: Record<string, unknown> = {}) => (await planOf(extra)).days.map((d) => d.theme);
 
 beforeEach(() => {
   vi.spyOn(console, "log").mockImplementation(() => {});
@@ -151,6 +152,20 @@ describe("the JSON route", () => {
     expect(await themes(legs)).toEqual(["Museo de Bellas Artes", "Alhambra", "Albaicín"]);
     expect(logged.at(-1)?.closing_days).toMatchObject({ shut_before: 1, shut_after: 1, left: ["Museo de Bellas Artes (2026-11-30)"] });
     multiCityPlan = route;
+  });
+
+  it("tells the plan what was checked, for its screen to say", async () => {
+    expect((await planOf()).checked).toEqual({ sights: 3, shut: 1, fixed: 1, left: 0 });
+  });
+
+  it("tells the plan when a sight is still on a day it's shut", async () => {
+    multiCityPlan = shortSeville;
+    const legs = { destinations: [{ city: "Seville", nights: 1 }, { city: "Granada", nights: 2 }], destination: "Seville & Granada", startDate: "2026-11-30", endDate: "2026-12-02" };
+    try {
+      expect((await planOf(legs)).checked).toMatchObject({ shut: 1, fixed: 0, left: 1 });
+    } finally {
+      multiCityPlan = route;
+    }
   });
 
   it("logs the closing step of a one-city plan too", async () => {

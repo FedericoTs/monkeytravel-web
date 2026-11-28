@@ -117,6 +117,21 @@ describe("a plan with a sight on the day it shuts", () => {
     expect(logged.find((row) => row.status === 200)?.metadata?.closing_days).not.toHaveProperty("seasonal");
   });
 
+  it("tells the plan what was checked, for its screen to say", async () => {
+    const { done } = await complete();
+    expect(done.itinerary.checked).toEqual({ sights: 3, shut: 1, fixed: 1, left: 0 });
+  });
+
+  it("counts a stop shut for the season among the ones the plan says were shut", async () => {
+    shutForTheSeason = "Plaza de España";
+    try {
+      const { done } = await complete();
+      expect(done.itinerary.checked).toMatchObject({ sights: 3, shut: 2 });
+    } finally {
+      shutForTheSeason = null;
+    }
+  });
+
   it("logs a stop shut for the season apart from the closing days", async () => {
     shutForTheSeason = "Plaza de España";
     try {
@@ -133,6 +148,8 @@ describe("a plan with a sight on the day it shuts", () => {
     cached = plan(["2026-12-01", "2026-12-02", "2026-12-03"]);
     const { events, done } = await complete();
     expect(events.some((e) => e.includes('"mode":"cache"'))).toBe(true);
+    // A plan from the cache is checked for this request's dates like any other, and says so.
+    expect(done.itinerary.checked).toEqual({ sights: 3, shut: 1, fixed: 1, left: 0 });
     expect(order(done.itinerary.days)).toEqual(["2026-11-28 Real Alcázar", "2026-11-29 Museo de Bellas Artes", "2026-11-30 Plaza de España"]);
   });
 });

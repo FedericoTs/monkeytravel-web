@@ -238,6 +238,7 @@ import { anonymousShare } from "@/lib/wizard/anonymous-share";
 import { seasonalVibeSeed } from "@/lib/wizard/seasonal-vibes";
 import { newTripTitle } from "@/lib/trips/title";
 import AiDisclaimer from "@/components/trip/AiDisclaimer";
+import PlanChecksNote from "@/components/trip/PlanChecksNote";
 import { useTravelDistances } from "@/hooks/useTravelDistances";
 import { useMultiCityRoute } from "@/hooks/useMultiCityRoute";
 import { useRouteOffer } from "@/hooks/useRouteOffer";
@@ -1880,6 +1881,8 @@ export default function NewTripPage({
           {tripsTray}
           {keepBothCard}
           {errorAlert}
+          {/* What was checked for these dates, said first: under the header on every layout, before anything asks. */}
+          <PlanChecksNote checked={generatedItinerary.checked} className="mb-6" />
           {/* AI assistant — Q&A + day-scoped edits at peak intent. On a phone's rows it comes after the first day. */}
           {!phoneRows && <div className="mb-8">{assistantPanel}</div>}
 

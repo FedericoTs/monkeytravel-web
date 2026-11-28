@@ -314,6 +314,13 @@
       "aiVerifiedTitle": "AI-Generated Itinerary",
       "aiVerifiedBody": "This itinerary was created by AI. Click \"More\" on any activity to see Google's photos, ratings, and price levels. We recommend double-checking opening hours before your trip.",
       "aiVerifiedBodyRows": "This plan was created by AI. Tap a stop for its details and photos, and check opening hours before you go.",
+      "checked": {
+        "lead": "{count, plural, one {Closing days checked for your dates: # sight.} other {Closing days checked for your dates: # sights.}}",
+        "noneShut": "We found none planned on a closing day.",
+        "fixed": "{count, plural, one {# was planned on a closing day and has been fixed.} other {# were planned on a closing day and have been fixed.}}",
+        "left": "{count, plural, one {# is still on a closing day: see its note.} other {# are still on a closing day: see their notes.}}",
+        "fixedAndLeft": "{fixed, plural, one {# was planned on a closing day and has been fixed;} other {# were planned on a closing day and have been fixed;}} {left, plural, one {# still is: see its note.} other {# still are: see their notes.}}"
+      },
       "notQuiteRight": "Not quite right?",
       "viewCards": "Cards",
       "viewTimeline": "Timeline",
