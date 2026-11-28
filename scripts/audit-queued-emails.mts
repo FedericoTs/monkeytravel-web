@@ -301,9 +301,13 @@ async function main() {
       add("FAIL", "destination", `unusable title ${JSON.stringify(trip.title)}`);
     }
 
-    const heading = t("heading", { destination });
-    const body = t("body", { destination, endDate: formatDayMonth(trip.end_date, locale) });
-    const ctaLabel = isFollowup(row.slot) ? t("cta") : rootT("cta");
+    // The month the later followups' guide is for, exactly as the cron names it.
+    const month = new Intl.DateTimeFormat(locale, { month: "long", timeZone: "UTC" }).format(
+      new Date(Date.UTC(2000, FC.nextTripMonth(new Date()), 15)),
+    );
+    const heading = t("heading", { destination, month });
+    const body = t("body", { destination, endDate: formatDayMonth(trip.end_date, locale), month });
+    const ctaLabel = isFollowup(row.slot) ? t("cta", { month }) : rootT("cta");
     const finalNote = TERMINAL_FOLLOWUP_SLOTS.has(row.slot) ? rootT("finalNote") : undefined;
 
     const meta = (trip.trip_meta ?? {}) as any;

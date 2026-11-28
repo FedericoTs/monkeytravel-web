@@ -117,19 +117,23 @@ describe("next-intl itself renders the followup copy", () => {
         });
         // Mirrors the route: destination goes to BOTH heading and body,
         // because which of the two carries the placeholder varies by slot,
-        // and the body also gets the day the trip ended.
+        // the body also gets the day the trip ended, and all three the month
+        // the later slots' guide is for.
         const rendered = {
-          heading: t("heading", { destination: "Lisbon" }),
-          body: t("body", { destination: "Lisbon", endDate: "October 10" }),
-          cta: t("cta"),
+          heading: t("heading", { destination: "Lisbon", month: "January" }),
+          body: t("body", { destination: "Lisbon", endDate: "October 10", month: "January" }),
+          cta: t("cta", { month: "January" }),
         };
 
         for (const [key, value] of Object.entries(rendered)) {
           expect(value, `${locale}/${slot} ${key}`).not.toContain(
             "tripFollowupEmail."
           );
-          for (const placeholder of ["{destination}", "{endDate}"]) {
+          for (const placeholder of ["{destination}", "{endDate}", "{month}"]) {
             expect(value, `${locale}/${slot} ${key} left ${placeholder}`).not.toContain(placeholder);
+          }
+          if (raw[slot][key]?.includes("{month}")) {
+            expect(value, `${locale}/${slot} ${key} month`).toContain("January");
           }
           if (raw[slot][key]?.includes("{destination}")) {
             expect(value, `${locale}/${slot} ${key} substitution`).toContain(

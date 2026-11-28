@@ -189,7 +189,12 @@ const END_DATE = ((LocaleMod as any).default ?? LocaleMod).formatDayMonth(
 );
 // The cron interpolates via next-intl; here a plain substitution is enough
 // and keeps the script free of the i18n runtime.
-const fill = (s: string) => s.replace(/\{destination\}/g, DEST).replace(/\{endDate\}/g, END_DATE);
+// The later followups name the next trip's month, as the cron does (lib/email/followup-cta.ts nextTripMonth).
+const NEXT_MONTH = new Intl.DateTimeFormat("en", { month: "long", timeZone: "UTC" }).format(
+  new Date(Date.UTC(2000, FollowupCta.nextTripMonth(new Date()), 15)),
+);
+const fill = (s: string) =>
+  s.replace(/\{destination\}/g, DEST).replace(/\{endDate\}/g, END_DATE).replace(/\{month\}/g, NEXT_MONTH);
 
 const reminderCopy = commonMessages.tripReminderEmail;
 const followupCopy = commonMessages.tripFollowupEmail;
@@ -280,7 +285,7 @@ const followupJobs: Job[] = FOLLOWUP_SLOTS.map((slot) => {
     heading: fill(followupCopy[slot].heading),
     body: fill(followupCopy[slot].body),
     // Per-slot here, unlike the reminders.
-    ctaLabel: followupCopy[slot].cta,
+    ctaLabel: fill(followupCopy[slot].cta),
     // The SHARED builders, not copies (return → the answer links).
     ctaUrl: FollowupCta.postTripCtaUrl(slot, links),
     secondCta: noUrl ? { label: followupCopy.followup_return_3d.ctaNo, url: noUrl } : undefined,
