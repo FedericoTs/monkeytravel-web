@@ -8,8 +8,10 @@
  *
  * Tapping "I'm going" flips the state at once; the count changes when
  * POST /join confirms. On success the row asks, inline and in order,
- * for a name (optional) and then an email for this trip's notifications
- * (optional, purpose stated). "Not going" is one tap away the whole time.
+ * for what they don't want to miss (up to three, each box showing once the
+ * one before holds something) with a name, then an email for this trip's
+ * notifications (each optional, purpose stated). "Not going" is one tap
+ * away the whole time.
  *
  * Identity is the mt_anon_voter cookie the join route mints (httpOnly), so
  * this component holds no id — it only ever asks the server "me?".
@@ -19,6 +21,8 @@ import { useLocale, useTranslations } from "next-intl";
 import { shownErrorText } from "@/lib/utils/shown-error";
 import {
   initialsOf,
+  PICK_MAX_CHARS,
+  PICKS_MAX,
   type JoinResponse,
   type ParticipantSource,
   type ParticipantsResponse,
@@ -47,6 +51,9 @@ const EMPTY: ParticipantsResponse = {
   me: { joined: false, display_name: null, has_email: false },
 };
 
+/** Their picks in the boxes, empty boxes after them. */
+const inBoxes = (picks: string[] | undefined) => Array.from({ length: PICKS_MAX }, (_, i) => picks?.[i] ?? "");
+
 export default function ParticipantsBar({
   shareToken,
   source,
@@ -65,6 +72,8 @@ export default function ParticipantsBar({
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<Step>("idle");
   const [name, setName] = useState("");
+  const [picks, setPicks] = useState<string[]>(inBoxes(undefined));
+  const [picksSent, setPicksSent] = useState(false);
   const [email, setEmail] = useState("");
   const [planEmail, setPlanEmail] = useState<{ outcome: PlanEmailOutcome; to: string } | null>(null);
   const [shared, setShared] = useState<"idle" | "copied">("idle");
@@ -138,6 +147,8 @@ export default function ParticipantsBar({
     try {
       const next = await post({ action: "join" });
       if (next) setData(next);
+      // Someone coming back finds the must-dos they added before.
+      if (next?.me.picks?.length) setPicks(inBoxes(next.me.picks));
       setStep("name");
     } catch (e) {
       setData(before);
@@ -166,27 +177,35 @@ export default function ParticipantsBar({
     }
   }, [busy, data, post, t]);
 
-  const saveName = useCallback(async () => {
+  const saveAnswers = useCallback(async () => {
     // Reached only after join confirmed (step became "name"), so the row
     // exists. The disabled button + Playwright actionability prevent a
     // double-submit; no busy short-circuit here, or a fast Enter is swallowed.
     const value = name.trim();
-    if (!value) {
-      setStep(data.me.has_email ? "done" : "email");
+    const wanted = picks.map((p) => p.trim()).filter(Boolean);
+    const answers: Record<string, unknown> = {
+      ...(value ? { display_name: value } : {}),
+      ...(wanted.length > 0 ? { picks: wanted } : {}),
+    };
+    // Whatever the server says, the next step is the one the bar showed when it asked.
+    const nextStep = data.me.has_email ? "done" : "email";
+    if (Object.keys(answers).length === 0) {
+      setStep(nextStep);
       return;
     }
     setBusy(true);
     setError(null);
     try {
-      const next = await post({ action: "update", display_name: value });
+      const next = await post({ action: "update", ...answers });
       if (next) setData(next);
-      setStep(data.me.has_email ? "done" : "email");
+      setPicksSent(wanted.length > 0);
+      setStep(nextStep);
     } catch (e) {
       setError(shownErrorText(e, t("share.participants.error")));
     } finally {
       setBusy(false);
     }
-  }, [name, data.me.has_email, post, t]);
+  }, [name, picks, data.me.has_email, post, t]);
 
   const saveEmail = useCallback(async () => {
     const value = email.trim();
@@ -228,6 +247,9 @@ export default function ParticipantsBar({
   }, [shareUrl, tripTitle, t]);
 
   const joined = data.me.joined;
+  // The boxes up to the last one with something in it, and one more: a pick is never hidden while it's kept.
+  const lastFilled = picks.reduce((last, p, i) => (p.trim() ? i : last), -1);
+  const shownPicks = picks.slice(0, Math.min(PICKS_MAX, lastFilled + 2));
   const shown = data.participants.slice(0, 5);
   const overflow = Math.max(0, data.count - shown.length);
 
@@ -350,35 +372,53 @@ export default function ParticipantsBar({
         </p>
       )}
 
-      {/* After the tap: name, then email — each optional, each skippable. */}
+      {/* After the tap: what they don't want to miss with a name, then email — each optional, each skippable. */}
       {joined && step === "name" && (
         <form
-          className="mt-3 flex flex-wrap items-center gap-2"
+          className="mt-3 grid gap-2"
           onSubmit={(e) => {
             e.preventDefault();
-            void saveName();
+            void saveAnswers();
           }}
         >
-          <label htmlFor="participant-name" className="text-sm text-slate-700">
-            {t("share.participants.namePrompt")}
-          </label>
-          <input
-            id="participant-name"
-            data-testid="participants-name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            maxLength={60}
-            autoComplete="given-name"
-            placeholder={t("share.participants.namePlaceholder")}
-            className="min-h-[40px] flex-1 min-w-[10rem] rounded-lg border border-slate-300 px-3 text-sm focus:border-[var(--primary)] focus:outline-none"
-          />
-          <button
-            type="submit"
-            disabled={busy}
-            className="min-h-[40px] rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white disabled:opacity-60"
-          >
-            {name.trim() ? t("share.participants.save") : t("share.participants.skip")}
-          </button>
+          <p id="participant-picks-label" className="text-sm font-medium text-slate-800">
+            {t("share.participants.picksPrompt")}
+          </p>
+          {shownPicks.map((pick, i) => (
+            <input
+              key={i}
+              data-testid={`participants-pick-${i}`}
+              aria-labelledby="participant-picks-label"
+              value={pick}
+              onChange={(e) => setPicks((all) => all.map((p, k) => (k === i ? e.target.value : p)))}
+              maxLength={PICK_MAX_CHARS}
+              placeholder={t("share.participants.picksPlaceholder")}
+              className="min-h-[40px] w-full rounded-lg border border-slate-300 px-3 text-sm focus:border-[var(--primary)] focus:outline-none"
+            />
+          ))}
+          <p className="text-xs text-slate-500">{t("share.participants.picksHint")}</p>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <label htmlFor="participant-name" className="text-sm text-slate-700">
+              {t("share.participants.namePrompt")}
+            </label>
+            <input
+              id="participant-name"
+              data-testid="participants-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              maxLength={60}
+              autoComplete="given-name"
+              placeholder={t("share.participants.namePlaceholder")}
+              className="min-h-[40px] flex-1 min-w-[10rem] rounded-lg border border-slate-300 px-3 text-sm focus:border-[var(--primary)] focus:outline-none"
+            />
+            <button
+              type="submit"
+              disabled={busy}
+              className="min-h-[40px] rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white disabled:opacity-60"
+            >
+              {name.trim() || picks.some((p) => p.trim()) ? t("share.participants.save") : t("share.participants.skip")}
+            </button>
+          </div>
         </form>
       )}
       {joined && step === "email" && (
@@ -416,6 +456,7 @@ export default function ParticipantsBar({
       )}
       {joined && step === "done" && (
         <p className="mt-2 text-xs text-slate-500" data-testid="participants-done">
+          {picksSent && <>{t("share.participants.picksSent")} </>}
           {planEmail && (
             <>
               {planEmail.outcome === "sent"
