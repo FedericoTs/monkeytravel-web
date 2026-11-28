@@ -39,6 +39,18 @@ export const SAVE_BOX_BENEFITS = {
 } as const satisfies Experiment;
 
 /**
+ * How a phone reads a plan: as today, a tall card for every stop with its picture, description, address and
+ * buttons ("cards"), or the days in a row to jump between and every stop a short row that opens its sheet, with
+ * the assistant after the first day ("rows"). Counted from the plan on a phone's screen, where the arms differ.
+ */
+export const PHONE_PLAN_ROWS = {
+  key: "phone_plan_rows",
+  arms: ["cards", "rows"],
+  starts: Date.UTC(2026, 10, 29, 0, 0),
+  reviewBy: "2026-12-20",
+} as const satisfies Experiment;
+
+/**
  * What a signed-out planner sharing a plan is offered: as today, the link and the ways to send it ("none"), or also
  * the way to the trip's story for friends who aren't coming, a guess they can play ("story"). Counted when the
  * share's panel shows a link, where the arms first differ.
@@ -50,7 +62,7 @@ export const STORY_WAY_IN = {
   reviewBy: "2027-01-09",
 } as const satisfies Experiment;
 
-export const EXPERIMENTS: readonly Experiment[] = [STEP2_DEFAULT, SAVE_BOX_BENEFITS, STORY_WAY_IN];
+export const EXPERIMENTS: readonly Experiment[] = [STEP2_DEFAULT, SAVE_BOX_BENEFITS, PHONE_PLAN_ROWS, STORY_WAY_IN];
 
 export function experimentByKey(key: string): Experiment | undefined {
   return EXPERIMENTS.find((experiment) => experiment.key === key);

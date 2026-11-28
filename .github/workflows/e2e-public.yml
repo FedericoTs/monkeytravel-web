@@ -38,6 +38,7 @@ jobs:
       # Nor a random arm of the experiments (lib/experiments/registry.ts): a test that wants one asks with its link.
       NEXT_PUBLIC_EXP_STEP2_DEFAULT: "off"
       NEXT_PUBLIC_EXP_SAVE_BOX_BENEFITS: "off"
+      NEXT_PUBLIC_EXP_PHONE_PLAN_ROWS: "off"
       NEXT_PUBLIC_EXP_STORY_WAY_IN: "off"
     steps:
       - uses: actions/checkout@v7
