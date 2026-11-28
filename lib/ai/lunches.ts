@@ -6,8 +6,9 @@
  * by half past two, and the day's later stops move on to make room as for any stop put in (lib/trip/day-room.ts):
  * never a sight past the afternoon, a booked stop or a dated event. A restaurant that isn't a real place near that
  * visit, or one the plan already holds, is left out, and the day stays as it was. A day that eats at a food market at
- * midday, or spends it on one long visit (a day trip, a theme park), has its lunch; the first and last days and a day
- * with a ride are left as they are.
+ * midday, or spends it on one long visit (a day trip, a theme park), has its lunch; the first and last days are left as
+ * they are, and so is a day with a ride, unless its one ride gets in by one o'clock: a route's ride to the next city
+ * gets in at lunchtime, so lunch follows it there, looked for near the first place visited on arriving.
  */
 import { SchemaType, type ResponseSchema } from "@/lib/ai/genai-compat";
 import { genAI, withTimeout } from "@/lib/ai/gemini-call";
@@ -43,10 +44,14 @@ const LATEST = 14 * 60 + 30;
 /** From the end of the visit before it to lunch: the walk lib/trip/day-room.ts leaves between stops. */
 const AFTER_MINUTES = 20;
 const LUNCH_MINUTES = 60;
+/** After a morning's ride, a quicker lunch on arriving: the afternoon there is already planned. */
+const ARRIVAL_LUNCH_MINUTES = 45;
 /** A visit's length when the plan gives none, as lib/trip/day-room.ts counts it. */
 const DEFAULT_MINUTES = 90;
 /** How far from the visit before it a lunch may be. */
 const NEAR_KM = 3;
+/** A day's one ride getting in by then leaves lunch to the new place. */
+const RIDE_IN_BY = 13 * 60;
 /** At most this many days in one question. */
 const MAX_DAYS = 10;
 const TIMEOUT_MS = 8000;
@@ -58,6 +63,10 @@ const minutesOf = (time?: string): number | null => {
   return m ? Number(m[1]) * 60 + Number(m[2]) : null;
 };
 const endOf = (stop: Stop, start: number) => start + (stop.duration_minutes || DEFAULT_MINUTES);
+const endsAt = (stop: Stop): number | null => {
+  const start = minutesOf(stop.start_time);
+  return start === null ? null : endOf(stop, start);
+};
 const byTime = (stops: Stop[]) => [...stops].sort((a, b) => (minutesOf(a.start_time) ?? 24 * 60) - (minutesOf(b.start_time) ?? 24 * 60));
 
 /** Whether a day eats at midday: a meal around then, a food market by half past two, or one visit from noon to two. */
@@ -97,12 +106,14 @@ function withLunchAfter<D extends Day>(day: D, visit: Stop, lunch: Stop): D | nu
   return (made.activities ?? []).some((stop) => stop.locked && !kept.has(stop)) ? null : made;
 }
 
-const lunchAt = (time: number): Stop => ({ name: "Lunch", type: "restaurant", start_time: formatMinutesToTime(time), duration_minutes: LUNCH_MINUTES });
+const lunchAt = (time: number, minutes = LUNCH_MINUTES): Stop => ({ name: "Lunch", type: "restaurant", start_time: formatMinutesToTime(time), duration_minutes: minutes });
 
-/** A day without lunch: the visit lunch follows, where it is, and when lunch starts after it. */
+/** A day without lunch: the stop lunch follows, where it is looked for, and when lunch starts after it. */
 export interface LunchWanted {
-  /** The visit lunch follows: it is looked for near it. */
+  /** The stop lunch follows: a visit, looked for near it, or the day's ride. */
   after: string;
+  /** After a ride, the first place visited on arriving, which `at` is: the ride has no pin. */
+  near?: string;
   at: { lat: number; lng: number };
   date: string;
   city: string;
@@ -110,23 +121,47 @@ export interface LunchWanted {
 }
 
 /**
- * The full days (not the plan's first or last, nor one with a ride) that don't eat at midday, each with the visit
- * lunch follows: of those that leave room for it, the one it comes nearest one o'clock after.
+ * The full days (not the plan's first or last) that don't eat at midday, each with the stop lunch follows: of those
+ * that leave room for it, the one it comes nearest one o'clock after. A day with a ride counts only when its one ride
+ * gets in by one o'clock, and then only what comes after arriving: the visits there, and the ride itself, after which
+ * lunch is looked for near the first place visited on arriving.
  */
 export function daysWithoutLunch(days: Day[], destination: string): LunchWanted[] {
   return days
     .flatMap((day, i) => {
       const stops = day.activities ?? [];
-      if (i === 0 || i === days.length - 1 || !day.date || stops.length === 0 || stops.some(isRide) || eatsAtMidday(stops)) return [];
-      const fits = stops
-        .filter((stop) => stop.name && !isMealStop(stop) && isRealPoint(stop.coordinates))
+      if (i === 0 || i === days.length - 1 || !day.date || stops.length === 0 || eatsAtMidday(stops)) return [];
+      const rides = stops.filter(isRide);
+      const ride = rides.length === 1 ? rides[0] : undefined;
+      const arrives = ride ? endsAt(ride) : null;
+      if (rides.length > 0 && (arrives === null || arrives > RIDE_IN_BY)) return [];
+      const visits = stops.filter(
+        (stop) =>
+          stop.name &&
+          !isMealStop(stop) &&
+          !isRide(stop) &&
+          isRealPoint(stop.coordinates) &&
+          (arrives === null || (minutesOf(stop.start_time) ?? -1) >= arrives)
+      );
+      const first = ride ? byTime(visits)[0] : undefined;
+      const fits = [...visits, ...(ride && first ? [ride] : [])]
         .map((stop) => ({ stop, time: lunchAfter(stop) }))
         .filter((choice): choice is { stop: Stop; time: number } => choice.time !== null)
         .sort((a, b) => Math.abs(a.time - BEST) - Math.abs(b.time - BEST) || a.time - b.time)
-        .find(({ stop, time }) => withLunchAfter(day, stop, lunchAt(time)) !== null);
-      if (!fits?.stop.name || !isRealPoint(fits.stop.coordinates)) return [];
-      const { lat, lng } = fits.stop.coordinates;
-      return [{ after: fits.stop.name, at: { lat, lng }, date: day.date, city: day.city || destination, time: formatMinutesToTime(fits.time) }];
+        .find(({ stop, time }) => withLunchAfter(day, stop, lunchAt(time, stop === ride ? ARRIVAL_LUNCH_MINUTES : LUNCH_MINUTES)) !== null);
+      const near = fits?.stop === ride ? first : undefined;
+      const point = near ? near.coordinates : fits?.stop.coordinates;
+      if (!fits?.stop.name || !isRealPoint(point)) return [];
+      return [
+        {
+          after: fits.stop.name,
+          ...(near?.name ? { near: near.name } : {}),
+          at: { lat: point.lat, lng: point.lng },
+          date: day.date,
+          city: day.city || destination,
+          time: formatMinutesToTime(fits.time),
+        },
+      ];
     })
     .slice(0, MAX_DAYS);
 }
@@ -170,7 +205,10 @@ type LunchOptions = { budgetTier?: BudgetTier; diets?: string[]; language: Suppo
 export function lunchQuestion(wanted: LunchWanted[], opts: LunchOptions): string {
   return [
     "Name one real restaurant for lunch on each of these days, a short walk from the place visited just before it, open for lunch at that time on that date:",
-    ...wanted.map((w, i) => `${i + 1}. ${w.city}, ${w.date}: lunch at ${w.time}, after ${w.after} (${w.at.lat.toFixed(5)}, ${w.at.lng.toFixed(5)})`),
+    ...wanted.map(
+      (w, i) =>
+        `${i + 1}. ${w.city}, ${w.date}: lunch at ${w.time}, ${w.near ? `on arriving, a short walk from ${w.near}` : `after ${w.after}`} (${w.at.lat.toFixed(5)}, ${w.at.lng.toFixed(5)})`
+    ),
     "",
     `Each one ${BUDGET_WORDS[opts.budgetTier ?? "balanced"]}${opts.diets?.length ? `, with good choices for a ${opts.diets.join(" and ")} diet` : ""}: a local place rather than a fast-food chain, and a different restaurant each day.`,
     ...(opts.taken?.length ? [`None the plan already has: ${opts.taken.join("; ")}.`] : []),
@@ -216,39 +254,103 @@ export async function askForLunches(wanted: LunchWanted[], opts: LunchOptions): 
 }
 
 /**
+ * Why a day asked about is still without lunch: no answer for it, the visit it follows has left the plan or has no real
+ * pin, lunch would start after half past two, the answer is no real place (no name, no pin), is farther than 3 km from
+ * that visit, or is a place the plan already holds, or the day has no room for it there (another stop starts first, a
+ * sight would leave the afternoon, or a booked stop would move).
+ */
+export type LunchLeftOut = "unanswered" | "gone" | "unplaced" | "late" | "unreal" | "far" | "taken" | "full";
+
+/** How many days asked about still have no lunch, by why: the first answer turned away for each, or no answer. */
+export type LunchesLeft = Partial<Record<LunchLeftOut, number>>;
+
+/** Two or more counts of days left without lunch, as one. */
+export function lunchesLeftTogether(...lefts: LunchesLeft[]): LunchesLeft {
+  const out: LunchesLeft = {};
+  for (const left of lefts) {
+    for (const [why, n] of Object.entries(left) as Array<[LunchLeftOut, number]>) out[why] = (out[why] ?? 0) + n;
+  }
+  return out;
+}
+
+/**
  * The days with each answered lunch right after the visit it was chosen near, wherever that visit now is: twenty
  * minutes after it ends, from noon, as a restaurant, the day's later stops moved on. Left out when it isn't a real
  * place within 3 km of that visit, the plan already holds it, it would start after half past two, the day eats at
- * midday by now, or the day has no room for it. Pure.
+ * midday by now, or the day has no room for it. `left` says, for the days asked about that still have none, why. Pure.
  */
-export function withLunches<D extends Day>(days: D[], wanted: LunchWanted[], answer: LunchAnswer): { days: D[]; added: number } {
+export function withLunches<D extends Day>(
+  days: D[],
+  wanted: LunchWanted[],
+  answer: LunchAnswer
+): { days: D[]; added: number; left: LunchesLeft } {
   let out = days;
   let added = 0;
+  // For each day asked about, the first reason an answer for it was turned away; and the days that have lunch now.
+  const why = new Map<number, LunchLeftOut>();
+  const fed = new Set<number>();
   for (const entry of Array.isArray(answer.lunches) ? answer.lunches : []) {
-    const n = entry?.n;
-    const want = typeof n === "number" ? wanted[n - 1] : undefined;
+    const number = entry?.n;
+    const n = typeof number === "number" ? number - 1 : -1;
+    const want = wanted[n];
     if (!want) continue;
+    const turnedAway = (reason: LunchLeftOut) => void (why.has(n) || why.set(n, reason));
     const at = out.findIndex((d) => (d.activities ?? []).some((s) => s.name === want.after));
-    if (at < 0 || eatsAtMidday(out[at].activities ?? [])) continue;
+    if (at < 0) {
+      turnedAway("gone");
+      continue;
+    }
+    if (eatsAtMidday(out[at].activities ?? [])) {
+      fed.add(n);
+      continue;
+    }
     const visit = (out[at].activities ?? []).find((s) => s.name === want.after)!;
     const time = lunchAfter(visit);
-    if (time === null || !isRealPoint(visit.coordinates)) continue;
+    if (time === null) {
+      turnedAway("late");
+      continue;
+    }
+    // A ride has no pin: lunch after it is looked for near the first place visited on arriving (want.at).
+    if (!want.near && !isRealPoint(visit.coordinates)) {
+      turnedAway("unplaced");
+      continue;
+    }
     const cost = Number(entry.cost_per_person_usd);
     const activity = activityOf({
       ...entry,
       type: "restaurant",
       start_time: formatMinutesToTime(time),
-      duration_minutes: LUNCH_MINUTES,
+      duration_minutes: want.near ? ARRIVAL_LUNCH_MINUTES : LUNCH_MINUTES,
       ...(Number.isFinite(cost) && cost > 0 ? { estimated_cost: { amount: Math.round(cost), currency: "USD", tier: "moderate" } } : {}),
     });
-    if (!activity?.coordinates || haversineKm(activity.coordinates, visit.coordinates) > NEAR_KM) continue;
+    const words = activity ? nameTokens(activity.name) : [];
+    if (!activity?.coordinates || words.length === 0) {
+      turnedAway("unreal");
+      continue;
+    }
+    if (haversineKm(activity.coordinates, want.at) > NEAR_KM) {
+      turnedAway("far");
+      continue;
+    }
     const names = out.flatMap((d) => d.activities ?? []).map((s) => nameTokens(s.name ?? ""));
-    const words = nameTokens(activity.name);
-    if (words.length === 0 || held(words, names)) continue;
+    if (held(words, names)) {
+      turnedAway("taken");
+      continue;
+    }
     const day = withLunchAfter(out[at], visit, { ...activity, type: "restaurant" });
-    if (!day) continue;
+    if (!day) {
+      turnedAway("full");
+      continue;
+    }
     out = out.map((d, i) => (i === at ? day : d));
     added++;
+    fed.add(n);
   }
-  return { days: out, added };
+  const left: LunchesLeft = {};
+  wanted.forEach((_, n) => {
+    if (fed.has(n)) return;
+    const reason = why.get(n) ?? "unanswered";
+    left[reason] = (left[reason] ?? 0) + 1;
+  });
+  return { days: out, added, left };
 }

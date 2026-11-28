@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 
 /**
- * Counts presses on the "Plan this trip for <month>" links an article's body
+ * Counts presses on the "Plan this trip (for <month>)" links an article's body
  * carries (lib/blog/place-plan-links.ts), in the site's own count, the same for
  * every visitor: the links are plain HTML, so one listener reads them all.
  */

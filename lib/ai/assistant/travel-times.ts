@@ -4,7 +4,8 @@
  */
 
 import { formatMinutesToTime } from "@/lib/datetime/format";
-import type { ItineraryDay } from "@/types";
+import { arrivalDay } from "@/lib/ai/transfer-legs";
+import type { Activity, ItineraryDay } from "@/types";
 import { clockTime, num, type DayEdit } from "./edit-validation";
 import { TELLS_TIME } from "./message-asks";
 
@@ -171,3 +172,94 @@ export function outsideTravelTimes(
     }];
   });
 }
+
+/** What holding a changed day to the traveller's times did to it. */
+export interface TravelTimesFit {
+  day: number;
+  arrives?: string;
+  leaves?: string;
+  /** Free from, after arriving. */
+  from: string | null;
+  /** Done by, to set off. */
+  until: string | null;
+  /** They leave one place and arrive in another that day. */
+  journey?: true;
+  /** Moved to after the arrival or the ride. */
+  moved: string[];
+  /** Cut to end before they set off. */
+  shortened: string[];
+  /** Left out: no time for them around the travel. */
+  left: string[];
+}
+
+/** The travel itself: the flight, the ride, the transfer, the check-in. It keeps its time. */
+const isTravel = (a: Activity) => a.type === "transport" || a.type === "accommodation" || !!a.transport_mode || JOURNEY.test(a.name ?? "");
+/** A visit cut for a departure keeps an hour at least, and half its length. */
+const SHORTEST_CUT = 60;
+/** arrivalDay's own margin after a ride, taken off the ride stood in for the travel so it frees them at `from`. */
+const RIDE_BUFFER = 30;
+const startOf = (a: Activity) => minutesOf(a.start_time);
+const byStart = (a: Activity, b: Activity) => (startOf(a) || 0) - (startOf(b) || 0);
+
+/**
+ * The edited days held to the times the traveller gave, in code rather than by asking again (the second try left
+ * them outside more often than not). What starts before they can be there moves to the first gap after it, as a
+ * ride's arrival day does (by the evening, a sight in the daytime, a meal within its hour and a half), or comes out;
+ * on a day that goes from one place to another, what falls during the ride does the same; what runs past when they
+ * must set off ends then when an hour of it is left, or comes out. The travel itself keeps its time. Days without a
+ * time, or that already fit, are as they were; `fits` says what changed, for the reply.
+ */
+export function fitTravelTimes<E extends Pick<DayEdit, "day_number" | "activities">>(
+  edits: E[],
+  times: TravelTime[],
+): { edits: E[]; fits: TravelTimesFit[] } {
+  const fits: TravelTimesFit[] = [];
+  const fitted = edits.map((e) => {
+    const t = times.find((x) => x.day === e.day_number);
+    const outside = t ? outsideTravelTimes([e], [t])[0] : undefined;
+    if (!t || !outside) return e;
+    const margin = TRAVEL_MARGIN[t.by ?? ""] ?? TRAVEL_MARGIN.flight;
+    const from = t.arrives ? minutesOf(t.arrives) + margin.after : 0;
+    const until = t.leaves ? minutesOf(t.leaves) - margin.before : 24 * 60;
+    const travel = e.activities.filter(isTravel);
+    let rest = e.activities.filter((a) => !isTravel(a));
+    const before = new Map(rest.map((a) => [a, a.start_time]));
+    if (t.arrives) {
+      // The travel stands in as a ride: from midnight, or on a journey day from when they set off.
+      const setOff = outside.journey ? until : 0;
+      const ride = { name: "", start_time: formatMinutesToTime(setOff), duration_minutes: Math.max(0, from - setOff - RIDE_BUFFER) } as Activity;
+      rest = arrivalDay(ride, rest, { daytime: true }).activities.filter((a) => a !== ride);
+    }
+    if (t.leaves && !outside.journey) {
+      rest = rest.flatMap((a) => {
+        const start = startOf(a);
+        const length = a.duration_minutes || 60;
+        if (Number.isNaN(start) || start + length <= until + TRAVEL_SLACK) return [a];
+        const room = Math.floor((until - start) / 5) * 5;
+        return room >= Math.max(SHORTEST_CUT, length / 2) ? [{ ...a, duration_minutes: room }] : [];
+      });
+    }
+    const kept = new Map(rest.map((a) => [a.name, a]));
+    const fit: TravelTimesFit = {
+      day: e.day_number,
+      ...(t.arrives ? { arrives: t.arrives } : {}),
+      ...(t.leaves ? { leaves: t.leaves } : {}),
+      from: outside.from,
+      until: outside.until,
+      ...(outside.journey ? { journey: true as const } : {}),
+      moved: [],
+      shortened: [],
+      left: [],
+    };
+    for (const [a, time] of before) {
+      const now = kept.get(a.name);
+      if (!now) fit.left.push(a.name);
+      else if (now.start_time !== time) fit.moved.push(a.name);
+      else if (now.duration_minutes !== a.duration_minutes) fit.shortened.push(a.name);
+    }
+    fits.push(fit);
+    return { ...e, activities: [...travel, ...rest].sort(byStart) };
+  });
+  return { edits: fitted, fits };
+}
+

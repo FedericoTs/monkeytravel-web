@@ -17,6 +17,12 @@ interface UnsubscribeConfirmButtonProps {
    * A guest has no account settings to point to, and stays on the trip.
    */
   guest?: boolean;
+  /**
+   * A reminder's link: the reminders before a kept plan's trip (what:
+   * profile.unsubscribe.reminder). No account either; confirming deletes the
+   * address.
+   */
+  reminder?: boolean;
 }
 
 type State =
@@ -35,8 +41,10 @@ export function UnsubscribeConfirmButton({
   token,
   what,
   guest = false,
+  reminder = false,
 }: UnsubscribeConfirmButtonProps) {
   const t = useTranslations("profile.unsubscribe");
+  const noAccount = guest || reminder;
   const [state, setState] = useState<State>({ kind: "idle" });
 
   const settingsLink = (chunks: ReactNode) => (
@@ -85,9 +93,13 @@ export function UnsubscribeConfirmButton({
         </div>
         <h1 className="text-2xl font-bold text-slate-900 mb-2">{t("doneTitle")}</h1>
         <p className="text-slate-600 mb-6">
-          {guest ? t("guest.doneBody", { what }) : t("doneBody", { what })}
+          {guest
+            ? t("guest.doneBody", { what })
+            : reminder
+              ? t("reminder.doneBody")
+              : t("doneBody", { what })}
         </p>
-        {!guest && (
+        {!noAccount && (
           <p className="text-sm text-slate-500">
             {t.rich("doneChangedMind", { link: settingsLink })}
           </p>
@@ -102,7 +114,7 @@ export function UnsubscribeConfirmButton({
         {t("confirmTitle", { what })}
       </h1>
       <p className="text-slate-600 mb-6">
-        {guest ? t("guest.confirmBody") : t("confirmBody", { what })}
+        {guest ? t("guest.confirmBody") : reminder ? t("reminder.confirmBody") : t("confirmBody", { what })}
       </p>
       <button
         type="button"
@@ -117,7 +129,7 @@ export function UnsubscribeConfirmButton({
           {state.reason === "network" ? t("errorNetwork") : t("errorGeneric")}
         </p>
       )}
-      {!guest && (
+      {!noAccount && (
         <p className="mt-6 text-sm text-slate-500">
           {t.rich("orSettings", { link: settingsLink })}
         </p>

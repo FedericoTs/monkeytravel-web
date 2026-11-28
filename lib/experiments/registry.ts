@@ -28,14 +28,14 @@ export const STEP2_DEFAULT = {
 } as const satisfies Experiment;
 
 /**
- * The box a signed-out planner gets when keeping a plan: as today, a sentence naming the two ways in ("words"), or
- * what an account gives on the trip and before it ("benefits"), in the same space. Starts after the sky test's
- * verdict (both share the plan screen).
+ * What a signed-out planner is told about keeping a plan: as today, the box's sentence naming the two ways in
+ * ("words"), or what an account gives on the trip and before it ("benefits"): said at the end of the plan, with a
+ * way to save, and in the box in the same space. Counted from the plan on screen, where the arms first differ.
  */
 export const SAVE_BOX_BENEFITS = {
   key: "save_box_benefits",
   arms: ["words", "benefits"],
-  starts: Date.UTC(2026, 10, 29),
+  starts: Date.UTC(2026, 10, 26, 20, 0),
   reviewBy: "2027-01-12",
 } as const satisfies Experiment;
 

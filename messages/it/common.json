@@ -2746,7 +2746,23 @@
     "intro": "Ecco il link al piano che hai creato. Si apre su qualsiasi dispositivo e resta disponibile per 30 giorni dall'ultima apertura.",
     "cta": "Apri il mio piano",
     "footerReason": "Ci hai chiesto di inviartelo, e non ti scriveremo più su questo.",
-    "footerLink": "Informativa sulla privacy"
+    "footerLink": "Informativa sulla privacy",
+    "introReminder": "Ecco il link al piano che hai creato. Si apre su qualsiasi dispositivo e resta disponibile fino a due settimane dopo il viaggio.",
+    "reminderLineWeek": "Ti scriveremo di nuovo una settimana prima del viaggio e il giorno prima.",
+    "reminderLineDay": "Ti scriveremo di nuovo il giorno prima del viaggio.",
+    "footerReasonReminder": "Ci hai chiesto questo piano e dei promemoria prima del viaggio: sono le uniche email che ti invieremo.",
+    "footerLinkReminder": "Interrompi i promemoria"
+  },
+  "planReminderEmail": {
+    "weekHeading": "{destination} si avvicina",
+    "weekHeadingNoPlace": "Il tuo viaggio si avvicina",
+    "weekIntro": "Il tuo piano è pronto per il viaggio. Ricontrollalo, cambia quello che vuoi e prenota ciò che va prenotato.",
+    "dayHeading": "{destination}, domani",
+    "dayHeadingNoPlace": "Il tuo viaggio inizia domani",
+    "dayIntro": "Ecco il tuo piano per il viaggio. Buon viaggio!",
+    "cta": "Apri il mio piano",
+    "footerReason": "Ci hai chiesto di ricordartelo prima di questo viaggio. Cancelliamo il tuo indirizzo quando inizia.",
+    "footerLink": "Interrompi i promemoria"
   },
   "liveStats": {
     "title": "In diretta dal pianificatore",
@@ -2807,6 +2823,91 @@
       "title": "{name} ti ha invitato su MonkeyTravel!",
       "description": "Pianificate un viaggio insieme in circa 30 secondi. 30 itinerari con l'AI al mese, gratis: senza carta né prova.",
       "shortDescription": "Pianificate un viaggio insieme in circa 30 secondi. Gratis: senza carta né prova."
+    }
+  },
+  "story": {
+    "metaTitleGuess": "Indovina dove va questo viaggio",
+    "metaTitle": "{place}, in forma di storia",
+    "metaDescription": "Tre indizi, quattro risposte e poi tutto il viaggio. Fatto con MonkeyTravel.",
+    "progress": "Parte {current} di {total}",
+    "fullPlan": "Vedi il piano completo",
+    "next": "Avanti",
+    "back": "Indietro",
+    "guess": {
+      "title": "Indovina dove va questo viaggio",
+      "lead": "Scegli le lettere. Con {max} errori il posto viene mostrato.",
+      "hidden": "Un posto ancora nascosto",
+      "clue": "Indizio {number}",
+      "clues": "Indizi",
+      "when": "{days, plural, one {Un giorno} other {# giorni}} a {month}, {where}",
+      "whenNoMonth": "{days, plural, one {Un giorno} other {# giorni}}, {where}",
+      "whenNoWhere": "{days, plural, one {Un giorno} other {# giorni}} a {month}",
+      "whenBare": "{days, plural, one {Un viaggio di un giorno} other {Un viaggio di # giorni}}",
+      "where": {
+        "europe": "da qualche parte in Europa",
+        "asia": "da qualche parte in Asia",
+        "africa": "da qualche parte in Africa",
+        "americas": "da qualche parte nelle Americhe",
+        "oceania": "da qualche parte in Oceania",
+        "atlantic": "su un'isola dell'Atlantico",
+        "indian": "su un'isola dell'oceano Indiano"
+      },
+      "see": "Vedi il viaggio",
+      "skip": "Salta l'indovinello",
+      "blank": "vuoto",
+      "keys": "Lettere da scegliere",
+      "misses": "Lettere sbagliate: {count} su {max}",
+      "sunset": "La prima sera il sole tramonta alle {time}.",
+      "dayTitle": "Uno dei suoi giorni si chiama «{title}».",
+      "stop": "Una tappa del piano: {name}.",
+      "solved": "{misses, plural, =0 {Hai indovinato senza sbagliare una lettera.} one {Hai indovinato con una lettera sbagliata.} other {Hai indovinato con # lettere sbagliate.}}",
+      "lost": "Tentativi finiti. È {place}.",
+      "tell": "Racconta com'è andata",
+      "told": "Copiato. Incollalo per mandarglielo.",
+      "tellSolved": "{misses, plural, =0 {Ho indovinato il tuo viaggio senza sbagliare una lettera.} one {Ho indovinato il tuo viaggio con una lettera sbagliata.} other {Ho indovinato il tuo viaggio con # lettere sbagliate.}}",
+      "tellLost": "Il tuo viaggio mi ha battuto: non sono riuscito a indovinarlo."
+    },
+    "reveal": {
+      "facts": "{days, plural, one {Un giorno} other {# giorni}} e {stops, plural, one {# tappa} other {# tappe}}.",
+      "factsKm": "{days, plural, one {Un giorno} other {# giorni}} e {stops, plural, one {# tappa} other {# tappe}}, con circa {km} km tra una e l'altra.",
+      "factsCities": "{days, plural, one {Un giorno} other {# giorni}}, {cities} città e {stops, plural, one {# tappa} other {# tappe}}.",
+      "route": "Le tappe del viaggio, unite nell'ordine del piano"
+    },
+    "day": {
+      "label": "Giorno {number}",
+      "in": "a {city}",
+      "more": "{count, plural, one {e # altra tappa} other {e altre # tappe}}",
+      "moreDays": "{count, plural, one {E # altro giorno nel piano completo.} other {E altri # giorni nel piano completo.}}"
+    },
+    "end": {
+      "title": "Vuoi un viaggio così?",
+      "body": "Di' al pianificatore dove e quando, e avrai il tuo piano giorno per giorno in circa 30 secondi. Gratis e senza account.",
+      "plan": "Pianifica il mio viaggio",
+      "mineTitle": "Ecco cosa vedono i tuoi amici",
+      "mineBody": "Pubblica l'indovinello nella tua storia e lascia che rispondano, oppure manda loro il link.",
+      "mineBodyPlain": "Pubblicalo nella tua storia, oppure manda loro il link.",
+      "copy": "Copia il link della storia",
+      "copied": "Link copiato. Incollalo in una chat o in una storia."
+    },
+    "post": {
+      "guessTitle": "Indovina dove vado",
+      "reply": "Mandami la tua risposta",
+      "planYours": "Pianifica il tuo gratis su monkeytravel.app",
+      "guess": "Pubblica l'indovinello",
+      "place": "Pubblica la risposta",
+      "trip": "Pubblica il viaggio",
+      "preparing": "Preparo l'immagine…",
+      "shared": "Anche il tuo link è copiato: aggiungilo come adesivo link.",
+      "saved": "Immagine salvata. Aggiungila alla tua storia dalle foto.",
+      "failed": "Non è stato possibile creare l'immagine. Riprova tra un momento."
+    },
+    "wayIn": {
+      "note": "Lo mostri ad amici che non vengono? Raccontalo come una storia da indovinare.",
+      "cta": "Vedi la storia"
+    },
+    "mine": {
+      "note": "Ecco cosa vedono i tuoi amici.",
+      "post": "Pubblicalo"
     }
   }
 }

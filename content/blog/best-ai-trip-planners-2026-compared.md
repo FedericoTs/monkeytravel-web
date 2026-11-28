@@ -46,6 +46,8 @@ schema: Article
 
 # Best AI Trip Planners 2026 Compared: Honest Reviews of 8 Tools
 
+> **Updated for 2027:** see [our 2027 comparison](/blog/best-ai-trip-planners-2027-compared).
+
 Here's the gap that matters. Among travelers who have actually used generative AI for travel, McKinsey found 84% said it improved their experience. But YouGov, asking a much broader population, found only 30% of US travelers were comfortable using AI travel tools at all in 2025 — down from 32% a year earlier — while the 40% who said they were *not* comfortable held steady year over year.
 
 People who get past the first attempt mostly like it. Most people never get past the first attempt. That is a product problem rather than an enthusiasm problem, and it is why which tool you start with matters more than it should.
@@ -83,7 +85,7 @@ For a broader look at how these tools are reshaping the industry, read our piece
 
 **What it does:** MonkeyTravel generates day-by-day itineraries with real venue names, estimated prices, and smart routing — all without requiring you to create an account. You pick a destination, set your trip length, choose from three budget tiers (Budget, Balanced, or Premium), and get a structured plan in seconds. It supports English, Spanish, Italian, and Portuguese, and has a group planning feature with a voting system for when your travel companions can't agree.
 
-**New in 2026 — the live trip.** Most planners stop the moment the plan is done. MonkeyTravel now stays with you *on* the trip: once your dates start, it opens on **Today** — the current day's plan, front and centre. Share the trip and everyone travelling with you sees that same live view, with four one-tap controls: mark something done, skip it, flag that you're running late (which shifts the rest of the day), or swap an activity for a nearby alternative. Alongside it sits a packing checklist, a running expense split, and a feed showing who changed what. Companions don't just watch — they can act, and they don't need an account to do it. It's the plan that travels with you, not just the one you make beforehand.
+**New in 2026 — the live trip.** Most planners stop the moment the plan is done. MonkeyTravel now stays with you *on* the trip: once your dates start, it opens on **Today** — the current day's plan, front and centre. Share the trip and everyone travelling with you sees that same live view, with four one-tap controls: mark something done, skip it, flag that you're running late (which shifts the rest of the day), or swap an activity for a nearby alternative. Alongside it sits a packing checklist and a feed showing who changed what. Companions don't just watch — they can act, and they don't need an account to do it. It's the plan that travels with you, not just the one you make beforehand.
 
 **Strengths:** No signup barrier is a real differentiator — you can try it in 30 seconds. The three budget tiers produce meaningfully different itineraries, not just the same plan with different restaurant price ranges. Group voting genuinely solves a pain point that most tools ignore, and the live-trip view extends that to the days you're actually away — nothing else on this list gives your companions a shared live day view they can act on without an account. The whole product runs in Spanish, Italian and Portuguese, not just the marketing page (though Mindtrip, Wanderlog and iPlan.ai offer those languages too, so that alone isn't the reason to pick us). For a [free AI trip planner](/), it covers a lot of ground.
 

@@ -36,6 +36,43 @@
     "personalizedToYou": "Personalizzato per te",
     "friendsPerTrip": "Amici per viaggio"
   },
+  "facts": {
+    "title": "MonkeyTravel in breve",
+    "items": {
+      "price": {
+        "term": "Prezzo",
+        "detail": "Gratis. Senza carta e senza account per vedere il tuo piano."
+      },
+      "speed": {
+        "term": "Velocità",
+        "detail": "Un piano giorno per giorno in circa 30 secondi."
+      },
+      "languages": {
+        "term": "Lingue",
+        "detail": "Italiano, inglese, spagnolo e portoghese."
+      },
+      "checks": {
+        "term": "Controllato",
+        "detail": "I giorni di chiusura e le festività dei luoghi che pianifica, e gli orari di quelli più noti."
+      },
+      "routes": {
+        "term": "Più città",
+        "detail": "Pianifica il percorso e lo spostamento tra una città e l'altra."
+      },
+      "group": {
+        "term": "Gruppi",
+        "detail": "Gli amici possono unirsi al viaggio, votare e aggiungere ciò che non vogliono perdere."
+      },
+      "changes": {
+        "term": "Modifiche",
+        "detail": "Chiedi all'assistente di cambiare qualsiasi giorno, con parole tue."
+      },
+      "onTheTrip": {
+        "term": "In viaggio",
+        "detail": "Con un account gratuito: il piano di ogni giorno del viaggio via email, e promemoria su meteo e bagagli prima di partire."
+      }
+    }
+  },
   "problem": {
     "title": "Pianificare un viaggio richiede ancora 47 schede",
     "subtitle": "Ti suona familiare? Non sei solo.",

@@ -59,11 +59,18 @@ const madrid = () => ({
   destination: { name: "Madrid", country: "Spain" },
   days: [
     [stop("09:00", "Royal Palace", "attraction", 40.418, -3.7143)],
-    [stop("09:00", "Retiro Park", "park", 40.4153, -3.6845), stop("12:30", "Cafe Comercial", "cafe", 40.4321, -3.7029), stop("15:00", "Prado Museum", "museum", 40.4138, -3.6921)],
+    [
+      stop("09:00", "Retiro Park", "park", 40.4153, -3.6845),
+      stop("12:30", "Cafe Comercial", "cafe", 40.4321, -3.7029),
+      stop("15:00", "Prado Museum", "museum", 40.4138, -3.6921),
+      ...(ownDinnerAt ? [stop(ownDinnerAt, "Sobrino de Botin", "restaurant", 40.4142, -3.7081)] : []),
+    ],
     [stop("09:00", "Reina Sofia", "museum", 40.4086, -3.6943)],
   ].map((activities, i) => ({ day_number: i + 1, date: `2027-04-0${5 + i}`, theme: "t", activities })),
 });
 let inMadrid = false;
+// The plan's own dinner on the middle day, when a test gives it one.
+let ownDinnerAt: string | null = null;
 const plan = () => (inMadrid ? madrid() : kyoto());
 const kyoto = () => ({
   destination: { name: "Kyoto", country: "Japan" },
@@ -100,6 +107,7 @@ beforeEach(() => {
   logged.length = 0;
   answeredAt = GION;
   inMadrid = false;
+  ownDinnerAt = null;
   vi.spyOn(console, "log").mockImplementation(() => {});
 });
 
@@ -132,6 +140,13 @@ describe("the JSON route", () => {
     };
     expect(await middleDay()).toEqual(["09:00 Retiro Park", "12:30 Cafe Comercial", "15:00 Prado Museum", "20:30 Casa Lucio"]);
     expect(await middleDay({ tripIntent: "family", childrenAges: ["under3"] })).toContain("18:30 Casa Lucio");
+  });
+
+  it("moves the plan's own dinner, at 19:30 in Madrid and the day's last stop, to the local hour", async () => {
+    inMadrid = true;
+    ownDinnerAt = "19:30";
+    const days = (await (await generate()).json()).itinerary.days as Array<{ activities: Array<{ name: string; start_time: string }> }>;
+    expect(days[1].activities.map((a) => `${a.start_time} ${a.name}`)).toEqual(["09:00 Retiro Park", "12:30 Cafe Comercial", "15:00 Prado Museum", "20:30 Sobrino de Botin"]);
   });
 
   it("gives a full day without dinner one, after the place the day ends at", async () => {

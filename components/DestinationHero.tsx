@@ -42,6 +42,8 @@ interface DestinationHeroProps {
   onEditDates?: () => void;
   /** Accessible name for that button ("Change dates"). */
   editDatesLabel?: string;
+  /** Words on the date chip saying the dates can be changed, beside the pencil. Without them, the pencil alone. */
+  editDatesText?: string;
   children?: React.ReactNode;
   /** Pre-fetched cover image URL from saved trip - skips Places API call */
   coverImageUrl?: string | null;
@@ -102,6 +104,7 @@ export default function DestinationHero({
   onBack,
   onEditDates,
   editDatesLabel,
+  editDatesText,
   children,
   coverImageUrl,
   onCoverImageFetched,
@@ -236,6 +239,12 @@ export default function DestinationHero({
     return () => controller.abort();
   }, [destination, coverImageUrl, onCoverImageFetched, disableApiCalls, freePhotosOnly]);
 
+  const pencil = (
+    <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.232-6.232a2.5 2.5 0 113.536 3.536L12.536 16.536 9 17l.464-3.536z" />
+    </svg>
+  );
+
   return (
     <div className="relative">
       {/* Hero Image Container */}
@@ -336,10 +345,15 @@ export default function DestinationHero({
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     <span className="truncate max-w-[120px] sm:max-w-none">{dateRange}</span>
-                    {/* pencil: the dates can be changed */}
-                    <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.232-6.232a2.5 2.5 0 113.536 3.536L12.536 16.536 9 17l.464-3.536z" />
-                    </svg>
+                    {/* pencil: the dates can be changed, said in words too where the page gives them */}
+                    {editDatesText ? (
+                      <span className="flex items-center gap-1 border-l border-white/30 pl-1.5 sm:pl-2 font-semibold whitespace-nowrap">
+                        {pencil}
+                        {editDatesText}
+                      </span>
+                    ) : (
+                      pencil
+                    )}
                   </button>
                 )}
                 {dateRange && !onEditDates && (

@@ -10,6 +10,7 @@ import { KeptLinkPill } from "@/components/wizard/KeptLinkPill";
 import WizardSaveButton from "@/components/wizard/WizardSaveButton";
 import type { AutoSaveStatus } from "@/hooks/useAutoSaveTrip";
 import type { KeptState } from "@/hooks/useKeptPlan";
+import type { ReminderKind } from "@/lib/plans/plan-reminder-dates";
 import { useRouter } from "@/lib/i18n/routing";
 import type { GeneratedItinerary } from "@/types";
 
@@ -90,6 +91,7 @@ export default function ResultActionBars({
   isUnsaved,
   keptPlan,
   offerPlanEmail = false,
+  planReminder = null,
   saving,
   onSave,
   onStartOver,
@@ -117,6 +119,8 @@ export default function ResultActionBars({
   keptPlan: KeptState | null;
   /** The save box closed with no sign-in: the plan's link by email is offered, once. */
   offerPlanEmail?: boolean;
+  /** The reminders the plan's email card may offer with it (reminderKind), or null. */
+  planReminder?: ReminderKind | null;
   /** A save is under way (the manual one, or a shared plan's claim). */
   saving: boolean;
   onSave: () => void;
@@ -372,7 +376,13 @@ export default function ResultActionBars({
 
       {/* After the bars, so it paints over them where they meet on a short screen. */}
       {showPlanEmail && keptPlan && (
-        <EmailPlanCard key={keptPlan.token} token={keptPlan.token} offered={planEmail !== "asked"} onClose={closePlanEmail} />
+        <EmailPlanCard
+          key={keptPlan.token}
+          token={keptPlan.token}
+          offered={planEmail !== "asked"}
+          onClose={closePlanEmail}
+          remind={planReminder}
+        />
       )}
     </>
   );

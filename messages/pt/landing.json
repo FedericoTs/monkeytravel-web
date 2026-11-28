@@ -36,6 +36,43 @@
     "personalizedToYou": "Personalizado para você",
     "friendsPerTrip": "Amigos por viagem"
   },
+  "facts": {
+    "title": "MonkeyTravel em resumo",
+    "items": {
+      "price": {
+        "term": "Preço",
+        "detail": "Grátis. Sem cartão e sem conta para ver o seu plano."
+      },
+      "speed": {
+        "term": "Rapidez",
+        "detail": "Um roteiro dia a dia em cerca de 30 segundos."
+      },
+      "languages": {
+        "term": "Idiomas",
+        "detail": "Português, inglês, espanhol e italiano."
+      },
+      "checks": {
+        "term": "Verificado",
+        "detail": "Os dias de fechamento e os feriados dos lugares do roteiro, e o horário dos mais conhecidos."
+      },
+      "routes": {
+        "term": "Várias cidades",
+        "detail": "Planeja a rota e o trajeto entre cada cidade."
+      },
+      "group": {
+        "term": "Grupos",
+        "detail": "Seus amigos podem entrar na viagem, votar e incluir o que não querem perder."
+      },
+      "changes": {
+        "term": "Mudanças",
+        "detail": "Peça ao assistente para mudar qualquer dia, com suas próprias palavras."
+      },
+      "onTheTrip": {
+        "term": "Na viagem",
+        "detail": "Com uma conta grátis: o roteiro de cada dia da viagem por e-mail, e lembretes de clima e de mala antes de ir."
+      }
+    }
+  },
   "problem": {
     "title": "Planejar uma viagem ainda leva 47 abas abertas",
     "subtitle": "Soa familiar? Você não está sozinho.",

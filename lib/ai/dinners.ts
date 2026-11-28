@@ -1,10 +1,11 @@
 /**
  * A plan is asked for lunch and dinner on every full day (lib/ai/trip-prompt.ts) and still leaves dinner out of
  * some: a family trip to Kyoto in the benchmark had none on any of its three full days. So each full day without an
- * evening meal gets one: a real restaurant near the day's last place, from one short question for all such days,
- * asked beside the closing-day question so the plan isn't slower. The answer goes in once the days are final, after
- * the place it was chosen near: half an hour after that place's visit ends, not before dinner starts there (from 18:30,
- * later in Spain and southern Europe: lib/ai/meal-hours.ts). A restaurant that isn't a real place near it, one the plan
+ * evening meal gets one: a real restaurant near the day's last place, or back in town after a day out of town, from
+ * one short question for all such days, asked beside the closing-day question so the plan isn't slower. The answer
+ * goes in once the days are final, after the day's last place: half an hour after its visit ends (and the ride back,
+ * for a dinner in town after a day out), not before dinner starts there (from 18:30, later in Spain and southern
+ * Europe: lib/ai/meal-hours.ts). A restaurant that isn't a real place near where it was looked for, one the plan
  * already holds, or one that would start after the latest dinner hour there is left out, and the day stays as it was.
  */
 import { SchemaType, type ResponseSchema } from "@/lib/ai/genai-compat";
@@ -29,6 +30,12 @@ const AFTER_MINUTES = 30;
 const DINNER_MINUTES = 90;
 /** How far from the place it was chosen near a dinner may be. */
 const NEAR_KM = 5;
+/** A day whose last place is farther than this from where its city's days come back to ends out of town. */
+const OUT_OF_TOWN_KM = 15;
+/** The ride back to town, in minutes for each kilometre in a straight line: the roads' turns, at a country pace. */
+const BACK_MINUTES_PER_KM = 1.5;
+/** The fewest pins a city's days need to tell where they gather. */
+const TOWN_PINS = 4;
 /** At most this many days in one question. */
 const MAX_DAYS = 10;
 /** At most this many of the plan's own places to eat named in the question. */
@@ -40,22 +47,42 @@ const minutesOf = (time?: string): number | null => {
   return m ? Number(m[1]) * 60 + Number(m[2]) : null;
 };
 
+type Point = { lat: number; lng: number };
+
 /** A day without dinner: the place the dinner is chosen near, where it is, and when the day's visits end. */
 export interface DinnerWanted {
   /** The day's last place with a time and a pin: dinner is looked for near it, and follows it. */
   after: string;
-  at: { lat: number; lng: number };
+  at: Point;
   date: string;
   city: string;
   /** When dinner can start there (lib/ai/meal-hours.ts). */
   hours: DinnerHours;
+  /** A day that ends out of town: where in town dinner can be instead, after the ride back. */
+  town?: Point;
 }
 
 const isEveningMeal = (stop: Stop) => isMealStop(stop) && (minutesOf(stop.start_time) ?? 0) >= 17 * 60;
+const STAY = /^(accommodation|hotel|lodging)$/;
+
+/**
+ * Where a city's days come back to: the plan's stay there, or else the middle of the days' pins, as many north of it
+ * as south and east as west. None with too few pins to tell.
+ */
+function townOf(days: Day[], city: string | undefined): Point | null {
+  const stops = days.filter((d) => (d.city ?? "") === (city ?? "")).flatMap((d) => d.activities ?? []);
+  const stay = stops.find((s) => STAY.test(s.type ?? "") && isRealPoint(s.coordinates));
+  if (stay?.coordinates) return { lat: stay.coordinates.lat, lng: stay.coordinates.lng };
+  const pins = stops.filter((s) => s.type !== "transport" && isRealPoint(s.coordinates)).map((s) => s.coordinates as Point);
+  if (pins.length < TOWN_PINS) return null;
+  const mid = (xs: number[]) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)];
+  return { lat: mid(pins.map((p) => p.lat)), lng: mid(pins.map((p) => p.lng)) };
+}
 
 /**
  * The full days (not the plan's first or last) with no meal from 17:00, each with the place dinner goes after and the
- * dinner hours there; a family that eats early (eatsEarly) has the usual ones.
+ * dinner hours there; a family that eats early (eatsEarly) has the usual ones. A day that ends out of town can have
+ * dinner back in town too: after a day up the coast the model names one in town, and it was turned away as far.
  */
 export function daysWithoutDinner(days: Day[], destination: string, early = false): DinnerWanted[] {
   return days.flatMap((day, i) => {
@@ -68,7 +95,9 @@ export function daysWithoutDinner(days: Day[], destination: string, early = fals
       .at(-1);
     if (!last?.name || !last.coordinates) return [];
     const at = { lat: last.coordinates.lat, lng: last.coordinates.lng };
-    return [{ after: last.name, at, date: day.date, city: day.city || destination, hours: dinnerHours(at, early) }];
+    const town = townOf(days, day.city);
+    const outOfTown = !!town && haversineKm(at, town) > OUT_OF_TOWN_KM;
+    return [{ after: last.name, at, date: day.date, city: day.city || destination, hours: dinnerHours(at, early), ...(outOfTown ? { town } : {}) }];
   }).slice(0, MAX_DAYS);
 }
 
@@ -117,17 +146,21 @@ export function placesToEat(days: Day[]): string[] {
 
 type DinnerOptions = { budgetTier?: BudgetTier; diets?: string[]; language: SupportedLanguage; taken?: string[] };
 
+const pointText = (p: Point) => `${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`;
+
 /**
  * The question: the evenings, from when dinner can start, where each day ends, the budget and diets, and the places
  * the plan already eats at.
  */
 export function dinnerQuestion(wanted: DinnerWanted[], opts: DinnerOptions): string {
   return [
-    "Name one real restaurant for dinner on each of these evenings, within a short walk or ride of the place the day ends at, serving dinner on that date from the hour given:",
-    ...wanted.map(
-      (w, i) =>
-        `${i + 1}. ${w.city}, ${w.date}, dinner from ${formatMinutesToTime(w.hours.from)}: the day ends at ${w.after} (${w.at.lat.toFixed(5)}, ${w.at.lng.toFixed(5)})`
-    ),
+    "Name one real restaurant for dinner on each of these evenings, within a short walk or ride of the place the day ends at (after a day out of town, of the place in town given), serving dinner on that date from the hour given:",
+    ...wanted.map((w, i) => {
+      const day = `${i + 1}. ${w.city}, ${w.date}, dinner from ${formatMinutesToTime(w.hours.from)}`;
+      return w.town
+        ? `${day}: the day ends out of town at ${w.after} (${pointText(w.at)}), and dinner is back in town: near (${pointText(w.town)})`
+        : `${day}: the day ends at ${w.after} (${pointText(w.at)})`;
+    }),
     "",
     `Each one ${BUDGET_WORDS[opts.budgetTier ?? "balanced"]}${opts.diets?.length ? `, with good choices for a ${opts.diets.join(" and ")} diet` : ""}, and a different restaurant each evening.`,
     ...(opts.taken?.length ? [`None the plan already has: ${opts.taken.join("; ")}.`] : []),
@@ -178,9 +211,10 @@ export async function askForDinners(wanted: DinnerWanted[], opts: DinnerOptions)
 }
 
 /**
- * Why a day asked about still has no dinner: no answer named it, the place it was chosen near is gone from the plan,
- * the dinner would start after the latest dinner hour there, the answer is no real place (no name, no pin), is
- * farther than 5 km from that place, or is a place the plan already holds.
+ * Why a day asked about still has no dinner: no answer named it, the place it follows is gone from the plan, the
+ * dinner would start after the latest dinner hour there, the answer is no real place (no name, no pin), is farther
+ * than 5 km from that place (and, after a day out of town, not back in town either), or is a place the plan already
+ * holds.
  */
 export type DinnerLeftOut = "unanswered" | "gone" | "late" | "unreal" | "far" | "taken";
 
@@ -197,11 +231,11 @@ export function dinnersLeftTogether(...lefts: DinnersLeft[]): DinnersLeft {
 }
 
 /**
- * The days with each answered dinner after the place it was chosen near, wherever that place now is: half an hour
- * after its visit ends, not before dinner starts there, as a restaurant. Left out when it isn't a real place within
- * 5 km of that place, the plan already holds it, it would start after the latest dinner hour there, or the day has an
- * evening meal by now. `left` says,
- * for the days asked about that still have none, why. Pure.
+ * The days with each answered dinner after the place it follows, wherever that place now is: half an hour after its
+ * visit ends, and after the ride back for a dinner back in town after a day out, not before dinner starts there, as a
+ * restaurant. Left out when it isn't a real place within 5 km of that place (or, after a day out of town, back in
+ * town), the plan already holds it, it would start after the latest dinner hour there, or the day has an evening meal
+ * by now. `left` says, for the days asked about that still have none, why. Pure.
  */
 export function withDinners<D extends Day>(
   days: D[],
@@ -229,8 +263,8 @@ export function withDinners<D extends Day>(
     }
     const anchor = (out[at].activities ?? []).find((s) => s.name === want.after)!;
     const ends = (minutesOf(anchor.start_time) ?? 0) + (anchor.duration_minutes || 60);
-    const start = Math.ceil(Math.max(want.hours.from, ends + AFTER_MINUTES) / 15) * 15;
-    if (start > want.hours.by) {
+    const startAfter = (ride: number) => Math.ceil(Math.max(want.hours.from, ends + AFTER_MINUTES + ride) / 15) * 15;
+    if (startAfter(0) > want.hours.by) {
       turnedAway("late");
       continue;
     }
@@ -238,7 +272,7 @@ export function withDinners<D extends Day>(
     const activity = activityOf({
       ...entry,
       type: "restaurant",
-      start_time: formatMinutesToTime(start),
+      start_time: formatMinutesToTime(startAfter(0)),
       duration_minutes: DINNER_MINUTES,
       ...(Number.isFinite(cost) && cost > 0 ? { estimated_cost: { amount: Math.round(cost), currency: "USD", tier: "moderate" } } : {}),
     });
@@ -247,8 +281,17 @@ export function withDinners<D extends Day>(
       turnedAway("unreal");
       continue;
     }
-    if (haversineKm(activity.coordinates, want.at) > NEAR_KM) {
+    // After a day out of town, back in town once the ride back from where the day ends is done; or on the way, as the
+    // middle of the days' pins is only near where they stay.
+    const nearEnd = haversineKm(activity.coordinates, want.at) <= NEAR_KM;
+    const inTown = !nearEnd && !!want.town && haversineKm(activity.coordinates, want.town) <= Math.max(NEAR_KM, haversineKm(want.at, want.town) / 2);
+    if (!nearEnd && !inTown) {
       turnedAway("far");
+      continue;
+    }
+    const start = startAfter(inTown ? Math.round(haversineKm(want.at, activity.coordinates) * BACK_MINUTES_PER_KM) : 0);
+    if (start > want.hours.by) {
+      turnedAway("late");
       continue;
     }
     const names = out.flatMap((d) => d.activities ?? []).map((s) => nameTokens(s.name ?? ""));
@@ -256,7 +299,7 @@ export function withDinners<D extends Day>(
       turnedAway("taken");
       continue;
     }
-    const dinner = { ...activity, type: "restaurant" } as Activity;
+    const dinner = { ...activity, type: "restaurant", start_time: formatMinutesToTime(start) } as Activity;
     out = out.map((d, i) =>
       i === at
         ? {

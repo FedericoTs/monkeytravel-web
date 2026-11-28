@@ -183,10 +183,10 @@ describe("automation gets the curated image instead of a Google download", () =>
     expect(logged).toHaveLength(1);
   });
 
-  it("the OG card renderer (og=1) follows the existing path despite its library user-agent", async () => {
-    upstream.mockResolvedValueOnce(jpeg());
+  it("gives a library's fetch the curated image whatever it adds to the link: no card fetches a Google photo now", async () => {
     const res = await GET(photoRequest(`${query}&og=1`, "undici"));
-    expect(res.status).toBe(200);
-    expect(upstream).toHaveBeenCalledTimes(1);
+    expect(res.status).toBe(307);
+    expect(res.headers.get("cache-control")).toBe("no-store");
+    expect(upstream).not.toHaveBeenCalled();
   });
 });

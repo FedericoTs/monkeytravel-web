@@ -3,13 +3,14 @@ import { looksLikeRequest } from "@/lib/wizard/trip-sentence";
 import { headingText } from "./api";
 
 /**
- * "Plan this trip for March" under each place in a month's guide.
+ * "Plan this trip for March" under each place in a month's guide, and "Plan this trip" under each place of the other
+ * lists of where to go (Christmas, New Year's Eve, the year's best places).
  *
- * A month's guide ranks its places as "N. Place — why", one section each, and
- * most readers never reach the planner boxes around them. Each place heading
- * gets a link that opens the planner on that place, with dates pencilled in
- * that month (`?month=`, read by the planner page). The place goes as the
- * reader saw it, in the page's language: the planner takes it as typed.
+ * Such a list ranks its places as "N. Place — why", one section each, and most
+ * readers never reach the planner boxes around them. Each place heading gets a
+ * link that opens the planner on that place, with dates pencilled in the guide's
+ * month when it has one (`?month=`, read by the planner page). The place goes as
+ * the reader saw it, in the page's language: the planner takes it as typed.
  */
 
 /** "1. Japan — Cherry Blossom" is about Japan. An en dash counts, a hyphen doesn't. */
@@ -46,12 +47,14 @@ const escapeHtml = (text: string) =>
  */
 export function withPlacePlanLinks(
   html: string,
-  { month, localePrefix, label }: { month: number; localePrefix: string; label: string },
+  { month, localePrefix, label }: { month: number | null; localePrefix: string; label: string },
 ): string {
   return html.replace(/<h2(\s[^>]*)?>([\s\S]*?)<\/h2>/g, (heading, _attrs: string | undefined, inner: string) => {
     const place = placeOf(headingText(inner));
     if (!place) return heading;
-    const query = new URLSearchParams({ destination: place, month: String(month), from: "place" });
+    const query = new URLSearchParams(
+      month === null ? { destination: place, from: "place" } : { destination: place, month: String(month), from: "place" },
+    );
     const href = `${localePrefix}/trips/new?${query.toString()}`;
     return `${heading}\n<p class="plan-place"><a href="${escapeHtml(href)}" rel="nofollow" data-plan-place="${escapeHtml(place)}">${escapeHtml(label)}</a></p>`;
   });

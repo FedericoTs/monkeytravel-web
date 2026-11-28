@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import { after, type NextRequest } from "next/server";
 import type { ReactElement } from "react";
+import { getTranslations } from "next-intl/server";
 import { logFunnelEventServer } from "@/lib/analytics/funnel-events";
 import { previewClient } from "@/lib/analytics/preview-client";
 import { writesTelemetry } from "@/lib/analytics/telemetry-env";
@@ -15,19 +16,24 @@ import {
   cardBudget,
   cardFormat,
   cardLocale,
-  coverForCard,
+  cardCover,
   formatRange,
   renderBrandCard,
   renderTripCard,
   type CardDay,
   type CardFormat,
 } from "@/lib/og/trip-card";
+import { renderStorySlide, slideFormat, SLIDE_SIZE } from "@/lib/og/story-slides";
+import { firstSunset } from "@/lib/story/sunset";
+import { buildTripStory } from "@/lib/story/trip-story";
+import { slideWords, type StoryTranslator } from "@/lib/story/words";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { isUuid } from "@/lib/utils/uuid";
 
 /**
  * The trip card as an image: the link preview (1200x630, the default), a
- * square and a story (lib/og/trip-card.tsx draws them).
+ * square and a story (lib/og/trip-card.tsx draws them). A share link also has
+ * its story's two pictures to post, `guess` and `place` (lib/og/story-slides.tsx).
  *
  * WHY THIS IS A ROUTE HANDLER AND NOT app/opengraph-image.tsx
  * ----------------------------------------------------------
@@ -134,6 +140,41 @@ export async function GET(request: NextRequest) {
   if (error || !data) return fallback();
   if (!token && data.is_hidden === true) return fallback();
 
+  // A row per drawn picture. The CDN keeps each URL for a day in each region,
+  // so rows are cache misses, named by the client that asked (a chat app
+  // unfurling a link, or the owner's browser making the image).
+  const sessionId = request.cookies.get("mt_session_id")?.value ?? null;
+  const logDrawn = (drawn: string) => {
+    if (request.method !== "GET" || !writesTelemetry(sessionId)) return;
+    const metadata = {
+      format: drawn,
+      locale,
+      via: token && isUuid(token) ? "share_token" : "public_slug",
+      client: previewClient(request.headers.get("user-agent")),
+    };
+    after(() => logFunnelEventServer({ event_type: "trip_card_rendered", trip_id: data.id, session_id: sessionId, metadata }));
+  };
+  const cached = {
+    // Scrapers cache aggressively anyway; this keeps repeat unfurls off the
+    // function. s-maxage is what Vercel's CDN reads; the tag lets a deleted,
+    // unshared or unpublished trip drop its cards (lib/seo/trip-card-cache).
+    "Cache-Control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
+    "Vercel-Cache-Tag": tripCardTag(data.id),
+  };
+
+  // The story's pictures belong to the share link, which is what tells the story.
+  const slide = slideFormat(url.searchParams.get("format"));
+  if (slide && token && isUuid(token)) {
+    const story = buildTripStory(data, locale, { sunset: firstSunset(data) });
+    const t = (await getTranslations({ locale, namespace: "common.story" })) as unknown as StoryTranslator;
+    logDrawn(story.guess ? slide : "place");
+    return new ImageResponse(renderStorySlide(slide, story, slideWords(story, t, locale), logo), {
+      ...SLIDE_SIZE,
+      ...(fonts.length > 0 ? { fonts } : {}),
+      headers: cached,
+    });
+  }
+
   const destination = getTripDestination({ title: data.title, trip_meta: data.trip_meta });
   const days = asDays(data.itinerary);
   const activityCount = days.reduce((sum, d) => sum + d.activities.length, 0);
@@ -176,22 +217,9 @@ export async function GET(request: NextRequest) {
     live = { dayNumber: dayState.dayNumber, totalDays: dayState.totalDays, today: named || today?.title?.trim() || null };
   }
 
-  // A row per drawn card. The CDN keeps each card URL for a day in each region,
-  // so rows are cache misses, named by the client that asked (a chat app
-  // unfurling a link, or the owner's browser making the image).
-  const sessionId = request.cookies.get("mt_session_id")?.value ?? null;
-  if (request.method === "GET" && writesTelemetry(sessionId)) {
-    const metadata = {
-      format,
-      locale,
-      via: token && isUuid(token) ? "share_token" : "public_slug",
-      client: previewClient(request.headers.get("user-agent")),
-    };
-    after(() =>
-      logFunnelEventServer({ event_type: "trip_card_rendered", trip_id: data.id, session_id: sessionId, metadata })
-    );
-  }
+  logDrawn(format);
 
+  const picture = cardCover(data.cover_image_url, url.origin);
   return respond(
     renderTripCard(
       {
@@ -199,7 +227,8 @@ export async function GET(request: NextRequest) {
         destination,
         dates: formatRange(data.start_date, data.end_date, locale),
         days,
-        cover: coverForCard(data.cover_image_url, url.origin),
+        cover: picture.cover,
+        coverCredit: picture.credit,
         logo,
         goingCount: count ?? 0,
         activityCount,
@@ -209,10 +238,7 @@ export async function GET(request: NextRequest) {
       },
       format
     ),
-    // Scrapers cache aggressively anyway; this keeps repeat unfurls off the
-    // function. s-maxage is what Vercel's CDN reads; the tag lets a deleted,
-    // unshared or unpublished trip drop its cards (lib/seo/trip-card-cache).
-    "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
-    tripCardTag(data.id)
+    cached["Cache-Control"],
+    cached["Vercel-Cache-Tag"]
   );
 }

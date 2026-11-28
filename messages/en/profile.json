@@ -177,6 +177,11 @@
       "whatThisTrip": "this trip's daily plan",
       "confirmBody": "Confirm and we'll stop emailing you each day's plan. You'll stay on the list of who's going.",
       "doneBody": "You won't get {what} anymore, but you're still on the list of who's going."
+    },
+    "reminder": {
+      "what": "reminders before your trip",
+      "confirmBody": "Confirm and we'll stop the reminders and delete your address. Your plan's link keeps working.",
+      "doneBody": "No more reminders: your address is deleted. Your plan's link keeps working."
     }
   }
 }

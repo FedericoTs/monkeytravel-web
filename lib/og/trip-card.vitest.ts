@@ -2,6 +2,7 @@
 import { describe, expect, it } from "vitest";
 import {
   cardBudget,
+  cardCover,
   cardFormat,
   cardLocale,
   clip,
@@ -96,15 +97,62 @@ describe("dayLines", () => {
 });
 
 describe("coverForCard", () => {
-  it("asks Pexels and the Places proxy for the card's size and leaves other hosts alone", () => {
+  it("asks Pexels for the card's size and leaves other hosts alone", () => {
     expect(coverForCard("https://images.pexels.com/photos/1/p.jpeg?auto=compress&cs=tinysrgb&w=800&h=600", "https://monkeytravel.app")).toBe(
       "https://images.pexels.com/photos/1/p.jpeg?auto=compress&cs=tinysrgb&w=1200&h=1200&fit=crop"
     );
-    expect(coverForCard("/api/places/photo?name=places%2Fabc&w=600&h=400&t=attraction", "https://monkeytravel.app")).toBe(
-      "https://monkeytravel.app/api/places/photo?name=places%2Fabc&w=1200&h=1200&t=attraction&og=1"
-    );
     expect(coverForCard("https://cdn.example.com/x.jpg", "https://monkeytravel.app")).toBe("https://cdn.example.com/x.jpg");
     expect(coverForCard(null, "https://monkeytravel.app")).toBeNull();
+    expect(coverForCard("http://[bad", "https://monkeytravel.app")).toBeNull();
+  });
+
+  it("keeps a Google photo off a card: it may be shown on the site, not on a picture that leaves it", () => {
+    for (const google of [
+      "/api/places/photo?name=places%2Fabc&w=600&h=400&t=attraction",
+      "https://monkeytravel.app/api/places/photo?name=places%2Fabc",
+      "https://lh3.googleusercontent.com/places/abc=s1600",
+      "https://maps.googleapis.com/maps/api/place/photo?photo_reference=abc",
+      "https://lh5.ggpht.com/p/abc",
+    ]) {
+      expect(coverForCard(google, "https://monkeytravel.app"), google).toBeNull();
+    }
+    // A host that only ends like Google's isn't Google's.
+    expect(coverForCard("https://notgoogleapis.com/x.jpg", "https://monkeytravel.app")).toBe("https://notgoogleapis.com/x.jpg");
+  });
+});
+
+describe("cardCover", () => {
+  const ORIGIN = "https://monkeytravel.app";
+  const commons = "/api/images/wikimedia/abc123-1280.jpg?a=Yann+Caradec&l=CC+BY-SA+2.0&f=Tour+Eiffel.jpg";
+
+  it("gives a Wikimedia Commons cover with its author and licence", () => {
+    expect(cardCover(commons, ORIGIN)).toEqual({
+      cover: `${ORIGIN}${commons}`,
+      credit: { author: "Yann Caradec", license: "CC BY-SA 2.0" },
+    });
+    // Stored with the site's address in front, it is the same photo.
+    expect(cardCover(`${ORIGIN}${commons}`, ORIGIN).credit).toEqual({ author: "Yann Caradec", license: "CC BY-SA 2.0" });
+  });
+
+  it("names Wikimedia Commons when the photo's author isn't known", () => {
+    expect(cardCover("/api/images/wikimedia/abc123-1280.jpg?l=Public+domain&f=Old+map.jpg", ORIGIN).credit).toEqual({
+      author: "Wikimedia Commons",
+      license: "Public domain",
+    });
+  });
+
+  it("keeps a Commons photo it can't credit off the card", () => {
+    expect(cardCover("/api/images/wikimedia/abc123-1280.jpg", ORIGIN)).toEqual({ cover: null, credit: null });
+    expect(cardCover("/api/images/wikimedia/abc123-1280.jpg?a=Someone", ORIGIN)).toEqual({ cover: null, credit: null });
+  });
+
+  it("gives any other cover with no credit to draw, and a Google photo not at all", () => {
+    expect(cardCover("https://images.pexels.com/photos/1/p.jpeg", ORIGIN)).toEqual({
+      cover: "https://images.pexels.com/photos/1/p.jpeg?w=1200&h=1200&fit=crop",
+      credit: null,
+    });
+    expect(cardCover("/api/places/photo?name=places%2Fabc", ORIGIN)).toEqual({ cover: null, credit: null });
+    expect(cardCover(null, ORIGIN)).toEqual({ cover: null, credit: null });
   });
 });
 
@@ -203,6 +251,25 @@ describe("renderTripCard", () => {
       expect(text).toContain("Colosseum · Roman Forum");
       expect(text).toContain("Day 3");
     }
+  });
+
+  it.each(["og", "square", "story"] as const)("draws a Commons cover's credit on the %s card, in the card's language", (format) => {
+    const credited = data({ cover: "https://monkeytravel.app/api/images/wikimedia/abc-1280.jpg", coverCredit: { author: "Yann Caradec", license: "CC BY-SA 2.0" } });
+    expect(textOf(renderTripCard(credited, format))).toContain("Photo: Yann Caradec · CC BY-SA 2.0");
+    expect(textOf(renderTripCard({ ...credited, locale: "it" }, format))).toContain("Foto: Yann Caradec · CC BY-SA 2.0");
+  });
+
+  it("draws no credit for a cover that asks for none, and none without the photo it is for", () => {
+    expect(textOf(renderTripCard(data(), "og"))).not.toMatch(/Photo:/);
+    const noPhoto = data({ cover: null, coverCredit: { author: "Yann Caradec", license: "CC BY-SA 2.0" } });
+    expect(textOf(renderTripCard(noPhoto, "story"))).not.toMatch(/Photo:/);
+  });
+
+  it("cuts a very long author short, keeping the licence", () => {
+    const long = data({ cover: "https://monkeytravel.app/api/images/wikimedia/abc-1280.jpg", coverCredit: { author: "A".repeat(80), license: "CC BY 4.0" } });
+    const line = flatten(renderTripCard(long, "square")).find((text) => text.startsWith("Photo:"))!;
+    expect(line.endsWith("· CC BY 4.0")).toBe(true);
+    expect(line.length).toBeLessThan(70);
   });
 
   it("copes with no cover, no coordinates, no days, and a live trip", () => {

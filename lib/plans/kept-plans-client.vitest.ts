@@ -118,6 +118,27 @@ describe("emailKeptPlan", () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("offline")));
     expect(await emailKeptPlan(TOKEN, "ana@example.com", "en")).toBe("failed");
   });
+
+  it("asks for the reminders too only when the box was ticked, and reads whether they're on", async () => {
+    const answer = (body: unknown) => vi.fn().mockResolvedValue(new Response(JSON.stringify(body), { status: 200 }));
+    const on = answer({ sent: true, reminder: true });
+    vi.stubGlobal("fetch", on);
+    expect(await emailKeptPlan(TOKEN, "ana@example.com", "it", true)).toBe("reminded");
+    expect(JSON.parse(on.mock.calls[0][1].body)).toEqual({ email: "ana@example.com", locale: "it", remind: true });
+
+    vi.stubGlobal("fetch", answer({ sent: true, reminder: false }));
+    expect(await emailKeptPlan(TOKEN, "ana@example.com", "it", true)).toBe("sent");
+
+    const off = answer({ sent: true, reminder: true });
+    vi.stubGlobal("fetch", off);
+    await emailKeptPlan(TOKEN, "ana@example.com", "it", false);
+    expect(JSON.parse(off.mock.calls[0][1].body)).toEqual({ email: "ana@example.com", locale: "it" });
+  });
+
+  it("reads a sent answer it can't parse as sent", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("not json", { status: 200 })));
+    expect(await emailKeptPlan(TOKEN, "ana@example.com", "en", true)).toBe("sent");
+  });
 });
 
 describe("planFingerprint", () => {

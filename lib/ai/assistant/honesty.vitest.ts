@@ -23,6 +23,7 @@ import {
   planCostsReply,
   preparedChangeReply,
   withoutDanglingLead,
+  travelTimesFitNotes,
 } from "./honesty";
 
 /**
@@ -569,7 +570,7 @@ describe("the replies that stand in for a missing answer", () => {
 
   it("gives the plan's activity total in the currency the traveller sees", () => {
     expect(planCostsReply("en", costs)).toBe(
-      "The activities in your plan come to about 12,345 EUR. Hotels and flights aren't in the plan, so add those on top."
+      "The activities in your plan come to about 12,345 EUR per person. Hotels and flights aren't in the plan, so add those on top."
     );
     expect(planCostsReply("it", costs)).toContain("circa 12.345 EUR");
     expect(planCostsReply("es", costs)).toContain("unos 12.345 EUR");
@@ -655,3 +656,38 @@ describe("the notes for a change in parts and for one waiting for the button", (
     expect(lengthUnchangedNote("pt", 1)).toContain("continua com 1 dia:");
   });
 });
+
+describe("travelTimesFitNotes: what holding a day to their times did", () => {
+  const fit = { day: 1, from: "15:30", until: null, moved: [] as string[], shortened: [] as string[], left: [] as string[] };
+
+  it("says what moved after a landing, what was cut before a flight and what came out, one note each", () => {
+    expect(travelTimesFitNotes("en", { ...fit, arrives: "14:00", moved: ["Louvre", "Orsay"] })).toEqual([
+      "(Day 1: you arrive at 14:00, so I moved Louvre, Orsay to after 15:30.)",
+    ]);
+    expect(
+      travelTimesFitNotes("en", { ...fit, day: 5, from: null, until: "11:00", leaves: "14:00", shortened: ["Grand Palace"], left: ["Lunch at Baan Khanitha"] }),
+    ).toEqual([
+      "(Day 5: you leave at 14:00, so I shortened Grand Palace to end by 11:00.)",
+      "(Day 5: there's no time for Lunch at Baan Khanitha around your travel, so I left it out.)",
+    ]);
+  });
+
+  it("names the ride on a day that goes from one place to another", () => {
+    expect(travelTimesFitNotes("en", { ...fit, day: 3, leaves: "10:00", arrives: "13:00", from: "13:20", until: "09:30", journey: true, moved: ["Cathedral"] })).toEqual([
+      "(Day 3: you travel from 10:00 to 13:00, so I moved Cathedral to after 13:20.)",
+    ]);
+  });
+
+  it("counts what came out, in each language", () => {
+    const two = { ...fit, arrives: "22:30", left: ["Museum", "Dinner"] };
+    expect(travelTimesFitNotes("en", two)).toEqual(["(Day 1: there's no time for Museum, Dinner around your travel, so I left them out.)"]);
+    expect(travelTimesFitNotes("es", two)[0]).toContain("los he quitado");
+    expect(travelTimesFitNotes("it", { ...two, left: ["Museo"] })[0]).toContain("l'ho tolto");
+    expect(travelTimesFitNotes("pt", two)[0]).toMatch(/^\(Dia 1: /);
+  });
+
+  it("says nothing when nothing changed", () => {
+    expect(travelTimesFitNotes("en", { ...fit, arrives: "14:00" })).toEqual([]);
+  });
+});
+

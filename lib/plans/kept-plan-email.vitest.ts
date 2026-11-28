@@ -14,6 +14,7 @@ import ParticipantPlanEmail, {
   type ParticipantPlanEmailProps,
 } from "@/lib/email/templates/ParticipantPlan";
 import { layoutCopy } from "@/lib/email/copy";
+import { verifyPlanReminderUnsubscribeToken } from "@/lib/email/unsubscribe";
 import { escapeHtmlText } from "@/lib/email/verify-render";
 
 /**
@@ -167,6 +168,74 @@ describe("sendKeptPlanEmail", () => {
     const html = await render(ParticipantPlanEmail(template.props));
     expect(verify({ html, text: "", subject: participantPlanSubject(template.props) }).ok).toBe(true);
     expect(html).not.toContain("evil.com");
+  });
+});
+
+describe("sendKeptPlanEmail with the reminders ticked", () => {
+  const REMINDER = "2c9e7a41-5b3d-4f8e-9a1c-6d4b2e8f0a73";
+  const remindTo = (kind: "week" | "day", locale = "en") =>
+    sendKeptPlanEmail(plan, { token: TOKEN, email: "ana@example.com", locale, reminder: { id: REMINDER, kind } });
+
+  beforeEach(() => vi.stubEnv("EMAIL_UNSUBSCRIBE_SECRET", "s".repeat(64)));
+
+  it("says which reminders follow, and carries the link that stops them", async () => {
+    expect(await remindTo("week")).toBe("sent");
+    const [email] = sent;
+    expect(email.template.id).toBe("kept_plan");
+    expect(email.template.props).toMatchObject({
+      intro: enMessages.keptPlanEmail.introReminder,
+      digestLine: enMessages.keptPlanEmail.reminderLineWeek,
+      footerReason: enMessages.keptPlanEmail.footerReasonReminder,
+      footerLink: enMessages.keptPlanEmail.footerLinkReminder,
+    });
+    expect(email.metadata).toEqual({ slot: "kept_plan", reminder: true });
+    const stop = new URL(String(email.guestUnsubscribeUrl));
+    expect(`${stop.origin}${stop.pathname}`).toBe("https://monkeytravel.app/unsubscribe");
+    expect(verifyPlanReminderUnsubscribeToken(stop.searchParams.get("token") ?? "")).toEqual({
+      ok: true,
+      reminderId: REMINDER,
+    });
+  });
+
+  it("names only the day before's reminder when that's the one that follows", async () => {
+    await remindTo("day");
+    expect(sent[0].template.props.digestLine).toBe(enMessages.keptPlanEmail.reminderLineDay);
+  });
+
+  it("goes even when the plan alone went to this address before", async () => {
+    await sendTo("en");
+    await remindTo("week");
+    const hash = createHash("sha256").update(`${TOKEN}:ana@example.com`).digest("hex");
+    expect(sent.map((email) => email.idempotencyKey)).toEqual([`kept_plan:${hash}`, `kept_plan_reminder:${hash}`]);
+  });
+
+  it("sends no stop link and no reminder lines without a tick", async () => {
+    await sendTo("en");
+    expect(sent[0].guestUnsubscribeUrl).toBeUndefined();
+    expect(sent[0].template.props.digestLine).toBeUndefined();
+    expect(sent[0].metadata).toEqual({ slot: "kept_plan" });
+  });
+
+  it("renders in every language, passing the send-time check", async () => {
+    for (const locale of Object.keys(MESSAGES) as Locale[]) {
+      sent.length = 0;
+      await remindTo("week", locale);
+      const { template, verify } = sent[0] as unknown as {
+        template: { props: ParticipantPlanEmailProps };
+        verify: (r: { html: string; text: string; subject: string }) => { ok: boolean; reason?: string };
+      };
+      const html = await render(ParticipantPlanEmail({ ...template.props, unsubscribeUrl: "https://monkeytravel.app/unsubscribe?token=x" }));
+      expect(verify({ html, text: "", subject: participantPlanSubject(template.props) }), locale).toEqual({ ok: true });
+      expect(html).toContain(escapeHtmlText(MESSAGES[locale].keptPlanEmail.reminderLineWeek));
+      expect(html).toContain(escapeHtmlText(MESSAGES[locale].keptPlanEmail.footerLinkReminder));
+    }
+  });
+
+  it("doesn't go without a stop link it can sign", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.stubEnv("EMAIL_UNSUBSCRIBE_SECRET", "");
+    expect(await remindTo("week")).toBe("error");
+    expect(sent).toEqual([]);
   });
 });
 

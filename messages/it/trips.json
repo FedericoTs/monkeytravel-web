@@ -105,7 +105,13 @@
       "emailSent": "Inviato a {email}. Il link apre questo piano su qualsiasi dispositivo.",
       "emailInvalid": "Questo indirizzo non sembra corretto. Controllalo e riprova.",
       "emailLimited": "Troppe email per ora. Riprova più tardi o copia il link.",
-      "emailFailed": "Invio non riuscito. Riprova o copia il link."
+      "emailFailed": "Invio non riuscito. Riprova o copia il link.",
+      "emailOfferRemind": "Non vuoi creare un account adesso? Possiamo inviarti questo piano via email e ricordartelo prima del viaggio.",
+      "emailNoteRemind": "Nessun account richiesto.",
+      "remindWeek": "Ricordamelo anche prima del viaggio: un'email una settimana prima e una il giorno prima. Puoi annullare quando vuoi.",
+      "remindDay": "Ricordamelo anche il giorno prima del viaggio. Puoi annullare quando vuoi.",
+      "remindPrivacy": "Privacy",
+      "remindSent": "Inviato a {email}. Te lo ricorderemo prima del viaggio."
     },
     "draftRecovery": {
       "title": "Viaggio non salvato trovato",
@@ -377,7 +383,9 @@
         "stickySaving": "Salvataggio...",
         "stickyHint": "Il viaggio verrà salvato nel tuo account",
         "dismiss": "Chiudi"
-      }
+      },
+      "benefitsTitle": "Porta questo piano con te in viaggio",
+      "benefitsCta": "Salva il mio viaggio, è gratis"
     },
     "anchors": {
       "cta": "Ho già impegni fissi (volo, matrimonio, hotel…)",
@@ -788,7 +796,15 @@
     "subtitle": "Crea un account per salvare e accedere al tuo viaggio in qualsiasi momento",
     "saving": "Salvataggio del tuo viaggio...",
     "success": "Viaggio salvato con successo!",
-    "error": "Impossibile salvare il viaggio. Riprova."
+    "error": "Impossibile salvare il viaggio. Riprova.",
+    "keptToo": "Salvato anche tra I Miei Viaggi: {places}"
+  },
+  "keepBoth": {
+    "titleTwo": "Tieni entrambi i viaggi",
+    "titleMany": "Tieni tutti e {count} i viaggi",
+    "body": "Accedi gratis e ogni posto che hai pianificato oggi resta tra I Miei Viaggi.",
+    "signIn": "Accedi gratis",
+    "notNow": "Non ora"
   },
   "startOver": {
     "title": "Ricominciare?",

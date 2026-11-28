@@ -69,6 +69,9 @@ export default function DestinationField({
     onKeepAsNote();
     setMovedNote(true);
   };
+  const readIt = async () => {
+    if ((await onReadRequest?.()) === "kept") setMovedNote(true);
+  };
   return (
     <div className={multiCityMode ? "hidden" : undefined}>
       <div
@@ -95,6 +98,12 @@ export default function DestinationField({
         // this is a required wizard field.
         ariaLabelledBy="wizard-destination-label"
         ariaRequired
+        // A whole trip in words: nothing covers the offer below, and Enter
+        // (a phone keyboard's Go) reads it, once at a time.
+        isRequest={offerReading}
+        onRequestEnter={() => {
+          if (!readingRequest) void readIt();
+        }}
         // No autoFocus: on mobile it auto-opens the suggestions
         // dropdown over the popular-destination pills below, so a tap
         // meant for a pill lands on a suggestion. Users can still tap
@@ -123,9 +132,7 @@ export default function DestinationField({
           <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
             <button
               type="button"
-              onClick={async () => {
-                if ((await onReadRequest?.()) === "kept") setMovedNote(true);
-              }}
+              onClick={readIt}
               disabled={readingRequest}
               aria-busy={readingRequest}
               className="min-h-[44px] shrink-0 rounded-xl bg-[var(--secondary-ink)] px-4 text-sm font-semibold text-white transition-colors hover:bg-[var(--secondary-ink)]/90 disabled:cursor-wait disabled:opacity-70"

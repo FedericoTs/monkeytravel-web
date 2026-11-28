@@ -430,6 +430,98 @@ export function withoutDanglingLead(text: string): string {
   return t.split(/(?<=[.!?…])\s+/).filter(Boolean).slice(0, -1).join(" ").trim();
 }
 
+// Saying the plan fits a budget: "well under your 3,000 EUR budget", "keeping
+// the total cost well under control". A claim with figures of its own is an
+// answer the traveller can check; one whose only figure is their budget is a
+// promise nobody checked.
+const BUDGET_WORD = words("budget|presupuesto|orçamento|orcamento");
+const MONEY_UNIT = "(?:k|usd|eur|gbp|inr|chf|€|\\$|£|dollars?|euros?|dólares|dolares|reais)";
+const AN_AMOUNT = `(?:[€$£¥₹]\\s?\\d|\\d[\\d.,]*\\s?${MONEY_UNIT}(?![${L}]))`;
+const NEAR = "[^.!?\\n]{0,30}?";
+// "Com um orçamento de 5.000 EUR, o roteiro está super confortável, cobrindo
+// com folga…": a claim only next to their budget. Alone it is about time
+// ("chegue com folga ao aeroporto").
+const ROOM_TO_SPARE = words(
+  "room\\s+to\\s+spare|plenty\\s+of\\s+(?:room|headroom)|money\\s+left\\s+over|con\\s+holgura|de\\s+sobra|(?:mucho|bastante)\\s+margen|(?:ampio|abbondante|molto)\\s+margine|con\\s+margine|com\\s+folga|(?:bastante|muita)\\s+folga|(?:super|bem|muito)\\s+confortável"
+);
+const BUDGET_FIT: RegExp[] = [
+  // English
+  new RegExp(`${start}(?:under|within|below|inside|fits?|fitting)\\s+(?:${NEAR}\\s)?${BUDGET_WORD}${end}`, "iu"),
+  new RegExp(`${start}(?:well|comfortably|safely|easily|nicely)\\s+(?:under|within|below)\\s+${NEAR}(?:${BUDGET_WORD}|control|\\d|[€$£¥₹])`, "iu"),
+  new RegExp(`${start}(?:keep(?:s|ing)?|kept|stay(?:s|ing)?)\\s+(?:${NEAR}\\s)?(?:under|within|below)\\s+${AN_AMOUNT}`, "iu"),
+  // Spanish
+  new RegExp(`${start}(?:por\\s+debajo\\s+de(?:l)?|dentro\\s+de(?:l)?|(?:cabe|caben|encaja|se\\s+ajusta)\\s+(?:en|a)(?:l)?)\\s+(?:${NEAR}\\s)?${BUDGET_WORD}${end}`, "iu"),
+  new RegExp(`${start}(?:muy|bien|holgadamente)\\s+por\\s+debajo\\s+${NEAR}(?:${BUDGET_WORD}|control|\\d|[€$£¥₹])`, "iu"),
+  // Italian
+  new RegExp(`${start}(?:sotto|entro|dentro|rientra(?:no)?\\s+(?:nel|nei))\\s+(?:${NEAR}\\s)?${BUDGET_WORD}${end}`, "iu"),
+  new RegExp(`${start}ben\\s+(?:al\\s+di\\s+)?sotto\\s+${NEAR}(?:${BUDGET_WORD}|controllo|\\d|[€$£¥₹])`, "iu"),
+  // Portuguese
+  new RegExp(`${start}(?:abaixo\\s+d[oae]s?|dentro\\s+d[oa]|cabe(?:m)?\\s+n[oa])\\s+(?:${NEAR}\\s)?${BUDGET_WORD}${end}`, "iu"),
+  new RegExp(`${start}bem\\s+abaixo\\s+${NEAR}(?:${BUDGET_WORD}|controle|\\d|[€$£¥₹])`, "iu"),
+  // Room to spare, said of their budget in the same sentence (ROOM_TO_SPARE).
+  new RegExp(`${start}${BUDGET_WORD}${end}[^\\n]{0,120}?${start}${ROOM_TO_SPARE}${end}`, "iu"),
+  new RegExp(`${start}${ROOM_TO_SPARE}${end}[^\\n]{0,120}?${start}${BUDGET_WORD}${end}`, "iu"),
+];
+
+/** The reply's sentences, a question being an offer and no claim. */
+function sentencesOf(text: string): string[] {
+  return text.split(/(?<=[.!?…])\s+|\n+/).map((s) => s.trim()).filter(Boolean);
+}
+
+const claimsFitIn = (sentence: string) => !/\?\s*$/.test(sentence) && BUDGET_FIT.some((re) => re.test(sentence));
+
+/** Does this reply say the plan fits a budget ("well under your budget", "dentro de tu presupuesto")? */
+export function claimsBudgetFit(text: string | null | undefined): boolean {
+  return sentencesOf(text ?? "").some(claimsFitIn);
+}
+
+/** The text without its sentences that say the plan fits a budget, line by line. */
+export function withoutBudgetClaims(text: string): string {
+  return text
+    .split("\n")
+    .map((line) => line.split(/(?<=[.!?…])\s+/).filter((s) => !claimsFitIn(s.trim())).join(" ").trim())
+    .filter(Boolean)
+    .join("\n");
+}
+
+// Every number written, as digits: "3,000", "3.000" and "3k" are all 3000.
+function numbersIn(text: string): string[] {
+  return [...text.matchAll(/\d[\d.,]*(\s?k(?![\p{L}]))?/giu)].map((m) => {
+    const digits = m[0].replace(/\s?k$/i, "").replace(/[.,]+$/, "");
+    if (!m[1]) return digits.replace(/[.,]/g, "");
+    const [whole, part = ""] = digits.split(/[.,]/);
+    return `${whole}${part.padEnd(3, "0").slice(0, 3)}`;
+  });
+}
+
+// An amount of money: next to a currency, or big enough to be one. A year on
+// its own ("your 2027 trip") is none.
+const MONEY = new RegExp(`(?:[€$£¥₹]\\s?\\d[\\d.,]*|\\d[\\d.,]*\\s?${MONEY_UNIT}(?![${L}])|\\d{1,3}(?:[.,]\\d{3})+|\\d{3,})`, "giu");
+const BARE_YEAR = /^(?:19|20)\d{2}$/;
+
+/**
+ * Does this reply say the plan fits a budget with no figures but the
+ * traveller's own (their budget, how many are going)? Then nothing in it was
+ * worked out. `theirs` is what the traveller wrote.
+ */
+export function unshownBudgetClaim(reply: string | null | undefined, theirs: string): boolean {
+  if (!claimsBudgetFit(reply)) return false;
+  const told = new Set(numbersIn(theirs));
+  return [...(reply ?? "").matchAll(MONEY)]
+    .map((m) => m[0])
+    .filter((m) => !BARE_YEAR.test(m))
+    .every((m) => numbersIn(m).every((n) => told.has(n)));
+}
+
+/** In place of such a claim: that the budget wasn't checked, then what the plan's activities cost, when known. */
+export function budgetUncheckedReply(
+  language: string | undefined,
+  costs: { currency: string; total: number; shown?: { currency: string; total: number } } | null,
+): string {
+  const lead = note(language, "budgetUnchecked");
+  return costs ? `${lead} ${planCostsReply(language, costs)}` : lead;
+}
+
 // Saying the trip got longer: "I've added two extra days", "esto extiende el viaje".
 const LONGER_TRIP: RegExp[] = [
   new RegExp(`${start}(?:extend(?:s|ed)?|lengthen(?:s|ed)?)\\s+(?:your|the)\\s+(?:trip|itinerary|stay)${end}`, "iu"),
@@ -529,6 +621,31 @@ export function daysNotAddedNote(language: string | undefined, days: number[]): 
  * Appended when a changed day still plans something outside the hours around
  * an arrival or a departure, after the model was asked to fix it.
  */
+/**
+ * What holding a changed day to the traveller's times did, one note each (lib/ai/assistant/travel-times.ts
+ * fitTravelTimes): what moved after the arrival or the ride, what was cut to end before they set off, what came out.
+ */
+export function travelTimesFitNotes(
+  language: string | undefined,
+  fit: { day: number; arrives?: string; leaves?: string; from: string | null; until: string | null; journey?: true; moved: string[]; shortened: string[]; left: string[] },
+): string[] {
+  const day = String(fit.day);
+  const notes: string[] = [];
+  if (fit.moved.length > 0) {
+    const names = fit.moved.join(", ");
+    notes.push(
+      fit.journey
+        ? note(language, "travelTimesMovedBetween", { day, leaves: String(fit.leaves), arrives: String(fit.arrives), from: String(fit.from), names })
+        : note(language, "travelTimesMoved", { day, arrives: String(fit.arrives), from: String(fit.from), names }),
+    );
+  }
+  if (fit.shortened.length > 0) {
+    notes.push(note(language, "travelTimesShortened", { day, leaves: String(fit.leaves), until: String(fit.until), names: fit.shortened.join(", ") }));
+  }
+  if (fit.left.length > 0) notes.push(note(language, "travelTimesLeftOut", { day, names: fit.left.join(", "), count: fit.left.length }));
+  return notes;
+}
+
 export function travelTimesNote(
   language: string | undefined,
   v: { day: number; arrives?: string; leaves?: string; from: string | null; until: string | null; journey?: true; names: string[] },

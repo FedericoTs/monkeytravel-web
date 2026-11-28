@@ -73,6 +73,25 @@ describe("assistTrip on a trip through two cities", () => {
     expect(day2.activities.map((a) => a.name)).toEqual(["Livraria Lello"]);
   });
 
+  it("makes a ride for a hop the change made, in the reply's language", async () => {
+    generateContent.mockResolvedValue({
+      response: {
+        text: () =>
+          JSON.stringify({
+            reply: "Day 2 is now in Sintra.",
+            edits: [{ day_number: 2, city: "Sintra", summary: "Sintra", activities: [{ name: "Pena Palace", start_time: "13:00", duration_minutes: 120, type: "attraction", coordinates: { lat: 38.7876, lng: -9.3906 } }] }],
+          }),
+        usageMetadata: {},
+      },
+    });
+    const pinnedDays = days.map((d) => ({ ...d, activities: d.activities.map((a) => ({ ...a, coordinates: { lat: 38.6979, lng: -9.2068 } })) })) as unknown as ItineraryDay[];
+    const out = await assistTrip({ ...input, message: "spend day 2 in Sintra instead", days: pinnedDays, locale: "it" });
+    const day2 = out.edits.find((e) => e.day_number === 2)!;
+    expect(day2.activities[0]).toMatchObject({ type: "transport", start_time: "08:30" });
+    expect(day2.activities[0].name).toMatch(/^(Treno|Volo|Autobus|Traghetto|Trasferimento) (per|a) Sintra$/);
+    expect(day2.activities.map((a) => a.name)).toContain("Pena Palace");
+  });
+
   it("leaves it out when a yes answers that ask", async () => {
     generateContent.mockResolvedValue(withoutMeals);
     const history = [

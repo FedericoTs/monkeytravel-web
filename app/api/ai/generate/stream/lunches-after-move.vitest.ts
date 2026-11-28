@@ -89,6 +89,9 @@ vi.mock("@/lib/ai/itinerary-text", () => ({ parseStreamedItinerary: (text: strin
 // The closing question: the museum is shut on Mondays. The lunch question: a restaurant by the museum; the dinner
 // question: one by Metropol Parasol.
 const lunchQuestions: string[] = [];
+// Where the lunch answered is: by the museum, unless a test moves it.
+const BY_THE_MUSEUM = { lat: 37.3925, lng: -5.9958 };
+let lunchAt = BY_THE_MUSEUM;
 vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/ai/gemini-call")>()),
   genAI: {
@@ -99,7 +102,7 @@ vi.mock("@/lib/ai/gemini-call", async (importOriginal) => ({
         });
         if (question.startsWith("Name one real restaurant for lunch")) {
           lunchQuestions.push(question);
-          return reply({ lunches: [{ n: 1, name: "La Azotea", description: "Modern Andalusian.", location: "Feria", coordinates: { lat: 37.3925, lng: -5.9958 }, cost_per_person_usd: 25 }] }, 5000);
+          return reply({ lunches: [{ n: 1, name: "La Azotea", description: "Modern Andalusian.", location: "Feria", coordinates: lunchAt, cost_per_person_usd: 25 }] }, 5000);
         }
         if (question.startsWith("Name one real restaurant for dinner")) {
           return reply({ dinners: [{ n: 1, name: "Bar Antojo", description: "Andalusian tapas.", location: "Encarnación", coordinates: { lat: 37.3929, lng: -5.9925 }, cost_per_person_usd: 30 }] }, 80);
@@ -137,6 +140,7 @@ const planRow = async () => {
 beforeEach(() => {
   logged.length = 0;
   lunchQuestions.length = 0;
+  lunchAt = BY_THE_MUSEUM;
   days = [SATURDAY, SUNDAY, MONDAY];
   vi.spyOn(console, "log").mockImplementation(() => {});
 });
@@ -163,6 +167,13 @@ describe("a day the closing days move into the middle of the trip", () => {
     expect(row.metadata?.dinners).toEqual({ missing: 1, added: 1, after_move: 1 });
     // Two lunch questions at 5,000 prompt tokens each.
     expect(row.costUsd).toBeGreaterThanOrEqual(0.01);
+  });
+
+  it("logs why the moved day is still without lunch: here the answer is in Cádiz, far from the museum", async () => {
+    lunchAt = { lat: 36.5298, lng: -6.2924 };
+    const out = await complete();
+    expect(out[1]).toBe("2026-11-29: 10:00 Museo de Bellas Artes, 14:30 Metropol Parasol, 20:30 Bar Antojo");
+    expect((await planRow()).metadata?.lunches).toEqual({ missing: 1, added: 0, after_move: 1, left: { far: 1 } });
   });
 
   it("asks a day without lunch once when it doesn't move", async () => {

@@ -32,8 +32,8 @@ describe("asking for the plan's link by email", () => {
     type("  ana@example.com ");
     send();
     await waitFor(() => expect(screen.getByRole("status").textContent).toBe("wizard.kept.emailSent:ana@example.com"));
-    expect(emailKeptPlan).toHaveBeenCalledWith(TOKEN, "ana@example.com", "it");
-    expect(capture).toHaveBeenCalledWith("kept_plan_email", { outcome: "sent", offered: false });
+    expect(emailKeptPlan).toHaveBeenCalledWith(TOKEN, "ana@example.com", "it", false);
+    expect(capture).toHaveBeenCalledWith("kept_plan_email", { outcome: "sent", offered: false, remind: false });
     expect(screen.queryByLabelText("wizard.kept.emailLabel")).toBeNull();
   });
 
@@ -70,7 +70,7 @@ describe("asking for the plan's link by email", () => {
     send();
     await waitFor(() => expect(screen.getByRole("alert").textContent).toBe(message));
     expect(input().value).toBe("ana@example.com");
-    expect(capture).toHaveBeenCalledWith("kept_plan_email", { outcome, offered: false });
+    expect(capture).toHaveBeenCalledWith("kept_plan_email", { outcome, offered: false, remind: false });
   });
 
   it("clears the reason on a try that works", async () => {
@@ -121,5 +121,52 @@ describe("the card itself", () => {
     unmount();
     fireEvent.keyDown(window, { key: "Escape" });
     expect(onClose).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("the reminders before the trip", () => {
+  const box = () => screen.getByRole("checkbox") as HTMLInputElement;
+
+  it("are offered unticked, saying which emails follow and how to stop them", () => {
+    render(<EmailPlanCard token={TOKEN} offered onClose={() => {}} remind="week" />);
+    expect(box().checked).toBe(false);
+    expect(screen.getByLabelText(/wizard\.kept\.remindWeek/)).toBe(box());
+    expect(screen.getByRole("link", { name: "wizard.kept.remindPrivacy" }).getAttribute("href")).toBe("/privacy");
+    expect(screen.getByRole("heading").textContent).toBe("wizard.kept.emailOfferRemind");
+    expect(screen.getByText("wizard.kept.emailNoteRemind")).toBeTruthy();
+    expect(screen.queryByText("wizard.kept.emailNote")).toBeNull();
+  });
+
+  it("name only the day before's email when that's the one that can follow", () => {
+    render(<EmailPlanCard token={TOKEN} offered={false} onClose={() => {}} remind="day" />);
+    expect(screen.getByLabelText(/wizard\.kept\.remindDay/)).toBe(box());
+    expect(screen.getByRole("heading").textContent).toBe("wizard.kept.emailAction");
+  });
+
+  it("are asked for only with the tick, and the card says so once they're on", async () => {
+    emailKeptPlan.mockResolvedValue("reminded");
+    render(<EmailPlanCard token={TOKEN} offered onClose={() => {}} remind="week" />);
+    fireEvent.click(box());
+    type("ana@example.com");
+    send();
+    await waitFor(() => expect(screen.getByRole("status").textContent).toBe("wizard.kept.remindSent:ana@example.com"));
+    expect(emailKeptPlan).toHaveBeenCalledWith(TOKEN, "ana@example.com", "it", true);
+    expect(capture).toHaveBeenCalledWith("kept_plan_email", { outcome: "reminded", offered: true, remind: true });
+  });
+
+  it("aren't asked for when the box is left unticked, or unticked again", async () => {
+    render(<EmailPlanCard token={TOKEN} offered onClose={() => {}} remind="week" />);
+    fireEvent.click(box());
+    fireEvent.click(box());
+    type("ana@example.com");
+    send();
+    await waitFor(() => expect(screen.getByRole("status").textContent).toBe("wizard.kept.emailSent:ana@example.com"));
+    expect(emailKeptPlan).toHaveBeenCalledWith(TOKEN, "ana@example.com", "it", false);
+  });
+
+  it("aren't offered for a trip that can't be reminded of", () => {
+    render(<EmailPlanCard token={TOKEN} offered onClose={() => {}} remind={null} />);
+    expect(screen.queryByRole("checkbox")).toBeNull();
+    expect(screen.getByRole("heading").textContent).toBe("wizard.kept.emailOffer");
   });
 });

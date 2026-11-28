@@ -29,6 +29,8 @@ import {
   isConfirmation,
   statedDayCounts,
   offersChange,
+  replyLanguage,
+  unshownBudgetClaim,
 } from "@/lib/ai/assistant/honesty";
 import { planCosts, planCurrency } from "@/lib/ai/assistant/plan-costs";
 import { dayMentioned } from "@/lib/ai/assistant/day-target";
@@ -65,8 +67,9 @@ import {
 } from "./message-asks";
 import { alsoInTheirCity, daysOfCity, keepDayCities, placesAway, withoutPlacesAway, type PlacesAway } from "./city-days";
 import { keepRides } from "./rides";
+import { askLanguage, asksToDriveTheRoute, driveTheRoute } from "./drive-rides";
 import { dropLeftoverMeals } from "./leftover-meals";
-import { type TravelTime, readTravelTimes, toldTravelTimes, outsideTravelTimes, minutesOf, keepDepartureTime, withPlanDeparture } from "./travel-times";
+import { type TravelTime, readTravelTimes, toldTravelTimes, outsideTravelTimes, fitTravelTimes, minutesOf, keepDepartureTime, withPlanDeparture } from "./travel-times";
 import { composeReply, type PlaceOnDay } from "./edit-reply";
 import { maxTripDays } from "./structural";
 import { offeredAgain } from "./ideas-rule";
@@ -112,6 +115,11 @@ type Outcome = ReturnType<typeof validateEdits> & {
   route: RouteStop[];
 };
 
+/** What they ask: the message, and the one a "yes" answers. */
+function askedNow(input: AssistInput): string {
+  return [input.message, [...(input.history ?? [])].reverse().find((t) => t.role === "user")?.text ?? ""].join("\n");
+}
+
 /** The model's JSON, as the reply and checked edits this engine works with. */
 function readOutcome(input: AssistInput, obj: Record<string, unknown>, cur: string): Outcome {
   const reply = plainText(str(obj.reply, "").trim());
@@ -125,10 +133,8 @@ function readOutcome(input: AssistInput, obj: Record<string, unknown>, cur: stri
     asksForFreeDay(input.message) || asksForFreeDay([...(input.history ?? [])].reverse().find((t) => t.role === "user")?.text ?? ""),
   );
   const told = [input.message, ...(input.history ?? []).slice(-4).filter((t) => t.role === "user").map((t) => t.text)].join("\n");
-  // Asked now, or in the message a "yes" answers.
-  const asked = [input.message, [...(input.history ?? [])].reverse().find((t) => t.role === "user")?.text ?? ""].join("\n");
   const cityEdits = keepDayCities(input.days, keepSavedActivities(input.days, checked.edits, { reply, message: input.message }), told);
-  const edits = keepDepartureTime(input.days, keepRides(input.days, dropLeftoverMeals(input.days, cityEdits, { reply, asked }), asked), input.message);
+  const edits = keepDepartureTime(input.days, keepRides(input.days, cityEdits, askedNow(input), { currency: cur, language: input.locale }), input.message);
   // The other days the change concerns, past what one reply holds.
   const length = checked.tripLength ?? input.days.length;
   const done = new Set(edits.map((e) => e.day_number));
@@ -491,6 +497,7 @@ export type CorrectionRule =
   | "list_missing"
   | "twin_place"
   | "claimed_change"
+  | "budget_unshown"
   | "turned_down";
 
 /** A rule a reply broke, and what the model is told for its one more try. */
@@ -510,6 +517,10 @@ export interface Corrected {
 }
 
 const said = (rule: CorrectionRule, text: string): Correction => ({ rule, text });
+
+/** What the traveller wrote in this conversation: their budget, how many are going. */
+const theirWords = (input: Pick<AssistInput, "message" | "history">): string =>
+  [...(input.history ?? []).filter((t) => t.role === "user").map((t) => t.text), input.message].join("\n");
 
 /** What a reply got wrong that one more try may fix, and the rule it broke, or null. Pure; unit-tested. */
 export function correctionWithRule(
@@ -650,6 +661,10 @@ export function correctionWithRule(
   if (!prepared && claimsItineraryChange(o.reply) && !currencyRequested(input.message)) {
     return said("claimed_change", `Your "reply" says the plan changes, but "edits" is empty. Put that change in "edits" now, or say plainly in "reply" that you couldn't make it.`);
   }
+  // "Well under your budget" with no figure but theirs: nothing was worked out.
+  if (!prepared && unshownBudgetClaim(o.reply, theirWords(input))) {
+    return said("budget_unshown", `Your "reply" says the plan fits their budget, but shows no figures that say so. The activity costs above are per person: multiply them by how many are going, add clearly labelled estimates for what the plan leaves out (hotels, flights), give those numbers in "reply" and say plainly whether the total is over or under their budget. A budget is for everyone together unless they said per person. If they asked to bring the trip under it and it's over, swap the priciest stops for cheaper real ones in "edits" and give the new total.`);
+  }
   // Places the traveller turned down, offered again under another question:
   // "anything indoors?" after "none of those" brought the same ones back.
   const again = offeredAgain(input, o);
@@ -701,6 +716,29 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   }
   const startedAt = Date.now();
   const cur = planCurrency(input.days);
+  // "We'll travel by car for the whole trip": the route's rides become drives here, in code (drive-rides.ts). The
+  // model, told that how they get around is a question, answered it as one as often as not.
+  if (asksToDriveTheRoute(input.message, input.days)) {
+    const language = askLanguage(input.message, replyLanguage(input.message) ?? resolveAiLanguage(input.locale));
+    const driving = driveTheRoute(input.days, { currency: cur, language });
+    if (driving.edits.length > 0 || driving.kept.length > 0) {
+      return {
+        reply: composeReply({
+          reply: driving.reply,
+          edits: driving.edits,
+          lockedDays: [],
+          lengthRefused: false,
+          locale: input.locale,
+          destination: input.destination,
+          currentDays: input.days.length,
+          autoApplied: input.autoApply,
+          ownLead: input.ownLead,
+        }),
+        edits: driving.edits,
+        meta: { model: "none", costUsd: 0, generationTimeMs: Date.now() - startedAt },
+      };
+    }
+  }
   let modelId = getModelForPurpose("assistant-edits");
 
   const generationConfig: GenerationConfig = {
@@ -907,8 +945,10 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   }
   // The edits as they stand, with the places of another city that a reply or
   // part still put on a day taken off it (`away`).
+  // Meals a reply says it took out, judged on the whole change: a long one comes in parts, and a part sees only its days.
+  const mealTalk = { reply, asked: askedNow(input) };
   const settle = (list: DayEdit[]): { edits: DayEdit[]; away: PlacesAway[] } => {
-    let kept = list;
+    let kept = dropLeftoverMeals(input.days, list, mealTalk);
     // Told to keep everything, a day that takes something out isn't part of the
     // change, whichever reply or part made it: what it added is named as missing.
     if (keepAll) {
@@ -1071,8 +1111,13 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
     tripLength = firstMissing - 1 > current ? firstMissing - 1 : undefined;
     lengthRefused = tripLength === undefined;
   }
-  // Rarely, a changed day still doesn't fit an arrival or a departure after
-  // the correction: the reply says so rather than leave it for the airport.
+  // A changed day that still plans past a time the traveller gave, after the
+  // correction, is held to it here, and the reply says what moved, was cut or
+  // came out. The plan's own way home is only its guess at when they leave: a
+  // day that still plans past it, or anything else that can't fit, is named,
+  // rather than left for the airport.
+  const held = fitTravelTimes(edits, outcome.travelTimes);
+  edits = held.edits;
   const outsideTimes = outsideTravelTimes(edits, withPlanDeparture(outcome.travelTimes, input.days));
   // A list that still came back short says what's missing, whatever the reply claims.
   const listMissing = daysLeft.length === 0 ? missingFromList(input, edits) : [];
@@ -1098,6 +1143,7 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
     daysLeft,
     notAdded,
     outsideTimes,
+    timesFitted: held.fits,
     askedForMoreDays: asksForMoreDays(input.message, input.days.length),
     // Unless they asked for something to go for good: a swap can take out more than they named.
     takenOut: input.explainRemovals && !asksToTakeOut(input.message) ? takenOut(input.days, edits) : [],
@@ -1114,6 +1160,7 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
       edits.some((e) => e.activities.some((a) => a.name === name && a.duration_minutes === SHORTEST_STOP_MINUTES)),
     ),
     ...(capped ? { tripCap: { max: maxTripDays(input.days), days: current } } : {}),
+    budgetUnshown: unshownBudgetClaim(reply, theirWords(input)),
   });
 
   return {

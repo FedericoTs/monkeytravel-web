@@ -18,6 +18,11 @@ describe("chooseCityPoints", () => {
     ]);
   });
 
+  it("says the chosen place's country when the table names it", () => {
+    const found = [[{ ...at("Kochi", 9.93, 76.26, 600_000), country_code: "IN" }, { ...at("Kochi", 33.56, 133.53, 330_000), country_code: "JP" }]];
+    expect(chooseCityPoints(found, ["kochi"])).toEqual([{ lat: 9.93, lng: 76.26, country: "IN" }]);
+  });
+
   it("takes the place of that name nearest the route's other cities, written with or without its accents", () => {
     const found = [
       [at("Madrid", 40.42, -3.7, 3_000_000)],
